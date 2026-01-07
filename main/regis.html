@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ServiTech: JC Repair Shop - Login</title>
+  <title>ServiTech: JC Repair Shop - Register</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,28 +15,30 @@
     </a>
     <nav>
       <a href="landing.html">Services Home</a>
-      <a href="regis.html">Register</a>  
+      <a href="log_in.html">Login</a>  
     </nav>
   </header> 
 
-  <!-- LOGIN FORM -->
+  <!-- REGISTER FORM -->
   <div class="auth-container">
-    <h1>Log-in</h1>
+    <h1>Create Account</h1>
 
     <form>
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" placeholder="Enter your name" required>
+
+      <label for="contact">Contact No.</label>
+      <input type="tel" id="contact" placeholder="Enter your contact number" required>
+
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="Enter your email" required>
 
       <label for="password">Password</label>
       <div class="password-wrapper">
         <input type="password" id="password" placeholder="Enter password" required>
-        <span class="toggle-password" id="togglePassword"></span>
       </div>
 
-
-      <a class="forgot" href="#">Forgot Password?</a>
-
-      <button type="submit">Enter</button>
+      <button type="submit">Register</button>
     </form>
   </div>
 
@@ -68,17 +70,7 @@
     <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
   </footer>
 
-  <!-- PASSWORD TOGGLE JS -->
-  <script>
-    const togglePassword = document.getElementById('togglePassword');
-    const password = document.getElementById('password');
-
-    togglePassword.addEventListener('click', () => {
-      const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-      password.setAttribute('type', type);
-      togglePassword.src = type === 'password' ? './IMAGES/eye.png' : './IMAGES/eye-slash.png';
-    });
-  </script>
+ <script src="main.js"></script>
 
 </body>
 </html>
