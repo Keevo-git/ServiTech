@@ -1,0 +1,159 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  background-color: #f4f6f8;
+  color: #222;
+}
+
+/* NAVBAR */
+.navbar {
+  background-color: #4A0505;
+  color: #fff;
+  padding: 20px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar h1 {
+  font-size: 22px;
+}
+
+.navbar nav a {
+  color: #fff;
+  margin-left: 20px;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.navbar nav a:hover {
+  text-decoration: underline;
+}
+
+/* HERO */
+.hero {
+  background: linear-gradient(180deg, #fe8839, #FAB12F); 
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.hero h2 {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+/* HERO CARDS CONTAINER */
+.hero-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+/* HERO CARD STYLE */
+.hero-card {
+  background-color: #ffffff;
+  width: 200px;
+  padding: 25px 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.hero-card:hover {
+  transform: translateY(-6px);
+}
+
+/* HERO ICON */
+.hero-card img {
+  width: 70px;
+  height: auto;
+  margin-bottom: 15px;
+}
+
+/* HERO CARD TEXT */
+.hero-card h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+
+
+/* SERVICES SECTION */
+.services {
+  padding: 60px 70px;
+}
+
+.services h2 {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 50px;
+}
+
+/* CATEGORY */
+.service-category {
+  margin-bottom: 60px;
+}
+
+.service-category h3 {
+  font-size: 22px;
+  margin-bottom: 25px;
+  color: #0f172a;
+}
+
+/* CARD GRID */
+.service-category {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* SERVICE CARD */
+.card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+}
+
+/* FOOTER */
+footer {
+  background-color: #0f172a;
+  color: #fff;
+  text-align: center;
+  padding: 30px 20px;
+  font-size: 14px;
+}
+
+footer p {
+  margin: 6px 0;
+}
