@@ -24,19 +24,41 @@ body {
   font-size: 22px;
 }
 
-.navbar nav a {
+/* .navbar nav a {
   color: #fff;
   margin-left: 20px;
   text-decoration: none;
   font-size: 14px;
+  
 }
 
 .navbar nav a:hover {
   text-decoration: underline;
+} */
+
+
+.navbar nav a {
+  background-color: #ffffff;
+  color: #4A0505;              
+  margin-left: 15px;
+  padding: 8px 20px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 20px;
+  transition: all 0.35s ease;
 }
 
-/* LOGO */
+/* HOVER EFFECT */
+.navbar nav a:hover {
+  background-color: #ff8b2c;
+  color:#ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.50);
+}
 
+
+
+/* LOGO */
 .logo {
   display: flex;
   align-items: center;
