@@ -24,17 +24,7 @@ body {
   font-size: 22px;
 }
 
-/* .navbar nav a {
-  color: #fff;
-  margin-left: 20px;
-  text-decoration: none;
-  font-size: 14px;
-  
-}
 
-.navbar nav a:hover {
-  text-decoration: underline;
-} */
 
 
 .navbar nav a {
@@ -189,6 +179,119 @@ body {
   transform: translateY(-4px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.12);
 }
+
+
+
+
+/* ===================== */
+/* AUTH CONTAINER (LOGIN/REGISTER) */
+/* ===================== */
+.auth-container {
+  width: 350px;
+  max-width: 90%;
+  margin: 80px auto;
+  padding: 40px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ff772e, #ffbc48);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  text-align: center;
+  color: #fff;
+}
+
+.auth-container h1 {
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+/* INPUT FIELDS */
+.auth-container label {
+  display: block;
+  text-align: left;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.auth-container input[type="text"],
+.auth-container input[type="email"],
+.auth-container input[type="password"],
+.auth-container input[type="tel"] {
+  width: 100%;
+  padding: 10px 40px 10px 10px; /* extra padding-right for icon */
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  font-size: 14px;
+}
+
+/* PLACEHOLDER OPACITY */
+.auth-container input::placeholder {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* PASSWORD TOGGLE ICON */
+.password-wrapper {
+  position: relative;
+}
+
+
+/* BUTTON */
+.auth-container button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4A0505; /* MAROON */
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.auth-container button:hover {
+  background-color: #6e0000; /* darker maroon */
+}
+
+/* FORGOT PASSWORD LINK */
+.auth-container .forgot {
+  display: block;
+  margin-bottom: 20px;
+  color: #fff;
+  text-decoration: underline;
+  font-size: 12px;
+  text-align: right;
+  cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* FOOTER */
 .footer {
