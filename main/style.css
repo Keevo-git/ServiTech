@@ -641,20 +641,77 @@ body {
   gap: 20px;
 }
 
+/* QUICK ACCESS */
+.quick-access {
+  padding: 40px 60px;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* CARD */
 .quick-card {
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  text-align: center;
-  font-weight: bold;
+  background: #ffffff;
+  padding: 28px 24px;
+  border-radius: 14px;
+  text-align: left;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .quick-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
+/* ICON BACKGROUND (same as PENDING) */
+.quick-icon-box {
+  width: 48px;
+  height: 48px;
+  background: #FAB12F;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
 
+/* ICON IMAGE */
+.quick-icon {
+  width: 26px;
+  height: 26px;
+}
 
+/* TITLE */
+.quick-card h4 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: #4A0505;
+}
 
+/* DESCRIPTION */
+.quick-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #333;
+  font-weight: normal;
+}
+
+/* QUEUE HEADER (QUEUE NO + STATUS) */
+.queue-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;          /* space between #P-001 and PENDING */
+  margin-bottom: 10px;
+}
+
+.queue-number {
+  font-size: 26px;
+  font-weight: bold;
+  color: #000;
+}

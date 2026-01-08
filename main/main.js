@@ -36,13 +36,18 @@ document.querySelectorAll('.modal-overlay').forEach(modal => {
 
 
 // CUSTOMER DASHBOARD DEMO ONLY   !!!!
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("customerName").textContent = "Trisha Mae";
-  document.getElementById("queueNo").textContent = "#P-001";
-  document.getElementById("queueStatus").textContent = "PENDING";
-  document.getElementById("queueService").textContent = "Service: Document Printing";
-  document.getElementById("queueDetails").textContent = "Short Bond Paper - Black & White";
-  document.getElementById("ongoingCount").textContent = "04";
+// document.addEventListener("DOMContentLoaded", () => {
+//   document.getElementById("customerName").textContent = "Trisha Mae";
+//   document.getElementById("queueNo").textContent = "#P-001";
+//   document.getElementById("queueStatus").textContent = "PENDING";
+//   document.getElementById("queueService").textContent = "Service: Document Printing";
+//   document.getElementById("queueDetails").textContent = "Short Bond Paper - Black & White";
+//   document.getElementById("ongoingCount").textContent = "04";
+// });
+
+
+document.querySelector(".quick-card").addEventListener("click", () => {
+  window.location.href = "queue.html";
 });
 
 
