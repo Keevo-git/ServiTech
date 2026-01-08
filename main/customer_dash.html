@@ -15,7 +15,7 @@
     </a>
     <nav>
       <a href="landing.html">Services Home</a>
-      <a href="log_in.html">Logout</a>  
+      <a href="landing.html">Logout</a>  
     </nav>
   </header> 
 
@@ -33,8 +33,11 @@
       <h3>ACTIVE QUEUE</h3>
       <div class="divider"></div>
 
-      <p class="queue-number" id="queueNo">#---</p>
-      <span class="status pending" id="queueStatus">PENDING</span>
+      <div class="queue-header">
+        <span class="queue-number" id="queueNo">#---</span>
+        <span class="status pending" id="queueStatus">PENDING</span>
+      </div>
+
 
       <p id="queueService">Service: ---</p>
       <p id="queueDetails">Details: ---</p>
@@ -50,17 +53,47 @@
   </section>
 
   <!-- QUICK ACCESS -->
-  <section class="quick-access">
-    <h3>Quick Access</h3>
-    <div class="divider"></div>
+<section class="quick-access">
+  <h3>Quick Access</h3>
+  <div class="divider"></div>
 
-    <div class="quick-grid">
-      <div class="quick-card">Join Queue</div>
-      <div class="quick-card">Service Status</div>
-      <div class="quick-card">Print Order</div>
-      <div class="quick-card">Edit Profile</div>
+  <div class="quick-grid">
+
+    <div class="quick-card">
+      <div class="quick-icon-box">
+        <img src="./IMAGES/LANDING_QUEUEING.png" alt="Join Queue" class="quick-icon">
+      </div>
+      <h4>Join Queue</h4>
+      <p>Join the line to place your request.</p>
     </div>
-  </section>
+
+    <div class="quick-card">
+      <div class="quick-icon-box">
+        <img src="./IMAGES/LANDING_SERVICE-STAT.png" alt="Service Status" class="quick-icon">
+      </div>
+      <h4>Service Status</h4>
+      <p>Check your requested service status or your queue status.</p>
+    </div>
+
+    <div class="quick-card">
+      <div class="quick-icon-box">
+        <img src="./IMAGES/LANDING_PRINT-ORD.png" alt="Print Order" class="quick-icon">
+      </div>
+      <h4>Print Order</h4>
+      <p>Place an order to print your document.</p>
+    </div>
+
+    <div class="quick-card">
+      <div class="quick-icon-box">
+        <img src="./IMAGES/ICON_EDIT_PROF.png" alt="Edit Profile" class="quick-icon">
+      </div>
+      <h4>Edit Profile</h4>
+      <p>Edit your personal information.</p>
+    </div>
+
+  </div>
+</section>
+
 
   <!-- FOOTER -->
   <footer class="footer">
