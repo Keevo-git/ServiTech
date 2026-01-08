@@ -47,43 +47,144 @@
 
 
   <!-- SERVICES -->
-  <section class="services">
+<section class="services">
 
-    <h2>JC Repair Shop’s Services</h2>
+  <h2>JC Repair Shop’s Services</h2>
+  <p>(Note: these are only the common requested services, you may contact us for inquiry of other services)</p>
 
-    <!-- PRINTING -->
-    <div class="service-category">
+  <!-- TOP SERVICE TYPE CARDS -->
+  <div class="service-type-cards">
+
+    <div class="service-type-card" onclick="scrollToSection('printing')">
+      <img src="./IMAGES/CARD_PRINTING.png" alt="Printing Service">
       <h3>Printing Service</h3>
-      <div class="card">Document Printing</div>
-      <div class="card">Xerox</div>
-      <div class="card">Rush ID</div>
-      <div class="card">Laminating</div>
     </div>
 
-    <!-- DEVICE REPAIR -->
-    <div class="service-category">
+    <div class="service-type-card" onclick="scrollToSection('repair')">
+      <img src="./IMAGES/CARD_REPAIR.png" alt="Device Repair">
       <h3>Device Repair Service</h3>
-      <div class="card">LCD Replacement</div>
-      <div class="card">Battery Replacement</div>
-      <div class="card">Charging Pin Replacement</div>
-      <div class="card">Speaker / Mouthpiece Repair</div>
-      <div class="card">Power Button Repair</div>
-      <div class="card">Volume Repair</div>
-      <div class="card">Camera Replacement</div>
     </div>
 
-    <!-- INSTALLATION -->
-    <div class="service-category">
-      <h3>Installation / Software Service</h3>
-      <div class="card">Reprogram Service</div>
-      <div class="card">Hang Logo Fix</div>
-      <div class="card">Boot Loop Fix</div>
-      <div class="card">Openline Samsung & iPhone</div>
-      <div class="card">Bypass Google Account</div>
-      <div class="card">Bypass Password</div>
+    <div class="service-type-card" onclick="scrollToSection('installation')">
+      <img src="./IMAGES/CARD_INSTALLATION.png" alt="Installation Service">
+      <h3>Installation / Software</h3>
     </div>
 
-  </section>
+  </div>
+<br><br><br><br>
+
+  <!-- PRINTING SERVICE DETAILS -->
+  <div id="printing" class="service-details">
+    <h3>Printing Service</h3>
+
+
+    <div class="service-grid">
+      <div class="detail-card">
+        <h4>Document Printing</h4>
+        <p>Long Bond / Short Bond / A4</p>
+        <span>Price varies</span>
+      </div>
+
+      <div class="detail-card">
+        <h4>Xerox</h4>
+        <p>Long Bond: ₱5</p>
+        <p>Short / A4: ₱3</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Rush ID</h4>
+        <p>Packages 1–6</p>
+        <span>Price varies</span>
+      </div>
+
+      <div class="detail-card">
+        <h4>Laminating</h4>
+        <p>Thin: ₱20</p>
+        <p>Thick: ₱30</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEVICE REPAIR DETAILS -->
+  <div id="repair" class="service-details">
+    <h3>Device Repair Service</h3>
+
+    <div class="service-grid">
+      <div class="detail-card">
+        <h4>LCD Replacement</h4>
+        <p>₱1200 – ₱5500</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Battery Replacement</h4>
+        <p>₱700 – ₱2500</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Charging Pin Replacement</h4>
+        <p>₱800 – ₱4000</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Speaker / Mouthpiece</h4>
+        <p>₱700 – ₱1500</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Power Button Repair</h4>
+        <p>₱500 – ₱2000</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Volume Repair</h4>
+        <p>₱1000 – ₱2000</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Camera Replacement</h4>
+        <p>₱1500 – ₱5000</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTALLATION DETAILS -->
+  <div id="installation" class="service-details">
+    <h3>Installation / Software Service</h3>
+
+    <div class="service-grid">
+      <div class="detail-card">
+        <h4>Reprogram Service</h4>
+        <p>₱1000 – ₱4000</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Hang Logo Fix</h4>
+        <p>₱1000 – ₱3500</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Boot Loop Fix</h4>
+        <p>₱1000 – ₱5000</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Openline Samsung & iPhone</h4>
+        <p>₱3500 – ₱6000</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Bypass Google Account</h4>
+        <p>₱500 – ₱2000</p>
+      </div>
+
+      <div class="detail-card">
+        <h4>Bypass Password</h4>
+        <p>₱1000 – ₱3000</p>
+      </div>
+    </div>
+  </div>
+
+</section>
 
 
 
@@ -128,5 +229,7 @@
   <!-- FOOTER BOTTOM (NASA LABAS NA) -->
   <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
 </footer>
+
+<script src="main.js"></script>
 </body>
 </html>

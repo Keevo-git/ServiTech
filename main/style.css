@@ -131,7 +131,7 @@ body {
 
 /* `SERVICES SECTION */
 .services {
-  padding: 60px 70px;
+  padding: 70px 70px;
 }
 
 .services h2 {
@@ -140,6 +140,10 @@ body {
   margin-bottom: 50px;
 }
 
+.services p {
+  text-align: center;
+  
+}
 /* CATEGORY */
 .service-category {
   margin-bottom: 60px;
@@ -182,113 +186,74 @@ body {
 
 
 
+/* SERVICE TYPE CARDS (TOP) */
+.service-type-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 400px); 
+  gap: 40px;
+  justify-content: center;
+  margin: 50px 0 80px;
+}
 
-/* ===================== */
-/* AUTH CONTAINER (LOGIN/REGISTER) */
-/* ===================== */
-.auth-container {
-  width: 350px;
-  max-width: 90%;
-  margin: 80px auto;
-  padding: 40px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #ff772e, #ffbc48);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+.service-type-card {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 30px 20px;
   text-align: center;
-  color: #fff;
-}
-
-.auth-container h1 {
-  margin-bottom: 30px;
-  font-size: 28px;
-}
-
-/* INPUT FIELDS */
-.auth-container label {
-  display: block;
-  text-align: left;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.auth-container input[type="text"],
-.auth-container input[type="email"],
-.auth-container input[type="password"],
-.auth-container input[type="tel"] {
-  width: 100%;
-  padding: 10px 40px 10px 10px; /* extra padding-right for icon */
-  margin-bottom: 20px;
-  border: none;
-  border-radius: 5px;
-  outline: none;
-  font-size: 14px;
-}
-
-/* PLACEHOLDER OPACITY */
-.auth-container input::placeholder {
-  opacity: 0.5;
-  font-style: italic;
-}
-
-/* PASSWORD TOGGLE ICON */
-.password-wrapper {
-  position: relative;
-}
-
-
-/* BUTTON */
-.auth-container button {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  background-color: #4A0505; /* MAROON */
-  color: #fff;
-  font-weight: bold;
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s ease;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.auth-container button:hover {
-  background-color: #6e0000; /* darker maroon */
+.service-type-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.2);
 }
 
-/* FORGOT PASSWORD LINK */
-.auth-container .forgot {
-  display: block;
-  margin-bottom: 20px;
-  color: #fff;
-  text-decoration: underline;
-  font-size: 12px;
-  text-align: right;
-  cursor: pointer;
+.service-type-card img {
+  width: 250px;
+  margin-bottom: 15px;
 }
 
+.service-type-card h3 {
+  color: #4A0505;
+  font-size: 18px;
+}
 
+/* SERVICE DETAILS */
+.service-details {
+  margin-bottom: 80px;
+}
 
+.service-details h3 {
+  font-size: 22px;
+  margin-bottom: 25px;
+  color: #4A0505;
+}
 
+/* SERVICE GRID */
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
 
+/* DETAIL CARD */
+.detail-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
 
+.detail-card h4 {
+  margin-bottom: 10px;
+  color: #4A0505;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.detail-card span {
+  font-weight: 600;
+}
 
 
 
@@ -386,3 +351,96 @@ body {
     justify-content: center;
   }
 }
+
+
+
+
+
+/* ===================== */
+/* AUTH CONTAINER (LOGIN/REGISTER) */
+/* ===================== */
+.auth-container {
+  width: 350px;
+  max-width: 90%;
+  margin: 80px auto;
+  padding: 40px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ff772e, #ffbc48);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  text-align: center;
+  color: #fff;
+}
+
+.auth-container h1 {
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+/* INPUT FIELDS */
+.auth-container label {
+  display: block;
+  text-align: left;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.auth-container input[type="text"],
+.auth-container input[type="email"],
+.auth-container input[type="password"],
+.auth-container input[type="tel"] {
+  width: 100%;
+  padding: 10px 40px 10px 10px; /* extra padding-right for icon */
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  font-size: 14px;
+}
+
+/* PLACEHOLDER OPACITY */
+.auth-container input::placeholder {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* PASSWORD TOGGLE ICON */
+.password-wrapper {
+  position: relative;
+}
+
+
+/* BUTTON */
+.auth-container button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4A0505; /* MAROON */
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.auth-container button:hover {
+  background-color: #6e0000; /* darker maroon */
+}
+
+/* FORGOT PASSWORD LINK */
+.auth-container .forgot {
+  display: block;
+  margin-bottom: 20px;
+  color: #fff;
+  text-decoration: underline;
+  font-size: 12px;
+  text-align: right;
+  cursor: pointer;
+}
+
+
+
+
+
+
+
