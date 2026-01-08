@@ -2,44 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ServiTech: Register</title>
+  <title>ServiTech: Forgot Password</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- NAVBAR -->
+  <!-- NAVBAR (same as login/register) -->
   <header class="navbar">
     <a href="landing.html" class="logo">
       <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
     </a>
     <nav>
-      <a href="landing.html">Services Home</a>
-      <a href="log_in.html">Login</a>  
+      <a href="log_in.html">Login</a>
+      <a href="regis.html">Register</a>
     </nav>
-  </header> 
+  </header>
 
-  <!-- REGISTER FORM -->
+  <!-- FORGOT PASSWORD FORM -->
   <div class="auth-container">
-    <h1>Create Account</h1>
+    <h1>Forgot Password</h1>
 
     <form>
-      <label for="fullname">Full Name</label>
-      <input type="text" id="fullname" placeholder="Enter your name" required>
-
-      <label for="contact">Contact No.</label>
-      <input type="tel" id="contact" placeholder="Enter your contact number" required>
-
       <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Enter your email" required>
+      <input
+        type="email"
+        id="email"
+        placeholder="Enter your registered email"
+        required
+      >
 
-      <label for="password">Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Enter password" required>
-      </div>
+      <button type="submit">Send Reset Link</button>
+    </form><br>
 
-      <button type="submit">Register</button>
-    </form>
+    <a href="log_in.html" class="forgot">Back to Login</a>
   </div>
 
   <!-- FOOTER -->
@@ -47,19 +43,23 @@
     <div class="footer-container">
       <div class="footer-left">
         <h3>Contact Us:</h3>
+
         <div class="contact-item">
           <img src="./IMAGES/FOOTER_FB.png" alt="Facebook">
           <a href="https://www.facebook.com/" target="_blank">JC Repair Shop</a>
         </div>
+
         <div class="contact-item">
           <img src="./IMAGES/FOOTER_EMAIL.png" alt="Email">
           <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
         </div>
+
         <div class="contact-item">
           <img src="./IMAGES/FOOTER_PHONE.png" alt="Phone">
           <span>+63 912 393 4321</span>
         </div>
       </div>
+
       <div class="footer-right">
         <a href="landing.html" class="footer-logo-link">
           <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
@@ -67,10 +67,9 @@
         </a>
       </div>
     </div>
+
     <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
   </footer>
-
- 
 
 </body>
 </html>

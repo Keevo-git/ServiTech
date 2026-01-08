@@ -1,20 +1,3 @@
-// PASSWORD TOGGLE JS
-document.addEventListener("DOMContentLoaded", () => {
-  const togglePassword = document.getElementById("togglePassword");
-  const password = document.getElementById("password");
-
-  if (togglePassword && password) {
-    togglePassword.addEventListener("click", () => {
-      if (password.type === "password") {
-        password.type = "text";
-        togglePassword.textContent = "Hide";
-      } else {
-        password.type = "password";
-        togglePassword.textContent = "Show";
-      }
-    });
-  }
-});
 
 
 /* ==============================
@@ -49,3 +32,17 @@ document.querySelectorAll('.modal-overlay').forEach(modal => {
     }
   });
 });
+
+
+
+// CUSTOMER DASHBOARD DEMO ONLY   !!!!
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("customerName").textContent = "Trisha Mae";
+  document.getElementById("queueNo").textContent = "#P-001";
+  document.getElementById("queueStatus").textContent = "PENDING";
+  document.getElementById("queueService").textContent = "Service: Document Printing";
+  document.getElementById("queueDetails").textContent = "Short Bond Paper - Black & White";
+  document.getElementById("ongoingCount").textContent = "04";
+});
+
+
