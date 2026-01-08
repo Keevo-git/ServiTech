@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ServiTech: Register</title>
+  <title>ServiTech: Customer Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- NAVBAR -->
+ <!-- NAVBAR -->
   <header class="navbar">
     <a href="landing.html" class="logo">
       <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
@@ -15,32 +15,52 @@
     </a>
     <nav>
       <a href="landing.html">Services Home</a>
-      <a href="log_in.html">Login</a>  
+      <a href="log_in.html">Logout</a>  
     </nav>
   </header> 
 
-  <!-- REGISTER FORM -->
-  <div class="auth-container">
-    <h1>Create Account</h1>
+  <!-- HERO / WELCOME -->
+  <section class="customer-hero">
+    <h2>Welcome, <span id="customerName">Customer</span>!</h2>
+    <p>Manage your queue, request status and print orders.</p>
+  </section>
 
-    <form>
-      <label for="fullname">Full Name</label>
-      <input type="text" id="fullname" placeholder="Enter your name" required>
+  <!-- DASHBOARD -->
+  <section class="customer-dashboard">
 
-      <label for="contact">Contact No.</label>
-      <input type="tel" id="contact" placeholder="Enter your contact number" required>
+    <!-- ACTIVE QUEUE -->
+    <div class="dashboard-card wide">
+      <h3>ACTIVE QUEUE</h3>
+      <div class="divider"></div>
 
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Enter your email" required>
+      <p class="queue-number" id="queueNo">#---</p>
+      <span class="status pending" id="queueStatus">PENDING</span>
 
-      <label for="password">Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Enter password" required>
-      </div>
+      <p id="queueService">Service: ---</p>
+      <p id="queueDetails">Details: ---</p>
+    </div>
 
-      <button type="submit">Register</button>
-    </form>
-  </div>
+    <!-- ONGOING -->
+    <div class="dashboard-card">
+      <h3>ON-GOING SERVICE(S)</h3>
+      <div class="divider"></div>
+      <h1 id="ongoingCount">00</h1>
+    </div>
+
+  </section>
+
+  <!-- QUICK ACCESS -->
+  <section class="quick-access">
+    <h3>Quick Access</h3>
+    <div class="divider"></div>
+
+    <div class="quick-grid">
+      <div class="quick-card">Join Queue</div>
+      <div class="quick-card">Service Status</div>
+      <div class="quick-card">Print Order</div>
+      <div class="quick-card">Edit Profile</div>
+    </div>
+  </section>
 
   <!-- FOOTER -->
   <footer class="footer">
@@ -70,7 +90,7 @@
     <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
   </footer>
 
- 
 
+  <script src="main.js"></script>
 </body>
 </html>
