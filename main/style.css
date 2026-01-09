@@ -329,6 +329,43 @@ body {
   box-shadow: 0 15px 40px rgba(0,0,0,0.4);
 }
 
+/* Ensure .modal used in pages matches existing .modal-content look */
+.modal {
+  background: #fff;
+  max-width: 420px;
+  width: 90%;
+  padding: 28px;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  position: relative;
+  text-align: center;
+}
+
+.modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.modal .btn-primary {
+  background: #24120f;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.modal .btn-secondary {
+  background: #fff;
+  color: #111;
+  border: 1px solid #ddd;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 .close-btn {
   position: absolute;
   top: 12px;
@@ -912,6 +949,24 @@ body {
   height: 90px;
   padding: 10px;
   resize: none;
+}
+
+/* Small two-column section inside form-card (for Rush ID additional edits) */
+.two-col-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 16px 0 18px;
+}
+
+.radio-vertical label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-card .static-text {
+  margin-bottom: 12px;
 }
 
 .radio-group {
