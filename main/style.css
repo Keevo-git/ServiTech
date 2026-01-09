@@ -668,6 +668,12 @@ body {
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
+.quick-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+
 /* ICON BACKGROUND (same as PENDING) */
 .quick-icon-box {
   width: 48px;
@@ -714,4 +720,168 @@ body {
   font-size: 26px;
   font-weight: bold;
   color: #000;
+}
+
+
+
+
+/* ===================== */
+/* PLACE QUEUE – CHOOSE SERVICE */
+/* ===================== */
+
+.choose-service {
+  background: linear-gradient(180deg, #ff9f2e, #ff7a2e);
+  padding: 60px;
+  text-align: center;
+  border-radius: 20px;
+  margin: 60px auto;
+  max-width: 900px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+}
+
+.choose-service h2 {
+  color: #4A0505;
+  margin-bottom: 40px;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.choose-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.choose-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 30px;
+  text-decoration: none;
+  color: #000;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.choose-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.3);
+}
+
+.choose-card img {
+  width: 120px;
+  height: auto;
+  margin-bottom: 15px;
+}
+
+.choose-card span {
+  display: block;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+
+
+
+
+/* ===================== */
+/* PRINTING OPTION PAGE */
+/* ===================== */
+
+.form-page {
+  padding: 60px 80px;
+  background: #e6e6e6;
+  min-height: calc(100vh - 200px);
+}
+
+/* TITLES */
+.page-title {
+  font-size: 26px;
+  margin-bottom: 5px;
+  color: #000;
+}
+
+.page-subtitle {
+  margin-bottom: 30px;
+  color: #555;
+}
+
+/* WRAPPER (CARD + BUTTONS SAME WIDTH) */
+.form-wrapper {
+  max-width: 900px;
+}
+
+/* FORM CARD */
+.form-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* STEP TITLE */
+.step-title {
+  font-size: 18px;
+  color: #f59e0b;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+/* LABEL */
+.form-card label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.required {
+  color: red;
+}
+
+/* SELECT */
+.form-select {
+  width: 320px;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1.5px solid #000;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ACTION BUTTONS */
+.form-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* BUTTON BASE */
+.btn-back,
+.btn-next {
+  text-decoration: none;
+  padding: 14px 48px;
+  font-size: 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* BACK */
+.btn-back {
+  background: #000;
+  color: #fff;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.35);
+}
+
+/* NEXT */
+.btn-next {
+  background: #fbbf24;
+  color: #000;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+}
+
+/* HOVER */
+.btn-back:hover,
+.btn-next:hover {
+  transform: translateY(-2px);
 }
