@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ServiTech: Rush ID</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-service="rush_id">
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <a href="landing.html" class="logo">
+    <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+    <h1>ServiTech</h1>
+  </a>
+  <nav>
+    <a href="customer_dash.html">Customer Home</a>
+    <a href="landing.html">Logout</a>
+  </nav>
+</header>
+
+<section class="form-page">
+
+  <h2 class="page-title">JC PRINTING SERVICES</h2>
+  <p class="page-subtitle">Place your print, copy, or ID photo order below.</p>
+
+  <!-- STEP 2 -->
+  <div class="form-card">
+    <h3 class="step-title">2. ENTER DETAILS</h3>
+
+    <div class="form-grid">
+      <div>
+        <label>Service Type<span class="required">*</span></label>
+        <p class="static-text">Rush ID</p>
+
+        <label>Select Package<span class="required">*</span></label>
+        <select id="packageSelect" class="form-select">
+          <option selected disabled>Select a Package</option>
+          <option data-price="50">Rush ID - 1 photo (₱50)</option>
+          <option data-price="80">Rush ID - 2 photos (₱80)</option>
+          <option data-price="120">Rush ID - 4 photos (₱120)</option>
+        </select>
+
+        <div class="two-col-fields">
+          <div>
+            <label>Additional Edit 1</label>
+            <div class="radio-vertical">
+              <label><input type="radio" name="edit1"> With name</label>
+              <label><input type="radio" name="edit1"> With no name</label>
+            </div>
+          </div>
+
+          <div>
+            <label>Additional Edit 2</label>
+            <div class="radio-vertical">
+              <label><input type="radio" name="edit2"> Formal Attire</label>
+              <label><input type="radio" name="edit2"> No Formal Attire</label>
+            </div>
+          </div>
+        </div>
+
+        <label>Additional Instructions / Edit Request</label>
+        <textarea class="form-textarea"></textarea>
+      </div>
+
+      <div>
+        <label>Quantity / Copies<span class="required">*</span></label>
+        <input type="number" min="1" value="1" id="qtyInput" class="form-input">
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-card">
+    <h3 class="summary-title">ORDER SUMMARY</h3>
+
+    <div class="summary-row">
+      <span>SERVICE:</span>
+      <strong>RUSH ID</strong>
+    </div>
+
+    <div class="summary-row">
+      <span>PACKAGE:</span>
+      <strong id="summaryPackage">Not Selected</strong>
+    </div>
+
+    <div class="summary-row">
+      <span>QUANTITY:</span>
+      <strong id="summaryQty">1</strong>
+    </div>
+
+    <div class="summary-divider"></div>
+
+    <div class="summary-total">
+      <span>Estimated Total:</span>
+      <strong id="summaryTotal">₱0.00</strong>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <a href="custo1_printing_option.html" class="btn-back">Back</a>
+    <a href="#" class="btn-next" id="joinQueueBtn">Join Queue</a>
+  </div>
+
+</section>
+
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-left">
+      <h3>Contact Us:</h3>
+      <div class="contact-item">
+        <img src="./IMAGES/FOOTER_FB.png" alt="Facebook">
+        <a href="https://www.facebook.com/" target="_blank">JC Repair Shop</a>
+      </div>
+    </div>
+    <div class="footer-right">
+      <a href="landing.html" class="footer-logo-link">
+        <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
+        <h1>ServiTech: JC Repair Shop</h1>
+      </a>
+    </div>
+  </div>
+  <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
+</footer>
+
+<script src="main.js"></script>
+
+<!-- QUEUE CONFIRMATION MODAL -->
+<div id="queueModal" class="modal-overlay" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);z-index:9999;">
+  <div class="modal" role="dialog" aria-modal="true" style="background:#fff;border-radius:12px;padding:28px;max-width:420px;width:90%;box-shadow:0 12px 30px rgba(0,0,0,0.2);text-align:center;">
+    <div style="width:72px;height:72px;border-radius:50%;background:#e8fbef;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#27ae60" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h3 style="margin:6px 0 4px;font-size:20px;color:#222;">You're now in Line!</h3>
+    <p style="margin:0 0 18px;color:#666;">Your queue number is</p>
+    <p id="modalQueueNo" style="font-weight:700;font-size:28px;color:#f28c2b;margin:0 0 18px;">P-001</p>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button id="viewQueueBtn" style="background:#24120f;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer">View Queue Status</button>
+      <button id="goHomeBtn" style="background:#fff;color:#111;border:1px solid #ddd;padding:10px 18px;border-radius:8px;cursor:pointer">Go Home</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

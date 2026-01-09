@@ -197,4 +197,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+// Rush ID page: update summary based on selected package and quantity
+document.addEventListener('DOMContentLoaded', () => {
+  const packageSelect = document.getElementById('packageSelect');
+  const qtyInput = document.getElementById('qtyInput');
+  const summaryPackage = document.getElementById('summaryPackage');
+  const summaryQty = document.getElementById('summaryQty');
+  const summaryTotal = document.getElementById('summaryTotal');
+
+  if (!packageSelect || !qtyInput || !summaryTotal) return;
+
+  function updateRushSummary() {
+    const pkgOption = packageSelect.options[packageSelect.selectedIndex];
+    const pkgLabel = pkgOption && pkgOption.textContent ? pkgOption.textContent : '';
+    const price = pkgOption && pkgOption.dataset && pkgOption.dataset.price ? parseFloat(pkgOption.dataset.price) : 0;
+    const qty = parseInt(qtyInput.value, 10) || 1;
+
+    summaryPackage.textContent = pkgLabel && pkgLabel !== 'Select a Package' ? pkgLabel : 'Not Selected';
+    summaryQty.textContent = qty;
+    summaryTotal.textContent = `₱${(price * qty).toFixed(2)}`;
+  }
+
+  packageSelect.addEventListener('change', updateRushSummary);
+  qtyInput.addEventListener('input', updateRushSummary);
+
+  // initialize
+  updateRushSummary();
+});
+
+
 
