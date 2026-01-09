@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ServiTech: Document Printing</title>
+  <title>ServiTech: Xerox</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-service="xerox">
 
 <!-- NAVBAR -->
 <header class="navbar">
@@ -36,7 +36,7 @@
       <!-- LEFT -->
       <div>
         <label>Service Type<span class="required">*</span></label>
-        <p class="static-text">Document Printing</p>
+        <p class="static-text">Xerox</p>
 
         <label>Paper Size<span class="required">*</span></label>
         <select class="form-select" id="paperSizeSelect">
@@ -45,7 +45,7 @@
           <option>Long Bond (8.5 x 13)</option>
           <option>A4</option>
           <option>A3</option>
-        </select>
+        </select><br><br>
 
         <label>Quantity / Copies<span class="required">*</span></label>
         <input type="number" min="1" value="1" class="form-input" id="qtyInput">
@@ -57,34 +57,14 @@
 
       <!-- RIGHT -->
       <div>
-        <label>Color Option<span class="required">*</span></label>
-        <div class="radio-group">
-          <label><input type="radio" name="color" id="bwColor" value="Black & White"> Black & White</label>
-          <label><input type="radio" name="color" id="coloredColor" value="Colored"> Colored</label>
-        </div>
-
-        <p class="sub-label">For Colored:</p>
-        <div class="radio-group">
-          <label><input type="radio" name="colored"> Full</label>
-          <label><input type="radio" name="colored"> Half</label>
-          <label><input type="radio" name="colored"> N/A</label>
-        </div>
+        <!-- No color options for Xerox service -->
+        <p style="font-size:0.95rem;color:#555;margin-top:6px;">Service uses default Xerox settings — no color choice needed.</p>
       </div>
 
     </div>
   </div><br>
 
-  <!-- STEP 3 -->
-  <div class="form-card">
-    <h3 class="step-title">3. UPLOAD FILES</h3>
-
-    <label>Upload your document or photo</label>
-    <input type="file" class="form-file">
-
-    <p class="file-note">
-      Accepted formats: PDF, DOC, DOCX, JPG, PNG
-    </p>
-  </div>
+  
 
   <!-- SUMMARY -->
   <div class="summary-card">
@@ -92,7 +72,7 @@
 
     <div class="summary-row">
       <span>SERVICE:</span>
-      <strong>DOCUMENT PRINTING</strong>
+      <strong>XEROX</strong>
     </div>
 
     <div class="summary-row">
@@ -112,7 +92,7 @@
 
     <div class="summary-total">
       <span>Estimated Total:</span>
-      <strong id="summaryTotal">₱05.00</strong>
+      <strong id="summaryTotal">₱0.00</strong>
 
     </div>
   </div>
