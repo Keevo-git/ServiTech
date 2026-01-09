@@ -47,7 +47,7 @@
   <!-- ACTION BUTTONS -->
   <div class="form-actions">
     <a href="place_queueing_custo.html" class="btn-back">Back</a>
-    <a href="#" class="btn-next">Next</a>
+    <button type="button" class="btn-next" onclick="goToNext()">Next</button>
   </div>
 
 </section>
@@ -79,6 +79,30 @@
     </div>
     <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
   </footer>
+
+  <script>
+function goToNext() {
+  const service = document.getElementById("serviceType").value;
+
+  if (!service) {
+    alert("Please select a service first.");
+    return;
+  }
+
+  if (service === "printing") {
+    window.location.href = "custo2_docu_printing.html";
+  } 
+  else if (service === "xerox") {
+    window.location.href = "custo2_xerox.html";
+  } 
+  else if (service === "rush-id") {
+    window.location.href = "custo2_rush_id.html";
+  } 
+  else if (service === "laminating") {
+    window.location.href = "custo2_laminating.html";
+  }
+}
+</script>
 
 
 </body>
