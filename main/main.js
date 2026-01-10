@@ -70,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!qtyInput) return;
 
   const paperSizeSelect = document.getElementById("paperSizeSelect");
+  const lamTypeSelect = document.getElementById("lamTypeSelect");
   const colorRadios = document.querySelectorAll('input[name="color"]');
   
   const summaryPaperSize = document.getElementById("summaryPaperSize");
@@ -88,9 +89,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   function updateSummary() {
-    // Update paper size
-    const paperSize = paperSizeSelect.value;
-    summaryPaperSize.textContent = paperSize && paperSize !== "Select paper size" ? paperSize : "Not Selected";
+    // Update paper size (if present)
+    if (paperSizeSelect && summaryPaperSize) {
+      const paperSize = paperSizeSelect.value;
+      summaryPaperSize.textContent = paperSize && paperSize !== "Select paper size" ? paperSize : "Not Selected";
+    }
 
     // (color option intentionally not shown in summary)
 
@@ -98,15 +101,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const qty = parseInt(qtyInput.value) || 1;
     summaryQty.textContent = qty;
 
-    // Determine price per page (supports Xerox per-size pricing)
+    // Determine price per item/page.
+    // Priority: lamination option data-price (for laminating), then xerox per-size map, then body data-price-per-page, then default.
     let pricePerPage = defaultPrice;
-    if (isXerox && paperSizeSelect) {
+    if (lamTypeSelect) {
+      const opt = lamTypeSelect.options[lamTypeSelect.selectedIndex];
+      const optPrice = opt && opt.dataset && opt.dataset.price ? parseFloat(opt.dataset.price) : null;
+      if (optPrice !== null) {
+        pricePerPage = optPrice;
+      } else {
+        const bodyPrice = document.body && document.body.dataset && document.body.dataset.pricePerPage;
+        pricePerPage = bodyPrice ? parseFloat(bodyPrice) : defaultPrice;
+      }
+    } else if (isXerox && paperSizeSelect) {
       const selectedSize = paperSizeSelect.value;
       if (selectedSize && xeroxPriceMap[selectedSize] !== undefined) {
         pricePerPage = xeroxPriceMap[selectedSize];
       }
     } else {
-      // fallback: if body provides a data-price-per-page, use it
       const bodyPrice = document.body && document.body.dataset && document.body.dataset.pricePerPage;
       pricePerPage = bodyPrice ? parseFloat(bodyPrice) : defaultPrice;
     }
@@ -115,8 +127,9 @@ document.addEventListener("DOMContentLoaded", () => {
     summaryTotal.textContent = `₱${(qty * pricePerPage).toFixed(2)}`;
   }
 
-  // Add event listeners
-  paperSizeSelect.addEventListener("change", updateSummary);
+  // Add event listeners (guard elements)
+  if (paperSizeSelect) paperSizeSelect.addEventListener("change", updateSummary);
+  if (lamTypeSelect) lamTypeSelect.addEventListener("change", updateSummary);
   qtyInput.addEventListener("input", updateSummary);
   colorRadios.forEach(radio => radio.addEventListener("change", updateSummary));
 
@@ -141,6 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Validate required fields before showing modal
     const paperSizeSelect = document.getElementById('paperSizeSelect');
+    const lamTypeSelect = document.getElementById('lamTypeSelect');
+    const packageSelect = document.getElementById('packageSelect');
     const qtyInput = document.getElementById('qtyInput');
     let valid = true;
 
@@ -153,6 +168,28 @@ document.addEventListener('DOMContentLoaded', () => {
         valid = false;
       } else {
         paperSizeSelect.style.border = '';
+      }
+    }
+
+    if (lamTypeSelect) {
+      const val = lamTypeSelect.value;
+      if (!val || val === 'Select a Package' || val === 'Select lamination type') {
+        lamTypeSelect.style.border = '2px solid #e74c3c';
+        lamTypeSelect.focus();
+        valid = false;
+      } else {
+        lamTypeSelect.style.border = '';
+      }
+    }
+
+    if (packageSelect) {
+      const val = packageSelect.value;
+      if (!val || val === 'Select a Package') {
+        packageSelect.style.border = '2px solid #e74c3c';
+        packageSelect.focus();
+        valid = false;
+      } else {
+        packageSelect.style.border = '';
       }
     }
 
