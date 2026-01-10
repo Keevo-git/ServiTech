@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Rush ID</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -31,31 +32,36 @@
     <div class="form-grid">
       <div>
         <label>Service Type<span class="required">*</span></label>
-        <p class="static-text">Rush ID</p>
+        <p class="static-text">Rush ID</p><br>
 
         <label>Select Package<span class="required">*</span></label>
         <select id="packageSelect" class="form-select">
           <option selected disabled>Select a Package</option>
-          <option data-price="50">Rush ID - 1 photo (₱50)</option>
-          <option data-price="80">Rush ID - 2 photos (₱80)</option>
-          <option data-price="120">Rush ID - 4 photos (₱120)</option>
+          <option data-price="40">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) — ₱40</option>
+          <option data-price="30">Package 2: 1x1 (6pcs.) — ₱30</option>
+          <option data-price="30">Package 3: 2x2 (4pcs.) — ₱30</option>
+          <option data-price="50">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) — ₱50</option>
+          <option data-price="30">Package 5: Passport size (4pcs.) — ₱30</option>
+          <option data-price="50">Package 6: 1x1 (10pcs.) — ₱50</option>
         </select>
 
         <div class="two-col-fields">
           <div>
             <label>Additional Edit 1</label>
+            <p class="field-hint">Provide the name in the additional instructions box</p>
             <div class="radio-vertical">
-              <label><input type="radio" name="edit1"> With name</label>
-              <label><input type="radio" name="edit1"> With no name</label>
-            </div>
+                  <label><input type="radio" name="edit1"> With name</label>
+                  <label><input type="radio" name="edit1"> With no name</label>
+                </div>
           </div>
 
           <div>
             <label>Additional Edit 2</label>
-            <div class="radio-vertical">
-              <label><input type="radio" name="edit2"> Formal Attire</label>
-              <label><input type="radio" name="edit2"> No Formal Attire</label>
-            </div>
+              <p class="field-hint">Staffs will edit your picture to be in formal attire</p>
+              <div class="radio-vertical">
+                <label><input type="radio" name="edit2"> Formal Attire</label>
+                <label><input type="radio" name="edit2"> No Formal Attire</label>
+              </div>
           </div>
         </div>
 
