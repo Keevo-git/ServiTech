@@ -1,0 +1,56 @@
+/* Table and controls specific to queue list (moved from queueL.html) */
+:root{
+  --maroon: #4A0505;
+  --accent: #FAB12F;
+  --card-bg: #ffffff;
+  --page-bg: #fff4e4;
+}
+.page-head{display:flex;justify-content:space-between;align-items:center;margin:18px 0}
+.tabs{background:#fff;border-radius:10px;padding:6px 8px;display:flex;gap:8px}
+.tab{padding:10px 18px;border-radius:8px;border:1px solid #ddd;background:#f7f7f7}
+.tab.active{background:var(--card-bg);border-color:var(--accent)}
+.panel{background:var(--card-bg);padding:18px;border-radius:14px;box-shadow:0 6px 15px rgba(0,0,0,0.08)}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{padding:12px 10px;text-align:left;border-bottom:1px solid #eee;font-size:14px}
+th{background:transparent;color:#444;font-weight:700}
+.status-pill{padding:6px 10px;border-radius:12px;font-weight:700;font-size:13px}
+.status-complete{background:#e6fbef;color:#1f9d52}
+.status-pending{background:#fff4dc;color:#b86d00}
+.actions button{margin-right:8px;padding:6px 10px;border-radius:8px;border:none;cursor:pointer}
+.btn-start{background:#e74c3c;color:#fff}
+.btn-hold{background:#ff7f3f;color:#fff}
+.btn-delete{background:transparent;border:1px solid #e6e6e6;color:#d33;padding:6px 8px;border-radius:6px}
+.small-btn{font-size:13px;padding:6px 10px}
+
+/* Additional styles to match attached admin queue design */
+.page-frame{border:6px solid #1e6fbf;border-radius:8px;margin:10px;overflow:hidden}
+.page-inner{background:var(--page-bg);}
+.tabs{border:1px solid #d8d8d8;border-radius:16px;overflow:hidden}
+.tabs .tab{flex:1;text-align:center;padding:10px 18px;border-radius:0;margin:0;border-right:1px solid #e6e6e6}
+.tabs .tab:last-child{border-right:none}
+.tabs .tab.active{background:#fff;border-bottom:3px solid var(--accent);color:var(--maroon);font-weight:700}
+
+/* Status pills / action buttons matching screenshot */
+.status-inprogress{background:#d9edff;color:#1b66d1}
+.status-pending{background:#fff4dc;color:#b86d00}
+.btn-mark{background:#27ae60;color:#fff;padding:6px 10px;border-radius:8px;border:none}
+.btn-start{background:#e74c3c;color:#fff;padding:6px 10px;border-radius:8px;border:none}
+.btn-hold{background:#ff9a3c;color:#fff;padding:6px 10px;border-radius:8px;border:none}
+.btn-delete{background:transparent;border:1px solid #f1c0c0;color:#d33;padding:6px 8px;border-radius:50%;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center}
+
+/* Table refinements */
+thead th{background:transparent;color:#666;font-weight:700}
+tbody tr{background:transparent}
+td.actions{white-space:nowrap}
+
+
+/* responsive tweaks */
+@media(max-width:800px){
+  .page-head{flex-direction:column;align-items:flex-start;gap:10px}
+  .tabs{overflow-x:auto}
+  table, thead, tbody, th, td, tr{display:block}
+  thead tr{display:none}
+  tr{margin-bottom:12px;background:#fafafa;padding:10px;border-radius:8px}
+  td{border:none;padding:6px 8px}
+  td::before{content:attr(data-label);font-weight:700;display:block;margin-bottom:6px}
+}

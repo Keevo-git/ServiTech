@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Customer List</title>
+  <link rel="stylesheet" href="../admin.css">
+  <link rel="stylesheet" href="custoL.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img src="../../main/static/IMAGES/LOGO_SERVITECH.png" alt="logo" style="height:30px">
+        <span>ServiTech: JC Repair Shop</span>
+      </div>
+      <div class="actions">
+        <a class="btn small" href="../admin.html">Admin Home</a>
+        <a class="btn small" href="../admin.html">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-frame">
+      <div class="page-inner">
+        <div class="top-actions">
+          <h2 style="color:var(--maroon)">Customer List</h2>
+          <a class="btn secondary" href="../Order%20Management/printM.html">View Queue</a>
+        </div>
+
+        <div class="card-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div class="search-box">
+              <input class="search-input" placeholder="Search customers by name, email, phone, or queue number...">
+            </div>
+          </div>
+
+          <table class="customers">
+            <thead>
+              <tr><th>Customer ID</th><th>Customer Name</th><th>Email</th><th>Contact</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="id-pill">C-001</span></td><td>Trisha Mae Agbayani</td><td>trishaexp@gmail.com</td><td>+63 912 345 6789</td><td><a class="msg-btn" href="#">Message</a></td></tr>
+              <tr><td><span class="id-pill">C-002</span></td><td>Kelvin Fulgencio</td><td>kelvinf@gmail.com</td><td>+63 922 334 7789</td><td><a class="msg-btn" href="#">Message</a></td></tr>
+              <tr><td><span class="id-pill">C-003</span></td><td>Lucy Anne Osillo</td><td>lucy.ann@example.com</td><td>+63 928 111 2233</td><td><a class="msg-btn" href="#">Message</a></td></tr>
+              <tr><td><span class="id-pill">C-004</span></td><td>Allex Dell Rosero</td><td>allexd@gmail.com</td><td>+63 917 888 0099</td><td><a class="msg-btn" href="#">Message</a></td></tr>
+              <tr><td><span class="id-pill">C-005</span></td><td>Jemye Salomon</td><td>jemye.s@example.com</td><td>+63 901 234 5678</td><td><a class="msg-btn" href="#">Message</a></td></tr>
+              <tr><td><span class="id-pill">C-006</span></td><td>Charles Perryns</td><td>charlesp@gmail.com</td><td>+63 923 445 6677</td><td><a class="msg-btn" href="#">Message</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="contact">Contact us: servitech@gmail.com • 09123934321</div>
+      <div class="copyright">ServiTech: JC Repair Shop</div>
+    </div>
+  </footer>
+</body>
+</html>

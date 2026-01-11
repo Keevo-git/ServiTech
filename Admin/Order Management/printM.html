@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Order Management</title>
+  <link rel="stylesheet" href="../admin.css">
+  
+  <link rel="stylesheet" href="orderM.css">
+  <script src="orderM.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img src="../../main/static/IMAGES/LOGO_SERVITECH.png" alt="logo" style="height:30px">
+        <span>ServiTech: JC Repair Shop</span>
+      </div>
+      <div class="actions">
+        <a class="btn small" href="../admin.html">Admin Home</a>
+        <a class="btn small" href="../admin.html">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-frame">
+      <div class="page-inner">
+        <h2 style="color:var(--maroon)">Order Management</h2>
+        <p>View and manage all orders Across services</p>
+
+        <div class="card-panel">
+          <div class="panel-heading">
+            <h3>All Orders <small style="color:#666;font-weight:600">Manage and update order statuses</small></h3>
+            <div class="filters">
+              <select><option>All Orders</option></select>
+            </div>
+          </div>
+
+          <div class="tab-container">
+            <div class="tab-list">
+              <a class="tab" href="printM.html">Printing</a>
+              <a class="tab" href="repairM.html">Repair</a>
+              <a class="tab" href="installationM.html">Installation</a>
+            </div>
+          </div>
+
+          <div class="walkin-title">Walk-in Queue — Manage and update order statuses</div>
+          <table class="orders">
+            <thead>
+              <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>P-001</td><td>Trisha Mae Agbayani</td><td><span class="status-pill status-inprogress">In Progress</span></td><td>11/09/2025</td><td><button class="update-btn">Update Status</button></td></tr>
+              <tr><td>P-002</td><td>Kristine Clive Apreoce</td><td><span class="status-pill status-pending">Pending</span></td><td>11/09/2025</td><td><button class="update-btn">Update Status</button></td></tr>
+              <tr><td>P-003</td><td>Jennie Moncaban</td><td><span class="status-pill status-pending">Pending</span></td><td>11/09/2025</td><td><button class="update-btn">Update Status</button></td></tr>
+            </tbody>
+          </table>
+
+          <div class="section-title-small" style="margin-top:18px">Online Orders — Pre-ordered printing request</div>
+          <table class="orders">
+            <thead>
+              <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>OP-001</td><td>Trisha Mae Agbayani</td><td><span class="status-pill status-complete">Completed</span></td><td>11/09/2025</td><td><button class="update-btn">Update Status</button></td></tr>
+              <tr><td>OP-002</td><td>Kelvin Fulgencio</td><td><span class="status-pill status-pending">Pending</span></td><td>11/09/2025</td><td><button class="update-btn">Update Status</button></td></tr>
+              <tr><td>OP-003</td><td>Lucy Marie Galdo</td><td><span class="status-pill status-pending">Pending</span></td><td>11/09/2025</td><td><button class="update-btn">Update Status</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" style="position:relative">
+    <div class="footer-inner">
+      <div class="contact">Contact us: servitech@gmail.com • 09123934321</div>
+      <div class="copyright">ServiTech: JC Repair Shop</div>
+    </div>
+  </footer>
+</body>
+</html>

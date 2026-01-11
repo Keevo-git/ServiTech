@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Queue Management - Printing (Walk-In)</title>
+  <link rel="stylesheet" href="../admin.css">
+  <link rel="stylesheet" href="css/queueL.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img src="../../main/IMAGES/LOGO_SERVITECH.png" alt="logo" style="height:30px">
+        <span>ServiTech: JC Repair Shop</span>
+      </div>
+      <div class="actions">
+        <a class="btn small" href="../admin.html">Admin User</a>
+        <a class="btn small" href="../admin.html">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-frame">
+      <div class="page-inner" style="padding:28px 30px;min-height:600px">
+        <div class="page-head">
+          <h2 style="color:var(--maroon)">Queue Management</h2>
+          <a class="btn small" href="../admin.html" style="background:var(--maroon);color:#fff;text-decoration:none;padding:8px 14px;border-radius:8px">Customer List</a>
+        </div>
+
+        <div class="panel">
+          <div class="tabs" role="tablist">
+            <a class="tab" href="Printing.html">Printing (Online)</a>
+            <a class="tab active" href="walkin.html">Printing (Walk-In)</a>
+            <a class="tab" href="repair.html">Repair</a>
+            <a class="tab" href="installation.html">Installation</a>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer Name</th>
+                <th>Service Details</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>P-001</td>
+                <td>Trisha Mae Agbayani</td>
+                <td>Document Printing - Short, B&W</td>
+                <td><span class="status-pill status-inprogress">In Progress</span></td>
+                <td class="actions">
+                  <button class="btn-mark">Mark Done</button>
+                  <button class="btn-hold">On Hold</button>
+                  <button class="btn-delete" title="Delete">✖</button>
+                </td>
+              </tr>
+              <tr>
+                <td>P-002</td>
+                <td>Kristine Clive Apreoce</td>
+                <td>Document Printing - Short, Colored</td>
+                <td><span class="status-pill status-inprogress">In Progress</span></td>
+                <td class="actions">
+                  <button class="btn-mark">Mark Done</button>
+                  <button class="btn-hold">On Hold</button>
+                  <button class="btn-delete" title="Delete">✖</button>
+                </td>
+              </tr>
+              <tr>
+                <td>P-003</td>
+                <td>Jennie Moncaban</td>
+                <td>Document Printing - Short, Colored</td>
+                <td><span class="status-pill status-pending">Pending</span></td>
+                <td class="actions">
+                  <button class="btn-start">Start</button>
+                  <button class="btn-hold">On Hold</button>
+                  <button class="btn-delete" title="Delete">✖</button>
+                </td>
+              </tr>
+              <tr>
+                <td>P-004</td>
+                <td>Jisoo Rose Park</td>
+                <td>Rush ID - Package 1</td>
+                <td><span class="status-pill status-pending">Pending</span></td>
+                <td class="actions">
+                  <button class="btn-start">Start</button>
+                  <button class="btn-hold">On Hold</button>
+                  <button class="btn-delete" title="Delete">✖</button>
+                </td>
+              </tr>
+              <tr>
+                <td>P-005</td>
+                <td>Marie Tonny Casidsid</td>
+                <td>Document Printing - Long, Colored</td>
+                <td><span class="status-pill status-pending">Pending</span></td>
+                <td class="actions">
+                  <button class="btn-start">Start</button>
+                  <button class="btn-hold">On Hold</button>
+                  <button class="btn-delete" title="Delete">✖</button>
+                </td>
+              </tr>
+              <tr>
+                <td>P-006</td>
+                <td>Tristan Baga</td>
+                <td>Rush ID - Package 1</td>
+                <td><span class="status-pill status-pending">Pending</span></td>
+                <td class="actions">
+                  <button class="btn-start">Start</button>
+                  <button class="btn-hold">On Hold</button>
+                  <button class="btn-delete" title="Delete">✖</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" style="position:relative">
+    <div class="footer-inner">
+      <div class="contact">Contact us: servitech@gmail.com • 09123934321</div>
+      <div class="copyright">ServiTech: JC Repair Shop</div>
+    </div>
+  </footer>
+
+</body>
+</html>
