@@ -1,0 +1,24 @@
+:root{--maroon:#5b0f0f;--accent:#f6a623;--muted:#f3f3f3}
+body{font-family:Inter, Arial, sans-serif;background:#f1f1f1}
+.page-frame{max-width:1100px;margin:28px auto}
+.page-inner{padding:24px;background:transparent}
+.top-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.search-box{display:flex;gap:12px;align-items:center}
+.search-input{padding:12px 14px;border-radius:12px;border:1px solid #e3e3e3;width:520px;background:#fff}
+.btn.secondary{background:var(--maroon);color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none}
+
+.card-panel{background:#fff;border-radius:12px;padding:18px;margin-top:10px;box-shadow:0 6px 15px rgba(0,0,0,0.04)}
+table.customers{width:100%;border-collapse:collapse}
+table.customers thead th{background:#f6f6f6;padding:12px;text-align:left;border-bottom:1px solid #e7e7e7}
+table.customers td, table.customers th{padding:12px;border-bottom:1px solid #f0f0f0}
+.id-pill{display:inline-block;background:var(--accent);color:#fff;padding:6px 10px;border-radius:10px;font-weight:700;font-size:12px}
+.msg-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:6px 12px;border-radius:18px;text-decoration:none}
+
+/* alternating rows subtle */
+table.customers tbody tr:nth-child(even){background:#fbfbfb}
+
+/* responsive tweaks */
+@media (max-width:900px){
+  .search-input{width:260px}
+  .page-frame{margin:12px}
+}

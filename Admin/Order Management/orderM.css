@@ -1,0 +1,30 @@
+/* Styles extracted from printM.html */
+.page-inner{padding:28px 40px;}
+.card-panel{background:#fff;border-radius:12px;padding:18px;margin-bottom:18px;box-shadow:0 6px 15px rgba(0,0,0,0.08)}
+.section-title-small{background:#eaf6ff;border:1px solid #cfeaff;padding:10px;border-radius:6px;color:#0b6fb0;margin-bottom:12px}
+.walkin-title{background:#fff1e6;border:1px solid #ffd4b8;padding:10px;border-radius:6px;color:#b25a1a;margin-bottom:12px}
+table.orders{width:100%;border-collapse:collapse}
+table.orders th, table.orders td{padding:12px;border-bottom:1px solid #eee;text-align:left}
+.update-btn{background:#fff;border:1px solid #d0d0d0;padding:8px 12px;border-radius:18px}
+.panel-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.filters{display:flex;gap:12px;align-items:center}
+
+/* Tabs (Printing / Repair / Installation) */
+.tab-container{background:linear-gradient(#e6f0fb,#e6f0fb);padding:6px;border-radius:999px;display:block;box-sizing:border-box;margin:8px 0}
+.tab-list{display:flex;gap:8px;max-width:920px;margin:0 auto}
+.tab{flex:1;text-align:center;padding:8px 0;border-radius:999px;background:transparent;color:#1a1a1a;text-decoration:none;border:1px solid transparent;transition:all .18s ease}
+.tab:hover{filter:brightness(0.98)}
+.tab.active{background:#ffffff;border-color:rgba(0,0,0,0.06);box-shadow:inset 0 0 0 2px rgba(0,0,0,0.03);}
+
+/* force readable minimum width on very small viewports */
+@media (max-width:520px){
+  .tab-list{gap:6px}
+  .tab{padding:8px 6px;font-size:14px}
+}
+
+
+/* small responsive tweak */
+@media (max-width:700px){
+  .page-inner{padding:18px}
+  .panel-heading{flex-direction:column;align-items:flex-start;gap:8px}
+}
