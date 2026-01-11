@@ -206,8 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!valid) return;
 
-    // Generate a short queue number (demo): P- + random 3 digits
-    const generated = 'P-' + Math.floor(100 + Math.random() * 900);
+    // Generate a short queue number (demo): prefix + random 3 digits
+    // Use 'R' prefix for repair pages, otherwise default to 'P'
+    const svc = document.body && document.body.dataset && document.body.dataset.service ? document.body.dataset.service : '';
+    const prefix = svc === 'repair' ? 'R' : 'P';
+    const generated = prefix + '-' + Math.floor(100 + Math.random() * 900);
     if (modalQueueNo) modalQueueNo.textContent = generated;
 
     queueModal.style.display = 'flex';
