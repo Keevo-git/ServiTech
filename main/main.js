@@ -209,7 +209,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Generate a short queue number (demo): prefix + random 3 digits
     // Use 'R' prefix for repair pages, otherwise default to 'P'
     const svc = document.body && document.body.dataset && document.body.dataset.service ? document.body.dataset.service : '';
-    const prefix = svc === 'repair' ? 'R' : 'P';
+    // Prefixes: Repair -> R, Installation -> I, default -> P
+    let prefix = 'P';
+    if (svc === 'repair') prefix = 'R';
+    else if (svc === 'installation') prefix = 'I';
     const generated = prefix + '-' + Math.floor(100 + Math.random() * 900);
     if (modalQueueNo) modalQueueNo.textContent = generated;
 
