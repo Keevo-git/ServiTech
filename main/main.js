@@ -217,6 +217,57 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalQueueNo) modalQueueNo.textContent = generated;
 
     queueModal.style.display = 'flex';
+
+    // Save queue entry to localStorage so that Service Status page can render real entries
+    try {
+      // gather details using page-specific helpers when available
+      const svcLabelFromInstallation = (window.getInstallationDetails && window.getInstallationDetails()) || null;
+      const repairServiceSelect = document.getElementById('repairServiceSelect');
+      const deviceTypeSelect = document.getElementById('deviceTypeSelect');
+      const packageSelect = document.getElementById('packageSelect');
+      const paperSizeSelect = document.getElementById('paperSizeSelect');
+      const notesEl = document.getElementById('installationNotes') || document.getElementById('repairNotes') || document.getElementById('notes') || null;
+
+      let serviceLabel = '';
+      let meta = {};
+
+      if (svcLabelFromInstallation && svcLabelFromInstallation.service) {
+        serviceLabel = svcLabelFromInstallation.service;
+        meta = { notes: svcLabelFromInstallation.notes || '' };
+      } else if (repairServiceSelect) {
+        const opt = repairServiceSelect.options[repairServiceSelect.selectedIndex];
+        serviceLabel = opt ? opt.textContent : '';
+        meta.device = deviceTypeSelect ? deviceTypeSelect.value : '';
+        meta.notes = notesEl ? notesEl.value : '';
+      } else if (packageSelect) {
+        const opt = packageSelect.options[packageSelect.selectedIndex];
+        serviceLabel = opt ? opt.textContent : '';
+        meta.notes = notesEl ? notesEl.value : '';
+      } else if (paperSizeSelect) {
+        serviceLabel = paperSizeSelect.value || document.title || '';
+        meta.notes = notesEl ? notesEl.value : '';
+      } else {
+        serviceLabel = document.title || '';
+        meta.notes = notesEl ? notesEl.value : '';
+      }
+
+      const entry = {
+        id: generated,
+        category: svc || 'general',
+        service: serviceLabel,
+        meta: meta,
+        createdAt: Date.now(),
+        status: 'PENDING'
+      };
+
+      const key = 'servitech_queues';
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      existing.unshift(entry);
+      // Keep the list reasonably sized
+      localStorage.setItem(key, JSON.stringify(existing.slice(0, 200)));
+    } catch (err) {
+      console.warn('Could not save queue entry', err);
+    }
   });
 
   // Go Home button -- redirect to landing.html
@@ -226,10 +277,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // View Queue Status -- redirect to queue.html
+  // View Queue Status -- redirect to service status page
   if (viewQueueBtn) {
     viewQueueBtn.addEventListener('click', () => {
-      window.location.href = 'queue.html';
+      window.location.href = 'custo_service_status.html';
     });
   }
 
