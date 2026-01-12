@@ -55,17 +55,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const queueDetailsEl = document.getElementById("queueDetails");
   const ongoingCountEl = document.getElementById("ongoingCount");
 
-  // if (customerNameEl) customerNameEl.textContent = "Trisha Mae";
+  // Customer name
   if (customerNameEl) {
-  const user = JSON.parse(localStorage.getItem("servitech_user"));
-  customerNameEl.textContent = user ? user.name : "Customer";
-}
-  if (queueNoEl) queueNoEl.textContent = "#P-001";
-  if (queueStatusEl) queueStatusEl.textContent = "PENDING";
-  if (queueServiceEl) queueServiceEl.textContent = "Service: Document Printing";
-  if (queueDetailsEl) queueDetailsEl.textContent = "Short Bond Paper - Black & White";
-  if (ongoingCountEl) ongoingCountEl.textContent = "04";
+    const user = JSON.parse(localStorage.getItem("servitech_user"));
+    customerNameEl.textContent = user ? user.name : "Customer";
+  }
+
+  // Queue display
+  if (queueNoEl && queueStatusEl && queueServiceEl && queueDetailsEl) {
+    let queues = [];
+    try {
+      queues = JSON.parse(localStorage.getItem("servitech_queues")) || [];
+    } catch {
+      queues = [];
+    }
+
+    if (queues.length === 0) {
+      queueNoEl.textContent = "#---";
+      queueStatusEl.textContent = "NONE";
+      queueServiceEl.textContent = "Service: ---";
+      queueDetailsEl.textContent = "Details: ---";
+
+      const noQueueMsg = document.getElementById("noQueueMsg");
+      if (noQueueMsg) noQueueMsg.style.display = "block";
+    } else {
+      const activeQueue = queues[0];
+      queueNoEl.textContent = `#${activeQueue.id}`;
+      queueStatusEl.textContent = activeQueue.status;
+      queueServiceEl.textContent = `Service: ${activeQueue.service}`;
+      queueDetailsEl.textContent = activeQueue.meta?.notes
+        ? `Details: ${activeQueue.meta.notes}`
+        : "Details: ---";
+    }
+
+    if (ongoingCountEl) {
+      ongoingCountEl.textContent = queues.length.toString().padStart(2, "0");
+    }
+  }
 });
+
 
 
 const quickCard = document.querySelector(".quick-card");

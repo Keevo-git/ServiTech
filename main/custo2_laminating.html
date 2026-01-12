@@ -6,7 +6,8 @@
   <title>ServiTech: Laminating</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body data-price-per-page="20">
+<body data-service="printing" data-price-per-page="20">
+
 
 <!-- NAVBAR -->
 <header class="navbar">
@@ -16,7 +17,7 @@
   </a>
   <nav>
     <a href="customer_dash.html">Customer Home</a>
-    <a href="landing.html">Logout</a>
+   <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
   </nav>
 </header>
 
@@ -41,13 +42,13 @@
 
         <label>Lamination Type<span class="required">*</span></label>
         <select class="form-select" id="lamTypeSelect">
-          <option selected disabled>Select lamination type</option>
+          <option value="" selected disabled>Select lamination type</option>
           <option value="thin" data-price="20">Thin (Manipis)</option>
           <option value="thick" data-price="30">Thick (Makapal)</option>
         </select><br><br>
 
         <label>Additional Instructions / Edit Request</label>
-        <textarea class="form-textarea"></textarea>
+        <textarea class="form-textarea" id="notes"></textarea>
       </div>
 
       <!-- RIGHT -->
@@ -142,6 +143,12 @@
       </div>
     </div>
   </div>
+
+  <script>
+  if (!localStorage.getItem("servitech_user")) {
+    window.location.href = "log_in.html";
+  }
+</script>
 
 </body>
 </html>

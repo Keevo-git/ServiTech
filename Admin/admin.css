@@ -45,6 +45,11 @@ main{flex:1}
 .card h4{margin:8px 0 6px;font-size:16px;color:var(--maroon)}
 .card p{margin:0;color:#333;font-size:14px}
 
+/* Ensure links that wrap cards inherit the card styles and don't show default link styling */
+.card-link{display:block;text-decoration:none;color:inherit}
+.card-link .card{transition:transform 0.18s ease, box-shadow 0.18s ease}
+.card-link:hover .card{transform:translateY(-6px);box-shadow:0 12px 22px rgba(0,0,0,0.12)}
+
 /* Footer reuses main footer styling cues */
 .site-footer{background-color:var(--maroon);color:#fff;padding:18px 40px}
 .footer-inner{display:flex;justify-content:space-between;align-items:center}

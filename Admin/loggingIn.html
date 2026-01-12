@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ServiTech: Login</title>
+  <link rel="stylesheet" href="/main/style.css">
+
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <a href="admin.html" class="logo">
+    <img src="/main/IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+    <h1>ServiTech</h1>
+  </a>
+  <nav>
+    <a href="/main/regis.html">Register</a>
+    <a href="loggingIn.html">Login</a>
+  </nav>
+</header>
+
+<!-- LOGIN FORM -->
+<div class="auth-container">
+  <h1>Log-in</h1>
+
+  <!-- IMPORTANT PART -->
+  <form method="POST" action="/login">
+    <label>Email</label>
+    <input type="email" name="email" placeholder="Enter your email" required>
+
+    <label>Password</label>
+    <input type="password" name="password" placeholder="Enter password" required>
+
+    <a class="forgot" href="/main/forget_pass.html">Forgot Password?</a>
+
+    <button type="submit">Enter</button>
+  </form>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
+</footer>
+
+</body>
+</html>

@@ -16,7 +16,7 @@
     </a>
     <nav>
       <a href="customer_dash.html">Customer Home</a>
-      <a href="landing.html">Logout</a>
+      <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
     </nav>
   </header>
 
@@ -136,5 +136,13 @@
       </div>
     </div>
   </div>
+
+
+  <script>
+  if (!localStorage.getItem("servitech_user")) {
+    window.location.href = "log_in.html";
+  }
+</script>
+
 </body>
 </html>
