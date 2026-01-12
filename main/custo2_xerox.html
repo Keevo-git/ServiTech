@@ -16,7 +16,7 @@
   </a>
   <nav>
     <a href="customer_dash.html">Customer Home</a>
-    <a href="landing.html">Logout</a>
+    <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
   </nav>
 </header>
 
@@ -52,7 +52,7 @@
 
 
         <label>Additional Instructions / Edit Request</label>
-        <textarea class="form-textarea"></textarea>
+        <textarea class="form-textarea" id="notes"></textarea>
       </div>
 
       <!-- RIGHT -->

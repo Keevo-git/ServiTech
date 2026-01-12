@@ -16,7 +16,7 @@
 		</a>
 		<nav>
 			<a href="customer_dash.html">Customer Home</a>
-			<a href="landing.html">Logout</a>
+			<a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
 		</nav>
 	</header>
 
@@ -35,7 +35,7 @@
 				<div>
 					<label>Select Device Type<span class="required">*</span></label>
 					<select class="form-select" id="deviceTypeSelect">
-						<option selected disabled>Select Device</option>
+						<option value="" selected disabled>Select Device</option>
 						<option>Mobile Phone / Tablet</option>
 						<option>Laptop</option>
 						<option>Desktop</option>
@@ -43,7 +43,7 @@
 
 					<label>Select Service<span class="required">*</span></label>
 					<select class="form-select" id="repairServiceSelect">
-						<option selected disabled>Select Repair Service</option>
+						<option value="" selected disabled>Select Repair Service</option>
 						<option data-min="1200" data-max="5500">LCD Replacement — (₱1200 – ₱5500)</option>
 						<option data-min="700" data-max="2500">Battery Replacement — (₱700 – ₱2500)</option>
 						<option data-min="800" data-max="4000">Charging Pin Replacement — (₱800 – ₱4000)</option>

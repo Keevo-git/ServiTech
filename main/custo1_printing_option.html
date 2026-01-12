@@ -16,7 +16,7 @@
   </a>
   <nav>
     <a href="customer_dash.html">Customer Home</a>
-    <a href="landing.html">Logout</a>
+    <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
   </nav>
 </header>
 
@@ -47,8 +47,8 @@
 
   <!-- ACTION BUTTONS -->
   <div class="form-actions">
-    <a href="place_queueing_custo.html" class="btn-back">Back</a>
-    <button type="button" class="btn-next" onclick="goToNext()">Next</button>
+    <a href="custo_place_queueing.html" class="btn-back">Back</a>
+   <button type="button" class="btn-next" id="nextBtn" disabled onclick="goToNext()">Next</button>
   </div>
 
 </section>
@@ -104,6 +104,22 @@ function goToNext() {
   }
 }
 </script>
+
+<script>
+  if (!localStorage.getItem("servitech_user")) {
+    window.location.href = "log_in.html";
+  }
+</script>
+
+<script>
+const serviceSelect = document.getElementById("serviceType");
+const nextBtn = document.getElementById("nextBtn");
+
+serviceSelect.addEventListener("change", () => {
+  nextBtn.disabled = !serviceSelect.value;
+});
+</script>
+
 
 
 </body>

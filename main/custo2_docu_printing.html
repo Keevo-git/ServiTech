@@ -6,7 +6,8 @@
   <title>ServiTech: Document Printing</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-service="printing">
+
 
 <!-- NAVBAR -->
 <header class="navbar">
@@ -16,7 +17,7 @@
   </a>
   <nav>
     <a href="customer_dash.html">Customer Home</a>
-    <a href="landing.html">Logout</a>
+    <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
   </nav>
 </header>
 
@@ -53,12 +54,12 @@
 
 
         <label>Additional Instructions / Edit Request</label>
-        <textarea class="form-textarea"></textarea>
+        <textarea class="form-textarea" id="notes"></textarea>
       </div>
 
       <!-- RIGHT -->
       <div>
-        <label>Color Option<span class="required">*</span></label>
+        <!-- <label>Color Option<span class="required">*</span></label>
         <div class="radio-group">
           <label><input type="radio" name="color" id="bwColor" value="Black & White"> Black & White</label>
           <label><input type="radio" name="color" id="coloredColor" value="Colored"> Colored</label>
@@ -68,7 +69,24 @@
         <div class="radio-group">
           <label><input type="radio" name="colored"> Full</label>
           <label><input type="radio" name="colored"> Half</label>
-          <label><input type="radio" name="colored"> N/A</label>
+          <label><input type="radio" name="colored"> N/A</label> -->
+
+          <label>Color Option<span class="required">*</span></label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="color" value="Black & White"> Black & White
+          </label>
+          <label>
+            <input type="radio" name="color" value="Colored - Full"> Colored (Full)
+          </label>
+          <label>
+            <input type="radio" name="color" value="Colored - Half"> Colored (Half)
+          </label>
+          <label>
+            <input type="radio" name="color" value="Colored - N/A"> Colored (N/A)
+          </label>
+        </div>
+
         </div>
       </div>
 
@@ -79,8 +97,10 @@
   <div class="form-card">
     <h3 class="step-title">3. UPLOAD FILES</h3>
 
-    <label>Upload your document or photo</label>
-    <input type="file" class="form-file">
+
+    <label for="fileUpload">Upload your document</label>
+    <input type="file" id="fileUpload" class="form-file">
+
 
     <p class="file-note">
       Accepted formats: PDF, DOC, DOCX, JPG, PNG
@@ -171,6 +191,12 @@
       </div>
     </div>
   </div>
+
+  <script>
+  if (!localStorage.getItem("servitech_user")) {
+    window.location.href = "log_in.html";
+  }
+</script>
 
 </body>
 </html>

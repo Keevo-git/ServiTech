@@ -6,7 +6,8 @@
   <title>ServiTech: Rush ID</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body data-service="rush_id">
+<body data-service="printing">
+
 
 <!-- NAVBAR -->
 <header class="navbar">
@@ -16,7 +17,7 @@
   </a>
   <nav>
     <a href="customer_dash.html">Customer Home</a>
-    <a href="landing.html">Logout</a>
+    <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
   </nav>
 </header>
 
@@ -36,7 +37,7 @@
 
         <label>Select Package<span class="required">*</span></label>
         <select id="packageSelect" class="form-select">
-          <option selected disabled>Select a Package</option>
+         <option value="" selected disabled>Select a Package</option>
           <option data-price="40">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) — ₱40</option>
           <option data-price="30">Package 2: 1x1 (6pcs.) — ₱30</option>
           <option data-price="30">Package 3: 2x2 (4pcs.) — ₱30</option>
@@ -66,7 +67,7 @@
         </div>
 
         <label>Additional Instructions / Edit Request</label>
-        <textarea class="form-textarea"></textarea>
+        <textarea class="form-textarea" id="notes"></textarea>
       </div>
 
       <div>
@@ -146,6 +147,13 @@
     </div>
   </div>
 </div>
+
+
+<script>
+  if (!localStorage.getItem("servitech_user")) {
+    window.location.href = "log_in.html";
+  }
+</script>
 
 </body>
 </html>
