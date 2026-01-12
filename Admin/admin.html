@@ -4,26 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Admin Page</title>
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="{{ url_for('serve_main_file', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <img src="../main/static/IMAGES/LOGO_SERVITECH.png" alt="logo">
-        <span>ServiTech: JC Repair Shop</span>
-      </div>
-      <div class="actions">
-        <a class="btn small" href="#">Services Home</a>
-        <a class="btn small" href="#">Logout</a>
-      </div>
-    </div>
-    <div class="hero">
-      <div class="hero-inner">
-        <h1>Welcome, Admin!</h1>
-        <p>Overview of ServiTech Operations</p>
-      </div>
-    </div>
+  <!-- NAVBAR (copied from main) -->
+  <header class="navbar">
+    <a href="../main/landing.html" class="logo">
+      <img src="{{ url_for('serve_main_file', filename='IMAGES/LOGO_SERVITECH.png') }}" alt="ServiTech Logo" class="servitech-logo">
+      <h1>ServiTech</h1>
+    </a>
+    <nav>
+      <a href="../main/regis.html">Register</a>
+      <a href="../main/log_in.html">Login</a>
+    </nav>
   </header>
 
   <main class="container">
@@ -78,11 +72,32 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="contact">Contact us: servitech@gmail.com • 09123934321</div>
-      <div class="copyright">ServiTech: JC Repair Shop</div>
+  <!-- FOOTER (copied from main) -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <h3>Contact Us:</h3>
+        <div class="contact-item">
+          <img src="{{ url_for('serve_main_file', filename='IMAGES/FOOTER_FB.png') }}" alt="Facebook">
+          <a href="https://www.facebook.com/" target="_blank">JC Repair Shop</a>
+        </div>
+        <div class="contact-item">
+          <img src="{{ url_for('serve_main_file', filename='IMAGES/FOOTER_EMAIL.png') }}" alt="Email">
+          <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
+        </div>
+        <div class="contact-item">
+          <img src="{{ url_for('serve_main_file', filename='IMAGES/FOOTER_PHONE.png') }}" alt="Phone">
+          <span>+63 912 393 4321</span>
+        </div>
+      </div>
+      <div class="footer-right">
+        <a href="../main/landing.html" class="footer-logo-link">
+          <img src="{{ url_for('serve_main_file', filename='IMAGES/LOGO_SERVITECH.png') }}" alt="ServiTech Logo" class="footer-servitech-logo">
+          <h1>ServiTech: JC Repair Shop</h1>
+        </a>
+      </div>
     </div>
+    <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
   </footer>
 
 </body>
