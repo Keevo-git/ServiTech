@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ServiTech: Print Order</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <a href="landing.html" class="logo">
+    <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+    <h1>ServiTech</h1>
+  </a>
+  <nav>
+    <a href="customer_dash.html">Customer Home</a>
+    <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
+  </nav>
+</header>
+
+<!-- PAGE CONTENT -->
+<section class="form-page">
+
+  <h2 class="page-title">Place a Print Order</h2>
+  <p class="page-subtitle">Upload your file and select printing options</p>
+
+  <div class="form-card">
+
+    <label>Upload File<span class="required">*</span></label>
+    <input type="file" class="form-file">
+    <p class="file-note">Accepted formats: PDF, DOC, DOCX, JPG, PNG</p>
+
+    <label>Paper Size<span class="required">*</span></label>
+    <select class="form-select">
+      <option selected disabled>Select paper size</option>
+      <option>Short Bond (8.5 x 11)</option>
+      <option>Long Bond (8.5 x 13)</option>
+      <option>A4</option>
+      <option>A3</option>
+    </select>
+
+    <label>Quantity (Number of Copies)<span class="required">*</span></label>
+    <input type="number" min="1" value="1" class="form-input">
+
+    <label>Color Option<span class="required">*</span></label>
+    <div class="radio-group">
+      <label><input type="radio" name="color"> Black & White</label>
+      <label><input type="radio" name="color"> Colored</label>
+    </div>
+
+    <p class="sub-label">For Colored:</p>
+    <div class="radio-group">
+      <label><input type="radio" name="colored"> Full</label>
+      <label><input type="radio" name="colored"> Half</label>
+      <label><input type="radio" name="colored"> N/A</label>
+    </div>
+
+    <label>Additional Instructions / Edit Request</label>
+    <textarea class="form-textarea"></textarea>
+
+  </div>
+
+  <!-- ESTIMATE -->
+  <div class="summary-card">
+    <div class="summary-total">
+      <span>Estimated Price</span>
+      <strong>₱10.00</strong>
+    </div>
+  </div>
+
+  <!-- PICKUP & PAYMENT -->
+  <div class="form-card">
+    <h3>Pick-up & Payment</h3>
+    <p>Pick-up: In-store only</p>
+
+    <label>Payment Method</label>
+    <div class="radio-group">
+      <label><input type="radio" name="payment"> Cash</label>
+      <label><input type="radio" name="payment"> GCash</label>
+    </div>
+  </div>
+
+  <!-- ACTION -->
+  <div class="form-actions">
+    <a href="customer_dash.html" class="btn-back">Back</a>
+    <a href="custo_print_order_payment.html" class="btn-next">Proceed to Payment</a>
+  </div>
+
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-left">
+      <h3>Contact Us:</h3>
+      <div class="contact-item">
+        <img src="./IMAGES/FOOTER_FB.png">
+        <a href="https://www.facebook.com/" target="_blank">JC Repair Shop</a>
+      </div>
+      <div class="contact-item">
+        <img src="./IMAGES/FOOTER_EMAIL.png">
+        <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
+      </div>
+      <div class="contact-item">
+        <img src="./IMAGES/FOOTER_PHONE.png">
+        <span>+63 912 393 4321</span>
+      </div>
+    </div>
+    <div class="footer-right">
+      <a href="landing.html" class="footer-logo-link">
+        <img src="./IMAGES/LOGO_SERVITECH.png" class="footer-servitech-logo">
+        <h1>ServiTech: JC Repair Shop</h1>
+      </a>
+    </div>
+  </div>
+  <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
+</footer>
+
+<script>
+if (!localStorage.getItem("servitech_user")) {
+  window.location.href = "log_in.html";
+}
+</script>
+
+</body>
+</html>
