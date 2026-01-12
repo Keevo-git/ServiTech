@@ -34,6 +34,17 @@ document.querySelectorAll('.modal-overlay').forEach(modal => {
 });
 
 
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("customerName")) {
+    const user = localStorage.getItem("servitech_user");
+    if (!user) {
+      window.location.href = "log_in.html";
+    }
+  }
+});
+
+
+
 
 // CUSTOMER DASHBOARD DEMO ONLY - guarded so it won't throw when elements are absent
 document.addEventListener("DOMContentLoaded", () => {
@@ -44,7 +55,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const queueDetailsEl = document.getElementById("queueDetails");
   const ongoingCountEl = document.getElementById("ongoingCount");
 
-  if (customerNameEl) customerNameEl.textContent = "Trisha Mae";
+  // if (customerNameEl) customerNameEl.textContent = "Trisha Mae";
+  if (customerNameEl) {
+  const user = JSON.parse(localStorage.getItem("servitech_user"));
+  customerNameEl.textContent = user ? user.name : "Customer";
+}
   if (queueNoEl) queueNoEl.textContent = "#P-001";
   if (queueStatusEl) queueStatusEl.textContent = "PENDING";
   if (queueServiceEl) queueServiceEl.textContent = "Service: Document Printing";
@@ -321,3 +336,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+/* ==============================
+   DEMO LOGIN (FRONT-END ONLY)
+   ============================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const loginForm = document.getElementById("loginForm");
+  if (!loginForm) return;
+
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+
+    // Fake/demo user
+    const demoUser = {
+      name: "Trisha Mae",
+      email: email,
+      loggedIn: true
+    };
+
+    // Save user session
+    localStorage.setItem("servitech_user", JSON.stringify(demoUser));
+
+    // Redirect to dashboard
+    window.location.href = "customer_dash.html";
+  });
+});
