@@ -16,7 +16,10 @@
     </a>
     <nav>
       <a href="landing.html">Services Home</a>
-      <a href="landing.html">Logout</a>  
+      <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">
+        Logout
+    </a>
+ 
     </nav>
   </header> 
 
@@ -42,6 +45,11 @@
 
       <p id="queueService">Service: ---</p>
       <p id="queueDetails">Details: ---</p>
+
+      <p id="noQueueMsg" style="display:none; color:#888; margin-top:10px;">
+        You have no active queue.
+      </p>
+
     </div>
 
     <!-- ONGOING -->
