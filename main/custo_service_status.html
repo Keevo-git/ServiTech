@@ -36,27 +36,49 @@
       <div id="onlinePrintList" class="queue-list"></div>
 
       <!-- Detail modal (hidden) -->
-      <div id="detailModal" class="modal-overlay" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999;">
-        <div class="modal" role="dialog" aria-modal="true" style="background:#fff;border-radius:12px;padding:22px;max-width:420px;width:92%;box-shadow:0 12px 30px rgba(0,0,0,0.25);text-align:left;">
-          <button id="closeDetail" style="position:absolute;right:14px;top:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b0b0b">✕</button>
-          <h3 style="margin:6px 0 8px;font-size:20px;color:#222;text-align:center">Walk-in Queue: <span id="modalType">Print</span></h3>
-          <div style="height:8px"></div>
-          <div style="border-bottom:2px solid #f3c27a;margin-bottom:12px"></div>
-          <div style="font-size:14px;color:#333;line-height:1.5">
-            <div><strong>Queue ID:</strong> <span id="modalQueue"></span></div>
-            <div><strong>Customer:</strong> <span id="modalCustomer">Trisha Mae Agbayani</span></div>
-            <div><strong>Service:</strong> <span id="modalService"></span></div>
-            <div id="modalExtra"></div>
-            <div style="margin-top:8px"><strong>Attached File:</strong> <a id="modalFile" href="#" target="_blank"></a></div>
-            <div style="margin-top:10px"><strong>Additional Instructions/Edit Request:</strong></div>
-            <textarea id="modalNotes" style="width:100%;height:60px;margin-top:6px;padding:8px;border:1px solid #ddd;border-radius:6px;" readonly></textarea>
-          </div>
-          <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
-            <button id="modalViewQueue" style="background:#24120f;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer">View Queue Status</button>
-            <button id="modalCloseBtn" style="background:#fff;color:#111;border:1px solid #ddd;padding:10px 18px;border-radius:8px;cursor:pointer">Close</button>
-          </div>
-        </div>
+      <!-- Detail modal -->
+<div id="detailModal" class="modal-overlay">
+  <div class="status-modal">
+
+    <button id="closeDetail" class="modal-close">✕</button>
+
+    <h3 class="modal-title">
+      Walk-in Queue: <span id="modalType">Print</span>
+    </h3>
+
+    <div class="modal-divider"></div>
+
+    <div class="modal-body">
+      <p><strong>Queue ID:</strong> <span id="modalQueue"></span></p>
+      <p><strong>Customer:</strong> <span id="modalCustomer">Trisha Mae Agbayani</span></p>
+      <p><strong>Service:</strong> <span id="modalService"></span></p>
+
+      <div id="modalExtra"></div>
+
+      <p class="file-row">
+        <strong>Attached File:</strong>
+        <a id="modalFile" href="#" target="_blank"></a>
+      </p>
+
+      <label>Additional Instructions / Edit Request</label>
+      <textarea id="modalNotes" readonly></textarea>
+
+      <div class="modal-price">
+        Price: ₱05.00
       </div>
+
+      <div class="modal-status">
+        <span id="modalStatus" class="status-badge pending">PENDING</span>
+      </div>
+
+      <label>Additional Comment</label>
+      <textarea readonly></textarea>
+    </div>
+
+    <button id="modalCloseBtn" class="modal-back">Back</button>
+  </div>
+</div>
+
 
     </div>
   </main>
