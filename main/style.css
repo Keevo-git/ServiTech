@@ -560,6 +560,24 @@ body {
   }
 }
 
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 520px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  cursor: pointer;
+}
 
 
 
