@@ -8,7 +8,6 @@
 </head>
 <body>
 
-  <!-- NAVBAR -->
   <header class="navbar">
     <a href="landing.html" class="logo">
       <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
@@ -16,72 +15,53 @@
     </a>
     <nav>
       <a href="landing.html">Services Home</a>
-      <a href="regis.html">Register</a>  
+      <a href="regis.html">Register</a>
     </nav>
-  </header> 
+  </header>
 
-  <!-- LOGIN FORM -->
   <div class="auth-container">
     <h1>Log-in</h1>
 
-    <!-- <form>
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Enter your email" required>
+    <!-- ✅ NO ID HERE so JS can't intercept -->
+    <form action="login.php" method="POST" autocomplete="on">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="Enter your email" required>
 
-      <label for="password">Password</label>
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Enter password" required>
-      
-      </div>
-
-
-      <a class="forgot" href="forget_pass.html">Forgot Password?</a>
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter password" required>
 
       <button type="submit">Enter</button>
-    </form> -->
-
-    <form id="loginForm">
-    <label for="email">Email</label>
-    <input type="email" id="email" placeholder="Enter your email" required>
-
-    <label for="password">Password</label>
-    <input type="password" id="password" placeholder="Enter password" required>
-
-    <button type="submit">Enter</button>
-  </form>
-
-
+    </form>
   </div>
 
-  <!-- FOOTER -->
   <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-left">
-        <h3>Contact Us:</h3>
-        <div class="contact-item">
-          <img src="./IMAGES/FOOTER_FB.png" alt="Facebook">
-          <a href="https://www.facebook.com/" target="_blank">JC Repair Shop</a>
-        </div>
-        <div class="contact-item">
-          <img src="./IMAGES/FOOTER_EMAIL.png" alt="Email">
-          <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
-        </div>
-        <div class="contact-item">
-          <img src="./IMAGES/FOOTER_PHONE.png" alt="Phone">
-          <span>+63 912 393 4321</span>
-        </div>
-      </div>
-      <div class="footer-right">
-        <a href="landing.html" class="footer-logo-link">
-          <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
-          <h1>ServiTech: JC Repair Shop</h1>
-        </a>
-      </div>
-    </div>
     <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
   </footer>
 
-  <script src="main.js"></script>
+  <!-- ✅ POPUP HANDLER -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("login") === "fail") {
+      alert("Invalid email or password.");
+      window.history.replaceState({}, document.title, "log_in.html");
+    }
+
+    if (params.get("registered") === "1") {
+      alert("Registration successful! Please log in.");
+      window.history.replaceState({}, document.title, "log_in.html");
+    }
+
+    if (params.get("registered") === "exists") {
+      alert("Email already exists. Try logging in.");
+      window.history.replaceState({}, document.title, "log_in.html");
+    }
+
+    if (params.get("logout") === "1") {
+      alert("You have been logged out.");
+      window.history.replaceState({}, document.title, "log_in.html");
+    }
+  </script>
 
 </body>
 </html>
