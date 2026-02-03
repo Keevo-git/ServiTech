@@ -140,7 +140,7 @@ $display_name = format_fullname($fullname);
   </section>
 
   <footer class="footer">
-    <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
+    <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
   </footer>
 
   <script>
