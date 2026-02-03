@@ -95,7 +95,7 @@ if (!isset($_SESSION["admin_logged_in"])) {
 <!-- FOOTER -->
 <footer class="site-footer">
   <div class="footer-inner">
-    <div class="contact">ServiTech – JC Repair Shop</div>
+    <div class="contact">ServiTech – JC Store</div>
     <div class="copyright">© 2026</div>
   </div>
 </footer>
