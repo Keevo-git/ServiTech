@@ -471,6 +471,7 @@ body {
   background-color: #4A0505;
   color: #ffffff;
   padding: 30px 40px 20px;
+  margin-top: 30px;
 }
 
 .footer-container {
@@ -689,15 +690,21 @@ body {
 /* CUSTOMER DASHBOARD */
 /* ===================== */
 
-.customer-hero {
-  background: linear-gradient(180deg, #ff772e, #ffbc48);
-  padding: 40px 60px;
-  color: #4A0505;
-}
 
 .customer-hero h2,
 .customer-hero p {
   margin-top: 0;
+}
+
+.customer-hero {
+  background: linear-gradient(180deg, #ff772e, #ffbc48);
+  padding: 40px 40px;
+  color: #4A0505;
+}
+
+.customer-hero > * {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 
@@ -705,8 +712,9 @@ body {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 30px;
-  padding: 40px 60px;
+  padding: 40px 60px 20px;
 }
+
 
 .dashboard-card {
   background: #fff;
@@ -748,10 +756,6 @@ body {
   color: #4A0505;
 }
 
-.quick-access {
-  padding: 40px 60px;
-}
-
 .quick-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -760,8 +764,11 @@ body {
 
 /* QUICK ACCESS */
 .quick-access {
-  padding: 40px 60px;
+  padding: 40px 40px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
+
 
 .quick-grid {
   display: grid;
@@ -788,7 +795,10 @@ body {
 .quick-card-link {
   text-decoration: none;
   color: inherit;
+  display: block;
 }
+
+
 
 
 /* ICON BACKGROUND (same as PENDING) */
