@@ -2,44 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ServiTech: Forgot Password</title>
+  <title>ServiTech: Place Queueing Customer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- NAVBAR (same as login/register) -->
+  <!-- NAVBAR -->
   <header class="navbar">
     <a href="landing.html" class="logo">
       <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
     </a>
     <nav>
-      <a href="log_in.html">Login</a>
-      <a href="regis.html">Register</a>
+      <a href="customer_dash.html">Customer Home</a>
+      <a href="landing.html" onclick="localStorage.removeItem('servitech_user')">Logout</a>
+
     </nav>
   </header>
 
-  <!-- FORGOT PASSWORD FORM -->
-  <div class="auth-container">
-    <h1>Forgot Password</h1>
 
-    <form>
-      <label for="email">Email</label>
-      <input
-        type="email"
-        id="email"
-        placeholder="Enter your registered email"
-        required
-      >
 
-      <button type="submit">Send Reset Link</button>
-    </form><br>
+  <!-- CHOOSE SERVICE -->
+<section class="choose-service">
+  <h2>CHOOSE A SERVICE</h2>
 
-    <a href="log_in.html" class="forgot">Back to Login</a>
+  <div class="choose-grid">
+
+    <a href="custo1_printing_option.html" class="choose-card">
+      <img src="./IMAGES/CARD_PRINTING.png" alt="Printing">
+      <span>PRINTING</span>
+    </a>
+
+    <a href="custo1_repair_option.html" class="choose-card">
+      <img src="./IMAGES/CARD_REPAIR.png" alt="Repair">
+      <span>REPAIR</span>
+    </a>
+
+    <a href="custo1_installation_option.html" class="choose-card">
+      <img src="./IMAGES/CARD_INSTALLATION.png" alt="Installation">
+      <span>INSTALLATION</span>
+    </a>
+
   </div>
+</section>
 
-  <!-- FOOTER -->
+<script>
+  if (!localStorage.getItem("servitech_user")) {
+    window.location.href = "log_in.html";
+  }
+</script>
+
+
+   <!-- FOOTER -->
 <footer class="footer">
   <div class="footer-container">
 
@@ -77,10 +91,11 @@
 
   </div>
 
-  <!-- FOOTER BOTTOM (NASA LABAS NA) -->
+
   <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
 </footer>
 
-
+ 
 </body>
+
 </html>

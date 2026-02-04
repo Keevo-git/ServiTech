@@ -252,3 +252,75 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+
+
+
+
+
+// EDIT PROFILE PAGE JS*******
+// profile.js (front-end demo using localStorage)
+const KEY = "servitech_profile";
+
+function loadProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveProfile(data) {
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("profileForm");
+  const fullName = document.getElementById("fullName");
+  const email = document.getElementById("email");
+  const contact = document.getElementById("contact");
+  const currentPassword = document.getElementById("currentPassword");
+  const newPassword = document.getElementById("newPassword");
+  const confirmPassword = document.getElementById("confirmPassword");
+
+  // prefill fields
+  const profile = loadProfile();
+  if (profile.fullName) fullName.value = profile.fullName;
+  if (profile.email) email.value = profile.email;
+  if (profile.contact) contact.value = profile.contact;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    // simple validation for password change (demo only)
+    const wantsPasswordChange = newPassword.value.trim() || confirmPassword.value.trim();
+    if (wantsPasswordChange) {
+      if (!currentPassword.value.trim()) {
+        alert("Please enter your current password.");
+        return;
+      }
+      if (newPassword.value.trim().length < 6) {
+        alert("New password must be at least 6 characters.");
+        return;
+      }
+      if (newPassword.value !== confirmPassword.value) {
+        alert("New password and confirm password do not match.");
+        return;
+      }
+    }
+
+    const updated = {
+      ...profile,
+      fullName: fullName.value.trim(),
+      email: email.value.trim(),
+      contact: contact.value.trim()
+      // NOTE: password not saved in localStorage (demo). Backend should handle this securely.
+    };
+
+    saveProfile(updated);
+
+    alert("Profile updated!");
+    window.location.href = "customer_dash.html";
+  });
+});
