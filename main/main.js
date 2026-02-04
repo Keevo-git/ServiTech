@@ -1,279 +1,254 @@
 /* ==============================
-   LANDING PAGE – SERVICE SCROLL
+   SERVITECH MAIN.JS (DB VERSION)
+   - No localStorage queues
+   - Join Queue -> POST to PHP -> MySQL
    ============================== */
 
 function scrollToSection(id) {
   const section = document.getElementById(id);
-  if (section) {
-    section.scrollIntoView({ behavior: 'smooth' });
-  }
+  if (section) section.scrollIntoView({ behavior: "smooth" });
 }
 
-/* LANDING PAGE – DOCUMENT PRINTING MODAL */
-
-function openModal(id) {
-  document.getElementById(id).style.display = 'flex';
-}
-
-function closeModal(id) {
-  document.getElementById(id).style.display = 'none';
-}
-
-document.querySelectorAll('.modal-overlay').forEach(modal => {
-  modal.addEventListener('click', e => {
-    if (e.target === modal) modal.style.display = 'none';
+/* ==============================
+   GENERIC MODAL CLOSE (click outside)
+   ============================== */
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".modal-overlay").forEach((modal) => {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    });
   });
 });
 
 /* ==============================
-   CUSTOMER DASHBOARD (QUEUE DEMO ONLY)
-   NOTE: Name is now set by PHP from database
+   SUMMARY UPDATES
    ============================== */
-
-document.addEventListener("DOMContentLoaded", () => {
-  const queueNoEl = document.getElementById("queueNo");
-  const queueStatusEl = document.getElementById("queueStatus");
-  const queueServiceEl = document.getElementById("queueService");
-  const queueDetailsEl = document.getElementById("queueDetails");
-  const ongoingCountEl = document.getElementById("ongoingCount");
-
-  if (queueNoEl && queueStatusEl && queueServiceEl && queueDetailsEl) {
-    let queues = [];
-    try {
-      queues = JSON.parse(localStorage.getItem("servitech_queues")) || [];
-    } catch {
-      queues = [];
-    }
-
-    if (queues.length === 0) {
-      queueNoEl.textContent = "#---";
-      queueStatusEl.textContent = "NONE";
-      queueServiceEl.textContent = "Service: ---";
-      queueDetailsEl.textContent = "Details: ---";
-
-      const noQueueMsg = document.getElementById("noQueueMsg");
-      if (noQueueMsg) noQueueMsg.style.display = "block";
-    } else {
-      const activeQueue = queues[0];
-      queueNoEl.textContent = `#${activeQueue.id}`;
-      queueStatusEl.textContent = activeQueue.status;
-      queueServiceEl.textContent = `Service: ${activeQueue.service}`;
-      queueDetailsEl.textContent = activeQueue.meta?.notes
-        ? `Details: ${activeQueue.meta.notes}`
-        : "Details: ---";
-    }
-
-    if (ongoingCountEl) {
-      ongoingCountEl.textContent = queues.length.toString().padStart(2, "0");
-    }
-  }
-});
-
-const quickCard = document.querySelector(".quick-card");
-if (quickCard) {
-  quickCard.addEventListener("click", () => {
-    window.location.href = "queue.html";
-  });
-}
-
-/* custo2_docu_printing.html */
-
 document.addEventListener("DOMContentLoaded", () => {
   const qtyInput = document.getElementById("qtyInput");
   if (!qtyInput) return;
 
   const paperSizeSelect = document.getElementById("paperSizeSelect");
   const lamTypeSelect = document.getElementById("lamTypeSelect");
+  const packageSelect = document.getElementById("packageSelect");
   const colorRadios = document.querySelectorAll('input[name="color"]');
 
   const summaryPaperSize = document.getElementById("summaryPaperSize");
+  const summaryPackage = document.getElementById("summaryPackage");
   const summaryQty = document.getElementById("summaryQty");
   const summaryTotal = document.getElementById("summaryTotal");
 
   const defaultPrice = 5;
-  const isXerox = document.body && document.body.dataset && document.body.dataset.service === 'xerox';
+
+  const svc = document.body?.dataset?.service || "";
+  const isXerox = svc === "xerox";
+
   const xeroxPriceMap = {
-    'Long Bond (8.5 x 13)': 5,
-    'Short Bond (8.5 x 11)': 3,
-    'A4': 3,
-    'A3': 5
+    "Long Bond (8.5 x 13)": 5,
+    "Short Bond (8.5 x 11)": 3,
+    "A4": 3,
+    "A3": 5
   };
 
   function updateSummary() {
+    const qty = parseInt(qtyInput.value, 10) || 1;
+    if (summaryQty) summaryQty.textContent = qty;
+
     if (paperSizeSelect && summaryPaperSize) {
-      const paperSize = paperSizeSelect.value;
-      summaryPaperSize.textContent = paperSize && paperSize !== "Select paper size" ? paperSize : "Not Selected";
+      const size = paperSizeSelect.value;
+      summaryPaperSize.textContent =
+        size && size !== "Select paper size" ? size : "Not Selected";
     }
 
-    const qty = parseInt(qtyInput.value) || 1;
-    summaryQty.textContent = qty;
+    if (packageSelect && summaryPackage) {
+      const opt = packageSelect.options[packageSelect.selectedIndex];
+      const label = opt?.textContent || "";
+      summaryPackage.textContent =
+        label && label !== "Select a Package" ? label : "Not Selected";
+    }
 
-    let pricePerPage = defaultPrice;
+    let pricePerItem = defaultPrice;
 
     if (lamTypeSelect) {
       const opt = lamTypeSelect.options[lamTypeSelect.selectedIndex];
-      const optPrice = opt && opt.dataset && opt.dataset.price ? parseFloat(opt.dataset.price) : null;
-
-      if (optPrice !== null) {
-        pricePerPage = optPrice;
-      } else {
-        const bodyPrice = document.body && document.body.dataset && document.body.dataset.pricePerPage;
-        pricePerPage = bodyPrice ? parseFloat(bodyPrice) : defaultPrice;
-      }
+      const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : null;
+      pricePerItem = p !== null ? p : defaultPrice;
+    } else if (packageSelect) {
+      const opt = packageSelect.options[packageSelect.selectedIndex];
+      const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : 0;
+      pricePerItem = p;
     } else if (isXerox && paperSizeSelect) {
-      const selectedSize = paperSizeSelect.value;
-      if (selectedSize && xeroxPriceMap[selectedSize] !== undefined) {
-        pricePerPage = xeroxPriceMap[selectedSize];
-      }
-    } else {
-      const bodyPrice = document.body && document.body.dataset && document.body.dataset.pricePerPage;
-      pricePerPage = bodyPrice ? parseFloat(bodyPrice) : defaultPrice;
+      const size = paperSizeSelect.value;
+      pricePerItem = xeroxPriceMap[size] ?? 0;
     }
 
-    summaryTotal.textContent = `₱${(qty * pricePerPage).toFixed(2)}`;
+    if (summaryTotal) {
+      summaryTotal.textContent = `₱${(qty * pricePerItem).toFixed(2)}`;
+    }
   }
 
   if (paperSizeSelect) paperSizeSelect.addEventListener("change", updateSummary);
   if (lamTypeSelect) lamTypeSelect.addEventListener("change", updateSummary);
+  if (packageSelect) packageSelect.addEventListener("change", updateSummary);
   qtyInput.addEventListener("input", updateSummary);
-  colorRadios.forEach(radio => radio.addEventListener("change", updateSummary));
+  colorRadios.forEach((r) => r.addEventListener("change", updateSummary));
 
   updateSummary();
 });
 
-// Join Queue modal handling
-document.addEventListener('DOMContentLoaded', () => {
-  const joinBtn = document.getElementById('joinQueueBtn');
-  const queueModal = document.getElementById('queueModal');
-  const goHomeBtn = document.getElementById('goHomeBtn');
-  const viewQueueBtn = document.getElementById('viewQueueBtn');
-  const modalQueueNo = document.getElementById('modalQueueNo');
+/* ==============================
+   JOIN QUEUE -> DATABASE (with debugging)
+   ============================== */
+document.addEventListener("DOMContentLoaded", () => {
+  const joinBtn = document.getElementById("joinQueueBtn");
+  const queueModal = document.getElementById("queueModal");
+  const modalQueueNo = document.getElementById("modalQueueNo");
+  const goHomeBtn = document.getElementById("goHomeBtn");
+  const viewQueueBtn = document.getElementById("viewQueueBtn");
 
-  if (!joinBtn || !queueModal) return;
+  console.log("[JoinQueue] loaded:", {
+    joinBtn: !!joinBtn,
+    queueModal: !!queueModal,
+    modalQueueNo: !!modalQueueNo
+  });
 
-  joinBtn.addEventListener('click', (e) => {
-    e.preventDefault();
+  if (!joinBtn || !queueModal || !modalQueueNo) return;
 
-    const paperSizeSelect = document.getElementById('paperSizeSelect');
-    const lamTypeSelect = document.getElementById('lamTypeSelect');
-    const packageSelect = document.getElementById('packageSelect');
-    const qtyInput = document.getElementById('qtyInput');
-    let valid = true;
+  function getSelectedColor() {
+    const radios = document.querySelectorAll('input[name="color"]');
+    let val = null;
+    radios.forEach((r) => { if (r.checked) val = r.value; });
+    return val;
+  }
 
-    if (paperSizeSelect) {
-      const val = paperSizeSelect.value;
-      if (!val || val === 'Select paper size') {
-        paperSizeSelect.style.border = '2px solid #e74c3c';
-        paperSizeSelect.focus();
-        valid = false;
-      } else paperSizeSelect.style.border = '';
+  function collectPayload() {
+    const category = (document.body?.dataset?.service || "general").toLowerCase();
+
+    const paperSizeSelect = document.getElementById("paperSizeSelect");
+    const qtyInput = document.getElementById("qtyInput");
+
+    const notesEl =
+      document.getElementById("notes") ||
+      document.getElementById("repairNotes") ||
+      document.getElementById("installationNotes") ||
+      null;
+
+    const packageSelect = document.getElementById("packageSelect");
+    const lamTypeSelect = document.getElementById("lamTypeSelect");
+    const repairServiceSelect = document.getElementById("repairServiceSelect");
+    const deviceTypeSelect = document.getElementById("deviceTypeSelect");
+    const installationTypeSelect = document.getElementById("installationTypeSelect");
+
+    const fileUpload = document.getElementById("fileUpload");
+    const fileName = (fileUpload && fileUpload.files && fileUpload.files[0])
+      ? fileUpload.files[0].name
+      : null;
+
+    // Default label
+    let service_label = "Service";
+
+    const title = (document.title || "").toLowerCase();
+
+    if (title.includes("document printing")) service_label = "Document Printing";
+    if (title.includes("xerox")) service_label = "Xerox";
+    if (title.includes("laminating")) service_label = "Laminating";
+    if (title.includes("rush id")) service_label = "Rush ID";
+
+    // Repair
+    if (repairServiceSelect) {
+      const opt = repairServiceSelect.options[repairServiceSelect.selectedIndex];
+      service_label = opt ? opt.textContent : "Repair Service";
     }
 
-    if (lamTypeSelect) {
-      const val = lamTypeSelect.value;
-      if (!val || val === 'Select a Package' || val === 'Select lamination type') {
-        lamTypeSelect.style.border = '2px solid #e74c3c';
-        lamTypeSelect.focus();
-        valid = false;
-      } else lamTypeSelect.style.border = '';
+    // Installation
+    if (installationTypeSelect) {
+      const opt = installationTypeSelect.options[installationTypeSelect.selectedIndex];
+      service_label = opt ? opt.textContent : "Installation Service";
     }
 
-    if (packageSelect) {
-      const val = packageSelect.value;
-      if (!val || val === 'Select a Package') {
-        packageSelect.style.border = '2px solid #e74c3c';
-        packageSelect.focus();
-        valid = false;
-      } else packageSelect.style.border = '';
-    }
+    return {
+      category,
+      service_label,
+      paper_size: paperSizeSelect ? paperSizeSelect.value : null,
+      quantity: qtyInput ? parseInt(qtyInput.value, 10) || 1 : 1,
+      color_option: getSelectedColor(),
+      package_label: packageSelect
+        ? (packageSelect.options[packageSelect.selectedIndex]?.textContent || null)
+        : null,
+      lamination_type: lamTypeSelect ? lamTypeSelect.value : null,
+      device_type: deviceTypeSelect ? deviceTypeSelect.value : null,
+      notes: notesEl ? notesEl.value : null,
+      file_name: fileName
+    };
+  }
 
-    if (qtyInput) {
-      const qty = parseInt(qtyInput.value, 10) || 0;
-      if (qty < 1) {
-        qtyInput.style.border = '2px solid #e74c3c';
-        qtyInput.focus();
-        valid = false;
-      } else qtyInput.style.border = '';
-    }
+  async function createQueue(payload) {
+    const res = await fetch("queue_create.php", {
+  method: "POST",
+  credentials: "same-origin",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-Requested-With": "XMLHttpRequest"
+  },
+  body: JSON.stringify(payload)
+});
 
-    if (!valid) return;
 
-    const svc = document.body && document.body.dataset && document.body.dataset.service ? document.body.dataset.service : '';
-    let prefix = 'P';
-    if (svc === 'repair') prefix = 'R';
-    else if (svc === 'installation') prefix = 'I';
+    const raw = await res.text();
 
-    const generated = prefix + '-' + Math.floor(100 + Math.random() * 900);
-    if (modalQueueNo) modalQueueNo.textContent = generated;
-
-    queueModal.style.display = 'flex';
+    console.log("[JoinQueue] HTTP Status:", res.status);
+    console.log("[JoinQueue] Raw Response:", raw);
 
     try {
-      const notesEl = document.getElementById('installationNotes') || document.getElementById('repairNotes') || document.getElementById('notes') || null;
-      const entry = {
-        id: generated,
-        category: svc || 'general',
-        service: document.title || '',
-        meta: { notes: notesEl ? notesEl.value : '' },
-        createdAt: Date.now(),
-        status: 'PENDING'
+      return JSON.parse(raw);
+    } catch (e) {
+      return {
+        ok: false,
+        error:
+          "Server returned non-JSON. It may have redirected to log_in.html (session issue) or PHP error. Check console raw response."
       };
+    }
+  }
 
-      const key = 'servitech_queues';
-      const existing = JSON.parse(localStorage.getItem(key) || '[]');
-      existing.unshift(entry);
-      localStorage.setItem(key, JSON.stringify(existing.slice(0, 200)));
+  joinBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    console.log("[JoinQueue] click");
+
+    const payload = collectPayload();
+    console.log("[JoinQueue] payload:", payload);
+
+    if (!payload.service_label || payload.service_label === "Service") {
+      alert("Please complete the form first.");
+      return;
+    }
+
+    try {
+      const result = await createQueue(payload);
+      console.log("[JoinQueue] result:", result);
+
+      if (!result.ok) {
+        alert("Queue not saved: " + (result.error || "Unknown error"));
+        return;
+      }
+
+      modalQueueNo.textContent = result.queue_code;
+      queueModal.style.display = "flex";
     } catch (err) {
-      console.warn('Could not save queue entry', err);
+      console.error(err);
+      alert("Network/server error. Check XAMPP Apache + PHP error logs.");
     }
   });
 
   if (goHomeBtn) {
-    goHomeBtn.addEventListener('click', () => {
-      window.location.href = 'landing.html';
-    });
-  }
+  goHomeBtn.addEventListener("click", () => {
+    window.location.href = "customer_dash.php";
+  });
+}
+
 
   if (viewQueueBtn) {
-    viewQueueBtn.addEventListener('click', () => {
-      window.location.href = 'custo_service_status.html';
+    viewQueueBtn.addEventListener("click", () => {
+      window.location.href = "custo_service_status.php";
     });
   }
-
-  queueModal.addEventListener('click', (ev) => {
-    if (ev.target === queueModal) queueModal.style.display = 'none';
-  });
-});
-
-// Rush ID page summary
-document.addEventListener('DOMContentLoaded', () => {
-  const packageSelect = document.getElementById('packageSelect');
-  const qtyInput = document.getElementById('qtyInput');
-  const summaryPackage = document.getElementById('summaryPackage');
-  const summaryQty = document.getElementById('summaryQty');
-  const summaryTotal = document.getElementById('summaryTotal');
-
-  if (!packageSelect || !qtyInput || !summaryTotal) return;
-
-  function updateRushSummary() {
-    const pkgOption = packageSelect.options[packageSelect.selectedIndex];
-    const pkgLabel = pkgOption && pkgOption.textContent ? pkgOption.textContent : '';
-    const price = pkgOption && pkgOption.dataset && pkgOption.dataset.price ? parseFloat(pkgOption.dataset.price) : 0;
-    const qty = parseInt(qtyInput.value, 10) || 1;
-
-    if (summaryPackage) summaryPackage.textContent = pkgLabel && pkgLabel !== 'Select a Package' ? pkgLabel : 'Not Selected';
-    if (summaryQty) summaryQty.textContent = qty;
-    summaryTotal.textContent = `₱${(price * qty).toFixed(2)}`;
-  }
-
-  packageSelect.addEventListener('change', updateRushSummary);
-  qtyInput.addEventListener('input', updateRushSummary);
-  updateRushSummary();
-});
-
-/* REGISTER FORM SUBMISSION (let PHP handle it) */
-document.addEventListener("DOMContentLoaded", () => {
-  const registerForm = document.getElementById("registerForm");
-  if (!registerForm) return;
-  registerForm.addEventListener("submit", () => {});
 });
