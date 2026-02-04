@@ -1,36 +1,34 @@
 <?php
-session_start();
+require_once __DIR__ . "/_includes/admin_auth.php";
+require_once __DIR__ . "/_includes/admin_db.php";
 
-if (!isset($_SESSION["admin_logged_in"])) {
-    header("Location: main.php");
-    exit();
-}
+// Total customers (minus 1 for admin)
+$customers = (int)$pdo->query("SELECT (COUNT(*) - 1) AS c FROM users")->fetchColumn();
+if ($customers < 0) $customers = 0;
+
+// Online queues (all queues)
+$queues = (int)$pdo->query("SELECT COUNT(*) FROM queues")->fetchColumn();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>ServiTech Admin Dashboard</title>
-
-  <!-- ADMIN DASHBOARD CSS -->
   <link rel="stylesheet" href="/ServiTech/Admin/admin.css">
 </head>
 <body>
 
-<!-- TOP BAR -->
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand">
       <span>ServiTech Admin</span>
     </div>
     <div class="actions">
-      <a href="logout.php" class="btn">Logout</a>
+      <a href="/ServiTech/Admin/logout.php" class="btn">Logout</a>
     </div>
   </div>
 </header>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hero-inner">
     <h1>Dashboard</h1>
@@ -38,14 +36,12 @@ if (!isset($_SESSION["admin_logged_in"])) {
   </div>
 </section>
 
-<!-- MAIN CONTENT -->
 <main class="container">
 
-  <!-- STATS -->
   <section class="stats">
     <div class="stat">
       <h4>CUSTOMERS</h4>
-      <div class="value">32</div>
+      <div class="value"><?= $customers ?></div>
     </div>
 
     <div class="stat">
@@ -54,17 +50,15 @@ if (!isset($_SESSION["admin_logged_in"])) {
     </div>
 
     <div class="stat">
-      <h4>ONGOING QUEUE</h4>
-      <div class="value">16</div>
+      <h4>ONLINE QUEUE</h4>
+      <div class="value"><?= $queues ?></div>
     </div>
   </section>
 
   <h3 class="section-title">Quick Access</h3>
 
-  <!-- QUICK ACCESS -->
   <section class="quick-grid">
-
-    <a href="#" class="card-link">
+    <a href="/ServiTech/Admin/Queue List/printing.php" class="card-link">
       <article class="card">
         <div class="icon">⏳</div>
         <h4>Queue List</h4>
@@ -87,12 +81,10 @@ if (!isset($_SESSION["admin_logged_in"])) {
         <p>View registered customers</p>
       </article>
     </a>
-
   </section>
 
 </main>
 
-<!-- FOOTER -->
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="contact">ServiTech – JC Repair Shop</div>

@@ -1,0 +1,350 @@
+<?php
+session_start();
+$is_logged_in = isset($_SESSION["user_id"]);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ServiTech: JC Repair Shop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <a href="landing.php" class="logo">
+    <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+    <h1>ServiTech</h1>
+  </a>
+    <nav>
+      <?php if ($is_logged_in): ?>
+        <a href="customer_dash.php">Home</a>
+        <a href="logout.php">Logout</a>
+      <?php else: ?>
+        <a href="regis.html">Register</a>
+        <a href="login.php">Login</a>
+      <?php endif; ?>
+    </nav>
+  </header>
+
+
+
+  <!-- HERO -->
+  <section class="hero">
+    <h2>Welcome to ServiTech: JC Repair Shop</h2>
+    <p>Offering printing, repairing, and installation services</p>
+
+    <div class="hero-cards">
+
+      <a href="<?php echo $is_logged_in ? 'custo_place_queueing.php' : 'login.php'; ?>" class="hero-card">
+        <img src="./IMAGES/LANDING_QUEUEING.png" alt="Queueing" class="hero-icon">
+        <h4>QUEUEING</h4>
+      </a>
+
+      <a href="<?php echo $is_logged_in ? 'custo_service_status.php' : 'login.php'; ?>" class="hero-card">
+        <img src="./IMAGES/LANDING_SERVICE-STAT.png" alt="Service Status" class="hero-icon">
+        <h4>SERVICE STATUS</h4>
+      </a>
+
+      <a href="<?php echo $is_logged_in ? 'customer_dash.php' : 'login.php'; ?>" class="hero-card">
+        <img src="./IMAGES/LANDING_PRINT-ORD.png" alt="Print Order" class="hero-icon">
+        <h4>PRINT ORDER</h4>
+      </a>
+
+    </div>
+  </section>
+
+
+  <!-- SERVICES -->
+<section class="services">
+
+  <h2>JC Repair Shop's Services</h2>
+  <p>(Note: these are only the common requested services, you may contact us for inquiry of other services)</p>
+
+  <!-- TOP SERVICE TYPE CARDS -->
+  <div class="service-type-cards">
+
+    <div class="service-type-card" onclick="scrollToSection('printing')">
+      <img src="./IMAGES/CARD_PRINTING.png" alt="Printing Service">
+      <h3>Printing Service</h3>
+    </div>
+
+    <div class="service-type-card" onclick="scrollToSection('repair')">
+      <img src="./IMAGES/CARD_REPAIR.png" alt="Device Repair">
+      <h3>Device Repair Service</h3>
+    </div>
+
+    <div class="service-type-card" onclick="scrollToSection('installation')">
+      <img src="./IMAGES/CARD_INSTALLATION.png" alt="Installation Service">
+      <h3>Installation / Software</h3>
+    </div>
+
+  </div>
+<br><br><br><br>
+
+  <!-- PRINTING SERVICE DETAILS -->
+<div id="printing" class="service-details">
+  <h3>Printing Service</h3>
+
+  <div class="service-grid">
+
+    <!-- DOCUMENT PRINTING (WITH MODAL) -->
+    <div class="detail-card clickable" onclick="openModal('doc-printing-modal')">
+      <h4>Document Printing</h4>
+      <p>Long Bond / Short Bond / A4</p>
+      <br>
+      <p>Price varies based on color option</p>
+
+      <p class="more-details">Click for more details</p>
+    </div>
+
+    <!-- XEROX -->
+    <div class="detail-card">
+      <h4>Xerox</h4>
+      <p>Long Bond: ₱5</p>
+      <p>Short / A4: ₱3</p>
+    </div>
+
+    <!-- RUSH ID (WITH MODAL) -->
+    <div class="detail-card clickable" onclick="openModal('rush-id-modal')">
+      <h4>Rush ID</h4>
+      <p>Packages 1–6</p>
+<br>
+      <p>Price varies based on chosen package</p>
+      <p class="more-details">Click for more details</p>
+    </div>
+
+
+    <!-- LAMINATING -->
+    <div class="detail-card">
+      <h4>Laminating</h4>
+      <p>Manipis/Thin: ₱20</p>
+      <p>Makapal/Thick: ₱30</p>
+    </div>
+
+  </div>
+</div>  
+
+
+  <!-- DEVICE REPAIR DETAILS -->
+<div id="repair" class="service-details">
+  <h3>Device Repair Service</h3>
+
+  <div class="service-grid">
+
+    <div class="detail-card">
+      <h4>LCD<br>Replacement</h4>
+      <p><strong>For Devices:</strong> Mobile Phone, Laptop</p>
+      <p><strong>Price Range:</strong> ₱1200 – ₱5500</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Battery<br> Replacement</h4>
+      <p><strong>For Devices:</strong> Mobile Phone, Laptop</p>
+      <p><strong>Price Range:</strong> ₱700 – ₱2500</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Charging Pin<br> Replacement</h4>
+      <p><strong>For Devices:</strong> Mobile Phone, Laptop</p>
+      <p><strong>Price Range:</strong> ₱800 – ₱4000</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Speaker / Mouthpiece<br> Replacement</h4>
+      <p><strong>For Devices:</strong> Mobile Phone, Laptop</p>
+      <p><strong>Price Range:</strong> ₱700 – ₱1500</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Power Button<br> Repair</h4>
+      <p><strong>For Devices:</strong> Mobile Phone, Laptop</p>
+      <p><strong>Price Range:</strong> ₱500 – ₱2000</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Volume<br>  Repair</h4>
+      <p><strong>For Devices:</strong> Mobile Phone, Laptop</p>
+      <p><strong>Price Range:</strong> ₱1000 – ₱2000</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Camera<br>  Replacement</h4>
+      <p><strong>For Devices:</strong> Mobile Phone, Laptop</p>
+      <p><strong>Price Range:</strong> ₱1500 – ₱5000</p>
+    </div>
+
+  </div>
+</div>
+
+  <!-- INSTALLATION DETAILS -->
+<div id="installation" class="service-details">
+  <h3>Installation / Software Service</h3>
+
+  <div class="service-grid">
+
+    <div class="detail-card">
+      <h4>Reprogram<br> Service</h4>
+      <p><strong>Price Range:</strong> ₱1000 – ₱4000</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Hang Logo Fix<br> Service</h4>
+      <p><strong>Price Range:</strong> ₱1000 – ₱3500</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Boot Loop Fix<br> Service</h4>
+      <p><strong>Price Range:</strong> ₱1000 – ₱5000</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Openline Samsung<br> & iPhone</h4>
+      <p><strong>Price Range:</strong> ₱3500 – ₱6000</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Bypass Google<br> Account</h4>
+      <p><strong>Price Range:</strong> ₱500 – ₱2000</p>
+    </div>
+
+    <div class="detail-card">
+      <h4>Bypass<br> Password</h4>
+      <p><strong>Price Range:</strong> ₱1000 – ₱3000</p>
+    </div>
+
+  </div>
+</div>
+
+</section>
+
+
+
+  <!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
+
+    <!-- LEFT: CONTACT US -->
+    <div class="footer-left">
+      <h3>Contact Us:</h3>
+
+      <div class="contact-item">
+        <img src="./IMAGES/FOOTER_FB.png" alt="Facebook">
+        <a href="https://www.facebook.com/" target="_blank">
+          JC Repair Shop
+        </a>
+      </div>
+
+      <div class="contact-item">
+        <img src="./IMAGES/FOOTER_EMAIL.png" alt="Email">
+        <a href="mailto:servitech@gmail.com">
+          servitech@gmail.com
+        </a>
+      </div>
+
+      <div class="contact-item">
+        <img src="./IMAGES/FOOTER_PHONE.png" alt="Phone">
+        <span>+63 912 393 4321</span>
+      </div>
+    </div>
+
+ <!-- RIGHT -->
+    <div class="footer-right">
+      <a href="landing.php" class="footer-logo-link">
+        <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
+        <h1>ServiTech: JC Repair Shop</h1>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- FOOTER BOTTOM (NASA LABAS NA) -->
+  <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
+</footer>
+
+
+
+<!-- DOCUMENT PRINTING MODAL -->
+<div id="doc-printing-modal" class="modal-overlay">
+
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('doc-printing-modal')">&times;</button>
+
+    <h3>Document Printing</h3>
+    <div class="modal-divider"></div>
+
+    <div class="modal-text">
+      <p><strong>Long Bond Paper (Colored)</strong></p>
+      <p>Full – ₱10.00</p>
+      <p>Half – ₱5.00</p><br>
+
+      <p><strong>Long Bond Paper (B&W):</strong> ₱5.00</p>
+      <br>
+
+      <p><strong>Short Bond Paper (Colored)</strong></p>
+      <p>Full – ₱10.00</p>
+      <p>Half – ₱5.00</p><br>
+
+      <p><strong>Short Bond Paper (B&W):</strong> ₱5.00</p>
+      <br>
+
+      <p><strong>A4 (Colored)</strong></p>
+      <p>Full – ₱10.00</p>
+      <p>Half – ₱5.00</p><br>
+
+      <p><strong>A4 (B&W):</strong> ₱5.00</p>
+    </div>
+  </div>
+
+</div>
+
+
+
+<!-- RUSH ID MODAL -->
+<div id="rush-id-modal" class="modal-overlay">
+
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('rush-id-modal')">&times;</button>
+
+    <h3>Rush ID</h3>
+    <div class="modal-divider"></div>
+
+    <div class="modal-text">
+      <p><strong>Package 1:</strong> ₱40.00</p>
+      <p>1x1 (4pcs), 2x2 (2pcs)</p>
+
+      <br>
+
+      <p><strong>Package 2:</strong> ₱30.00</p>
+      <p>1x1 (6pcs)</p>
+
+      <br>
+
+      <p><strong>Package 3:</strong> ₱30.00</p>
+      <p>2x2 (4pcs)</p>
+
+      <br>
+
+      <p><strong>Package 4:</strong> ₱50.00</p>
+      <p>2x2 (4pcs), 1x1 (4pcs)</p>
+
+      <br>
+
+      <p><strong>Package 5:</strong> ₱30.00</p>
+      <p>Passport size (4pcs)</p>
+
+      <br>
+
+      <p><strong>Package 6:</strong> ₱50.00</p>
+      <p>1x1 (10pcs)</p>
+    </div>
+  </div>
+
+</div>
+
+
+<script src="main.js"></script>
+
+</body>
+</html>

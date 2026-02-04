@@ -1,7 +1,5 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Admin/_includes/admin_db.php
 
 $host = "localhost";
 $db   = "servitech_db";

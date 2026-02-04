@@ -1,50 +1,31 @@
 <?php
-session_start();
+require_once __DIR__ . "/includes/auth.php";
+require_once __DIR__ . "/db.php";
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: log_in.html");
-    exit();
-}
+$user_id = (int)($_SESSION["user_id"] ?? 0);
 
-$conn = new mysqli("localhost", "root", "", "servitech_db");
-if ($conn->connect_error) {
-    die("Database connection failed");
-}
+$stmt = $pdo->prepare("SELECT fullname FROM users WHERE id = :id LIMIT 1");
+$stmt->execute([":id" => $user_id]);
+$row = $stmt->fetch();
 
-$user_id = (int)$_SESSION["user_id"];
-
-$sql = "SELECT fullname FROM users WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$fullname = "Customer";
-if ($result && $result->num_rows === 1) {
-    $row = $result->fetch_assoc();
-    $fullname = $row["fullname"] ?? "Customer";
-}
-
-$stmt->close();
-$conn->close();
+$fullname = $row["fullname"] ?? "Customer";
 
 function format_fullname($name) {
     $name = trim($name);
     if ($name === "") return "Customer";
-
     $name = preg_replace('/\s+/', ' ', $name);
     $name = ucwords(strtolower($name));
-
-    // keep initials uppercase: "t." -> "T."
     $name = preg_replace_callback('/\b([A-Za-z])\./', function ($m) {
         return strtoupper($m[1]) . '.';
     }, $name);
-
     return $name;
 }
 
 $display_name = format_fullname($fullname);
 ?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,12 +37,12 @@ $display_name = format_fullname($fullname);
 <body>
 
   <header class="navbar">
-    <a href="landing.html" class="logo">
+    <a href="landing.php" class="logo">
       <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
     </a>
     <nav>
-      <a href="landing.html">Services Home</a>
+      <a href="landing.php">Services Home</a>
       <a href="logout.php">Logout</a>
     </nav>
   </header>
@@ -101,7 +82,7 @@ $display_name = format_fullname($fullname);
     <div class="divider"></div>
 
     <div class="quick-grid">
-      <a href="custo_place_queueing.html" class="quick-card-link">
+      <a href="custo_place_queueing.php" class="quick-card-link">
         <div class="quick-card">
           <div class="quick-icon-box">
             <img src="./IMAGES/LANDING_QUEUEING.png" alt="Join Queue" class="quick-icon">
@@ -111,7 +92,7 @@ $display_name = format_fullname($fullname);
         </div>
       </a>
 
-      <a href="custo_service_status.html" class="quick-card-link">
+      <a href="custo_service_status.php" class="quick-card-link">
         <div class="quick-card">
           <div class="quick-icon-box">
             <img src="./IMAGES/LANDING_SERVICE-STAT.png" alt="Service Status" class="quick-icon">
