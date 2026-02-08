@@ -28,3 +28,156 @@ table.orders th, table.orders td{padding:12px;border-bottom:1px solid #eee;text-
   .page-inner{padding:18px}
   .panel-heading{flex-direction:column;align-items:flex-start;gap:8px}
 }
+/* ===== Status Modal ===== */
+/* ===== Order Management modal (card style) ===== */
+.om-overlay{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:99999;
+  padding:18px;
+}
+
+.om-card{
+  width:min(430px, 96vw);
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 26px 70px rgba(0,0,0,.28);
+  position:relative;
+  overflow:hidden;
+}
+
+.om-x{
+  position:absolute;
+  right:10px; top:8px;
+  border:none;
+  background:transparent;
+  font-size:22px;
+  cursor:pointer;
+  opacity:.75;
+}
+
+.om-titleRow{
+  padding:14px 14px 8px;
+}
+.om-titleRow h3{
+  margin:0;
+  font-weight:800;
+  color:#111;
+  font-size:18px;
+}
+
+.om-accent{
+  height:3px;
+  background:var(--accent);
+  margin:0 14px 10px;
+  border-radius:99px;
+}
+
+.om-section{ padding:0 14px 12px; }
+
+.om-subhead{
+  font-weight:800;
+  color:#111;
+  font-size:13px;
+  margin:10px 0 8px;
+}
+
+.om-kv{
+  display:grid;
+  grid-template-columns: 115px 1fr;
+  gap:6px 10px;
+  font-size:12.5px;
+}
+.om-k{ color:#444; font-weight:700; }
+.om-v{ color:#111; }
+.om-strong{ color:#a11; font-weight:900; }
+
+.om-field{ margin-top:10px; }
+.om-field label{
+  display:block;
+  font-size:12.5px;
+  font-weight:700;
+  color:#111;
+  margin-bottom:6px;
+}
+.om-field textarea{
+  width:100%;
+  height:70px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.15);
+  padding:10px;
+  resize:none;
+  background:#fff;
+  font-size:12.5px;
+}
+.om-field select{
+  width:100%;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.15);
+  padding:10px;
+  font-weight:700;
+  background:#fff;
+}
+
+.om-pay{
+  margin-top:10px;
+  padding:10px;
+  background:#f3f3f3;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.06);
+  font-size:12.5px;
+}
+.om-payRow{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+.om-payK{ font-weight:700; color:#111; }
+.om-payV{ color:#111; }
+.om-price{
+  margin-top:8px;
+  padding:10px;
+  background:#e9e9e9;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  font-weight:900;
+}
+
+.om-error{
+  margin-top:10px;
+  background:#ffe1e1;
+  border:1px solid #ffb6b6;
+  color:#8b0000;
+  padding:10px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:12.5px;
+}
+
+.om-actions{
+  padding:12px 14px 14px;
+  display:flex;
+  gap:10px;
+}
+.om-btn{
+  flex:1;
+  border:none;
+  border-radius:10px;
+  padding:12px 10px;
+  font-weight:900;
+  cursor:pointer;
+}
+.om-btn-ghost{
+  background:#111;
+  color:#fff;
+}
+.om-btn-primary{
+  background:var(--accent);
+  color:#111;
+}
+

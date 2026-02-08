@@ -1,0 +1,82 @@
+/* Manage Services (Admin) */
+:root{ --maroon:#4A0505; --accent:#FAB12F; }
+
+.ms-wrap{ max-width:1100px; margin:26px auto 60px; padding:0 16px; }
+.ms-card{
+  background:#fff;
+  border-radius:16px;
+  border:2px solid rgba(74,5,5,.35);
+  box-shadow:0 18px 40px rgba(0,0,0,.12);
+  padding:18px 18px 16px;
+}
+.ms-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.ms-head h2{ margin:0; color:var(--maroon); font-weight:900; }
+.ms-head p{ margin:4px 0 0; color:#444; font-weight:600; font-size:13px; }
+
+.ms-tabs{ display:flex; gap:10px; margin:10px 0 12px; }
+.ms-tab{
+  padding:7px 18px;
+  border-radius:6px;
+  background:var(--accent);
+  color:#111;
+  font-weight:900;
+  text-decoration:none;
+  border:1px solid rgba(0,0,0,.12);
+}
+.ms-tab.active{ filter:brightness(.95); box-shadow:0 10px 18px rgba(0,0,0,.12); }
+
+.ms-add{
+  background:#111; color:#fff;
+  border:none; border-radius:4px;
+  padding:8px 12px;
+  font-weight:800; cursor:pointer;
+}
+
+.ms-tableWrap{ background:#f2f2f2; border-radius:10px; padding:10px; }
+.ms-table{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
+.ms-table th, .ms-table td{ padding:10px 12px; border-bottom:1px solid rgba(0,0,0,.08); font-size:13px; }
+.ms-table th{ background:#d9d9d9; text-align:left; font-weight:900; }
+.ms-actions button{ border:none; background:transparent; cursor:pointer; font-weight:900; }
+.ms-actions .edit{ color:#111; }
+.ms-actions .del{ color:#b00000; margin-left:10px; }
+
+.ms-pill{
+  display:inline-block; padding:4px 10px; border-radius:999px;
+  font-weight:900; font-size:12px; background:#eee;
+}
+.ms-pill.on{ background:#d7f5d7; color:#0b6b0b; }
+.ms-pill.off{ background:#ffe1e1; color:#8b0000; }
+
+/* Modal */
+.ms-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.55);
+  display:none; align-items:center; justify-content:center;
+  z-index:99999; padding:18px;
+}
+.ms-modal{
+  width:min(520px, 96vw);
+  background:#fff; border-radius:14px; overflow:hidden;
+  box-shadow:0 26px 70px rgba(0,0,0,.28);
+  position:relative;
+}
+.ms-x{ position:absolute; right:10px; top:8px; border:none; background:transparent; font-size:22px; cursor:pointer; opacity:.8; }
+.ms-mhead{ padding:14px 14px 8px; }
+.ms-mhead h3{ margin:0; font-weight:900; }
+.ms-accent{ height:3px; background:var(--accent); margin:0 14px 10px; border-radius:99px; }
+.ms-body{ padding:0 14px 14px; }
+.ms-field{ margin-top:10px; }
+.ms-field label{ display:block; font-weight:900; font-size:12.5px; margin-bottom:6px; }
+.ms-field input, .ms-field select, .ms-field textarea{
+  width:100%; padding:10px; border-radius:10px; border:1px solid rgba(0,0,0,.15);
+  font-size:13px;
+}
+.ms-field textarea{ height:80px; resize:none; }
+.ms-row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.ms-err{
+  margin-top:10px; background:#ffe1e1; border:1px solid #ffb6b6; color:#8b0000;
+  padding:10px; border-radius:10px; font-weight:900; display:none; font-size:12.5px;
+}
+.ms-foot{ display:flex; gap:10px; padding:12px 14px 14px; }
+.ms-btn{ flex:1; border:none; border-radius:10px; padding:12px 10px; font-weight:900; cursor:pointer; }
+.ms-btn.ghost{ background:#111; color:#fff; }
+.ms-btn.primary{ background:var(--accent); color:#111; }

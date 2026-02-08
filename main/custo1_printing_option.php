@@ -1,8 +1,6 @@
 <?php
 require_once __DIR__ . "/includes/auth.php";
 ?>
-
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

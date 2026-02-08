@@ -3,8 +3,8 @@
 
 $host = "localhost";
 $db   = "servitech_db";
-$user = "tonny1";
-$pass = "Tonny123!";
+$user = "root";
+$pass = "";
 
 try {
     $pdo = new PDO(

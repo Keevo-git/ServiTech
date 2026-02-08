@@ -13,11 +13,12 @@ $stmt->execute();
 $rows = $stmt->fetchAll();
 
 function pill_class($status) {
-  $s = strtolower(trim((string)$status));
-  if ($s === "pending") return "status-pending";
-  if ($s === "in progress") return "status-inprogress";
-  if ($s === "on hold") return "status-inprogress";
-  if ($s === "completed") return "status-complete";
+  $s = strtoupper(trim((string)$status));
+  if ($s === "PENDING") return "status-pending";
+  if ($s === "ONGOING") return "status-inprogress";
+  if ($s === "FOR PICK-UP") return "status-pickup";
+  if ($s === "DONE") return "status-complete";
+  if ($s === "CANCELLED") return "status-cancelled";
   return "status-pending";
 }
 ?>
@@ -121,32 +122,28 @@ function pill_class($status) {
     }).then(r => r.json());
   }
 
+  async function doAction(btn, action, confirmMsg){
+    const id = btn.dataset.id;
+    if (confirmMsg && !confirm(confirmMsg)) return;
+    const data = await sendAction(id, action);
+    if (data.ok) location.reload();
+    else alert(data.error || "Action failed");
+  }
+
   document.querySelectorAll(".btn-start").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const data = await sendAction(id, "start");
-      if (data.ok) location.reload();
-      else alert(data.error || "Action failed");
-    });
+    btn.addEventListener("click", () => doAction(btn, "start"));
   });
-
-  document.querySelectorAll(".btn-hold").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const data = await sendAction(id, "hold");
-      if (data.ok) location.reload();
-      else alert(data.error || "Action failed");
-    });
+  document.querySelectorAll(".btn-pickup").forEach(btn => {
+    btn.addEventListener("click", () => doAction(btn, "pickup"));
   });
-
+  document.querySelectorAll(".btn-done").forEach(btn => {
+    btn.addEventListener("click", () => doAction(btn, "done"));
+  });
+  document.querySelectorAll(".btn-cancel").forEach(btn => {
+    btn.addEventListener("click", () => doAction(btn, "cancel", "Cancel this queue?"));
+  });
   document.querySelectorAll(".btn-delete").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      if (!confirm("Delete this queue?")) return;
-      const id = btn.dataset.id;
-      const data = await sendAction(id, "delete");
-      if (data.ok) location.reload();
-      else alert(data.error || "Delete failed");
-    });
+    btn.addEventListener("click", () => doAction(btn, "delete", "Delete this queue permanently?"));
   });
 })();
 </script>
