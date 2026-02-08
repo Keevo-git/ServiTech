@@ -1305,3 +1305,13 @@ body {
     padding: 16px 20px;
   }
 }
+
+.status.ongoing {
+  background: #2563eb; /* blue */
+  color: #ffffff;
+}
+
+.status.ready {
+  background: #16a34a; /* green */
+  color: #ffffff;
+}

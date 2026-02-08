@@ -1,3 +1,4 @@
+\
 <?php
 require_once __DIR__ . "/includes/auth.php";
 require_once __DIR__ . "/db.php";
@@ -6,26 +7,65 @@ $user_id = (int)($_SESSION["user_id"] ?? 0);
 
 $stmt = $pdo->prepare("SELECT fullname FROM users WHERE id = :id LIMIT 1");
 $stmt->execute([":id" => $user_id]);
-$row = $stmt->fetch();
+$user = $stmt->fetch();
 
-$fullname = $row["fullname"] ?? "Customer";
+$fullname = $user["fullname"] ?? "Customer";
 
 function format_fullname($name) {
-    $name = trim($name);
+    $name = trim((string)$name);
     if ($name === "") return "Customer";
     $name = preg_replace('/\s+/', ' ', $name);
     $name = ucwords(strtolower($name));
-    $name = preg_replace_callback('/\b([A-Za-z])\./', function ($m) {
-        return strtoupper($m[1]) . '.';
-    }, $name);
     return $name;
 }
 
 $display_name = format_fullname($fullname);
+
+// Active queue: latest not DONE/CANCELLED
+$activeStmt = $pdo->prepare("
+  SELECT queue_code, category, service_label, details, status
+  FROM queues
+  WHERE user_id = :uid
+    AND status NOT IN ('DONE','CANCELLED')
+  ORDER BY created_at DESC
+  LIMIT 1
+");
+$activeStmt->execute([":uid" => $user_id]);
+$active = $activeStmt->fetch();
+
+$active_details = [];
+if ($active && !empty($active["details"])) {
+  $d = json_decode($active["details"], true);
+  if (is_array($d)) $active_details = $d;
+}
+
+// "On-going services" count: everything not DONE/CANCELLED
+$countStmt = $pdo->prepare("
+  SELECT COUNT(*) AS c
+  FROM queues
+  WHERE user_id = :uid
+    AND status NOT IN ('DONE','CANCELLED')
+");
+$countStmt->execute([":uid" => $user_id]);
+$ongoingCount = (int)($countStmt->fetch()["c"] ?? 0);
+
+// Build a short details line for the dashboard card
+function build_details_line(array $d): string {
+  $parts = [];
+  if (!empty($d["paper_size"])) $parts[] = $d["paper_size"];
+  if (!empty($d["quantity"])) $parts[] = "Qty: " . $d["quantity"];
+  if (!empty($d["color_option"])) $parts[] = $d["color_option"];
+  if (!empty($d["package_label"])) $parts[] = $d["package_label"];
+  if (!empty($d["lamination_type"])) $parts[] = "Lam: " . $d["lamination_type"];
+  if (!empty($d["device_type"])) $parts[] = $d["device_type"];
+  return implode(" • ", $parts);
+}
+
+$queueNo = $active["queue_code"] ?? "#---";
+$queueStatus = $active["status"] ?? "PENDING";
+$queueService = $active["service_label"] ?? "---";
+$queueDetails = $active ? build_details_line($active_details) : "---";
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,72 +76,66 @@ $display_name = format_fullname($fullname);
 </head>
 <body>
 
-  <header class="navbar">
-    <a href="landing.php" class="logo">
-      <img src="./IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
-      <h1>ServiTech</h1>
-    </a>
-    <nav>
-      <a href="landing.php">Services Home</a>
-      <a href="logout.php">Logout</a>
-    </nav>
-  </header>
+<?php include "includes/header.php"; ?>
 
-  <section class="customer-hero">
-    <h2>Welcome, <span id="customerName"><?php echo htmlspecialchars($display_name); ?></span>!</h2>
-    <p>Manage your queue, request status and print orders.</p>
-  </section>
+<section class="customer-hero">
+  <h2>Welcome, <span id="customerName"><?php echo htmlspecialchars($display_name); ?></span>!</h2>
+  <p>Manage your queue, request status and print orders.</p>
+</section>
 
-  <section class="customer-dashboard">
-    <div class="dashboard-card wide">
-      <h3>ACTIVE QUEUE</h3>
-      <div class="divider"></div>
-
-      <div class="queue-header">
-        <span class="queue-number" id="queueNo">#---</span>
-        <span class="status pending" id="queueStatus">PENDING</span>
-      </div>
-
-      <p id="queueService">Service: ---</p>
-      <p id="queueDetails">Details: ---</p>
-
-      <p id="noQueueMsg" style="display:none; color:#888; margin-top:10px;">
-        You have no active queue.
-      </p>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>ON-GOING SERVICE(S)</h3>
-      <div class="divider"></div>
-      <h1 id="ongoingCount">00</h1>
-    </div>
-  </section>
-
-  <section class="quick-access">
-    <h3>Quick Access</h3>
+<section class="customer-dashboard">
+  <div class="dashboard-card wide">
+    <h3>ACTIVE QUEUE</h3>
     <div class="divider"></div>
 
-    <div class="quick-grid">
-      <a href="custo_place_queueing.php" class="quick-card-link">
-        <div class="quick-card">
-          <div class="quick-icon-box">
-            <img src="./IMAGES/LANDING_QUEUEING.png" alt="Join Queue" class="quick-icon">
-          </div>
-          <h4>Join Queue</h4>
-          <p>Join the line to place your request.</p>
-        </div>
-      </a>
+    <div class="queue-header">
+      <span class="queue-number" id="queueNo"><?php echo htmlspecialchars($queueNo); ?></span>
+      <span class="status pending" id="queueStatus"><?php echo htmlspecialchars($queueStatus); ?></span>
+    </div>
 
-      <a href="custo_service_status.php" class="quick-card-link">
-        <div class="quick-card">
-          <div class="quick-icon-box">
-            <img src="./IMAGES/LANDING_SERVICE-STAT.png" alt="Service Status" class="quick-icon">
-          </div>
-          <h4>Service Status</h4>
-          <p>Check your requested service status or your queue status.</p>
-        </div>
-      </a>
+    <p id="queueService">Service: <?php echo htmlspecialchars($queueService); ?></p>
+    <p id="queueDetails">Details: <?php echo htmlspecialchars($queueDetails); ?></p>
 
+    <?php if (!$active): ?>
+      <p id="noQueueMsg" style="color:#888; margin-top:10px;">
+        You have no active queue.
+      </p>
+    <?php endif; ?>
+  </div>
+
+  <div class="dashboard-card">
+    <h3>ON-GOING SERVICE(S)</h3>
+    <div class="divider"></div>
+    <h1 id="ongoingCount"><?php echo str_pad((string)$ongoingCount, 2, "0", STR_PAD_LEFT); ?></h1>
+  </div>
+</section>
+
+<section class="quick-access">
+  <h3>Quick Access</h3>
+  <div class="divider"></div>
+
+  <div class="quick-grid">
+    <a href="custo_place_queueing.php" class="quick-card-link">
+      <div class="quick-card">
+        <div class="quick-icon-box">
+          <img src="./IMAGES/LANDING_QUEUEING.png" alt="Join Queue" class="quick-icon">
+        </div>
+        <h4>Join Queue</h4>
+        <p>Join the line to place your request.</p>
+      </div>
+    </a>
+
+    <a href="custo_service_status.php" class="quick-card-link">
+      <div class="quick-card">
+        <div class="quick-icon-box">
+          <img src="./IMAGES/LANDING_SERVICE-STAT.png" alt="Service Status" class="quick-icon">
+        </div>
+        <h4>Service Status</h4>
+        <p>Check your requested service status or your queue status.</p>
+      </div>
+    </a>
+
+    <a href="custo_print_order.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
           <img src="./IMAGES/LANDING_PRINT-ORD.png" alt="Print Order" class="quick-icon">
@@ -109,7 +143,9 @@ $display_name = format_fullname($fullname);
         <h4>Print Order</h4>
         <p>Place an order to print your document.</p>
       </div>
+    </a>
 
+    <a href="custo_edit_profile.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
           <img src="./IMAGES/ICON_EDIT_PROF.png" alt="Edit Profile" class="quick-icon">
@@ -117,20 +153,11 @@ $display_name = format_fullname($fullname);
         <h4>Edit Profile</h4>
         <p>Edit your personal information.</p>
       </div>
-    </div>
-  </section>
+    </a>
+  </div>
+</section>
 
-  <footer class="footer">
-    <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
-  </footer>
-
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("from") === "login_v2") {
-      alert("Login successful! (dashboard reached)");
-      window.history.replaceState({}, document.title, "customer_dash.php");
-    }
-  </script>
+<?php include "includes/footer.php"; ?>
 
 </body>
 </html>

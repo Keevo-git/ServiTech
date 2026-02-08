@@ -3,9 +3,9 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 
 $stmt = $pdo->prepare("
-  SELECT id, fullname, email, contact
+  SELECT id, fullname, email, contacts
   FROM users
-  WHERE email <> 'admin@servitech.com'
+  WHERE role='customer'
   ORDER BY id ASC
 ");
 $stmt->execute();
@@ -22,15 +22,12 @@ function customer_code_from_id(int $id): string {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Customer List</title>
 
-  <!-- shared -->
   <link rel="stylesheet" href="../../main/style.css">
   <link rel="stylesheet" href="../admin.css">
-  <!-- page -->
   <link rel="stylesheet" href="custoL.css">
 </head>
 
 <body>
-  <!-- ADMIN NAVBAR -->
   <header class="navbar">
     <a href="../admin_dashboard.php" class="logo">
       <img src="../../main/IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
@@ -46,14 +43,14 @@ function customer_code_from_id(int $id): string {
     <div class="cl-wrap">
       <div class="cl-head">
         <h2 class="cl-title">Customer List</h2>
-        <a class="cl-btn cl-btn--maroon" href="../Order%20Management/printM.html">View Queue</a>
+        <a class="cl-btn cl-btn--maroon" href="../Queue%20List/printing.php">View Queue</a>
       </div>
 
       <div class="cl-card">
         <div class="cl-toolbar">
           <div class="cl-search">
             <span class="cl-searchIcon">🔍</span>
-            <input id="searchInput" type="text" placeholder="Search customers by name, email, phone, or queue number..." />
+            <input id="searchInput" type="text" placeholder="Search customers by name, email, or contact..." />
           </div>
         </div>
 
@@ -80,7 +77,7 @@ function customer_code_from_id(int $id): string {
                     $code = customer_code_from_id((int)$c["id"]);
                     $name = (string)($c["fullname"] ?? "");
                     $email = (string)($c["email"] ?? "");
-                    $contact = (string)($c["contact"] ?? "");
+                    $contact = (string)($c["contacts"] ?? "");
                   ?>
                   <tr class="cl-row">
                     <td><span class="cl-idPill"><?= htmlspecialchars($code) ?></span></td>
@@ -105,7 +102,6 @@ function customer_code_from_id(int $id): string {
     </div>
   </main>
 
-  <!-- MESSAGE MODAL -->
   <div class="cl-modalOverlay" id="msgModal">
     <div class="cl-modalCard" role="dialog" aria-modal="true">
       <button class="cl-modalX" type="button" id="closeModal">×</button>
@@ -164,7 +160,6 @@ function customer_code_from_id(int $id): string {
     </div>
   </div>
 
-  <!-- ✅ FOOTER MUST BE INSIDE BODY + paths fixed -->
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-left">
@@ -198,7 +193,6 @@ function customer_code_from_id(int $id): string {
   </footer>
 
   <script>
-    // Search filter
     const searchInput = document.getElementById('searchInput');
     const rows = Array.from(document.querySelectorAll('#customersTable tbody tr.cl-row'));
     searchInput?.addEventListener('input', () => {
@@ -206,29 +200,23 @@ function customer_code_from_id(int $id): string {
       rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none');
     });
 
-    // Modal open/close
     const modal = document.getElementById('msgModal');
     const close = () => modal.style.display = 'none';
     document.getElementById('closeModal')?.addEventListener('click', close);
     document.getElementById('cancelBtn')?.addEventListener('click', close);
     modal?.addEventListener('click', (e) => { if(e.target === modal) close(); });
 
-    // Message templates (auto-fill, pwede magdagdag)
     const templates = {
       "Ready for Pick-Up":
 `Good day, our dear customer, mabuhay! This is ServiTech. We are pleased to inform you that your order is now ready for pickup. You may claim your item at our JC Store at your most convenient time. Thank you for trusting our service!`,
-
       "No Available Repair Part":
-`Good day, our dear customer, mabuhay! This is ServiTech. We would like to inform you that the required part for your device repair is currently unavailable. We apologize for the inconvenience. We are working on restocking the needed component. Kindly advise if you prefer to wait or proceed with cancellation. Thank you!`,
-
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to inform you that the required part for your device repair is currently unavailable. We apologize for the inconvenience. Kindly advise if you prefer to wait or proceed with cancellation. Thank you!`,
       "Cancellation Confirmation":
 `Good day, our dear customer, mabuhay! This is ServiTech. We would like to confirm your cancellation request. Please reply YES to finalize the cancellation. Thank you, and we apologize for any inconvenience this may have caused.`,
-
       "No Available Repairman":
 `Good day, our dear customer, mabuhay! This is ServiTech. We would like to notify you that there is currently no available repairman to process your repair request. We sincerely apologize for the inconvenience. We will update you as soon as a technician becomes available. Thank you for your patience.`
     };
 
-    // Open modal with row data
     document.querySelectorAll('.cl-msgBtn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.getElementById('mCode').textContent = btn.dataset.code || '';
@@ -245,7 +233,6 @@ function customer_code_from_id(int $id): string {
       });
     });
 
-    // Templates click -> insert template then cursor at end (admin can add more)
     document.querySelectorAll('.cl-tplBtn').forEach(b => {
       b.addEventListener('click', () => {
         const key = b.dataset.tpl;
@@ -257,7 +244,6 @@ function customer_code_from_id(int $id): string {
       });
     });
 
-    // Copy buttons
     document.querySelectorAll('.cl-copyBtn').forEach(b => {
       b.addEventListener('click', async () => {
         const id = b.dataset.copy;
