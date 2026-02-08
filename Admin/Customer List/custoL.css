@@ -153,127 +153,150 @@
 .cl-msgBtn:hover{ transform: translateY(-1px); }
 
 /* modal */
+/* modal (COMPACT like photo 3) */
 .cl-modalOverlay{
   position:fixed;
   inset:0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.65);
   display:none;
   align-items:center;
   justify-content:center;
   z-index: 9999;
+  padding: 18px;
 }
 
 .cl-modalCard{
-  width: min(760px, 92vw);
+  width: min(620px, 92vw);
   background:#fff;
-  border-radius: 18px;
-  padding: 20px 22px;
+  border-radius: 16px;
+  padding: 18px 18px 16px;
   box-shadow: 0 26px 70px rgba(0,0,0,0.28);
   position:relative;
 }
 
 .cl-modalX{
   position:absolute;
-  right: 16px;
-  top: 12px;
+  right: 12px;
+  top: 10px;
   border:none;
   background:transparent;
-  font-size: 22px;
+  font-size: 20px;
   cursor:pointer;
   opacity:.8;
+  line-height: 1;
 }
 
 .cl-modalHead{
   display:flex;
   align-items:center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .cl-modalHead h3{
   margin:0;
   color:#ff7a2e;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
 }
 
+/* pill */
 .cl-pill{
-  margin-left:auto;
   background:#f7c27a;
   color:#7a3b00;
-  padding: 6px 10px;
-  border-radius: 12px;
+  padding: 5px 9px;
+  border-radius: 10px;
   font-weight: 600;
   font-size: 12px;
+  margin-left: 0; /* remove auto push */
 }
 
+/* if you only have ONE pill, push it to the right */
+.cl-modalHead .cl-pill{
+  margin-left: auto;
+}
+
+/* if later you add a second pill (order code), this keeps them both right */
+.cl-modalHead .cl-pill + .cl-pill{
+  margin-left: 6px;
+}
+
+/* make info box more compact */
 .cl-infoCard{
-  background:#f3f3f3;
-  border-radius: 14px;
-  padding: 16px;
+  background:#f5f5f5;
+  border-radius: 12px;
+  padding: 14px;
   border:1px solid rgba(0,0,0,0.06);
 }
 
-.cl-infoTitle{ margin:0 0 12px; font-weight: 600; }
+.cl-infoTitle{
+  margin:0 0 10px;
+  font-weight: 600;
+  font-size: 14px;
+}
 
-.cl-infoGrid{ display:grid; gap: 12px; }
+.cl-infoGrid{ display:grid; gap: 10px; }
 
 .cl-infoGrid small{
   color:#777;
   display:block;
   margin-bottom:6px;
   font-weight: 400;
+  font-size: 12px;
 }
 
-.cl-infoVal{ font-weight: 600; color:#111; }
-.cl-underline{ text-decoration: underline; }
-
-.cl-copyRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 12px;
+.cl-infoVal{
+  font-weight: 600;
+  color:#111;
+  font-size: 14px;
 }
 
 .cl-copyBtn{
   background:#fff;
   border: 1px solid rgba(0,0,0,0.12);
-  padding: 9px 14px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
   cursor:pointer;
   font-weight:600;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.10);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
 }
 
-.cl-section{ margin-top: 14px; }
-.cl-sectionTitle{ margin:0 0 10px; font-weight: 600; }
+/* sections spacing smaller */
+.cl-section{ margin-top: 12px; }
+
+.cl-sectionTitle{
+  margin:0 0 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
 
 .cl-tplGrid{
   display:grid;
   grid-template-columns: repeat(4, minmax(0,1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .cl-tplBtn{
   background:#fff;
   border: 1px solid rgba(0,0,0,0.14);
-  padding: 10px 10px;
-  border-radius: 12px;
+  padding: 10px 8px;
+  border-radius: 10px;
   cursor:pointer;
   font-weight: 600;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  font-size: 12.5px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
 }
 
 .cl-textarea{
   width:100%;
-  height: 140px;
-  border-radius: 14px;
+  height: 110px;
+  border-radius: 12px;
   border: 1px solid rgba(0,0,0,0.12);
-  background:#f6f6f6;
+  background:#efefef;
   padding: 12px 14px;
   outline:none;
   resize:none;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 400;
 }
 
@@ -281,20 +304,13 @@
   display:flex;
   justify-content:center;
   gap: 14px;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
-.cl-empty{
-  padding:18px;
-  text-align:center;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-@media (max-width: 900px){
-  .cl-title{ font-size: 30px; }
+@media (max-width: 560px){
   .cl-tplGrid{ grid-template-columns: repeat(2, 1fr); }
 }
+
 
 
 /* Footer icons fix (Admin pages) */
