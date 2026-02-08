@@ -64,6 +64,7 @@
                     data-name="Trisha Mae Agbayani"
                     data-email="trisha.payrot@gmail.com"
                     data-contact="+63 912 345 6789"
+                    data-order="OP-001"
                   >Message</button>
                 </td>
               </tr>
@@ -79,6 +80,7 @@
                     data-name="Kelvin Fulgencio"
                     data-email="dunsa.faraway@gmail.com"
                     data-contact="+63 923 456 7890"
+                    data-order="R-001"
                   >Message</button>
                 </td>
               </tr>
@@ -97,6 +99,7 @@
       <div class="cl-modalHead">
         <h3>Send Message to Customer</h3>
         <span class="cl-pill" id="mCode">C-000</span>
+        <span class="cl-pill" id="mOrderCode">OP-001</span>
       </div>
 
       <div class="cl-infoCard">
@@ -148,6 +151,39 @@
     </div>
   </div>
 
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <h3>Contact Us:</h3>
+
+        <div class="contact-item">
+          <img src="../../main/IMAGES/FOOTER_FB.png" alt="Facebook">
+          <a href="https://www.facebook.com/" target="_blank">JC Store</a>
+        </div>
+
+        <div class="contact-item">
+          <img src="../../main/IMAGES/FOOTER_EMAIL.png" alt="Email">
+          <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
+        </div>
+
+        <div class="contact-item">
+          <img src="../../main/IMAGES/FOOTER_PHONE.png" alt="Phone">
+          <span>+63 912 393 4321</span>
+        </div>
+      </div>
+
+      <div class="footer-right">
+        <a href="../../main/landing.html" class="footer-logo-link">
+          <img src="../../main/IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
+          <h1>ServiTech: JC Store</h1>
+        </a>
+      </div>
+    </div>
+
+    <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
+  </footer>
+
   <script>
     // Search filter
     const searchInput = document.getElementById('searchInput');
@@ -157,12 +193,31 @@
       rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none');
     });
 
-    // Modal
+    // Modal open/close
     const modal = document.getElementById('msgModal');
     const close = () => modal.style.display = 'none';
     document.getElementById('closeModal')?.addEventListener('click', close);
     document.getElementById('cancelBtn')?.addEventListener('click', close);
-    modal?.addEventListener('click', (e) => { if(e.target === modal) close(); });
+    modal?.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+    // Templates (replace {{ORDER}} with real order code)
+    const templates = {
+      "Ready for Pick-Up":
+`Good day, our dear customer, mabuhay! This is ServiTech. We are pleased to inform you that your order {{ORDER}} is now ready for pickup. You may claim your item at our JC Store at your most convenient time. Thank you for trusting our service!`,
+
+      "Cancellation Confirmation":
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to confirm your cancellation request for order {{ORDER}}. Please reply YES to finalize the cancellation. Thank you, and we apologize for any inconvenience this may have caused.`,
+
+      "No Available Repair Part":
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to inform you that the required part for your device repair under order {{ORDER}} is currently unavailable. We apologize for the inconvenience. We are working on restocking the needed component. Kindly advise if you prefer to wait or proceed with cancellation. Thank you!`,
+
+      "No Available Repairman":
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to notify you that there is currently no available repairman to process your repair request for order {{ORDER}}. We sincerely apologize for the inconvenience. We will update you as soon as a technician becomes available. Thank you for your patience.`
+    };
+
+    function getOrderCode(){
+      return (document.getElementById('mOrderCode')?.textContent || 'OP-001').trim();
+    }
 
     // Open modal with row data
     document.querySelectorAll('.cl-msgBtn').forEach(btn => {
@@ -171,23 +226,32 @@
         document.getElementById('mName').textContent = btn.dataset.name || '';
         document.getElementById('mEmail').textContent = btn.dataset.email || '';
         document.getElementById('mContact').textContent = btn.dataset.contact || '';
+        document.getElementById('mOrderCode').textContent = btn.dataset.order || 'OP-001';
         document.getElementById('mMessage').value = '';
 
         const email = encodeURIComponent(btn.dataset.email || '');
-        document.getElementById('sendEmailLink').href = `mailto:${email}?subject=` + encodeURIComponent('ServiTech Notification');
+        document.getElementById('sendEmailLink').href =
+          `mailto:${email}?subject=` + encodeURIComponent('ServiTech Notification');
 
         modal.style.display = 'flex';
       });
     });
 
-    // Templates
+    // Templates click -> insert template then cursor at end
     document.querySelectorAll('.cl-tplBtn').forEach(b => {
       b.addEventListener('click', () => {
-        document.getElementById('mMessage').value = b.dataset.tpl || '';
+        const key = b.dataset.tpl;
+        const raw = templates[key] || '';
+        const msg = raw.replaceAll('{{ORDER}}', getOrderCode());
+
+        const ta = document.getElementById('mMessage');
+        ta.value = msg + "\n\n";
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = ta.value.length;
       });
     });
 
-    // Copy
+    // Copy buttons
     document.querySelectorAll('.cl-copyBtn').forEach(b => {
       b.addEventListener('click', async () => {
         const id = b.dataset.copy;
@@ -196,44 +260,5 @@
       });
     });
   </script>
-
-   <!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-container">
-
-    <div class="footer-left">
-      <h3>Contact Us:</h3>
-
-      <div class="contact-item">
-        <img src="../IMAGES/FOOTER_FB.png" alt="Facebook">
-        <a href="https://www.facebook.com/" target="_blank">JC Store</a>
-      </div>
-
-      <div class="contact-item">
-        <img src="../IMAGES/FOOTER_EMAIL.png" alt="Email">
-        <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
-      </div>
-
-      <div class="contact-item">
-        <img src="../IMAGES/FOOTER_PHONE.png" alt="Phone">
-        <span>+63 912 393 4321</span>
-      </div>
-    </div>
-
-    <div class="footer-right">
-      <a href="../../main/landing.html" class="footer-logo-link">
-        <img src="../IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
-        <h1>ServiTech: JC Store</h1>
-      </a>
-    </div>
-
-  </div>
-
-  <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
-</footer>
-
 </body>
-
-
- 
 </html>
