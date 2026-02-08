@@ -1,3 +1,20 @@
+<?php
+require_once __DIR__ . "/../_includes/admin_auth.php";
+require_once __DIR__ . "/../_includes/admin_db.php";
+
+$stmt = $pdo->prepare("
+  SELECT id, fullname, email, contact
+  FROM users
+  WHERE email <> 'admin@servitech.com'
+  ORDER BY id ASC
+");
+$stmt->execute();
+$customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+function customer_code_from_id(int $id): string {
+  return "C-" . str_pad((string)$id, 3, "0", STR_PAD_LEFT);
+}
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,11 +22,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Customer List</title>
 
-  <!-- Shared styles -->
+  <!-- shared -->
   <link rel="stylesheet" href="../../main/style.css">
   <link rel="stylesheet" href="../admin.css">
-
-  <!-- Page styles -->
+  <!-- page -->
   <link rel="stylesheet" href="custoL.css">
 </head>
 
@@ -52,36 +68,36 @@
                 <th class="cl-thActions">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              <tr class="cl-row">
-                <td><span class="cl-idPill">C-001</span></td>
-                <td class="cl-name">Trisha Mae Agbayani</td>
-                <td class="cl-email">trisha.payrot@gmail.com</td>
-                <td class="cl-contact">+63 912 345 6789</td>
-                <td class="cl-tdActions">
-                  <button class="cl-msgBtn" type="button"
-                    data-code="C-001"
-                    data-name="Trisha Mae Agbayani"
-                    data-email="trisha.payrot@gmail.com"
-                    data-contact="+63 912 345 6789"
-                  >Message</button>
-                </td>
-              </tr>
 
-              <tr class="cl-row">
-                <td><span class="cl-idPill">C-002</span></td>
-                <td class="cl-name">Kelvin Fulgencio</td>
-                <td class="cl-email">dunsa.faraway@gmail.com</td>
-                <td class="cl-contact">+63 923 456 7890</td>
-                <td class="cl-tdActions">
-                  <button class="cl-msgBtn" type="button"
-                    data-code="C-002"
-                    data-name="Kelvin Fulgencio"
-                    data-email="dunsa.faraway@gmail.com"
-                    data-contact="+63 923 456 7890"
-                  >Message</button>
-                </td>
-              </tr>
+            <tbody>
+              <?php if (!$customers): ?>
+                <tr>
+                  <td colspan="5" class="cl-empty">No registered customers yet.</td>
+                </tr>
+              <?php else: ?>
+                <?php foreach ($customers as $c): ?>
+                  <?php
+                    $code = customer_code_from_id((int)$c["id"]);
+                    $name = (string)($c["fullname"] ?? "");
+                    $email = (string)($c["email"] ?? "");
+                    $contact = (string)($c["contact"] ?? "");
+                  ?>
+                  <tr class="cl-row">
+                    <td><span class="cl-idPill"><?= htmlspecialchars($code) ?></span></td>
+                    <td class="cl-name"><?= htmlspecialchars($name) ?></td>
+                    <td class="cl-email"><?= htmlspecialchars($email) ?></td>
+                    <td class="cl-contact"><?= htmlspecialchars($contact) ?></td>
+                    <td class="cl-tdActions">
+                      <button class="cl-msgBtn" type="button"
+                        data-code="<?= htmlspecialchars($code) ?>"
+                        data-name="<?= htmlspecialchars($name) ?>"
+                        data-email="<?= htmlspecialchars($email) ?>"
+                        data-contact="<?= htmlspecialchars($contact) ?>"
+                      >Message</button>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
             </tbody>
           </table>
         </div>
@@ -89,7 +105,7 @@
     </div>
   </main>
 
-  <!-- MESSAGE MODAL (Overlay) -->
+  <!-- MESSAGE MODAL -->
   <div class="cl-modalOverlay" id="msgModal">
     <div class="cl-modalCard" role="dialog" aria-modal="true">
       <button class="cl-modalX" type="button" id="closeModal">×</button>
@@ -148,6 +164,39 @@
     </div>
   </div>
 
+  <!-- ✅ FOOTER MUST BE INSIDE BODY + paths fixed -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <h3>Contact Us:</h3>
+
+        <div class="contact-item">
+          <img src="../../main/IMAGES/FOOTER_FB.png" alt="Facebook">
+          <a href="https://www.facebook.com/" target="_blank">JC Store</a>
+        </div>
+
+        <div class="contact-item">
+          <img src="../../main/IMAGES/FOOTER_EMAIL.png" alt="Email">
+          <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
+        </div>
+
+        <div class="contact-item">
+          <img src="../../main/IMAGES/FOOTER_PHONE.png" alt="Phone">
+          <span>+63 912 393 4321</span>
+        </div>
+      </div>
+
+      <div class="footer-right">
+        <a href="../../main/landing.html" class="footer-logo-link">
+          <img src="../../main/IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
+          <h1>ServiTech: JC Store</h1>
+        </a>
+      </div>
+    </div>
+
+    <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
+  </footer>
+
   <script>
     // Search filter
     const searchInput = document.getElementById('searchInput');
@@ -157,12 +206,27 @@
       rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none');
     });
 
-    // Modal
+    // Modal open/close
     const modal = document.getElementById('msgModal');
     const close = () => modal.style.display = 'none';
     document.getElementById('closeModal')?.addEventListener('click', close);
     document.getElementById('cancelBtn')?.addEventListener('click', close);
     modal?.addEventListener('click', (e) => { if(e.target === modal) close(); });
+
+    // Message templates (auto-fill, pwede magdagdag)
+    const templates = {
+      "Ready for Pick-Up":
+`Good day, our dear customer, mabuhay! This is ServiTech. We are pleased to inform you that your order is now ready for pickup. You may claim your item at our JC Store at your most convenient time. Thank you for trusting our service!`,
+
+      "No Available Repair Part":
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to inform you that the required part for your device repair is currently unavailable. We apologize for the inconvenience. We are working on restocking the needed component. Kindly advise if you prefer to wait or proceed with cancellation. Thank you!`,
+
+      "Cancellation Confirmation":
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to confirm your cancellation request. Please reply YES to finalize the cancellation. Thank you, and we apologize for any inconvenience this may have caused.`,
+
+      "No Available Repairman":
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to notify you that there is currently no available repairman to process your repair request. We sincerely apologize for the inconvenience. We will update you as soon as a technician becomes available. Thank you for your patience.`
+    };
 
     // Open modal with row data
     document.querySelectorAll('.cl-msgBtn').forEach(btn => {
@@ -174,20 +238,26 @@
         document.getElementById('mMessage').value = '';
 
         const email = encodeURIComponent(btn.dataset.email || '');
-        document.getElementById('sendEmailLink').href = `mailto:${email}?subject=` + encodeURIComponent('ServiTech Notification');
+        document.getElementById('sendEmailLink').href =
+          `mailto:${email}?subject=` + encodeURIComponent('ServiTech Notification');
 
         modal.style.display = 'flex';
       });
     });
 
-    // Templates
+    // Templates click -> insert template then cursor at end (admin can add more)
     document.querySelectorAll('.cl-tplBtn').forEach(b => {
       b.addEventListener('click', () => {
-        document.getElementById('mMessage').value = b.dataset.tpl || '';
+        const key = b.dataset.tpl;
+        const msg = templates[key] || '';
+        const ta = document.getElementById('mMessage');
+        ta.value = msg + "\n\n";
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = ta.value.length;
       });
     });
 
-    // Copy
+    // Copy buttons
     document.querySelectorAll('.cl-copyBtn').forEach(b => {
       b.addEventListener('click', async () => {
         const id = b.dataset.copy;
@@ -196,44 +266,5 @@
       });
     });
   </script>
-
-   <!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-container">
-
-    <div class="footer-left">
-      <h3>Contact Us:</h3>
-
-      <div class="contact-item">
-        <img src="../IMAGES/FOOTER_FB.png" alt="Facebook">
-        <a href="https://www.facebook.com/" target="_blank">JC Store</a>
-      </div>
-
-      <div class="contact-item">
-        <img src="../IMAGES/FOOTER_EMAIL.png" alt="Email">
-        <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
-      </div>
-
-      <div class="contact-item">
-        <img src="../IMAGES/FOOTER_PHONE.png" alt="Phone">
-        <span>+63 912 393 4321</span>
-      </div>
-    </div>
-
-    <div class="footer-right">
-      <a href="../../main/landing.html" class="footer-logo-link">
-        <img src="../IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
-        <h1>ServiTech: JC Store</h1>
-      </a>
-    </div>
-
-  </div>
-
-  <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
-</footer>
-
 </body>
-
-
- 
 </html>
