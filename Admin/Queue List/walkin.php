@@ -1,13 +1,12 @@
 <?php
-require_once __DIR__ . "/../_includes/admin_auth.php";
+require_once __DIR__ . "/../inc/admin_auth.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Queue Management - Walk-In</title>
-
+  <title>Queue Management - Printing (Walk-In)</title>
   <link rel="stylesheet" href="../../main/style.css">
   <link rel="stylesheet" href="../admin.css">
   <link rel="stylesheet" href="css/queueL.css">
@@ -30,10 +29,6 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
     <div class="page-inner" style="padding:28px 30px;min-height:600px">
       <div class="page-head">
         <h2 style="color:var(--maroon)">Queue Management</h2>
-        <a class="btn small" href="/ServiTech/Admin/admin_dashboard.php"
-           style="background:var(--maroon);color:#fff;text-decoration:none;padding:8px 14px;border-radius:8px">
-          Back to Dashboard
-        </a>
       </div>
 
       <div class="panel">
@@ -44,26 +39,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
           <a class="tab" href="installation.php">Installation</a>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Customer Name</th>
-              <th>Service Details</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr>
-              <td colspan="5" style="text-align:center;padding:18px;color:#555;">
-                Walk-in queue is empty for now.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
+        <p style="padding:16px;color:#666;">Walk-in queues page is blank for now.</p>
       </div>
     </div>
   </div>

@@ -4,6 +4,9 @@ require_once __DIR__ . "/db.php";
 
 $user_id = (int)($_SESSION["user_id"] ?? 0);
 
+/* =========================
+   GET CUSTOMER NAME
+   ========================= */
 $stmt = $pdo->prepare("SELECT fullname FROM users WHERE id = :id LIMIT 1");
 $stmt->execute([":id" => $user_id]);
 $row = $stmt->fetch();
@@ -22,10 +25,94 @@ function format_fullname($name) {
 }
 
 $display_name = format_fullname($fullname);
+
+/* =========================
+   ACTIVE QUEUE (LATEST)
+   =========================
+   Consider these as "active":
+   - PENDING
+   - ONGOING
+   - FOR PICK-UP
+*/
+$activeStatuses = ["PENDING", "ONGOING", "FOR PICK-UP"];
+$in = implode(",", array_fill(0, count($activeStatuses), "?"));
+
+$sqlActive = "
+  SELECT queue_code, category, service_label, paper_size, quantity, color_option, package_label,
+         lamination_type, device_type, status, created_at
+  FROM queues
+  WHERE user_id = ?
+    AND status IN ($in)
+  ORDER BY created_at DESC
+  LIMIT 1
+";
+
+$paramsActive = array_merge([$user_id], $activeStatuses);
+$stmt = $pdo->prepare($sqlActive);
+$stmt->execute($paramsActive);
+$activeQueue = $stmt->fetch();
+
+/* =========================
+   ONGOING COUNT
+   =========================
+   Usually: only ONGOING.
+   (If you want FOR PICK-UP included, tell me.)
+*/
+$stmt = $pdo->prepare("
+  SELECT COUNT(*) AS cnt
+  FROM queues
+  WHERE user_id = :uid
+    AND status = 'ONGOING'
+");
+$stmt->execute([":uid" => $user_id]);
+$ongoingCount = (int)($stmt->fetch()["cnt"] ?? 0);
+
+/* =========================
+   HELPERS
+   ========================= */
+function build_details($q) {
+    $parts = [];
+
+    if (!empty($q["paper_size"])) $parts[] = $q["paper_size"];
+    if (!empty($q["color_option"])) $parts[] = $q["color_option"];
+    if (!empty($q["quantity"])) $parts[] = "Qty: " . $q["quantity"];
+
+    if (!empty($q["package_label"])) $parts[] = $q["package_label"];
+    if (!empty($q["lamination_type"])) $parts[] = "Lam: " . $q["lamination_type"];
+    if (!empty($q["device_type"])) $parts[] = $q["device_type"];
+
+    if (count($parts) === 0) return "---";
+    return implode(" • ", $parts);
+}
+
+function status_class($status) {
+    $s = strtoupper(trim((string)$status));
+    // You can add more CSS classes later if you want different colors per status
+    if ($s === "PENDING") return "pending";
+    if ($s === "ONGOING") return "pending";
+    if ($s === "FOR PICK-UP") return "pending";
+    if ($s === "DONE") return "pending";
+    if ($s === "CANCELLED") return "pending";
+    return "pending";
+}
+
+/* =========================
+   DEFAULT UI VALUES
+   ========================= */
+$queueNo = "#---";
+$queueService = "---";
+$queueDetails = "---";
+$queueStatus = "PENDING";
+$hasQueue = false;
+
+if ($activeQueue) {
+    $hasQueue = true;
+    $queueNo = $activeQueue["queue_code"] ?? "#---";
+    $queueService = $activeQueue["service_label"] ?? "---";
+    $queueDetails = build_details($activeQueue);
+    $queueStatus = strtoupper($activeQueue["status"] ?? "PENDING");
+}
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,14 +145,16 @@ $display_name = format_fullname($fullname);
       <div class="divider"></div>
 
       <div class="queue-header">
-        <span class="queue-number" id="queueNo">#---</span>
-        <span class="status pending" id="queueStatus">PENDING</span>
+        <span class="queue-number" id="queueNo"><?php echo htmlspecialchars($queueNo); ?></span>
+        <span class="status <?php echo htmlspecialchars(status_class($queueStatus)); ?>" id="queueStatus">
+          <?php echo htmlspecialchars($queueStatus); ?>
+        </span>
       </div>
 
-      <p id="queueService">Service: ---</p>
-      <p id="queueDetails">Details: ---</p>
+      <p id="queueService">Service: <?php echo htmlspecialchars($queueService); ?></p>
+      <p id="queueDetails">Details: <?php echo htmlspecialchars($queueDetails); ?></p>
 
-      <p id="noQueueMsg" style="display:none; color:#888; margin-top:10px;">
+      <p id="noQueueMsg" style="<?php echo $hasQueue ? "display:none;" : "display:block;"; ?> color:#888; margin-top:10px;">
         You have no active queue.
       </p>
     </div>
@@ -73,7 +162,7 @@ $display_name = format_fullname($fullname);
     <div class="dashboard-card">
       <h3>ON-GOING SERVICE(S)</h3>
       <div class="divider"></div>
-      <h1 id="ongoingCount">00</h1>
+      <h1 id="ongoingCount"><?php echo str_pad((string)$ongoingCount, 2, "0", STR_PAD_LEFT); ?></h1>
     </div>
   </section>
 
