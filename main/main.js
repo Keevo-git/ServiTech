@@ -4,18 +4,96 @@
    - Join Queue -> POST to PHP -> MySQL
    ============================== */
 
+/* ==============================
+   Modal utilities (keeps body scroll lock correct)
+   ============================== */
+function anyModalVisible() {
+  return Array.from(document.querySelectorAll(".modal-overlay"))
+    .some(m => getComputedStyle(m).display !== "none");
+}
+
+function syncBodyScrollLock() {
+  if (anyModalVisible()) document.body.classList.add("modal-open");
+  else document.body.classList.remove("modal-open");
+}
+
+/* Existing (unused on landing now, but kept safe) */
 function scrollToSection(id) {
   const section = document.getElementById(id);
   if (section) section.scrollIntoView({ behavior: "smooth" });
 }
 
 /* ==============================
+   Basic open/close for your modals (doc-printing, rush-id)
+   ============================== */
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.style.display = "flex";
+  syncBodyScrollLock();
+}
+
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.style.display = "none";
+  syncBodyScrollLock();
+}
+
+/* ==============================
+   ✅ NEW: Service List Modal (Printing/Repair/Installation)
+   ============================== */
+function openServiceModal(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  const overlay = document.getElementById("service-modal");
+  const titleEl = document.getElementById("service-modal-title");
+  const bodyEl = document.getElementById("service-modal-body");
+
+  const title = section.querySelector("h3")?.textContent || "Service";
+  titleEl.textContent = title;
+
+  const grid = section.querySelector(".service-grid");
+  bodyEl.innerHTML = grid ? grid.outerHTML : section.innerHTML;
+
+  overlay.style.display = "flex";
+  syncBodyScrollLock();
+
+  document.addEventListener("keydown", escCloseServiceModal);
+}
+
+function closeServiceModal() {
+  const overlay = document.getElementById("service-modal");
+  const bodyEl = document.getElementById("service-modal-body");
+
+  if (overlay) overlay.style.display = "none";
+  if (bodyEl) bodyEl.innerHTML = "";
+
+  document.removeEventListener("keydown", escCloseServiceModal);
+  syncBodyScrollLock();
+}
+
+function escCloseServiceModal(e) {
+  if (e.key === "Escape") closeServiceModal();
+}
+
+/* ==============================
    GENERIC MODAL CLOSE (click outside)
+   - keeps scroll lock correct even when multiple modals
    ============================== */
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".modal-overlay").forEach((modal) => {
     modal.addEventListener("click", (e) => {
-      if (e.target === modal) modal.style.display = "none";
+      if (e.target !== modal) return;
+
+      if (modal.id === "service-modal") {
+        closeServiceModal();
+        return;
+      }
+
+      modal.style.display = "none";
+      syncBodyScrollLock();
     });
   });
 });
@@ -145,7 +223,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Default label
     let service_label = "Service";
-
     const title = (document.title || "").toLowerCase();
 
     if (title.includes("document printing")) service_label = "Document Printing";
@@ -183,16 +260,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function createQueue(payload) {
     const res = await fetch("queue_create.php", {
-  method: "POST",
-  credentials: "same-origin",
-  headers: {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "X-Requested-With": "XMLHttpRequest"
-  },
-  body: JSON.stringify(payload)
-});
-
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify(payload)
+    });
 
     const raw = await res.text();
 
@@ -240,11 +316,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   if (goHomeBtn) {
-  goHomeBtn.addEventListener("click", () => {
-    window.location.href = "customer_dash.php";
-  });
-}
-
+    goHomeBtn.addEventListener("click", () => {
+      window.location.href = "customer_dash.php";
+    });
+  }
 
   if (viewQueueBtn) {
     viewQueueBtn.addEventListener("click", () => {
@@ -253,13 +328,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
-
-
-
-
-
-// EDIT PROFILE PAGE JS*******
+/* ==============================
+   EDIT PROFILE PAGE JS*******
+   ============================== */
 // profile.js (front-end demo using localStorage)
 const KEY = "servitech_profile";
 
@@ -290,10 +361,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (profile.email) email.value = profile.email;
   if (profile.contact) contact.value = profile.contact;
 
+  if (!form) return;
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    // simple validation for password change (demo only)
     const wantsPasswordChange = newPassword.value.trim() || confirmPassword.value.trim();
     if (wantsPasswordChange) {
       if (!currentPassword.value.trim()) {
@@ -315,7 +387,6 @@ document.addEventListener("DOMContentLoaded", () => {
       fullName: fullName.value.trim(),
       email: email.value.trim(),
       contact: contact.value.trim()
-      // NOTE: password not saved in localStorage (demo). Backend should handle this securely.
     };
 
     saveProfile(updated);
