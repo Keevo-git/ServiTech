@@ -240,7 +240,18 @@ body {
 
 /* SERVICE DETAILS */
 .service-details {
-  margin-bottom: 80px;
+  display: none;
+}
+.modal-content.service-modal {
+  width: min(980px, 92vw);
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 28px;
+  border-radius: 18px;
+}
+
+body.modal-open {
+  overflow: hidden;
 }
 
 .service-details h3 {
