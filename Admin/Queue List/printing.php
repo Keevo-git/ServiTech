@@ -1,23 +1,33 @@
 <?php
-require_once __DIR__ . "/../_includes/admin_auth.php";
-require_once __DIR__ . "/../_includes/admin_db.php";
+require_once __DIR__ . "/../inc/admin_auth.php";
+require_once __DIR__ . "/../inc/db.php";
 
-$stmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.service_label, q.status, u.fullname
-  FROM queues q
-  JOIN users u ON u.id = q.user_id
-  WHERE q.category = 'printing'
-  ORDER BY q.created_at ASC
-");
-$stmt->execute();
+// Printing-online categories
+$cats = ["printing", "xerox", "rush-id", "laminating"];
+
+$in = implode(",", array_fill(0, count($cats), "?"));
+
+$sql = "
+SELECT 
+  q.id, q.queue_code, q.category, q.service_label, q.status, q.created_at,
+  u.fullname
+FROM queues q
+JOIN users u ON u.id = q.user_id
+WHERE q.category IN ($in)
+ORDER BY q.created_at DESC
+";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($cats);
 $rows = $stmt->fetchAll();
 
-function pill_class($status) {
-  $s = strtolower(trim((string)$status));
-  if ($s === "pending") return "status-pending";
+function esc($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
+
+function status_class($s){
+  $s = strtolower(trim($s));
+  if ($s === "completed") return "status-complete";
   if ($s === "in progress") return "status-inprogress";
   if ($s === "on hold") return "status-inprogress";
-  if ($s === "completed") return "status-complete";
   return "status-pending";
 }
 ?>
@@ -27,7 +37,6 @@ function pill_class($status) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Printing</title>
-
   <link rel="stylesheet" href="../../main/style.css">
   <link rel="stylesheet" href="../admin.css">
   <link rel="stylesheet" href="css/queueL.css">
@@ -71,105 +80,95 @@ function pill_class($status) {
               <th>Customer Name</th>
               <th>Service Details</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th style="width:220px">Actions</th>
             </tr>
           </thead>
 
           <tbody>
           <?php if (!$rows): ?>
             <tr>
-              <td colspan="5" style="text-align:center;padding:18px;color:#555;">No printing queues yet.</td>
+              <td colspan="5" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
             </tr>
           <?php else: ?>
-            <?php foreach ($rows as $r): ?>
-              <tr>
-                <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                <td><?= htmlspecialchars($r["fullname"]) ?></td>
-                <td><?= htmlspecialchars($r["service_label"]) ?></td>
+            <?php foreach($rows as $r): ?>
+              <tr data-id="<?= (int)$r["id"] ?>">
+                <td><?= esc($r["queue_code"]) ?></td>
+                <td><?= esc($r["fullname"] ?? "Customer") ?></td>
+                <td><?= esc($r["service_label"]) ?></td>
                 <td>
-                  <span class="status-pill <?= pill_class($r["status"]) ?>">
-                    <?= htmlspecialchars($r["status"]) ?>
+                  <span class="status-pill <?= esc(status_class($r["status"])) ?>">
+                    <?= esc($r["status"]) ?>
                   </span>
                 </td>
                 <td class="actions">
-                  <button class="btn-start" data-id="<?= (int)$r["id"] ?>">Start</button>
-                  <button class="btn-hold" data-id="<?= (int)$r["id"] ?>">On Hold</button>
-                  <button class="btn-delete" data-id="<?= (int)$r["id"] ?>" title="Delete">✖</button>
+                  <button class="btn-start" data-action="start">Start</button>
+                  <button class="btn-hold" data-action="hold">On Hold</button>
+                  <button class="btn-delete" data-action="delete" title="Delete">✖</button>
                 </td>
               </tr>
             <?php endforeach; ?>
           <?php endif; ?>
           </tbody>
         </table>
-
       </div>
+
     </div>
   </div>
 </main>
 
 <footer class="footer">
-  <div class="footer-container">
-    <div class="footer-left">
-      <h3>Contact Us:</h3>
-      <div class="contact-item">
-        <img src="../../main/IMAGES/FOOTER_FB.png" alt="Facebook">
-        <a href="https://www.facebook.com/" target="_blank">JC Repair Shop</a>
-      </div>
-      <div class="contact-item">
-        <img src="../../main/IMAGES/FOOTER_EMAIL.png" alt="Email">
-        <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
-      </div>
-      <div class="contact-item">
-        <img src="../../main/IMAGES/FOOTER_PHONE.png" alt="Phone">
-        <span>+63 912 393 4321</span>
-      </div>
-    </div>
-    <div class="footer-right">
-      <a href="/ServiTech/Admin/admin_dashboard.php" class="footer-logo-link">
-        <img src="../../main/IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
-        <h1>ServiTech: JC Repair Shop</h1>
-      </a>
-    </div>
-  </div>
   <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
 </footer>
 
 <script>
 (function(){
-  function sendAction(id, action){
-    return fetch("../_includes/admin_actions.php", {
+  async function post(url, data){
+    const body = new URLSearchParams(data);
+    const res = await fetch(url, {
       method: "POST",
-      headers: {"Content-Type": "application/x-www-form-urlencoded"},
-      body: "id=" + encodeURIComponent(id) + "&action=" + encodeURIComponent(action)
-    }).then(r => r.json());
+      credentials: "same-origin",
+      headers: {"Content-Type":"application/x-www-form-urlencoded"},
+      body
+    });
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch(e){ console.error("Non-JSON:", text); return {ok:false, error:"Server returned non-JSON"}; }
   }
 
-  document.querySelectorAll(".btn-start").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const data = await sendAction(id, "start");
-      if (data.ok) location.reload();
-      else alert(data.error || "Action failed");
-    });
-  });
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
 
-  document.querySelectorAll(".btn-hold").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const data = await sendAction(id, "hold");
-      if (data.ok) location.reload();
-      else alert(data.error || "Action failed");
-    });
-  });
+    const tr = btn.closest("tr[data-id]");
+    if (!tr) return;
 
-  document.querySelectorAll(".btn-delete").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    const id = tr.dataset.id;
+    const action = btn.dataset.action;
+
+    if (action === "delete") {
       if (!confirm("Delete this queue?")) return;
-      const id = btn.dataset.id;
-      const data = await sendAction(id, "delete");
-      if (data.ok) location.reload();
-      else alert(data.error || "Delete failed");
-    });
+      const r = await post("queue_delete.php", {id});
+      if (!r.ok) { alert(r.error || "Delete failed"); return; }
+      tr.remove();
+      return;
+    }
+
+    let status = "Pending";
+    if (action === "start") status = "In Progress";
+    if (action === "hold") status = "On Hold";
+
+    const r = await post("queue_update_status.php", {id, status});
+    if (!r.ok) { alert(r.error || "Update failed"); return; }
+
+    // update UI without reloading
+    const pill = tr.querySelector(".status-pill");
+    if (pill) {
+      pill.textContent = status;
+      pill.classList.remove("status-pending","status-inprogress","status-complete");
+      pill.classList.add(status.toLowerCase() === "completed" ? "status-complete"
+        : status.toLowerCase() === "pending" ? "status-pending"
+        : "status-inprogress");
+    }
   });
 })();
 </script>
