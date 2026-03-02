@@ -1,10 +1,10 @@
-\
 <?php
 require_once __DIR__ . "/includes/auth.php";
 require_once __DIR__ . "/db.php";
 
 $user_id = (int)($_SESSION["user_id"] ?? 0);
 
+// Fetch user's fullname
 $stmt = $pdo->prepare("SELECT fullname FROM users WHERE id = :id LIMIT 1");
 $stmt->execute([":id" => $user_id]);
 $user = $stmt->fetch();
@@ -23,7 +23,7 @@ $display_name = format_fullname($fullname);
 
 // Active queue: latest not DONE/CANCELLED
 $activeStmt = $pdo->prepare("
-  SELECT queue_code, category, service_label, details, status
+  SELECT user_id, queue_code, category, details, status, created_at, updated_at
   FROM queues
   WHERE user_id = :uid
     AND status NOT IN ('DONE','CANCELLED')
@@ -33,10 +33,15 @@ $activeStmt = $pdo->prepare("
 $activeStmt->execute([":uid" => $user_id]);
 $active = $activeStmt->fetch();
 
+// Parse details (jsonb) safely
 $active_details = [];
-if ($active && !empty($active["details"])) {
-  $d = json_decode($active["details"], true);
-  if (is_array($d)) $active_details = $d;
+if ($active && isset($active["details"])) {
+  if (is_array($active["details"])) {
+    $active_details = $active["details"];
+  } elseif (is_string($active["details"]) && $active["details"] !== "") {
+    $d = json_decode($active["details"], true);
+    if (is_array($d)) $active_details = $d;
+  }
 }
 
 // "On-going services" count: everything not DONE/CANCELLED
@@ -63,7 +68,10 @@ function build_details_line(array $d): string {
 
 $queueNo = $active["queue_code"] ?? "#---";
 $queueStatus = $active["status"] ?? "PENDING";
-$queueService = $active["service_label"] ?? "---";
+
+// ✅ FIX: service label comes from details jsonb, not a column
+$queueService = $active ? ($active_details["service_label"] ?? "---") : "---";
+
 $queueDetails = $active ? build_details_line($active_details) : "---";
 ?>
 <!DOCTYPE html>
