@@ -24,11 +24,12 @@ if ($service_label === "") {
   exit();
 }
 
-$allowed = ["printing","repair","installation","walkin"];
+$allowed = ["printing","repair","installation","walkin","general"];
 if (!in_array($category, $allowed, true)) $category = "printing";
 
-// details JSON (optional fields)
+// ✅ store everything in details jsonb (including service_label)
 $details = [
+  "service_label" => $service_label,
   "paper_size" => $data["paper_size"] ?? null,
   "quantity" => isset($data["quantity"]) ? max(1, (int)$data["quantity"]) : null,
   "color_option" => $data["color_option"] ?? null,
@@ -43,7 +44,6 @@ foreach ($details as $k => $v) {
   if ($v === null) unset($details[$k]);
   if (is_string($v) && trim($v) === "") unset($details[$k]);
 }
-$details_json = empty($details) ? null : json_encode($details, JSON_UNESCAPED_UNICODE);
 
 $prefix = "P";
 if ($category === "repair") $prefix = "R";
@@ -51,7 +51,14 @@ if ($category === "installation") $prefix = "I";
 if ($category === "walkin") $prefix = "W";
 
 try {
-  $stmt = $pdo->prepare("SELECT queue_code FROM queues WHERE queue_code LIKE :like ORDER BY id DESC LIMIT 1");
+  // get last queue code for this prefix
+  $stmt = $pdo->prepare("
+    SELECT queue_code
+    FROM queues
+    WHERE queue_code LIKE :like
+    ORDER BY id DESC
+    LIMIT 1
+  ");
   $stmt->execute([":like" => $prefix . "%"]);
   $row = $stmt->fetch();
 
@@ -62,15 +69,14 @@ try {
   $queue_code = $prefix . str_pad((string)$next, 4, "0", STR_PAD_LEFT);
 
   $ins = $pdo->prepare("
-    INSERT INTO queues (user_id, queue_code, category, service_label, details)
-    VALUES (:user_id, :queue_code, :category, :service_label, :details)
+    INSERT INTO queues (user_id, queue_code, category, details)
+    VALUES (:user_id, :queue_code, :category, :details::jsonb)
   ");
   $ins->execute([
     ":user_id" => $user_id,
     ":queue_code" => $queue_code,
     ":category" => $category,
-    ":service_label" => $service_label,
-    ":details" => $details_json
+    ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
   ]);
 
   echo json_encode(["ok" => true, "queue_code" => $queue_code]);

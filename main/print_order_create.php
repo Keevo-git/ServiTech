@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/includes/auth.php";
+require_once __DIR__ . "/session_check.php";
 require_once __DIR__ . "/db.php";
 
 $user_id = (int)($_SESSION["user_id"] ?? 0);
@@ -22,44 +22,39 @@ if (!$draft) {
 $payment_method = trim($_POST['payment_method'] ?? 'Cash');
 $gcash_ref = trim($_POST['gcash_ref'] ?? '');
 
-$notes = trim((string)($draft['notes'] ?? ''));
-$payNote = "Payment: " . $payment_method;
-if ($payment_method === 'GCash' && $gcash_ref !== '') {
-    $payNote .= " | Ref: " . $gcash_ref;
+$queue_code = "OP-" . rand(100, 999) . "-" . substr((string)time(), -4);
+
+// Put everything into details jsonb
+$details = [
+  "service_label" => "Online Print Order",
+  "paper_size" => $draft["paper_size"] ?? null,
+  "quantity" => max(1, (int)($draft["quantity"] ?? 1)),
+  "color_option" => $draft["color_option"] ?? null,
+  "notes" => $draft["notes"] ?? null,
+  "file_name" => $draft["file_name"] ?? null,
+  "payment_method" => $payment_method,
+  "gcash_ref" => ($payment_method === "GCash" && $gcash_ref !== "") ? $gcash_ref : null,
+];
+
+foreach ($details as $k => $v) {
+  if ($v === null) unset($details[$k]);
+  if (is_string($v) && trim($v) === "") unset($details[$k]);
 }
-$notes = trim($notes . "\n" . $payNote);
-
-$queue_code = "OP-" . rand(100, 999) . "-" . substr(time(), -4);
-
-$sql = "
-INSERT INTO queues
-(queue_code, user_id, category, service_label, paper_size, quantity,
- color_option, package_label, lamination_type, device_type, notes, file_name)
-VALUES
-(:queue_code, :user_id, :category, :service_label, :paper_size, :quantity,
- :color_option, :package_label, :lamination_type, :device_type, :notes, :file_name)
-";
 
 try {
-    $stmt = $pdo->prepare($sql);
+    $stmt = $pdo->prepare("
+      INSERT INTO queues (queue_code, user_id, category, details)
+      VALUES (:queue_code, :user_id, :category, :details::jsonb)
+    ");
     $stmt->execute([
         ':queue_code' => $queue_code,
         ':user_id' => $user_id,
         ':category' => 'printing',
-        ':service_label' => 'Online Print Order',
-        ':paper_size' => $draft['paper_size'] ?? null,
-        ':quantity' => max(1, (int)($draft['quantity'] ?? 1)),
-        ':color_option' => $draft['color_option'] ?? null,
-        ':package_label' => null,
-        ':lamination_type' => null,
-        ':device_type' => null,
-        ':notes' => $notes,
-        ':file_name' => $draft['file_name'] ?? null,
+        ':details' => json_encode($details, JSON_UNESCAPED_UNICODE),
     ]);
 
     unset($_SESSION['print_order_draft']);
 
-    // shows in Service Status and Dashboard immediately
     header('Location: custo_service_status.php');
     exit();
 

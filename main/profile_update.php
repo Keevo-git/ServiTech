@@ -1,9 +1,12 @@
-\
 <?php
-require_once __DIR__ . "/includes/auth.php";
+require_once __DIR__ . "/session_check.php";
 require_once __DIR__ . "/db.php";
 
 $user_id = (int)($_SESSION["user_id"] ?? 0);
+if ($user_id <= 0) {
+  header("Location: log_in.html");
+  exit();
+}
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
   header("Location: custo_edit_profile.php");
@@ -12,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $fullname = trim((string)($_POST["fullname"] ?? ""));
 $email    = trim((string)($_POST["email"] ?? ""));
-$contacts = trim((string)($_POST["contacts"] ?? ""));
+$contact  = trim((string)($_POST["contacts"] ?? ""));
 
 $current_password = (string)($_POST["current_password"] ?? "");
 $new_password     = (string)($_POST["new_password"] ?? "");
@@ -23,18 +26,16 @@ if ($fullname === "" || $email === "") {
   exit();
 }
 
-// Check email uniqueness if changed
 try {
+  // email uniqueness
   $chk = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id <> :id LIMIT 1");
   $chk->execute([":email" => $email, ":id" => $user_id]);
   if ($chk->fetch()) {
-    header("Location: custo_edit_profile.php?err=" . urlencode("Email is already used by another account."));
+    header("Location: custo_edit_profile.php?err=" . urlencode("Email is already used."));
     exit();
   }
 
-  // If user is changing password, verify current password
   $changingPass = ($new_password !== "" || $confirm_password !== "");
-  $hashed = null;
 
   if ($changingPass) {
     if ($new_password !== $confirm_password) {
@@ -46,41 +47,40 @@ try {
       exit();
     }
 
-    $p = $pdo->prepare("SELECT password FROM users WHERE id = :id LIMIT 1");
+    $p = $pdo->prepare("SELECT password_hash FROM users WHERE id = :id LIMIT 1");
     $p->execute([":id" => $user_id]);
     $row = $p->fetch();
 
-    if (!$row || !password_verify($current_password, $row["password"])) {
+    if (!$row || !password_verify($current_password, $row["password_hash"])) {
       header("Location: custo_edit_profile.php?err=" . urlencode("Current password is incorrect."));
       exit();
     }
 
     $hashed = password_hash($new_password, PASSWORD_DEFAULT);
-  }
 
-  if ($changingPass && $hashed) {
     $upd = $pdo->prepare("
       UPDATE users
-      SET fullname = :fullname, email = :email, contacts = :contacts, password = :password
+      SET fullname = :fullname, email = :email, contact = :contact, password_hash = :password_hash
       WHERE id = :id
     ");
     $upd->execute([
       ":fullname" => $fullname,
       ":email" => $email,
-      ":contacts" => ($contacts === "" ? null : $contacts),
-      ":password" => $hashed,
+      ":contact" => ($contact === "" ? null : $contact),
+      ":password_hash" => $hashed,
       ":id" => $user_id
     ]);
+
   } else {
     $upd = $pdo->prepare("
       UPDATE users
-      SET fullname = :fullname, email = :email, contacts = :contacts
+      SET fullname = :fullname, email = :email, contact = :contact
       WHERE id = :id
     ");
     $upd->execute([
       ":fullname" => $fullname,
       ":email" => $email,
-      ":contacts" => ($contacts === "" ? null : $contacts),
+      ":contact" => ($contact === "" ? null : $contact),
       ":id" => $user_id
     ]);
   }

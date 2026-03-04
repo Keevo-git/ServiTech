@@ -12,7 +12,7 @@ if ($user_id <= 0) {
 
 try {
   $stmt = $pdo->prepare("
-    SELECT id, queue_code, category, service_label, details, status, created_at, updated_at
+    SELECT id, queue_code, category, status, details, created_at, updated_at
     FROM queues
     WHERE user_id = :uid
     ORDER BY created_at DESC
@@ -22,21 +22,26 @@ try {
 
   $out = [];
   foreach ($rows as $r) {
+    // Supabase returns jsonb as string sometimes; handle both
     $details = [];
-    if (!empty($r["details"])) {
-      $d = json_decode($r["details"], true);
-      if (is_array($d)) $details = $d;
+    if (isset($r["details"])) {
+      if (is_array($r["details"])) {
+        $details = $r["details"];
+      } else if (is_string($r["details"]) && $r["details"] !== "") {
+        $d = json_decode($r["details"], true);
+        if (is_array($d)) $details = $d;
+      }
     }
 
     $out[] = [
       "id" => (int)$r["id"],
       "queue_code" => $r["queue_code"],
       "category" => $r["category"],
-      "service_label" => $r["service_label"],
       "status" => $r["status"],
       "created_at" => $r["created_at"],
       "updated_at" => $r["updated_at"],
-      "details" => $details
+      "service_label" => $details["service_label"] ?? null,
+      "details" => $details,
     ];
   }
 
