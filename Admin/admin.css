@@ -1,4 +1,8 @@
-/* Admin dashboard stylesheet aligned with main/style.css theme */
+/* ==============================
+   Admin stylesheet (unified)
+   Matches main/style.css + custoL.css
+   ============================== */
+
 :root{
   --maroon: #4A0505;
   --orange-start: #ff772e;
@@ -6,54 +10,279 @@
   --accent: #FAB12F;
   --page-bg: #fff4e4;
   --card-bg: #ffffff;
+  --text:#222;
 }
 
-*{box-sizing:border-box}
-body{font-family:"Segoe UI", Arial, sans-serif; background:var(--page-bg); color:#222; margin:0; display:flex; flex-direction:column; min-height:100vh}
+*{
+  box-sizing:border-box;
+  font-family:"Segoe UI", Arial, sans-serif;
+}
 
-/* Ensure main grows to fill available space so footer stays at bottom */
-main{flex:1}
+body{
+  margin:0;
+  background:var(--page-bg);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
 
-/* Top navigation (matches main `.navbar`) */
-.topbar{background-color:var(--maroon); color:#fff}
-.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 40px}
-.brand{display:flex;align-items:center;gap:12px}
-.brand img{height:34px}
-.brand span{font-weight:700;color:#fff}
-.actions .btn{background:#fff;color:var(--maroon);padding:8px 14px;border-radius:8px;text-decoration:none;margin-left:8px;font-weight:600}
+/* Ensure content pushes footer down */
+main{ flex:1; }
 
-/* Hero band (uses same gradient as main) */
-.hero{background:linear-gradient(180deg,var(--orange-start),var(--orange-end));padding:28px 40px}
-.hero-inner h1{margin:0;font-size:30px;color:#fff}
-.hero-inner p{margin:6px 0 0;color:rgba(255,255,255,0.92)}
+/* ==============================
+   NAVBAR (matches main navbar)
+   ============================== */
+.navbar{
+  background-color:var(--maroon);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 40px;
+}
 
-/* Content container uses lighter neutral similar to other pages */
-.container{background:#e6e6e6;padding:34px 52px;min-height:520px}
+.navbar .logo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+  color:#fff;
+}
 
-/* Stat cards (coherent with main card styles) */
-.stats{display:flex;gap:20px}
-.stat{background:var(--card-bg);flex:1;padding:22px;border-radius:12px;box-shadow:0 6px 15px rgba(0,0,0,0.10)}
-.stat h4{color:var(--maroon);margin:0 0 12px;font-size:13px;font-weight:700;letter-spacing:1px}
-.stat .value{font-size:34px;font-weight:800}
+.navbar .logo img{
+  height:34px;
+}
 
-.section-title{margin:28px 0 14px;color:var(--maroon);font-size:18px}
+.navbar nav a{
+  background:#fff;
+  color:var(--maroon);
+  padding:8px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  margin-left:8px;
+  font-weight:600;
+}
 
-/* Quick access grid and cards mirror main `quick-card` look */
-.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.card{background:var(--card-bg);padding:22px;border-radius:14px;box-shadow:0 6px 15px rgba(0,0,0,0.08);min-height:120px}
-.card .icon{width:52px;height:52px;border-radius:10px;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px}
-.card h4{margin:8px 0 6px;font-size:16px;color:var(--maroon)}
-.card p{margin:0;color:#333;font-size:14px}
+.navbar nav a:hover{
+  opacity:.9;
+}
 
-/* Ensure links that wrap cards inherit the card styles and don't show default link styling */
-.card-link{display:block;text-decoration:none;color:inherit}
-.card-link .card{transition:transform 0.18s ease, box-shadow 0.18s ease}
-.card-link:hover .card{transform:translateY(-6px);box-shadow:0 12px 22px rgba(0,0,0,0.12)}
+/* ==============================
+   HERO / HEADER BAND
+   ============================== */
+.hero{
+  background:linear-gradient(180deg,var(--orange-start),var(--orange-end));
+  padding:28px 40px;
+}
 
-/* Footer reuses main footer styling cues */
-.site-footer{background-color:var(--maroon);color:#fff;padding:18px 40px}
-.footer-inner{display:flex;justify-content:space-between;align-items:center}
-.contact{font-size:13px}
-.copyright{font-size:13px}
+.hero h1{
+  margin:0;
+  font-size:30px;
+  color:#fff;
+}
 
-@media(max-width:980px){.quick-grid{grid-template-columns:repeat(2,1fr)}.stats{flex-direction:column}}
+.hero p{
+  margin:6px 0 0;
+  color:rgba(255,255,255,.92);
+}
+
+/* ==============================
+   CONTENT CONTAINER
+   ============================== */
+.container{
+  background:#e6e6e6;
+  padding:34px 52px;
+  min-height:520px;
+}
+
+/* ==============================
+   STATS CARDS
+   ============================== */
+.stats{
+  display:flex;
+  gap:20px;
+}
+
+.stat{
+  background:var(--card-bg);
+  flex:1;
+  padding:22px;
+  border-radius:12px;
+  box-shadow:0 6px 15px rgba(0,0,0,.10);
+}
+
+.stat h4{
+  margin:0 0 12px;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:1px;
+  color:var(--maroon);
+}
+
+.stat .value{
+  font-size:34px;
+  font-weight:800;
+}
+
+/* ==============================
+   SECTIONS
+   ============================== */
+.section-title{
+  margin:28px 0 14px;
+  color:var(--maroon);
+  font-size:18px;
+  font-weight:800;
+}
+
+/* ==============================
+   DASHBOARD QUICK CARDS
+   ============================== */
+.quick-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.card-link{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+}
+
+.card{
+  background:var(--card-bg);
+  padding:22px;
+  border-radius:14px;
+  box-shadow:0 6px 15px rgba(0,0,0,.08);
+  min-height:120px;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+
+.card-link:hover .card{
+  transform:translateY(-6px);
+  box-shadow:0 12px 22px rgba(0,0,0,.12);
+}
+
+.card .icon{
+  width:52px;
+  height:52px;
+  border-radius:10px;
+  background:var(--accent);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  margin-bottom:10px;
+}
+
+.card h4{
+  margin:8px 0 6px;
+  font-size:16px;
+  color:var(--maroon);
+  font-weight:800;
+}
+
+.card p{
+  margin:0;
+  font-size:14px;
+  color:#333;
+}
+
+/* ==============================
+   FOOTER (MATCHES custoL.css)
+   ============================== */
+.footer{
+  background-color:var(--maroon);
+  color:#fff;
+  padding:18px 40px;
+  margin-top:auto;
+}
+
+.footer-container{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:22px;
+  flex-wrap:wrap;
+}
+
+.footer-left h3{
+  margin:0 0 10px;
+  font-size:16px;
+  font-weight:800;
+}
+
+.contact-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:8px 0;
+  font-size:14px;
+}
+
+.contact-item a{
+  color:#fff;
+  text-decoration:none;
+}
+
+.contact-item a:hover{
+  text-decoration:underline;
+}
+
+.footer-right{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+}
+
+.footer-logo-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+  color:#fff;
+}
+
+.footer-logo-link h1{
+  margin:0;
+  font-size:16px;
+  font-weight:800;
+  line-height:1.1;
+}
+
+.footer-bottom{
+  margin-top:14px;
+  text-align:center;
+  font-size:13px;
+  opacity:.95;
+}
+
+/* Footer icon sizing fix (same as custoL.css) */
+.footer .contact-item img{
+  width:22px !important;
+  height:22px !important;
+  object-fit:contain !important;
+  display:block;
+}
+
+.footer .footer-servitech-logo{
+  width:50px !important;
+  height:auto !important;
+  object-fit:contain !important;
+}
+
+/* ==============================
+   RESPONSIVE
+   ============================== */
+@media(max-width:980px){
+  .quick-grid{ grid-template-columns:repeat(2,1fr); }
+  .stats{ flex-direction:column; }
+  .container{ padding:26px 22px; }
+}
+
+@media(max-width:900px){
+  .footer{ padding:18px 18px; }
+  .footer-right{ justify-content:flex-start; }
+  .footer-logo-link h1{ font-size:15px; }
+}

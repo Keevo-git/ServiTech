@@ -1,3 +1,20 @@
+<?php
+require_once __DIR__ . "/../_includes/admin_auth.php";
+require_once __DIR__ . "/../_includes/admin_db.php";
+
+$stmt = $pdo->prepare("
+  SELECT id, fullname, email, contacts
+  FROM users
+  WHERE role='customer'
+  ORDER BY id ASC
+");
+$stmt->execute();
+$customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+function customer_code_from_id(int $id): string {
+  return "C-" . str_pad((string)$id, 3, "0", STR_PAD_LEFT);
+}
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,16 +22,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Customer List</title>
 
-  <!-- Shared styles -->
   <link rel="stylesheet" href="../../main/style.css">
   <link rel="stylesheet" href="../admin.css">
-
-  <!-- Page styles -->
   <link rel="stylesheet" href="custoL.css">
 </head>
 
 <body>
-  <!-- ADMIN NAVBAR -->
   <header class="navbar">
     <a href="../admin_dashboard.php" class="logo">
       <img src="../../main/IMAGES/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
@@ -30,14 +43,14 @@
     <div class="cl-wrap">
       <div class="cl-head">
         <h2 class="cl-title">Customer List</h2>
-        <a class="cl-btn cl-btn--maroon" href="../Order%20Management/printM.html">View Queue</a>
+        <a class="cl-btn cl-btn--maroon" href="../Queue%20List/printing.php">View Queue</a>
       </div>
 
       <div class="cl-card">
         <div class="cl-toolbar">
           <div class="cl-search">
             <span class="cl-searchIcon">🔍</span>
-            <input id="searchInput" type="text" placeholder="Search customers by name, email, phone, or queue number..." />
+            <input id="searchInput" type="text" placeholder="Search customers by name, email, or contact..." />
           </div>
         </div>
 
@@ -52,38 +65,36 @@
                 <th class="cl-thActions">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              <tr class="cl-row">
-                <td><span class="cl-idPill">C-001</span></td>
-                <td class="cl-name">Trisha Mae Agbayani</td>
-                <td class="cl-email">trisha.payrot@gmail.com</td>
-                <td class="cl-contact">+63 912 345 6789</td>
-                <td class="cl-tdActions">
-                  <button class="cl-msgBtn" type="button"
-                    data-code="C-001"
-                    data-name="Trisha Mae Agbayani"
-                    data-email="trisha.payrot@gmail.com"
-                    data-contact="+63 912 345 6789"
-                    data-order="OP-001"
-                  >Message</button>
-                </td>
-              </tr>
 
-              <tr class="cl-row">
-                <td><span class="cl-idPill">C-002</span></td>
-                <td class="cl-name">Kelvin Fulgencio</td>
-                <td class="cl-email">dunsa.faraway@gmail.com</td>
-                <td class="cl-contact">+63 923 456 7890</td>
-                <td class="cl-tdActions">
-                  <button class="cl-msgBtn" type="button"
-                    data-code="C-002"
-                    data-name="Kelvin Fulgencio"
-                    data-email="dunsa.faraway@gmail.com"
-                    data-contact="+63 923 456 7890"
-                    data-order="R-001"
-                  >Message</button>
-                </td>
-              </tr>
+            <tbody>
+              <?php if (!$customers): ?>
+                <tr>
+                  <td colspan="5" class="cl-empty">No registered customers yet.</td>
+                </tr>
+              <?php else: ?>
+                <?php foreach ($customers as $c): ?>
+                  <?php
+                    $code = customer_code_from_id((int)$c["id"]);
+                    $name = (string)($c["fullname"] ?? "");
+                    $email = (string)($c["email"] ?? "");
+                    $contact = (string)($c["contacts"] ?? "");
+                  ?>
+                  <tr class="cl-row">
+                    <td><span class="cl-idPill"><?= htmlspecialchars($code) ?></span></td>
+                    <td class="cl-name"><?= htmlspecialchars($name) ?></td>
+                    <td class="cl-email"><?= htmlspecialchars($email) ?></td>
+                    <td class="cl-contact"><?= htmlspecialchars($contact) ?></td>
+                    <td class="cl-tdActions">
+                      <button class="cl-msgBtn" type="button"
+                        data-code="<?= htmlspecialchars($code) ?>"
+                        data-name="<?= htmlspecialchars($name) ?>"
+                        data-email="<?= htmlspecialchars($email) ?>"
+                        data-contact="<?= htmlspecialchars($contact) ?>"
+                      >Message</button>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
             </tbody>
           </table>
         </div>
@@ -91,7 +102,6 @@
     </div>
   </main>
 
-  <!-- MESSAGE MODAL (Overlay) -->
   <div class="cl-modalOverlay" id="msgModal">
     <div class="cl-modalCard" role="dialog" aria-modal="true">
       <button class="cl-modalX" type="button" id="closeModal">×</button>
@@ -99,7 +109,6 @@
       <div class="cl-modalHead">
         <h3>Send Message to Customer</h3>
         <span class="cl-pill" id="mCode">C-000</span>
-        <span class="cl-pill" id="mOrderCode">OP-001</span>
       </div>
 
       <div class="cl-infoCard">
@@ -151,7 +160,6 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-left">
@@ -185,7 +193,6 @@
   </footer>
 
   <script>
-    // Search filter
     const searchInput = document.getElementById('searchInput');
     const rows = Array.from(document.querySelectorAll('#customersTable tbody tr.cl-row'));
     searchInput?.addEventListener('input', () => {
@@ -193,40 +200,29 @@
       rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none');
     });
 
-    // Modal open/close
     const modal = document.getElementById('msgModal');
     const close = () => modal.style.display = 'none';
     document.getElementById('closeModal')?.addEventListener('click', close);
     document.getElementById('cancelBtn')?.addEventListener('click', close);
-    modal?.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    modal?.addEventListener('click', (e) => { if(e.target === modal) close(); });
 
-    // Templates (replace {{ORDER}} with real order code)
     const templates = {
       "Ready for Pick-Up":
-`Good day, our dear customer, mabuhay! This is ServiTech. We are pleased to inform you that your order {{ORDER}} is now ready for pickup. You may claim your item at our JC Store at your most convenient time. Thank you for trusting our service!`,
-
-      "Cancellation Confirmation":
-`Good day, our dear customer, mabuhay! This is ServiTech. We would like to confirm your cancellation request for order {{ORDER}}. Please reply YES to finalize the cancellation. Thank you, and we apologize for any inconvenience this may have caused.`,
-
+`Good day, our dear customer, mabuhay! This is ServiTech. We are pleased to inform you that your order is now ready for pickup. You may claim your item at our JC Store at your most convenient time. Thank you for trusting our service!`,
       "No Available Repair Part":
-`Good day, our dear customer, mabuhay! This is ServiTech. We would like to inform you that the required part for your device repair under order {{ORDER}} is currently unavailable. We apologize for the inconvenience. We are working on restocking the needed component. Kindly advise if you prefer to wait or proceed with cancellation. Thank you!`,
-
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to inform you that the required part for your device repair is currently unavailable. We apologize for the inconvenience. Kindly advise if you prefer to wait or proceed with cancellation. Thank you!`,
+      "Cancellation Confirmation":
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to confirm your cancellation request. Please reply YES to finalize the cancellation. Thank you, and we apologize for any inconvenience this may have caused.`,
       "No Available Repairman":
-`Good day, our dear customer, mabuhay! This is ServiTech. We would like to notify you that there is currently no available repairman to process your repair request for order {{ORDER}}. We sincerely apologize for the inconvenience. We will update you as soon as a technician becomes available. Thank you for your patience.`
+`Good day, our dear customer, mabuhay! This is ServiTech. We would like to notify you that there is currently no available repairman to process your repair request. We sincerely apologize for the inconvenience. We will update you as soon as a technician becomes available. Thank you for your patience.`
     };
 
-    function getOrderCode(){
-      return (document.getElementById('mOrderCode')?.textContent || 'OP-001').trim();
-    }
-
-    // Open modal with row data
     document.querySelectorAll('.cl-msgBtn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.getElementById('mCode').textContent = btn.dataset.code || '';
         document.getElementById('mName').textContent = btn.dataset.name || '';
         document.getElementById('mEmail').textContent = btn.dataset.email || '';
         document.getElementById('mContact').textContent = btn.dataset.contact || '';
-        document.getElementById('mOrderCode').textContent = btn.dataset.order || 'OP-001';
         document.getElementById('mMessage').value = '';
 
         const email = encodeURIComponent(btn.dataset.email || '');
@@ -237,13 +233,10 @@
       });
     });
 
-    // Templates click -> insert template then cursor at end
     document.querySelectorAll('.cl-tplBtn').forEach(b => {
       b.addEventListener('click', () => {
         const key = b.dataset.tpl;
-        const raw = templates[key] || '';
-        const msg = raw.replaceAll('{{ORDER}}', getOrderCode());
-
+        const msg = templates[key] || '';
         const ta = document.getElementById('mMessage');
         ta.value = msg + "\n\n";
         ta.focus();
@@ -251,7 +244,6 @@
       });
     });
 
-    // Copy buttons
     document.querySelectorAll('.cl-copyBtn').forEach(b => {
       b.addEventListener('click', async () => {
         const id = b.dataset.copy;

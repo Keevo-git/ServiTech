@@ -54,3 +54,7 @@ td.actions{white-space:nowrap}
   td{border:none;padding:6px 8px}
   td::before{content:attr(data-label);font-weight:700;display:block;margin-bottom:6px}
 }
+
+/* Added status colors */
+.status-pickup{background:#e7f2ff;color:#0b5db8}
+.status-cancelled{background:#ffe7e7;color:#b10b0b}
