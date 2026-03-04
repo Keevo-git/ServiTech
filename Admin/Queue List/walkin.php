@@ -1,5 +1,30 @@
 <?php
+<<<<<<< HEAD
 require_once __DIR__ . "/../inc/admin_auth.php";
+=======
+require_once __DIR__ . "/../_includes/admin_auth.php";
+require_once __DIR__ . "/../_includes/admin_db.php";
+
+$stmt = $pdo->prepare("
+  SELECT q.id, q.queue_code, q.service_label, q.status, u.fullname
+  FROM queues q
+  JOIN users u ON u.id = q.user_id
+  WHERE q.category = 'walkin'
+  ORDER BY q.created_at ASC
+");
+$stmt->execute();
+$rows = $stmt->fetchAll();
+
+function pill_class($status) {
+  $s = strtoupper(trim((string)$status));
+  if ($s === "PENDING") return "status-pending";
+  if ($s === "ONGOING") return "status-inprogress";
+  if ($s === "FOR PICK-UP") return "status-pickup";
+  if ($s === "DONE") return "status-complete";
+  if ($s === "CANCELLED") return "status-cancelled";
+  return "status-pending";
+}
+>>>>>>> 8034001ee4043c08d2f502130b7af02091e33768
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,7 +64,50 @@ require_once __DIR__ . "/../inc/admin_auth.php";
           <a class="tab" href="installation.php">Installation</a>
         </div>
 
+<<<<<<< HEAD
         <p style="padding:16px;color:#666;">Walk-in queues page is blank for now.</p>
+=======
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer Name</th>
+              <th>Service Details</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+          <?php if (!$rows): ?>
+            <tr>
+              <td colspan="5" style="text-align:center;padding:18px;color:#555;">No walk-in queues yet.</td>
+            </tr>
+          <?php else: ?>
+            <?php foreach ($rows as $r): ?>
+              <tr>
+                <td><?= htmlspecialchars($r["queue_code"]) ?></td>
+                <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                <td><?= htmlspecialchars($r["service_label"]) ?></td>
+                <td>
+                  <span class="status-pill <?= pill_class($r["status"]) ?>">
+                    <?= htmlspecialchars($r["status"]) ?>
+                  </span>
+                </td>
+                <td class="actions">
+                  <button class="btn-start" data-id="<?= (int)$r["id"] ?>">Start</button>
+                  <button class="btn-pickup" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
+                  <button class="btn-done" data-id="<?= (int)$r["id"] ?>">Done</button>
+                  <button class="btn-cancel" data-id="<?= (int)$r["id"] ?>">Cancel</button>
+                  <button class="btn-delete" data-id="<?= (int)$r["id"] ?>" title="Delete">✖</button>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          <?php endif; ?>
+          </tbody>
+        </table>
+
+>>>>>>> 8034001ee4043c08d2f502130b7af02091e33768
       </div>
     </div>
   </div>
@@ -48,6 +116,32 @@ require_once __DIR__ . "/../inc/admin_auth.php";
 <footer class="footer">
   <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
 </footer>
+
+<script>
+(function(){
+  function sendAction(id, action){
+    return fetch("../_includes/admin_actions.php", {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: "id=" + encodeURIComponent(id) + "&action=" + encodeURIComponent(action)
+    }).then(r => r.json());
+  }
+
+  async function doAction(btn, action, confirmMsg){
+    const id = btn.dataset.id;
+    if (confirmMsg && !confirm(confirmMsg)) return;
+    const data = await sendAction(id, action);
+    if (data.ok) location.reload();
+    else alert(data.error || "Action failed");
+  }
+
+  document.querySelectorAll(".btn-start").forEach(btn => btn.addEventListener("click", () => doAction(btn, "start")));
+  document.querySelectorAll(".btn-pickup").forEach(btn => btn.addEventListener("click", () => doAction(btn, "pickup")));
+  document.querySelectorAll(".btn-done").forEach(btn => btn.addEventListener("click", () => doAction(btn, "done")));
+  document.querySelectorAll(".btn-cancel").forEach(btn => btn.addEventListener("click", () => doAction(btn, "cancel", "Cancel this queue?")));
+  document.querySelectorAll(".btn-delete").forEach(btn => btn.addEventListener("click", () => doAction(btn, "delete", "Delete this queue permanently?")));
+})();
+</script>
 
 </body>
 </html>

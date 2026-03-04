@@ -1,18 +1,24 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// /main/includes/session.php
+// One single place to control sessions for the whole app.
 
-session_start();
+ini_set('session.use_strict_mode', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.use_cookies', 1);
 
-header("Content-Type: text/plain; charset=utf-8");
+// IMPORTANT: avoid collisions with other PHP projects by using a custom session name
+session_name("SERVITECHSESSID");
 
-echo "OK SESSION_CHECK\n";
-echo "URL: " . ($_SERVER["REQUEST_URI"] ?? "") . "\n";
-echo "SID: " . session_id() . "\n";
-echo "PHPSESSID cookie: " . ($_COOKIE["PHPSESSID"] ?? "NONE") . "\n\n";
+// IMPORTANT: cookie path must match your app folder
+// so the browser consistently sends the cookie to /ServiTech/main/*
+session_set_cookie_params([
+    "lifetime" => 0,
+    "path" => "/ServiTech/main/",
+    "httponly" => true,
+    "samesite" => "Lax"
+    // "secure" => true, // enable only if you're using HTTPS
+]);
 
-echo "SESSION:\n";
-print_r($_SESSION);
-
-echo "\nCOOKIE:\n";
-print_r($_COOKIE);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}

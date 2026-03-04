@@ -13,12 +13,22 @@ ORDER BY q.created_at DESC
 ";
 $rows = $pdo->query($sql)->fetchAll();
 
+<<<<<<< HEAD
 function esc($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 function status_class($s){
   $s = strtolower(trim($s));
   if ($s === "completed") return "status-complete";
   if ($s === "in progress") return "status-inprogress";
   if ($s === "on hold") return "status-inprogress";
+=======
+function pill_class($status) {
+  $s = strtoupper(trim((string)$status));
+  if ($s === "PENDING") return "status-pending";
+  if ($s === "ONGOING") return "status-inprogress";
+  if ($s === "FOR PICK-UP") return "status-pickup";
+  if ($s === "DONE") return "status-complete";
+  if ($s === "CANCELLED") return "status-cancelled";
+>>>>>>> 8034001ee4043c08d2f502130b7af02091e33768
   return "status-pending";
 }
 ?>
@@ -119,6 +129,7 @@ function status_class($s){
     catch(e){ console.error("Non-JSON:", text); return {ok:false, error:"Server returned non-JSON"}; }
   }
 
+<<<<<<< HEAD
   document.addEventListener("click", async (e) => {
     const btn = e.target.closest("button[data-action]");
     if (!btn) return;
@@ -152,6 +163,30 @@ function status_class($s){
         : status.toLowerCase() === "pending" ? "status-pending"
         : "status-inprogress");
     }
+=======
+  async function doAction(btn, action, confirmMsg){
+    const id = btn.dataset.id;
+    if (confirmMsg && !confirm(confirmMsg)) return;
+    const data = await sendAction(id, action);
+    if (data.ok) location.reload();
+    else alert(data.error || "Action failed");
+  }
+
+  document.querySelectorAll(".btn-start").forEach(btn => {
+    btn.addEventListener("click", () => doAction(btn, "start"));
+  });
+  document.querySelectorAll(".btn-pickup").forEach(btn => {
+    btn.addEventListener("click", () => doAction(btn, "pickup"));
+  });
+  document.querySelectorAll(".btn-done").forEach(btn => {
+    btn.addEventListener("click", () => doAction(btn, "done"));
+  });
+  document.querySelectorAll(".btn-cancel").forEach(btn => {
+    btn.addEventListener("click", () => doAction(btn, "cancel", "Cancel this queue?"));
+  });
+  document.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.addEventListener("click", () => doAction(btn, "delete", "Delete this queue permanently?"));
+>>>>>>> 8034001ee4043c08d2f502130b7af02091e33768
   });
 })();
 </script>
