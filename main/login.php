@@ -17,7 +17,7 @@ try {
 
     if ($user && password_verify($password, $user["password_hash"])) {
         $_SESSION["user_id"] = (int)$user["id"];
-        header("Location: /main/customer_dash.php");
+        header("Location: /ServiTech/main/customer_dash.php");
         exit();
     }
 
