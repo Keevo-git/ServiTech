@@ -1,15 +1,79 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/_includes/admin_auth.php";
-require_once __DIR__ . "/_includes/admin_db.php";
+require_once __DIR__ . "/../../config/app.php";
+require_once __DIR__ . "/../../config/db.php";
 
-// Total customers (role customer)
-$customers = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role='customer'")->fetchColumn();
+function table_exists(PDO $pdo, string $tableName): bool
+{
+    try {
+        $stmt = $pdo->prepare("
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = ANY (current_schemas(false))
+                  AND table_name = :table_name
+            )
+        ");
+        $stmt->execute([":table_name" => strtolower(trim($tableName))]);
+        return (bool)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
 
-// Online orders (printing category only)
-$onlineOrders = (int)$pdo->query("SELECT COUNT(*) FROM queues WHERE category='printing'")->fetchColumn();
+function safe_count(PDO $pdo, string $sql, array $params = []): int
+{
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
 
-// Active queue (not done/cancelled)
-$activeQueue = (int)$pdo->query("SELECT COUNT(*) FROM queues WHERE status IN ('PENDING','ONGOING','FOR PICK-UP')")->fetchColumn();
+function project_url(string $path): string
+{
+    return htmlspecialchars(servitech_url($path), ENT_QUOTES, "UTF-8");
+}
+
+$hasOrdersTable = table_exists($pdo, "orders");
+$hasQueueTable = table_exists($pdo, "queue");
+$hasQueuesTable = table_exists($pdo, "queues");
+
+// Customers card: total users
+$customers = safe_count($pdo, "SELECT COUNT(*) FROM users");
+
+// Online Orders card
+if ($hasOrdersTable) {
+    $onlineOrders = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM orders WHERE LOWER(COALESCE(order_type, '')) = 'online' OR LOWER(COALESCE(status, '')) = 'pending'"
+    );
+} elseif ($hasQueuesTable) {
+    // Fallback for current schema where print orders are tracked in queues.
+    $onlineOrders = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(category, '')) = 'printing' OR LOWER(COALESCE(status, '')) = 'pending'"
+    );
+} elseif ($hasQueueTable) {
+    $onlineOrders = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(order_type, '')) = 'online' OR LOWER(COALESCE(status, '')) = 'pending'"
+    );
+} else {
+    $onlineOrders = 0;
+}
+
+// Active Queue card
+if ($hasQueueTable) {
+    $activeQueue = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(status, '')) = 'waiting'");
+} elseif ($hasQueuesTable) {
+    // Fallback keeps existing queues data visible where waiting is represented as pending.
+    $activeQueue = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(status, '')) IN ('waiting', 'pending')");
+} else {
+    $activeQueue = 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,8 +81,8 @@ $activeQueue = (int)$pdo->query("SELECT COUNT(*) FROM queues WHERE status IN ('P
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech Admin Dashboard</title>
-  <link rel="stylesheet" href="/pages/admin/admin.css">
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css') ?>">
+  <link rel="stylesheet" href="<?= project_url('/assets/css/style.css') ?>">
 </head>
 <body>
 
@@ -28,7 +92,7 @@ $activeQueue = (int)$pdo->query("SELECT COUNT(*) FROM queues WHERE status IN ('P
       <span>ServiTech Admin</span>
     </div>
     <div class="actions">
-      <a href="/pages/admin/logout.php" class="btn">Logout</a>
+      <a href="<?= project_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
     </div>
   </div>
 </header>
@@ -62,33 +126,33 @@ $activeQueue = (int)$pdo->query("SELECT COUNT(*) FROM queues WHERE status IN ('P
   <h3 class="section-title">Quick Access</h3>
 
   <section class="quick-grid">
-    <a href="/pages/admin/queue_list/printing.php" class="card-link">
+    <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link">
       <article class="card">
-        <div class="icon">â³</div>
+        <div class="icon">&#x23F3;</div>
         <h4>Queue List</h4>
         <p>View and update queues</p>
       </article>
     </a>
 
-    <a href="/pages/admin/order_management/printM.php" class="card-link">
+    <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link">
       <article class="card">
-        <div class="icon">ðŸ“¦</div>
+        <div class="icon">&#x1F4E6;</div>
         <h4>Order Management</h4>
         <p>Manage customer orders</p>
       </article>
     </a>
 
-    <a href="/pages/admin/customer_list/custoL.php" class="card-link">
+    <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>" class="card-link">
       <article class="card">
-        <div class="icon">ðŸ‘¥</div>
+        <div class="icon">&#x1F465;</div>
         <h4>Customer List</h4>
         <p>View registered customers</p>
       </article>
     </a>
 
-    <a href="/pages/admin/Services/edit_services.php" class="card-link">
+    <a href="<?= project_url('/pages/admin/Services/edit_services.php') ?>" class="card-link">
       <article class="card">
-        <div class="icon">âœï¸</div>
+        <div class="icon">&#x270F;&#xFE0F;</div>
         <h4>Edit Services</h4>
         <p>Edit the shown services on the landing page</p>
       </article>
@@ -96,7 +160,7 @@ $activeQueue = (int)$pdo->query("SELECT COUNT(*) FROM queues WHERE status IN ('P
 
   </section>
 
-  
+
 
 </main>
 
@@ -106,35 +170,34 @@ $activeQueue = (int)$pdo->query("SELECT COUNT(*) FROM queues WHERE status IN ('P
       <h3>Contact Us:</h3>
 
       <div class="contact-item">
-        <img src="/assets/images/FOOTER_FB.png" alt="Facebook">
+        <img src="<?= project_url('/assets/images/FOOTER_FB.png') ?>" alt="Facebook">
         <a href="https://www.facebook.com/" target="_blank">JC Store</a>
       </div>
 
       <div class="contact-item">
-        <img src="/assets/images/FOOTER_EMAIL.png" alt="Email">
+        <img src="<?= project_url('/assets/images/FOOTER_EMAIL.png') ?>" alt="Email">
         <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
       </div>
 
       <div class="contact-item">
-        <img src="/assets/images/FOOTER_PHONE.png" alt="Phone">
+        <img src="<?= project_url('/assets/images/FOOTER_PHONE.png') ?>" alt="Phone">
         <span>+63 912 393 4321</span>
       </div>
     </div>
 
     <div class="footer-right">
-      <a href="/index.php" class="footer-logo-link">
-        <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
+      <a href="<?= project_url('/index.php') ?>" class="footer-logo-link">
+        <img src="<?= project_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="footer-servitech-logo">
         <h1>ServiTech: JC Store</h1>
       </a>
     </div>
   </div>
 
-  <p class="footer-bottom">Â© 2026 ServiTech: JC Store</p>
+  <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
 </footer>
 
+<script src="<?= project_url('/assets/js/csrf.js') ?>" defer></script>
+<script src="<?= project_url('/assets/js/main.js') ?>" defer></script>
 
 </body>
 </html>
-
-
-

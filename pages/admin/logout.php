@@ -1,6 +1,7 @@
-﻿<?php
+<?php
 // Admin/logout.php
 require_once __DIR__ . "/../../config/session_check.php";
+require_once __DIR__ . "/_includes/url.php";
 
 $_SESSION = [];
 session_destroy();
@@ -13,6 +14,5 @@ setcookie(session_name(), "", [
     "samesite" => "Lax",
 ]);
 
-header("Location: /auth/log_in.html?logout=1");
+header("Location: " . admin_url_raw("/auth/log_in.html?logout=1"));
 exit();
-

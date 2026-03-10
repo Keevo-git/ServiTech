@@ -1,6 +1,7 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
+require_once __DIR__ . "/../_includes/url.php";
 
 try {
   $pdo->exec("
@@ -42,20 +43,20 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Manage Services</title>
 
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <link rel="stylesheet" href="/pages/admin/admin.css">
-  <link rel="stylesheet" href="/pages/admin/Services/manage_services.css">
+  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css') ?>">
 </head>
 <body>
 
 <header class="navbar">
-  <a href="/pages/admin/admin_dashboard.php" class="logo">
-    <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
+    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech: JC Repair Shop</h1>
   </a>
   <nav>
-    <a href="/pages/admin/admin_dashboard.php">Admin Home</a>
-    <a href="/pages/admin/logout.php">Logout</a>
+    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Admin Home</a>
+    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
   </nav>
 </header>
 
@@ -181,9 +182,10 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 
 <script>
   window.MS_ACTIVE_TAB = <?= json_encode($tab) ?>;
+  window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
-<script src="/assets/js/csrf.js"></script>
-<script src="/pages/admin/Services/manage_services.js"></script>
+<script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js') ?>"></script>
 
 <footer class="footer">
   <p class="footer-bottom">Â© 2026 ServiTech: JC Store</p>

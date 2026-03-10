@@ -1,6 +1,7 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
+require_once __DIR__ . "/../_includes/url.php";
 
 function status_class(string $s): string {
   $s = strtoupper(trim($s));
@@ -35,21 +36,21 @@ $rows = $pdo->query("
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Order Management â€” Repair</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <link rel="stylesheet" href="/pages/admin/admin.css">
-  <link rel="stylesheet" href="/pages/admin/order_management/orderM.css">
-  <script src="/pages/admin/order_management/orderM.js" defer></script>
+  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css') ?>">
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
 <body>
 
 <header class="navbar">
-  <a href="/pages/admin/admin_dashboard.php" class="logo">
-    <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
+    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech</h1>
   </a>
   <nav>
-    <a href="/pages/admin/customer_list/custoL.php">Customer List</a>
-    <a href="/pages/admin/logout.php">Logout</a>
+    <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
+    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
   </nav>
 </header>
 
@@ -66,9 +67,9 @@ $rows = $pdo->query("
 
         <div class="tab-container">
           <div class="tab-list">
-            <a class="tab" href="/pages/admin/order_management/printM.php">Printing</a>
-            <a class="tab active" href="/pages/admin/order_management/repairM.php">Repair</a>
-            <a class="tab" href="/pages/admin/order_management/installationM.php">Installation</a>
+            <a class="tab" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
+            <a class="tab active" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
+            <a class="tab" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
           </div>
         </div>
 
@@ -148,7 +149,7 @@ $rows = $pdo->query("
   </div>
 </div>
 
-<script src="/assets/js/csrf.js"></script>
+<script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <script>
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   const modal = document.getElementById("statusModal");
@@ -178,7 +179,7 @@ $rows = $pdo->query("
     fd.append("id", id);
     fd.append("action", action);
 
-    const res = await fetch("/pages/admin/_includes/admin_actions.php", {
+    const res = await fetch(<?= json_encode(admin_url_raw("/pages/admin/_includes/admin_actions.php")) ?>, {
       method: "POST",
       body: fd,
       credentials: "same-origin",

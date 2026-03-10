@@ -1,6 +1,7 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
+require_once __DIR__ . "/../_includes/url.php";
 
 $stmt = $pdo->prepare("
   SELECT id, fullname, email, contacts
@@ -22,20 +23,20 @@ function customer_code_from_id(int $id): string {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Customer List</title>
 
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <link rel="stylesheet" href="/pages/admin/admin.css">
-  <link rel="stylesheet" href="/pages/admin/customer_list/custoL.css">
+  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css') ?>">
 </head>
 
 <body>
   <header class="navbar">
-    <a href="/pages/admin/admin_dashboard.php" class="logo">
-      <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
+      <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech: JC Repair Shop</h1>
     </a>
     <nav>
-      <a href="/pages/admin/admin_dashboard.php">Dashboard</a>
-      <a href="/pages/admin/logout.php">Logout</a>
+      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
+      <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
     </nav>
   </header>
 
@@ -43,7 +44,7 @@ function customer_code_from_id(int $id): string {
     <div class="cl-wrap">
       <div class="cl-head">
         <h2 class="cl-title">Customer List</h2>
-        <a class="cl-btn cl-btn--maroon" href="/pages/admin/queue_list/printing.php">View Queue</a>
+        <a class="cl-btn cl-btn--maroon" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">View Queue</a>
       </div>
 
       <div class="cl-card">
@@ -166,24 +167,24 @@ function customer_code_from_id(int $id): string {
         <h3>Contact Us:</h3>
 
         <div class="contact-item">
-          <img src="/assets/images/FOOTER_FB.png" alt="Facebook">
+          <img src="<?= admin_url('/assets/images/FOOTER_FB.png') ?>" alt="Facebook">
           <a href="https://www.facebook.com/" target="_blank">JC Store</a>
         </div>
 
         <div class="contact-item">
-          <img src="/assets/images/FOOTER_EMAIL.png" alt="Email">
+          <img src="<?= admin_url('/assets/images/FOOTER_EMAIL.png') ?>" alt="Email">
           <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
         </div>
 
         <div class="contact-item">
-          <img src="/assets/images/FOOTER_PHONE.png" alt="Phone">
+          <img src="<?= admin_url('/assets/images/FOOTER_PHONE.png') ?>" alt="Phone">
           <span>+63 912 393 4321</span>
         </div>
       </div>
 
       <div class="footer-right">
-        <a href="/index.php" class="footer-logo-link">
-          <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
+        <a href="<?= admin_url('/index.php') ?>" class="footer-logo-link">
+          <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="footer-servitech-logo">
           <h1>ServiTech: JC Store</h1>
         </a>
       </div>

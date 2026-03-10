@@ -2,6 +2,7 @@
   const qs = (s, el=document)=>el.querySelector(s);
   const qsa = (s, el=document)=>Array.from(el.querySelectorAll(s));
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
+  const msApiUrl = window.MS_API_URL || "/pages/admin/Services/services_api.php";
 
   const overlay = qs("#msOverlay");
   const modalTitle = qs("#msModalTitle");
@@ -59,7 +60,7 @@
       fd.append("action","delete");
       fd.append("id", id);
 
-      const res = await fetch("/pages/admin/Services/services_api.php", {
+      const res = await fetch(msApiUrl, {
         method:"POST",
         body:fd,
         credentials:"same-origin",
@@ -85,7 +86,7 @@
     fd.append("active", fActive.value);
     fd.append("sort_order", fSort.value);
 
-    const res = await fetch("/pages/admin/Services/services_api.php", {
+    const res = await fetch(msApiUrl, {
       method:"POST",
       body:fd,
       credentials:"same-origin",
