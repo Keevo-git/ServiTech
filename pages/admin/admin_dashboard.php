@@ -81,14 +81,14 @@ if ($hasQueueTable) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech Admin Dashboard</title>
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css') ?>">
-  <link rel="stylesheet" href="<?= project_url('/assets/css/style.css') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css') ?>">
 </head>
-<body>
+<body class="admin-dashboard">
 
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand">
+      <p class="brand-tag">Control Center</p>
       <span>ServiTech Admin</span>
     </div>
     <div class="actions">
@@ -99,8 +99,12 @@ if ($hasQueueTable) {
 
 <section class="hero">
   <div class="hero-inner">
-    <h1>Dashboard</h1>
-    <p>Overview of system activity</p>
+    <h1>Operations Dashboard</h1>
+    <p>Live overview of customer activity, orders, and service queue.</p>
+    <div class="hero-meta">
+      <span class="hero-chip">Admin Access</span>
+      <span class="hero-time" id="adminNow">--</span>
+    </div>
   </div>
 </section>
 
@@ -109,17 +113,20 @@ if ($hasQueueTable) {
   <section class="stats">
     <div class="stat">
       <h4>CUSTOMERS</h4>
-      <div class="value"><?= $customers ?></div>
+      <div class="value" data-count="<?= $customers ?>"><?= $customers ?></div>
+      <p class="stat-note">Registered user accounts</p>
     </div>
 
     <div class="stat">
       <h4>ONLINE ORDERS</h4>
-      <div class="value"><?= $onlineOrders ?></div>
+      <div class="value" data-count="<?= $onlineOrders ?>"><?= $onlineOrders ?></div>
+      <p class="stat-note">Web-based and pending jobs</p>
     </div>
 
     <div class="stat">
       <h4>ACTIVE QUEUE</h4>
-      <div class="value"><?= $activeQueue ?></div>
+      <div class="value" data-count="<?= $activeQueue ?>"><?= $activeQueue ?></div>
+      <p class="stat-note">Currently waiting for service</p>
     </div>
   </section>
 
@@ -196,8 +203,7 @@ if ($hasQueueTable) {
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
 </footer>
 
-<script src="<?= project_url('/assets/js/csrf.js') ?>" defer></script>
-<script src="<?= project_url('/assets/js/main.js') ?>" defer></script>
+<script src="<?= project_url('/pages/admin/admin_dashboard.js') ?>" defer></script>
 
 </body>
 </html>

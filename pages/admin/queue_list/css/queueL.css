@@ -1,18 +1,18 @@
 /* Table and controls specific to queue list (moved from queueL.html) */
 :root{
-  --maroon: #4A0505;
-  --accent: #FAB12F;
+  --maroon: #1f4a8a;
+  --accent: #24a8bc;
   --card-bg: #ffffff;
-  --page-bg: #fff4e4;
+  --page-bg: #f2f7fd;
 }
 .page-head{display:flex;justify-content:space-between;align-items:center;margin:18px 0}
-.tabs{background:#fff;border-radius:10px;padding:6px 8px;display:flex;gap:8px}
-.tab{padding:10px 18px;border-radius:8px;border:1px solid #ddd;background:#f7f7f7}
+.tabs{background:#eef4fb;border-radius:12px;padding:6px 8px;display:flex;gap:8px}
+.tab{padding:10px 18px;border-radius:8px;border:1px solid #cfdae7;background:#f8fbff;color:#17355e;text-decoration:none}
 .tab.active{background:var(--card-bg);border-color:var(--accent)}
-.panel{background:var(--card-bg);padding:18px;border-radius:14px;box-shadow:0 6px 15px rgba(0,0,0,0.08)}
+.panel{background:var(--card-bg);padding:18px;border-radius:14px;border:1px solid #d7e0eb;box-shadow:0 10px 24px rgba(20,48,79,0.08)}
 table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{padding:12px 10px;text-align:left;border-bottom:1px solid #eee;font-size:14px}
-th{background:transparent;color:#444;font-weight:700}
+th,td{padding:12px 10px;text-align:left;border-bottom:1px solid #e5ebf3;font-size:14px}
+th{background:transparent;color:#536883;font-weight:700}
 .status-pill{padding:6px 10px;border-radius:12px;font-weight:700;font-size:13px}
 .status-complete{background:#e6fbef;color:#1f9d52}
 .status-pending{background:#fff4dc;color:#b86d00}
@@ -26,23 +26,23 @@ th{background:transparent;color:#444;font-weight:700}
 .small-btn{font-size:13px;padding:6px 10px}
 
 /* Additional styles to match attached admin queue design */
-.page-frame{border:6px solid #1e6fbf;border-radius:8px;margin:10px;overflow:hidden}
+.page-frame{border:1px solid #c3d4e7;border-radius:14px;margin:12px;overflow:hidden;background:rgba(255,255,255,.7)}
 .page-inner{background:var(--page-bg);}
-.tabs{border:1px solid #d8d8d8;border-radius:16px;overflow:hidden}
-.tabs .tab{flex:1;text-align:center;padding:10px 18px;border-radius:0;margin:0;border-right:1px solid #e6e6e6}
+.tabs{border:1px solid #d3deea;border-radius:14px;overflow:hidden}
+.tabs .tab{flex:1;text-align:center;padding:10px 18px;border-radius:0;margin:0;border-right:1px solid #dde6f1}
 .tabs .tab:last-child{border-right:none}
 .tabs .tab.active{background:#fff;border-bottom:3px solid var(--accent);color:var(--maroon);font-weight:700}
 
 /* Status pills / action buttons matching screenshot */
-.status-inprogress{background:#d9edff;color:#1b66d1}
-.status-pending{background:#fff4dc;color:#b86d00}
-.btn-mark{background:#27ae60;color:#fff;padding:6px 10px;border-radius:8px;border:none}
-.btn-start{background:#e74c3c;color:#fff;padding:6px 10px;border-radius:8px;border:none}
-.btn-hold{background:#ff9a3c;color:#fff;padding:6px 10px;border-radius:8px;border:none}
-.btn-delete{background:transparent;border:1px solid #f1c0c0;color:#d33;padding:6px 8px;border-radius:50%;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center}
+.status-inprogress{background:#e1efff;color:#145cc0}
+.status-pending{background:#fff4dc;color:#a86b06}
+.btn-mark{background:#1f8f6b;color:#fff;padding:6px 10px;border-radius:8px;border:none}
+.btn-start{background:#c45f10;color:#fff;padding:6px 10px;border-radius:8px;border:none}
+.btn-hold{background:#53657f;color:#fff;padding:6px 10px;border-radius:8px;border:none}
+.btn-delete{background:transparent;border:1px solid #e9bcc2;color:#c12940;padding:6px 8px;border-radius:50%;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center}
 
 /* Table refinements */
-thead th{background:transparent;color:#666;font-weight:700}
+thead th{background:transparent;color:#5d728c;font-weight:700}
 tbody tr{background:transparent}
 td.actions{white-space:nowrap}
 

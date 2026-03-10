@@ -1,20 +1,20 @@
 /* Styles extracted from printM.html */
 .page-inner{padding:28px 40px;}
-.card-panel{background:#fff;border-radius:12px;padding:18px;margin-bottom:18px;box-shadow:0 6px 15px rgba(0,0,0,0.08)}
-.section-title-small{background:#eaf6ff;border:1px solid #cfeaff;padding:10px;border-radius:6px;color:#0b6fb0;margin-bottom:12px}
-.walkin-title{background:#fff1e6;border:1px solid #ffd4b8;padding:10px;border-radius:6px;color:#b25a1a;margin-bottom:12px}
+.card-panel{background:#fff;border-radius:12px;padding:18px;margin-bottom:18px;border:1px solid #d7e0eb;box-shadow:0 10px 24px rgba(19,45,75,0.08)}
+.section-title-small{background:#edf4fd;border:1px solid #d0def0;padding:10px;border-radius:8px;color:#1e4f8e;margin-bottom:12px}
+.walkin-title{background:#f4f8fd;border:1px solid #d8e4f2;padding:10px;border-radius:8px;color:#2a4f7d;margin-bottom:12px}
 table.orders{width:100%;border-collapse:collapse}
-table.orders th, table.orders td{padding:12px;border-bottom:1px solid #eee;text-align:left}
-.update-btn{background:#fff;border:1px solid #d0d0d0;padding:8px 12px;border-radius:18px}
+table.orders th, table.orders td{padding:12px;border-bottom:1px solid #e4ebf4;text-align:left}
+.update-btn{background:#fff;border:1px solid #ccd8e8;color:#1d457c;padding:8px 12px;border-radius:18px;font-weight:700}
 .panel-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .filters{display:flex;gap:12px;align-items:center}
 
 /* Tabs (Printing / Repair / Installation) */
-.tab-container{background:linear-gradient(#e6f0fb,#e6f0fb);padding:6px;border-radius:999px;display:block;box-sizing:border-box;margin:8px 0}
+.tab-container{background:linear-gradient(#e8f0fb,#e8f0fb);padding:6px;border-radius:999px;display:block;box-sizing:border-box;margin:8px 0}
 .tab-list{display:flex;gap:8px;max-width:920px;margin:0 auto}
-.tab{flex:1;text-align:center;padding:8px 0;border-radius:999px;background:transparent;color:#1a1a1a;text-decoration:none;border:1px solid transparent;transition:all .18s ease}
+.tab{flex:1;text-align:center;padding:8px 0;border-radius:999px;background:transparent;color:#274d7c;text-decoration:none;border:1px solid transparent;transition:all .18s ease;font-weight:700}
 .tab:hover{filter:brightness(0.98)}
-.tab.active{background:#ffffff;border-color:rgba(0,0,0,0.06);box-shadow:inset 0 0 0 2px rgba(0,0,0,0.03);}
+.tab.active{background:#ffffff;border-color:#d1deef;box-shadow:inset 0 0 0 2px rgba(47,97,163,0.05);color:#173f75;}
 
 /* force readable minimum width on very small viewports */
 @media (max-width:520px){
@@ -71,7 +71,7 @@ table.orders th, table.orders td{padding:12px;border-bottom:1px solid #eee;text-
 
 .om-accent{
   height:3px;
-  background:var(--accent);
+  background:#24a8bc;
   margin:0 14px 10px;
   border-radius:99px;
 }
@@ -177,8 +177,8 @@ table.orders th, table.orders td{padding:12px;border-bottom:1px solid #eee;text-
   color:#fff;
 }
 .om-btn-primary{
-  background:var(--accent);
-  color:#111;
+  background:#1f4a8a;
+  color:#fff;
 }
 
 /* Responsive hardening */
