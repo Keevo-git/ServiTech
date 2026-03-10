@@ -32,7 +32,6 @@ $rows = $stmt->fetchAll();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Installation</title>
-  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css') ?>">
 </head>
@@ -45,6 +44,7 @@ $rows = $stmt->fetchAll();
   </a>
   <nav>
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
+    <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
     <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
   </nav>
 </header>
@@ -53,7 +53,10 @@ $rows = $stmt->fetchAll();
   <div class="page-frame">
     <div class="page-inner" style="padding:28px 30px;min-height:600px">
       <div class="page-head">
-        <h2 style="color:var(--maroon)">Queue Management</h2>
+        <div>
+          <h2>Queue Management</h2>
+          <p>Monitor and update all service queue entries.</p>
+        </div>
       </div>
 
       <div class="panel">
@@ -107,9 +110,7 @@ $rows = $stmt->fetchAll();
   </div>
 </main>
 
-<footer class="footer">
-  <p class="footer-bottom">&copy; 2026 ServiTech: JC Repair Shop</p>
-</footer>
+<?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <script>
