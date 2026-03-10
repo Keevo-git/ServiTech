@@ -85,6 +85,17 @@ body.admin-dashboard .topbar .btn:hover{
   transform: translateY(-1px);
 }
 
+body.admin-dashboard .actions{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.admin-dashboard .btn-home{
+  background: rgba(36,168,188,0.26);
+  border-color: rgba(197,247,255,0.42);
+}
+
 body.admin-dashboard .hero{
   width: min(1200px, 92vw);
   margin: 22px auto 0;

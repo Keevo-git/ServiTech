@@ -1,6 +1,16 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/config/session_check.php"; // use your consistent session setup
-$is_logged_in = !empty($_SESSION["user_id"]);
+$is_logged_in = servitech_is_logged_in();
+$is_admin = servitech_is_admin();
+$queue_url = $is_admin
+  ? "/pages/admin/queue_list/printing.php"
+  : ($is_logged_in ? "/pages/customer/custo_place_queueing.php" : "/auth/log_in.html");
+$status_url = $is_admin
+  ? "/pages/admin/order_management/printM.php"
+  : ($is_logged_in ? "/pages/customer/custo_service_status.php" : "/auth/log_in.html");
+$print_url = $is_admin
+  ? "/pages/admin/order_management/printM.php"
+  : ($is_logged_in ? "/pages/customer/custo_print_order.php" : "/auth/log_in.html");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,8 +30,13 @@ $is_logged_in = !empty($_SESSION["user_id"]);
     </a>
     <nav>
       <?php if ($is_logged_in): ?>
-        <a href="/pages/customer/customer_dash.php">Home</a>
-        <a href="/auth/logout.php">Logout</a>
+        <?php if ($is_admin): ?>
+          <a href="/pages/admin/admin_dashboard.php">Admin Dashboard</a>
+          <a href="/pages/admin/logout.php">Logout</a>
+        <?php else: ?>
+          <a href="/pages/customer/customer_dash.php">Home</a>
+          <a href="/auth/logout.php">Logout</a>
+        <?php endif; ?>
       <?php else: ?>
         <a href="/auth/regis.html">Register</a>
         <a href="/auth/log_in.html">Login</a>
@@ -35,17 +50,17 @@ $is_logged_in = !empty($_SESSION["user_id"]);
     <p>Offering printing, repairing, and installation services</p>
 
     <div class="hero-cards">
-      <a href="<?php echo $is_logged_in ? '/pages/customer/custo_place_queueing.php' : '/auth/log_in.html'; ?>" class="hero-card">
+      <a href="<?php echo $queue_url; ?>" class="hero-card">
         <img src="/assets/images/LANDING_QUEUEING.png" alt="Queueing" class="hero-icon">
         <h4>QUEUEING</h4>
       </a>
 
-      <a href="<?php echo $is_logged_in ? '/pages/customer/custo_service_status.php' : '/auth/log_in.html'; ?>" class="hero-card">
+      <a href="<?php echo $status_url; ?>" class="hero-card">
         <img src="/assets/images/LANDING_SERVICE-STAT.png" alt="Service Status" class="hero-icon">
         <h4>SERVICE STATUS</h4>
       </a>
 
-      <a href="<?php echo $is_logged_in ? '/pages/customer/custo_print_order.php' : '/auth/log_in.html'; ?>" class="hero-card">
+      <a href="<?php echo $print_url; ?>" class="hero-card">
         <img src="/assets/images/LANDING_PRINT-ORD.png" alt="Print Order" class="hero-icon">
         <h4>PRINT ORDER</h4>
       </a>

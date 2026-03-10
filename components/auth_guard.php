@@ -1,9 +1,13 @@
-﻿<?php
+<?php
 // Central auth gate + session settings
 require_once __DIR__ . "/../config/session_check.php";
 
-if (!isset($_SESSION["user_id"]) || (int)$_SESSION["user_id"] <= 0) {
-    header("Location: /auth/log_in.html");
+if (!servitech_is_logged_in()) {
+    header("Location: " . servitech_url("/auth/log_in.html"));
     exit();
 }
 
+if (servitech_is_admin()) {
+    header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+    exit();
+}

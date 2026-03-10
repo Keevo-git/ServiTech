@@ -4,9 +4,21 @@ require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
 
 $stmt = $pdo->prepare("
-  SELECT id, fullname, email, contacts
+  SELECT
+    id,
+    fullname,
+    email,
+    COALESCE(
+      NULLIF(to_jsonb(users)->>'contacts', ''),
+      NULLIF(to_jsonb(users)->>'contact', '')
+    ) AS contacts
   FROM users
-  WHERE role='customer'
+  WHERE LOWER(
+    COALESCE(
+      NULLIF(to_jsonb(users)->>'role', ''),
+      'customer'
+    )
+  ) = 'customer'
   ORDER BY id ASC
 ");
 $stmt->execute();

@@ -92,6 +92,7 @@ if ($hasQueueTable) {
       <span>ServiTech Admin</span>
     </div>
     <div class="actions">
+      <a href="<?= project_url('/index.php') ?>" class="btn btn-home">Home</a>
       <a href="<?= project_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
     </div>
   </div>
