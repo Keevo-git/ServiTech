@@ -35,7 +35,7 @@ $user = env_first(["SUPABASE_DB_USER", "DB_USER", "DB_USERNAME"]);
 $pass = env_first(["SUPABASE_DB_PASS", "DB_PASS", "DB_PASSWORD"]);
 
 if ($port === "") {
-    $port = (string)($local["port"] ?? "5432");
+    $port = (string)($local["port"] ?? "6543");
 }
 
 if ($db === "") {
@@ -58,7 +58,7 @@ if ($databaseUrl !== "") {
     $urlParts = parse_url($databaseUrl);
     if (is_array($urlParts)) {
         $host = $host !== "" ? $host : (string)($urlParts["host"] ?? "");
-        $port = $port !== "" ? $port : (string)($urlParts["port"] ?? "5432");
+        $port = $port !== "" ? $port : (string)($urlParts["port"] ?? "6543");
         $db = $db !== "" ? $db : ltrim((string)($urlParts["path"] ?? "postgres"), "/");
         $user = $user !== "" ? $user : (string)($urlParts["user"] ?? "");
         $pass = $pass !== "" ? $pass : (string)($urlParts["pass"] ?? "");
