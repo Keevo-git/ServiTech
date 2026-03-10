@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 <!DOCTYPE html>
@@ -7,7 +7,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Printing Options</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -35,7 +35,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   </div>
 
   <div class="form-actions">
-    <a href="custo_place_queueing.php" class="btn-back">Back</a>
+    <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
     <button type="button" class="btn-next" id="nextBtn" disabled>Next</button>
   </div>
 
@@ -72,3 +72,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
+
+
+

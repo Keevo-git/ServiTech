@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 
@@ -31,20 +31,20 @@ $rows = $stmt->fetchAll();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Installation</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
-  <link rel="stylesheet" href="../admin.css">
-  <link rel="stylesheet" href="css/queueL.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/pages/admin/admin.css">
+  <link rel="stylesheet" href="/pages/admin/queue_list/css/queueL.css">
 </head>
 <body>
 
 <header class="navbar">
-  <a href="/ServiTech/pages/admin/admin_dashboard.php" class="logo">
-    <img src="/ServiTech/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+  <a href="/pages/admin/admin_dashboard.php" class="logo">
+    <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech</h1>
   </a>
   <nav>
-    <a href="/ServiTech/pages/admin/admin_dashboard.php">Dashboard</a>
-    <a href="/ServiTech/pages/admin/logout.php">Logout</a>
+    <a href="/pages/admin/admin_dashboard.php">Dashboard</a>
+    <a href="/pages/admin/logout.php">Logout</a>
   </nav>
 </header>
 
@@ -57,10 +57,10 @@ $rows = $stmt->fetchAll();
 
       <div class="panel">
         <div class="tabs" role="tablist">
-          <a class="tab" href="printing.php">Printing (Online)</a>
-          <a class="tab" href="walkin.php">Printing (Walk-In)</a>
-          <a class="tab" href="repair.php">Repair</a>
-          <a class="tab active" href="installation.php">Installation</a>
+          <a class="tab" href="/pages/admin/queue_list/printing.php">Printing (Online)</a>
+          <a class="tab" href="/pages/admin/queue_list/walkin.php">Printing (Walk-In)</a>
+          <a class="tab" href="/pages/admin/queue_list/repair.php">Repair</a>
+          <a class="tab active" href="/pages/admin/queue_list/installation.php">Installation</a>
         </div>
 
         <table>
@@ -107,15 +107,15 @@ $rows = $stmt->fetchAll();
 </main>
 
 <footer class="footer">
-  <p class="footer-bottom">© 2026 ServiTech: JC Repair Shop</p>
+  <p class="footer-bottom">&copy; 2026 ServiTech: JC Repair Shop</p>
 </footer>
 
-<script src="/ServiTech/assets/js/csrf.js"></script>
+<script src="/assets/js/csrf.js"></script>
 <script>
 (function(){
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   function sendAction(id, action){
-    return fetch("../_includes/admin_actions.php", {
+    return fetch("/pages/admin/_includes/admin_actions.php", {
       method: "POST",
       headers: {"Content-Type": "application/x-www-form-urlencoded", "X-CSRF-Token": csrf()},
       body: "id=" + encodeURIComponent(id) + "&action=" + encodeURIComponent(action)
@@ -140,3 +140,7 @@ $rows = $stmt->fetchAll();
 
 </body>
 </html>
+
+
+
+

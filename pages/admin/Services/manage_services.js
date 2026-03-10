@@ -59,7 +59,7 @@
       fd.append("action","delete");
       fd.append("id", id);
 
-      const res = await fetch("services_api.php", {
+      const res = await fetch("/pages/admin/Services/services_api.php", {
         method:"POST",
         body:fd,
         credentials:"same-origin",
@@ -85,7 +85,7 @@
     fd.append("active", fActive.value);
     fd.append("sort_order", fSort.value);
 
-    const res = await fetch("services_api.php", {
+    const res = await fetch("/pages/admin/Services/services_api.php", {
       method:"POST",
       body:fd,
       credentials:"same-origin",

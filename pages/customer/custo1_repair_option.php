@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 
@@ -8,7 +8,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Repair Option</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body data-service="repair">
 
@@ -35,13 +35,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <label>Select Service<span class="required">*</span></label>
         <select class="form-select" id="repairServiceSelect">
           <option value="" selected disabled>Select Repair Service</option>
-          <option data-min="1200" data-max="5500">LCD Replacement — (₱1200 – ₱5500)</option>
-          <option data-min="700" data-max="2500">Battery Replacement — (₱700 – ₱2500)</option>
-          <option data-min="800" data-max="4000">Charging Pin Replacement — (₱800 – ₱4000)</option>
-          <option data-min="700" data-max="1500">Speaker / Mouthpiece Replacement — (₱700 – ₱1500)</option>
-          <option data-min="500" data-max="2000">Power Button Repair — (₱500 – ₱2000)</option>
-          <option data-min="1000" data-max="2000">Volume Repair — (₱1000 – ₱2000)</option>
-          <option data-min="1500" data-max="5000">Part(s) Upgrade — (₱1500 – ₱5000)</option>
+          <option data-min="1200" data-max="5500">LCD Replacement â€” (â‚±1200 â€“ â‚±5500)</option>
+          <option data-min="700" data-max="2500">Battery Replacement â€” (â‚±700 â€“ â‚±2500)</option>
+          <option data-min="800" data-max="4000">Charging Pin Replacement â€” (â‚±800 â€“ â‚±4000)</option>
+          <option data-min="700" data-max="1500">Speaker / Mouthpiece Replacement â€” (â‚±700 â€“ â‚±1500)</option>
+          <option data-min="500" data-max="2000">Power Button Repair â€” (â‚±500 â€“ â‚±2000)</option>
+          <option data-min="1000" data-max="2000">Volume Repair â€” (â‚±1000 â€“ â‚±2000)</option>
+          <option data-min="1500" data-max="5000">Part(s) Upgrade â€” (â‚±1500 â€“ â‚±5000)</option>
         </select><br><br>
 
         <label>Additional Information/Other Request:</label>
@@ -56,7 +56,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   </div>
 
   <div class="form-actions">
-    <a href="custo_place_queueing.php" class="btn-back">Back</a>
+    <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
     <a href="#" class="btn-next" id="joinQueueBtn">Join Queue</a>
   </div>
 
@@ -65,8 +65,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
-<script src="/ServiTech/assets/js/csrf.js"></script>
-<script src="/ServiTech/assets/js/main.js"></script>
+<script src="/assets/js/csrf.js"></script>
+<script src="/assets/js/main.js"></script>
 
 </body>
 </html>
+
+
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 $queue = $_GET["queue"] ?? "";
 ?>
@@ -8,7 +8,7 @@ $queue = $_GET["queue"] ?? "";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Print Order Confirmation</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -23,8 +23,8 @@ $queue = $_GET["queue"] ?? "";
     <p><strong>Queue Code:</strong> <?php echo htmlspecialchars($queue ?: "-"); ?></p>
 
     <div class="form-actions" style="margin-top:18px;">
-      <a href="customer_dash.php" class="btn-back">Back to Dashboard</a>
-      <a href="custo_service_status.php" class="btn-next">View Status</a>
+      <a href="/pages/customer/customer_dash.php" class="btn-back">Back to Dashboard</a>
+      <a href="/pages/customer/custo_service_status.php" class="btn-next">View Status</a>
     </div>
   </div>
 </section>
@@ -33,3 +33,6 @@ $queue = $_GET["queue"] ?? "";
 
 </body>
 </html>
+
+
+

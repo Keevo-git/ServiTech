@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/db.php";
@@ -27,7 +27,7 @@ $csrfToken = servitech_csrf_token();
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ServiTech: Edit Profile</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css" />
+  <link rel="stylesheet" href="/assets/css/style.css" />
 </head>
 <body>
 
@@ -37,7 +37,7 @@ $csrfToken = servitech_csrf_token();
   <section class="profile-card">
 
     <div class="profile-header">
-      <a href="customer_dash.php" class="back-arrow">←</a>
+      <a href="/pages/customer/customer_dash.php" class="back-arrow">â†</a>
       <h2>Edit Profile</h2>
     </div>
 
@@ -53,12 +53,12 @@ $csrfToken = servitech_csrf_token();
       </p>
     <?php endif; ?>
 
-    <form id="editProfileForm" action="/ServiTech/api/profile_update.php" method="POST">
+    <form id="editProfileForm" action="/api/profile_update.php" method="POST">
       <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
       <label class="field">
         <span>Full Name</span>
         <div class="input-with-icon">
-          <span class="icon">👤</span>
+          <span class="icon">ðŸ‘¤</span>
           <input id="fullname" name="fullname" type="text" value="<?php echo htmlspecialchars($u["fullname"]); ?>" required />
         </div>
       </label>
@@ -66,7 +66,7 @@ $csrfToken = servitech_csrf_token();
       <label class="field">
         <span>Email</span>
         <div class="input-with-icon">
-          <span class="icon">📧</span>
+          <span class="icon">ðŸ“§</span>
           <input id="email" name="email" type="email" value="<?php echo htmlspecialchars($u["email"]); ?>" required />
         </div>
       </label>
@@ -74,7 +74,7 @@ $csrfToken = servitech_csrf_token();
       <label class="field">
         <span>Contact Number</span>
         <div class="input-with-icon">
-          <span class="icon">📞</span>
+          <span class="icon">ðŸ“ž</span>
           <input id="contacts" name="contacts" type="tel" value="<?php echo htmlspecialchars($u["contacts"]); ?>" />
         </div>
       </label>
@@ -84,7 +84,7 @@ $csrfToken = servitech_csrf_token();
       <label class="field">
         <span>Current Password</span>
         <div class="input-with-icon">
-          <span class="icon">🔒</span>
+          <span class="icon">ðŸ”’</span>
           <input id="currentPassword" name="current_password" type="password" placeholder="Enter current password" />
         </div>
         <small class="hint">Required only if you want to change your password</small>
@@ -93,7 +93,7 @@ $csrfToken = servitech_csrf_token();
       <label class="field">
         <span>New Password</span>
         <div class="input-with-icon">
-          <span class="icon">🔒</span>
+          <span class="icon">ðŸ”’</span>
           <input id="newPassword" name="new_password" type="password" placeholder="Enter new password (optional)" />
         </div>
       </label>
@@ -101,14 +101,14 @@ $csrfToken = servitech_csrf_token();
       <label class="field">
         <span>Confirm New Password</span>
         <div class="input-with-icon">
-          <span class="icon">🔒</span>
+          <span class="icon">ðŸ”’</span>
           <input id="confirmPassword" name="confirm_password" type="password" placeholder="Confirm new password" />
         </div>
       </label>
 
       <div class="profile-actions">
         <button type="submit" class="btn-save">Save Changes</button>
-        <a href="customer_dash.php" class="btn-cancel">Cancel</a>
+        <a href="/pages/customer/customer_dash.php" class="btn-cancel">Cancel</a>
       </div>
     </form>
 
@@ -138,3 +138,7 @@ document.getElementById("editProfileForm")?.addEventListener("submit", function(
 
 </body>
 </html>
+
+
+
+

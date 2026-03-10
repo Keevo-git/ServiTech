@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
@@ -7,18 +7,18 @@ servitech_enforce_csrf_token(false);
 
 $user_id = (int)($_SESSION["user_id"] ?? 0);
 if ($user_id <= 0) {
-    header("Location: " . servitech_url("/auth/log_in.html"));
+    header("Location: /auth/log_in.html");
     exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: " . servitech_url("/pages/customer/custo_print_order.php"));
+    header("Location: /pages/customer/custo_print_order.php");
     exit();
 }
 
 $draft = $_SESSION['print_order_draft'] ?? null;
 if (!$draft) {
-    header("Location: " . servitech_url("/pages/customer/custo_print_order.php"));
+    header("Location: /pages/customer/custo_print_order.php");
     exit();
 }
 
@@ -58,11 +58,12 @@ try {
 
     unset($_SESSION['print_order_draft']);
 
-    header("Location: " . servitech_url("/pages/customer/custo_service_status.php"));
+    header("Location: /pages/customer/custo_service_status.php");
     exit();
 
 } catch (PDOException $e) {
     error_log("print_order_create error: " . $e->getMessage());
-    header("Location: " . servitech_url("/pages/customer/custo_print_order_payment.php"));
+    header("Location: /pages/customer/custo_print_order_payment.php");
     exit();
 }
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 <!DOCTYPE html>
@@ -6,7 +6,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <head>
   <meta charset="UTF-8">
   <title>ServiTech: Place Queueing Customer</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -16,18 +16,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <h2>CHOOSE A SERVICE</h2>
 
   <div class="choose-grid">
-    <a href="custo1_printing_option.php" class="choose-card">
-      <img src="/ServiTech/assets/images/CARD_PRINTING.png" alt="Printing">
+    <a href="/pages/customer/custo1_printing_option.php" class="choose-card">
+      <img src="/assets/images/CARD_PRINTING.png" alt="Printing">
       <span>PRINTING</span>
     </a>
 
-    <a href="custo1_repair_option.php" class="choose-card">
-      <img src="/ServiTech/assets/images/CARD_REPAIR.png" alt="Repair">
+    <a href="/pages/customer/custo1_repair_option.php" class="choose-card">
+      <img src="/assets/images/CARD_REPAIR.png" alt="Repair">
       <span>REPAIR</span>
     </a>
 
-    <a href="custo1_installation_option.php" class="choose-card">
-      <img src="/ServiTech/assets/images/CARD_INSTALLATION.png" alt="Installation">
+    <a href="/pages/customer/custo1_installation_option.php" class="choose-card">
+      <img src="/assets/images/CARD_INSTALLATION.png" alt="Installation">
       <span>INSTALLATION</span>
     </a>
   </div>
@@ -37,3 +37,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
+
+
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 <!DOCTYPE html>
@@ -7,7 +7,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Print Order</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body data-service="printing">
 
@@ -60,14 +60,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   </div>
 
   <div class="form-actions">
-    <a href="customer_dash.php" class="btn-back">Back</a>
+    <a href="/pages/customer/customer_dash.php" class="btn-back">Back</a>
     <button type="button" class="btn-next" id="submitPrintOrderBtn">Proceed</button>
   </div>
 </section>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 
-<script src="/ServiTech/assets/js/csrf.js"></script>
+<script src="/assets/js/csrf.js"></script>
 <script>
 function getRadio(name){
   const r = document.querySelector('input[name="'+name+'"]:checked');
@@ -101,7 +101,7 @@ document.getElementById("submitPrintOrderBtn")?.addEventListener("click", async 
   };
 
   const csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
-  const res = await fetch("/ServiTech/api/queue_create.php", {
+  const res = await fetch("/api/queue_create.php", {
     method: "POST",
     credentials: "same-origin",
     headers: {
@@ -120,9 +120,13 @@ document.getElementById("submitPrintOrderBtn")?.addEventListener("click", async 
   if (!data.ok) { alert("Failed: " + (data.error || "Unknown")); return; }
 
   // pass queue code to payment/confirmation page
-  window.location.href = "custo_print_order_payment.php?queue=" + encodeURIComponent(data.queue_code);
+  window.location.href = "/pages/customer/custo_print_order_payment.php?queue=" + encodeURIComponent(data.queue_code);
 });
 </script>
 
 </body>
 </html>
+
+
+
+

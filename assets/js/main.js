@@ -23,6 +23,22 @@ function scrollToSection(id) {
   if (section) section.scrollIntoView({ behavior: "smooth" });
 }
 
+function servitechBasePath() {
+  if (typeof window.SERVITECH_BASE_PATH === "string" && window.SERVITECH_BASE_PATH.trim() !== "") {
+    return window.SERVITECH_BASE_PATH.replace(/\/+$/, "");
+  }
+  const pathname = window.location.pathname || "";
+  if (pathname === "/ServiTech" || pathname.startsWith("/ServiTech/")) {
+    return "/ServiTech";
+  }
+  return "";
+}
+
+function servitechUrl(path) {
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${servitechBasePath()}${cleanPath}`;
+}
+
 /* ==============================
    Basic open/close for your modals (doc-printing, rush-id)
    ============================== */
@@ -260,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function createQueue(payload) {
     const csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
-    const res = await fetch("/ServiTech/api/queue_create.php", {
+    const res = await fetch(servitechUrl("/api/queue_create.php"), {
       method: "POST",
       credentials: "same-origin",
       headers: {
@@ -283,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return {
         ok: false,
         error:
-          "Server returned non-JSON. It may have redirected to /ServiTech/auth/log_in.html (session issue) or PHP error. Check console raw response."
+          "Server returned non-JSON. It may have redirected to login (session issue) or PHP error. Check console raw response."
       };
     }
   }
@@ -319,13 +335,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (goHomeBtn) {
     goHomeBtn.addEventListener("click", () => {
-      window.location.href = "/ServiTech/pages/customer/customer_dash.php";
+      window.location.href = servitechUrl("/pages/customer/customer_dash.php");
     });
   }
 
   if (viewQueueBtn) {
     viewQueueBtn.addEventListener("click", () => {
-      window.location.href = "/ServiTech/pages/customer/custo_service_status.php";
+      window.location.href = servitechUrl("/pages/customer/custo_service_status.php");
     });
   }
 });
@@ -394,6 +410,6 @@ document.addEventListener("DOMContentLoaded", () => {
     saveProfile(updated);
 
     alert("Profile updated!");
-    window.location.href = "/ServiTech/pages/customer/customer_dash.php";
+    window.location.href = servitechUrl("/pages/customer/customer_dash.php");
   });
 });

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 
@@ -8,7 +8,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ServiTech: Installation Services</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body data-service="installation">
 
@@ -27,12 +27,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <label for="installationTypeSelect">Select Installation Type<span class="required">*</span></label>
         <select id="installationTypeSelect" class="form-select">
           <option value="" selected disabled>Select Installation/Software Service</option>
-          <option value="reprogram" data-min="1000" data-max="4000">Reprogram Service — ₱1000 - ₱4000</option>
-          <option value="hang_logo_fix" data-min="1000" data-max="3500">Hang Logo Fix Service — ₱1000 - ₱3500</option>
-          <option value="boot_loop_fix" data-min="1000" data-max="5000">Boot Loop Fix Service — ₱1000 - ₱5000</option>
-          <option value="openline" data-min="3500" data-max="6000">Openline Samsung & iPhone — ₱3500 - ₱6000</option>
-          <option value="bypass_google" data-min="500" data-max="2000">Bypass Google Account — ₱500 - ₱2000</option>
-          <option value="bypass_password" data-min="1000" data-max="3000">Bypass Password — ₱1000 - ₱3000</option>
+          <option value="reprogram" data-min="1000" data-max="4000">Reprogram Service â€” â‚±1000 - â‚±4000</option>
+          <option value="hang_logo_fix" data-min="1000" data-max="3500">Hang Logo Fix Service â€” â‚±1000 - â‚±3500</option>
+          <option value="boot_loop_fix" data-min="1000" data-max="5000">Boot Loop Fix Service â€” â‚±1000 - â‚±5000</option>
+          <option value="openline" data-min="3500" data-max="6000">Openline Samsung & iPhone â€” â‚±3500 - â‚±6000</option>
+          <option value="bypass_google" data-min="500" data-max="2000">Bypass Google Account â€” â‚±500 - â‚±2000</option>
+          <option value="bypass_password" data-min="1000" data-max="3000">Bypass Password â€” â‚±1000 - â‚±3000</option>
         </select><br><br>
 
         <label for="installationNotes">Additional Information/Other Request:</label>
@@ -46,7 +46,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   </div>
 
   <div class="form-actions">
-    <a href="custo_place_queueing.php" class="btn-back">Back</a>
+    <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
     <a href="#" class="btn-next" id="joinQueueBtn">Join Queue</a>
   </div>
 
@@ -73,8 +73,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   })();
 </script>
 
-<script src="/ServiTech/assets/js/csrf.js"></script>
-<script src="/ServiTech/assets/js/main.js"></script>
+<script src="/assets/js/csrf.js"></script>
+<script src="/assets/js/main.js"></script>
 
 </body>
 </html>
+
+
+

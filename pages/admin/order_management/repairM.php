@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 
@@ -34,22 +34,22 @@ $rows = $pdo->query("
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Order Management — Repair</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
-  <link rel="stylesheet" href="../admin.css">
-  <link rel="stylesheet" href="orderM.css">
-  <script src="orderM.js" defer></script>
+  <title>Order Management â€” Repair</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/pages/admin/admin.css">
+  <link rel="stylesheet" href="/pages/admin/order_management/orderM.css">
+  <script src="/pages/admin/order_management/orderM.js" defer></script>
 </head>
 <body>
 
 <header class="navbar">
-  <a href="../admin_dashboard.php" class="logo">
-    <img src="/ServiTech/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+  <a href="/pages/admin/admin_dashboard.php" class="logo">
+    <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech</h1>
   </a>
   <nav>
-    <a href="../customer_list/custoL.php">Customer List</a>
-    <a href="../logout.php">Logout</a>
+    <a href="/pages/admin/customer_list/custoL.php">Customer List</a>
+    <a href="/pages/admin/logout.php">Logout</a>
   </nav>
 </header>
 
@@ -66,13 +66,13 @@ $rows = $pdo->query("
 
         <div class="tab-container">
           <div class="tab-list">
-            <a class="tab" href="printM.php">Printing</a>
-            <a class="tab active" href="repairM.php">Repair</a>
-            <a class="tab" href="installationM.php">Installation</a>
+            <a class="tab" href="/pages/admin/order_management/printM.php">Printing</a>
+            <a class="tab active" href="/pages/admin/order_management/repairM.php">Repair</a>
+            <a class="tab" href="/pages/admin/order_management/installationM.php">Installation</a>
           </div>
         </div>
 
-        <div class="walkin-title">Repair Queue — Manage and update order statuses</div>
+        <div class="walkin-title">Repair Queue â€” Manage and update order statuses</div>
         <table class="orders">
           <thead>
             <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
@@ -107,23 +107,23 @@ $rows = $pdo->query("
   </div>
 </main>
 
-<!-- ✅ Modal starts hidden even if CSS fails -->
+<!-- âœ… Modal starts hidden even if CSS fails -->
 <div class="om-modalOverlay" id="statusModal"
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); align-items:center; justify-content:center; z-index:9999;">
   <div class="om-modalCard" role="dialog" aria-modal="true"
        style="width:min(520px,92vw); background:#fff; border-radius:18px; padding:18px 18px 16px; box-shadow:0 26px 70px rgba(0,0,0,.28); position:relative;">
 
-    <button class="om-modalX" type="button" id="omClose">×</button>
+    <button class="om-modalX" type="button" id="omClose">Ã—</button>
 
     <div class="om-modalHead">
       <h3>Update Status</h3>
-      <span class="om-pill" id="omQueueCode">—</span>
+      <span class="om-pill" id="omQueueCode">â€”</span>
     </div>
 
     <div class="om-modalBody">
       <div class="om-row">
         <span class="om-label">Customer</span>
-        <div id="omCustomer" style="font-weight:700;color:#111;">—</div>
+        <div id="omCustomer" style="font-weight:700;color:#111;">â€”</div>
       </div>
 
       <div class="om-row">
@@ -148,7 +148,7 @@ $rows = $pdo->query("
   </div>
 </div>
 
-<script src="/ServiTech/assets/js/csrf.js"></script>
+<script src="/assets/js/csrf.js"></script>
 <script>
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   const modal = document.getElementById("statusModal");
@@ -178,7 +178,7 @@ $rows = $pdo->query("
     fd.append("id", id);
     fd.append("action", action);
 
-    const res = await fetch("../_includes/admin_actions.php", {
+    const res = await fetch("/pages/admin/_includes/admin_actions.php", {
       method: "POST",
       body: fd,
       credentials: "same-origin",
@@ -201,8 +201,8 @@ $rows = $pdo->query("
   document.querySelectorAll(".update-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       currentId = btn.dataset.id;
-      omQueueCode.textContent = btn.dataset.code || "—";
-      omCustomer.textContent = btn.dataset.customer || "—";
+      omQueueCode.textContent = btn.dataset.code || "â€”";
+      omCustomer.textContent = btn.dataset.customer || "â€”";
 
       const curr = (btn.dataset.status || "PENDING").trim().toUpperCase();
       const exists = Array.from(omStatus.options).some(o => o.value === curr);
@@ -247,3 +247,6 @@ $rows = $pdo->query("
 
 </body>
 </html>
+
+
+
