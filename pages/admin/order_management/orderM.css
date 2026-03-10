@@ -1,4 +1,9 @@
 /* Order management pages (admin) */
+body.admin-dashboard .page-frame {
+  width: 100%;
+  margin: 0 0 22px;
+}
+
 .page-inner {
   padding: 28px clamp(14px, 4vw, 34px);
 }
@@ -225,12 +230,27 @@ table.orders th {
   color: #455f7f;
 }
 
+.om-value {
+  font-weight: 700;
+  color: #111;
+}
+
 .om-select {
   width: 100%;
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.15);
   padding: 10px;
   font-weight: 700;
+}
+
+.om-error {
+  display: none;
+  background: #ffe1e1;
+  border: 1px solid #ffb6b6;
+  color: #8b0000;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 600;
 }
 
 .om-actions {

@@ -33,32 +33,36 @@ $rows = $stmt->fetchAll();
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Repair</title>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css') ?>">
 </head>
-<body>
+<body class="admin-dashboard">
 
-<header class="navbar">
-  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
-    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="servitech-logo">
-    <h1>ServiTech</h1>
-  </a>
-  <nav>
-    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
-    <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
-    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
-  </nav>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <p class="brand-tag">Operations</p>
+      <span>ServiTech Admin</span>
+    </div>
+    <div class="actions">
+      <a href="<?= admin_url('/index.php') ?>" class="btn btn-home">Home</a>
+      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="btn">Dashboard</a>
+      <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>" class="btn">Customer List</a>
+      <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
+    </div>
+  </div>
 </header>
 
-<main>
-  <div class="page-frame">
-    <div class="page-inner" style="padding:28px 30px;min-height:600px">
-      <div class="page-head">
-        <div>
-          <h2>Queue Management</h2>
-          <p>Monitor and update all service queue entries.</p>
-        </div>
-      </div>
+<section class="hero">
+  <div class="hero-inner">
+    <h1>Queue Management</h1>
+    <p>Monitor and update all service queue entries.</p>
+  </div>
+</section>
 
+<main class="container">
+  <div class="page-frame">
+    <div class="page-inner">
       <div class="panel">
         <div class="tabs" role="tablist">
           <a class="tab" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Printing (Online)</a>

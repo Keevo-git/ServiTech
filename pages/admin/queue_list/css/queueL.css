@@ -1,4 +1,9 @@
 /* Queue management pages (admin) */
+body.admin-dashboard .page-frame {
+  width: 100%;
+  margin: 0 0 22px;
+}
+
 .page-inner {
   padding: 28px clamp(14px, 4vw, 32px);
   min-height: 600px;

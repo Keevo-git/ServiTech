@@ -3,23 +3,25 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
 
-function status_class(string $s): string {
-  $s = strtoupper(trim($s));
-  return match ($s) {
-    "PENDING" => "status-pending",
-    "ONGOING" => "status-inprogress",
-    "DONE" => "status-complete",
-    "FOR PICK-UP" => "status-inprogress",
-    "CANCELLED" => "status-onhold",
-    default => "status-pending"
-  };
+function status_class(string $s): string
+{
+    $s = strtoupper(trim($s));
+    return match ($s) {
+        "PENDING" => "status-pending",
+        "ONGOING", "FOR PICK-UP" => "status-inprogress",
+        "DONE" => "status-complete",
+        "CANCELLED" => "status-onhold",
+        default => "status-pending",
+    };
 }
-function status_label(string $s): string {
-  $s = strtoupper(trim($s));
-  return match ($s) {
-    "FOR PICK-UP" => "For Pick-up",
-    default => ucfirst(strtolower($s))
-  };
+
+function status_label(string $s): string
+{
+    $s = strtoupper(trim($s));
+    return match ($s) {
+        "FOR PICK-UP" => "For Pick-up",
+        default => ucfirst(strtolower($s)),
+    };
 }
 
 $rows = $pdo->query("
@@ -35,34 +37,45 @@ $rows = $pdo->query("
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Order Management â€” Installation</title>
-  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css') ?>">
+  <title>Order Management - Installation</title>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
-<body>
+<body class="admin-dashboard">
 
-<header class="navbar">
-  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
-    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="servitech-logo">
-    <h1>ServiTech</h1>
-  </a>
-  <nav>
-    <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
-    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
-  </nav>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <p class="brand-tag">Operations</p>
+      <span>ServiTech Admin</span>
+    </div>
+    <div class="actions">
+      <a href="<?= admin_url('/index.php') ?>" class="btn btn-home">Home</a>
+      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="btn">Dashboard</a>
+      <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>" class="btn">Customer List</a>
+      <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
+    </div>
+  </div>
 </header>
 
-<main>
+<section class="hero">
+  <div class="hero-inner">
+    <h1>Order Management</h1>
+    <p>Review installation orders and update statuses in real time.</p>
+  </div>
+</section>
+
+<main class="container">
   <div class="page-frame">
     <div class="page-inner">
-      <h2 style="color:var(--maroon)">Order Management</h2>
-      <p>View and manage all orders across services</p>
+      <h2>Order Management</h2>
+      <p>View and manage all orders across services.</p>
 
       <div class="card-panel">
         <div class="panel-heading">
-          <h3>All Orders <small style="color:#666;font-weight:600">Manage and update order statuses</small></h3>
+          <h3>All Orders <small>Manage and update order statuses</small></h3>
         </div>
 
         <div class="tab-container">
@@ -73,7 +86,7 @@ $rows = $pdo->query("
           </div>
         </div>
 
-        <div class="walkin-title">Installation Queue â€” Manage and update order statuses</div>
+        <div class="walkin-title">Installation Queue - Manage and update order statuses</div>
         <table class="orders">
           <thead>
             <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
@@ -90,11 +103,12 @@ $rows = $pdo->query("
                   <td><span class="status-pill <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                   <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
                   <td>
-                   <button class="update-btn"
-                            data-id="<?= (int)$r["id"] ?>"
-                            data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                            data-status="<?= htmlspecialchars($r["status"]) ?>"
-                            data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
+                    <button
+                      class="update-btn"
+                      data-id="<?= (int)$r["id"] ?>"
+                      data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
+                      data-status="<?= htmlspecialchars($r["status"]) ?>"
+                      data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
                     >Update Status</button>
                   </td>
                 </tr>
@@ -102,29 +116,26 @@ $rows = $pdo->query("
             <?php endif; ?>
           </tbody>
         </table>
-
       </div>
     </div>
   </div>
 </main>
 
-<!-- âœ… Modal starts hidden even if CSS fails -->
-<div class="om-modalOverlay" id="statusModal"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); align-items:center; justify-content:center; z-index:9999;">
-  <div class="om-modalCard" role="dialog" aria-modal="true"
-       style="width:min(520px,92vw); background:#fff; border-radius:18px; padding:18px 18px 16px; box-shadow:0 26px 70px rgba(0,0,0,.28); position:relative;">
+<?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
-    <button class="om-modalX" type="button" id="omClose">Ã—</button>
+<div class="om-modalOverlay" id="statusModal">
+  <div class="om-modalCard" role="dialog" aria-modal="true">
+    <button class="om-modalX" type="button" id="omClose">&times;</button>
 
     <div class="om-modalHead">
       <h3>Update Status</h3>
-      <span class="om-pill" id="omQueueCode">â€”</span>
+      <span class="om-pill" id="omQueueCode">-</span>
     </div>
 
     <div class="om-modalBody">
       <div class="om-row">
         <span class="om-label">Customer</span>
-        <div id="omCustomer" style="font-weight:700;color:#111;">â€”</div>
+        <div class="om-value" id="omCustomer">-</div>
       </div>
 
       <div class="om-row">
@@ -138,7 +149,7 @@ $rows = $pdo->query("
         </select>
       </div>
 
-      <div id="omError" style="display:none;background:#ffe1e1;border:1px solid #ffb6b6;color:#8b0000;padding:10px;border-radius:10px;font-weight:600;"></div>
+      <div class="om-error" id="omError"></div>
 
       <div class="om-actions">
         <button class="om-btn om-btn--danger" type="button" id="omDelete">Delete</button>
@@ -174,7 +185,7 @@ $rows = $pdo->query("
 
   let currentId = null;
 
-  async function postAction(id, action){
+  async function postAction(id, action) {
     const fd = new FormData();
     fd.append("id", id);
     fd.append("action", action);
@@ -183,12 +194,12 @@ $rows = $pdo->query("
       method: "POST",
       body: fd,
       credentials: "same-origin",
-      headers: {"X-CSRF-Token": csrf()}
+      headers: { "X-CSRF-Token": csrf() }
     });
 
     const txt = await res.text();
     try { return JSON.parse(txt); }
-    catch(e){ return {ok:false, error:"Server returned non-JSON: " + txt}; }
+    catch (e) { return { ok: false, error: "Server returned non-JSON: " + txt }; }
   }
 
   const actionMap = {
@@ -199,14 +210,14 @@ $rows = $pdo->query("
     "CANCELLED": "cancel"
   };
 
-  document.querySelectorAll(".update-btn").forEach(btn => {
+  document.querySelectorAll(".update-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       currentId = btn.dataset.id;
-      omQueueCode.textContent = btn.dataset.code || "â€”";
-      omCustomer.textContent = btn.dataset.customer || "â€”";
+      omQueueCode.textContent = btn.dataset.code || "-";
+      omCustomer.textContent = btn.dataset.customer || "-";
 
       const curr = (btn.dataset.status || "PENDING").trim().toUpperCase();
-      const exists = Array.from(omStatus.options).some(o => o.value === curr);
+      const exists = Array.from(omStatus.options).some((o) => o.value === curr);
       omStatus.value = exists ? curr : "PENDING";
 
       omErrorHide();
@@ -248,6 +259,3 @@ $rows = $pdo->query("
 
 </body>
 </html>
-
-
-
