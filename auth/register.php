@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $fullname = trim($_POST["fullname"] ?? "");
 $contact  = trim($_POST["contact"] ?? $_POST["contacts"] ?? "");
-$email    = trim($_POST["email"] ?? "");
+$email    = strtolower(trim($_POST["email"] ?? ""));
 $password_raw = (string)($_POST["password"] ?? "");
 
 if ($fullname === "" || $email === "" || $password_raw === "") {
@@ -24,7 +24,7 @@ $password_hash = password_hash($password_raw, PASSWORD_DEFAULT);
 
 try {
     // prevent duplicate email
-    $check = $pdo->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
+    $check = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1");
     $check->execute([":email" => $email]);
     if ($check->fetch()) {
         header("Location: /auth/log_in.html?registered=exists");

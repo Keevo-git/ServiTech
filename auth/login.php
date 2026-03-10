@@ -10,15 +10,19 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit();
 }
 
-$email = trim($_POST["email"] ?? "");
+$email = strtolower(trim($_POST["email"] ?? ""));
 $password = (string)($_POST["password"] ?? "");
 
 try {
     $stmt = $pdo->prepare("
-        SELECT id, email, role, password_hash,
-               COALESCE(NULLIF(password_hash, ''), NULLIF(to_jsonb(users)->>'password', '')) AS auth_hash
+        SELECT id, email,
+               COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer') AS role,
+               COALESCE(
+                   NULLIF(to_jsonb(users)->>'password_hash', ''),
+                   NULLIF(to_jsonb(users)->>'password', '')
+               ) AS auth_hash
         FROM users
-        WHERE email = :email
+        WHERE LOWER(email) = LOWER(:email)
         LIMIT 1
     ");
     $stmt->execute([":email" => $email]);
@@ -26,8 +30,28 @@ try {
 
     $storedHash = (string)($user["auth_hash"] ?? "");
     $is_valid = false;
+    $rehashNeeded = false;
     if ($user && $storedHash !== "") {
-        $is_valid = password_verify($password, $storedHash);
+        $hashInfo = password_get_info($storedHash);
+        $isRealHash = (int)($hashInfo["algo"] ?? 0) !== 0;
+
+        if ($isRealHash) {
+            $is_valid = password_verify($password, $storedHash);
+            $rehashNeeded = $is_valid && password_needs_rehash($storedHash, PASSWORD_DEFAULT);
+        } else {
+            // Backward compatibility for legacy rows that stored plain-text passwords.
+            $is_valid = hash_equals($storedHash, $password);
+            $rehashNeeded = $is_valid;
+        }
+    }
+
+    if ($is_valid && $rehashNeeded && isset($user["id"])) {
+        $newHash = password_hash($password, PASSWORD_DEFAULT);
+        $rehash = $pdo->prepare("UPDATE users SET password_hash = :hash, updated_at = NOW() WHERE id = :id");
+        $rehash->execute([
+            ":hash" => $newHash,
+            ":id" => (int)$user["id"],
+        ]);
     }
 
     if ($user && $is_valid) {
