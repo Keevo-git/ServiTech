@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 <!DOCTYPE html>
@@ -7,7 +7,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Document Printing</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body data-service="printing">
 
@@ -87,12 +87,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     <div class="summary-total">
       <span>Estimated Total:</span>
-      <strong id="summaryTotal">₱05.00</strong>
+      <strong id="summaryTotal">â‚±05.00</strong>
     </div>
   </div>
 
   <div class="form-actions">
-    <a href="custo1_printing_option.php" class="btn-back">Back</a>
+    <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
     <a href="#" class="btn-next" id="joinQueueBtn">Join Queue</a>
   </div>
 
@@ -101,8 +101,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
-<script src="/ServiTech/assets/js/csrf.js"></script>
-<script src="/ServiTech/assets/js/main.js"></script>
+<script src="/assets/js/csrf.js"></script>
+<script src="/assets/js/main.js"></script>
 </body>
 </html>
+
+
+
 

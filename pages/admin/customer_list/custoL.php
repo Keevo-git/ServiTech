@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 
@@ -22,20 +22,20 @@ function customer_code_from_id(int $id): string {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Customer List</title>
 
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
-  <link rel="stylesheet" href="../admin.css">
-  <link rel="stylesheet" href="custoL.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/pages/admin/admin.css">
+  <link rel="stylesheet" href="/pages/admin/customer_list/custoL.css">
 </head>
 
 <body>
   <header class="navbar">
-    <a href="../admin_dashboard.php" class="logo">
-      <img src="/ServiTech/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+    <a href="/pages/admin/admin_dashboard.php" class="logo">
+      <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech: JC Repair Shop</h1>
     </a>
     <nav>
-      <a href="../admin_dashboard.php">Dashboard</a>
-      <a href="../logout.php">Logout</a>
+      <a href="/pages/admin/admin_dashboard.php">Dashboard</a>
+      <a href="/pages/admin/logout.php">Logout</a>
     </nav>
   </header>
 
@@ -43,13 +43,13 @@ function customer_code_from_id(int $id): string {
     <div class="cl-wrap">
       <div class="cl-head">
         <h2 class="cl-title">Customer List</h2>
-        <a class="cl-btn cl-btn--maroon" href="../queue_list/printing.php">View Queue</a>
+        <a class="cl-btn cl-btn--maroon" href="/pages/admin/queue_list/printing.php">View Queue</a>
       </div>
 
       <div class="cl-card">
         <div class="cl-toolbar">
           <div class="cl-search">
-            <span class="cl-searchIcon">🔍</span>
+            <span class="cl-searchIcon">ðŸ”</span>
             <input id="searchInput" type="text" placeholder="Search customers by name, email, or contact..." />
           </div>
         </div>
@@ -104,7 +104,7 @@ function customer_code_from_id(int $id): string {
 
   <div class="cl-modalOverlay" id="msgModal">
     <div class="cl-modalCard" role="dialog" aria-modal="true">
-      <button class="cl-modalX" type="button" id="closeModal">×</button>
+      <button class="cl-modalX" type="button" id="closeModal">Ã—</button>
 
       <div class="cl-modalHead">
         <h3>Send Message to Customer</h3>
@@ -117,13 +117,13 @@ function customer_code_from_id(int $id): string {
         <div class="cl-infoGrid">
           <div>
             <small>Name</small>
-            <div class="cl-infoVal" id="mName">—</div>
+            <div class="cl-infoVal" id="mName">â€”</div>
           </div>
 
           <div>
             <small>Contact Number</small>
             <div class="cl-copyRow">
-              <div class="cl-infoVal" id="mContact">—</div>
+              <div class="cl-infoVal" id="mContact">â€”</div>
               <button class="cl-copyBtn" type="button" data-copy="mContact">Copy</button>
             </div>
           </div>
@@ -131,7 +131,7 @@ function customer_code_from_id(int $id): string {
           <div>
             <small>Email</small>
             <div class="cl-copyRow">
-              <div class="cl-infoVal cl-underline" id="mEmail">—</div>
+              <div class="cl-infoVal cl-underline" id="mEmail">â€”</div>
               <button class="cl-copyBtn" type="button" data-copy="mEmail">Copy</button>
             </div>
           </div>
@@ -166,30 +166,30 @@ function customer_code_from_id(int $id): string {
         <h3>Contact Us:</h3>
 
         <div class="contact-item">
-          <img src="/ServiTech/assets/images/FOOTER_FB.png" alt="Facebook">
+          <img src="/assets/images/FOOTER_FB.png" alt="Facebook">
           <a href="https://www.facebook.com/" target="_blank">JC Store</a>
         </div>
 
         <div class="contact-item">
-          <img src="/ServiTech/assets/images/FOOTER_EMAIL.png" alt="Email">
+          <img src="/assets/images/FOOTER_EMAIL.png" alt="Email">
           <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
         </div>
 
         <div class="contact-item">
-          <img src="/ServiTech/assets/images/FOOTER_PHONE.png" alt="Phone">
+          <img src="/assets/images/FOOTER_PHONE.png" alt="Phone">
           <span>+63 912 393 4321</span>
         </div>
       </div>
 
       <div class="footer-right">
-        <a href="/ServiTech/index.php" class="footer-logo-link">
-          <img src="/ServiTech/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
+        <a href="/index.php" class="footer-logo-link">
+          <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
           <h1>ServiTech: JC Store</h1>
         </a>
       </div>
     </div>
 
-    <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
+    <p class="footer-bottom">Â© 2026 ServiTech: JC Store</p>
   </footer>
 
   <script>
@@ -254,3 +254,7 @@ function customer_code_from_id(int $id): string {
   </script>
 </body>
 </html>
+
+
+
+

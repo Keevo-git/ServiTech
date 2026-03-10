@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
 
@@ -88,7 +88,7 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -131,40 +131,40 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
   <div class="divider"></div>
 
   <div class="quick-grid">
-    <a href="custo_place_queueing.php" class="quick-card-link">
+    <a href="/pages/customer/custo_place_queueing.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/ServiTech/assets/images/LANDING_QUEUEING.png" alt="Join Queue" class="quick-icon">
+          <img src="/assets/images/LANDING_QUEUEING.png" alt="Join Queue" class="quick-icon">
         </div>
         <h4>Join Queue</h4>
         <p>Join the line to place your request.</p>
       </div>
     </a>
 
-    <a href="custo_service_status.php" class="quick-card-link">
+    <a href="/pages/customer/custo_service_status.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/ServiTech/assets/images/LANDING_SERVICE-STAT.png" alt="Service Status" class="quick-icon">
+          <img src="/assets/images/LANDING_SERVICE-STAT.png" alt="Service Status" class="quick-icon">
         </div>
         <h4>Service Status</h4>
         <p>Check your requested service status or your queue status.</p>
       </div>
     </a>
 
-    <a href="custo_print_order.php" class="quick-card-link">
+    <a href="/pages/customer/custo_print_order.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/ServiTech/assets/images/LANDING_PRINT-ORD.png" alt="Print Order" class="quick-icon">
+          <img src="/assets/images/LANDING_PRINT-ORD.png" alt="Print Order" class="quick-icon">
         </div>
         <h4>Print Order</h4>
         <p>Place an order to print your document.</p>
       </div>
     </a>
 
-    <a href="custo_edit_profile.php" class="quick-card-link">
+    <a href="/pages/customer/custo_edit_profile.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/ServiTech/assets/images/ICON_EDIT_PROF.png" alt="Edit Profile" class="quick-icon">
+          <img src="/assets/images/ICON_EDIT_PROF.png" alt="Edit Profile" class="quick-icon">
         </div>
         <h4>Edit Profile</h4>
         <p>Edit your personal information.</p>
@@ -177,3 +177,6 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
 
 </body>
 </html>
+
+
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Admin/logout.php
 require_once __DIR__ . "/../../config/session_check.php";
 
@@ -13,5 +13,6 @@ setcookie(session_name(), "", [
     "samesite" => "Lax",
 ]);
 
-header("Location: " . servitech_url("/auth/log_in.html?logout=1"));
+header("Location: /auth/log_in.html?logout=1");
 exit();
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 <!DOCTYPE html>
@@ -7,7 +7,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -16,7 +16,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <main class="form-page" style="min-height:60vh;">
   <div style="max-width:1000px;margin:24px auto;">
     <div style="background:#ff9f2e;padding:14px 18px;border-radius:6px 6px 0 0;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
-      <a href="customer_dash.php" style="color:#fff;text-decoration:none;font-size:18px;">←</a>
+      <a href="/pages/customer/customer_dash.php" style="color:#fff;text-decoration:none;font-size:18px;">â†</a>
       <strong>Service Status</strong>
     </div>
 
@@ -26,7 +26,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     <!-- Detail modal -->
     <div id="detailModal" class="modal-overlay" style="display:none;">
       <div class="modal status-modal" style="position:relative;text-align:left;">
-        <button id="closeDetail" class="modal-close" type="button">✕</button>
+        <button id="closeDetail" class="modal-close" type="button">âœ•</button>
 
         <h3 class="modal-title">
           Queue: <span id="modalQueue"></span>
@@ -120,7 +120,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     document.getElementById("modalService").textContent = card.dataset.service || "";
     document.getElementById("modalNotes").value = card.dataset.notes || "";
     document.getElementById("modalStatus").textContent = card.dataset.status || "PENDING";
-    document.getElementById("modalFile").textContent = card.dataset.file || "—";
+    document.getElementById("modalFile").textContent = card.dataset.file || "â€”";
 
     const extra = document.getElementById("modalExtra");
     extra.innerHTML = "";
@@ -138,7 +138,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   async function loadQueues(){
     listEl.innerHTML = `<p class="muted">Loading...</p>`;
 
-    const res = await fetch("/ServiTech/api/queue_list.php", {
+    const res = await fetch("/api/queue_list.php", {
       credentials: "same-origin",
       headers: {
         "Accept": "application/json",
@@ -198,3 +198,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
+
+
+
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 
@@ -42,20 +42,20 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Manage Services</title>
 
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
-  <link rel="stylesheet" href="../admin.css">
-  <link rel="stylesheet" href="manage_services.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/pages/admin/admin.css">
+  <link rel="stylesheet" href="/pages/admin/Services/manage_services.css">
 </head>
 <body>
 
 <header class="navbar">
-  <a href="../admin_dashboard.php" class="logo">
-    <img src="/ServiTech/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+  <a href="/pages/admin/admin_dashboard.php" class="logo">
+    <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech: JC Repair Shop</h1>
   </a>
   <nav>
-    <a href="../admin_dashboard.php">Admin Home</a>
-    <a href="../logout.php">Logout</a>
+    <a href="/pages/admin/admin_dashboard.php">Admin Home</a>
+    <a href="/pages/admin/logout.php">Logout</a>
   </nav>
 </header>
 
@@ -88,7 +88,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
         </thead>
         <tbody>
         <?php if (!$services): ?>
-          <tr><td colspan="5" style="padding:14px;color:#666;font-weight:800;">No services yet. Click “+ Add Services”.</td></tr>
+          <tr><td colspan="5" style="padding:14px;color:#666;font-weight:800;">No services yet. Click â€œ+ Add Servicesâ€.</td></tr>
         <?php else: ?>
           <?php foreach($services as $s):
             $payload = [
@@ -104,7 +104,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
             <tr>
               <td><?= h($s["name"]) ?></td>
               <td><?= h($s["description"]) ?></td>
-              <td><?= $s["price"]===null ? "—" : "₱".h(number_format((float)$s["price"],2)) ?></td>
+              <td><?= $s["price"]===null ? "â€”" : "â‚±".h(number_format((float)$s["price"],2)) ?></td>
               <td><span class="ms-pill <?= (int)$s["active"] ? "on":"off" ?>"><?= (int)$s["active"] ? "ON":"OFF" ?></span></td>
               <td class="ms-actions">
                 <button class="edit" type="button" data-ms-edit='<?= h(json_encode($payload)) ?>'>Edit</button>
@@ -121,7 +121,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 
 <div class="ms-overlay" id="msOverlay">
   <div class="ms-modal">
-    <button class="ms-x" id="msX" type="button">×</button>
+    <button class="ms-x" id="msX" type="button">Ã—</button>
 
     <div class="ms-mhead">
       <h3 id="msModalTitle">Add Service</h3>
@@ -182,12 +182,15 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 <script>
   window.MS_ACTIVE_TAB = <?= json_encode($tab) ?>;
 </script>
-<script src="/ServiTech/assets/js/csrf.js"></script>
-<script src="manage_services.js"></script>
+<script src="/assets/js/csrf.js"></script>
+<script src="/pages/admin/Services/manage_services.js"></script>
 
 <footer class="footer">
-  <p class="footer-bottom">© 2026 ServiTech: JC Store</p>
+  <p class="footer-bottom">Â© 2026 ServiTech: JC Store</p>
 </footer>
 
 </body>
 </html>
+
+
+

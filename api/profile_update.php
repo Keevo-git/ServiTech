@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
@@ -7,12 +7,12 @@ servitech_enforce_csrf_token(false);
 
 $user_id = (int)($_SESSION["user_id"] ?? 0);
 if ($user_id <= 0) {
-  header("Location: " . servitech_url("/auth/log_in.html"));
+  header("Location: /auth/log_in.html");
   exit();
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-  header("Location: " . servitech_url("/pages/customer/custo_edit_profile.php"));
+  header("Location: /pages/customer/custo_edit_profile.php");
   exit();
 }
 
@@ -25,7 +25,7 @@ $new_password     = (string)($_POST["new_password"] ?? "");
 $confirm_password = (string)($_POST["confirm_password"] ?? "");
 
 if ($fullname === "" || $email === "") {
-  header("Location: " . servitech_url("/pages/customer/custo_edit_profile.php?err=" . urlencode("Full name and email are required.")));
+  header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("Full name and email are required."));
   exit();
 }
 
@@ -34,7 +34,7 @@ try {
   $chk = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id <> :id LIMIT 1");
   $chk->execute([":email" => $email, ":id" => $user_id]);
   if ($chk->fetch()) {
-    header("Location: " . servitech_url("/pages/customer/custo_edit_profile.php?err=" . urlencode("Email is already used.")));
+    header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("Email is already used."));
     exit();
   }
 
@@ -42,11 +42,11 @@ try {
 
   if ($changingPass) {
     if ($new_password !== $confirm_password) {
-      header("Location: " . servitech_url("/pages/customer/custo_edit_profile.php?err=" . urlencode("New password and confirm password do not match.")));
+      header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("New password and confirm password do not match."));
       exit();
     }
     if (strlen($new_password) < 6) {
-      header("Location: " . servitech_url("/pages/customer/custo_edit_profile.php?err=" . urlencode("New password must be at least 6 characters.")));
+      header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("New password must be at least 6 characters."));
       exit();
     }
 
@@ -55,7 +55,7 @@ try {
     $row = $p->fetch();
 
     if (!$row || !password_verify($current_password, $row["password_hash"])) {
-      header("Location: " . servitech_url("/pages/customer/custo_edit_profile.php?err=" . urlencode("Current password is incorrect.")));
+      header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("Current password is incorrect."));
       exit();
     }
 
@@ -110,11 +110,12 @@ try {
     }
   }
 
-  header("Location: " . servitech_url("/pages/customer/custo_edit_profile.php?ok=" . urlencode("Profile updated!")));
+  header("Location: /pages/customer/custo_edit_profile.php?ok=" . urlencode("Profile updated!"));
   exit();
 
 } catch (PDOException $e) {
   error_log("profile_update error: " . $e->getMessage());
-  header("Location: " . servitech_url("/pages/customer/custo_edit_profile.php?err=" . urlencode("DB error updating profile.")));
+  header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("DB error updating profile."));
   exit();
 }
+

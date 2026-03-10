@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 
@@ -8,7 +8,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Rush ID</title>
-  <link rel="stylesheet" href="/ServiTech/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body data-service="printing">
 
@@ -30,12 +30,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <label>Select Package<span class="required">*</span></label>
         <select id="packageSelect" class="form-select">
           <option value="" selected disabled>Select a Package</option>
-          <option data-price="40">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) — ₱40</option>
-          <option data-price="30">Package 2: 1x1 (6pcs.) — ₱30</option>
-          <option data-price="30">Package 3: 2x2 (4pcs.) — ₱30</option>
-          <option data-price="50">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) — ₱50</option>
-          <option data-price="30">Package 5: Passport size (4pcs.) — ₱30</option>
-          <option data-price="50">Package 6: 1x1 (10pcs.) — ₱50</option>
+          <option data-price="40">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) â€” â‚±40</option>
+          <option data-price="30">Package 2: 1x1 (6pcs.) â€” â‚±30</option>
+          <option data-price="30">Package 3: 2x2 (4pcs.) â€” â‚±30</option>
+          <option data-price="50">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) â€” â‚±50</option>
+          <option data-price="30">Package 5: Passport size (4pcs.) â€” â‚±30</option>
+          <option data-price="50">Package 6: 1x1 (10pcs.) â€” â‚±50</option>
         </select>
 
         <div class="two-col-fields">
@@ -91,12 +91,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     <div class="summary-total">
       <span>Estimated Total:</span>
-      <strong id="summaryTotal">₱0.00</strong>
+      <strong id="summaryTotal">â‚±0.00</strong>
     </div>
   </div>
 
   <div class="form-actions">
-    <a href="custo1_printing_option.php" class="btn-back">Back</a>
+    <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
     <a href="#" class="btn-next" id="joinQueueBtn">Join Queue</a>
   </div>
 
@@ -105,8 +105,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
-<script src="/ServiTech/assets/js/csrf.js"></script>
-<script src="/ServiTech/assets/js/main.js"></script>
+<script src="/assets/js/csrf.js"></script>
+<script src="/assets/js/main.js"></script>
 
 </body>
 </html>
+
+
+
