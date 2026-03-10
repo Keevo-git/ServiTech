@@ -31,7 +31,7 @@ $is_logged_in = !empty($_SESSION["user_id"]);
 
   <!-- HERO -->
   <section class="hero">
-    <h2>Welcome to ServiT: JC Repair Shop</h2>
+    <h2>Welcome to ServiTech: JC Repair Shop</h2>
     <p>Offering printing, repairing, and installation services</p>
 
     <div class="hero-cards">
