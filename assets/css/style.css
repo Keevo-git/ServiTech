@@ -2181,3 +2181,68 @@ body {
     text-align: center;
   }
 }
+
+/* Header button polish (customer/landing/auth) */
+.navbar nav a,
+.navbar.has-nav-menu nav[data-collapsible-menu] a {
+  border: 1px solid rgba(74, 5, 5, 0.16);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: background-color 0.28s ease, color 0.28s ease, box-shadow 0.28s ease, transform 0.18s ease;
+}
+
+.navbar nav a:hover,
+.navbar.has-nav-menu nav[data-collapsible-menu] a:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.26);
+}
+
+.navbar nav a:active,
+.navbar.has-nav-menu nav[data-collapsible-menu] a:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.2);
+}
+
+.navbar nav a:focus-visible,
+.navbar.has-nav-menu nav[data-collapsible-menu] a:focus-visible {
+  outline: 2px solid #ff8b2c;
+  outline-offset: 2px;
+}
+
+/* Header toggle polish */
+.navbar.has-nav-menu .nav-toggle {
+  transition: background-color 0.2s ease, transform 0.16s ease, box-shadow 0.2s ease;
+}
+
+.navbar.has-nav-menu .nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.navbar.has-nav-menu .nav-toggle:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+}
+
+.navbar.has-nav-menu .nav-toggle:focus-visible {
+  outline: 2px solid #ff8b2c;
+  outline-offset: 2px;
+}
+
+/* Hamburger alignment fix (landing/auth/shared navbar) */
+.navbar.has-nav-menu .logo {
+  width: auto;
+}
+
+.navbar.has-nav-menu .nav-toggle {
+  align-self: center;
+  margin-left: auto;
+}
+
+@media (max-width: 520px) {
+  .navbar.has-nav-menu .logo {
+    width: auto;
+  }
+}

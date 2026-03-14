@@ -406,3 +406,65 @@ body.admin-dashboard .topbar.has-nav-menu .nav-toggle__bar {
     margin: 0;
   }
 }
+
+/* Header button polish (admin dashboard/topbar) */
+body.admin-dashboard .topbar .btn,
+body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] .btn {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.15px;
+  box-shadow: 0 4px 12px rgba(10, 27, 49, 0.22);
+  transition: background 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+body.admin-dashboard .topbar .btn:hover,
+body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(10, 27, 49, 0.3);
+}
+
+body.admin-dashboard .topbar .btn:active,
+body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] .btn:active {
+  transform: translateY(0);
+  box-shadow: 0 5px 11px rgba(10, 27, 49, 0.24);
+}
+
+body.admin-dashboard .topbar .btn:focus-visible,
+body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] .btn:focus-visible {
+  outline: 2px solid rgba(198, 235, 255, 0.94);
+  outline-offset: 2px;
+}
+
+/* Header toggle polish (admin topbar) */
+body.admin-dashboard .topbar.has-nav-menu .nav-toggle {
+  transition: background-color 0.2s ease, transform 0.16s ease, box-shadow 0.2s ease;
+}
+
+body.admin-dashboard .topbar.has-nav-menu .nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 16px rgba(10, 27, 49, 0.28);
+  transform: translateY(-1px);
+}
+
+body.admin-dashboard .topbar.has-nav-menu .nav-toggle:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(10, 27, 49, 0.22);
+}
+
+body.admin-dashboard .topbar.has-nav-menu .nav-toggle:focus-visible {
+  outline: 2px solid rgba(198, 235, 255, 0.94);
+  outline-offset: 2px;
+}
+
+/* Hamburger alignment fix (admin topbar) */
+body.admin-dashboard .topbar.has-nav-menu .brand {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+body.admin-dashboard .topbar.has-nav-menu .nav-toggle {
+  margin-left: auto;
+  align-self: center;
+}

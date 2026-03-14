@@ -1211,3 +1211,19 @@ body.customer-layout .navbar.has-nav-menu .nav-toggle__bar {
     text-align: center;
   }
 }
+
+/* Hamburger alignment fix (customer navbar) */
+body.customer-layout .navbar.has-nav-menu .logo {
+  width: auto;
+}
+
+body.customer-layout .navbar.has-nav-menu .nav-toggle {
+  align-self: center;
+  margin-left: auto;
+}
+
+@media (max-width: 520px) {
+  body.customer-layout .navbar.has-nav-menu .logo {
+    width: auto;
+  }
+}
