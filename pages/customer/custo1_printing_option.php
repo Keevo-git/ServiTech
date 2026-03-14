@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 <!DOCTYPE html>
@@ -8,37 +8,40 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Printing Options</title>
   <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css">
 </head>
-<body>
+<body class="customer-layout customer-page--forms">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
-<section class="form-page">
+<section class="form-page form-page--single">
+  <div class="form-page-shell">
+    <div class="form-page-intro">
+      <h2 class="page-title">JC PRINTING SERVICES</h2>
+      <p class="page-subtitle">Place your print, copy, or ID photo order below.</p>
+    </div>
 
-  <h2 class="page-title">JC PRINTING SERVICES</h2>
-  <p class="page-subtitle">Place your print, copy, or ID photo order below.</p>
+    <div class="form-card">
+      <h3 class="step-title">1. SERVICE</h3>
 
-  <div class="form-card">
-    <h3 class="step-title">1. SERVICE</h3>
+      <label for="serviceType">
+        Select Service Type<span class="required">*</span>
+      </label>
 
-    <label for="serviceType">
-      Select Service Type<span class="required">*</span>
-    </label>
+      <select id="serviceType" class="form-select">
+        <option value="" selected disabled>Select A Service</option>
+        <option value="printing">Document Printing</option>
+        <option value="xerox">Xerox</option>
+        <option value="rush-id">Rush ID</option>
+        <option value="laminating">Laminating</option>
+      </select>
+    </div>
 
-    <select id="serviceType" class="form-select">
-      <option value="" selected disabled>Select A Service</option>
-      <option value="printing">Document Printing</option>
-      <option value="xerox">Xerox</option>
-      <option value="rush-id">Rush ID</option>
-      <option value="laminating">Laminating</option>
-    </select>
+    <div class="form-actions">
+      <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
+      <button type="button" class="btn-next" id="nextBtn" disabled>Next</button>
+    </div>
   </div>
-
-  <div class="form-actions">
-    <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
-    <button type="button" class="btn-next" id="nextBtn" disabled>Next</button>
-  </div>
-
 </section>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
@@ -72,6 +75,3 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
-
-
-

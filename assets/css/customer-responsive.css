@@ -1,0 +1,543 @@
+/* Customer-side responsive overrides */
+
+body.customer-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body.customer-layout > .footer {
+  margin-top: auto;
+}
+
+body.customer-layout img,
+body.customer-layout svg {
+  max-width: 100%;
+  height: auto;
+}
+
+body.customer-layout .navbar {
+  padding: 18px clamp(16px, 3vw, 48px);
+  gap: 14px 22px;
+  align-items: center;
+}
+
+body.customer-layout .logo {
+  gap: 10px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+body.customer-layout .logo h1 {
+  line-height: 1.1;
+}
+
+body.customer-layout .navbar nav {
+  display: flex;
+  flex: 1 1 420px;
+  min-width: 0;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+body.customer-layout .navbar nav a {
+  margin-left: 0;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+body.customer-layout .footer-container {
+  gap: 24px 40px;
+  align-items: flex-start;
+}
+
+body.customer-layout .footer-left,
+body.customer-layout .footer-right {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+body.customer-layout .contact-item {
+  align-items: flex-start;
+}
+
+body.customer-layout .contact-item a,
+body.customer-layout .contact-item span,
+body.customer-layout .footer-logo-link h1 {
+  overflow-wrap: anywhere;
+}
+
+.queue-empty-message {
+  color: #888;
+  margin-top: 10px;
+}
+
+.form-note,
+.field-hint,
+.file-note {
+  color: #555;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form-note {
+  margin-top: 12px;
+}
+
+body.customer-layout .customer-hero {
+  padding: clamp(32px, 5vw, 52px) clamp(16px, 5vw, 48px);
+}
+
+body.customer-layout .customer-dashboard,
+body.customer-layout .quick-access {
+  width: min(100%, 1240px);
+  margin-inline: auto;
+}
+
+body.customer-layout .customer-dashboard {
+  padding: clamp(22px, 4vw, 40px) clamp(16px, 4vw, 40px) 20px;
+  grid-template-columns: minmax(0, 1.65fr) minmax(250px, 0.95fr);
+  gap: clamp(18px, 3vw, 30px);
+  align-items: stretch;
+}
+
+body.customer-layout .quick-access {
+  padding: 0 clamp(16px, 4vw, 40px) clamp(40px, 6vw, 80px);
+}
+
+body.customer-layout .dashboard-card,
+body.customer-layout .quick-card,
+body.customer-layout .choose-card,
+body.customer-layout .form-card,
+body.customer-layout .summary-card,
+body.customer-layout .profile-card {
+  min-width: 0;
+}
+
+body.customer-layout .queue-header {
+  justify-content: space-between;
+}
+
+body.customer-layout .dashboard-card p,
+body.customer-layout .queue-number,
+body.customer-layout .summary-row strong,
+body.customer-layout .summary-total strong {
+  overflow-wrap: anywhere;
+}
+
+body.customer-layout .quick-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+body.customer-layout .quick-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+body.customer-layout .choose-service {
+  width: min(100% - 32px, 1100px);
+  margin: clamp(22px, 4vw, 56px) auto clamp(36px, 6vw, 72px);
+  padding: clamp(24px, 5vw, 56px);
+}
+
+body.customer-layout .choose-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: clamp(16px, 3vw, 28px);
+}
+
+body.customer-layout .choose-card {
+  min-height: 220px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+body.customer-layout .form-page {
+  padding: clamp(28px, 5vw, 56px) clamp(16px, 4vw, 32px) clamp(42px, 6vw, 80px);
+}
+
+body.customer-layout .form-page-shell {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+body.customer-layout .form-page-intro {
+  display: grid;
+  gap: 8px;
+}
+
+body.customer-layout .page-title {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 30px);
+}
+
+body.customer-layout .page-subtitle {
+  margin: 0;
+  max-width: 720px;
+}
+
+body.customer-layout .form-content-stack,
+body.customer-layout .form-content-grid {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+
+body.customer-layout .form-card {
+  padding: clamp(20px, 4vw, 40px);
+}
+
+body.customer-layout .form-grid {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: clamp(18px, 4vw, 36px);
+  align-items: start;
+}
+
+body.customer-layout .form-grid > * {
+  min-width: 0;
+}
+
+body.customer-layout .form-card label {
+  line-height: 1.4;
+}
+
+body.customer-layout .form-select,
+body.customer-layout .form-textarea,
+body.customer-layout .form-file {
+  width: 100%;
+  max-width: 100%;
+}
+
+body.customer-layout .form-select,
+body.customer-layout .static-text,
+body.customer-layout .form-file {
+  margin-bottom: 16px;
+}
+
+body.customer-layout .form-select,
+body.customer-layout .form-input,
+body.customer-layout .form-textarea,
+body.customer-layout .btn-back,
+body.customer-layout .btn-next,
+body.customer-layout .btn-save,
+body.customer-layout .btn-cancel {
+  min-height: 46px;
+}
+
+body.customer-layout .form-card .form-input {
+  width: min(100%, 180px);
+  margin-bottom: 16px;
+}
+
+body.customer-layout .form-textarea {
+  min-height: 120px;
+}
+
+body.customer-layout .static-text {
+  display: block;
+  padding: 12px 14px;
+  border: 1.5px solid #000;
+  border-radius: 8px;
+  background: #f8f8f8;
+  font-weight: 600;
+}
+
+body.customer-layout .two-col-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+body.customer-layout .radio-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 18px;
+  margin-bottom: 18px;
+}
+
+body.customer-layout .radio-group label,
+body.customer-layout .radio-vertical label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+body.customer-layout .radio-group input,
+body.customer-layout .radio-vertical input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+
+body.customer-layout .summary-card {
+  width: 100%;
+  padding: clamp(20px, 4vw, 30px);
+  align-self: start;
+}
+
+body.customer-layout .summary-row,
+body.customer-layout .summary-total {
+  gap: 16px;
+  align-items: flex-start;
+}
+
+body.customer-layout .summary-row span,
+body.customer-layout .summary-row strong,
+body.customer-layout .summary-total span,
+body.customer-layout .summary-total strong {
+  min-width: 0;
+}
+
+body.customer-layout .summary-row strong,
+body.customer-layout .summary-total strong {
+  text-align: right;
+}
+
+body.customer-layout .form-actions {
+  margin-top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px 16px;
+}
+
+body.customer-layout .btn-back,
+body.customer-layout .btn-next,
+body.customer-layout .btn-save,
+body.customer-layout .btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+}
+
+body.customer-layout .btn-back,
+body.customer-layout .btn-next {
+  min-width: 170px;
+  padding: 14px 24px;
+}
+
+body.customer-layout .btn-save,
+body.customer-layout .btn-cancel {
+  min-width: 220px;
+}
+
+body.customer-layout .form-page--single .form-page-shell {
+  width: min(100%, 860px);
+}
+
+body.customer-layout .form-page--dual-card .form-content-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.customer-layout .form-page--summary .form-page-shell {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+}
+
+body.customer-layout .form-page--summary .form-page-intro,
+body.customer-layout .form-page--summary .form-actions {
+  grid-column: 1 / -1;
+}
+
+body.customer-layout .form-page--summary .summary-card {
+  position: sticky;
+  top: 24px;
+}
+
+body.customer-layout .form-page--confirmation .form-page-shell {
+  width: min(100%, 760px);
+}
+
+body.customer-layout .form-actions--compact {
+  margin-top: 18px;
+}
+
+body.customer-layout .queue-success-modal {
+  width: min(100%, 420px);
+}
+
+body.customer-layout .queue-success-modal__actions {
+  gap: 12px;
+}
+
+body.customer-layout .status-page {
+  padding: clamp(28px, 5vw, 56px) 16px clamp(42px, 6vw, 80px);
+}
+
+body.customer-layout .status-shell {
+  width: min(100%, 1040px);
+  margin: 0 auto;
+}
+
+body.customer-layout .status-page-header,
+body.customer-layout .status-panel {
+  padding-inline: clamp(16px, 3vw, 24px);
+}
+
+body.customer-layout .queue-list {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+body.customer-layout .status-modal {
+  width: min(100%, 620px);
+  padding: clamp(20px, 4vw, 28px);
+  text-align: left;
+  position: relative;
+}
+
+body.customer-layout .status-modal .modal-title {
+  padding-right: 32px;
+}
+
+body.customer-layout .profile-page {
+  padding: clamp(28px, 5vw, 56px) 16px clamp(42px, 6vw, 80px);
+}
+
+body.customer-layout .profile-card {
+  width: min(100%, 980px);
+  margin: 0 auto;
+}
+
+body.customer-layout .profile-header {
+  padding: 28px clamp(16px, 4vw, 32px) 18px;
+}
+
+body.customer-layout .profile-form {
+  padding: 26px clamp(16px, 6vw, 70px) 44px;
+}
+
+body.customer-layout .profile-actions {
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  body.customer-layout .choose-service {
+    width: min(100% - 28px, 1100px);
+  }
+
+  body.customer-layout .form-page--summary .form-page-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  }
+}
+
+@media (max-width: 900px) {
+  body.customer-layout .customer-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  body.customer-layout .form-page--summary .form-page-shell,
+  body.customer-layout .form-page--dual-card .form-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.customer-layout .form-page--summary .summary-card {
+    position: static;
+  }
+
+  body.customer-layout .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.customer-layout .queue-header,
+  body.customer-layout .profile-header {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  body.customer-layout .navbar {
+    align-items: flex-start;
+  }
+
+  body.customer-layout .navbar nav {
+    justify-content: flex-start;
+  }
+
+  body.customer-layout .summary-row,
+  body.customer-layout .summary-total {
+    flex-direction: column;
+  }
+
+  body.customer-layout .summary-row strong,
+  body.customer-layout .summary-total strong {
+    text-align: left;
+  }
+
+  body.customer-layout .two-col-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  body.customer-layout .navbar nav a,
+  body.customer-layout .btn-back,
+  body.customer-layout .btn-next,
+  body.customer-layout .btn-save,
+  body.customer-layout .btn-cancel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  body.customer-layout .logo {
+    width: 100%;
+  }
+
+  body.customer-layout .customer-dashboard,
+  body.customer-layout .quick-access {
+    width: 100%;
+  }
+
+  body.customer-layout .choose-service {
+    width: min(100% - 20px, 1100px);
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  body.customer-layout .choose-card,
+  body.customer-layout .form-card,
+  body.customer-layout .summary-card {
+    border-radius: 16px;
+  }
+
+  body.customer-layout .choose-card {
+    min-height: 0;
+    padding: 22px 16px;
+  }
+
+  body.customer-layout .form-card,
+  body.customer-layout .summary-card {
+    padding: 20px 16px;
+  }
+
+  body.customer-layout .form-actions,
+  body.customer-layout .profile-actions,
+  body.customer-layout .queue-success-modal__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  body.customer-layout .form-card .form-input {
+    width: 100%;
+  }
+
+  body.customer-layout .radio-group,
+  body.customer-layout .queue-list {
+    grid-template-columns: 1fr;
+  }
+
+  body.customer-layout .status-page-header {
+    align-items: flex-start;
+  }
+}

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
 
@@ -89,8 +89,9 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
   <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css">
 </head>
-<body>
+<body class="customer-layout customer-page--dashboard">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -114,7 +115,7 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
     <p id="queueService">Service: <?php echo htmlspecialchars($queueService); ?></p>
     <p id="queueDetails">Details: <?php echo htmlspecialchars($queueDetails); ?></p>
 
-    <p id="noQueueMsg" style="<?php echo $hasQueue ? "display:none;" : "display:block;"; ?> color:#888; margin-top:10px;">
+    <p id="noQueueMsg" class="queue-empty-message" style="<?php echo $hasQueue ? "display:none;" : "display:block;"; ?>">
       You have no active queue.
     </p>
   </div>
@@ -177,6 +178,3 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
 
 </body>
 </html>
-
-
-

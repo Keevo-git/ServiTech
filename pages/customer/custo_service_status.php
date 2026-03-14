@@ -8,8 +8,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
   <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css">
 </head>
-<body>
+<body class="customer-layout customer-page--status">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -26,7 +27,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     </div>
 
     <div id="detailModal" class="modal-overlay" style="display:none;">
-      <div class="modal status-modal" style="position:relative; text-align:left;">
+      <div class="modal status-modal">
         <button id="closeDetail" class="modal-close" type="button" aria-label="Close details">&times;</button>
 
         <h3 class="modal-title">
