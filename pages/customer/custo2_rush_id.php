@@ -34,12 +34,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <label for="packageSelect">Select Package<span class="required">*</span></label>
             <select id="packageSelect" class="form-select">
               <option value="" selected disabled>Select a Package</option>
-              <option data-price="40">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) â€” â‚±40</option>
-              <option data-price="30">Package 2: 1x1 (6pcs.) â€” â‚±30</option>
-              <option data-price="30">Package 3: 2x2 (4pcs.) â€” â‚±30</option>
-              <option data-price="50">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) â€” â‚±50</option>
-              <option data-price="30">Package 5: Passport size (4pcs.) â€” â‚±30</option>
-              <option data-price="50">Package 6: 1x1 (10pcs.) â€” â‚±50</option>
+              <option data-price="40">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) &mdash; &#8369;40</option>
+              <option data-price="30">Package 2: 1x1 (6pcs.) &mdash; &#8369;30</option>
+              <option data-price="30">Package 3: 2x2 (4pcs.) &mdash; &#8369;30</option>
+              <option data-price="50">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) &mdash; &#8369;50</option>
+              <option data-price="30">Package 5: Passport size (4pcs.) &mdash; &#8369;30</option>
+              <option data-price="50">Package 6: 1x1 (10pcs.) &mdash; &#8369;50</option>
             </select>
 
             <div class="two-col-fields">
@@ -96,7 +96,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
       <div class="summary-total">
         <span>Estimated Total:</span>
-        <strong id="summaryTotal">â‚±0.00</strong>
+        <strong id="summaryTotal">&#8369;0.00</strong>
       </div>
     </aside>
 

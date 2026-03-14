@@ -68,7 +68,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
       <div class="summary-total">
         <span>Estimated Total:</span>
-        <strong id="summaryTotal">â‚±0.00</strong>
+        <strong id="summaryTotal">&#8369;0.00</strong>
       </div>
     </aside>
 

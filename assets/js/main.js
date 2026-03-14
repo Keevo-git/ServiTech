@@ -57,7 +57,7 @@ function closeModal(id) {
 }
 
 /* ==============================
-   ✅ NEW: Service List Modal (Printing/Repair/Installation)
+   NEW: Service List Modal (Printing/Repair/Installation)
    ============================== */
 function openServiceModal(sectionId) {
   const section = document.getElementById(sectionId);
@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (summaryTotal) {
-      summaryTotal.textContent = `₱${(qty * pricePerItem).toFixed(2)}`;
+            summaryTotal.textContent = `\u20B1${(qty * pricePerItem).toFixed(2)}`;
     }
   }
 
@@ -413,3 +413,4 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = servitechUrl("/pages/customer/customer_dash.php");
   });
 });
+

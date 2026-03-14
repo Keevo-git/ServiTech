@@ -38,13 +38,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <label for="repairServiceSelect">Select Service<span class="required">*</span></label>
           <select class="form-select" id="repairServiceSelect">
             <option value="" selected disabled>Select Repair Service</option>
-            <option data-min="1200" data-max="5500">LCD Replacement â€” (â‚±1200 â€“ â‚±5500)</option>
-            <option data-min="700" data-max="2500">Battery Replacement â€” (â‚±700 â€“ â‚±2500)</option>
-            <option data-min="800" data-max="4000">Charging Pin Replacement â€” (â‚±800 â€“ â‚±4000)</option>
-            <option data-min="700" data-max="1500">Speaker / Mouthpiece Replacement â€” (â‚±700 â€“ â‚±1500)</option>
-            <option data-min="500" data-max="2000">Power Button Repair â€” (â‚±500 â€“ â‚±2000)</option>
-            <option data-min="1000" data-max="2000">Volume Repair â€” (â‚±1000 â€“ â‚±2000)</option>
-            <option data-min="1500" data-max="5000">Part(s) Upgrade â€” (â‚±1500 â€“ â‚±5000)</option>
+            <option data-min="1200" data-max="5500">LCD Replacement &mdash; (&#8369;1200 &ndash; &#8369;5500)</option>
+            <option data-min="700" data-max="2500">Battery Replacement &mdash; (&#8369;700 &ndash; &#8369;2500)</option>
+            <option data-min="800" data-max="4000">Charging Pin Replacement &mdash; (&#8369;800 &ndash; &#8369;4000)</option>
+            <option data-min="700" data-max="1500">Speaker / Mouthpiece Replacement &mdash; (&#8369;700 &ndash; &#8369;1500)</option>
+            <option data-min="500" data-max="2000">Power Button Repair &mdash; (&#8369;500 &ndash; &#8369;2000)</option>
+            <option data-min="1000" data-max="2000">Volume Repair &mdash; (&#8369;1000 &ndash; &#8369;2000)</option>
+            <option data-min="1500" data-max="5000">Part(s) Upgrade &mdash; (&#8369;1500 &ndash; &#8369;5000)</option>
           </select>
 
           <label for="repairNotes">Additional Information/Other Request:</label>

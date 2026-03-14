@@ -48,7 +48,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
           <div>
             <p class="form-note">
-              Service uses default Xerox settings â€” no color choice needed.
+              Service uses default Xerox settings &mdash; no color choice needed.
             </p>
           </div>
         </div>
@@ -77,7 +77,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
       <div class="summary-total">
         <span>Estimated Total:</span>
-        <strong id="summaryTotal">â‚±0.00</strong>
+        <strong id="summaryTotal">&#8369;0.00</strong>
       </div>
     </aside>
 

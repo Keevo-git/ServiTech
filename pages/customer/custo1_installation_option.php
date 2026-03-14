@@ -30,12 +30,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <label for="installationTypeSelect">Select Installation Type<span class="required">*</span></label>
           <select id="installationTypeSelect" class="form-select">
             <option value="" selected disabled>Select Installation/Software Service</option>
-            <option value="reprogram" data-min="1000" data-max="4000">Reprogram Service â€” â‚±1000 - â‚±4000</option>
-            <option value="hang_logo_fix" data-min="1000" data-max="3500">Hang Logo Fix Service â€” â‚±1000 - â‚±3500</option>
-            <option value="boot_loop_fix" data-min="1000" data-max="5000">Boot Loop Fix Service â€” â‚±1000 - â‚±5000</option>
-            <option value="openline" data-min="3500" data-max="6000">Openline Samsung & iPhone â€” â‚±3500 - â‚±6000</option>
-            <option value="bypass_google" data-min="500" data-max="2000">Bypass Google Account â€” â‚±500 - â‚±2000</option>
-            <option value="bypass_password" data-min="1000" data-max="3000">Bypass Password â€” â‚±1000 - â‚±3000</option>
+            <option value="reprogram" data-min="1000" data-max="4000">Reprogram Service &mdash; &#8369;1000 - &#8369;4000</option>
+            <option value="hang_logo_fix" data-min="1000" data-max="3500">Hang Logo Fix Service &mdash; &#8369;1000 - &#8369;3500</option>
+            <option value="boot_loop_fix" data-min="1000" data-max="5000">Boot Loop Fix Service &mdash; &#8369;1000 - &#8369;5000</option>
+            <option value="openline" data-min="3500" data-max="6000">Openline Samsung & iPhone &mdash; &#8369;3500 - &#8369;6000</option>
+            <option value="bypass_google" data-min="500" data-max="2000">Bypass Google Account &mdash; &#8369;500 - &#8369;2000</option>
+            <option value="bypass_password" data-min="1000" data-max="3000">Bypass Password &mdash; &#8369;1000 - &#8369;3000</option>
           </select>
 
           <label for="installationNotes">Additional Information/Other Request:</label>
