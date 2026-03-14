@@ -468,3 +468,33 @@ body.admin-dashboard .topbar.has-nav-menu .nav-toggle {
   margin-left: auto;
   align-self: center;
 }
+
+/* Final admin dashboard header hardening */
+body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] {
+  max-width: 100%;
+  min-width: 0;
+}
+
+body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] .btn {
+  min-height: 44px;
+  padding: 10px 14px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+}
+
+@media (min-width: 901px) {
+  body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 900px) {
+  body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] {
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(8, 30, 58, 0.26);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+  }
+}

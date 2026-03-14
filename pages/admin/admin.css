@@ -336,3 +336,29 @@ main{ flex:1; }
     align-self: center;
   }
 }
+
+/* Final admin shared header hardening */
+.navbar.has-nav-menu nav[data-collapsible-menu] {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.navbar.has-nav-menu nav[data-collapsible-menu] a {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  .navbar.has-nav-menu nav[data-collapsible-menu] {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(8, 30, 58, 0.26);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+  }
+}

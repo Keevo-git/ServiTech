@@ -1227,3 +1227,23 @@ body.customer-layout .navbar.has-nav-menu .nav-toggle {
     width: auto;
   }
 }
+
+/* Final customer header button hardening */
+body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] a {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] {
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+  }
+}

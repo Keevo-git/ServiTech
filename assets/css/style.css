@@ -2246,3 +2246,41 @@ body {
     width: auto;
   }
 }
+
+/* Final header button hardening (landing + shared customer/admin navbar) */
+.navbar.has-nav-menu nav[data-collapsible-menu] {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.navbar.has-nav-menu nav[data-collapsible-menu] a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+}
+
+@media (min-width: 901px) {
+  .navbar.has-nav-menu {
+    flex-wrap: wrap;
+  }
+
+  .navbar.has-nav-menu nav[data-collapsible-menu] {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 900px) {
+  .navbar.has-nav-menu nav[data-collapsible-menu] {
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+  }
+}
