@@ -8,8 +8,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Xerox</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260315h2">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h2">
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2" data-service="xerox">
 
@@ -98,5 +98,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
+
 
 

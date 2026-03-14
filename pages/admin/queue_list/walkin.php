@@ -32,8 +32,8 @@ $rows = $stmt->fetchAll();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Printing (Walk-In)</title>
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css') ?>">
 </head>
 <body class="admin-dashboard">
@@ -159,4 +159,5 @@ $rows = $stmt->fetchAll();
 
 </body>
 </html>
+
 

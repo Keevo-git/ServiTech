@@ -35,8 +35,8 @@ function customer_code_from_id(int $id): string {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Customer List</title>
 
-  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css') ?>">
 </head>
 
@@ -281,4 +281,5 @@ function customer_code_from_id(int $id): string {
   <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
 </html>
+
 

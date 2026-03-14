@@ -81,7 +81,7 @@ if ($hasQueueTable) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech Admin Dashboard</title>
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -221,4 +221,5 @@ if ($hasQueueTable) {
 
 </body>
 </html>
+
 
