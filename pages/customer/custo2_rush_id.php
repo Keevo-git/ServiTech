@@ -100,9 +100,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       </div>
     </aside>
 
+    <p id="formFeedback" class="form-feedback" role="alert" aria-live="polite"></p>
+
     <div class="form-actions">
       <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
-      <a href="#" class="btn-next" id="joinQueueBtn">Join Queue</a>
+      <button type="button" class="btn-next" id="joinQueueBtn">Join Queue</button>
     </div>
   </div>
 </section>
@@ -115,3 +117,4 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
+

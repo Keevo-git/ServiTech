@@ -1,15 +1,14 @@
 /* ==============================
    SERVITECH MAIN.JS (DB VERSION)
-   - No localStorage queues
    - Join Queue -> POST to PHP -> MySQL
    ============================== */
 
 /* ==============================
-   Modal utilities (keeps body scroll lock correct)
+   Modal utilities
    ============================== */
 function anyModalVisible() {
   return Array.from(document.querySelectorAll(".modal-overlay"))
-    .some(m => getComputedStyle(m).display !== "none");
+    .some((m) => getComputedStyle(m).display !== "none");
 }
 
 function syncBodyScrollLock() {
@@ -17,7 +16,6 @@ function syncBodyScrollLock() {
   else document.body.classList.remove("modal-open");
 }
 
-/* Existing (unused on landing now, but kept safe) */
 function scrollToSection(id) {
   const section = document.getElementById(id);
   if (section) section.scrollIntoView({ behavior: "smooth" });
@@ -39,9 +37,6 @@ function servitechUrl(path) {
   return `${servitechBasePath()}${cleanPath}`;
 }
 
-/* ==============================
-   Basic open/close for your modals (doc-printing, rush-id)
-   ============================== */
 function openModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
@@ -57,7 +52,7 @@ function closeModal(id) {
 }
 
 /* ==============================
-   NEW: Service List Modal (Printing/Repair/Installation)
+   Service list modal
    ============================== */
 function openServiceModal(sectionId) {
   const section = document.getElementById(sectionId);
@@ -66,6 +61,7 @@ function openServiceModal(sectionId) {
   const overlay = document.getElementById("service-modal");
   const titleEl = document.getElementById("service-modal-title");
   const bodyEl = document.getElementById("service-modal-body");
+  if (!overlay || !titleEl || !bodyEl) return;
 
   const title = section.querySelector("h3")?.textContent || "Service";
   titleEl.textContent = title;
@@ -75,7 +71,6 @@ function openServiceModal(sectionId) {
 
   overlay.style.display = "flex";
   syncBodyScrollLock();
-
   document.addEventListener("keydown", escCloseServiceModal);
 }
 
@@ -95,8 +90,7 @@ function escCloseServiceModal(e) {
 }
 
 /* ==============================
-   GENERIC MODAL CLOSE (click outside)
-   - keeps scroll lock correct even when multiple modals
+   Generic modal close (outside click)
    ============================== */
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".modal-overlay").forEach((modal) => {
@@ -115,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ==============================
-   SUMMARY UPDATES
+   Summary updates
    ============================== */
 document.addEventListener("DOMContentLoaded", () => {
   const qtyInput = document.getElementById("qtyInput");
@@ -132,15 +126,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const summaryTotal = document.getElementById("summaryTotal");
 
   const defaultPrice = 5;
-
   const svc = document.body?.dataset?.service || "";
   const isXerox = svc === "xerox";
 
   const xeroxPriceMap = {
     "Long Bond (8.5 x 13)": 5,
     "Short Bond (8.5 x 11)": 3,
-    "A4": 3,
-    "A3": 5
+    A4: 3,
+    A3: 5,
   };
 
   function updateSummary() {
@@ -149,15 +142,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (paperSizeSelect && summaryPaperSize) {
       const size = paperSizeSelect.value;
-      summaryPaperSize.textContent =
-        size && size !== "Select paper size" ? size : "Not Selected";
+      summaryPaperSize.textContent = size && size !== "Select paper size" ? size : "Not Selected";
     }
 
     if (packageSelect && summaryPackage) {
       const opt = packageSelect.options[packageSelect.selectedIndex];
       const label = opt?.textContent || "";
-      summaryPackage.textContent =
-        label && label !== "Select a Package" ? label : "Not Selected";
+      summaryPackage.textContent = label && label !== "Select a Package" ? label : "Not Selected";
     }
 
     let pricePerItem = defaultPrice;
@@ -176,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (summaryTotal) {
-            summaryTotal.textContent = `\u20B1${(qty * pricePerItem).toFixed(2)}`;
+      summaryTotal.textContent = `\u20B1${(qty * pricePerItem).toFixed(2)}`;
     }
   }
 
@@ -190,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ==============================
-   JOIN QUEUE -> DATABASE (with debugging)
+   Join queue flow with validation + submit lock
    ============================== */
 document.addEventListener("DOMContentLoaded", () => {
   const joinBtn = document.getElementById("joinQueueBtn");
@@ -198,80 +189,162 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalQueueNo = document.getElementById("modalQueueNo");
   const goHomeBtn = document.getElementById("goHomeBtn");
   const viewQueueBtn = document.getElementById("viewQueueBtn");
-
-  console.log("[JoinQueue] loaded:", {
-    joinBtn: !!joinBtn,
-    queueModal: !!queueModal,
-    modalQueueNo: !!modalQueueNo
-  });
+  const feedbackEl = document.getElementById("formFeedback");
 
   if (!joinBtn || !queueModal || !modalQueueNo) return;
 
-  function getSelectedColor() {
-    const radios = document.querySelectorAll('input[name="color"]');
-    let val = null;
-    radios.forEach((r) => { if (r.checked) val = r.value; });
-    return val;
-  }
-
-  function collectPayload() {
-    const category = (document.body?.dataset?.service || "general").toLowerCase();
-
-    const paperSizeSelect = document.getElementById("paperSizeSelect");
-    const qtyInput = document.getElementById("qtyInput");
-
-    const notesEl =
+  const refs = {
+    paperSizeSelect: document.getElementById("paperSizeSelect"),
+    qtyInput: document.getElementById("qtyInput"),
+    notesEl:
       document.getElementById("notes") ||
       document.getElementById("repairNotes") ||
       document.getElementById("installationNotes") ||
-      null;
+      null,
+    packageSelect: document.getElementById("packageSelect"),
+    lamTypeSelect: document.getElementById("lamTypeSelect"),
+    repairServiceSelect: document.getElementById("repairServiceSelect"),
+    deviceTypeSelect: document.getElementById("deviceTypeSelect"),
+    installationTypeSelect: document.getElementById("installationTypeSelect"),
+    fileUpload: document.getElementById("fileUpload"),
+  };
 
-    const packageSelect = document.getElementById("packageSelect");
-    const lamTypeSelect = document.getElementById("lamTypeSelect");
-    const repairServiceSelect = document.getElementById("repairServiceSelect");
-    const deviceTypeSelect = document.getElementById("deviceTypeSelect");
-    const installationTypeSelect = document.getElementById("installationTypeSelect");
+  function setFieldInvalid(el, invalid) {
+    if (!el) return;
+    el.classList.toggle("is-invalid", !!invalid);
+  }
 
-    const fileUpload = document.getElementById("fileUpload");
-    const fileName = (fileUpload && fileUpload.files && fileUpload.files[0])
-      ? fileUpload.files[0].name
-      : null;
+  function setRadioInvalid(name, invalid) {
+    const first = document.querySelector(`input[name="${name}"]`);
+    const group = first ? first.closest(".radio-group") : null;
+    if (group) group.classList.toggle("is-invalid", !!invalid);
+  }
 
-    // Default label
-    let service_label = "Service";
+  function setFeedback(message, tone) {
+    if (!feedbackEl) {
+      if (message) alert(message);
+      return;
+    }
+    feedbackEl.textContent = message || "";
+    feedbackEl.classList.remove("error", "success");
+    if (message) feedbackEl.classList.add(tone === "success" ? "success" : "error");
+  }
+
+  function clearValidationState() {
+    [
+      refs.paperSizeSelect,
+      refs.qtyInput,
+      refs.packageSelect,
+      refs.lamTypeSelect,
+      refs.repairServiceSelect,
+      refs.deviceTypeSelect,
+      refs.installationTypeSelect,
+    ].forEach((el) => setFieldInvalid(el, false));
+    setRadioInvalid("color", false);
+    setFeedback("", "error");
+  }
+
+  function getSelectedColor() {
+    const radios = document.querySelectorAll('input[name="color"]');
+    let val = "";
+    radios.forEach((r) => {
+      if (r.checked) val = r.value;
+    });
+    return val;
+  }
+
+  function buildServiceLabel() {
+    let serviceLabel = "Service";
     const title = (document.title || "").toLowerCase();
 
-    if (title.includes("document printing")) service_label = "Document Printing";
-    if (title.includes("xerox")) service_label = "Xerox";
-    if (title.includes("laminating")) service_label = "Laminating";
-    if (title.includes("rush id")) service_label = "Rush ID";
+    if (title.includes("document printing")) serviceLabel = "Document Printing";
+    if (title.includes("xerox")) serviceLabel = "Xerox";
+    if (title.includes("laminating")) serviceLabel = "Laminating";
+    if (title.includes("rush id")) serviceLabel = "Rush ID";
 
-    // Repair
-    if (repairServiceSelect) {
-      const opt = repairServiceSelect.options[repairServiceSelect.selectedIndex];
-      service_label = opt ? opt.textContent : "Repair Service";
+    if (refs.repairServiceSelect) {
+      const opt = refs.repairServiceSelect.options[refs.repairServiceSelect.selectedIndex];
+      serviceLabel = opt ? opt.textContent : "Repair Service";
     }
 
-    // Installation
-    if (installationTypeSelect) {
-      const opt = installationTypeSelect.options[installationTypeSelect.selectedIndex];
-      service_label = opt ? opt.textContent : "Installation Service";
+    if (refs.installationTypeSelect) {
+      const opt = refs.installationTypeSelect.options[refs.installationTypeSelect.selectedIndex];
+      serviceLabel = opt ? opt.textContent : "Installation Service";
     }
+
+    return serviceLabel;
+  }
+
+  function collectPayload() {
+    const fileName = refs.fileUpload && refs.fileUpload.files && refs.fileUpload.files[0]
+      ? refs.fileUpload.files[0].name
+      : null;
 
     return {
-      category,
-      service_label,
-      paper_size: paperSizeSelect ? paperSizeSelect.value : null,
-      quantity: qtyInput ? parseInt(qtyInput.value, 10) || 1 : 1,
+      category: (document.body?.dataset?.service || "general").toLowerCase(),
+      service_label: buildServiceLabel(),
+      paper_size: refs.paperSizeSelect ? refs.paperSizeSelect.value : null,
+      quantity: refs.qtyInput ? parseInt(refs.qtyInput.value, 10) || 1 : 1,
       color_option: getSelectedColor(),
-      package_label: packageSelect
-        ? (packageSelect.options[packageSelect.selectedIndex]?.textContent || null)
+      package_label: refs.packageSelect
+        ? (refs.packageSelect.options[refs.packageSelect.selectedIndex]?.textContent || null)
         : null,
-      lamination_type: lamTypeSelect ? lamTypeSelect.value : null,
-      device_type: deviceTypeSelect ? deviceTypeSelect.value : null,
-      notes: notesEl ? notesEl.value : null,
-      file_name: fileName
+      lamination_type: refs.lamTypeSelect ? refs.lamTypeSelect.value : null,
+      device_type: refs.deviceTypeSelect ? refs.deviceTypeSelect.value : null,
+      notes: refs.notesEl ? refs.notesEl.value : null,
+      file_name: fileName,
     };
+  }
+
+  function validatePayload(payload) {
+    const errors = [];
+
+    if (!payload.service_label || payload.service_label === "Service") {
+      errors.push("Please complete the service selection first.");
+    }
+
+    if (refs.paperSizeSelect && !payload.paper_size) {
+      errors.push("Select paper size.");
+      setFieldInvalid(refs.paperSizeSelect, true);
+    }
+
+    if (refs.qtyInput && (!Number.isFinite(payload.quantity) || payload.quantity < 1)) {
+      errors.push("Quantity must be at least 1.");
+      setFieldInvalid(refs.qtyInput, true);
+    }
+
+    if (refs.packageSelect && !refs.packageSelect.value) {
+      errors.push("Select a package.");
+      setFieldInvalid(refs.packageSelect, true);
+    }
+
+    if (refs.lamTypeSelect && !refs.lamTypeSelect.value) {
+      errors.push("Select lamination type.");
+      setFieldInvalid(refs.lamTypeSelect, true);
+    }
+
+    if (refs.repairServiceSelect && !refs.repairServiceSelect.value) {
+      errors.push("Select repair service.");
+      setFieldInvalid(refs.repairServiceSelect, true);
+    }
+
+    if (refs.deviceTypeSelect && !refs.deviceTypeSelect.value) {
+      errors.push("Select device type.");
+      setFieldInvalid(refs.deviceTypeSelect, true);
+    }
+
+    if (refs.installationTypeSelect && !refs.installationTypeSelect.value) {
+      errors.push("Select installation type.");
+      setFieldInvalid(refs.installationTypeSelect, true);
+    }
+
+    const hasColorOptions = document.querySelectorAll('input[name="color"]').length > 0;
+    if (hasColorOptions && !payload.color_option) {
+      errors.push("Select a color option.");
+      setRadioInvalid("color", true);
+    }
+
+    return errors;
   }
 
   async function createQueue(payload) {
@@ -281,55 +354,62 @@ document.addEventListener("DOMContentLoaded", () => {
       credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
         "X-Requested-With": "XMLHttpRequest",
-        "X-CSRF-Token": csrf
+        "X-CSRF-Token": csrf,
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const raw = await res.text();
-
-    console.log("[JoinQueue] HTTP Status:", res.status);
-    console.log("[JoinQueue] Raw Response:", raw);
-
     try {
       return JSON.parse(raw);
     } catch (e) {
       return {
         ok: false,
         error:
-          "Server returned non-JSON. It may have redirected to login (session issue) or PHP error. Check console raw response."
+          "Server returned non-JSON. It may have redirected to login (session issue) or PHP error.",
       };
     }
   }
 
   joinBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log("[JoinQueue] click");
+    if (joinBtn.disabled) return;
 
+    clearValidationState();
     const payload = collectPayload();
-    console.log("[JoinQueue] payload:", payload);
+    const errors = validatePayload(payload);
 
-    if (!payload.service_label || payload.service_label === "Service") {
-      alert("Please complete the form first.");
+    if (errors.length) {
+      setFeedback(errors.join(" "), "error");
       return;
     }
 
+    const originalLabel = joinBtn.textContent;
+    joinBtn.disabled = true;
+    joinBtn.textContent = "Joining Queue...";
+    joinBtn.setAttribute("aria-busy", "true");
+    setFeedback("Submitting your queue request...", "success");
+
     try {
       const result = await createQueue(payload);
-      console.log("[JoinQueue] result:", result);
-
       if (!result.ok) {
-        alert("Queue not saved: " + (result.error || "Unknown error"));
+        setFeedback("Queue not saved: " + (result.error || "Unknown error"), "error");
         return;
       }
 
       modalQueueNo.textContent = result.queue_code;
       queueModal.style.display = "flex";
+      syncBodyScrollLock();
+      setFeedback("", "error");
     } catch (err) {
       console.error(err);
-      alert("Network/server error. Check XAMPP Apache + PHP error logs.");
+      setFeedback("Network/server error. Please try again.", "error");
+    } finally {
+      joinBtn.disabled = false;
+      joinBtn.textContent = originalLabel;
+      joinBtn.removeAttribute("aria-busy");
     }
   });
 
@@ -345,72 +425,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
-/* ==============================
-   EDIT PROFILE PAGE JS*******
-   ============================== */
-// profile.js (front-end demo using localStorage)
-const KEY = "servitech_profile";
-
-function loadProfile() {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function saveProfile(data) {
-  localStorage.setItem(KEY, JSON.stringify(data));
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("profileForm");
-  const fullName = document.getElementById("fullName");
-  const email = document.getElementById("email");
-  const contact = document.getElementById("contact");
-  const currentPassword = document.getElementById("currentPassword");
-  const newPassword = document.getElementById("newPassword");
-  const confirmPassword = document.getElementById("confirmPassword");
-
-  // prefill fields
-  const profile = loadProfile();
-  if (fullName && profile.fullName) fullName.value = profile.fullName;
-  if (email && profile.email) email.value = profile.email;
-  if (contact && profile.contact) contact.value = profile.contact;
-
-  if (!form) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const wantsPasswordChange = newPassword.value.trim() || confirmPassword.value.trim();
-    if (wantsPasswordChange) {
-      if (!currentPassword.value.trim()) {
-        alert("Please enter your current password.");
-        return;
-      }
-      if (newPassword.value.trim().length < 6) {
-        alert("New password must be at least 6 characters.");
-        return;
-      }
-      if (newPassword.value !== confirmPassword.value) {
-        alert("New password and confirm password do not match.");
-        return;
-      }
-    }
-
-    const updated = {
-      ...profile,
-      fullName: fullName ? fullName.value.trim() : "",
-      email: email ? email.value.trim() : "",
-      contact: contact ? contact.value.trim() : ""
-    };
-
-    saveProfile(updated);
-
-    alert("Profile updated!");
-    window.location.href = servitechUrl("/pages/customer/customer_dash.php");
-  });
-});
-

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Simple shared header for customer pages
 ?>
 <header class="navbar">
@@ -7,11 +7,9 @@
     <h1>ServiTech</h1>
   </a>
   <nav>
-    <a href="/pages/customer/customer_dash.php">Customer Home</a>
-    <a href="/index.php">Services Home</a>
+    <a href="/pages/customer/customer_dash.php">Dashboard</a>
+    <a href="/index.php">Services</a>
     <a href="/auth/logout.php">Logout</a>
   </nav>
 </header>
-
-
 

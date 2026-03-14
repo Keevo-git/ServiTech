@@ -816,3 +816,156 @@ body.customer-layout.customer-page--print-order .summary-card {
   border: 1px solid rgba(74, 5, 5, 0.08) !important;
   box-shadow: 0 14px 28px rgba(74, 5, 5, 0.12) !important;
 }
+
+/* User requirement: enforce single-column layout on all customer pages */
+body.customer-layout .customer-dashboard,
+body.customer-layout .quick-grid,
+body.customer-layout .choose-grid,
+body.customer-layout .queue-list,
+body.customer-layout .form-page--summary .form-page-shell,
+body.customer-layout .form-page--dual-card .form-content-grid,
+body.customer-layout .form-grid,
+body.customer-layout .two-col-fields,
+body.customer-layout .radio-group {
+  grid-template-columns: 1fr !important;
+}
+
+body.customer-layout .quick-access,
+body.customer-layout .choose-service,
+body.customer-layout .form-page-shell,
+body.customer-layout .status-shell,
+body.customer-layout .profile-card {
+  width: min(100%, 860px) !important;
+}
+
+body.customer-layout .summary-card {
+  position: static !important;
+  top: auto !important;
+}
+
+body.customer-layout .form-actions,
+body.customer-layout .profile-actions,
+body.customer-layout .queue-success-modal__actions {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+body.customer-layout .btn-back,
+body.customer-layout .btn-next,
+body.customer-layout .btn-save,
+body.customer-layout .btn-cancel,
+body.customer-layout .modal-back {
+  width: 100% !important;
+}
+
+body.customer-layout .footer-container {
+  flex-direction: column-reverse !important;
+  align-items: flex-start !important;
+}
+
+/* QA/UI fixes: accessibility, validation, and status state styling */
+body.customer-layout .navbar nav a,
+body.customer-layout .status-page-back,
+body.customer-layout .back-arrow,
+body.customer-layout .modal-close,
+body.customer-layout .btn-back,
+body.customer-layout .btn-next,
+body.customer-layout .btn-save,
+body.customer-layout .btn-cancel,
+body.customer-layout .modal-back {
+  min-height: 44px;
+}
+
+body.customer-layout .status-page-back,
+body.customer-layout .back-arrow {
+  width: 44px;
+  height: 44px;
+}
+
+body.customer-layout .modal-close {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.customer-layout .modal-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+body.customer-layout .status-page-header {
+  background: #d97706;
+}
+
+body.customer-layout .queue-card__badge,
+body.customer-layout #modalStatus,
+body.customer-layout .modal-status-pill {
+  background: #9a4f08;
+  color: #ffffff;
+}
+
+body.customer-layout .queue-card__badge--ongoing,
+body.customer-layout .modal-status-pill--ongoing {
+  background: #b45309;
+}
+
+body.customer-layout .queue-card__badge--ready,
+body.customer-layout .modal-status-pill--ready {
+  background: #166534;
+}
+
+body.customer-layout .queue-card__badge--cancel,
+body.customer-layout .modal-status-pill--cancel {
+  background: #991b1b;
+}
+
+body.customer-layout .status-empty-state {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 8px 0 4px;
+}
+
+body.customer-layout .form-feedback {
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  display: none;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+body.customer-layout .form-feedback.error {
+  display: block;
+  background: #ffe8e8;
+  border: 1px solid #f2b6b6;
+  color: #8b0000;
+}
+
+body.customer-layout .form-feedback.success {
+  display: block;
+  background: #e9f8e9;
+  border: 1px solid #b8e2b8;
+  color: #1f5b1f;
+}
+
+body.customer-layout .is-invalid,
+body.customer-layout .radio-group.is-invalid {
+  border-color: #c62828 !important;
+  box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.14) !important;
+}
+
+body.customer-layout a:focus-visible,
+body.customer-layout button:focus-visible,
+body.customer-layout input:focus-visible,
+body.customer-layout select:focus-visible,
+body.customer-layout textarea:focus-visible {
+  outline: 2px solid #4a0505;
+  outline-offset: 2px;
+}
+
+body.customer-layout .radio-group { border: 1px solid transparent; border-radius: 10px; padding: 8px; }
+
