@@ -486,7 +486,6 @@ body.customer-layout .input-with-icon {
 }
 
 @media (max-width: 900px) {
-  body.customer-layout .customer-dashboard,
   body.customer-layout .form-page--summary .form-page-shell,
   body.customer-layout .form-page--dual-card .form-content-grid,
   body.customer-layout .form-grid {
@@ -817,9 +816,7 @@ body.customer-layout.customer-page--print-order .summary-card {
   box-shadow: 0 14px 28px rgba(74, 5, 5, 0.12) !important;
 }
 
-/* User requirement: enforce single-column layout on all customer pages */
-body.customer-layout .customer-dashboard,
-body.customer-layout .quick-grid,
+/* User requirement: enforce single-column layout on customer forms/pages (excluding dashboard cards) */
 body.customer-layout .choose-grid,
 body.customer-layout .queue-list,
 body.customer-layout .form-page--summary .form-page-shell,
@@ -830,7 +827,6 @@ body.customer-layout .radio-group {
   grid-template-columns: 1fr !important;
 }
 
-body.customer-layout .quick-access,
 body.customer-layout .choose-service,
 body.customer-layout .form-page-shell,
 body.customer-layout .status-shell,
