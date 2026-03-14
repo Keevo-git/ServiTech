@@ -1055,3 +1055,75 @@ body.customer-layout .summary-card {
     background: rgba(74, 5, 5, 0.12);
   }
 }
+
+/* Final override: remove gray backgrounds and improve desktop proportion */
+body.customer-layout .form-page,
+body.customer-layout .status-page,
+body.customer-layout .profile-page {
+  background: transparent !important;
+}
+
+body.customer-layout .summary-card {
+  background: #ffffff !important;
+  border-color: rgba(74, 5, 5, 0.14) !important;
+}
+
+@media (min-width: 1025px) {
+  body.customer-layout .quick-access,
+  body.customer-layout .choose-service,
+  body.customer-layout .form-page-shell,
+  body.customer-layout .status-shell,
+  body.customer-layout .profile-card {
+    width: min(100%, 1120px) !important;
+  }
+
+  body.customer-layout:not(.customer-page--custo2) .btn-back,
+  body.customer-layout:not(.customer-page--custo2) .btn-next,
+  body.customer-layout:not(.customer-page--custo2) .btn-save,
+  body.customer-layout:not(.customer-page--custo2) .btn-cancel,
+  body.customer-layout:not(.customer-page--custo2) .modal-back {
+    width: auto !important;
+    min-width: 170px;
+  }
+
+  body.customer-layout:not(.customer-page--custo2) .form-actions {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+}
+
+/* Final desktop tune: print order form */
+body.customer-layout.customer-page--print-order .form-page {
+  background: transparent !important;
+}
+
+@media (min-width: 1025px) {
+  body.customer-layout.customer-page--print-order .form-page-shell {
+    width: min(100%, 1120px) !important;
+    display: block !important;
+  }
+
+  body.customer-layout.customer-page--print-order .form-content-stack {
+    display: block !important;
+  }
+
+  body.customer-layout.customer-page--print-order .form-card {
+    width: min(100%, 860px) !important;
+    margin: 0 auto 18px !important;
+  }
+
+  body.customer-layout.customer-page--print-order .form-actions {
+    width: min(100%, 860px);
+    margin: 8px auto 0;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  body.customer-layout.customer-page--print-order .btn-back,
+  body.customer-layout.customer-page--print-order .btn-next {
+    width: auto !important;
+    min-width: 180px;
+  }
+}

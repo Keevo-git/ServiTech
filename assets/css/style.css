@@ -927,7 +927,7 @@ body.modal-open {
 
 .form-page {
   padding: 60px 80px;
-  background: #e6e6e6;
+  background: transparent;
   min-height: calc(100vh - 200px);
 }
 
@@ -2093,3 +2093,4 @@ body {
     grid-template-columns: 1fr;
   }
 }
+

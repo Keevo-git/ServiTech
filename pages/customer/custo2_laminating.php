@@ -15,7 +15,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
-<section class="form-page form-page--summary">
+<section class="form-page form-page--single">
   <div class="form-page-shell">
     <div class="form-page-intro">
       <h2 class="page-title">JC PRINTING SERVICES</h2>
@@ -89,4 +89,5 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
+
 
