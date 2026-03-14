@@ -498,3 +498,18 @@ body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] .btn {
     border: 1px solid rgba(255, 255, 255, 0.24);
   }
 }
+
+/* Desktop nav button sizing pass for admin topbar pages */
+@media (min-width: 901px) {
+  body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] {
+    gap: 10px;
+  }
+
+  body.admin-dashboard .topbar .btn,
+  body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] .btn {
+    min-height: 46px;
+    padding: 11px 18px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+}

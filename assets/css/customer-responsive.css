@@ -1247,3 +1247,27 @@ body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] a {
     border: 1px solid rgba(255, 255, 255, 0.32);
   }
 }
+
+/* Final customer desktop nav-button lock */
+body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] a,
+body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] a:visited {
+  background-color: #ffffff;
+  color: #4A0505;
+  border: 1px solid rgba(74, 5, 5, 0.22);
+  text-decoration: none;
+}
+
+/* Desktop nav button sizing pass for customer pages */
+@media (min-width: 901px) {
+  body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] {
+    gap: 12px;
+  }
+
+  body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] a,
+  body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] a:visited {
+    min-height: 46px;
+    padding: 11px 22px;
+    font-size: 15px;
+    border-radius: 14px;
+  }
+}

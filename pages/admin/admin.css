@@ -362,3 +362,62 @@ main{ flex:1; }
     border: 1px solid rgba(255, 255, 255, 0.24);
   }
 }
+
+/* Final mobile alignment fix for admin shared navbar pages */
+@media (max-width: 900px) {
+  .navbar.has-nav-menu {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    row-gap: 10px;
+    column-gap: 12px;
+  }
+
+  .navbar.has-nav-menu .logo {
+    grid-column: 1;
+    min-width: 0;
+    width: auto;
+    flex: 0 1 auto;
+  }
+
+  .navbar.has-nav-menu .nav-toggle {
+    grid-column: 2;
+    justify-self: end;
+    margin-left: 0;
+    align-self: center;
+  }
+
+  .navbar.has-nav-menu nav[data-collapsible-menu] {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+}
+
+/* Final admin shared desktop nav-button lock */
+.navbar.has-nav-menu nav[data-collapsible-menu] a,
+.navbar.has-nav-menu nav[data-collapsible-menu] a:visited {
+  background: rgba(255,255,255,.10);
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,.26);
+  text-decoration: none;
+}
+
+.navbar.has-nav-menu nav[data-collapsible-menu] a:hover {
+  background: rgba(255,255,255,.2);
+  color: #ffffff;
+}
+
+/* Desktop nav button sizing pass for admin shared navbar pages */
+@media (min-width: 901px) {
+  .navbar.has-nav-menu nav[data-collapsible-menu] {
+    gap: 12px;
+  }
+
+  .navbar.has-nav-menu nav[data-collapsible-menu] a,
+  .navbar.has-nav-menu nav[data-collapsible-menu] a:visited {
+    min-height: 46px;
+    padding: 11px 20px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+}
