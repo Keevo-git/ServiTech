@@ -969,3 +969,89 @@ body.customer-layout textarea:focus-visible {
 
 body.customer-layout .radio-group { border: 1px solid transparent; border-radius: 10px; padding: 8px; }
 
+
+/* QA: custo2 forced stacked layout + warmer surfaces */
+body.customer-layout.customer-page--custo2 .form-page-shell,
+body.customer-layout.customer-page--custo2 .form-content-stack,
+body.customer-layout.customer-page--custo2 .form-content-grid {
+  display: block !important;
+}
+
+body.customer-layout.customer-page--custo2 .form-page--summary .form-page-shell,
+body.customer-layout.customer-page--custo2 .form-grid,
+body.customer-layout.customer-page--custo2 .two-col-fields,
+body.customer-layout.customer-page--custo2 .radio-group {
+  grid-template-columns: 1fr !important;
+}
+
+body.customer-layout.customer-page--custo2 .summary-card,
+body.customer-layout.customer-page--custo2 .form-card {
+  width: 100% !important;
+  margin: 0 0 18px !important;
+}
+
+body.customer-layout.customer-page--custo2 .form-actions {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+body.customer-layout.customer-page--custo2 .btn-back,
+body.customer-layout.customer-page--custo2 .btn-next {
+  width: 100% !important;
+}
+
+/* Replace dull gray surfaces on customer pages */
+body.customer-layout .form-page,
+body.customer-layout .status-page,
+body.customer-layout .profile-page {
+  background:
+    radial-gradient(1000px 280px at 50% -120px, rgba(255, 166, 61, 0.20), transparent 65%),
+    linear-gradient(180deg, #fffaf3 0%, #fff0dc 48%, #ffe4bf 100%) !important;
+}
+
+body.customer-layout .summary-card {
+  background: #fffdf8 !important;
+  border-color: rgba(74, 5, 5, 0.14) !important;
+}
+
+/* Desktop polish: make back arrows feel proportionate on large screens */
+@media (min-width: 1025px) {
+  body.customer-layout.customer-page--status .status-page-header {
+    padding: 18px 24px;
+    gap: 16px;
+  }
+
+  body.customer-layout.customer-page--status .status-page-header strong {
+    font-size: clamp(22px, 1.9vw, 28px);
+    line-height: 1.15;
+    letter-spacing: 0.2px;
+  }
+
+  body.customer-layout.customer-page--status .status-page-back {
+    width: 56px;
+    height: 56px;
+    min-height: 56px;
+    font-size: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+  }
+
+  body.customer-layout.customer-page--status .status-page-back:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  body.customer-layout.customer-page--profile .back-arrow {
+    width: 54px;
+    height: 54px;
+    min-height: 54px;
+    font-size: 30px;
+    border: 1px solid rgba(74, 5, 5, 0.24);
+    background: rgba(74, 5, 5, 0.06);
+  }
+
+  body.customer-layout.customer-page--profile .back-arrow:hover {
+    background: rgba(74, 5, 5, 0.12);
+  }
+}

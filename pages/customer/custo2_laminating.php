@@ -11,7 +11,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <link rel="stylesheet" href="/assets/css/style.css">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css">
 </head>
-<body class="customer-layout customer-page--forms" data-service="printing" data-price-per-page="20">
+<body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing" data-price-per-page="20">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
