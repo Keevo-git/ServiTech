@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -8,12 +8,23 @@
 </head>
 <body>
 
-  <header class="navbar">
+  <header class="navbar has-nav-menu">
     <a href="/index.php" class="logo">
       <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
     </a>
-    <nav>
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="login-header-menu"
+    >
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+    </button>
+    <nav id="login-header-menu" data-collapsible-menu>
       <a href="/index.php">Services Home</a>
       <a href="/auth/regis.html">Register</a>
     </nav>
@@ -103,8 +114,8 @@
     }
   </script>
 
+  <script src="/assets/js/header-menu.js" defer></script>
+
 </body>
 </html>
-
-
 

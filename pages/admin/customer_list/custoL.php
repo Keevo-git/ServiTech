@@ -41,12 +41,24 @@ function customer_code_from_id(int $id): string {
 </head>
 
 <body>
-  <header class="navbar">
+
+  <header class="navbar has-nav-menu">
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
       <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech: JC Repair Shop</h1>
     </a>
-    <nav>
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="admin-customer-header-menu"
+    >
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+    </button>
+    <nav id="admin-customer-header-menu" data-collapsible-menu>
       <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
       <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
     </nav>
@@ -265,9 +277,8 @@ function customer_code_from_id(int $id): string {
       });
     });
   </script>
+
+  <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
 </html>
-
-
-
 

@@ -49,12 +49,23 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 </head>
 <body>
 
-<header class="navbar">
+<header class="navbar has-nav-menu">
   <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
     <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech: JC Repair Shop</h1>
   </a>
-  <nav>
+  <button
+    class="nav-toggle"
+    type="button"
+    aria-label="Toggle navigation menu"
+    aria-expanded="false"
+    aria-controls="admin-services-header-menu"
+  >
+    <span class="nav-toggle__bar"></span>
+    <span class="nav-toggle__bar"></span>
+    <span class="nav-toggle__bar"></span>
+  </button>
+  <nav id="admin-services-header-menu" data-collapsible-menu>
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Admin Home</a>
     <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
   </nav>
@@ -191,8 +202,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   <p class="footer-bottom">Â© 2026 ServiTech: JC Store</p>
 </footer>
 
+<script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
 </html>
-
-
 

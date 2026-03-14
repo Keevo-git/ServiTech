@@ -23,12 +23,23 @@ $print_url = $is_admin
 <body>
 
   <!-- NAVBAR -->
-  <header class="navbar">
+  <header class="navbar has-nav-menu">
     <a href="/index.php" class="logo">
       <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
     </a>
-    <nav>
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="landing-header-menu"
+    >
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+    </button>
+    <nav id="landing-header-menu" data-collapsible-menu>
       <?php if ($is_logged_in): ?>
         <?php if ($is_admin): ?>
           <a href="/pages/admin/admin_dashboard.php">Admin Dashboard</a>
@@ -129,9 +140,8 @@ $print_url = $is_admin
   </footer>
 
   <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js"></script>
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/header-menu.js" defer></script>
 </body>
 </html>
-
-
 

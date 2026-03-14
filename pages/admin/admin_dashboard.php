@@ -85,13 +85,24 @@ if ($hasQueueTable) {
 </head>
 <body class="admin-dashboard">
 
-<header class="topbar">
+<header class="topbar has-nav-menu">
   <div class="topbar-inner">
     <div class="brand">
       <p class="brand-tag">Control Center</p>
       <span>ServiTech Admin</span>
     </div>
-    <div class="actions">
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="admin-header-menu"
+    >
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+    </button>
+    <div class="actions" id="admin-header-menu" data-collapsible-menu>
       <a href="<?= project_url('/index.php') ?>" class="btn btn-home">Home</a>
       <a href="<?= project_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
     </div>
@@ -206,5 +217,8 @@ if ($hasQueueTable) {
 
 <script src="<?= project_url('/pages/admin/admin_dashboard.js') ?>" defer></script>
 
+<script src="<?= project_url('/assets/js/header-menu.js') ?>" defer></script>
+
 </body>
 </html>
+
