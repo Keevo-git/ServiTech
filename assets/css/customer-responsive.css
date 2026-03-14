@@ -575,3 +575,176 @@ body.customer-layout .input-with-icon {
     grid-template-columns: 1fr;
   }
 }
+
+/* Desktop + tablet layout polish */
+@media (min-width: 1025px) {
+  body.customer-layout .navbar {
+    flex-wrap: nowrap;
+  }
+
+  body.customer-layout .navbar nav {
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 1180px) {
+  body.customer-layout .customer-dashboard,
+  body.customer-layout .quick-access,
+  body.customer-layout .form-page-shell,
+  body.customer-layout .status-shell {
+    width: min(100%, 1220px);
+  }
+
+  body.customer-layout .customer-dashboard {
+    grid-template-columns: minmax(0, 1.85fr) minmax(280px, 1fr);
+    gap: 28px;
+  }
+
+  body.customer-layout .dashboard-card {
+    padding: 28px;
+  }
+
+  body.customer-layout .quick-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  body.customer-layout .quick-card {
+    min-height: 190px;
+  }
+
+  body.customer-layout .choose-service {
+    width: min(100% - 48px, 1160px);
+    padding: 40px 44px;
+  }
+
+  body.customer-layout .choose-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  body.customer-layout .choose-card {
+    min-height: 230px;
+  }
+
+  body.customer-layout .form-page--single .form-page-shell {
+    width: min(100%, 940px);
+  }
+
+  body.customer-layout .form-page--confirmation .form-page-shell {
+    width: min(100%, 820px);
+  }
+
+  body.customer-layout .form-page--summary .form-page-shell {
+    grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.8fr);
+    gap: 28px 34px;
+  }
+
+  body.customer-layout .form-page--dual-card .form-content-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
+  }
+
+  body.customer-layout .form-grid {
+    gap: 24px 36px;
+  }
+
+  body.customer-layout .form-grid .form-input {
+    max-width: 100%;
+  }
+
+  body.customer-layout .summary-card {
+    position: sticky;
+    top: 20px;
+  }
+
+  body.customer-layout .queue-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  body.customer-layout .status-modal {
+    width: min(100%, 680px);
+  }
+
+  body.customer-layout .profile-card {
+    width: min(100%, 980px);
+  }
+
+  body.customer-layout .profile-form {
+    max-width: 860px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1179px) {
+  body.customer-layout .quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body.customer-layout .choose-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body.customer-layout .queue-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  body.customer-layout .quick-grid,
+  body.customer-layout .choose-grid {
+    gap: 16px;
+  }
+
+  body.customer-layout .form-page-intro {
+    gap: 6px;
+  }
+
+  body.customer-layout .status-page-header strong {
+    font-size: 18px;
+  }
+}
+
+/* Single-column flow for customer forms/options */
+body.customer-layout .choose-service {
+  width: min(100% - 32px, 780px);
+}
+
+body.customer-layout .choose-grid {
+  grid-template-columns: 1fr;
+}
+
+body.customer-layout .choose-card {
+  min-height: 0;
+}
+
+body.customer-layout .form-page--summary .form-page-shell,
+body.customer-layout .form-page--dual-card .form-content-grid,
+body.customer-layout .form-grid {
+  grid-template-columns: 1fr;
+}
+
+body.customer-layout .summary-card {
+  position: static;
+  top: auto;
+}
+
+body.customer-layout .radio-group {
+  grid-template-columns: 1fr;
+}
+
+/* Warmer page surface for stacked forms/options */
+body.customer-layout.customer-page--forms .form-page,
+body.customer-layout.customer-page--print-order .form-page {
+  background:
+    radial-gradient(1200px 340px at 50% -120px, rgba(255, 170, 74, 0.2), transparent 65%),
+    linear-gradient(180deg, #fff7ec 0%, #ffe9cf 100%);
+}
+
+body.customer-layout.customer-page--forms .form-card,
+body.customer-layout.customer-page--print-order .form-card,
+body.customer-layout.customer-page--forms .summary-card,
+body.customer-layout.customer-page--print-order .summary-card {
+  box-shadow: 0 10px 24px rgba(74, 5, 5, 0.1);
+}
