@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 ?>
 <!DOCTYPE html>
@@ -13,20 +13,21 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
-<main class="form-page" style="min-height:60vh;">
-  <div style="max-width:1000px;margin:24px auto;">
-    <div style="background:#ff9f2e;padding:14px 18px;border-radius:6px 6px 0 0;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
-      <a href="/pages/customer/customer_dash.php" style="color:#fff;text-decoration:none;font-size:18px;">â†</a>
+<main class="form-page status-page">
+  <section class="status-shell">
+    <div class="status-page-header">
+      <a href="/pages/customer/customer_dash.php" class="status-page-back" aria-label="Back to dashboard">&larr;</a>
       <strong>Service Status</strong>
     </div>
 
-    <h3 style="color:#b03a00;border-bottom:2px solid #e8b27a;padding-bottom:8px;">YOUR QUEUES</h3>
-    <div id="queueList" class="queue-list"></div>
+    <div class="status-panel">
+      <h3 class="status-section-title">YOUR QUEUES</h3>
+      <div id="queueList" class="queue-list"></div>
+    </div>
 
-    <!-- Detail modal -->
     <div id="detailModal" class="modal-overlay" style="display:none;">
-      <div class="modal status-modal" style="position:relative;text-align:left;">
-        <button id="closeDetail" class="modal-close" type="button">âœ•</button>
+      <div class="modal status-modal" style="position:relative; text-align:left;">
+        <button id="closeDetail" class="modal-close" type="button" aria-label="Close details">&times;</button>
 
         <h3 class="modal-title">
           Queue: <span id="modalQueue"></span>
@@ -44,19 +45,21 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <span id="modalFile"></span>
           </p>
 
-          <label>Notes</label>
-          <textarea id="modalNotes" readonly></textarea>
+          <div>
+            <label for="modalNotes">Notes</label>
+            <textarea id="modalNotes" readonly></textarea>
+          </div>
 
-          <div class="modal-status" style="margin-top:10px;">
-            <strong>Status:</strong> <span id="modalStatus"></span>
+          <div class="modal-status">
+            <strong>Status:</strong>
+            <span id="modalStatus"></span>
           </div>
         </div>
 
         <button id="modalCloseBtn" class="modal-back" type="button">Back</button>
       </div>
     </div>
-
-  </div>
+  </section>
 </main>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
@@ -80,7 +83,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.className = "card queue-card";
     div.tabIndex = 0;
 
-    // store data for modal
     div.dataset.queue = q.queue_code || "";
     div.dataset.type = q.category || "";
     div.dataset.service = q.service_label || "";
@@ -96,17 +98,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.dataset.created = q.created_at || "";
 
     div.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-weight:700;font-size:20px;">${esc(q.queue_code)}</div>
-        <div style="background:#f59e0b;color:#fff;padding:6px 10px;border-radius:14px;font-weight:700;font-size:12px;">
-          ${esc(q.status || "PENDING")}
-        </div>
+      <div class="queue-card__head">
+        <div class="queue-card__code">${esc(q.queue_code)}</div>
+        <div class="queue-card__badge">${esc(q.status || "PENDING")}</div>
       </div>
-
-      <hr style="border:none;height:2px;background:#f3c27a;margin:12px 0;border-radius:2px;">
-
-      <p style="margin:6px 0;color:#333;font-size:14px;line-height:1.35;">
-        <strong>${esc(q.service_label || "Service")}</strong><br>
+      <hr class="queue-card__divider">
+      <p class="queue-card__meta">
+        <strong>${esc(q.service_label || "Service")}</strong>
         <small>${esc(q.category || "")}</small>
       </p>
     `;
@@ -120,7 +118,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     document.getElementById("modalService").textContent = card.dataset.service || "";
     document.getElementById("modalNotes").value = card.dataset.notes || "";
     document.getElementById("modalStatus").textContent = card.dataset.status || "PENDING";
-    document.getElementById("modalFile").textContent = card.dataset.file || "â€”";
+    document.getElementById("modalFile").textContent = card.dataset.file || "-";
 
     const extra = document.getElementById("modalExtra");
     extra.innerHTML = "";
@@ -179,7 +177,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     });
   }
 
-  // close handlers
   [closeDetail, modalCloseBtn].forEach(btn => {
     if (btn) btn.addEventListener("click", () => detailModal.style.display = "none");
   });
@@ -194,11 +191,5 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 })();
 </script>
 
-
-
 </body>
 </html>
-
-
-
-

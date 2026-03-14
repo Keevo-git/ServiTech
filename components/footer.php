@@ -1,11 +1,11 @@
-﻿<footer class="footer">
+<footer class="footer">
   <div class="footer-container">
     <div class="footer-left">
       <h3>Contact Us:</h3>
 
       <div class="contact-item">
         <img src="/assets/images/FOOTER_FB.png" alt="Facebook">
-        <a href="https://www.facebook.com/" target="_blank">JC Store</a>
+        <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer">JC Store</a>
       </div>
 
       <div class="contact-item">
@@ -27,8 +27,5 @@
     </div>
   </div>
 
-  <p class="footer-bottom">Â© 2026 ServiTech: JC Store</p>
+  <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
 </footer>
-
-
-
