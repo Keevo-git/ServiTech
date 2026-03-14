@@ -316,11 +316,11 @@ body.admin-dashboard .footer-bottom{
 
 @media (max-width: 900px){
   body.admin-dashboard .stats{
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   body.admin-dashboard .quick-grid{
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -513,3 +513,4 @@ body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] .btn {
     border-radius: 12px;
   }
 }
+

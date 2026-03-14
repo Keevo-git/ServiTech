@@ -968,6 +968,38 @@ body.customer-layout textarea:focus-visible {
 }
 
 body.customer-layout .radio-group { border: 1px solid transparent; border-radius: 10px; padding: 8px; }
+/* Dashboard layout restore: keep customer dashboard in multi-column view */
+body.customer-layout.customer-page--dashboard .customer-dashboard {
+  grid-template-columns: minmax(0, 1.7fr) minmax(240px, 0.9fr) !important;
+}
+
+body.customer-layout.customer-page--dashboard .quick-access {
+  width: min(100%, 1180px) !important;
+}
+
+body.customer-layout.customer-page--dashboard .quick-grid {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+}
+
+@media (max-width: 900px) {
+  body.customer-layout.customer-page--dashboard .customer-dashboard {
+    grid-template-columns: minmax(0, 1.45fr) minmax(220px, 1fr) !important;
+  }
+
+  body.customer-layout.customer-page--dashboard .quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1180px) {
+  body.customer-layout.customer-page--dashboard .customer-dashboard {
+    grid-template-columns: minmax(0, 1.85fr) minmax(280px, 1fr) !important;
+  }
+
+  body.customer-layout.customer-page--dashboard .quick-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
 
 
 /* QA: custo2 forced stacked layout + warmer surfaces */
@@ -1271,3 +1303,4 @@ body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] a:visited {
     border-radius: 14px;
   }
 }
+
