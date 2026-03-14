@@ -14,14 +14,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
-<section class="form-page form-page--dual-card">
+<section class="form-page form-page--single">
   <div class="form-page-shell">
     <div class="form-page-intro">
       <h2 class="page-title">ONLINE PRINT ORDER</h2>
       <p class="page-subtitle">Upload your file and we'll prepare it for pickup.</p>
     </div>
 
-    <div class="form-content-grid">
+    <div class="form-content-stack">
       <div class="form-card form-card--primary">
         <h3 class="step-title">ORDER DETAILS</h3>
 
@@ -51,9 +51,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <label for="fileUpload">Upload your document</label>
         <input type="file" id="fileUpload" class="form-file">
         <p class="file-note">Accepted formats: PDF, DOC, DOCX, JPG, PNG (name only is saved for now)</p>
-      </div>
 
-      <div class="form-card form-card--secondary">
         <h3 class="step-title">Pick-up & Payment</h3>
         <p>Pick-up: In-store only</p>
 

@@ -748,3 +748,71 @@ body.customer-layout.customer-page--forms .summary-card,
 body.customer-layout.customer-page--print-order .summary-card {
   box-shadow: 0 10px 24px rgba(74, 5, 5, 0.1);
 }
+
+/* Final lock: stacked customer forms/options + improved page surface */
+body.customer-layout.customer-page--forms .form-page-shell,
+body.customer-layout.customer-page--print-order .form-page-shell {
+  display: block !important;
+  width: min(100%, 860px) !important;
+  margin: 0 auto !important;
+}
+
+body.customer-layout.customer-page--forms .form-content-grid,
+body.customer-layout.customer-page--forms .form-content-stack,
+body.customer-layout.customer-page--print-order .form-content-grid,
+body.customer-layout.customer-page--print-order .form-content-stack {
+  display: block !important;
+}
+
+body.customer-layout.customer-page--forms .form-card,
+body.customer-layout.customer-page--forms .summary-card,
+body.customer-layout.customer-page--print-order .form-card,
+body.customer-layout.customer-page--print-order .summary-card {
+  width: 100% !important;
+  margin: 0 0 18px !important;
+}
+
+body.customer-layout.customer-page--forms .summary-card,
+body.customer-layout.customer-page--print-order .summary-card {
+  position: static !important;
+  top: auto !important;
+}
+
+body.customer-layout.customer-page--forms .form-grid,
+body.customer-layout.customer-page--forms .radio-group,
+body.customer-layout.customer-page--print-order .form-grid,
+body.customer-layout.customer-page--print-order .radio-group,
+body.customer-layout.customer-page--queue .choose-grid {
+  grid-template-columns: 1fr !important;
+}
+
+body.customer-layout.customer-page--forms .form-actions,
+body.customer-layout.customer-page--print-order .form-actions {
+  justify-content: stretch !important;
+  gap: 12px !important;
+}
+
+body.customer-layout.customer-page--forms .btn-back,
+body.customer-layout.customer-page--forms .btn-next,
+body.customer-layout.customer-page--print-order .btn-back,
+body.customer-layout.customer-page--print-order .btn-next {
+  width: 100% !important;
+}
+
+body.customer-layout.customer-page--forms .form-page,
+body.customer-layout.customer-page--print-order .form-page,
+body.customer-layout.customer-page--queue .form-page,
+body.customer-layout.customer-page--queue .choose-service {
+  background:
+    radial-gradient(900px 280px at 50% -120px, rgba(255, 164, 59, 0.24), transparent 65%),
+    linear-gradient(180deg, #fffaf3 0%, #fff0dc 45%, #ffe4bf 100%) !important;
+}
+
+body.customer-layout.customer-page--forms .form-card,
+body.customer-layout.customer-page--print-order .form-card,
+body.customer-layout.customer-page--forms .summary-card,
+body.customer-layout.customer-page--print-order .summary-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(74, 5, 5, 0.08) !important;
+  box-shadow: 0 14px 28px rgba(74, 5, 5, 0.12) !important;
+}
