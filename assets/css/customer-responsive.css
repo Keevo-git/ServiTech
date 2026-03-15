@@ -1512,9 +1512,9 @@ body.customer-layout.customer-page--print-order .form-feedback--print-order {
 }
 
 body.customer-layout.customer-page--print-order .form-feedback--print-order.error {
-  background: #ce8b8b;
-  border-color: #a85a5a;
-  color: #3f0000;
+  background: #7a1f2b;
+  border-color: #5c1220;
+  color: #fff2f4;
 }
 
 body.customer-layout.customer-page--print-order .form-feedback--print-order.success {
