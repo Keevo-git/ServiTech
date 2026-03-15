@@ -988,6 +988,11 @@ body.customer-layout.customer-page--dashboard {
   background: #fff4e4 !important;
 }
 
+body.customer-layout.customer-page--print-order,
+body.customer-layout.customer-page--profile {
+  background: #fff4e4 !important;
+}
+
 /* Dashboard layout restore: keep customer dashboard in multi-column view */
 body.customer-layout.customer-page--dashboard .customer-dashboard {
   grid-template-columns: minmax(0, 1.7fr) minmax(240px, 0.9fr) !important;
@@ -1464,6 +1469,4 @@ body.customer-layout.customer-page--queue .choose-card img {
     transform: none;
   }
 }
-
-
 
