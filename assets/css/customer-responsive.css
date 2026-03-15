@@ -1300,3 +1300,43 @@ body.customer-layout .navbar.has-nav-menu nav[data-collapsible-menu] a:visited {
   }
 }
 
+
+/* Profile action buttons: prevent overlap and improve contrast */
+body.customer-layout.customer-page--profile .profile-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  width: min(100%, 560px);
+  margin: 30px auto 0;
+}
+
+body.customer-layout.customer-page--profile .profile-actions .btn-save,
+body.customer-layout.customer-page--profile .profile-actions .btn-cancel {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.customer-layout.customer-page--profile .profile-actions .btn-save {
+  background: linear-gradient(180deg, #ffb147 0%, #ff8b2d 100%);
+  border: 1px solid rgba(122, 47, 0, 0.26);
+  color: #ffffff;
+}
+
+body.customer-layout.customer-page--profile .profile-actions .btn-cancel,
+body.customer-layout.customer-page--profile .profile-actions .btn-cancel:visited {
+  background: #fff3e7;
+  color: #7a2f00;
+  border: 1px solid #efb688;
+  box-shadow: 0 8px 16px rgba(74, 5, 5, 0.12);
+}
+
+body.customer-layout.customer-page--profile .profile-actions .btn-cancel:hover {
+  background: #ffe9d4;
+  box-shadow: 0 12px 22px rgba(74, 5, 5, 0.16);
+}
+
+@media (max-width: 680px) {
+  body.customer-layout.customer-page--profile .profile-actions {
+    grid-template-columns: 1fr;
+  }
+}
