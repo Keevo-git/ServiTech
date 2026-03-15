@@ -1507,6 +1507,18 @@ body.customer-layout.customer-page--print-order .form-feedback--print-order {
   margin-top: 6px;
 }
 
+body.customer-layout.customer-page--print-order .form-feedback--print-order.error {
+  background: #e7b8b8;
+  border-color: #bf7676;
+  color: #530000;
+}
+
+body.customer-layout.customer-page--print-order .form-feedback--print-order.success {
+  background: #b9dcb9;
+  border-color: #74ac74;
+  color: #144014;
+}
+
 body.customer-layout.customer-page--print-order .radio-group--color,
 body.customer-layout.customer-page--print-order .radio-group--payment {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -1529,3 +1541,4 @@ body.customer-layout.customer-page--print-order .radio-group--payment label {
     grid-template-columns: 1fr !important;
   }
 }
+
