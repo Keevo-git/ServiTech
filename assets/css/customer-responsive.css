@@ -1512,9 +1512,9 @@ body.customer-layout.customer-page--print-order .form-feedback--print-order {
 }
 
 body.customer-layout.customer-page--print-order .form-feedback--print-order.error {
-  background: #7a1f2b;
-  border-color: #5c1220;
-  color: #fff2f4;
+  background: #8e3440;
+  border-color: #5a0b12;
+  color: #fff6f7;
 }
 
 body.customer-layout.customer-page--print-order .form-feedback--print-order.success {
@@ -1549,9 +1549,9 @@ body.customer-layout.customer-page--print-order .radio-group--payment label {
 
 /* Force print-order feedback colors (cache/override-safe) */
 body.customer-layout.customer-page--print-order #printOrderFeedback.error {
-  background: #7a1f2b !important;
-  border-color: #5c1220 !important;
-  color: #fff2f4 !important;
+  background: #8e3440 !important;
+  border-color: #5a0b12 !important;
+  color: #fff6f7 !important;
 }
 
 body.customer-layout.customer-page--print-order #printOrderFeedback.success {
