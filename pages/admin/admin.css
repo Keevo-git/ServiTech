@@ -156,43 +156,50 @@ main{ flex:1; }
 }
 
 .footer{
-  margin-top:auto;
-  background:#102741;
-  color:#d8e4f4;
-  padding:18px clamp(14px,4vw,40px);
+  background-color:#4A0505;
+  color:#ffffff;
+  padding:30px 40px 20px;
+  margin-top:30px;
 }
 
 .footer-container{
-  width:min(1200px,92vw);
-  margin:0 auto;
   display:flex;
   justify-content:space-between;
-  align-items:flex-start;
-  gap:22px;
+  align-items:center;
+  max-width:1100px;
+  margin:auto;
   flex-wrap:wrap;
 }
 
 .footer-left h3{
-  margin:0 0 9px;
-  font-size:16px;
-  color:#fff;
+  font-size:18px;
+  margin-bottom:15px;
 }
 
 .contact-item{
   display:flex;
   align-items:center;
-  gap:9px;
-  margin:7px 0;
+  gap:12px;
+  margin-bottom:12px;
   font-size:14px;
 }
 
+.contact-item img{
+  width:22px;
+  height:22px;
+}
+
 .contact-item a{
-  color:#d8e4f4;
+  color:#ffffff;
   text-decoration:none;
 }
 
 .contact-item a:hover{
-  color:#fff;
+  text-decoration:underline;
+}
+
+.contact-item span{
+  color:#ffffff;
 }
 
 .footer-right{
@@ -204,23 +211,26 @@ main{ flex:1; }
 .footer-logo-link{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:8px;
   text-decoration:none;
+  justify-content:flex-end;
   color:#fff;
 }
 
 .footer-logo-link h1{
-  margin:0;
-  font-size:16px;
-  line-height:1.1;
+  font-size:20px;
+  color:#ffffff;
+  font-weight:600;
+  font-style:italic;
 }
 
 .footer-bottom{
-  width:min(1200px,92vw);
-  margin:13px auto 0;
   text-align:center;
-  font-size:12px;
-  color:#a5b9d2;
+  margin-top:20px;
+  border-top:1px solid rgba(255,255,255,0.2);
+  padding-top:10px;
+  opacity:0.8;
+  font-size:13px;
 }
 
 .footer .contact-item img{
@@ -241,20 +251,22 @@ main{ flex:1; }
     flex-direction:column;
     align-items:flex-start;
   }
-
-  .footer-right{
-    justify-content:flex-start;
-  }
-
-  .footer-logo-link h1{
-    font-size:15px;
-  }
 }
 
-@media(max-width:680px){
+@media(max-width:600px){
   .footer-container{
-    flex-direction:column;
-    align-items:flex-start;
+    flex-direction:column-reverse;
+    text-align:center;
+    gap:30px;
+  }
+
+  .footer-right{
+    text-align:center;
+    justify-content:center;
+  }
+
+  .contact-item{
+    justify-content:center;
   }
 }
 

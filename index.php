@@ -106,38 +106,7 @@ $print_url = $is_admin
 
   </section>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-left">
-        <h3>Contact Us:</h3>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_FB.png" alt="Facebook">
-          <a href="https://www.facebook.com/" target="_blank">JC Repair Shop</a>
-        </div>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_EMAIL.png" alt="Email">
-          <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
-        </div>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_PHONE.png" alt="Phone">
-          <span>+63 912 393 4321</span>
-        </div>
-      </div>
-
-      <div class="footer-right">
-        <a href="/index.php" class="footer-logo-link">
-          <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
-          <h1>ServiTech: JC Repair Shop</h1>
-        </a>
-      </div>
-    </div>
-
-    <p class="footer-bottom">&copy; 2026 ServiTech: JC Repair Shop</p>
-  </footer>
+  <?php include __DIR__ . "/components/footer.php"; ?>
 
   <script src="/assets/js/csrf.js"></script>
   <script src="/assets/js/main.js"></script>

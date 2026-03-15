@@ -246,72 +246,81 @@ body.admin-dashboard .card p{
 }
 
 body.admin-dashboard .footer{
-  margin-top: auto;
-  background: #102741;
-  color: #d8e5f4;
-  padding: 20px min(40px, 4vw);
+  margin-top: 30px;
+  background-color: #4A0505;
+  color: #ffffff;
+  padding: 30px 40px 20px;
 }
 
 body.admin-dashboard .footer-container{
-  width: min(1200px, 92vw);
-  margin: 0 auto;
   display: flex;
   justify-content: space-between;
-  gap: 24px;
+  align-items: center;
+  max-width: 1100px;
+  margin: auto;
   flex-wrap: wrap;
 }
 
 body.admin-dashboard .footer-left h3{
-  margin: 0 0 10px;
-  color: #fff;
+  margin-bottom: 15px;
+  font-size: 18px;
 }
 
 body.admin-dashboard .contact-item{
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin: 7px 0;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 body.admin-dashboard .contact-item img{
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
 }
 
 body.admin-dashboard .contact-item a{
-  color: #d8e5f4;
+  color: #ffffff;
   text-decoration: none;
 }
 
-body.admin-dashboard .contact-item a:hover{
+body.admin-dashboard .contact-item span{
   color: #ffffff;
+}
+
+body.admin-dashboard .contact-item a:hover{
+  text-decoration: underline;
 }
 
 body.admin-dashboard .footer-logo-link{
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
+  justify-content: flex-end;
   color: #fff;
 }
 
 body.admin-dashboard .footer-servitech-logo{
-  width: 48px;
+  width: 50px;
   height: auto;
 }
 
 body.admin-dashboard .footer-logo-link h1{
   margin: 0;
-  font-size: 16px;
+  font-size: 20px;
+  color: #ffffff;
+  font-weight: 600;
+  font-style: italic;
 }
 
 body.admin-dashboard .footer-bottom{
-  width: min(1200px, 92vw);
-  margin: 12px auto 0;
   text-align: center;
-  font-size: 12px;
-  color: #aac0da;
+  margin-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 10px;
+  opacity: 0.8;
+  font-size: 13px;
 }
 
 @media (max-width: 900px){
@@ -321,6 +330,23 @@ body.admin-dashboard .footer-bottom{
 
   body.admin-dashboard .quick-grid{
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px){
+  body.admin-dashboard .footer-container{
+    flex-direction: column-reverse;
+    text-align: center;
+    gap: 30px;
+  }
+
+  body.admin-dashboard .footer-right{
+    text-align: center;
+    justify-content: center;
+  }
+
+  body.admin-dashboard .contact-item{
+    justify-content: center;
   }
 }
 

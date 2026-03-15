@@ -52,20 +52,6 @@ body.customer-layout .navbar nav a {
   white-space: nowrap;
 }
 
-body.customer-layout .footer-container {
-  gap: 24px 40px;
-  align-items: flex-start;
-}
-
-body.customer-layout .footer-left,
-body.customer-layout .footer-right {
-  flex: 1 1 280px;
-  min-width: 0;
-}
-
-body.customer-layout .contact-item {
-  align-items: flex-start;
-}
 
 body.customer-layout .contact-item a,
 body.customer-layout .contact-item span,
@@ -859,10 +845,6 @@ body.customer-layout .modal-back {
   width: 100% !important;
 }
 
-body.customer-layout .footer-container {
-  flex-direction: column-reverse !important;
-  align-items: flex-start !important;
-}
 
 /* QA/UI fixes: accessibility, validation, and status state styling */
 body.customer-layout .navbar nav a,
@@ -1430,42 +1412,6 @@ body.customer-layout.customer-page--queue .choose-card span {
   white-space: nowrap;
 }
 
-/* Queue page footer spacing/layout fix */
-body.customer-layout.customer-page--queue > .footer {
-  margin-top: 0 !important;
-  padding: 22px clamp(18px, 3vw, 36px) 14px;
-}
-
-body.customer-layout.customer-page--queue .footer-container {
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: space-between;
-  gap: 16px 30px;
-}
-
-body.customer-layout.customer-page--queue .footer-left,
-body.customer-layout.customer-page--queue .footer-right {
-  flex: 0 1 auto;
-}
-
-body.customer-layout.customer-page--queue .footer-right {
-  margin-left: auto;
-}
-
-body.customer-layout.customer-page--queue .footer-left h3 {
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-body.customer-layout.customer-page--queue .contact-item {
-  margin-bottom: 8px;
-  align-items: center;
-}
-
-body.customer-layout.customer-page--queue .footer-bottom {
-  margin-top: 14px;
-  padding-top: 8px;
-}
 
 @media (max-width: 900px) {
   body.customer-layout.customer-page--queue .choose-service {
@@ -1475,15 +1421,6 @@ body.customer-layout.customer-page--queue .footer-bottom {
 
   body.customer-layout.customer-page--queue .choose-grid {
     gap: 12px !important;
-  }
-
-  body.customer-layout.customer-page--queue .footer-container {
-    flex-direction: column-reverse !important;
-    align-items: flex-start !important;
-  }
-
-  body.customer-layout.customer-page--queue .footer-right {
-    margin-left: 0;
   }
 }
 
