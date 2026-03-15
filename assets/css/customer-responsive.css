@@ -4,6 +4,7 @@ body.customer-layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: #d5d5d5 !important;
 }
 
 body.customer-layout>.footer {
@@ -1459,17 +1460,4 @@ body.customer-layout.customer-page--queue .choose-card img {
     transform: none;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
