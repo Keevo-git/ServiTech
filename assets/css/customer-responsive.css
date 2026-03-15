@@ -1505,18 +1505,22 @@ body.customer-layout.customer-page--print-order .form-card--print-order {
 
 body.customer-layout.customer-page--print-order .form-feedback--print-order {
   margin-top: 6px;
+  padding: 12px 14px;
+  border-width: 1.5px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 body.customer-layout.customer-page--print-order .form-feedback--print-order.error {
-  background: #e7b8b8;
-  border-color: #bf7676;
-  color: #530000;
+  background: #ce8b8b;
+  border-color: #a85a5a;
+  color: #3f0000;
 }
 
 body.customer-layout.customer-page--print-order .form-feedback--print-order.success {
-  background: #b9dcb9;
-  border-color: #74ac74;
-  color: #144014;
+  background: #a9d3a9;
+  border-color: #5e9a5e;
+  color: #103810;
 }
 
 body.customer-layout.customer-page--print-order .radio-group--color,
