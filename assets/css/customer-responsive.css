@@ -1480,3 +1480,52 @@ body.customer-layout.customer-page--profile .profile-page {
   background-color: #fff4e4 !important;
 }
 
+
+/* Print order layout polish: align card, feedback, and actions */
+body.customer-layout.customer-page--print-order .form-page-shell {
+  width: min(100%, 980px) !important;
+}
+
+body.customer-layout.customer-page--print-order .form-page-intro,
+body.customer-layout.customer-page--print-order .form-card--print-order,
+body.customer-layout.customer-page--print-order .form-feedback--print-order,
+body.customer-layout.customer-page--print-order .form-actions--print-order {
+  width: min(100%, 860px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.customer-layout.customer-page--print-order .form-content-stack {
+  gap: 16px !important;
+}
+
+body.customer-layout.customer-page--print-order .form-card--print-order {
+  gap: 14px;
+}
+
+body.customer-layout.customer-page--print-order .form-feedback--print-order {
+  margin-top: 6px;
+}
+
+body.customer-layout.customer-page--print-order .radio-group--color,
+body.customer-layout.customer-page--print-order .radio-group--payment {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+body.customer-layout.customer-page--print-order .radio-group--payment label {
+  align-items: center;
+}
+
+@media (max-width: 760px) {
+  body.customer-layout.customer-page--print-order .form-page-intro,
+  body.customer-layout.customer-page--print-order .form-card--print-order,
+  body.customer-layout.customer-page--print-order .form-feedback--print-order,
+  body.customer-layout.customer-page--print-order .form-actions--print-order {
+    width: 100%;
+  }
+
+  body.customer-layout.customer-page--print-order .radio-group--color,
+  body.customer-layout.customer-page--print-order .radio-group--payment {
+    grid-template-columns: 1fr !important;
+  }
+}

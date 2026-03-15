@@ -22,7 +22,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     </div>
 
     <div class="form-content-stack">
-      <div class="form-card form-card--primary">
+      <div class="form-card form-card--primary form-card--print-order">
         <h3 class="step-title">ORDER DETAILS</h3>
 
         <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
@@ -38,7 +38,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <input type="number" min="1" value="1" class="form-input" id="qtyInput">
 
         <label>Color Option<span class="required">*</span></label>
-        <div class="radio-group" id="colorGroup">
+        <div class="radio-group radio-group--color" id="colorGroup">
           <label><input type="radio" name="color" value="Black & White"> Black & White</label>
           <label><input type="radio" name="color" value="Colored - Full"> Colored (Full)</label>
           <label><input type="radio" name="color" value="Colored - Half"> Colored (Half)</label>
@@ -56,16 +56,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <p>Pick-up: In-store only</p>
 
         <label>Payment Method<span class="required">*</span></label>
-        <div class="radio-group" id="paymentGroup">
+        <div class="radio-group radio-group--payment" id="paymentGroup">
           <label><input type="radio" name="payment" value="Cash"> Cash</label>
           <label><input type="radio" name="payment" value="GCash"> GCash</label>
         </div>
       </div>
     </div>
 
-    <p id="printOrderFeedback" class="form-feedback" role="alert" aria-live="polite"></p>
+    <p id="printOrderFeedback" class="form-feedback form-feedback--print-order" role="alert" aria-live="polite"></p>
 
-    <div class="form-actions">
+    <div class="form-actions form-actions--print-order">
       <a href="/pages/customer/customer_dash.php" class="btn-back">Back</a>
       <button type="button" class="btn-next" id="submitPrintOrderBtn">Proceed</button>
     </div>
@@ -207,4 +207,5 @@ document.getElementById("submitPrintOrderBtn")?.addEventListener("click", async 
 
 </body>
 </html>
+
 
