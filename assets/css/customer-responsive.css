@@ -1559,3 +1559,17 @@ body.customer-layout.customer-page--print-order #printOrderFeedback.success {
   border-color: #5e9a5e !important;
   color: #103810 !important;
 }
+
+/* Final mobile hard lock: dashboard should stack to one column */
+@media (max-width: 900px) {
+  body.customer-layout.customer-page--dashboard .customer-dashboard,
+  body.customer-layout.customer-page--dashboard .quick-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.customer-layout.customer-page--dashboard .dashboard-card,
+  body.customer-layout.customer-page--dashboard .quick-card-link {
+    width: 100% !important;
+  }
+}
