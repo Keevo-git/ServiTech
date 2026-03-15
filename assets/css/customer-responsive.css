@@ -1009,11 +1009,11 @@ body.customer-layout.customer-page--dashboard .quick-grid {
 
 @media (max-width: 900px) {
   body.customer-layout.customer-page--dashboard .customer-dashboard {
-    grid-template-columns: minmax(0, 1.45fr) minmax(220px, 1fr) !important;
+    grid-template-columns: 1fr !important;
   }
 
   body.customer-layout.customer-page--dashboard .quick-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: 1fr !important;
   }
 }
 
