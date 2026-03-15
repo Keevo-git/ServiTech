@@ -1546,3 +1546,16 @@ body.customer-layout.customer-page--print-order .radio-group--payment label {
   }
 }
 
+
+/* Force print-order feedback colors (cache/override-safe) */
+body.customer-layout.customer-page--print-order #printOrderFeedback.error {
+  background: #7a1f2b !important;
+  border-color: #5c1220 !important;
+  color: #fff2f4 !important;
+}
+
+body.customer-layout.customer-page--print-order #printOrderFeedback.success {
+  background: #a9d3a9 !important;
+  border-color: #5e9a5e !important;
+  color: #103810 !important;
+}
