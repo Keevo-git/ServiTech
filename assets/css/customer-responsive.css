@@ -53,9 +53,36 @@ body.customer-layout .navbar nav a {
 }
 
 
-body.customer-layout .contact-item a,
-body.customer-layout .contact-item span,
-body.customer-layout .footer-logo-link h1,
+
+
+/* Keep customer footer identical to shared footer layout */
+body.customer-layout .footer .contact-item {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+body.customer-layout .footer .contact-item a,
+body.customer-layout .footer .contact-item span {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+body.customer-layout .footer .footer-logo-link {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+body.customer-layout .footer .footer-logo-link h1 {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  body.customer-layout .footer .footer-logo-link {
+    justify-content: center;
+  }
+}
+
 body.customer-layout .dashboard-card p,
 body.customer-layout .summary-row strong,
 body.customer-layout .summary-total strong,

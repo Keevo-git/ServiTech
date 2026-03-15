@@ -88,8 +88,8 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260315h3">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h3">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260315h9">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h9">
 </head>
 <body class="customer-layout customer-page--dashboard">
 

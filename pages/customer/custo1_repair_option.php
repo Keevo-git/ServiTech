@@ -8,8 +8,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Repair Option</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260315h2">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h2">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260315h9">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h9">
 </head>
 <body class="customer-layout customer-page--forms" data-service="repair">
 
