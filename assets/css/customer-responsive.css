@@ -1470,3 +1470,13 @@ body.customer-layout.customer-page--queue .choose-card img {
   }
 }
 
+
+/* Final page background lock requested by user */
+body.customer-layout.customer-page--print-order,
+body.customer-layout.customer-page--profile,
+body.customer-layout.customer-page--print-order .form-page,
+body.customer-layout.customer-page--profile .profile-page {
+  background: #fff4e4 !important;
+  background-color: #fff4e4 !important;
+}
+

@@ -28,7 +28,7 @@ $csrfToken = servitech_csrf_token();
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ServiTech: Edit Profile</title>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260315h9" />
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h16" />
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h17" />
 </head>
 <body class="customer-layout customer-page--profile">
 
