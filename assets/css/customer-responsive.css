@@ -1375,8 +1375,8 @@ body.customer-layout.customer-page--queue .queue-page-shell {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: clamp(420px, 56vh, 620px);
-  padding: clamp(40px, 5.5vw, 70px) 20px clamp(44px, 5.8vw, 78px);
+  min-height: clamp(500px, 64vh, 720px);
+  padding: clamp(56px, 7vw, 92px) 20px clamp(62px, 7.2vw, 102px);
 }
 
 body.customer-layout.customer-page--queue .choose-service {
@@ -1410,14 +1410,14 @@ body.customer-layout.customer-page--queue .choose-card {
 }
 
 body.customer-layout.customer-page--queue .choose-card img {
-  width: clamp(70px, 7vw, 98px) !important;
+  width: clamp(88px, 9vw, 124px) !important;
   margin-bottom: 2px;
 }
 
 @media (max-width: 900px) {
   body.customer-layout.customer-page--queue .queue-page-shell {
     min-height: auto;
-    padding: 32px 16px 34px;
+    padding: 44px 16px 48px;
   }
 
   body.customer-layout.customer-page--queue .choose-service {
@@ -1432,7 +1432,7 @@ body.customer-layout.customer-page--queue .choose-card img {
 
 @media (max-width: 700px) {
   body.customer-layout.customer-page--queue .queue-page-shell {
-    padding: 26px 12px 30px;
+    padding: 34px 12px 40px;
   }
 
   body.customer-layout.customer-page--queue .choose-service {
@@ -1453,6 +1453,7 @@ body.customer-layout.customer-page--queue .choose-card img {
     transform: none;
   }
 }
+
 
 
 
