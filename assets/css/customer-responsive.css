@@ -1483,14 +1483,14 @@ body.customer-layout.customer-page--profile .profile-page {
 
 /* Print order layout polish: align card, feedback, and actions */
 body.customer-layout.customer-page--print-order .form-page-shell {
-  width: min(100%, 980px) !important;
+  width: min(100%, 1120px) !important;
 }
 
 body.customer-layout.customer-page--print-order .form-page-intro,
 body.customer-layout.customer-page--print-order .form-card--print-order,
 body.customer-layout.customer-page--print-order .form-feedback--print-order,
 body.customer-layout.customer-page--print-order .form-actions--print-order {
-  width: min(100%, 860px);
+  width: min(100%, 980px) !important;
   margin-left: auto;
   margin-right: auto;
 }
