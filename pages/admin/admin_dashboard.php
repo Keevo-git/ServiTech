@@ -45,32 +45,33 @@ $hasQueuesTable = table_exists($pdo, "queues");
 $customers = safe_count($pdo, "SELECT COUNT(*) FROM users");
 
 // Online Orders card
-if ($hasOrdersTable) {
+if ($hasQueuesTable) {
+    // Primary current schema: count active online-type queue entries (printing + related online services).
     $onlineOrders = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM orders WHERE LOWER(COALESCE(order_type, '')) = 'online' OR LOWER(COALESCE(status, '')) = 'pending'"
-    );
-} elseif ($hasQueuesTable) {
-    // Fallback for current schema where print orders are tracked in queues.
-    $onlineOrders = safe_count(
-        $pdo,
-        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(category, '')) = 'printing' OR LOWER(COALESCE(status, '')) = 'pending'"
+        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(category, '')) IN ('printing','xerox','rush-id','laminating') AND LOWER(COALESCE(status, '')) NOT IN ('done','cancelled')"
     );
 } elseif ($hasQueueTable) {
     $onlineOrders = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(order_type, '')) = 'online' OR LOWER(COALESCE(status, '')) = 'pending'"
+        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(order_type, '')) = 'online' AND LOWER(COALESCE(status, '')) NOT IN ('done','cancelled')"
+    );
+} elseif ($hasOrdersTable) {
+    // Legacy schema fallback (if queues table not present yet).
+    $onlineOrders = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM orders WHERE LOWER(COALESCE(order_type, '')) = 'online' AND LOWER(COALESCE(status, '')) NOT IN ('done','cancelled')"
     );
 } else {
     $onlineOrders = 0;
 }
 
 // Active Queue card
-if ($hasQueueTable) {
-    $activeQueue = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(status, '')) = 'waiting'");
-} elseif ($hasQueuesTable) {
-    // Fallback keeps existing queues data visible where waiting is represented as pending.
-    $activeQueue = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(status, '')) IN ('waiting', 'pending')");
+if ($hasQueuesTable) {
+    // current schema: active queue includes all non-completed, non-cancelled entries
+    $activeQueue = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(status, '')) NOT IN ('done','cancelled')");
+} elseif ($hasQueueTable) {
+    $activeQueue = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(status, '')) IN ('waiting', 'pending', 'ongoing', 'for pick-up')");
 } else {
     $activeQueue = 0;
 }
