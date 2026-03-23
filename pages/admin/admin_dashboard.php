@@ -37,45 +37,49 @@ function project_url(string $path): string
     return htmlspecialchars(servitech_url($path), ENT_QUOTES, "UTF-8");
 }
 
+$hasOrdersTable = table_exists($pdo, "orders");
+$hasQueueTable = table_exists($pdo, "queue");
 $hasQueuesTable = table_exists($pdo, "queues");
 
-// =========================
-// 📊 DATA COUNTS (SYNCED)
-// =========================
-
-// Customers
+// Customers card: total users
 $customers = safe_count($pdo, "SELECT COUNT(*) FROM users");
 
-// Online Orders (pending + ongoing + for pick-up)
-$onlineOrders = $hasQueuesTable
-    ? safe_count($pdo, "
-        SELECT COUNT(*) FROM queues 
-        WHERE LOWER(TRIM(status)) IN ('pending','ongoing','for pick-up')
-    ")
-    : 0;
+// Online Orders card
+if ($hasQueuesTable) {
+    // Match current queue table exactly; exclude cancelled entries only
+    $onlineOrders = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
+    );
+} elseif ($hasQueueTable) {
+    $onlineOrders = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
+    );
+} elseif ($hasOrdersTable) {
+    // Back-compat, if old orders table exists in your environment
+    $onlineOrders = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM orders WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
+    );
+} else {
+    $onlineOrders = 0;
+}
 
-// Active Queue (currently being processed)
-$activeQueue = $hasQueuesTable
-    ? safe_count($pdo, "
-        SELECT COUNT(*) FROM queues 
-        WHERE LOWER(TRIM(status)) IN ('pending','ongoing')
-    ")
-    : 0;
-
-// Progress (% DONE)
-$totalQueue = $hasQueuesTable
-    ? safe_count($pdo, "SELECT COUNT(*) FROM queues")
-    : 0;
-
-$doneQueue = $hasQueuesTable
-    ? safe_count($pdo, "
-        SELECT COUNT(*) FROM queues 
-        WHERE LOWER(TRIM(status)) = 'done'
-    ")
-    : 0;
-
-$progress = $totalQueue > 0 ? round(($doneQueue / $totalQueue) * 100) : 0;
-
+// Active Queue card
+if ($hasQueuesTable) {
+    $activeQueue = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(status, 'pending')) IN ('pending','ongoing','for pick-up')"
+    );
+} elseif ($hasQueueTable) {
+    $activeQueue = safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(status, 'pending')) IN ('pending','ongoing','for pick-up')"
+    );
+} else {
+    $activeQueue = 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -93,8 +97,18 @@ $progress = $totalQueue > 0 ? round(($doneQueue / $totalQueue) * 100) : 0;
       <p class="brand-tag">Control Center</p>
       <span>ServiTech Admin</span>
     </div>
-
-    <div class="actions">
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="admin-header-menu"
+    >
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+    </button>
+    <div class="actions" id="admin-header-menu" data-collapsible-menu>
       <a href="<?= project_url('/index.php') ?>" class="btn btn-home">Home</a>
       <a href="<?= project_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
     </div>
@@ -105,80 +119,83 @@ $progress = $totalQueue > 0 ? round(($doneQueue / $totalQueue) * 100) : 0;
   <div class="hero-inner">
     <h1>Operations Dashboard</h1>
     <p>Live overview of customer activity, orders, and service queue.</p>
+    <div class="hero-meta">
+      <span class="hero-chip">Admin Access</span>
+      <span class="hero-time" id="adminNow">--</span>
+    </div>
   </div>
 </section>
 
 <main class="container">
 
-  <!-- ===================== -->
-  <!-- 📊 STATS -->
-  <!-- ===================== -->
   <section class="stats">
-
     <div class="stat">
       <h4>CUSTOMERS</h4>
-      <div class="value"><?= $customers ?></div>
-      <p>Registered users</p>
+      <div class="value" data-count="<?= $customers ?>"><?= $customers ?></div>
+      <p class="stat-note">Registered user accounts</p>
     </div>
 
     <div class="stat">
       <h4>ONLINE ORDERS</h4>
-      <div class="value"><?= $onlineOrders ?></div>
-      <p>Pending + ongoing + pickup</p>
+      <div class="value" data-count="<?= $onlineOrders ?>"><?= $onlineOrders ?></div>
+      <p class="stat-note">Web-based and pending jobs</p>
     </div>
 
     <div class="stat">
       <h4>ACTIVE QUEUE</h4>
-      <div class="value"><?= $activeQueue ?></div>
-      <p>Currently processing</p>
+      <div class="value" data-count="<?= $activeQueue ?>"><?= $activeQueue ?></div>
+      <p class="stat-note">Currently waiting for service</p>
     </div>
-
-    <div class="stat">
-      <h4>PROGRESS</h4>
-      <div class="value"><?= $progress ?>%</div>
-      <p>Completed jobs</p>
-    </div>
-
   </section>
 
-  <!-- ===================== -->
-  <!-- 🚀 QUICK ACCESS -->
-  <!-- ===================== -->
-  <h3>Quick Access</h3>
+  <h3 class="section-title">Quick Access</h3>
 
   <section class="quick-grid">
-
-    <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>">
-      <div class="card">
+    <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon">&#x23F3;</div>
         <h4>Queue List</h4>
-        <p>Manage queues</p>
-      </div>
+        <p>View and update queues</p>
+      </article>
     </a>
 
-    <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>">
-      <div class="card">
+    <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon">&#x1F4E6;</div>
         <h4>Order Management</h4>
-        <p>Manage orders</p>
-      </div>
+        <p>Manage customer orders</p>
+      </article>
     </a>
 
-    <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>">
-      <div class="card">
-        <h4>Customers</h4>
-        <p>View users</p>
-      </div>
+    <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon">&#x1F465;</div>
+        <h4>Customer List</h4>
+        <p>View registered customers</p>
+      </article>
     </a>
 
-    <a href="<?= project_url('/pages/admin/Services/edit_services.php') ?>">
-      <div class="card">
-        <h4>Services</h4>
-        <p>Edit services</p>
-      </div>
+    <a href="<?= project_url('/pages/admin/Services/edit_services.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon">&#x270F;&#xFE0F;</div>
+        <h4>Edit Services</h4>
+        <p>Edit the shown services on the landing page</p>
+      </article>
     </a>
 
   </section>
+
+
 
 </main>
 
+<?php require_once __DIR__ . "/_includes/admin_footer.php"; ?>
+
+<script src="<?= project_url('/pages/admin/admin_dashboard.js') ?>" defer></script>
+
+<script src="<?= project_url('/assets/js/header-menu.js') ?>" defer></script>
+
 </body>
 </html>
+
+
