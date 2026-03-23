@@ -76,6 +76,7 @@ if ($hasQueuesTable) {
     $queuesTotal = safe_count($pdo, "SELECT COUNT(*) FROM queues");
     $queuesNonCancelled = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'");
     $queuesActive = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) IN ('pending','ongoing','for pick-up')");
+    $queuesStatusSample = $pdo->query("SELECT id, queue_code, status, queue_status, LOWER(TRIM(COALESCE(status, queue_status, ''))) AS effective_status FROM queues ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
 } elseif ($hasQueueTable) {
     $activeQueue = safe_count(
         $pdo,
@@ -164,6 +165,14 @@ if ($hasQueuesTable) {
       <strong>queues total</strong>: <?= htmlspecialchars((string)$queuesTotal) ?> <br>
       <strong>queues non-cancelled</strong>: <?= htmlspecialchars((string)$queuesNonCancelled) ?> <br>
       <strong>queues active (pending/ongoing/for pick-up)</strong>: <?= htmlspecialchars((string)$queuesActive) ?>
+    </div>
+    <div style="margin-top:0.8rem;font-size:0.85rem;">
+      <strong>Last 5 queue rows (status, queue_status, effective status)</strong>:
+      <ul style="padding-left:1rem;margin:0.2rem 0;">
+        <?php foreach ($queuesStatusSample ?? [] as $row): ?>
+          <li><?= htmlspecialchars($row['queue_code'] . ': status=' . ($row['status'] ?? 'NULL') . ' queue_status=' . ($row['queue_status'] ?? 'NULL') . ' effective=' . ($row['effective_status'] ?? '')) ?></li>
+        <?php endforeach; ?>
+      </ul>
     </div>
   </section>
 
