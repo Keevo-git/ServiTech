@@ -68,17 +68,27 @@ if ($hasQueuesTable) {
 
 // Active Queue card
 if ($hasQueuesTable) {
+    // Use exactly the queue list table states as active queue
     $activeQueue = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(status, 'pending')) IN ('pending','ongoing','for pick-up')"
+        "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('done','cancelled')"
     );
+    $queuesTotal = safe_count($pdo, "SELECT COUNT(*) FROM queues");
+    $queuesNonCancelled = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, ''))) != 'cancelled'");
+    $queuesActive = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, ''))) IN ('pending','ongoing','for pick-up')");
 } elseif ($hasQueueTable) {
     $activeQueue = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(status, 'pending')) IN ('pending','ongoing','for pick-up')"
+        "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('done','cancelled')"
     );
+    $queuesTotal = safe_count($pdo, "SELECT COUNT(*) FROM queue");
+    $queuesNonCancelled = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, ''))) != 'cancelled'");
+    $queuesActive = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, ''))) IN ('pending','ongoing','for pick-up')");
 } else {
     $activeQueue = 0;
+    $queuesTotal = 0;
+    $queuesNonCancelled = 0;
+    $queuesActive = 0;
 }
 ?>
 <!DOCTYPE html>
@@ -145,6 +155,15 @@ if ($hasQueuesTable) {
       <h4>ACTIVE QUEUE</h4>
       <div class="value" data-count="<?= $activeQueue ?>"><?= $activeQueue ?></div>
       <p class="stat-note">Currently waiting for service</p>
+    </div>
+  </section>
+
+  <section class="debug-info" style="margin:1rem 0;padding:0.8rem;border:1px dashed #999;background:#f9f9f9;color:#333;">
+    <h4 style="margin:0 0.6rem 0.5rem;">Debug: queue counts from DB</h4>
+    <div style="font-size:0.92rem;line-height:1.4;">
+      <strong>queues total</strong>: <?= htmlspecialchars((string)$queuesTotal) ?> <br>
+      <strong>queues non-cancelled</strong>: <?= htmlspecialchars((string)$queuesNonCancelled) ?> <br>
+      <strong>queues active (pending/ongoing/for pick-up)</strong>: <?= htmlspecialchars((string)$queuesActive) ?>
     </div>
   </section>
 
