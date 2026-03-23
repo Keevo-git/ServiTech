@@ -46,21 +46,21 @@ $customers = safe_count($pdo, "SELECT COUNT(*) FROM users");
 
 // Online Orders card
 if ($hasQueuesTable) {
-    // Primary current schema: include all active online-related services by category.
+    // Match current queue table exactly; exclude cancelled entries only
     $onlineOrders = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(category, '')) IN ('printing','xerox','rush-id','laminating','repair','installation') AND LOWER(COALESCE(status, 'pending')) IN ('pending','ongoing','for pick-up')"
+        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
     );
 } elseif ($hasQueueTable) {
     $onlineOrders = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(order_type, 'online')) = 'online' AND LOWER(COALESCE(status, 'pending')) IN ('pending','ongoing','for pick-up')"
+        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
     );
 } elseif ($hasOrdersTable) {
-    // Legacy schema fallback (if queues table not present yet).
+    // Back-compat, if old orders table exists in your environment
     $onlineOrders = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM orders WHERE LOWER(COALESCE(order_type, '')) = 'online' AND LOWER(COALESCE(status, 'pending')) IN ('pending','ongoing','for pick-up')"
+        "SELECT COUNT(*) FROM orders WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
     );
 } else {
     $onlineOrders = 0;
