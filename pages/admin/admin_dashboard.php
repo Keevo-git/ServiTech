@@ -49,18 +49,18 @@ if ($hasQueuesTable) {
     // Match current queue table exactly; exclude cancelled entries only
     $onlineOrders = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queues WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
+        "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'"
     );
 } elseif ($hasQueueTable) {
     $onlineOrders = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queue WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
+        "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'"
     );
 } elseif ($hasOrdersTable) {
     // Back-compat, if old orders table exists in your environment
     $onlineOrders = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM orders WHERE LOWER(COALESCE(status, '')) != 'cancelled'"
+        "SELECT COUNT(*) FROM orders WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'"
     );
 } else {
     $onlineOrders = 0;
@@ -71,19 +71,19 @@ if ($hasQueuesTable) {
     // Use exactly the queue list table states as active queue
     $activeQueue = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('done','cancelled')"
+        "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) NOT IN ('done','cancelled')"
     );
     $queuesTotal = safe_count($pdo, "SELECT COUNT(*) FROM queues");
-    $queuesNonCancelled = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, ''))) != 'cancelled'");
-    $queuesActive = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, ''))) IN ('pending','ongoing','for pick-up')");
+    $queuesNonCancelled = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'");
+    $queuesActive = safe_count($pdo, "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) IN ('pending','ongoing','for pick-up')");
 } elseif ($hasQueueTable) {
     $activeQueue = safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, ''))) NOT IN ('done','cancelled')"
+        "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) NOT IN ('done','cancelled')"
     );
     $queuesTotal = safe_count($pdo, "SELECT COUNT(*) FROM queue");
-    $queuesNonCancelled = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, ''))) != 'cancelled'");
-    $queuesActive = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, ''))) IN ('pending','ongoing','for pick-up')");
+    $queuesNonCancelled = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'");
+    $queuesActive = safe_count($pdo, "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) IN ('pending','ongoing','for pick-up')");
 } else {
     $activeQueue = 0;
     $queuesTotal = 0;
