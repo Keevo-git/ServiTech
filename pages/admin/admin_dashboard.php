@@ -41,6 +41,9 @@ $hasOrdersTable = table_exists($pdo, "orders");
 $hasQueueTable = table_exists($pdo, "queue");
 $hasQueuesTable = table_exists($pdo, "queues");
 
+// Debug variables (safe defaults): avoid runtime fatal if not set
+$queuesStatusSample = [];
+
 // Customers card: total users
 $customers = safe_count($pdo, "SELECT COUNT(*) FROM users");
 
