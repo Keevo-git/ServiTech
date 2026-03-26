@@ -75,6 +75,17 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   let lastFocused = null;
 
+  function servitechBasePath(){
+    const pathname = window.location.pathname || "";
+    if (pathname === "/ServiTech" || pathname.startsWith("/ServiTech/")) return "/ServiTech";
+    return "";
+  }
+
+  function servitechUrl(path){
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    return `${servitechBasePath()}${cleanPath}`;
+  }
+
   function esc(s){
     return (s ?? "").toString().replace(/[&<>"']/g, c => ({
       "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
@@ -118,6 +129,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.dataset.notes = q.notes || "";
     div.dataset.file = q.file_name || "";
     div.dataset.status = q.status || "";
+    div.queueData = q;
 
     div.innerHTML = `
       <div class="queue-card__head">
@@ -173,12 +185,39 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     trapModalFocus(e);
   }
 
+  function renderAttachedFiles(queueData){
+    const fileEl = document.getElementById("modalFile");
+    const uploadedFiles = Array.isArray(queueData.uploaded_files) ? queueData.uploaded_files : [];
+
+    fileEl.innerHTML = "";
+
+    if (uploadedFiles.length) {
+      uploadedFiles.forEach((file, index) => {
+        const link = document.createElement("a");
+        link.href = servitechUrl(file.saved_path || "#");
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = file.original_name || file.saved_path || `File ${index + 1}`;
+        fileEl.appendChild(link);
+
+        if (index < uploadedFiles.length - 1) {
+          fileEl.appendChild(document.createElement("br"));
+        }
+      });
+      return;
+    }
+
+    fileEl.textContent = queueData.file_name || "-";
+  }
+
   function openDetail(card){
+    const queueData = card.queueData || {};
+
     document.getElementById("modalQueue").textContent = card.dataset.queue || "";
     document.getElementById("modalType").textContent = card.dataset.type || "";
     document.getElementById("modalService").textContent = card.dataset.service || "";
     document.getElementById("modalNotes").value = card.dataset.notes || "";
-    document.getElementById("modalFile").textContent = card.dataset.file || "-";
+    renderAttachedFiles(queueData);
 
     const statusEl = document.getElementById("modalStatus");
     const status = (card.dataset.status || "PENDING").toUpperCase();
@@ -208,7 +247,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     let res;
     try {
-      res = await fetch("/api/queue_list.php", {
+      res = await fetch(servitechUrl("/api/queue_list.php"), {
         credentials: "same-origin",
         headers: {
           "Accept": "application/json",
@@ -279,4 +318,3 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
-

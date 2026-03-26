@@ -23,7 +23,6 @@ try {
 
   $out = [];
   foreach ($rows as $r) {
-    // Supabase returns jsonb as string sometimes; handle both
     $details = [];
     if (isset($r["details"])) {
       if (is_array($r["details"])) {
@@ -50,6 +49,8 @@ try {
       "device_type" => $details["device_type"] ?? null,
       "notes" => $details["notes"] ?? null,
       "file_name" => $details["file_name"] ?? null,
+      "file_names" => $details["file_names"] ?? null,
+      "uploaded_files" => $details["uploaded_files"] ?? null,
       "details" => $details,
     ];
   }
