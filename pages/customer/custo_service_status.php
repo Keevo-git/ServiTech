@@ -7,8 +7,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260326a2">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260326a2">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260326a3">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260326a3">
 </head>
 <body class="customer-layout customer-page--status">
 
@@ -64,9 +64,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <textarea id="modalNotes" readonly></textarea>
           </div>
 
-          <div class="status-detail-row modal-status">
-            <span class="status-detail-label">Status</span>
-            <span id="modalStatus" class="status-detail-value"></span>
+          <div class="modal-status">
+            <span class="status-detail-label">Current Status</span>
+            <span id="modalStatus"></span>
           </div>
         </div>
 

@@ -1957,7 +1957,23 @@ body {
   margin: 0;
 }
 .modal-status {
+  display: grid;
+  gap: 10px;
   justify-items: start;
+  padding: 14px 16px;
+  border: 1px solid #ead7bd;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffaf4 0%, #fff4e5 100%);
+}
+.modal-status .status-detail-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a5a24;
+}
+.modal-status .status-detail-label::after {
+  content: "";
 }
 .modal-status #modalStatus {
   justify-self: start;
