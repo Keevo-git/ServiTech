@@ -316,6 +316,9 @@ document.addEventListener("DOMContentLoaded", () => {
       file_analysis: printState && Array.isArray(printState.files)
         ? printState.files
         : null,
+      uploaded_files: printState && Array.isArray(printState.uploaded_files)
+        ? printState.uploaded_files
+        : null,
     };
   }
 
@@ -387,10 +390,6 @@ document.addEventListener("DOMContentLoaded", () => {
         errors.push(printState.error);
       }
 
-      if (hasFiles && (!printState || !Number.isFinite(printState.total_pages) || printState.total_pages < 1)) {
-        errors.push("Unable to compute total pages. Re-upload files and try again.");
-        setFieldInvalid(refs.fileUpload, true);
-      }
     }
 
     return errors;
@@ -422,6 +421,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function cleanupUploadedFiles(uploadedFiles) {
+    if (!Array.isArray(uploadedFiles) || uploadedFiles.length === 0) return;
+
+    const csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
+
+    try {
+      await fetch(servitechUrl("/api/upload_cleanup.php"), {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRF-Token": csrf,
+        },
+        body: JSON.stringify({ uploaded_files: uploadedFiles }),
+      });
+    } catch (err) {
+      console.error("upload cleanup failed", err);
+    } finally {
+      if (typeof window.servitechResetUploadedFiles === "function") {
+        window.servitechResetUploadedFiles();
+      }
+    }
+  }
+
   joinBtn.addEventListener("click", async (e) => {
     e.preventDefault();
     if (joinBtn.disabled) return;
@@ -442,8 +467,20 @@ document.addEventListener("DOMContentLoaded", () => {
     setFeedback("Submitting your queue request...", "success");
 
     try {
+      if (typeof window.servitechBeforeQueueSubmit === "function") {
+        const preSubmit = await window.servitechBeforeQueueSubmit();
+        if (!preSubmit || preSubmit.ok === false) {
+          setFeedback((preSubmit && preSubmit.error) ? preSubmit.error : "File upload failed.", "error");
+          return;
+        }
+        if (preSubmit.payload && typeof preSubmit.payload === "object") {
+          Object.assign(payload, preSubmit.payload);
+        }
+      }
+
       const result = await createQueue(payload);
       if (!result.ok) {
+        await cleanupUploadedFiles(payload.uploaded_files);
         setFeedback("Queue not saved: " + (result.error || "Unknown error"), "error");
         return;
       }

@@ -48,6 +48,7 @@ $details = [
   "price_per_page" => isset($data["price_per_page"]) ? max(0, (float)$data["price_per_page"]) : null,
   "estimated_total" => isset($data["estimated_total"]) ? max(0, (float)$data["estimated_total"]) : null,
   "file_analysis" => isset($data["file_analysis"]) && is_array($data["file_analysis"]) ? $data["file_analysis"] : null,
+  "uploaded_files" => isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : null,
 ];
 
 foreach ($details as $k => $v) {

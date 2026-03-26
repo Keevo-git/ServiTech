@@ -24,11 +24,8 @@
   function debounce(fn, wait) {
     var t = null;
     return function () {
-      var args = arguments;
       clearTimeout(t);
-      t = setTimeout(function () {
-        fn.apply(null, args);
-      }, wait);
+      t = setTimeout(fn, wait);
     };
   }
 
@@ -37,6 +34,9 @@
     if (!body || body.dataset.service !== "printing") return;
 
     var fileUpload = document.getElementById("fileUpload");
+    var fileListEl = document.getElementById("fileAnalysisList");
+    var fileMetaEl = document.getElementById("fileAnalysisMeta");
+    var feedbackEl = document.getElementById("formFeedback");
     var qtyInput = document.getElementById("qtyInput");
     var paperSizeSelect = document.getElementById("paperSizeSelect");
     var summaryPaperSize = document.getElementById("summaryPaperSize");
@@ -44,24 +44,42 @@
     var summaryTotalPages = document.getElementById("summaryTotalPages");
     var summaryPricePerPage = document.getElementById("summaryPricePerPage");
     var summaryTotal = document.getElementById("summaryTotal");
-    var fileAnalysisList = document.getElementById("fileAnalysisList");
-    var fileAnalysisMeta = document.getElementById("fileAnalysisMeta");
-    var feedbackEl = document.getElementById("formFeedback");
 
-    if (!fileUpload || !qtyInput || !paperSizeSelect || !fileAnalysisList || !fileAnalysisMeta) return;
+    if (!fileUpload || !fileListEl || !fileMetaEl || !qtyInput || !paperSizeSelect) return;
+
+    var ALLOWED_EXT = {
+      pdf: true,
+      doc: true,
+      docx: true,
+      ppt: true,
+      pptx: true,
+      jpg: true,
+      jpeg: true,
+      png: true,
+    };
+    var MAX_FILE_SIZE = 20 * 1024 * 1024;
+
+    var selectedFiles = [];
+    var uploadedSignature = "";
 
     var state = {
       files: [],
+      uploaded_files: [],
       total_files: 0,
       total_images: 0,
       total_pages: 0,
       price_per_page: 0,
       estimated_total: 0,
       error: "",
-      has_analysis: false,
     };
 
     window.servitechPrintingState = state;
+
+    function getExt(filename) {
+      var dot = filename.lastIndexOf(".");
+      if (dot < 0) return "";
+      return filename.slice(dot + 1).toLowerCase();
+    }
 
     function getSelectedColor() {
       var checked = document.querySelector('input[name="color"]:checked');
@@ -74,6 +92,18 @@
       return qty;
     }
 
+    function fileKey(file) {
+      return [
+        (file.name || "").toLowerCase(),
+        String(file.size || 0),
+        String(file.lastModified || 0),
+      ].join("|");
+    }
+
+    function currentSignature() {
+      return selectedFiles.map(fileKey).sort().join("::");
+    }
+
     function setFeedback(message, tone) {
       if (!feedbackEl) return;
       feedbackEl.textContent = message || "";
@@ -83,8 +113,16 @@
       }
     }
 
+    function syncFileInput() {
+      var dt = new DataTransfer();
+      selectedFiles.forEach(function (f) {
+        dt.items.add(f);
+      });
+      fileUpload.files = dt.files;
+    }
+
     function renderSummary() {
-      var size = paperSizeSelect.value;
+      var size = paperSizeSelect.value || "";
       if (summaryPaperSize) {
         summaryPaperSize.textContent = size && size !== "Select paper size" ? size : "Not Selected";
       }
@@ -94,34 +132,238 @@
       if (summaryTotal) summaryTotal.textContent = toPeso(state.estimated_total || 0);
     }
 
-    function renderFileList() {
-      fileAnalysisList.innerHTML = "";
+    function renderList() {
+      fileListEl.innerHTML = "";
 
-      if (!state.files.length) {
-        fileAnalysisMeta.textContent = "No files uploaded yet.";
+      if (!selectedFiles.length) {
+        fileMetaEl.textContent = "No files uploaded yet.";
         return;
       }
 
-      state.files.forEach(function (f) {
+      state.files.forEach(function (fileInfo, index) {
+        var sourceFile = selectedFiles[index];
         var li = document.createElement("li");
-        var type = (f.file_type || "").toUpperCase();
-        if (typeof f.slide_count !== "undefined") {
-          li.textContent = f.file_name + " (" + type + "): " + f.slide_count + " slide(s)";
-        } else {
-          li.textContent = f.file_name + " (" + type + "): " + (f.page_count || 0) + " page(s)";
+        var ext = (fileInfo.file_type || (sourceFile ? getExt(sourceFile.name) : "")).toUpperCase() || "FILE";
+        var label = fileInfo.file_name || (sourceFile ? sourceFile.name : "File");
+        var countLabel = "";
+
+        if (typeof fileInfo.slide_count !== "undefined") {
+          countLabel = " - " + fileInfo.slide_count + " slide(s)";
+        } else if (typeof fileInfo.page_count !== "undefined") {
+          countLabel = " - " + fileInfo.page_count + " page(s)";
         }
-        fileAnalysisList.appendChild(li);
+
+        var info = document.createElement("span");
+        info.textContent = label + " (" + ext + ")" + countLabel + " ";
+
+        var removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "X";
+        removeBtn.setAttribute("aria-label", "Remove " + label);
+        removeBtn.dataset.fileKey = sourceFile ? fileKey(sourceFile) : label + "|" + index;
+
+        li.appendChild(info);
+        li.appendChild(removeBtn);
+        fileListEl.appendChild(li);
       });
 
-      fileAnalysisMeta.textContent =
-        "Files: " + state.total_files +
-        " | Images: " + state.total_images +
+      fileMetaEl.textContent =
+        selectedFiles.length + (selectedFiles.length === 1 ? " file selected" : " files selected") +
         " | Total Pages: " + state.total_pages;
     }
 
-    async function callAnalyzer(formData) {
+    function resetAnalysis(keepFeedback) {
+      state.files = selectedFiles.map(function (file) {
+        return {
+          file_name: file.name,
+          file_type: getExt(file.name),
+        };
+      });
+      state.total_files = selectedFiles.length;
+      state.total_images = 0;
+      state.total_pages = 0;
+      state.price_per_page = 0;
+      state.estimated_total = 0;
+      if (!keepFeedback) {
+        state.error = "";
+        setFeedback("", "error");
+      }
+      if (!selectedFiles.length) {
+        state.uploaded_files = [];
+      }
+      renderList();
+      renderSummary();
+    }
+
+    async function analyzeSelectedFiles() {
+      resetAnalysis(true);
+
+      if (!selectedFiles.length) {
+        state.error = "";
+        setFeedback("", "error");
+        return;
+      }
+
+      var formData = new FormData();
+      formData.append("paper_size", paperSizeSelect.value || "");
+      formData.append("color_option", getSelectedColor());
+      formData.append("quantity", String(getQuantity()));
+      selectedFiles.forEach(function (file) {
+        formData.append("files[]", file, file.name);
+      });
+
       var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
-      var res = await fetch(servitechUrl("/api/printing_analyze.php"), {
+
+      try {
+        var res = await fetch(servitechUrl("/api/printing_analyze.php"), {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-Token": csrf,
+          },
+          body: formData,
+        });
+
+        var raw = await res.text();
+        var data = null;
+        try {
+          data = JSON.parse(raw);
+        } catch (parseErr) {
+          data = { ok: false, error: "Server returned invalid response." };
+        }
+
+        if (!data.ok) {
+          state.error = data.error || "Unable to analyze files.";
+          state.files = Array.isArray(data.files) && data.files.length ? data.files : state.files;
+          state.total_files = Number.isFinite(Number(data.total_files)) ? Number(data.total_files) : selectedFiles.length;
+          state.total_images = Number.isFinite(Number(data.total_images)) ? Number(data.total_images) : 0;
+          state.total_pages = Number.isFinite(Number(data.total_pages)) ? Number(data.total_pages) : 0;
+          state.price_per_page = 0;
+          state.estimated_total = 0;
+          renderList();
+          renderSummary();
+          setFeedback(state.error, "error");
+          return;
+        }
+
+        state.error = "";
+        state.files = Array.isArray(data.files) ? data.files : state.files;
+        state.total_files = Number(data.total_files) || selectedFiles.length;
+        state.total_images = Number(data.total_images) || 0;
+        state.total_pages = Number(data.total_pages) || 0;
+        state.price_per_page = Number(data.price_per_page) || 0;
+        state.estimated_total = Number(data.estimated_total) || 0;
+        renderList();
+        renderSummary();
+        setFeedback("", "error");
+      } catch (err) {
+        state.error = "Network/server error while analyzing files.";
+        state.price_per_page = 0;
+        state.estimated_total = 0;
+        renderSummary();
+        setFeedback(state.error, "error");
+      }
+    }
+
+    function addFiles(incoming) {
+      var errors = [];
+      var existing = {};
+      selectedFiles.forEach(function (f) {
+        existing[fileKey(f)] = true;
+      });
+
+      Array.from(incoming || []).forEach(function (file) {
+        var ext = getExt(file.name);
+        if (!ALLOWED_EXT[ext]) {
+          errors.push(file.name + " has unsupported file type.");
+          return;
+        }
+
+        if ((file.size || 0) > MAX_FILE_SIZE) {
+          errors.push(file.name + " exceeds 20MB limit.");
+          return;
+        }
+
+        var key = fileKey(file);
+        if (existing[key]) {
+          errors.push(file.name + " is already selected.");
+          return;
+        }
+
+        existing[key] = true;
+        selectedFiles.push(file);
+      });
+
+      uploadedSignature = "";
+      state.uploaded_files = [];
+      syncFileInput();
+
+      if (errors.length) {
+        state.error = errors.join(" ");
+        setFeedback(state.error, "error");
+      } else {
+        state.error = "";
+        setFeedback("", "error");
+      }
+
+      resetAnalysis(true);
+      analyzeSelectedFiles();
+    }
+
+    function removeSelectedByKey(key) {
+      selectedFiles = selectedFiles.filter(function (f) {
+        return fileKey(f) !== key;
+      });
+
+      uploadedSignature = "";
+      state.uploaded_files = [];
+      state.error = "";
+      setFeedback("", "error");
+      syncFileInput();
+      resetAnalysis(true);
+      analyzeSelectedFiles();
+    }
+
+    async function uploadSelectedFiles() {
+      if (!selectedFiles.length) {
+        state.error = "Upload at least one file.";
+        setFeedback(state.error, "error");
+        return { ok: false, error: state.error };
+      }
+
+      if (state.error) {
+        setFeedback(state.error, "error");
+        return { ok: false, error: state.error };
+      }
+
+      var sig = currentSignature();
+      if (sig !== "" && sig === uploadedSignature && state.uploaded_files.length) {
+        return {
+          ok: true,
+          payload: {
+            uploaded_files: state.uploaded_files,
+            file_name: selectedFiles[0] ? selectedFiles[0].name : null,
+            file_names: selectedFiles.map(function (f) { return f.name; }),
+            total_files: state.total_files,
+            total_images: state.total_images,
+            total_pages: state.total_pages,
+            price_per_page: state.price_per_page,
+            estimated_total: state.estimated_total,
+            file_analysis: state.files,
+          },
+        };
+      }
+
+      var fd = new FormData();
+      selectedFiles.forEach(function (file) {
+        fd.append("files[]", file, file.name);
+      });
+
+      var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
+
+      var res = await fetch(servitechUrl("/api/upload_handler.php"), {
         method: "POST",
         credentials: "same-origin",
         headers: {
@@ -129,7 +371,7 @@
           "X-Requested-With": "XMLHttpRequest",
           "X-CSRF-Token": csrf,
         },
-        body: formData,
+        body: fd,
       });
 
       var raw = await res.text();
@@ -137,140 +379,69 @@
       try {
         data = JSON.parse(raw);
       } catch (err) {
-        data = { ok: false, error: "Server returned invalid response." };
-      }
-      return data;
-    }
-
-    function resetState(msg) {
-      state.files = [];
-      state.total_files = 0;
-      state.total_images = 0;
-      state.total_pages = 0;
-      state.price_per_page = 0;
-      state.estimated_total = 0;
-      state.error = msg || "";
-      state.has_analysis = false;
-      renderFileList();
-      renderSummary();
-    }
-
-    function applySuccess(data, keepFiles) {
-      if (!keepFiles) {
-        state.files = Array.isArray(data.files) ? data.files : [];
-        state.total_files = Number(data.total_files) || 0;
-        state.total_images = Number(data.total_images) || 0;
-        state.total_pages = Number(data.total_pages) || 0;
+        data = { success: false, message: "Server returned invalid response." };
       }
 
-      state.price_per_page = Number(data.price_per_page) || 0;
-      state.estimated_total = Number(data.estimated_total) || 0;
+      if (!data.success) {
+        var errMsg = data.message || "File upload failed.";
+        if (Array.isArray(data.errors) && data.errors.length) {
+          errMsg += " " + data.errors.join(" ");
+        }
+        state.error = errMsg;
+        setFeedback(errMsg, "error");
+        return { ok: false, error: errMsg };
+      }
+
       state.error = "";
-      state.has_analysis = true;
-      renderFileList();
-      renderSummary();
-      setFeedback("", "error");
+      state.uploaded_files = Array.isArray(data.uploaded_files) ? data.uploaded_files : [];
+      uploadedSignature = sig;
+
+      return {
+        ok: true,
+        payload: {
+          uploaded_files: state.uploaded_files,
+          file_name: selectedFiles[0] ? selectedFiles[0].name : null,
+          file_names: selectedFiles.map(function (f) { return f.name; }),
+          total_files: state.total_files,
+          total_images: state.total_images,
+          total_pages: state.total_pages,
+          price_per_page: state.price_per_page,
+          estimated_total: state.estimated_total,
+          file_analysis: state.files,
+        },
+      };
     }
 
-    function applyError(data) {
-      var message = (data && data.error) ? data.error : "Unable to analyze files.";
-      if (data && Array.isArray(data.unsupported_files) && data.unsupported_files.length) {
-        message += " Unsupported: " + data.unsupported_files.join(", ") + ".";
-      }
-
-      if (data && Array.isArray(data.files)) {
-        state.files = data.files;
-      }
-      if (data && Number.isFinite(Number(data.total_files))) {
-        state.total_files = Number(data.total_files);
-      }
-      if (data && Number.isFinite(Number(data.total_images))) {
-        state.total_images = Number(data.total_images);
-      }
-      if (data && Number.isFinite(Number(data.total_pages))) {
-        state.total_pages = Number(data.total_pages);
-        state.has_analysis = state.total_pages > 0;
-      }
-
-      state.error = message;
-      state.price_per_page = 0;
-      state.estimated_total = 0;
-      renderFileList();
-      renderSummary();
-      setFeedback(message, "error");
+    function resetUploadedFilesState() {
+      uploadedSignature = "";
+      state.uploaded_files = [];
     }
 
-    function buildCommonData(fd) {
-      fd.append("paper_size", paperSizeSelect.value || "");
-      fd.append("color_option", getSelectedColor());
-      fd.append("quantity", String(getQuantity()));
-    }
+    var debouncedAnalyze = debounce(analyzeSelectedFiles, 220);
 
-    async function analyzeUploadedFiles() {
-      var files = Array.from(fileUpload.files || []);
-      if (!files.length) {
-        resetState("No files uploaded.");
-        setFeedback("Upload at least one supported file.", "error");
-        return;
-      }
-
-      fileAnalysisMeta.textContent = "Analyzing files...";
-
-      var formData = new FormData();
-      buildCommonData(formData);
-      files.forEach(function (file) {
-        formData.append("files[]", file, file.name);
-      });
-
-      try {
-        var data = await callAnalyzer(formData);
-        if (!data || !data.ok) {
-          applyError(data || {});
-          return;
-        }
-
-        applySuccess(data, false);
-      } catch (err) {
-        applyError({ error: "Network/server error while analyzing files." });
-      }
-    }
-
-    async function refreshPricingOnly() {
-      renderSummary();
-
-      if (!fileUpload.files || !fileUpload.files.length) return;
-      if (!state.has_analysis || state.total_pages < 1) return;
-
-      var formData = new FormData();
-      buildCommonData(formData);
-      formData.append("total_pages", String(state.total_pages));
-      formData.append("total_files", String(state.total_files));
-      formData.append("total_images", String(state.total_images));
-
-      try {
-        var data = await callAnalyzer(formData);
-        if (!data || !data.ok) {
-          applyError(data || {});
-          return;
-        }
-        applySuccess(data, true);
-      } catch (err) {
-        applyError({ error: "Network/server error while updating pricing." });
-      }
-    }
-
-    var debouncedRefresh = debounce(refreshPricingOnly, 220);
-
-    fileUpload.addEventListener("change", analyzeUploadedFiles);
-    qtyInput.addEventListener("input", debouncedRefresh);
-    paperSizeSelect.addEventListener("change", debouncedRefresh);
-
-    document.querySelectorAll('input[name="color"]').forEach(function (radio) {
-      radio.addEventListener("change", debouncedRefresh);
+    fileUpload.addEventListener("change", function (e) {
+      addFiles(e.target.files);
+      fileUpload.value = "";
     });
 
-    renderFileList();
+    fileListEl.addEventListener("click", function (e) {
+      var target = e.target;
+      if (!target || target.tagName !== "BUTTON") return;
+      var key = target.dataset.fileKey || "";
+      if (!key) return;
+      removeSelectedByKey(key);
+    });
+
+    qtyInput.addEventListener("input", debouncedAnalyze);
+    paperSizeSelect.addEventListener("change", debouncedAnalyze);
+    document.querySelectorAll('input[name="color"]').forEach(function (radio) {
+      radio.addEventListener("change", debouncedAnalyze);
+    });
+
+    window.servitechBeforeQueueSubmit = uploadSelectedFiles;
+    window.servitechResetUploadedFiles = resetUploadedFilesState;
+
+    resetAnalysis(true);
     renderSummary();
   });
 })();
-
