@@ -1885,86 +1885,125 @@ body {
 }
 
 .status-modal .modal-title {
-  padding-right: 32px;
+  margin: 0;
+  padding-right: 40px;
   text-align: left;
+  color: #1f2937;
+}
+
+.status-modal .modal-divider {
+  width: 76px;
+  height: 4px;
+  margin: 12px 0 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #c26a0a 0%, #f3c27a 100%);
 }
 
 .status-modal .modal-body {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
+
 .status-detail-row {
   display: grid;
   grid-template-columns: 132px minmax(0, 1fr);
   align-items: start;
-  column-gap: 12px;
+  column-gap: 14px;
   row-gap: 4px;
+  padding: 2px 0;
 }
+
 .status-detail-label {
   font-weight: 700;
   color: #374151;
 }
+
 .status-detail-label::after {
   content: ":";
 }
+
 .status-detail-value {
   min-width: 0;
-  line-height: 1.45;
+  line-height: 1.5;
+  color: #1f2937;
 }
+
 #modalExtra {
   display: grid;
   gap: 12px;
 }
+
+.status-notes {
+  display: grid;
+  gap: 8px;
+  padding-top: 2px;
+}
+
 .status-modal label {
   display: block;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin: 0;
+  color: #374151;
 }
+
 .status-modal textarea {
   width: 100%;
-  min-height: 104px;
-  padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  min-height: 118px;
+  padding: 14px;
+  border: 1px solid #e2cfb3;
+  border-radius: 14px;
   resize: vertical;
-  background: #fff;
+  background: #fffdfa;
+  color: #1f2937;
+  line-height: 1.55;
+  box-shadow: inset 0 1px 2px rgba(36, 18, 15, 0.05);
 }
+
 .file-list {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
+
 .file-entry {
   display: block;
   max-width: 100%;
-  line-height: 1.45;
+  line-height: 1.5;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
 .status-detail-row--files {
   align-items: start;
 }
+
 .status-detail-row--files .file-list {
   padding-top: 1px;
 }
+
 .status-detail-row--files a {
   color: #9a4f08;
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
+
 .modal-price,
 .modal-status {
   margin: 0;
 }
+
 .modal-status {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   justify-items: start;
-  padding: 14px 16px;
+  padding: 16px 18px;
   border: 1px solid #ead7bd;
-  border-radius: 14px;
+  border-radius: 16px;
   background: linear-gradient(180deg, #fffaf4 0%, #fff4e5 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
+
 .modal-status .status-detail-label {
   font-size: 11px;
   font-weight: 800;
@@ -1972,23 +2011,46 @@ body {
   text-transform: uppercase;
   color: #8a5a24;
 }
+
 .modal-status .status-detail-label::after {
   content: "";
 }
+
 .modal-status #modalStatus {
   justify-self: start;
   width: auto;
   max-width: 100%;
 }
+
 #modalStatus {
   display: inline-flex;
   align-items: center;
-  padding: 6px 10px;
+  padding: 7px 12px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
   background: #f59e0b;
   color: #fff;
+  box-shadow: 0 8px 18px rgba(154, 79, 8, 0.18);
+}
+
+.status-modal .modal-close {
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #5b3310;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.status-modal .modal-close:hover {
+  background: rgba(154, 79, 8, 0.08);
+  color: #7c3f06;
+  transform: rotate(90deg);
 }
 
 .modal-back {
@@ -1997,13 +2059,27 @@ body {
   justify-content: center;
   width: 100%;
   margin-top: 18px;
-  padding: 12px 18px;
+  padding: 13px 18px;
   border: none;
   border-radius: 12px;
   background: #24120f;
   color: #fff;
   cursor: pointer;
   text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 14px 28px rgba(36, 18, 15, 0.18);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-back:hover {
+  background: #3a1d17;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(36, 18, 15, 0.22);
+}
+
+.modal-back:active {
+  transform: translateY(0);
 }
 
 body.customer-layout.customer-page--status .status-modal .modal-back {
