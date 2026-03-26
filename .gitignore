@@ -1,0 +1,7 @@
+/.htpasswd
+/node_modules/
+/uploads/*
+!/uploads/.gitignore
+!/uploads/printing/
+/uploads/printing/*
+!/uploads/printing/.gitignore
