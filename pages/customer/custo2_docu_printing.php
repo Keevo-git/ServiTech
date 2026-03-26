@@ -182,7 +182,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260326c3"></script>
+<script src="/assets/js/main.js?v=20260326c4"></script>
 <script src="/assets/js/custo2_docu_printing.js?v=20260326b2"></script>
 </body>
 </html>

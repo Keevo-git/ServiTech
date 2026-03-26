@@ -277,12 +277,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function collectPayload() {
+    const printState = window.servitechPrintingState || null;
     const fileList = refs.fileUpload && refs.fileUpload.files
       ? Array.from(refs.fileUpload.files)
       : [];
-    const fileName = fileList.length ? fileList[0].name : null;
-    const fileNames = fileList.map((f) => f.name);
-    const printState = window.servitechPrintingState || null;
+    const derivedFileNames = fileList.length
+      ? fileList.map((f) => f.name)
+      : (printState && Array.isArray(printState.files)
+          ? printState.files
+              .map((f) => (f && f.file_name ? f.file_name : null))
+              .filter(Boolean)
+          : []);
+    const fileName = derivedFileNames.length ? derivedFileNames[0] : null;
+    const fileNames = derivedFileNames;
 
     return {
       category: (document.body?.dataset?.service || "general").toLowerCase(),
@@ -373,8 +380,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isPrinting = payload.category === "printing";
     if (isPrinting && refs.fileUpload) {
-      const hasFiles = !!(refs.fileUpload.files && refs.fileUpload.files.length);
       const printState = window.servitechPrintingState || null;
+      const stateFileCount = printState
+        ? (Number(printState.total_files) || (Array.isArray(printState.files) ? printState.files.length : 0))
+        : 0;
+      const hasFiles = stateFileCount > 0 || !!(refs.fileUpload.files && refs.fileUpload.files.length);
 
       if (!hasFiles) {
         errors.push("Upload at least one file.");
