@@ -42,7 +42,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <div id="modalExtra"></div>
 
           <p class="file-row">
-            <strong>Attached File:</strong>
+            <strong id="modalFileLabel">Attached File:</strong>
             <span id="modalFile"></span>
           </p>
 
@@ -198,9 +198,19 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return toPeso(directEstimate);
     }
 
-    const totalPages = toNumber(queueData.total_pages ?? details.total_pages);
+    let totalPages = toNumber(queueData.total_pages ?? details.total_pages);
     const pricePerPage = toNumber(queueData.price_per_page ?? details.price_per_page);
     const quantity = Math.max(1, toNumber(queueData.quantity ?? details.quantity) ?? 1);
+    const fileAnalysis = Array.isArray(queueData.file_analysis)
+      ? queueData.file_analysis
+      : (Array.isArray(details.file_analysis) ? details.file_analysis : []);
+
+    if (totalPages === null && fileAnalysis.length) {
+      totalPages = fileAnalysis.reduce((sum, file) => {
+        const pages = toNumber(file.page_count ?? file.slide_count) ?? 0;
+        return sum + pages;
+      }, 0);
+    }
 
     if (totalPages !== null && pricePerPage !== null && pricePerPage > 0) {
       return toPeso(totalPages * pricePerPage * quantity);
@@ -285,40 +295,73 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function renderAttachedFiles(queueData){
     const fileEl = document.getElementById("modalFile");
+    const fileLabelEl = document.getElementById("modalFileLabel");
     const uploadedFiles = Array.isArray(queueData.uploaded_files) ? queueData.uploaded_files : [];
+    const fileNames = Array.isArray(queueData.file_names)
+      ? queueData.file_names
+      : (Array.isArray(queueData.details?.file_names) ? queueData.details.file_names : []);
+    const fileAnalysis = Array.isArray(queueData.file_analysis)
+      ? queueData.file_analysis
+      : (Array.isArray(queueData.details?.file_analysis) ? queueData.details.file_analysis : []);
 
     fileEl.innerHTML = "";
 
-    if (uploadedFiles.length) {
-      uploadedFiles.forEach((file, index) => {
+    function appendEntry(label, href){
+      if (!label) return;
+      if (fileEl.childNodes.length) {
+        fileEl.appendChild(document.createElement("br"));
+      }
+
+      if (href) {
         const link = document.createElement("a");
-        const href = resolveFileHref(file.saved_path || file.file_path || "");
-        link.href = href || "#";
+        link.href = href;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.textContent = file.original_name || file.saved_path || `File ${index + 1}`;
-        if (!href) link.removeAttribute("href");
+        link.textContent = label;
         fileEl.appendChild(link);
+        return;
+      }
 
-        if (index < uploadedFiles.length - 1) {
-          fileEl.appendChild(document.createElement("br"));
-        }
+      const textNode = document.createElement("span");
+      textNode.textContent = label;
+      fileEl.appendChild(textNode);
+    }
+
+    if (uploadedFiles.length) {
+      uploadedFiles.forEach((file, index) => {
+        const href = resolveFileHref(file.saved_path || file.file_path || "");
+        appendEntry(file.original_name || file.saved_path || `File ${index + 1}`, href);
       });
+      if (fileLabelEl) fileLabelEl.textContent = uploadedFiles.length > 1 ? "Attached Files:" : "Attached File:";
       return;
+    }
+
+    if (fileNames.length) {
+      fileNames.forEach((name) => appendEntry(name, resolveFileHref(name)));
+      if (fileLabelEl) fileLabelEl.textContent = fileNames.length > 1 ? "Attached Files:" : "Attached File:";
+      return;
+    }
+
+    if (fileAnalysis.length) {
+      const derivedNames = fileAnalysis
+        .map((file) => (file && file.file_name ? String(file.file_name).trim() : ""))
+        .filter(Boolean);
+      if (derivedNames.length) {
+        derivedNames.forEach((name) => appendEntry(name, resolveFileHref(name)));
+        if (fileLabelEl) fileLabelEl.textContent = derivedNames.length > 1 ? "Attached Files:" : "Attached File:";
+        return;
+      }
     }
 
     const fallbackHref = resolveFileHref(queueData.saved_path || queueData.file_path || queueData.file_name || "");
-    if (fallbackHref && queueData.file_name) {
-      const link = document.createElement("a");
-      link.href = fallbackHref;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = queueData.file_name;
-      fileEl.appendChild(link);
+    if (queueData.file_name) {
+      appendEntry(queueData.file_name, fallbackHref || "");
+      if (fileLabelEl) fileLabelEl.textContent = "Attached File:";
       return;
     }
 
-    fileEl.textContent = queueData.file_name || "-";
+    if (fileLabelEl) fileLabelEl.textContent = "Attached File:";
+    fileEl.textContent = "-";
   }
 
   function openDetail(card){

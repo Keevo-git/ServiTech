@@ -50,9 +50,12 @@ try {
       "notes" => $details["notes"] ?? null,
       "file_name" => $details["file_name"] ?? null,
       "file_names" => $details["file_names"] ?? null,
+      "total_files" => $details["total_files"] ?? null,
+      "total_images" => $details["total_images"] ?? null,
       "total_pages" => $details["total_pages"] ?? null,
       "price_per_page" => $details["price_per_page"] ?? null,
       "estimated_total" => $details["estimated_total"] ?? null,
+      "file_analysis" => $details["file_analysis"] ?? null,
       "uploaded_files" => $details["uploaded_files"] ?? null,
       "details" => $details,
     ];
