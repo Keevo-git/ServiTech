@@ -239,6 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
       refs.repairServiceSelect,
       refs.deviceTypeSelect,
       refs.installationTypeSelect,
+      refs.fileUpload,
     ].forEach((el) => setFieldInvalid(el, false));
     setRadioInvalid("color", false);
     setFeedback("", "error");
@@ -276,9 +277,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function collectPayload() {
-    const fileName = refs.fileUpload && refs.fileUpload.files && refs.fileUpload.files[0]
-      ? refs.fileUpload.files[0].name
-      : null;
+    const fileList = refs.fileUpload && refs.fileUpload.files
+      ? Array.from(refs.fileUpload.files)
+      : [];
+    const fileName = fileList.length ? fileList[0].name : null;
+    const fileNames = fileList.map((f) => f.name);
+    const printState = window.servitechPrintingState || null;
 
     return {
       category: (document.body?.dataset?.service || "general").toLowerCase(),
@@ -293,6 +297,25 @@ document.addEventListener("DOMContentLoaded", () => {
       device_type: refs.deviceTypeSelect ? refs.deviceTypeSelect.value : null,
       notes: refs.notesEl ? refs.notesEl.value : null,
       file_name: fileName,
+      file_names: fileNames.length ? fileNames : null,
+      total_files: printState && Number.isFinite(printState.total_files)
+        ? Number(printState.total_files)
+        : null,
+      total_images: printState && Number.isFinite(printState.total_images)
+        ? Number(printState.total_images)
+        : null,
+      total_pages: printState && Number.isFinite(printState.total_pages)
+        ? Number(printState.total_pages)
+        : null,
+      price_per_page: printState && Number.isFinite(printState.price_per_page)
+        ? Number(printState.price_per_page)
+        : null,
+      estimated_total: printState && Number.isFinite(printState.estimated_total)
+        ? Number(printState.estimated_total)
+        : null,
+      file_analysis: printState && Array.isArray(printState.files)
+        ? printState.files
+        : null,
     };
   }
 
@@ -342,6 +365,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (hasColorOptions && !payload.color_option) {
       errors.push("Select a color option.");
       setRadioInvalid("color", true);
+    }
+
+
+    const isPrinting = payload.category === "printing";
+    if (isPrinting && refs.fileUpload) {
+      const hasFiles = !!(refs.fileUpload.files && refs.fileUpload.files.length);
+      const printState = window.servitechPrintingState || null;
+
+      if (!hasFiles) {
+        errors.push("Upload at least one file.");
+        setFieldInvalid(refs.fileUpload, true);
+      }
+
+      if (payload.paper_size === "A3") {
+        errors.push("Not Available: A3 printing is not available.");
+        setFieldInvalid(refs.paperSizeSelect, true);
+      }
+
+      if (printState && printState.error) {
+        errors.push(printState.error);
+      }
+
+      if (hasFiles && (!printState || !Number.isFinite(printState.total_pages) || printState.total_pages < 1)) {
+        errors.push("Unable to compute total pages. Re-upload files and try again.");
+        setFieldInvalid(refs.fileUpload, true);
+      }
     }
 
     return errors;

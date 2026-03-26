@@ -50,9 +50,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <label>Color Option<span class="required">*</span></label>
             <div class="radio-group">
               <label><input type="radio" name="color" value="Black & White"> Black & White</label>
-              <label><input type="radio" name="color" value="Colored - Full"> Colored (Full)</label>
-              <label><input type="radio" name="color" value="Colored - Half"> Colored (Half)</label>
-              <label><input type="radio" name="color" value="Colored - N/A"> Colored (N/A)</label>
+              <label><input type="radio" name="color" value="Colored Full"> Colored (Full)</label>
+              <label><input type="radio" name="color" value="Colored Half"> Colored (Half)</label>
             </div>
           </div>
         </div>
@@ -62,9 +61,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <h3 class="step-title">3. UPLOAD FILES</h3>
 
         <label for="fileUpload">Upload your document</label>
-        <input type="file" id="fileUpload" class="form-file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+        <input type="file" id="fileUpload" class="form-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" multiple>
 
-        <p class="file-note">Accepted formats: PDF, DOC, DOCX, JPG, PNG</p>
+        <p class="file-note">Accepted formats: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG</p>
+
+        <div class="file-note" id="fileAnalysisPanel">
+          <strong>Uploaded Files</strong>
+          <ul id="fileAnalysisList"></ul>
+          <p id="fileAnalysisMeta">No files uploaded yet.</p>
+        </div>
       </div>
     </div>
 
@@ -86,11 +91,21 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <strong id="summaryQty">1</strong>
       </div>
 
+      <div class="summary-row">
+        <span>TOTAL PAGES:</span>
+        <strong id="summaryTotalPages">0</strong>
+      </div>
+
+      <div class="summary-row">
+        <span>PRICE / PAGE:</span>
+        <strong id="summaryPricePerPage">&#8369;0.00</strong>
+      </div>
+
       <div class="summary-divider"></div>
 
       <div class="summary-total">
         <span>Estimated Total:</span>
-        <strong id="summaryTotal">&#8369;05.00</strong>
+        <strong id="summaryTotal">&#8369;0.00</strong>
       </div>
     </aside>
 
@@ -108,8 +123,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/main.js"></script>
+<script src="/assets/js/custo2_docu_printing.js"></script>
 </body>
 </html>
-
-
-

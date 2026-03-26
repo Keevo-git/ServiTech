@@ -41,6 +41,13 @@ $details = [
   "device_type" => $data["device_type"] ?? null,
   "notes" => $data["notes"] ?? null,
   "file_name" => $data["file_name"] ?? null,
+  "file_names" => isset($data["file_names"]) && is_array($data["file_names"]) ? $data["file_names"] : null,
+  "total_files" => isset($data["total_files"]) ? max(0, (int)$data["total_files"]) : null,
+  "total_images" => isset($data["total_images"]) ? max(0, (int)$data["total_images"]) : null,
+  "total_pages" => isset($data["total_pages"]) ? max(0, (int)$data["total_pages"]) : null,
+  "price_per_page" => isset($data["price_per_page"]) ? max(0, (float)$data["price_per_page"]) : null,
+  "estimated_total" => isset($data["estimated_total"]) ? max(0, (float)$data["estimated_total"]) : null,
+  "file_analysis" => isset($data["file_analysis"]) && is_array($data["file_analysis"]) ? $data["file_analysis"] : null,
 ];
 
 foreach ($details as $k => $v) {
