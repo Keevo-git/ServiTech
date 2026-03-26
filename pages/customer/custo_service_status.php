@@ -115,6 +115,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return "";
   }
 
+  function formatLabel(value){
+    return (value || "")
+      .toString()
+      .trim()
+      .replace(/[_-]+/g, " ")
+      .toLowerCase()
+      .replace(/(^|\s)\S/g, (match) => match.toUpperCase());
+  }
+
   function badgeTone(status){
     const s = (status || "PENDING").toUpperCase();
     if (s.includes("ONGOING")) return "ongoing";
@@ -162,7 +171,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       <hr class="queue-card__divider">
       <p class="queue-card__meta">
         <strong>${esc(q.service_label || "Service")}</strong>
-        <small>${esc(q.category || "")}</small>
+        <small>${esc(formatLabel(q.category || ""))}</small>
       </p>
     `;
 
@@ -303,6 +312,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const fileAnalysis = Array.isArray(queueData.file_analysis)
       ? queueData.file_analysis
       : (Array.isArray(queueData.details?.file_analysis) ? queueData.details.file_analysis : []);
+    const derivedNames = fileAnalysis
+      .map((file) => (file && file.file_name ? String(file.file_name).trim() : ""))
+      .filter(Boolean);
 
     fileEl.innerHTML = "";
 
@@ -329,7 +341,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (uploadedFiles.length) {
       uploadedFiles.forEach((file, index) => {
         const href = resolveFileHref(file.saved_path || file.file_path || "");
-        appendEntry(file.original_name || file.saved_path || `File ${index + 1}`, href);
+        const label = file.original_name || fileNames[index] || derivedNames[index] || file.saved_path || `File ${index + 1}`;
+        appendEntry(label, href);
       });
       if (fileLabelEl) fileLabelEl.textContent = uploadedFiles.length > 1 ? "Attached Files:" : "Attached File:";
       return;
@@ -341,15 +354,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return;
     }
 
-    if (fileAnalysis.length) {
-      const derivedNames = fileAnalysis
-        .map((file) => (file && file.file_name ? String(file.file_name).trim() : ""))
-        .filter(Boolean);
-      if (derivedNames.length) {
-        derivedNames.forEach((name) => appendEntry(name, resolveFileHref(name)));
-        if (fileLabelEl) fileLabelEl.textContent = derivedNames.length > 1 ? "Attached Files:" : "Attached File:";
-        return;
-      }
+    if (derivedNames.length) {
+      derivedNames.forEach((name) => appendEntry(name, resolveFileHref(name)));
+      if (fileLabelEl) fileLabelEl.textContent = derivedNames.length > 1 ? "Attached Files:" : "Attached File:";
+      return;
     }
 
     const fallbackHref = resolveFileHref(queueData.saved_path || queueData.file_path || queueData.file_name || "");
@@ -367,7 +375,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const queueData = card.queueData || {};
 
     document.getElementById("modalQueue").textContent = card.dataset.queue || "";
-    document.getElementById("modalType").textContent = card.dataset.type || "";
+    document.getElementById("modalType").textContent = formatLabel(card.dataset.type || "");
     document.getElementById("modalService").textContent = card.dataset.service || "";
     document.getElementById("modalNotes").value = card.dataset.notes || "";
     document.getElementById("modalPrice").textContent = getQueuePriceLabel(queueData);

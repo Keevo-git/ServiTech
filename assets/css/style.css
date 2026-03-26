@@ -1911,19 +1911,28 @@ body {
 }
 
 .file-row {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: nowrap;
   margin: 0;
+}
+
+.file-row strong {
+  flex: 0 0 auto;
 }
 
 .file-list {
   display: grid;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
+  padding-top: 1px;
 }
 
 .file-entry {
+  display: block;
   max-width: 100%;
+  line-height: 1.35;
   word-break: break-word;
 }
 
