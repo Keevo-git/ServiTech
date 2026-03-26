@@ -7,8 +7,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260315h9">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h15">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260326a1">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260326a1">
 </head>
 <body class="customer-layout customer-page--status">
 
@@ -37,28 +37,36 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <div class="modal-divider"></div>
 
         <div class="modal-body">
-          <p><strong>Category:</strong> <span id="modalType"></span></p>
-          <p><strong>Service:</strong> <span id="modalService"></span></p>
-          <div id="modalExtra"></div>
-
-          <div class="file-row">
-            <strong id="modalFileLabel">Attached File:</strong>
-            <div id="modalFile" class="file-list"></div>
+          <div class="status-detail-row">
+            <span class="status-detail-label">Category</span>
+            <span id="modalType" class="status-detail-value"></span>
           </div>
 
-          <p class="modal-price">
-            <strong>Price:</strong>
-            <span id="modalPrice">To be assessed</span>
-          </p>
+          <div class="status-detail-row">
+            <span class="status-detail-label">Service</span>
+            <span id="modalService" class="status-detail-value"></span>
+          </div>
+
+          <div id="modalExtra"></div>
+
+          <div class="status-detail-row status-detail-row--files">
+            <span id="modalFileLabel" class="status-detail-label">Attached File</span>
+            <div id="modalFile" class="status-detail-value file-list"></div>
+          </div>
+
+          <div class="status-detail-row modal-price">
+            <span class="status-detail-label">Price</span>
+            <span id="modalPrice" class="status-detail-value">To be assessed</span>
+          </div>
 
           <div>
             <label for="modalNotes">Notes</label>
             <textarea id="modalNotes" readonly></textarea>
           </div>
 
-          <div class="modal-status">
-            <strong>Status:</strong>
-            <span id="modalStatus"></span>
+          <div class="status-detail-row modal-status">
+            <span class="status-detail-label">Status</span>
+            <span id="modalStatus" class="status-detail-value"></span>
           </div>
         </div>
 
@@ -371,6 +379,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     fileEl.textContent = "-";
   }
 
+  function buildDetailRow(label, value){
+    if (!value) return "";
+    return `
+      <div class="status-detail-row">
+        <span class="status-detail-label">${esc(label)}</span>
+        <span class="status-detail-value">${esc(value)}</span>
+      </div>
+    `;
+  }
+
   function openDetail(card){
     const queueData = card.queueData || {};
 
@@ -388,15 +406,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     statusEl.className = "modal-status-pill modal-status-pill--" + tone;
 
     const extra = document.getElementById("modalExtra");
-    extra.innerHTML = "";
-
-    if (card.dataset.paper) extra.innerHTML += `<div><strong>Paper Size:</strong> ${esc(card.dataset.paper)}</div>`;
-    if (card.dataset.qty) extra.innerHTML += `<div><strong>Quantity:</strong> ${esc(card.dataset.qty)}</div>`;
-    if (card.dataset.color) extra.innerHTML += `<div><strong>Color:</strong> ${esc(card.dataset.color)}</div>`;
-    if (card.dataset.pkg) extra.innerHTML += `<div><strong>Package:</strong> ${esc(card.dataset.pkg)}</div>`;
-    if (card.dataset.lam) extra.innerHTML += `<div><strong>Lamination:</strong> ${esc(card.dataset.lam)}</div>`;
-    if (card.dataset.device) extra.innerHTML += `<div><strong>Device:</strong> ${esc(card.dataset.device)}</div>`;
-
+    extra.innerHTML = [
+      buildDetailRow("Paper Size", card.dataset.paper),
+      buildDetailRow("Quantity", card.dataset.qty),
+      buildDetailRow("Color", card.dataset.color),
+      buildDetailRow("Package", card.dataset.pkg),
+      buildDetailRow("Lamination", card.dataset.lam),
+      buildDetailRow("Device", card.dataset.device)
+    ].join("");
     lastFocused = document.activeElement;
     detailModal.style.display = "flex";
     document.body.classList.add("modal-open");
@@ -480,3 +497,4 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 </body>
 </html>
+
