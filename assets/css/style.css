@@ -1911,22 +1911,33 @@ body {
 }
 
 .file-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.file-list {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.file-entry {
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .file-row a {
   color: #9a4f08;
   text-decoration: underline;
-  word-break: break-word;
 }
 
 .modal-price {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
   flex-wrap: wrap;
+  margin: 0;
 }
 
 .modal-status {

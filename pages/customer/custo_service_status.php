@@ -41,10 +41,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <p><strong>Service:</strong> <span id="modalService"></span></p>
           <div id="modalExtra"></div>
 
-          <p class="file-row">
+          <div class="file-row">
             <strong id="modalFileLabel">Attached File:</strong>
-            <span id="modalFile"></span>
-          </p>
+            <div id="modalFile" class="file-list"></div>
+          </div>
 
           <p class="modal-price">
             <strong>Price:</strong>
@@ -308,9 +308,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     function appendEntry(label, href){
       if (!label) return;
-      if (fileEl.childNodes.length) {
-        fileEl.appendChild(document.createElement("br"));
-      }
 
       if (href) {
         const link = document.createElement("a");
@@ -318,12 +315,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         link.textContent = label;
+        link.className = "file-entry";
         fileEl.appendChild(link);
         return;
       }
 
       const textNode = document.createElement("span");
       textNode.textContent = label;
+      textNode.className = "file-entry";
       fileEl.appendChild(textNode);
     }
 
