@@ -9,6 +9,43 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <title>ServiTech: Document Printing</title>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260315h9">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h15">
+  <style>
+    #fileAnalysisList {
+      list-style: none;
+      margin: 0.75rem 0 0;
+      padding: 0;
+    }
+
+    #fileAnalysisList li {
+      align-items: center;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    #fileAnalysisList li span {
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+    }
+
+    #fileAnalysisList button {
+      background: #fff7ed;
+      border: 1px solid #f08a00;
+      border-radius: 999px;
+      color: #d9480f;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.3rem 0.75rem;
+    }
+
+    #fileAnalysisList button:hover {
+      background: #ffedd5;
+    }
+  </style>
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing">
 
@@ -127,4 +164,5 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <script src="/assets/js/custo2_docu_printing.js"></script>
 </body>
 </html>
+
 

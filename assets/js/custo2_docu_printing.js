@@ -158,7 +158,7 @@
 
         var removeBtn = document.createElement("button");
         removeBtn.type = "button";
-        removeBtn.textContent = "X";
+        removeBtn.textContent = "Remove";
         removeBtn.setAttribute("aria-label", "Remove " + label);
         removeBtn.dataset.fileKey = sourceFile ? fileKey(sourceFile) : label + "|" + index;
 
@@ -445,3 +445,4 @@
     renderSummary();
   });
 })();
+
