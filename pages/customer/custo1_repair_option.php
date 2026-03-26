@@ -70,7 +70,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js"></script>
+<script src="/assets/js/main.js?v=20260326c3"></script>
 
 </body>
 </html>
