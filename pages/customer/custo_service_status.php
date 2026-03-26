@@ -46,6 +46,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <span id="modalFile"></span>
           </p>
 
+          <p class="modal-price">
+            <strong>Price:</strong>
+            <span id="modalPrice">To be assessed</span>
+          </p>
+
           <div>
             <label for="modalNotes">Notes</label>
             <textarea id="modalNotes" readonly></textarea>
@@ -90,6 +95,24 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return (s ?? "").toString().replace(/[&<>"']/g, c => ({
       "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
     }[c]));
+  }
+
+  function toNumber(value){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function toPeso(value){
+    const n = toNumber(value);
+    return `\u20B1${(n ?? 0).toFixed(2)}`;
+  }
+
+  function resolveFileHref(path){
+    const raw = (path || "").toString().trim();
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith("/")) return servitechUrl(raw);
+    return "";
   }
 
   function badgeTone(status){
@@ -146,6 +169,81 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return div;
   }
 
+  function getInstallationPriceLabel(serviceLabel){
+    const normalized = (serviceLabel || "").toString().trim().toLowerCase();
+    if (!normalized) return "";
+
+    const ranges = [
+      ["reprogram service", [1000, 4000]],
+      ["hang logo fix service", [1000, 3500]],
+      ["boot loop fix service", [1000, 5000]],
+      ["openline samsung & iphone", [3500, 6000]],
+      ["bypass google account", [500, 2000]],
+      ["bypass password", [1000, 3000]],
+    ];
+
+    const match = ranges.find(([label]) => normalized.includes(label));
+    if (!match) return "";
+
+    return `${toPeso(match[1][0])} - ${toPeso(match[1][1])}`;
+  }
+
+  function getQueuePriceLabel(queueData){
+    const details = queueData && typeof queueData.details === "object" && queueData.details
+      ? queueData.details
+      : {};
+
+    const directEstimate = toNumber(queueData.estimated_total ?? details.estimated_total);
+    if (directEstimate !== null && directEstimate > 0) {
+      return toPeso(directEstimate);
+    }
+
+    const totalPages = toNumber(queueData.total_pages ?? details.total_pages);
+    const pricePerPage = toNumber(queueData.price_per_page ?? details.price_per_page);
+    const quantity = Math.max(1, toNumber(queueData.quantity ?? details.quantity) ?? 1);
+
+    if (totalPages !== null && pricePerPage !== null && pricePerPage > 0) {
+      return toPeso(totalPages * pricePerPage * quantity);
+    }
+
+    const serviceLabel = (queueData.service_label || details.service_label || "").toString();
+    const serviceLower = serviceLabel.toLowerCase();
+    const packageLabel = (queueData.package_label || details.package_label || "").toString();
+    const paperSize = (queueData.paper_size || details.paper_size || "").toString();
+    const laminationType = (queueData.lamination_type || details.lamination_type || "").toString().toLowerCase();
+    const xeroxPriceMap = {
+      "Long Bond (8.5 x 13)": 5,
+      "Short Bond (8.5 x 11)": 3,
+      "A4": 3,
+      "A3": 5,
+    };
+
+    if (serviceLower.includes("xerox") && xeroxPriceMap[paperSize]) {
+      return toPeso(xeroxPriceMap[paperSize] * quantity);
+    }
+
+    if (serviceLower.includes("laminating")) {
+      const laminationPrice = laminationType === "thin" ? 20 : laminationType === "thick" ? 30 : null;
+      if (laminationPrice !== null) {
+        return toPeso(laminationPrice * quantity);
+      }
+    }
+
+    if (serviceLower.includes("rush id") || packageLabel) {
+      const match = packageLabel.match(/(?:\u20B1|PHP\s*)([0-9]+(?:\.[0-9]{1,2})?)/i);
+      if (match) {
+        return toPeso(Number(match[1]) * quantity);
+      }
+    }
+
+    const installationRange = getInstallationPriceLabel(serviceLabel);
+    if (installationRange) {
+      return installationRange;
+    }
+
+    return "To be assessed";
+  }
+
   function trapModalFocus(e){
     if (!statusModal || e.key !== "Tab") return;
     const focusables = statusModal.querySelectorAll('button, [href], textarea, input, select, [tabindex]:not([tabindex="-1"])');
@@ -194,16 +292,29 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (uploadedFiles.length) {
       uploadedFiles.forEach((file, index) => {
         const link = document.createElement("a");
-        link.href = servitechUrl(file.saved_path || "#");
+        const href = resolveFileHref(file.saved_path || file.file_path || "");
+        link.href = href || "#";
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         link.textContent = file.original_name || file.saved_path || `File ${index + 1}`;
+        if (!href) link.removeAttribute("href");
         fileEl.appendChild(link);
 
         if (index < uploadedFiles.length - 1) {
           fileEl.appendChild(document.createElement("br"));
         }
       });
+      return;
+    }
+
+    const fallbackHref = resolveFileHref(queueData.saved_path || queueData.file_path || queueData.file_name || "");
+    if (fallbackHref && queueData.file_name) {
+      const link = document.createElement("a");
+      link.href = fallbackHref;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = queueData.file_name;
+      fileEl.appendChild(link);
       return;
     }
 
@@ -217,6 +328,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     document.getElementById("modalType").textContent = card.dataset.type || "";
     document.getElementById("modalService").textContent = card.dataset.service || "";
     document.getElementById("modalNotes").value = card.dataset.notes || "";
+    document.getElementById("modalPrice").textContent = getQueuePriceLabel(queueData);
     renderAttachedFiles(queueData);
 
     const statusEl = document.getElementById("modalStatus");
