@@ -46,6 +46,29 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       background: #ffedd5;
     }
   </style>
+
+    .queue-success-modal {
+      width: min(100%, 420px);
+    }
+
+    .queue-success-modal__actions {
+      align-items: stretch !important;
+      display: grid !important;
+      gap: 12px !important;
+      grid-template-columns: 1fr;
+    }
+
+    .queue-success-modal__actions > * {
+      flex: 0 0 auto !important;
+      min-height: 48px;
+      width: 100% !important;
+    }
+
+    @media (min-width: 768px) {
+      .queue-success-modal__actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing">
 
