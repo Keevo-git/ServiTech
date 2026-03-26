@@ -103,7 +103,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <p class="file-note">Accepted formats: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG</p>
 
         <div class="file-note" id="fileAnalysisPanel">
-          <p class="file-note">Tap &#10060; to remove a file before submitting.</p>
+          <p class="file-note">Use Remove to take a file out before submitting.</p>
           <strong>Uploaded Files</strong>
           <ul id="fileAnalysisList"></ul>
           <p id="fileAnalysisMeta">No files uploaded yet.</p>
@@ -161,8 +161,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/main.js"></script>
-<script src="/assets/js/custo2_docu_printing.js"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260326b2"></script>
 </body>
 </html>
+
 
 
