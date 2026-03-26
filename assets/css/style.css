@@ -1956,8 +1956,13 @@ body {
 .modal-status {
   margin: 0;
 }
+.modal-status {
+  justify-items: start;
+}
 .modal-status #modalStatus {
   justify-self: start;
+  width: auto;
+  max-width: 100%;
 }
 #modalStatus {
   display: inline-flex;
