@@ -45,8 +45,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     #fileAnalysisList button:hover {
       background: #ffedd5;
     }
-  </style>
-
     .queue-success-modal {
       width: min(100%, 420px);
     }
@@ -69,6 +67,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
+  </style>
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing">
 
@@ -187,6 +186,4 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <script src="/assets/js/custo2_docu_printing.js?v=20260326b2"></script>
 </body>
 </html>
-
-
 
