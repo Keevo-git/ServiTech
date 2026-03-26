@@ -7,8 +7,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260326a3">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260326a3">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260326a4">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260326a4">
 </head>
 <body class="customer-layout customer-page--status">
 
@@ -352,30 +352,30 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         const label = file.original_name || fileNames[index] || derivedNames[index] || file.saved_path || `File ${index + 1}`;
         appendEntry(label, href);
       });
-      if (fileLabelEl) fileLabelEl.textContent = uploadedFiles.length > 1 ? "Attached Files:" : "Attached File:";
+      if (fileLabelEl) fileLabelEl.textContent = uploadedFiles.length > 1 ? "Attached Files" : "Attached File";
       return;
     }
 
     if (fileNames.length) {
       fileNames.forEach((name) => appendEntry(name, resolveFileHref(name)));
-      if (fileLabelEl) fileLabelEl.textContent = fileNames.length > 1 ? "Attached Files:" : "Attached File:";
+      if (fileLabelEl) fileLabelEl.textContent = fileNames.length > 1 ? "Attached Files" : "Attached File";
       return;
     }
 
     if (derivedNames.length) {
       derivedNames.forEach((name) => appendEntry(name, resolveFileHref(name)));
-      if (fileLabelEl) fileLabelEl.textContent = derivedNames.length > 1 ? "Attached Files:" : "Attached File:";
+      if (fileLabelEl) fileLabelEl.textContent = derivedNames.length > 1 ? "Attached Files" : "Attached File";
       return;
     }
 
     const fallbackHref = resolveFileHref(queueData.saved_path || queueData.file_path || queueData.file_name || "");
     if (queueData.file_name) {
       appendEntry(queueData.file_name, fallbackHref || "");
-      if (fileLabelEl) fileLabelEl.textContent = "Attached File:";
+      if (fileLabelEl) fileLabelEl.textContent = "Attached File";
       return;
     }
 
-    if (fileLabelEl) fileLabelEl.textContent = "Attached File:";
+    if (fileLabelEl) fileLabelEl.textContent = "Attached File";
     fileEl.textContent = "-";
   }
 

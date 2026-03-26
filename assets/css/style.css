@@ -1995,14 +1995,52 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   margin-top: 18px;
   padding: 12px 18px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #24120f;
   color: #fff;
   cursor: pointer;
   text-decoration: none;
+}
+
+.status-modal {
+  scrollbar-width: thin;
+  scrollbar-color: #9a4f08 #f4e3cc;
+}
+
+.status-modal::-webkit-scrollbar,
+#modalNotes::-webkit-scrollbar,
+body.customer-layout::-webkit-scrollbar {
+  width: 12px;
+}
+
+.status-modal::-webkit-scrollbar-track,
+#modalNotes::-webkit-scrollbar-track,
+body.customer-layout::-webkit-scrollbar-track {
+  background: #f4e3cc;
+  border-radius: 999px;
+}
+
+.status-modal::-webkit-scrollbar-thumb,
+#modalNotes::-webkit-scrollbar-thumb,
+body.customer-layout::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c26a0a 0%, #9a4f08 100%);
+  border: 2px solid #f4e3cc;
+  border-radius: 999px;
+}
+
+.status-modal::-webkit-scrollbar-thumb:hover,
+#modalNotes::-webkit-scrollbar-thumb:hover,
+body.customer-layout::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #b45309 0%, #7c3f06 100%);
+}
+
+#modalNotes {
+  scrollbar-width: thin;
+  scrollbar-color: #9a4f08 #f4e3cc;
 }
 
 .profile-page {
