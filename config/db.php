@@ -9,7 +9,7 @@ $host = "db.gxepuopnghgpqnldrjda.supabase.co"; // ← from Supabase
 $port = "5432"; // ← IMPORTANT: must be 5432
 $db   = "postgres"; // default for Supabase
 $user = "postgres"; // default user
-$pass = "QPyoGoOS4VIfOfbk"; // ← from Supabase
+$pass = "REMOVED_DB_PASSWORD"; // ← from Supabase
 
 $dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
 
