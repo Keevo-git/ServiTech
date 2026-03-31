@@ -1,7 +1,6 @@
 <?php
 // db.php — DIRECT Supabase connection (no env issues)
-echo "TEST DB FILE LOADED";
-exit;
+
 ini_set("display_errors", 1);
 error_reporting(E_ALL);
 
