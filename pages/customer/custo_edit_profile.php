@@ -224,9 +224,11 @@ function validateProfileInput(array $formData): array
         $errors["email"] = "Email must be 150 characters or fewer.";
     }
 
-    if ($formData["phone"] !== "" && !ctype_digit($formData["phone"])) {
+    if ($formData["phone"] === "") {
+        $errors["phone"] = "Phone number is required.";
+    } elseif (!ctype_digit($formData["phone"])) {
         $errors["phone"] = "Phone must contain numbers only.";
-    } elseif ($formData["phone"] !== "" && strlen($formData["phone"]) > 20) {
+    } elseif (strlen($formData["phone"]) > 20) {
         $errors["phone"] = "Phone must be 20 digits or fewer.";
     }
 
@@ -340,7 +342,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $changes[$schema["emailColumn"]] = $formData["email"];
         }
 
-        $newPhoneValue = $formData["phone"] === "" ? null : $formData["phone"];
+        $newPhoneValue = $formData["phone"];
         $currentPhoneValue = $currentPhone === "" ? null : $currentPhone;
         if ($newPhoneValue !== $currentPhoneValue && $schema["phoneColumn"]) {
             $changes[$schema["phoneColumn"]] = $newPhoneValue;
@@ -404,14 +406,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 $avatarInitials = getInitials($formData["name"]);
 $flashType = is_array($flash) ? (string)($flash["type"] ?? "") : "";
 $flashMessage = is_array($flash) ? (string)($flash["message"] ?? "") : "";
-$profileFieldsCompleted = 0;
-foreach (["name", "email", "phone"] as $profileField) {
-    if ($formData[$profileField] !== "") {
-        $profileFieldsCompleted++;
-    }
-}
-$profileCompletion = (int)round(($profileFieldsCompleted / 3) * 100);
-$profileCompletionLabel = $profileCompletion >= 100 ? "Complete" : ($profileCompletion >= 67 ? "Almost there" : "Needs attention");
 $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service updates." : "Add a phone number for faster service updates.";
 ?>
 <!DOCTYPE html>
@@ -829,83 +823,14 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       z-index: 1;
     }
 
-    .summary-progress-card {
-      margin-top: 1.2rem;
-      padding: 1rem 1rem 0.95rem;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 236, 214, 0.18);
-      position: relative;
-      z-index: 1;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    }
 
-    .summary-progress-copy {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
-    }
 
-    .summary-progress-copy span {
-      color: rgba(255, 225, 194, 0.82);
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
 
-    .summary-progress-copy strong {
-      color: #ffffff;
-      font-size: 0.95rem;
-      text-align: right;
-    }
 
-    .summary-progress-bar {
-      height: 10px;
-      border-radius: 999px;
-      overflow: hidden;
-      background: rgba(255, 255, 255, 0.18);
-    }
 
-    .summary-progress-bar span {
-      display: block;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #ffd782 0%, #ffb347 55%, #ff8a2d 100%);
-      box-shadow: 0 2px 8px rgba(255, 179, 71, 0.35);
-    }
 
-    .summary-progress-card small {
-      display: block;
-      margin-top: 0.75rem;
-      color: rgba(255, 244, 232, 0.88);
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
 
-    .summary-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.55rem;
-      margin-top: 1rem;
-      position: relative;
-      z-index: 1;
-    }
 
-    .summary-chip {
-      display: inline-flex;
-      align-items: center;
-      min-height: 34px;
-      padding: 0.45rem 0.8rem;
-      border-radius: 999px;
-      background: rgba(255, 248, 236, 0.14);
-      border: 1px solid rgba(255, 231, 204, 0.2);
-      color: #fff7eb;
-      font-size: 0.86rem;
-      font-weight: 700;
-    }
 
     .panel-kicker {
       margin-bottom: 0.45rem;
@@ -964,7 +889,6 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     @media (max-width: 640px) {
-      .summary-progress-copy,
       .section-head,
       .form-actions {
         flex-direction: column;
@@ -973,6 +897,122 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
       .action-buttons {
         width: 100%;
+      }
+    }
+    .summary-support {
+      margin-top: 1rem;
+      color: rgba(255, 244, 232, 0.88);
+      font-size: 0.96rem;
+    }
+
+    .profile-form,
+    .field,
+    .password-field,
+    .action-buttons,
+    .profile-panel,
+    .profile-summary {
+      box-sizing: border-box;
+    }
+
+    .status-banner {
+      margin: 0 1.8rem 1rem;
+    }
+
+    .field-grid {
+      align-items: start;
+    }
+
+    .field input {
+      min-height: 52px;
+    }
+
+    .password-field {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-field input {
+      padding-right: 5rem;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #a14b10;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.25rem 0.35rem;
+    }
+
+    .password-toggle:hover,
+    .password-toggle:focus-visible {
+      color: #6d2d05;
+      outline: none;
+    }
+
+    .form-actions {
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(74, 5, 5, 0.08);
+      padding-top: 0.35rem;
+    }
+
+    .action-copy {
+      margin: 0;
+      max-width: 420px;
+      color: #7d6658;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+      .profile-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-summary {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .profile-form {
+        padding: 0 1.2rem 1.2rem;
+      }
+
+      .status-banner {
+        margin: 0 1.2rem 1rem;
+      }
+
+      .panel-topbar {
+        padding: 1.2rem 1.2rem 0;
+      }
+
+      .section-head,
+      .form-actions {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .action-buttons {
+        width: 100%;
+      }
+
+      .action-buttons .btn-secondary,
+      .action-buttons .btn-primary {
+        width: 100%;
+        text-align: center;
       }
     }
   </style>
@@ -995,21 +1035,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       <h1><?php echo e($formData["name"] !== "" ? $formData["name"] : "Customer"); ?></h1>
       <p>Keep your account details current so we can contact you about queue updates, orders, and service progress.</p>
 
-      <div class="summary-progress-card">
-        <div class="summary-progress-copy">
-          <span>Profile completion</span>
-          <strong><?php echo e($profileCompletionLabel); ?> · <?php echo e((string)$profileCompletion); ?>%</strong>
-        </div>
-        <div class="summary-progress-bar" aria-hidden="true">
-          <span style="width: <?php echo e((string)$profileCompletion); ?>%;"></span>
-        </div>
-        <small><?php echo e($phoneStatusLabel); ?></small>
-      </div>
-
-      <div class="summary-strip" aria-hidden="true">
-        <span class="summary-chip">Secure update</span>
-        <span class="summary-chip"><?php echo e($formData["phone"] !== "" ? "Phone added" : "Phone optional"); ?></span>
-      </div>
+      <p class="summary-support">Update the details below so your queue, order, and service notices always reach you on time.</p>
 
       <div class="profile-meta">
         <div class="profile-meta-item">
@@ -1018,7 +1044,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         </div>
         <div class="profile-meta-item">
           <span>Phone</span>
-          <strong><?php echo e($formData["phone"] !== "" ? $formData["phone"] : "Optional"); ?></strong>
+          <strong><?php echo e($formData["phone"] !== "" ? $formData["phone"] : "Required"); ?></strong>
         </div>
       </div>
     </aside>
@@ -1093,13 +1119,13 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
             </div>
 
             <div class="field">
-              <label for="phone">Phone Number</label>
+              <label for="phone">Phone Number <span class="required">*</span></label>
               <input
                 id="phone"
                 name="phone"
                 type="tel"
                 value="<?php echo e($formData["phone"]); ?>"
-                placeholder="Numbers only"
+                placeholder="Enter digits only"
                 autocomplete="tel"
                 inputmode="numeric"
                 pattern="[0-9]*"
@@ -1108,7 +1134,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                 aria-describedby="phone-note phone-error"
                 class="<?php echo $errors["phone"] !== "" ? "is-invalid" : ""; ?>"
               >
-              <div id="phone-note" class="field-note">Optional. Use digits only with no spaces or symbols.</div>
+              <div id="phone-note" class="field-note">Required. Use digits only with no spaces or symbols.</div>
               <div id="phone-error" class="field-error"><?php echo e($errors["phone"]); ?></div>
             </div>
           </div>
@@ -1127,50 +1153,59 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
           <div class="field-grid">
             <div class="field full-width">
               <label for="current_password">Current Password</label>
-              <input
-                id="current_password"
-                name="current_password"
-                type="password"
-                value=""
-                placeholder="Enter your current password"
-                autocomplete="current-password"
-                aria-invalid="<?php echo $errors["current_password"] !== "" ? "true" : "false"; ?>"
-                aria-describedby="current-password-error"
-                class="<?php echo $errors["current_password"] !== "" ? "is-invalid" : ""; ?>"
-              >
+              <div class="password-field">
+                <input
+                  id="current_password"
+                  name="current_password"
+                  type="password"
+                  value=""
+                  placeholder="Enter your current password"
+                  autocomplete="current-password"
+                  aria-invalid="<?php echo $errors["current_password"] !== "" ? "true" : "false"; ?>"
+                  aria-describedby="current-password-error"
+                  class="<?php echo $errors["current_password"] !== "" ? "is-invalid" : ""; ?>"
+                >
+                <button type="button" class="password-toggle" data-toggle-password="current_password" aria-controls="current_password" aria-label="Show current password">Show</button>
+              </div>
               <div id="current-password-error" class="field-error"><?php echo e($errors["current_password"]); ?></div>
             </div>
 
             <div class="field">
               <label for="new_password">New Password</label>
-              <input
-                id="new_password"
-                name="new_password"
-                type="password"
-                value=""
-                placeholder="Minimum 8 characters"
-                autocomplete="new-password"
-                aria-invalid="<?php echo $errors["new_password"] !== "" ? "true" : "false"; ?>"
-                aria-describedby="new-password-note new-password-error"
-                class="<?php echo $errors["new_password"] !== "" ? "is-invalid" : ""; ?>"
-              >
+              <div class="password-field">
+                <input
+                  id="new_password"
+                  name="new_password"
+                  type="password"
+                  value=""
+                  placeholder="Minimum 8 characters"
+                  autocomplete="new-password"
+                  aria-invalid="<?php echo $errors["new_password"] !== "" ? "true" : "false"; ?>"
+                  aria-describedby="new-password-note new-password-error"
+                  class="<?php echo $errors["new_password"] !== "" ? "is-invalid" : ""; ?>"
+                >
+                <button type="button" class="password-toggle" data-toggle-password="new_password" aria-controls="new_password" aria-label="Show new password">Show</button>
+              </div>
               <div id="new-password-note" class="field-note">Use at least 8 characters for stronger security.</div>
               <div id="new-password-error" class="field-error"><?php echo e($errors["new_password"]); ?></div>
             </div>
 
             <div class="field">
               <label for="confirm_password">Confirm New Password</label>
-              <input
-                id="confirm_password"
-                name="confirm_password"
-                type="password"
-                value=""
-                placeholder="Re-enter your new password"
-                autocomplete="new-password"
-                aria-invalid="<?php echo $errors["confirm_password"] !== "" ? "true" : "false"; ?>"
-                aria-describedby="confirm-password-error"
-                class="<?php echo $errors["confirm_password"] !== "" ? "is-invalid" : ""; ?>"
-              >
+              <div class="password-field">
+                <input
+                  id="confirm_password"
+                  name="confirm_password"
+                  type="password"
+                  value=""
+                  placeholder="Re-enter your new password"
+                  autocomplete="new-password"
+                  aria-invalid="<?php echo $errors["confirm_password"] !== "" ? "true" : "false"; ?>"
+                  aria-describedby="confirm-password-error"
+                  class="<?php echo $errors["confirm_password"] !== "" ? "is-invalid" : ""; ?>"
+                >
+                <button type="button" class="password-toggle" data-toggle-password="confirm_password" aria-controls="confirm_password" aria-label="Show confirm password">Show</button>
+              </div>
               <div id="confirm-password-error" class="field-error"><?php echo e($errors["confirm_password"]); ?></div>
             </div>
           </div>
@@ -1312,6 +1347,15 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
