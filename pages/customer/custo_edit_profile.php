@@ -1015,6 +1015,74 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         text-align: center;
       }
     }
+    .form-section {
+      gap: 0.85rem;
+    }
+
+    .field-grid {
+      column-gap: 1rem;
+      row-gap: 0.85rem;
+    }
+
+    .field {
+      align-content: start;
+    }
+
+    .field-note {
+      margin-top: -0.1rem;
+    }
+
+    .field-error {
+      min-height: 0;
+      margin-top: -0.05rem;
+    }
+
+    .field-error:empty {
+      display: none;
+    }
+
+    .password-toggle {
+      z-index: 1;
+    }
+
+    @media (max-width: 1100px) {
+      .profile-shell {
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .profile-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-summary {
+        position: static;
+      }
+
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .profile-edit-page {
+        padding: 1rem 0.75rem 2rem;
+      }
+
+      .profile-panel,
+      .profile-summary {
+        border-radius: 18px;
+      }
+
+      .form-section {
+        padding: 1.1rem;
+      }
+
+      .password-toggle {
+        right: 0.65rem;
+      }
+    }
   </style>
 </head>
 <body class="customer-layout customer-page--profile">
@@ -1280,6 +1348,22 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
     }
 
+    document.querySelectorAll("[data-toggle-password]").forEach(function (toggleButton) {
+      const inputId = toggleButton.getAttribute("data-toggle-password");
+      const targetInput = inputId ? document.getElementById(inputId) : null;
+
+      if (!targetInput) {
+        return;
+      }
+
+      toggleButton.addEventListener("click", function () {
+        const shouldShow = targetInput.type === "password";
+        targetInput.type = shouldShow ? "text" : "password";
+        toggleButton.textContent = shouldShow ? "Hide" : "Show";
+        toggleButton.setAttribute("aria-label", (shouldShow ? "Hide " : "Show ") + targetInput.name.replace(/_/g, " "));
+      });
+    });
+
     form.addEventListener("submit", function (event) {
       Object.keys(fields).forEach(clearError);
 
@@ -1307,7 +1391,10 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         hasErrors = true;
       }
 
-      if (phone !== "" && !/^\d+$/.test(phone)) {
+      if (phone === "") {
+        setError("phone", "Phone number is required.");
+        hasErrors = true;
+      } else if (!/^\d+$/.test(phone)) {
         setError("phone", "Phone must contain numbers only.");
         hasErrors = true;
       }
@@ -1347,6 +1434,10 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
 </body>
 </html>
+
+
+
+
 
 
 
