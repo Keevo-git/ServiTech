@@ -6,7 +6,7 @@ ini_set("display_startup_errors", 1);
 error_reporting(E_ALL);
 
 // ✅ REPLACE ONLY THIS PASSWORD
-$host = "db.gxepuopnghgpnldjrjda.supabase.co";
+$host = "db.gxepuopnghgpqnldrjda.supabase.co";
 $port = "5432";
 $db   = "postgres";
 $user = "postgres";
