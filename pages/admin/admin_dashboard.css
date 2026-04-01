@@ -145,6 +145,10 @@ body.admin-dashboard .hero-time{
   background: rgba(0,0,0,0.14);
 }
 
+body.admin-dashboard .hero{
+  margin-bottom: 18px;
+}
+
 body.admin-dashboard .container{
   width: min(1200px, 92vw);
   margin: 18px auto 34px;
