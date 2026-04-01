@@ -119,45 +119,61 @@ if ($hasQueuesTable) {
   </div>
 </header>
 
-<section class="stats">
+<main class="container">
 
-  <div class="stat">
-    <h4>CUSTOMERS</h4>
-    <div 
-      class="value" 
-      id="customersCount" 
-      data-count="<?= $customers ?>"
-    >
-      <?= $customers ?>
+  <section class="hero">
+    <h1>Operations Dashboard</h1>
+    <p>Live overview of customer activity, orders, and service queue.</p>
+    <div class="hero-meta">
+      <span class="hero-chip">
+        <span>&#x1F512;</span>
+        Admin Access
+      </span>
+      <span class="hero-time">
+        <?php echo date('M d, Y, h:i A'); ?>
+      </span>
     </div>
-    <p class="stat-note">Registered user accounts</p>
-  </div>
+  </section>
 
-  <div class="stat">
-    <h4>ONLINE ORDERS</h4>
-    <div 
-      class="value" 
-      id="ordersCount" 
-      data-count="<?= $onlineOrders ?>"
-    >
-      <?= $onlineOrders ?>
+  <section class="stats">
+
+    <div class="stat">
+      <h4>CUSTOMERS</h4>
+      <div 
+        class="value" 
+        id="customersCount" 
+        data-count="<?= $customers ?>"
+      >
+        <?= $customers ?>
+      </div>
+      <p class="stat-note">Registered user accounts</p>
     </div>
-    <p class="stat-note">Web-based and pending jobs</p>
-  </div>
 
-  <div class="stat">
-    <h4>ACTIVE QUEUE</h4>
-    <div 
-      class="value" 
-      id="queueCount" 
-      data-count="<?= $activeQueue ?>"
-    >
-      <?= $activeQueue ?>
+    <div class="stat">
+      <h4>ONLINE ORDERS</h4>
+      <div 
+        class="value" 
+        id="ordersCount" 
+        data-count="<?= $onlineOrders ?>"
+      >
+        <?= $onlineOrders ?>
+      </div>
+      <p class="stat-note">Web-based and pending jobs</p>
     </div>
-    <p class="stat-note">Currently waiting for service</p>
-  </div>
 
-</section>
+    <div class="stat">
+      <h4>ACTIVE QUEUE</h4>
+      <div 
+        class="value" 
+        id="queueCount" 
+        data-count="<?= $activeQueue ?>"
+      >
+        <?= $activeQueue ?>
+      </div>
+      <p class="stat-note">Currently waiting for service</p>
+    </div>
+
+  </section>
 
   <h3 class="section-title">Quick Access</h3>
 
