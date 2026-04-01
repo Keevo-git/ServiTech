@@ -10,7 +10,7 @@ $db   = "postgres";
 $user = "postgres";
 $pass = "REMOVED_DB_PASSWORD"; // your real password
 
-$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
+$dsn = "pgsql:host=$host;port=$port;dbname=$db";
 
 try {
     $pdo = new PDO($dsn, $user, $pass, [
