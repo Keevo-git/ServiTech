@@ -39,3 +39,29 @@ document.addEventListener("DOMContentLoaded", () => {
     requestAnimationFrame(step);
   });
 });
+
+// 🔥 REAL-TIME DASHBOARD UPDATE
+
+async function fetchStats() {
+  try {
+    const res = await fetch("/pages/admin/get_dashboard_stats.php");
+    const data = await res.json();
+
+    const customersEl = document.getElementById("customersCount");
+    const ordersEl = document.getElementById("ordersCount");
+    const queueEl = document.getElementById("queueCount");
+
+    if (customersEl) customersEl.textContent = data.customers;
+    if (ordersEl) ordersEl.textContent = data.onlineOrders;
+    if (queueEl) queueEl.textContent = data.activeQueue;
+
+  } catch (err) {
+    console.error("Failed to fetch stats:", err);
+  }
+}
+
+// run immediately
+fetchStats();
+
+// refresh every 5 seconds
+setInterval(fetchStats, 5000);
