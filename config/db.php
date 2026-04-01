@@ -1,16 +1,16 @@
 <?php
 // Clean Supabase connection
 
-ini_set("display_errors", 0);
-error_reporting(0);
+ini_set("display_errors", 1);
+error_reporting(E_ALL);
 
-$host = "db.gxepuopnghgpqnldjrjda.supabase.co";
+$host = "db.gxepuopnghgpqnldrjda.supabase.co";
 $port = "5432";
 $db   = "postgres";
 $user = "postgres";
 $pass = "REMOVED_DB_PASSWORD"; // your real password
 
-$dsn = "pgsql:host=$host;port=$port;dbname=$db";
+$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
 
 try {
     $pdo = new PDO($dsn, $user, $pass, [
@@ -18,5 +18,5 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    die("DB connection failed");
+    die("DB connection failed: " . $e->getMessage());
 }
