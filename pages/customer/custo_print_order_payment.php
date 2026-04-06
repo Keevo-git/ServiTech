@@ -115,7 +115,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       --printing-surface-soft: #faf7f5;
       --printing-text-soft: #646464;
       --printing-shadow: 0 12px 30px rgba(95, 14, 15, 0.05);
-      --payment-content-width: 860px;
+      --payment-content-width: 100%;
     }
 
     .printing-page .form-page-shell {
@@ -161,7 +161,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     .print-payment-form {
       display: grid;
       gap: 0.9rem;
-      justify-self: center;
+      justify-self: stretch;
       margin: 0;
       width: min(100%, var(--payment-content-width)) !important;
     }
@@ -648,6 +648,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 <script src="/assets/js/custo_print_order_payment.js?v=20260406a1"></script>
 </body>
 </html>
+
 
 
 
