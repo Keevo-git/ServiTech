@@ -309,6 +309,11 @@ $dashboardQueues = [
       transition: transform 0.18s ease, background 0.18s ease;
     }
 
+    .queue-carousel__dot.is-active {
+      background: #FAB12F;
+      transform: scale(1.15);
+    }
+
     .queue-carousel-card--mine .queue-carousel__dot {
       background: #ead4a5;
     }
@@ -615,7 +620,7 @@ $dashboardQueues = [
 </section>
 
 <section class="customer-dashboard">
-  <div class="dashboard-card queue-carousel-card">
+  <div class="dashboard-card queue-carousel-card queue-carousel-card--mine">
     <h3>MY CURRENT REQUESTS</h3>
     <div class="divider"></div>
 
@@ -631,7 +636,7 @@ $dashboardQueues = [
     </div>
   </div>
 
-  <div class="dashboard-card queue-carousel-card">
+  <div class="dashboard-card queue-carousel-card queue-carousel-card--latest">
     <h3>LATEST QUEUE</h3>
     <div class="divider"></div>
 
