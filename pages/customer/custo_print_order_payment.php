@@ -507,6 +507,31 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       max-width: 640px;
     }
 
+    .printing-page .queue-success-modal {
+      width: min(100%, 420px);
+    }
+
+    .printing-page .queue-success-modal__actions {
+      align-items: stretch !important;
+      display: grid !important;
+      gap: 12px !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-content: stretch !important;
+      margin-top: 12px;
+    }
+
+    .printing-page .queue-success-modal__actions > * {
+      flex: 0 0 auto !important;
+      margin: 0 !important;
+      min-height: 48px !important;
+      width: 100% !important;
+    }
+
+    .printing-page .queue-success-modal .btn-primary,
+    .printing-page .queue-success-modal .btn-secondary {
+      padding: 12px 18px;
+    }
+
     @media (max-width: 960px) {
       .printing-page .form-card {
         padding: 1.25rem;
@@ -560,6 +585,10 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
         min-height: 48px;
         width: 100%;
       }
+
+      .printing-page .queue-success-modal__actions {
+        grid-template-columns: 1fr !important;
+      }
     }
   </style>
 </head>
@@ -569,20 +598,13 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
 <section class="form-page form-page--confirmation">
   <div class="form-page-shell">
-    <?php if ($isConfirmed): ?>
-      <div class="form-page-intro">
-        <h2 class="page-title">PRINT ORDER CONFIRMATION</h2>
-      </div>
+    <div class="form-page-intro">
+      <h2 class="page-title">PAYMENT</h2>
+      <p class="page-subtitle">Review the same print order details from the previous page, then place the order.</p>
+    </div>
 
-
-    <?php else: ?>
-      <div class="form-page-intro">
-        <h2 class="page-title">PAYMENT</h2>
-        <p class="page-subtitle">Review the same print order details from the previous page, then place the order.</p>
-      </div>
-
-      <form id="printOrderPaymentForm" class="print-payment-form" method="post" action="/api/print_order_create.php" novalidate>
-        <input type="hidden" name="csrf_token" value="<?= esc_print_order($_SESSION["csrf_token"] ?? "") ?>">
+    <form id="printOrderPaymentForm" class="print-payment-form" method="post" action="/api/print_order_create.php" novalidate>
+      <input type="hidden" name="csrf_token" value="<?= esc_print_order($_SESSION["csrf_token"] ?? "") ?>">
 
         <div class="form-card print-payment-card">
           <div class="print-payment-block print-payment-block--accent">
@@ -684,8 +706,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
           <button type="submit" class="btn-next" id="placePrintOrderBtn">Place Print Order</button>
         </div>
       </form>
-    <?php endif; ?>
-  </div>
+    </div>
 </section>
 
 <?php if ($isConfirmed): ?>
@@ -720,6 +741,10 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 <script src="/assets/js/custo_print_order_payment.js?v=20260406b2"></script>
 </body>
 </html>
+
+
+
+
 
 
 
