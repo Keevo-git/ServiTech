@@ -37,28 +37,23 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       --printing-accent: #5f0e0f;
       --printing-accent-soft: #fdf1ea;
       --printing-border: rgba(95, 14, 15, 0.14);
-      --printing-border-strong: rgba(95, 14, 15, 0.2);
       --printing-surface: #ffffff;
       --printing-surface-soft: #faf7f5;
       --printing-text-soft: #646464;
-      --printing-shadow: 0 18px 42px rgba(95, 14, 15, 0.08);
+      --printing-shadow: 0 14px 34px rgba(95, 14, 15, 0.06);
     }
 
     .printing-page .form-page-shell {
-      align-items: start;
       display: grid;
       gap: 1.5rem;
-      grid-template-columns: minmax(0, 1.45fr) minmax(300px, 360px);
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, 340px);
+      align-items: start;
     }
 
     .printing-page .form-page-intro,
     .printing-page .form-feedback,
     .printing-page .form-actions {
       grid-column: 1 / -1;
-    }
-
-    .printing-page .form-page-intro {
-      margin-bottom: 0;
     }
 
     .printing-page .page-title {
@@ -73,26 +68,23 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 
     .printing-page .form-content-stack {
       display: grid;
-      gap: 1.25rem;
+      gap: 1rem;
     }
 
     .printing-page .form-card,
     .printing-page .summary-card {
+      background: var(--printing-surface);
       border: 1px solid var(--printing-border);
       border-radius: 24px;
       box-shadow: var(--printing-shadow);
     }
 
     .printing-page .form-card {
-      background: var(--printing-surface);
-      padding: 1.6rem;
+      padding: 1.5rem;
     }
 
     .printing-page .summary-card {
-      background: linear-gradient(180deg, #fffaf7 0%, #ffffff 100%);
-      display: grid;
-      gap: 0.9rem;
-      padding: 1.45rem;
+      padding: 1.35rem;
       position: sticky;
       top: 1rem;
     }
@@ -101,21 +93,17 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     .printing-page .summary-title {
       color: var(--printing-accent);
       letter-spacing: 0.02em;
-      margin: 0 0 0.95rem;
-    }
-
-    .printing-page .summary-title {
-      margin-bottom: 0.2rem;
+      margin: 0 0 0.9rem;
     }
 
     .printing-page .form-grid {
       display: grid;
-      gap: 1.25rem;
-      grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.95fr);
+      gap: 1.1rem;
+      grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.95fr);
     }
 
     .printing-field {
-      margin-bottom: 1rem;
+      margin-bottom: 0.95rem;
     }
 
     .printing-field:last-child {
@@ -129,9 +117,14 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       margin-bottom: 0.45rem;
     }
 
-    .printing-page .static-text {
+    .printing-page .static-text,
+    .printing-page .radio-group,
+    #fileAnalysisPanel {
       background: var(--printing-surface-soft);
       border: 1px solid var(--printing-border);
+    }
+
+    .printing-page .static-text {
       border-radius: 16px;
       margin: 0;
       min-height: 56px;
@@ -156,12 +149,10 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     .printing-page .radio-group {
-      background: var(--printing-surface-soft);
-      border: 1px solid var(--printing-border);
       border-radius: 18px;
       display: grid;
-      gap: 0.85rem;
-      padding: 1rem 1.1rem;
+      gap: 0.8rem;
+      padding: 1rem 1.05rem;
     }
 
     .printing-page .radio-group label {
@@ -195,33 +186,47 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       text-transform: uppercase;
     }
 
-    .payment-section__hint {
+    .payment-section__hint,
+    .printing-upload-card .file-note,
+    #fileAnalysisMeta,
+    .file-upload-status {
       color: var(--printing-text-soft);
+    }
+
+    .payment-section__hint {
       font-size: 0.95rem;
       margin: 0.6rem 0 0;
     }
 
-    .printing-upload-card .file-note {
-      color: var(--printing-text-soft);
+    .printing-upload-card .form-file {
+      margin-bottom: 0.45rem;
+    }
+
+    .file-upload-status {
+      font-size: 0.9rem;
+      margin: 0.1rem 0 0;
+      min-height: 1.35rem;
     }
 
     #fileAnalysisPanel {
-      background: var(--printing-surface-soft);
-      border: 1px solid var(--printing-border);
       border-radius: 18px;
-      margin-top: 1rem;
-      padding: 1rem 1.1rem;
+      margin-top: 0.8rem;
+      padding: 0.95rem 1rem;
+    }
+
+    #fileAnalysisPanel > .file-note:first-child {
+      margin: 0 0 0.2rem;
     }
 
     #fileAnalysisPanel strong {
       color: var(--printing-accent);
       display: block;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.55rem;
     }
 
     #fileAnalysisList {
       list-style: none;
-      margin: 0.75rem 0 0;
+      margin: 0;
       padding: 0;
     }
 
@@ -233,8 +238,12 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       display: flex;
       gap: 0.75rem;
       justify-content: space-between;
-      margin-bottom: 0.5rem;
-      padding: 0.75rem 0.85rem;
+      margin-bottom: 0.45rem;
+      padding: 0.7rem 0.85rem;
+    }
+
+    #fileAnalysisList li:last-child {
+      margin-bottom: 0;
     }
 
     #fileAnalysisList li span {
@@ -260,20 +269,24 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     #fileAnalysisMeta {
-      color: var(--printing-text-soft);
-      margin: 0.85rem 0 0;
+      margin: 0.75rem 0 0;
+    }
+
+    .printing-page .summary-title {
+      margin-bottom: 0.55rem;
     }
 
     .printing-page .summary-row,
     .printing-page .summary-total {
       align-items: center;
-      background: #fff;
-      border: 1px solid var(--printing-border);
-      border-radius: 16px;
       display: flex;
       gap: 1rem;
       justify-content: space-between;
-      padding: 0.95rem 1rem;
+      padding: 0.7rem 0;
+    }
+
+    .printing-page .summary-row {
+      border-bottom: 1px solid rgba(95, 14, 15, 0.08);
     }
 
     .printing-page .summary-row span,
@@ -285,14 +298,23 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       text-transform: uppercase;
     }
 
+    .printing-page .summary-row strong,
     .printing-page .summary-total strong {
-      font-size: 1.15rem;
+      color: #1f1f1f;
+      text-align: right;
+    }
+
+    .printing-page .summary-total {
+      padding-top: 0.95rem;
+    }
+
+    .printing-page .summary-total strong {
+      color: var(--printing-accent);
+      font-size: 1.18rem;
     }
 
     .printing-page .summary-divider {
-      background: rgba(95, 14, 15, 0.1);
-      height: 1px;
-      margin: 0.1rem 0;
+      display: none;
     }
 
     .printing-page .form-feedback {
@@ -342,12 +364,12 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     @media (max-width: 767px) {
       .printing-page .form-card,
       .printing-page .summary-card {
-        padding: 1.25rem;
+        padding: 1.2rem;
       }
 
       .printing-page .form-grid {
-        gap: 1rem;
         grid-template-columns: 1fr;
+        gap: 1rem;
       }
 
       #fileAnalysisList li,
@@ -355,6 +377,11 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       .printing-page .summary-total {
         align-items: flex-start;
         flex-direction: column;
+      }
+
+      .printing-page .summary-row strong,
+      .printing-page .summary-total strong {
+        text-align: left;
       }
     }
   </style>
@@ -440,6 +467,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
         <div class="printing-field">
           <label for="fileUpload">Upload your document</label>
           <input type="file" id="fileUpload" class="form-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" multiple>
+          <p id="fileUploadStatus" class="file-upload-status" aria-live="polite"></p>
           <p class="file-note">Accepted formats: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG</p>
         </div>
 
@@ -505,6 +533,6 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260406a2"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260406a3"></script>
 </body>
 </html>

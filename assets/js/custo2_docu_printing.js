@@ -41,6 +41,7 @@
     var fileListEl = document.getElementById("fileAnalysisList");
     var fileMetaEl = document.getElementById("fileAnalysisMeta");
     var feedbackEl = document.getElementById("formFeedback");
+    var fileUploadStatus = document.getElementById("fileUploadStatus");
     var qtyInput = document.getElementById("qtyInput");
     var paperSizeSelect = document.getElementById("paperSizeSelect");
     var orderTypeSelect = document.getElementById("orderTypeSelect");
@@ -193,12 +194,19 @@
       if (summaryTotal) summaryTotal.textContent = toPeso(state.estimated_total || 0);
     }
 
+    function restoredFileCount() {
+      var analysisCount = Array.isArray(state.files) ? state.files.length : 0;
+      var uploadedCount = Array.isArray(state.uploaded_files) ? state.uploaded_files.length : 0;
+      var nameCount = currentFileNames().length;
+      return Math.max(analysisCount, uploadedCount, nameCount, 0);
+    }
+
     function hasSavedUploads() {
       return Array.isArray(state.uploaded_files) && state.uploaded_files.length > 0;
     }
 
     function hasAnyFiles() {
-      return selectedFiles.length > 0 || hasSavedUploads();
+      return selectedFiles.length > 0 || restoredFileCount() > 0;
     }
 
     function getPageCountFromInfo(fileInfo) {
@@ -269,6 +277,33 @@
       return [];
     }
 
+    function renderUploadStatus() {
+      if (!fileUploadStatus) return;
+
+      if (selectedFiles.length) {
+        fileUploadStatus.textContent = selectedFiles.length + (selectedFiles.length === 1
+          ? " new file selected."
+          : " new files selected.");
+        return;
+      }
+
+      if (hasSavedUploads()) {
+        fileUploadStatus.textContent = restoredFileCount() + (restoredFileCount() === 1
+          ? " saved file restored below. The browser upload box stays empty until you choose a new file."
+          : " saved files restored below. The browser upload box stays empty until you choose new files.");
+        return;
+      }
+
+      if (restoredFileCount() > 0) {
+        fileUploadStatus.textContent = restoredFileCount() + (restoredFileCount() === 1
+          ? " file is listed below, but it needs to be selected again before continuing."
+          : " files are listed below, but they need to be selected again before continuing.");
+        return;
+      }
+
+      fileUploadStatus.textContent = "No files selected yet.";
+    }
+
     function renderList() {
       fileListEl.innerHTML = "";
 
@@ -306,6 +341,7 @@
 
       if (!displayItems.length) {
         fileMetaEl.textContent = "No files uploaded yet.";
+        renderUploadStatus();
         return;
       }
 
@@ -332,6 +368,7 @@
       fileMetaEl.textContent =
         displayItems.length + (displayItems.length === 1 ? " file ready" : " files ready") +
         " | Total Pages: " + (state.total_pages || 0);
+      renderUploadStatus();
     }
 
     function resetAnalysis(keepFeedback) {
@@ -578,6 +615,12 @@
             file_analysis: state.files
           }
         };
+      }
+
+      if (!selectedFiles.length && restoredFileCount() > 0) {
+        state.error = "Your previous files are listed below, but the upload session expired. Please choose the files again.";
+        setFeedback(state.error, "error");
+        return { ok: false, error: state.error };
       }
 
       if (!selectedFiles.length) {
