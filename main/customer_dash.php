@@ -305,6 +305,7 @@ $dashboardQueues = [
       border: 0;
       padding: 0;
       cursor: pointer;
+      background: #ead4a5;
       transition: transform 0.18s ease, background 0.18s ease;
     }
 
@@ -342,6 +343,8 @@ $dashboardQueues = [
     }
 
     .queue-item {
+      border: 1px solid #e7d5ad;
+      background: #fffaf0;
       border-radius: 14px;
       padding: 14px;
       min-height: 0;
