@@ -187,8 +187,8 @@ $dashboardQueues = [
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260406b1">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b1">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260406b2">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b2">
   <style>
     body.customer-layout.customer-page--dashboard .customer-dashboard {
       display: grid;
@@ -206,8 +206,8 @@ $dashboardQueues = [
 
     .queue-carousel-card {
       overflow: hidden;
-      height: 292px;
-      min-height: 292px;
+      height: 306px;
+      min-height: 306px;
       border: 1px solid rgba(232, 199, 123, 0.30);
     }
 
@@ -224,8 +224,8 @@ $dashboardQueues = [
 
     .queue-carousel {
       display: grid;
-      grid-template-rows: 52px 14px minmax(118px, 1fr);
-      gap: 8px;
+      grid-template-rows: 52px 18px 126px;
+      gap: 10px;
       flex: 1;
       min-height: 0;
       height: 100%;
@@ -307,7 +307,7 @@ $dashboardQueues = [
       justify-content: center;
       align-items: center;
       gap: 8px;
-      min-height: 14px;
+      min-height: 18px;
     }
 
     .queue-carousel__dot {
@@ -345,18 +345,16 @@ $dashboardQueues = [
     }
 
     .queue-carousel__list {
-      display: grid;
-      gap: 10px;
-      align-content: start;
-      align-items: start;
-      min-height: 0;
-      height: 100%;
-      padding: 0 6px;
+      display: flex;
+      align-items: flex-start;
+      min-height: 126px;
+      height: 126px;
+      padding: 0 8px;
       box-sizing: border-box;
       overflow: hidden;
       opacity: 1;
       transition: opacity 0.2s ease;
-      margin-top: 2px;
+      margin-top: 0;
     }
 
     .queue-carousel__list.is-fading {
@@ -375,7 +373,7 @@ $dashboardQueues = [
       align-content: start;
       width: 100%;
       box-sizing: border-box;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      transition: none;
     }
 
     .queue-carousel-card--mine .queue-item {
@@ -383,22 +381,12 @@ $dashboardQueues = [
       background: #fffaf0;
     }
 
-    .queue-carousel-card--mine .queue-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 18px rgba(74, 5, 5, 0.08);
-      border-color: #e8c77b;
-    }
 
     .queue-carousel-card--latest .queue-item {
       border: 1px solid #c8dcfb;
       background: #f7faff;
     }
 
-    .queue-carousel-card--latest .queue-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.08);
-      border-color: #93c5fd;
-    }
 
     .queue-item__head {
       display: grid;
@@ -499,18 +487,17 @@ $dashboardQueues = [
     .queue-item__meta {
       margin-top: 2px;
       font-size: 13px;
-      line-height: 1.4;
+      line-height: 20px;
       min-height: 20px;
       width: 100%;
       max-width: 100%;
       padding-right: 124px;
       box-sizing: border-box;
       overflow: hidden;
-      display: flex;
-      align-items: flex-end;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 1;
-      align-self: end;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      display: block;
+      align-self: start;
     }
 
     .queue-carousel-card--mine .queue-item__details,
@@ -524,12 +511,14 @@ $dashboardQueues = [
     }
 
     .queue-carousel__empty {
-      display: grid;
-      place-items: center;
-      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 112px;
+      min-height: 112px;
       border-radius: 14px;
       text-align: center;
-      padding: 18px;
+      padding: 14px 16px;
       width: 100%;
       box-sizing: border-box;
     }
@@ -556,15 +545,15 @@ $dashboardQueues = [
       }
 
       .queue-carousel-card {
-        height: 284px;
-        min-height: 284px;
+        height: 306px;
+        min-height: 306px;
       }
     }
 
     @media (max-width: 640px) {
       .queue-carousel-card {
-        height: 272px;
-        min-height: 272px;
+        height: 296px;
+        min-height: 296px;
       }
 
       .queue-carousel__topbar {
@@ -590,12 +579,14 @@ $dashboardQueues = [
       }
 
       .queue-item {
-        height: 116px;
-        min-height: 116px;
+        height: 126px;
+        min-height: 126px;
         grid-template-rows: auto auto 20px;
       }
 
       .queue-carousel__list {
+        height: 126px;
+        min-height: 126px;
         padding: 0 4px;
       }
 
@@ -623,6 +614,7 @@ $dashboardQueues = [
       .queue-item__details,
       .queue-item__meta {
         min-height: 20px;
+        line-height: 20px;
       }
     }
   </style>
