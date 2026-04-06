@@ -20,6 +20,61 @@ function print_order_payment_label(string $method): string {
   return "-";
 }
 
+function build_print_order_file_items(array $draft): array {
+  $uploadedFiles = isset($draft["uploaded_files"]) && is_array($draft["uploaded_files"]) ? $draft["uploaded_files"] : [];
+  $fileNames = isset($draft["file_names"]) && is_array($draft["file_names"]) ? array_values($draft["file_names"]) : [];
+  $fileAnalysis = isset($draft["file_analysis"]) && is_array($draft["file_analysis"]) ? array_values($draft["file_analysis"]) : [];
+
+  if (empty($fileNames) && !empty($draft["file_name"])) {
+    $fileNames = [(string)$draft["file_name"]];
+  }
+
+  $totalItems = max(count($uploadedFiles), count($fileNames), count($fileAnalysis));
+  $items = [];
+
+  for ($index = 0; $index < $totalItems; $index++) {
+    $uploaded = isset($uploadedFiles[$index]) && is_array($uploadedFiles[$index]) ? $uploadedFiles[$index] : [];
+    $analysis = isset($fileAnalysis[$index]) && is_array($fileAnalysis[$index]) ? $fileAnalysis[$index] : [];
+
+    $name = trim((string)($analysis["file_name"] ?? ($uploaded["original_name"] ?? ($fileNames[$index] ?? ""))));
+    $path = trim((string)($uploaded["saved_path"] ?? ""));
+    $type = strtoupper(trim((string)($analysis["file_type"] ?? ($uploaded["file_type"] ?? pathinfo($name, PATHINFO_EXTENSION)))));
+
+    $countLabel = "";
+    if (isset($analysis["slide_count"])) {
+      $count = max(0, (int)$analysis["slide_count"]);
+      if ($count > 0) {
+        $countLabel = $count . " slide" . ($count === 1 ? "" : "s");
+      }
+    } elseif (isset($analysis["page_count"])) {
+      $count = max(0, (int)$analysis["page_count"]);
+      if ($count > 0) {
+        $countLabel = $count . " page" . ($count === 1 ? "" : "s");
+      }
+    }
+
+    if ($name === "" && $path === "") {
+      continue;
+    }
+
+    $metaParts = [];
+    if ($type !== "") {
+      $metaParts[] = $type;
+    }
+    if ($countLabel !== "") {
+      $metaParts[] = $countLabel;
+    }
+
+    $items[] = [
+      "name" => $name !== "" ? $name : basename($path),
+      "path" => $path,
+      "meta" => implode(" | ", $metaParts),
+    ];
+  }
+
+  return $items;
+}
+
 $queue = trim((string)($_GET["queue"] ?? ""));
 $confirmation = $_SESSION["print_order_confirmation"] ?? null;
 $flashError = trim((string)($_SESSION["print_order_flash_error"] ?? ""));
@@ -39,42 +94,8 @@ if (!$isConfirmed && !is_array($draft)) {
 
 $draft = is_array($draft) ? $draft : [];
 $paymentMethod = strtolower(trim((string)($draft["payment_method"] ?? "")));
-$uploadedFiles = isset($draft["uploaded_files"]) && is_array($draft["uploaded_files"]) ? $draft["uploaded_files"] : [];
-$fileNames = isset($draft["file_names"]) && is_array($draft["file_names"]) ? $draft["file_names"] : [];
-if (empty($fileNames) && !empty($draft["file_name"])) {
-  $fileNames = [(string)$draft["file_name"]];
-}
-
-$fileItems = [];
-if (!empty($uploadedFiles)) {
-  foreach ($uploadedFiles as $index => $file) {
-    if (!is_array($file)) {
-      continue;
-    }
-    $name = trim((string)($file["original_name"] ?? ($fileNames[$index] ?? "")));
-    $path = trim((string)($file["saved_path"] ?? ""));
-    if ($name === "" && $path === "") {
-      continue;
-    }
-    $fileItems[] = [
-      "name" => $name !== "" ? $name : basename($path),
-      "path" => $path,
-    ];
-  }
-}
-
-if (empty($fileItems)) {
-  foreach ($fileNames as $name) {
-    $name = trim((string)$name);
-    if ($name === "") {
-      continue;
-    }
-    $fileItems[] = [
-      "name" => $name,
-      "path" => "",
-    ];
-  }
-}
+$fileItems = build_print_order_file_items($draft);
+$totalFilesDisplay = count($fileItems) ?: max(0, (int)($draft["total_files"] ?? 0));
 
 $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 ?>
@@ -91,8 +112,11 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       --printing-accent: #5f0e0f;
       --printing-accent-soft: #fdf1ea;
       --printing-border: rgba(95, 14, 15, 0.14);
+      --printing-border-strong: rgba(95, 14, 15, 0.2);
       --printing-surface: #ffffff;
+      --printing-surface-soft: #faf7f5;
       --printing-text-soft: #646464;
+      --printing-shadow: 0 18px 42px rgba(95, 14, 15, 0.08);
     }
 
     .printing-page .form-page-shell {
@@ -111,36 +135,38 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     .printing-page .page-subtitle {
       color: var(--printing-text-soft);
       margin: 0;
+      max-width: 720px;
     }
 
     .printing-page .form-card {
       background: var(--printing-surface);
       border: 1px solid var(--printing-border);
       border-radius: 24px;
-      box-shadow: 0 14px 34px rgba(95, 14, 15, 0.06);
+      box-shadow: var(--printing-shadow);
       padding: 1.6rem;
     }
 
     .printing-page .step-title {
       color: var(--printing-accent);
       letter-spacing: 0.02em;
-      margin-bottom: 0.5rem;
+      margin: 0 0 0.65rem;
     }
 
     .print-payment-card {
       display: grid;
-      gap: 1.25rem;
+      gap: 1.35rem;
     }
 
     .print-payment-block {
-      background: #fff;
+      background: var(--printing-surface);
       border: 1px solid var(--printing-border);
-      border-radius: 20px;
+      border-radius: 22px;
       padding: 1.2rem;
     }
 
     .print-payment-block--accent {
-      background: linear-gradient(180deg, #fff8f4 0%, #fff 100%);
+      background: linear-gradient(135deg, #fff8f4 0%, #fff2ea 100%);
+      border-color: rgba(95, 14, 15, 0.12);
     }
 
     .print-payment-title {
@@ -152,7 +178,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
     .print-payment-estimate {
       display: grid;
-      gap: 0.35rem;
+      gap: 0.4rem;
     }
 
     .print-payment-estimate span {
@@ -162,29 +188,39 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
     .print-payment-estimate strong {
       color: #1e1e1e;
-      font-size: 2.2rem;
-      line-height: 1.1;
+      font-size: clamp(2rem, 4vw, 2.6rem);
+      line-height: 1.05;
     }
 
     .print-payment-grid {
       display: grid;
       gap: 1rem;
-      grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.9fr);
+      grid-template-columns: minmax(0, 1.3fr) minmax(250px, 0.95fr);
+      align-items: start;
     }
 
     .print-payment-details {
       display: grid;
-      gap: 0.85rem;
+      gap: 0.9rem;
     }
 
     .print-payment-detail {
+      background: var(--printing-surface-soft);
+      border: 1px solid var(--printing-border);
+      border-radius: 18px;
       margin: 0;
+      padding: 1rem 1.05rem;
     }
 
     .print-payment-detail strong {
       color: var(--printing-accent);
-      display: inline-block;
-      min-width: 124px;
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin: 0 0 0.35rem;
+      min-width: 0;
+      text-transform: uppercase;
     }
 
     .print-payment-files {
@@ -197,24 +233,36 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
     .print-payment-files li {
       align-items: center;
-      background: #faf7f5;
+      background: #fff;
       border: 1px solid var(--printing-border);
-      border-radius: 14px;
+      border-radius: 16px;
       display: flex;
-      gap: 0.75rem;
+      gap: 0.85rem;
       justify-content: space-between;
-      padding: 0.75rem 0.85rem;
+      padding: 0.85rem 0.95rem;
+    }
+
+    .print-payment-file-main {
+      display: grid;
+      gap: 0.2rem;
+      min-width: 0;
     }
 
     .print-payment-file-name {
       color: #222;
+      font-weight: 600;
       min-width: 0;
       overflow-wrap: anywhere;
     }
 
+    .print-payment-file-meta {
+      color: var(--printing-text-soft);
+      font-size: 0.88rem;
+    }
+
     .print-payment-file-link {
       color: var(--printing-accent);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 700;
       text-decoration: none;
       white-space: nowrap;
@@ -225,27 +273,36 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
 
     .print-payment-meta {
-      background: #faf7f5;
+      background: linear-gradient(180deg, #fffaf7 0%, #ffffff 100%);
       border: 1px solid var(--printing-border);
-      border-radius: 20px;
+      border-radius: 22px;
       display: grid;
-      gap: 0.9rem;
+      gap: 0.85rem;
       padding: 1.15rem;
+      position: sticky;
+      top: 1rem;
     }
 
     .print-payment-meta-row {
+      background: #fff;
+      border: 1px solid var(--printing-border);
+      border-radius: 16px;
       display: grid;
-      gap: 0.25rem;
+      gap: 0.2rem;
+      padding: 0.85rem 0.95rem;
     }
 
     .print-payment-meta-row span {
       color: var(--printing-text-soft);
-      font-size: 0.9rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .print-payment-meta-row strong {
       color: #202020;
+      font-size: 1rem;
     }
 
     .print-payment-note,
@@ -260,14 +317,14 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       border-radius: 22px;
       display: grid;
       gap: 1rem;
-      padding: 1.2rem;
+      padding: 1.25rem;
     }
 
     .print-payment-qr {
+      align-items: center;
       display: grid;
       gap: 1rem;
       grid-template-columns: 180px minmax(0, 1fr);
-      align-items: center;
     }
 
     .print-payment-qr-box {
@@ -324,12 +381,25 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
 
     .printing-page .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
       margin-top: 0;
+    }
+
+    .confirmation-card {
+      display: grid;
+      gap: 0.9rem;
+      max-width: 640px;
     }
 
     @media (max-width: 900px) {
       .print-payment-grid {
         grid-template-columns: 1fr;
+      }
+
+      .print-payment-meta {
+        position: static;
       }
     }
 
@@ -395,12 +465,17 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
             <p class="print-payment-title">Print Order Details</p>
             <div class="print-payment-details">
               <div class="print-payment-detail">
-                <strong>Attached Files:</strong>
+                <strong>Attached Files</strong>
                 <?php if (!empty($fileItems)): ?>
                   <ul class="print-payment-files">
                     <?php foreach ($fileItems as $fileItem): ?>
                       <li>
-                        <span class="print-payment-file-name"><?= esc_print_order($fileItem["name"] ?? "-") ?></span>
+                        <div class="print-payment-file-main">
+                          <span class="print-payment-file-name"><?= esc_print_order($fileItem["name"] ?? "-") ?></span>
+                          <?php if (!empty($fileItem["meta"])): ?>
+                            <span class="print-payment-file-meta"><?= esc_print_order($fileItem["meta"]) ?></span>
+                          <?php endif; ?>
+                        </div>
                         <?php if (!empty($fileItem["path"])): ?>
                           <a class="print-payment-file-link" href="<?= esc_print_order($fileItem["path"]) ?>" target="_blank" rel="noopener">Open file</a>
                         <?php endif; ?>
@@ -411,18 +486,18 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
                   <span>No uploaded files found.</span>
                 <?php endif; ?>
               </div>
-              <p class="print-payment-detail"><strong>Paper Size:</strong> <?= esc_print_order($draft["paper_size"] ?? "-") ?></p>
-              <p class="print-payment-detail"><strong>Quantity/Copies:</strong> <?= esc_print_order((string)($draft["quantity"] ?? "-")) ?></p>
-              <p class="print-payment-detail"><strong>Color Option:</strong> <?= esc_print_order($draft["color_option"] ?? "-") ?></p>
-              <p class="print-payment-detail"><strong>Notes:</strong> <?= esc_print_order(($draft["notes"] ?? "") !== "" ? $draft["notes"] : "None") ?></p>
-              <p class="print-payment-detail"><strong>Payment:</strong> <?= esc_print_order(print_order_payment_label($paymentMethod)) ?></p>
+              <p class="print-payment-detail"><strong>Paper Size</strong> <?= esc_print_order($draft["paper_size"] ?? "-") ?></p>
+              <p class="print-payment-detail"><strong>Quantity/Copies</strong> <?= esc_print_order((string)($draft["quantity"] ?? "-")) ?></p>
+              <p class="print-payment-detail"><strong>Color Option</strong> <?= esc_print_order($draft["color_option"] ?? "-") ?></p>
+              <p class="print-payment-detail"><strong>Notes</strong> <?= esc_print_order(($draft["notes"] ?? "") !== "" ? $draft["notes"] : "None") ?></p>
+              <p class="print-payment-detail"><strong>Payment</strong> <?= esc_print_order(print_order_payment_label($paymentMethod)) ?></p>
             </div>
           </div>
 
           <div class="print-payment-meta">
             <div class="print-payment-meta-row">
               <span>Total Files</span>
-              <strong><?= esc_print_order((string)(count($fileItems) ?: ($draft["total_files"] ?? 0))) ?></strong>
+              <strong><?= esc_print_order((string)$totalFilesDisplay) ?></strong>
             </div>
             <div class="print-payment-meta-row">
               <span>Total Pages</span>

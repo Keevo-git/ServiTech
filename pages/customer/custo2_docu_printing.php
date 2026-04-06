@@ -37,13 +37,24 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       --printing-accent: #5f0e0f;
       --printing-accent-soft: #fdf1ea;
       --printing-border: rgba(95, 14, 15, 0.14);
+      --printing-border-strong: rgba(95, 14, 15, 0.2);
       --printing-surface: #ffffff;
+      --printing-surface-soft: #faf7f5;
       --printing-text-soft: #646464;
+      --printing-shadow: 0 18px 42px rgba(95, 14, 15, 0.08);
     }
 
     .printing-page .form-page-shell {
+      align-items: start;
       display: grid;
       gap: 1.5rem;
+      grid-template-columns: minmax(0, 1.45fr) minmax(300px, 360px);
+    }
+
+    .printing-page .form-page-intro,
+    .printing-page .form-feedback,
+    .printing-page .form-actions {
+      grid-column: 1 / -1;
     }
 
     .printing-page .form-page-intro {
@@ -57,13 +68,19 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     .printing-page .page-subtitle {
       color: var(--printing-text-soft);
       margin: 0;
+      max-width: 700px;
+    }
+
+    .printing-page .form-content-stack {
+      display: grid;
+      gap: 1.25rem;
     }
 
     .printing-page .form-card,
     .printing-page .summary-card {
       border: 1px solid var(--printing-border);
       border-radius: 24px;
-      box-shadow: 0 14px 34px rgba(95, 14, 15, 0.06);
+      box-shadow: var(--printing-shadow);
     }
 
     .printing-page .form-card {
@@ -73,13 +90,28 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 
     .printing-page .summary-card {
       background: linear-gradient(180deg, #fffaf7 0%, #ffffff 100%);
+      display: grid;
+      gap: 0.9rem;
+      padding: 1.45rem;
+      position: sticky;
+      top: 1rem;
     }
 
     .printing-page .step-title,
     .printing-page .summary-title {
       color: var(--printing-accent);
       letter-spacing: 0.02em;
-      margin-bottom: 1.2rem;
+      margin: 0 0 0.95rem;
+    }
+
+    .printing-page .summary-title {
+      margin-bottom: 0.2rem;
+    }
+
+    .printing-page .form-grid {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.95fr);
     }
 
     .printing-field {
@@ -98,7 +130,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     .printing-page .static-text {
-      background: #faf7f5;
+      background: var(--printing-surface-soft);
       border: 1px solid var(--printing-border);
       border-radius: 16px;
       margin: 0;
@@ -124,7 +156,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     .printing-page .radio-group {
-      background: #faf7f5;
+      background: var(--printing-surface-soft);
       border: 1px solid var(--printing-border);
       border-radius: 18px;
       display: grid;
@@ -156,8 +188,9 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     .payment-section__label {
       color: var(--printing-accent);
       display: block;
-      font-size: 0.95rem;
-      font-weight: 700;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
       margin-bottom: 0.75rem;
       text-transform: uppercase;
     }
@@ -173,7 +206,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     #fileAnalysisPanel {
-      background: #faf7f5;
+      background: var(--printing-surface-soft);
       border: 1px solid var(--printing-border);
       border-radius: 18px;
       margin-top: 1rem;
@@ -226,15 +259,40 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       background: #ffedd5;
     }
 
+    #fileAnalysisMeta {
+      color: var(--printing-text-soft);
+      margin: 0.85rem 0 0;
+    }
+
     .printing-page .summary-row,
     .printing-page .summary-total {
       align-items: center;
+      background: #fff;
+      border: 1px solid var(--printing-border);
+      border-radius: 16px;
+      display: flex;
       gap: 1rem;
+      justify-content: space-between;
+      padding: 0.95rem 1rem;
     }
 
     .printing-page .summary-row span,
     .printing-page .summary-total span {
       color: var(--printing-text-soft);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .printing-page .summary-total strong {
+      font-size: 1.15rem;
+    }
+
+    .printing-page .summary-divider {
+      background: rgba(95, 14, 15, 0.1);
+      height: 1px;
+      margin: 0.1rem 0;
     }
 
     .printing-page .form-feedback {
@@ -242,6 +300,9 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     .printing-page .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
       margin-top: 0;
     }
 
@@ -268,13 +329,32 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       }
     }
 
+    @media (max-width: 980px) {
+      .printing-page .form-page-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .printing-page .summary-card {
+        position: static;
+      }
+    }
+
     @media (max-width: 767px) {
-      .printing-page .form-card {
+      .printing-page .form-card,
+      .printing-page .summary-card {
         padding: 1.25rem;
       }
 
       .printing-page .form-grid {
         gap: 1rem;
+        grid-template-columns: 1fr;
+      }
+
+      #fileAnalysisList li,
+      .printing-page .summary-row,
+      .printing-page .summary-total {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
   </style>
