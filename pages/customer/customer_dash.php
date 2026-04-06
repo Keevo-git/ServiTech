@@ -364,6 +364,7 @@ $dashboardQueues = [
       background: #fffaf0;
       border-radius: 14px;
       padding: 14px 16px;
+      height: 112px;
       min-height: 112px;
       display: grid;
       grid-template-rows: 34px 24px 20px;
@@ -585,6 +586,7 @@ $dashboardQueues = [
       }
 
       .queue-item {
+        height: 116px;
         min-height: 116px;
         grid-template-rows: auto auto 20px;
       }
@@ -793,21 +795,11 @@ $dashboardQueues = [
       const code = escapeHtml(formatQueueCode(item.queue_code));
       const badge = escapeHtml(item.status_label || "Pending");
       const serviceLabel = escapeHtml(item.service_label || categoryLabel);
-      const detailsLabel = escapeHtml(item.details_label || "No extra details");
-      const createdLabel = escapeHtml(item.created_at_label || "");
-
-      if (mode === "active") {
-        return `
-          <article class="queue-item">
-            <div class="queue-item__head">
-              <div class="queue-item__code">${code}</div>
-              <div class="queue-item__badge queue-item__badge--${tone}">${badge}</div>
-            </div>
-            <div class="queue-item__label">${serviceLabel}</div>
-            <div class="queue-item__details">${detailsLabel}</div>
-          </article>
-        `;
-      }
+      const detailsLabel = escapeHtml(
+        mode === "active"
+          ? (item.details_label || "No extra details")
+          : (item.created_at_label || "No recent timestamp")
+      );
 
       return `
         <article class="queue-item">
@@ -816,7 +808,7 @@ $dashboardQueues = [
             <div class="queue-item__badge queue-item__badge--${tone}">${badge}</div>
           </div>
           <div class="queue-item__label">${serviceLabel}</div>
-          ${createdLabel ? `<div class="queue-item__meta">${createdLabel}</div>` : ""}
+          <div class="queue-item__details">${detailsLabel}</div>
         </article>
       `;
     }
