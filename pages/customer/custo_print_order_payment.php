@@ -115,6 +115,9 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       --printing-surface-soft: #faf7f5;
       --printing-text-soft: #646464;
       --printing-shadow: 0 12px 30px rgba(95, 14, 15, 0.05);
+      --printing-accent-soft: #f6e5df;
+      --printing-accent-wash: #fbf1ec;
+      --printing-file-surface: #fcf7f3;
       --payment-content-width: 860px;
     }
 
@@ -190,9 +193,10 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
 
     .print-payment-block--accent {
-      background: #dddddd;
-      border-color: transparent;
+      background: linear-gradient(135deg, #f8e7e0 0%, #f3ddd3 100%);
+      border: 1px solid rgba(95, 14, 15, 0.12);
       border-radius: 16px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
       padding: 0.9rem 1.15rem;
     }
 
@@ -211,15 +215,16 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     .print-payment-estimate span,
     .print-payment-note,
     .print-payment-input-note {
-      color: var(--printing-text-soft);
+      color: #775d58;
       font-size: 0.92rem;
       margin: 0;
     }
 
     .print-payment-estimate strong {
-      color: #171717;
+      color: #431112;
       font-size: clamp(1.75rem, 3vw, 2.15rem);
       line-height: 1.05;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
     }
 
     .print-payment-grid {
@@ -239,6 +244,11 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       border-radius: 16px;
       margin: 0;
       padding: 0.9rem 1rem;
+    }
+
+    .print-payment-detail--files {
+      background: var(--printing-file-surface);
+      border-color: rgba(95, 14, 15, 0.16);
     }
 
     .print-payment-detail strong {
@@ -261,13 +271,14 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
     .print-payment-files li {
       align-items: center;
-      background: #fff;
-      border: 1px solid var(--printing-border);
+      background: #fffdfb;
+      border: 1px solid rgba(95, 14, 15, 0.14);
+      border-left: 4px solid #c98f75;
       border-radius: 13px;
       display: flex;
       gap: 0.75rem;
       justify-content: space-between;
-      padding: 0.65rem 0.8rem;
+      padding: 0.7rem 0.85rem;
     }
 
     .print-payment-file-main {
@@ -277,27 +288,34 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
 
     .print-payment-file-name {
-      color: #222;
-      font-weight: 600;
+      color: #4f1717;
+      font-weight: 700;
       min-width: 0;
       overflow-wrap: anywhere;
     }
 
     .print-payment-file-meta {
-      color: var(--printing-text-soft);
+      color: #8a6b64;
       font-size: 0.82rem;
     }
 
     .print-payment-file-link {
+      background: #f6e5df;
+      border: 1px solid rgba(95, 14, 15, 0.12);
+      border-radius: 999px;
       color: var(--printing-accent);
-      font-size: 0.84rem;
+      font-size: 0.82rem;
       font-weight: 700;
+      padding: 0.35rem 0.8rem;
       text-decoration: none;
+      transition: background 0.2s ease, border-color 0.2s ease;
       white-space: nowrap;
     }
 
     .print-payment-file-link:hover {
-      text-decoration: underline;
+      background: #efdad2;
+      border-color: rgba(95, 14, 15, 0.2);
+      text-decoration: none;
     }
 
     .print-payment-detail-list {
@@ -448,7 +466,34 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       padding-top: 0.15rem;
     }
 
+    .printing-page .form-actions .btn-back,
     .printing-page .form-actions .btn-next {
+      align-items: center;
+      border-radius: 10px;
+      display: inline-flex;
+      font-size: 16px;
+      font-weight: 600;
+      justify-content: center;
+      line-height: 1.2;
+      min-height: 48px;
+      padding: 13px 22px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .printing-page .form-actions .btn-next {
+      appearance: none;
+      -webkit-appearance: none;
+      background: #fbbf24;
+      border: none;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+      color: #000;
+      cursor: pointer;
+      flex: 1 1 240px;
+      margin: 0;
+    }
+
+    .printing-page .form-actions .btn-back {
       flex: 1 1 240px;
     }
 
@@ -650,6 +695,9 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 <script src="/assets/js/custo_print_order_payment.js?v=20260406a1"></script>
 </body>
 </html>
+
+
+
 
 
 
