@@ -112,11 +112,10 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       --printing-accent: #5f0e0f;
       --printing-accent-soft: #fdf1ea;
       --printing-border: rgba(95, 14, 15, 0.14);
-      --printing-border-strong: rgba(95, 14, 15, 0.2);
       --printing-surface: #ffffff;
       --printing-surface-soft: #faf7f5;
       --printing-text-soft: #646464;
-      --printing-shadow: 0 18px 42px rgba(95, 14, 15, 0.08);
+      --printing-shadow: 0 14px 34px rgba(95, 14, 15, 0.06);
     }
 
     .printing-page .form-page-shell {
@@ -135,7 +134,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     .printing-page .page-subtitle {
       color: var(--printing-text-soft);
       margin: 0;
-      max-width: 720px;
+      max-width: 760px;
     }
 
     .printing-page .form-card {
@@ -143,7 +142,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       border: 1px solid var(--printing-border);
       border-radius: 24px;
       box-shadow: var(--printing-shadow);
-      padding: 1.6rem;
+      padding: 1.5rem;
     }
 
     .printing-page .step-title {
@@ -154,62 +153,64 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
     .print-payment-card {
       display: grid;
-      gap: 1.35rem;
+      gap: 1rem;
     }
 
-    .print-payment-block {
-      background: var(--printing-surface);
+    .print-payment-block,
+    .print-payment-payment-box {
+      background: var(--printing-surface-soft);
       border: 1px solid var(--printing-border);
-      border-radius: 22px;
-      padding: 1.2rem;
+      border-radius: 20px;
+      padding: 1.1rem;
     }
 
     .print-payment-block--accent {
-      background: linear-gradient(135deg, #fff8f4 0%, #fff2ea 100%);
-      border-color: rgba(95, 14, 15, 0.12);
+      background: linear-gradient(180deg, #fff8f4 0%, #fff 100%);
     }
 
     .print-payment-title {
       color: var(--printing-accent);
       font-size: 1rem;
       font-weight: 700;
-      margin: 0 0 0.85rem;
+      margin: 0 0 0.75rem;
     }
 
     .print-payment-estimate {
       display: grid;
-      gap: 0.4rem;
+      gap: 0.3rem;
     }
 
-    .print-payment-estimate span {
+    .print-payment-estimate span,
+    .print-payment-note,
+    .print-payment-input-note {
       color: var(--printing-text-soft);
       font-size: 0.95rem;
+      margin: 0;
     }
 
     .print-payment-estimate strong {
-      color: #1e1e1e;
-      font-size: clamp(2rem, 4vw, 2.6rem);
+      color: #1f1f1f;
+      font-size: clamp(1.9rem, 4vw, 2.4rem);
       line-height: 1.05;
     }
 
     .print-payment-grid {
       display: grid;
       gap: 1rem;
-      grid-template-columns: minmax(0, 1.3fr) minmax(250px, 0.95fr);
-      align-items: start;
+      grid-template-columns: 1fr;
     }
 
     .print-payment-details {
       display: grid;
-      gap: 0.9rem;
+      gap: 0.75rem;
     }
 
     .print-payment-detail {
-      background: var(--printing-surface-soft);
+      background: #fff;
       border: 1px solid var(--printing-border);
-      border-radius: 18px;
+      border-radius: 16px;
       margin: 0;
-      padding: 1rem 1.05rem;
+      padding: 0.9rem 1rem;
     }
 
     .print-payment-detail strong {
@@ -219,13 +220,12 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       font-weight: 800;
       letter-spacing: 0.08em;
       margin: 0 0 0.35rem;
-      min-width: 0;
       text-transform: uppercase;
     }
 
     .print-payment-files {
       display: grid;
-      gap: 0.65rem;
+      gap: 0.55rem;
       list-style: none;
       margin: 0;
       padding: 0;
@@ -235,16 +235,16 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       align-items: center;
       background: #fff;
       border: 1px solid var(--printing-border);
-      border-radius: 16px;
+      border-radius: 14px;
       display: flex;
-      gap: 0.85rem;
+      gap: 0.75rem;
       justify-content: space-between;
-      padding: 0.85rem 0.95rem;
+      padding: 0.75rem 0.9rem;
     }
 
     .print-payment-file-main {
       display: grid;
-      gap: 0.2rem;
+      gap: 0.15rem;
       min-width: 0;
     }
 
@@ -257,7 +257,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
     .print-payment-file-meta {
       color: var(--printing-text-soft);
-      font-size: 0.88rem;
+      font-size: 0.86rem;
     }
 
     .print-payment-file-link {
@@ -273,14 +273,9 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
 
     .print-payment-meta {
-      background: linear-gradient(180deg, #fffaf7 0%, #ffffff 100%);
-      border: 1px solid var(--printing-border);
-      border-radius: 22px;
       display: grid;
-      gap: 0.85rem;
-      padding: 1.15rem;
-      position: sticky;
-      top: 1rem;
+      gap: 0.75rem;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .print-payment-meta-row {
@@ -305,38 +300,23 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       font-size: 1rem;
     }
 
-    .print-payment-note,
-    .print-payment-input-note {
-      color: var(--printing-text-soft);
-      margin: 0;
-    }
-
-    .print-payment-payment-box {
-      background: var(--printing-accent-soft);
-      border: 1px solid rgba(95, 14, 15, 0.1);
-      border-radius: 22px;
-      display: grid;
-      gap: 1rem;
-      padding: 1.25rem;
-    }
-
     .print-payment-qr {
-      align-items: center;
       display: grid;
       gap: 1rem;
-      grid-template-columns: 180px minmax(0, 1fr);
+      grid-template-columns: 1fr;
+      justify-items: start;
     }
 
     .print-payment-qr-box {
       align-items: center;
       background: #fff;
-      border: 3px solid var(--printing-accent);
+      border: 2px solid var(--printing-accent);
       border-radius: 16px;
       display: flex;
+      height: 210px;
       justify-content: center;
-      min-height: 180px;
       overflow: hidden;
-      width: 180px;
+      width: 210px;
     }
 
     .print-payment-qr-box img {
@@ -354,6 +334,11 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       text-align: center;
     }
 
+    .print-payment-qr > div:last-child {
+      max-width: 760px;
+      width: 100%;
+    }
+
     .printing-page label {
       color: #1f1f1f;
       display: block;
@@ -363,7 +348,13 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
     .printing-page .form-input {
       border-radius: 16px;
-      min-height: 56px;
+      min-height: 58px;
+      width: 100%;
+    }
+
+    #referenceNumberInput {
+      font-size: 1rem;
+      max-width: none;
       width: 100%;
     }
 
@@ -394,32 +385,28 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
 
     @media (max-width: 900px) {
-      .print-payment-grid {
-        grid-template-columns: 1fr;
-      }
-
       .print-payment-meta {
-        position: static;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (max-width: 767px) {
       .printing-page .form-card {
-        padding: 1.25rem;
-      }
-
-      .print-payment-qr {
-        grid-template-columns: 1fr;
-      }
-
-      .print-payment-qr-box {
-        width: 100%;
-        max-width: 180px;
+        padding: 1.2rem;
       }
 
       .print-payment-files li {
         align-items: flex-start;
         flex-direction: column;
+      }
+
+      .print-payment-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .print-payment-qr-box {
+        height: 180px;
+        width: 180px;
       }
     }
   </style>
