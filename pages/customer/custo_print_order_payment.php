@@ -115,6 +115,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       --printing-surface-soft: #faf7f5;
       --printing-text-soft: #646464;
       --printing-shadow: 0 12px 30px rgba(95, 14, 15, 0.05);
+      --payment-content-width: 860px;
     }
 
     .printing-page .form-page-shell {
@@ -153,8 +154,8 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     .printing-page .form-page-intro,
     .printing-page .print-payment-form,
     .printing-page .confirmation-card {
-      margin-inline: auto;
-      width: min(100%, 980px);
+      margin-inline: auto !important;
+      width: min(100%, var(--payment-content-width)) !important;
     }
 
     .print-payment-form {
@@ -162,7 +163,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       gap: 0.9rem;
       justify-self: center;
       margin: 0;
-      width: min(100%, 980px);
+      width: min(100%, var(--payment-content-width)) !important;
     }
 
     .printing-page .step-title {
@@ -174,6 +175,8 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     .print-payment-card {
       display: grid;
       gap: 1rem;
+      margin: 0 !important;
+      width: 100% !important;
     }
 
     .print-payment-block,
@@ -645,6 +648,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 <script src="/assets/js/custo_print_order_payment.js?v=20260406a1"></script>
 </body>
 </html>
+
 
 
 
