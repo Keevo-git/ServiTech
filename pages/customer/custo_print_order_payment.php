@@ -552,6 +552,8 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
       .printing-page .form-actions .btn-next,
       .printing-page .form-actions .btn-back {
+        flex: 0 0 auto;
+        min-height: 48px;
         width: 100%;
       }
     }
@@ -695,6 +697,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 <script src="/assets/js/custo_print_order_payment.js?v=20260406a1"></script>
 </body>
 </html>
+
 
 
 
