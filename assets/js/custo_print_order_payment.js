@@ -1,10 +1,37 @@
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
+    var body = document.body;
+    var confirmedQueue = ((body && body.dataset.confirmedQueue) || "").trim();
+    var queueHomeUrl = (body && body.dataset.queueHomeUrl) || "/pages/customer/customer_dash.php";
+    var queueStatusUrl = (body && body.dataset.queueStatusUrl) || "/pages/customer/custo_service_status.php";
+    var queueModal = document.getElementById("queueModal");
+    var modalQueueNo = document.getElementById("modalQueueNo");
+    var goHomeBtn = document.getElementById("goHomeBtn");
+    var viewQueueBtn = document.getElementById("viewQueueBtn");
+
+    if (confirmedQueue && queueModal && modalQueueNo) {
+      modalQueueNo.textContent = confirmedQueue;
+      queueModal.style.display = "flex";
+      document.body.classList.add("modal-open");
+
+      if (goHomeBtn) {
+        goHomeBtn.addEventListener("click", function () {
+          window.location.href = queueHomeUrl;
+        });
+      }
+
+      if (viewQueueBtn) {
+        viewQueueBtn.addEventListener("click", function () {
+          window.location.href = queueStatusUrl;
+        });
+      }
+    }
+
     var form = document.getElementById("printOrderPaymentForm");
     var submitBtn = document.getElementById("placePrintOrderBtn");
     var referenceInput = document.getElementById("referenceNumberInput");
     var feedbackEl = document.getElementById("printPaymentFeedback");
-    var paymentMethod = ((document.body && document.body.dataset.paymentMethod) || "").toLowerCase();
+    var paymentMethod = ((body && body.dataset.paymentMethod) || "").toLowerCase();
 
     if (!form || !submitBtn) {
       return;

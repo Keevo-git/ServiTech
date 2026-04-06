@@ -559,7 +559,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
   </style>
 </head>
-<body class="customer-layout customer-page--print-order printing-page" data-payment-method="<?= esc_print_order($paymentMethod) ?>">
+<body class="customer-layout customer-page--print-order printing-page" data-payment-method="<?= esc_print_order($paymentMethod) ?>" data-confirmed-queue="<?= esc_print_order($isConfirmed ? ($queue ?: "") : "") ?>" data-queue-home-url="/pages/customer/customer_dash.php" data-queue-status-url="/pages/customer/custo_service_status.php">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -570,16 +570,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
         <h2 class="page-title">PRINT ORDER CONFIRMATION</h2>
       </div>
 
-      <div class="form-card confirmation-card">
-        <h3 class="step-title">You're in the queue!</h3>
-        <p>Your print order has been saved.</p>
-        <p><strong>Queue Code:</strong> <?= esc_print_order($queue ?: "-") ?></p>
 
-        <div class="form-actions form-actions--compact">
-          <a href="/pages/customer/customer_dash.php" class="btn-back">Back to Dashboard</a>
-          <a href="/pages/customer/custo_service_status.php" class="btn-next">View Status</a>
-        </div>
-      </div>
     <?php else: ?>
       <div class="form-page-intro">
         <h2 class="page-title">PAYMENT</h2>
@@ -693,10 +684,16 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
   </div>
 </section>
 
+<?php if ($isConfirmed): ?>
+  <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
+<?php endif; ?>
+
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 <script src="/assets/js/custo_print_order_payment.js?v=20260406a1"></script>
 </body>
 </html>
+
+
 
 
 
