@@ -126,7 +126,8 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
 
     .printing-page .form-page-intro {
-      margin-bottom: 0;
+      margin: 0;
+      padding: 0;
     }
 
     .printing-page .page-title {
@@ -144,7 +145,24 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       border: 1px solid var(--printing-border);
       border-radius: 22px;
       box-shadow: var(--printing-shadow);
+      margin: 0;
       padding: 1.45rem;
+      width: 100%;
+    }
+
+    .printing-page .form-page-intro,
+    .printing-page .print-payment-form,
+    .printing-page .confirmation-card {
+      margin-inline: auto;
+      width: min(100%, 980px);
+    }
+
+    .print-payment-form {
+      display: grid;
+      gap: 0.9rem;
+      justify-self: center;
+      margin: 0;
+      width: min(100%, 980px);
     }
 
     .printing-page .step-title {
@@ -418,6 +436,11 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       flex-wrap: wrap;
       gap: 0.75rem;
       margin-top: 0;
+      width: 100%;
+    }
+
+    .print-payment-form > .form-actions {
+      padding-top: 0.15rem;
     }
 
     .printing-page .form-actions .btn-next {
@@ -511,81 +534,81 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
         <p class="page-subtitle">Review the same print order details from the previous page, then place the order.</p>
       </div>
 
-      <div class="form-card print-payment-card">
-        <div class="print-payment-block print-payment-block--accent">
-          <p class="print-payment-title">Estimated Price</p>
-          <div class="print-payment-estimate">
-            <span>Estimated total based on your uploaded files and selected print settings.</span>
-            <strong><?= print_order_money((float)($draft["estimated_total"] ?? 0)) ?></strong>
-          </div>
-        </div>
+      <form id="printOrderPaymentForm" class="print-payment-form" method="post" action="/api/print_order_create.php" novalidate>
+        <input type="hidden" name="csrf_token" value="<?= esc_print_order($_SESSION["csrf_token"] ?? "") ?>">
 
-        <div class="print-payment-grid">
-          <div class="print-payment-block">
-            <p class="print-payment-title">Print Order Details</p>
-            <div class="print-payment-details">
-              <div class="print-payment-detail">
-                <strong>Attached Files</strong>
-                <?php if (!empty($fileItems)): ?>
-                  <ul class="print-payment-files">
-                    <?php foreach ($fileItems as $fileItem): ?>
-                      <li>
-                        <div class="print-payment-file-main">
-                          <span class="print-payment-file-name"><?= esc_print_order($fileItem["name"] ?? "-") ?></span>
-                          <?php if (!empty($fileItem["meta"])): ?>
-                            <span class="print-payment-file-meta"><?= esc_print_order($fileItem["meta"]) ?></span>
+        <div class="form-card print-payment-card">
+          <div class="print-payment-block print-payment-block--accent">
+            <p class="print-payment-title">Estimated Price</p>
+            <div class="print-payment-estimate">
+              <span>Estimated total based on your uploaded files and selected print settings.</span>
+              <strong><?= print_order_money((float)($draft["estimated_total"] ?? 0)) ?></strong>
+            </div>
+          </div>
+
+          <div class="print-payment-grid">
+            <div class="print-payment-block">
+              <p class="print-payment-title">Print Order Details</p>
+              <div class="print-payment-details">
+                <div class="print-payment-detail">
+                  <strong>Attached Files</strong>
+                  <?php if (!empty($fileItems)): ?>
+                    <ul class="print-payment-files">
+                      <?php foreach ($fileItems as $fileItem): ?>
+                        <li>
+                          <div class="print-payment-file-main">
+                            <span class="print-payment-file-name"><?= esc_print_order($fileItem["name"] ?? "-") ?></span>
+                            <?php if (!empty($fileItem["meta"])): ?>
+                              <span class="print-payment-file-meta"><?= esc_print_order($fileItem["meta"]) ?></span>
+                            <?php endif; ?>
+                          </div>
+                          <?php if (!empty($fileItem["path"])): ?>
+                            <a class="print-payment-file-link" href="<?= esc_print_order($fileItem["path"]) ?>" target="_blank" rel="noopener">Open file</a>
                           <?php endif; ?>
-                        </div>
-                        <?php if (!empty($fileItem["path"])): ?>
-                          <a class="print-payment-file-link" href="<?= esc_print_order($fileItem["path"]) ?>" target="_blank" rel="noopener">Open file</a>
-                        <?php endif; ?>
-                      </li>
-                    <?php endforeach; ?>
-                  </ul>
-                <?php else: ?>
-                  <span>No uploaded files found.</span>
-                <?php endif; ?>
-              </div>
-              <div class="print-payment-detail">
-                <div class="print-payment-detail-list">
-                  <p class="print-payment-detail-line"><strong>Paper Size:</strong> <?= esc_print_order($draft["paper_size"] ?? "-") ?></p>
-                  <p class="print-payment-detail-line"><strong>Quantity/Copies:</strong> <?= esc_print_order((string)($draft["quantity"] ?? "-")) ?></p>
-                  <p class="print-payment-detail-line"><strong>Color Option:</strong> <?= esc_print_order($draft["color_option"] ?? "-") ?></p>
-                  <p class="print-payment-detail-line"><strong>Notes:</strong> <?= esc_print_order(($draft["notes"] ?? "") !== "" ? $draft["notes"] : "None") ?></p>
-                  <p class="print-payment-detail-line"><strong>Payment:</strong> <?= esc_print_order(print_order_payment_label($paymentMethod)) ?></p>
+                        </li>
+                      <?php endforeach; ?>
+                    </ul>
+                  <?php else: ?>
+                    <span>No uploaded files found.</span>
+                  <?php endif; ?>
+                </div>
+                <div class="print-payment-detail">
+                  <div class="print-payment-detail-list">
+                    <p class="print-payment-detail-line"><strong>Paper Size:</strong> <?= esc_print_order($draft["paper_size"] ?? "-") ?></p>
+                    <p class="print-payment-detail-line"><strong>Quantity/Copies:</strong> <?= esc_print_order((string)($draft["quantity"] ?? "-")) ?></p>
+                    <p class="print-payment-detail-line"><strong>Color Option:</strong> <?= esc_print_order($draft["color_option"] ?? "-") ?></p>
+                    <p class="print-payment-detail-line"><strong>Notes:</strong> <?= esc_print_order(($draft["notes"] ?? "") !== "" ? $draft["notes"] : "None") ?></p>
+                    <p class="print-payment-detail-line"><strong>Payment:</strong> <?= esc_print_order(print_order_payment_label($paymentMethod)) ?></p>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <div class="print-payment-meta">
+              <div class="print-payment-meta-row">
+                <span>Total Files</span>
+                <strong><?= esc_print_order((string)$totalFilesDisplay) ?></strong>
+              </div>
+              <div class="print-payment-meta-row">
+                <span>Total Pages</span>
+                <strong><?= esc_print_order((string)($draft["total_pages"] ?? 0)) ?></strong>
+              </div>
+              <div class="print-payment-meta-row">
+                <span>Price Per Page</span>
+                <strong><?= print_order_money((float)($draft["price_per_page"] ?? 0)) ?></strong>
+              </div>
+              <div class="print-payment-meta-row">
+                <span>Order Type</span>
+                <strong>Online Print Order</strong>
+              </div>
+            </div>
           </div>
 
-          <div class="print-payment-meta">
-            <div class="print-payment-meta-row">
-              <span>Total Files</span>
-              <strong><?= esc_print_order((string)$totalFilesDisplay) ?></strong>
-            </div>
-            <div class="print-payment-meta-row">
-              <span>Total Pages</span>
-              <strong><?= esc_print_order((string)($draft["total_pages"] ?? 0)) ?></strong>
-            </div>
-            <div class="print-payment-meta-row">
-              <span>Price Per Page</span>
-              <strong><?= print_order_money((float)($draft["price_per_page"] ?? 0)) ?></strong>
-            </div>
-            <div class="print-payment-meta-row">
-              <span>Order Type</span>
-              <strong>Online Print Order</strong>
-            </div>
-          </div>
-        </div>
-
-        <?php if ($flashError !== ""): ?>
-          <p id="printPaymentFeedback" class="form-feedback error" role="alert"><?= esc_print_order($flashError) ?></p>
-        <?php else: ?>
-          <p id="printPaymentFeedback" class="form-feedback" role="alert" aria-live="polite"></p>
-        <?php endif; ?>
-
-        <form id="printOrderPaymentForm" method="post" action="/api/print_order_create.php" novalidate>
-          <input type="hidden" name="csrf_token" value="<?= esc_print_order($_SESSION["csrf_token"] ?? "") ?>">
+          <?php if ($flashError !== ""): ?>
+            <p id="printPaymentFeedback" class="form-feedback error" role="alert"><?= esc_print_order($flashError) ?></p>
+          <?php else: ?>
+            <p id="printPaymentFeedback" class="form-feedback" role="alert" aria-live="polite"></p>
+          <?php endif; ?>
 
           <div class="print-payment-payment-box">
             <?php if ($paymentMethod === "gcash"): ?>
@@ -607,13 +630,13 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
               <p class="print-payment-note">No payment method selected.</p>
             <?php endif; ?>
           </div>
+        </div>
 
-          <div class="form-actions form-actions--compact">
-            <a href="/pages/customer/custo2_docu_printing.php" class="btn-back">Back</a>
-            <button type="submit" class="btn-next" id="placePrintOrderBtn">Place Print Order</button>
-          </div>
-        </form>
-      </div>
+        <div class="form-actions form-actions--compact">
+          <a href="/pages/customer/custo2_docu_printing.php" class="btn-back">Back</a>
+          <button type="submit" class="btn-next" id="placePrintOrderBtn">Place Print Order</button>
+        </div>
+      </form>
     <?php endif; ?>
   </div>
 </section>
@@ -622,3 +645,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 <script src="/assets/js/custo_print_order_payment.js?v=20260406a1"></script>
 </body>
 </html>
+
+
+
+
