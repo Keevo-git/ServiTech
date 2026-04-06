@@ -229,8 +229,8 @@ $dashboardQueues = [
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260406b2">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b2">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260406b3">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b3">
   <style>
     body.customer-layout.customer-page--dashboard .customer-dashboard {
       display: grid;
@@ -594,8 +594,12 @@ $dashboardQueues = [
 
     @media (max-width: 640px) {
       .queue-carousel-card {
-        height: 296px;
-        min-height: 296px;
+        height: auto;
+        min-height: 320px;
+      }
+
+      .queue-carousel {
+        grid-template-rows: 44px 18px auto;
       }
 
       .queue-carousel__topbar {
@@ -620,20 +624,22 @@ $dashboardQueues = [
         min-height: auto;
       }
 
-      .queue-item {
-        height: 126px;
-        min-height: 126px;
-        grid-template-rows: auto auto 20px;
-      }
-
       .queue-carousel__list {
-        height: 126px;
-        min-height: 126px;
+        height: auto;
+        min-height: 138px;
         padding: 0 4px;
       }
 
       .queue-item {
+        height: auto;
+        min-height: 138px;
+        grid-template-rows: auto auto auto;
         padding: 12px 14px;
+      }
+
+      .queue-carousel__empty {
+        height: auto;
+        min-height: 138px;
       }
 
       .queue-item__code {
