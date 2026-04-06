@@ -97,6 +97,10 @@ $paymentMethod = strtolower(trim((string)($draft["payment_method"] ?? "")));
 $fileItems = build_print_order_file_items($draft);
 $totalFilesDisplay = count($fileItems) ?: max(0, (int)($draft["total_files"] ?? 0));
 
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 ?>
 <!DOCTYPE html>
@@ -686,12 +690,38 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
 <?php if ($isConfirmed): ?>
   <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
+  <script>
+    (function () {
+      var queueModal = document.getElementById("queueModal");
+      var modalQueueNo = document.getElementById("modalQueueNo");
+      var goHomeBtn = document.getElementById("goHomeBtn");
+      var viewQueueBtn = document.getElementById("viewQueueBtn");
+      if (!queueModal || !modalQueueNo) {
+        return;
+      }
+      modalQueueNo.textContent = <?= json_encode($queue ?: "") ?>;
+      queueModal.style.display = "flex";
+      document.body.classList.add("modal-open");
+      if (goHomeBtn) {
+        goHomeBtn.onclick = function () {
+          window.location.href = "/pages/customer/customer_dash.php";
+        };
+      }
+      if (viewQueueBtn) {
+        viewQueueBtn.onclick = function () {
+          window.location.href = "/pages/customer/custo_service_status.php";
+        };
+      }
+    })();
+  </script>
 <?php endif; ?>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
-<script src="/assets/js/custo_print_order_payment.js?v=20260406a1"></script>
+<script src="/assets/js/custo_print_order_payment.js?v=20260406b2"></script>
 </body>
 </html>
+
+
 
 
 
