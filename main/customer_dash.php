@@ -168,8 +168,8 @@ $recentQueues = [];
 foreach ($queueCategories as $categoryKey) {
   $meta = queue_category_meta($categoryKey);
   $queueCategoryMeta[$categoryKey] = $meta["label"];
-  $activeQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 3, true);
-  $recentQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 2, false);
+  $activeQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 1, true);
+  $recentQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 1, false);
 }
 
 $dashboardQueues = [
@@ -202,8 +202,8 @@ $dashboardQueues = [
 
     .queue-carousel-card {
       overflow: hidden;
-      height: 470px;
-      min-height: 470px;
+      height: 340px;
+      min-height: 340px;
     }
 
     .queue-carousel {
@@ -286,12 +286,9 @@ $dashboardQueues = [
       align-content: start;
       min-height: 0;
       height: 100%;
-      overflow-y: auto;
-      padding-right: 4px;
+      overflow: hidden;
       opacity: 1;
       transition: opacity 0.2s ease;
-      scrollbar-width: thin;
-      scrollbar-color: #d8b56a #f8edd1;
     }
 
     .queue-carousel__list.is-fading {
@@ -303,7 +300,7 @@ $dashboardQueues = [
       border-radius: 14px;
       padding: 14px;
       background: #fffaf0;
-      min-height: 110px;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -388,11 +385,11 @@ $dashboardQueues = [
       color: #6b5a3b;
       font-size: 13px;
       line-height: 1.45;
-      min-height: 38px;
+      min-height: 20px;
       overflow: hidden;
       display: -webkit-box;
       -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 1;
     }
 
     .queue-carousel__empty {
@@ -417,15 +414,15 @@ $dashboardQueues = [
       }
 
       .queue-carousel-card {
-        height: 450px;
-        min-height: 450px;
+        height: 320px;
+        min-height: 320px;
       }
     }
 
     @media (max-width: 640px) {
       .queue-carousel-card {
-        height: 420px;
-        min-height: 420px;
+        height: 300px;
+        min-height: 300px;
       }
 
       .queue-carousel__topbar {
@@ -458,7 +455,7 @@ $dashboardQueues = [
 
       .queue-item__details,
       .queue-item__meta {
-        min-height: 34px;
+        min-height: 20px;
       }
     }
   </style>
@@ -490,17 +487,17 @@ $dashboardQueues = [
   </div>
 
   <div class="dashboard-card queue-carousel-card">
-    <h3>RECENT ACTIVITY</h3>
+    <h3>LATEST QUEUE</h3>
     <div class="divider"></div>
 
     <div class="queue-carousel">
       <div class="queue-carousel__topbar">
-        <button type="button" class="queue-carousel__nav" id="recentQueuePrev" aria-label="Previous recent activity category">&#9664;</button>
+        <button type="button" class="queue-carousel__nav" id="recentQueuePrev" aria-label="Previous latest queue category">&#9664;</button>
         <div class="queue-carousel__category" id="recentQueueCategory">ONLINE PRINTING</div>
-        <button type="button" class="queue-carousel__nav" id="recentQueueNext" aria-label="Next recent activity category">&#9654;</button>
+        <button type="button" class="queue-carousel__nav" id="recentQueueNext" aria-label="Next latest queue category">&#9654;</button>
       </div>
 
-      <div class="queue-carousel__dots" id="recentQueueDots" aria-label="Recent activity category indicators"></div>
+      <div class="queue-carousel__dots" id="recentQueueDots" aria-label="Latest queue category indicators"></div>
       <div class="queue-carousel__list" id="recentQueueList"></div>
     </div>
   </div>
@@ -732,7 +729,7 @@ $dashboardQueues = [
 
   const recentCarousel = createQueueCarousel({
     mode: "recent",
-    emptyMessage: "No recent activity",
+    emptyMessage: "No latest queue in this category",
     titleEl: document.getElementById("recentQueueCategory"),
     listEl: document.getElementById("recentQueueList"),
     dotsEl: document.getElementById("recentQueueDots"),

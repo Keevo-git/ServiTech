@@ -158,8 +158,8 @@ $activeQueues = [];
 $recentQueues = [];
 
 foreach ($queueCategories as $categoryKey) {
-  $activeQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 3, true);
-  $recentQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 2, false);
+  $activeQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 1, true);
+  $recentQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 1, false);
 }
 
 try {
