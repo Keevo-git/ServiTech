@@ -121,6 +121,9 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     .printing-page .form-page-shell {
       display: grid;
       gap: 1.5rem;
+      margin: 0 auto;
+      max-width: 1100px;
+      width: 100%;
     }
 
     .printing-page .form-page-intro {
@@ -142,7 +145,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       border: 1px solid var(--printing-border);
       border-radius: 24px;
       box-shadow: var(--printing-shadow);
-      padding: 1.5rem;
+      padding: 1.75rem;
     }
 
     .printing-page .step-title {
@@ -153,19 +156,22 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
     .print-payment-card {
       display: grid;
-      gap: 1rem;
+      gap: 1.25rem;
     }
 
     .print-payment-block,
     .print-payment-payment-box {
-      background: var(--printing-surface-soft);
+      background: #fff;
       border: 1px solid var(--printing-border);
-      border-radius: 20px;
-      padding: 1.1rem;
+      border-radius: 18px;
+      padding: 1rem;
     }
 
     .print-payment-block--accent {
-      background: linear-gradient(180deg, #fff8f4 0%, #fff 100%);
+      background: #e9e9e9;
+      border-color: transparent;
+      border-radius: 16px;
+      padding: 1rem 1.2rem;
     }
 
     .print-payment-title {
@@ -300,11 +306,16 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       font-size: 1rem;
     }
 
+    .print-payment-payment-box {
+      border-top: 2px solid rgba(95, 14, 15, 0.15);
+      padding-top: 1.25rem;
+    }
+
     .print-payment-qr {
       display: grid;
-      gap: 1rem;
-      grid-template-columns: 1fr;
-      justify-items: start;
+      gap: 1.25rem;
+      grid-template-columns: 220px minmax(0, 1fr);
+      align-items: start;
     }
 
     .print-payment-qr-box {
@@ -334,8 +345,10 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       text-align: center;
     }
 
-    .print-payment-qr > div:last-child {
-      max-width: 760px;
+    .print-payment-reference {
+      display: grid;
+      gap: 0.55rem;
+      max-width: 640px;
       width: 100%;
     }
 
@@ -355,6 +368,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     #referenceNumberInput {
       font-size: 1rem;
       max-width: none;
+      min-width: 0;
       width: 100%;
     }
 
@@ -388,6 +402,10 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       .print-payment-meta {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .print-payment-qr {
+        grid-template-columns: 200px minmax(0, 1fr);
+      }
     }
 
     @media (max-width: 767px) {
@@ -402,6 +420,11 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
       .print-payment-meta {
         grid-template-columns: 1fr;
+      }
+
+      .print-payment-qr {
+        grid-template-columns: 1fr;
+        justify-items: start;
       }
 
       .print-payment-qr-box {
@@ -518,7 +541,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
                   <img src="/assets/img/qr-placeholder.png" alt="Temporary GCash QR code" onerror="this.style.display='none'; var fallback = this.parentNode.querySelector('.print-payment-qr-fallback'); if (fallback) { fallback.style.display = 'flex'; }">
                   <div class="print-payment-qr-fallback">QR Placeholder</div>
                 </div>
-                <div>
+                <div class="print-payment-reference">
                   <label for="referenceNumberInput">Reference Number<span class="required">*</span></label>
                   <input type="text" class="form-input" id="referenceNumberInput" name="reference_number" value="<?= esc_print_order($referenceNumber) ?>" placeholder="Enter the transaction number" autocomplete="off">
                   <p class="print-payment-input-note">Enter the GCash transaction reference so the staff can verify it before printing.</p>
