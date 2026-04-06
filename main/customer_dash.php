@@ -163,6 +163,43 @@ function fetch_user_queue_items(PDO $pdo, int $userId, string $categoryKey, int 
   return $items;
 }
 
+function fetch_latest_queue_items(PDO $pdo, string $categoryKey, int $limit): array {
+  $limit = max(1, $limit);
+  $meta = queue_category_meta($categoryKey);
+
+  $sql = "
+    SELECT q.queue_code, q.status, q.details, q.created_at
+    FROM queues q
+    WHERE {$meta['sql']}
+    ORDER BY q.created_at DESC
+    LIMIT {$limit}
+  ";
+
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute($meta["params"]);
+
+  $items = [];
+  foreach ($stmt->fetchAll() as $row) {
+    $details = parse_queue_details($row["details"] ?? null);
+    $createdAt = trim((string)($row["created_at"] ?? ""));
+    $status = strtoupper(trim((string)($row["status"] ?? "PENDING")));
+    $serviceLabel = normalize_service_label((string)($details["service_label"] ?? ""), $meta["label"]);
+
+    $items[] = [
+      "queue_code" => trim((string)($row["queue_code"] ?? "")),
+      "status" => $status,
+      "status_label" => format_status_label($status),
+      "status_tone" => queue_status_tone($status),
+      "category_label" => $meta["label"],
+      "service_label" => $serviceLabel,
+      "details_label" => build_short_details($details),
+      "created_at" => $createdAt,
+      "created_at_label" => $createdAt !== "" ? date("M d, Y h:i A", strtotime($createdAt)) : "",
+    ];
+  }
+
+  return $items;
+}
 $display_name = format_fullname($fullname);
 $queueCategories = ["online_print", "printing", "installation", "repair"];
 $queueCategoryMeta = [];
@@ -173,7 +210,7 @@ foreach ($queueCategories as $categoryKey) {
   $meta = queue_category_meta($categoryKey);
   $queueCategoryMeta[$categoryKey] = $meta["label"];
   $activeQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 1, true);
-  $recentQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 1, false);
+  $recentQueues[$categoryKey] = fetch_latest_queue_items($pdo, $categoryKey, 1);
 }
 
 $dashboardQueues = [
