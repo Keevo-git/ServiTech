@@ -45,6 +45,23 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     #fileAnalysisList button:hover {
       background: #ffedd5;
     }
+
+    #paymentSection[hidden],
+    #cashPaymentNote[hidden] {
+      display: none !important;
+    }
+
+    .payment-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+    }
+
+    .payment-section__hint {
+      color: #5f5f5f;
+      font-size: 0.95rem;
+      margin: 0.5rem 0 0;
+    }
+
     .queue-success-modal {
       width: min(100%, 420px);
     }
@@ -89,9 +106,26 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <label>Service Type<span class="required">*</span></label>
             <p class="static-text">Document Printing</p>
 
+            <label for="orderTypeSelect">Order Type<span class="required">*</span></label>
+            <select class="form-select" id="orderTypeSelect">
+              <option value="" selected>Select order type</option>
+              <option value="walkin">Walk-in</option>
+              <option value="online">Online Print Order</option>
+            </select>
+
+            <div id="paymentSection" class="payment-section" hidden>
+              <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
+              <select class="form-select" id="paymentMethodSelect">
+                <option value="" selected>Select payment method</option>
+                <option value="cash">Cash</option>
+                <option value="gcash">GCash</option>
+              </select>
+              <p id="cashPaymentNote" class="payment-section__hint" hidden>You must go to the store to complete payment before printing.</p>
+            </div>
+
             <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
             <select class="form-select" id="paperSizeSelect">
-              <option selected disabled>Select paper size</option>
+              <option value="" selected>Select paper size</option>
               <option>Short Bond (8.5 x 11)</option>
               <option>Long Bond (8.5 x 13)</option>
               <option>A4</option>
@@ -183,7 +217,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/main.js?v=20260326c4"></script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260326b2"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260406a1"></script>
 </body>
 </html>
-

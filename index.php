@@ -10,7 +10,7 @@ $status_url = $is_admin
   : ($is_logged_in ? "/pages/customer/custo_service_status.php" : "/auth/log_in.html");
 $print_url = $is_admin
   ? "/pages/admin/order_management/printM.php"
-  : ($is_logged_in ? "/pages/customer/custo_print_order.php" : "/auth/log_in.html");
+  : ($is_logged_in ? "/pages/customer/custo2_docu_printing.php" : "/auth/log_in.html");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -113,5 +113,6 @@ $print_url = $is_admin
   <script src="/assets/js/header-menu.js" defer></script>
 </body>
 </html>
+
 
 

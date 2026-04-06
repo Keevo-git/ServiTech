@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/queue_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -22,20 +23,34 @@ if (!is_array($data)) {
 
 $category = strtolower(trim((string)($data["category"] ?? "printing")));
 $service_label = trim((string)($data["service_label"] ?? ""));
+$order_type = strtolower(trim((string)($data["order_type"] ?? "")));
+$payment_method = strtolower(trim((string)($data["payment_method"] ?? "")));
+
 if ($service_label === "") {
   echo json_encode(["ok" => false, "error" => "Service label required"]);
   exit();
 }
 
-$allowed = ["printing","repair","installation","walkin","general"];
-if (!in_array($category, $allowed, true)) $category = "printing";
+$allowedCategories = ["printing", "repair", "installation", "walkin", "general"];
+if (!in_array($category, $allowedCategories, true)) {
+  $category = "printing";
+}
 
-// Store all request details in details jsonb (including service_label).
+if (!in_array($order_type, ["walkin", "online"], true)) {
+  $order_type = "";
+}
+
+if (!in_array($payment_method, ["cash", "gcash"], true)) {
+  $payment_method = "";
+}
+
 $details = [
   "service_label" => $service_label,
+  "order_type" => $order_type !== "" ? $order_type : null,
   "paper_size" => $data["paper_size"] ?? null,
   "quantity" => isset($data["quantity"]) ? max(1, (int)$data["quantity"]) : null,
   "color_option" => $data["color_option"] ?? null,
+  "payment_method" => $payment_method !== "" ? $payment_method : null,
   "package_label" => $data["package_label"] ?? null,
   "lamination_type" => $data["lamination_type"] ?? null,
   "device_type" => $data["device_type"] ?? null,
@@ -51,33 +66,30 @@ $details = [
   "uploaded_files" => isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : null,
 ];
 
-foreach ($details as $k => $v) {
-  if ($v === null) unset($details[$k]);
-  if (is_string($v) && trim($v) === "") unset($details[$k]);
+foreach ($details as $key => $value) {
+  if ($value === null) {
+    unset($details[$key]);
+    continue;
+  }
+
+  if (is_string($value) && trim($value) === "") {
+    unset($details[$key]);
+  }
 }
 
 $prefix = "P";
-if ($category === "repair") $prefix = "R";
-if ($category === "installation") $prefix = "I";
-if ($category === "walkin") $prefix = "W";
+if ($category === "repair") {
+  $prefix = "R";
+} elseif ($category === "installation") {
+  $prefix = "I";
+} elseif ($category === "walkin") {
+  $prefix = "W";
+}
 
 try {
-  // get last queue code for this prefix
-  $stmt = $pdo->prepare("
-    SELECT queue_code
-    FROM queues
-    WHERE queue_code LIKE :like
-    ORDER BY id DESC
-    LIMIT 1
-  ");
-  $stmt->execute([":like" => $prefix . "%"]);
-  $row = $stmt->fetch();
+  $pdo->beginTransaction();
 
-  $next = 1;
-  if ($row && !empty($row["queue_code"]) && preg_match('/^' . preg_quote($prefix, "/") . '(\d+)$/', $row["queue_code"], $m)) {
-    $next = (int)$m[1] + 1;
-  }
-  $queue_code = $prefix . str_pad((string)$next, 4, "0", STR_PAD_LEFT);
+  $queue_code = servitech_generate_queue_code($pdo, $prefix);
 
   $ins = $pdo->prepare("
     INSERT INTO queues (user_id, queue_code, category, details)
@@ -90,10 +102,14 @@ try {
     ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
   ]);
 
+  $pdo->commit();
+
   echo json_encode(["ok" => true, "queue_code" => $queue_code]);
   exit();
-
-} catch (PDOException $e) {
+} catch (Throwable $e) {
+  if ($pdo->inTransaction()) {
+    $pdo->rollBack();
+  }
   error_log("queue_create error: " . $e->getMessage());
   echo json_encode(["ok" => false, "error" => "DB error"]);
   exit();

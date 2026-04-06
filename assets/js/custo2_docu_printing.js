@@ -22,10 +22,10 @@
   }
 
   function debounce(fn, wait) {
-    var t = null;
+    var timer = null;
     return function () {
-      clearTimeout(t);
-      t = setTimeout(fn, wait);
+      clearTimeout(timer);
+      timer = setTimeout(fn, wait);
     };
   }
 
@@ -39,13 +39,22 @@
     var feedbackEl = document.getElementById("formFeedback");
     var qtyInput = document.getElementById("qtyInput");
     var paperSizeSelect = document.getElementById("paperSizeSelect");
+    var orderTypeSelect = document.getElementById("orderTypeSelect");
+    var paymentSection = document.getElementById("paymentSection");
+    var paymentMethodSelect = document.getElementById("paymentMethodSelect");
+    var cashPaymentNote = document.getElementById("cashPaymentNote");
+    var joinQueueBtn = document.getElementById("joinQueueBtn");
     var summaryPaperSize = document.getElementById("summaryPaperSize");
     var summaryQty = document.getElementById("summaryQty");
     var summaryTotalPages = document.getElementById("summaryTotalPages");
     var summaryPricePerPage = document.getElementById("summaryPricePerPage");
     var summaryTotal = document.getElementById("summaryTotal");
+    var queueModal = document.getElementById("queueModal");
+    var modalQueueNo = document.getElementById("modalQueueNo");
 
-    if (!fileUpload || !fileListEl || !fileMetaEl || !qtyInput || !paperSizeSelect) return;
+    if (!fileUpload || !fileListEl || !fileMetaEl || !qtyInput || !paperSizeSelect || !orderTypeSelect || !paymentMethodSelect || !joinQueueBtn) {
+      return;
+    }
 
     var ALLOWED_EXT = {
       pdf: true,
@@ -61,6 +70,7 @@
 
     var selectedFiles = [];
     var uploadedSignature = "";
+    var isSubmitting = false;
 
     var state = {
       files: [],
@@ -92,6 +102,16 @@
       return qty;
     }
 
+    function getOrderType() {
+      return (orderTypeSelect.value || "").trim().toLowerCase();
+    }
+
+    function getPaymentMethod() {
+      return getOrderType() === "online"
+        ? (paymentMethodSelect.value || "").trim().toLowerCase()
+        : "";
+    }
+
     function fileKey(file) {
       return [
         (file.name || "").toLowerCase(),
@@ -113,6 +133,41 @@
       }
     }
 
+    function setFieldInvalid(el, invalid) {
+      if (!el) return;
+      el.classList.toggle("is-invalid", !!invalid);
+    }
+
+    function setRadioInvalid(name, invalid) {
+      var first = document.querySelector('input[name="' + name + '"]');
+      var group = first ? first.closest(".radio-group") : null;
+      if (group) group.classList.toggle("is-invalid", !!invalid);
+    }
+
+    function clearValidationState() {
+      setFieldInvalid(orderTypeSelect, false);
+      setFieldInvalid(paymentMethodSelect, false);
+      setFieldInvalid(paperSizeSelect, false);
+      setFieldInvalid(qtyInput, false);
+      setFieldInvalid(fileUpload, false);
+      setRadioInvalid("color", false);
+      setFeedback("", "error");
+    }
+
+    function setProcessingState(processing, label) {
+      isSubmitting = processing;
+      joinQueueBtn.disabled = !!processing;
+      if (processing) {
+        joinQueueBtn.dataset.originalLabel = joinQueueBtn.dataset.originalLabel || joinQueueBtn.textContent;
+        joinQueueBtn.textContent = label || "Processing...";
+        joinQueueBtn.setAttribute("aria-busy", "true");
+        return;
+      }
+
+      joinQueueBtn.textContent = joinQueueBtn.dataset.originalLabel || "Join Queue";
+      joinQueueBtn.removeAttribute("aria-busy");
+    }
+
     function syncFileInput() {
       var dt = new DataTransfer();
       selectedFiles.forEach(function (f) {
@@ -124,7 +179,7 @@
     function renderSummary() {
       var size = paperSizeSelect.value || "";
       if (summaryPaperSize) {
-        summaryPaperSize.textContent = size && size !== "Select paper size" ? size : "Not Selected";
+        summaryPaperSize.textContent = size ? size : "Not Selected";
       }
       if (summaryQty) summaryQty.textContent = String(getQuantity());
       if (summaryTotalPages) summaryTotalPages.textContent = String(state.total_pages || 0);
@@ -362,7 +417,6 @@
       });
 
       var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
-
       var res = await fetch(servitechUrl("/api/upload_handler.php"), {
         method: "POST",
         credentials: "same-origin",
@@ -412,9 +466,227 @@
       };
     }
 
-    function resetUploadedFilesState() {
-      uploadedSignature = "";
-      state.uploaded_files = [];
+    async function cleanupUploadedFiles(uploadedFiles) {
+      if (!Array.isArray(uploadedFiles) || uploadedFiles.length === 0) return;
+
+      var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
+
+      try {
+        await fetch(servitechUrl("/api/upload_cleanup.php"), {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-Token": csrf,
+          },
+          body: JSON.stringify({ uploaded_files: uploadedFiles }),
+        });
+      } catch (err) {
+        console.error("upload cleanup failed", err);
+      } finally {
+        uploadedSignature = "";
+        state.uploaded_files = [];
+      }
+    }
+
+    function updateOrderTypeUi() {
+      var online = getOrderType() === "online";
+      paymentSection.hidden = !online;
+      if (!online) {
+        paymentMethodSelect.value = "";
+      }
+      cashPaymentNote.hidden = !(online && getPaymentMethod() === "cash");
+      setFieldInvalid(orderTypeSelect, false);
+      setFieldInvalid(paymentMethodSelect, false);
+    }
+
+    function buildPayload() {
+      return {
+        category: "printing",
+        service_label: "Document Printing",
+        order_type: getOrderType(),
+        paper_size: paperSizeSelect.value || null,
+        quantity: getQuantity(),
+        color_option: getSelectedColor(),
+        payment_method: getPaymentMethod() || null,
+        notes: document.getElementById("notes") ? document.getElementById("notes").value.trim() : null,
+        file_name: selectedFiles[0] ? selectedFiles[0].name : null,
+        file_names: selectedFiles.length ? selectedFiles.map(function (file) { return file.name; }) : null,
+        total_files: Number(state.total_files) || 0,
+        total_images: Number(state.total_images) || 0,
+        total_pages: Number(state.total_pages) || 0,
+        price_per_page: Number(state.price_per_page) || 0,
+        estimated_total: Number(state.estimated_total) || 0,
+        file_analysis: Array.isArray(state.files) ? state.files : [],
+        uploaded_files: Array.isArray(state.uploaded_files) ? state.uploaded_files : [],
+      };
+    }
+
+    function validatePayload(payload) {
+      var errors = [];
+
+      if (!payload.order_type) {
+        errors.push("Select an order type.");
+        setFieldInvalid(orderTypeSelect, true);
+      }
+
+      if (!payload.paper_size) {
+        errors.push("Select paper size.");
+        setFieldInvalid(paperSizeSelect, true);
+      }
+
+      if (!Number.isFinite(payload.quantity) || payload.quantity < 1) {
+        errors.push("Quantity must be at least 1.");
+        setFieldInvalid(qtyInput, true);
+      }
+
+      if (!payload.color_option) {
+        errors.push("Select a color option.");
+        setRadioInvalid("color", true);
+      }
+
+      if (!selectedFiles.length) {
+        errors.push("Upload at least one file.");
+        setFieldInvalid(fileUpload, true);
+      }
+
+      if (payload.paper_size === "A3") {
+        errors.push("Not Available: A3 printing is not available.");
+        setFieldInvalid(paperSizeSelect, true);
+      }
+
+      if (payload.order_type === "online" && !payload.payment_method) {
+        errors.push("Select a payment method for online orders.");
+        setFieldInvalid(paymentMethodSelect, true);
+      }
+
+      if (state.error) {
+        errors.push(state.error);
+      }
+
+      return errors;
+    }
+
+    async function createQueue(payload) {
+      var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
+      var res = await fetch(servitechUrl("/api/queue_create.php"), {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRF-Token": csrf,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      var raw = await res.text();
+      try {
+        return JSON.parse(raw);
+      } catch (err) {
+        return {
+          ok: false,
+          error: "Server returned invalid response.",
+        };
+      }
+    }
+
+    async function saveOnlineDraft(payload) {
+      var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
+      var res = await fetch(servitechUrl("/api/print_order_draft.php"), {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRF-Token": csrf,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      var raw = await res.text();
+      try {
+        return JSON.parse(raw);
+      } catch (err) {
+        return {
+          ok: false,
+          error: "Server returned invalid response.",
+        };
+      }
+    }
+
+    function openSuccessModal(queueCode) {
+      if (!queueModal || !modalQueueNo) return;
+      modalQueueNo.textContent = queueCode;
+      queueModal.style.display = "flex";
+      document.body.classList.add("modal-open");
+    }
+
+    async function handleJoinQueue(event) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (isSubmitting) {
+        return;
+      }
+
+      clearValidationState();
+      updateOrderTypeUi();
+
+      var payload = buildPayload();
+      var errors = validatePayload(payload);
+      if (errors.length) {
+        setFeedback(errors.join(" "), "error");
+        return;
+      }
+
+      setProcessingState(true, payload.order_type === "online" ? "Preparing Order..." : "Joining Queue...");
+      setFeedback(payload.order_type === "online" ? "Saving your print order draft..." : "Submitting your queue request...", "success");
+
+      try {
+        var uploadResult = await uploadSelectedFiles();
+        if (!uploadResult || uploadResult.ok === false) {
+          setFeedback(uploadResult && uploadResult.error ? uploadResult.error : "File upload failed.", "error");
+          return;
+        }
+
+        if (uploadResult.payload && typeof uploadResult.payload === "object") {
+          for (var key in uploadResult.payload) {
+            payload[key] = uploadResult.payload[key];
+          }
+        }
+
+        if (payload.order_type === "online") {
+          var draftResult = await saveOnlineDraft(payload);
+          if (!draftResult.ok) {
+            await cleanupUploadedFiles(payload.uploaded_files);
+            setFeedback(draftResult.error || "Unable to continue to payment.", "error");
+            return;
+          }
+
+          window.location.href = servitechUrl("/pages/customer/custo_print_order_payment.php");
+          return;
+        }
+
+        var result = await createQueue(payload);
+        if (!result.ok) {
+          await cleanupUploadedFiles(payload.uploaded_files);
+          setFeedback("Queue not saved: " + (result.error || "Unknown error"), "error");
+          return;
+        }
+
+        setFeedback("", "error");
+        openSuccessModal(result.queue_code);
+      } catch (err) {
+        console.error(err);
+        await cleanupUploadedFiles(payload.uploaded_files);
+        setFeedback("Network/server error. Please try again.", "error");
+      } finally {
+        setProcessingState(false);
+      }
     }
 
     var debouncedAnalyze = debounce(analyzeSelectedFiles, 220);
@@ -434,15 +706,16 @@
 
     qtyInput.addEventListener("input", debouncedAnalyze);
     paperSizeSelect.addEventListener("change", debouncedAnalyze);
+    orderTypeSelect.addEventListener("change", updateOrderTypeUi);
+    paymentMethodSelect.addEventListener("change", updateOrderTypeUi);
     document.querySelectorAll('input[name="color"]').forEach(function (radio) {
       radio.addEventListener("change", debouncedAnalyze);
     });
 
-    window.servitechBeforeQueueSubmit = uploadSelectedFiles;
-    window.servitechResetUploadedFiles = resetUploadedFilesState;
+    joinQueueBtn.addEventListener("click", handleJoinQueue, true);
 
     resetAnalysis(true);
     renderSummary();
+    updateOrderTypeUi();
   });
 })();
-

@@ -687,7 +687,7 @@ $dashboardQueues = [
       </div>
     </a>
 
-    <a href="/pages/customer/custo_print_order.php" class="quick-card-link">
+    <a href="/pages/customer/custo2_docu_printing.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
           <img src="/assets/images/LANDING_PRINT-ORD.png" alt="Print Order" class="quick-icon">
