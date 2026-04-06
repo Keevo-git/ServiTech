@@ -36,7 +36,7 @@ $online = $pdo->query("
   SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
-  WHERE q.category = 'printing'
+  WHERE q.category = 'online_printorder'
   ORDER BY q.created_at DESC
 ")->fetchAll();
 ?>
@@ -311,5 +311,6 @@ $online = $pdo->query("
 
 </body>
 </html>
+
 
 

@@ -19,6 +19,7 @@ function status_class($status): string {
 function service_label($category): string {
   $map = [
     "printing" => "Document Printing",
+    "online_printorder" => "Online Print Order",
     "xerox" => "Xerox",
     "rush-id" => "Rush ID",
     "laminating" => "Laminating",
@@ -27,7 +28,7 @@ function service_label($category): string {
   return $map[$key] ?? ucfirst($key);
 }
 
-$cats = ["printing", "xerox", "rush-id", "laminating"];
+$cats = ["printing", "online_printorder", "xerox", "rush-id", "laminating"];
 $in = implode(",", array_fill(0, count($cats), "?"));
 
 $stmt = $pdo->prepare("
@@ -173,5 +174,7 @@ $rows = $stmt->fetchAll();
 
 </body>
 </html>
+
+
 
 

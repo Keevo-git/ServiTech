@@ -31,7 +31,7 @@ if ($service_label === "") {
   exit();
 }
 
-$allowedCategories = ["printing", "repair", "installation", "walkin", "general"];
+$allowedCategories = ["printing", "online_printorder", "repair", "installation", "walkin", "general"];
 if (!in_array($category, $allowedCategories, true)) {
   $category = "printing";
 }
@@ -42,6 +42,22 @@ if (!in_array($order_type, ["walkin", "online"], true)) {
 
 if (!in_array($payment_method, ["cash", "gcash"], true)) {
   $payment_method = "";
+}
+
+$prefix = servitech_get_queue_prefix_for_category($category);
+
+// Printing queues must always respect the selected order type:
+// Walk-in  => P**** / printing
+// Online   => OP**** / online_printorder
+if ($service_label === "Document Printing" || $category === "online_printorder") {
+  if ($order_type === "") {
+    echo json_encode(["ok" => false, "error" => "Order type is required for document printing."]);
+    exit();
+  }
+
+  $printMeta = servitech_get_print_order_queue_meta($order_type);
+  $category = $printMeta["category"];
+  $prefix = $printMeta["prefix"];
 }
 
 $details = [
@@ -77,19 +93,13 @@ foreach ($details as $key => $value) {
   }
 }
 
-$prefix = "P";
-if ($category === "repair") {
-  $prefix = "R";
-} elseif ($category === "installation") {
-  $prefix = "I";
-} elseif ($category === "walkin") {
-  $prefix = "W";
-}
-
 try {
   $pdo->beginTransaction();
 
   $queue_code = servitech_generate_queue_code($pdo, $prefix);
+  if (!servitech_queue_code_matches_category($queue_code, $category)) {
+    throw new RuntimeException("Queue prefix/category mapping mismatch.");
+  }
 
   $ins = $pdo->prepare("
     INSERT INTO queues (user_id, queue_code, category, details)

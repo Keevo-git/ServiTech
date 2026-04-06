@@ -119,6 +119,25 @@
         : "";
     }
 
+    // Keep the client payload aligned with the PHP queue rules:
+    // P**** => printing, OP**** => online_printorder.
+    function getQueueCategoryFromOrderType(orderType) {
+      if (orderType === "online") return "online_printorder";
+      if (orderType === "walkin") return "printing";
+      return "";
+    }
+
+    function getCategoryFromQueueCode(code) {
+      var normalized = (code || "").trim().toUpperCase();
+      if (normalized.indexOf("OP") === 0) return "online_printorder";
+      if (normalized.indexOf("P") === 0) return "printing";
+      return "";
+    }
+
+    function getServiceLabelFromOrderType(orderType) {
+      return orderType === "online" ? "Online Print Order" : "Document Printing";
+    }
+
     function fileKey(file) {
       return [
         (file.name || "").toLowerCase(),
@@ -747,10 +766,11 @@
 
     function buildPayload() {
       var fileNames = currentFileNames();
+      var orderType = getOrderType();
       return {
-        category: "printing",
-        service_label: "Document Printing",
-        order_type: getOrderType(),
+        category: getQueueCategoryFromOrderType(orderType),
+        service_label: getServiceLabelFromOrderType(orderType),
+        order_type: orderType,
         paper_size: paperSizeSelect.value || null,
         quantity: getQuantity(),
         color_option: getSelectedColor(),
@@ -966,6 +986,14 @@
           return;
         }
 
+        if (getCategoryFromQueueCode(result.queue_code) !== payload.category) {
+          if (canCleanupUploads) {
+            await cleanupUploadedFiles(payload.uploaded_files);
+          }
+          setFeedback("Queue not saved: queue mapping mismatch.", "error");
+          return;
+        }
+
         setFeedback("", "error");
         openSuccessModal(result.queue_code);
       } catch (err) {
@@ -1010,3 +1038,5 @@
     updateOrderTypeUi();
   });
 })();
+
+

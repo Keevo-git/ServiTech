@@ -1,5 +1,71 @@
 <?php
 
+/**
+ * Keep queue prefix/category rules in one place so OP**** never drifts away
+ * from online_printorder and P**** always stays tied to printing.
+ */
+function servitech_get_queue_prefix_for_category(string $category): string {
+  $category = strtolower(trim($category));
+
+  return match ($category) {
+    "online_printorder" => "OP",
+    "printing" => "P",
+    "repair" => "R",
+    "installation" => "I",
+    "walkin" => "W",
+    default => "P",
+  };
+}
+
+function servitech_get_category_from_queue_code(string $code): string {
+  $code = strtoupper(trim($code));
+
+  if (strpos($code, "OP") === 0) {
+    return "online_printorder";
+  }
+  if (strpos($code, "P") === 0) {
+    return "printing";
+  }
+  if (strpos($code, "R") === 0) {
+    return "repair";
+  }
+  if (strpos($code, "I") === 0) {
+    return "installation";
+  }
+  if (strpos($code, "W") === 0) {
+    return "walkin";
+  }
+
+  return "";
+}
+
+function servitech_get_print_order_queue_meta(string $orderType): array {
+  $orderType = strtolower(trim($orderType));
+
+  return match ($orderType) {
+    "online" => [
+      "category" => "online_printorder",
+      "prefix" => "OP",
+      "label" => "ONLINE PRINT ORDER",
+    ],
+    "walkin" => [
+      "category" => "printing",
+      "prefix" => "P",
+      "label" => "WALK-IN",
+    ],
+    default => [
+      "category" => "",
+      "prefix" => "",
+      "label" => "",
+    ],
+  };
+}
+
+function servitech_queue_code_matches_category(string $queueCode, string $category): bool {
+  $resolvedCategory = servitech_get_category_from_queue_code($queueCode);
+  return $resolvedCategory !== "" && $resolvedCategory === strtolower(trim($category));
+}
+
 function servitech_generate_queue_code(PDO $pdo, string $prefix): string {
   $prefix = strtoupper(trim($prefix));
   if ($prefix === "" || !preg_match('/^[A-Z]+$/', $prefix)) {

@@ -533,6 +533,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260406a3"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260406a4"></script>
 </body>
 </html>
+

@@ -55,19 +55,17 @@ function queue_status_tone($status) {
 function queue_category_meta(string $categoryKey): array {
   return match ($categoryKey) {
     "online_print" => [
-      "label" => "Online Printing",
-      "sql" => "q.category = :category_printing AND COALESCE(q.details->>'service_label', '') = :online_service_label",
+      "label" => "Online Print Order",
+      "sql" => "q.category = :category_online_printorder",
       "params" => [
-        ":category_printing" => "printing",
-        ":online_service_label" => "Online Print Order",
+        ":category_online_printorder" => "online_printorder",
       ],
     ],
     "printing" => [
       "label" => "Printing",
-      "sql" => "q.category = :category_printing AND COALESCE(q.details->>'service_label', '') <> :online_service_label",
+      "sql" => "q.category = :category_printing",
       "params" => [
         ":category_printing" => "printing",
-        ":online_service_label" => "Online Print Order",
       ],
     ],
     "installation" => [
@@ -86,7 +84,7 @@ function queue_category_meta(string $categoryKey): array {
 function normalize_service_label(string $serviceLabel, string $fallbackLabel): string {
   $serviceLabel = trim($serviceLabel);
   if ($serviceLabel === "") return $fallbackLabel;
-  if (strcasecmp($serviceLabel, "Online Print Order") === 0) return "Online Printing";
+  if (strcasecmp($serviceLabel, "Online Print Order") === 0) return "Online Print Order";
   return $serviceLabel;
 }
 
@@ -924,3 +922,4 @@ $dashboardQueues = [
 
 </body>
 </html>
+

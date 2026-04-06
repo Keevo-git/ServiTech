@@ -97,7 +97,11 @@ foreach ($details as $key => $value) {
 try {
   $pdo->beginTransaction();
 
-  $queue_code = servitech_generate_queue_code($pdo, "OP");
+  $printMeta = servitech_get_print_order_queue_meta("online");
+  $queue_code = servitech_generate_queue_code($pdo, $printMeta["prefix"]);
+  if (!servitech_queue_code_matches_category($queue_code, $printMeta["category"])) {
+    throw new RuntimeException("Queue prefix/category mapping mismatch.");
+  }
 
   $queueStmt = $pdo->prepare("
     INSERT INTO queues (queue_code, user_id, category, details)
@@ -107,7 +111,7 @@ try {
   $queueStmt->execute([
     ":queue_code" => $queue_code,
     ":user_id" => $user_id,
-    ":category" => "printing",
+    ":category" => $printMeta["category"],
     ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
   ]);
 
