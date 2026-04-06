@@ -220,11 +220,12 @@ $dashboardQueues = [
 
     .queue-carousel {
       display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
-      gap: 10px;
+      grid-template-rows: 52px 14px minmax(118px, 1fr);
+      gap: 8px;
       flex: 1;
       min-height: 0;
       height: 100%;
+      align-content: start;
     }
 
     .queue-carousel__topbar {
@@ -232,7 +233,7 @@ $dashboardQueues = [
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      min-height: 36px;
+      min-height: 52px;
     }
 
     .queue-carousel__nav {
@@ -275,6 +276,10 @@ $dashboardQueues = [
     }
 
     .queue-carousel__category {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: stretch;
       text-align: center;
       font-size: 20px;
       font-weight: 700;
@@ -282,6 +287,7 @@ $dashboardQueues = [
       text-transform: uppercase;
       flex: 1;
       min-width: 0;
+      line-height: 1.1;
     }
 
     .queue-carousel-card--mine .queue-carousel__category {
@@ -295,7 +301,9 @@ $dashboardQueues = [
     .queue-carousel__dots {
       display: flex;
       justify-content: center;
+      align-items: center;
       gap: 8px;
+      min-height: 14px;
     }
 
     .queue-carousel__dot {
@@ -344,6 +352,7 @@ $dashboardQueues = [
       overflow: hidden;
       opacity: 1;
       transition: opacity 0.2s ease;
+      margin-top: 2px;
     }
 
     .queue-carousel__list.is-fading {
@@ -355,9 +364,9 @@ $dashboardQueues = [
       background: #fffaf0;
       border-radius: 14px;
       padding: 14px 16px;
-      min-height: 104px;
+      min-height: 112px;
       display: grid;
-      grid-template-rows: auto auto 20px;
+      grid-template-rows: 34px 24px 20px;
       align-content: start;
       width: 100%;
       box-sizing: border-box;
@@ -461,8 +470,8 @@ $dashboardQueues = [
     }
 
     .queue-item__label {
-      margin-top: 8px;
-      min-height: 22px;
+      margin-top: 6px;
+      min-height: 24px;
       font-size: 15px;
       font-weight: 700;
       display: flex;
@@ -492,7 +501,8 @@ $dashboardQueues = [
       padding-right: 124px;
       box-sizing: border-box;
       overflow: hidden;
-      display: -webkit-box;
+      display: flex;
+      align-items: flex-end;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 1;
       align-self: end;
@@ -554,6 +564,7 @@ $dashboardQueues = [
 
       .queue-carousel__topbar {
         gap: 8px;
+        min-height: 44px;
       }
 
       .queue-carousel__nav {
