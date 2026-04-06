@@ -2,6 +2,10 @@
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
 
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 $user_id = (int)($_SESSION["user_id"] ?? 0);
 
 $stmt = $pdo->prepare("SELECT fullname FROM users WHERE id = :id LIMIT 1");
@@ -183,8 +187,8 @@ $dashboardQueues = [
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260315h9">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h20">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260406b1">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b1">
   <style>
     body.customer-layout.customer-page--dashboard .customer-dashboard {
       display: grid;
@@ -795,11 +799,7 @@ $dashboardQueues = [
       const code = escapeHtml(formatQueueCode(item.queue_code));
       const badge = escapeHtml(item.status_label || "Pending");
       const serviceLabel = escapeHtml(item.service_label || categoryLabel);
-      const detailsLabel = escapeHtml(
-        mode === "active"
-          ? (item.details_label || "No extra details")
-          : (item.created_at_label || "No recent timestamp")
-      );
+      const detailsLabel = escapeHtml(item.details_label || "No extra details");
 
       return `
         <article class="queue-item">
@@ -894,7 +894,8 @@ $dashboardQueues = [
 
   async function refreshDashboardQueues() {
     try {
-      const response = await fetch(servitechUrl("/pages/customer/get_latest_queues.php"), {
+      const response = await fetch(`${servitechUrl("/pages/customer/get_latest_queues.php")}?t=${Date.now()}`, {
+        cache: "no-store",
         credentials: "same-origin",
         headers: {
           "Accept": "application/json",

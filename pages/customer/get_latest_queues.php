@@ -3,6 +3,9 @@ require_once __DIR__ . "/../../config/session_check.php";
 require_once __DIR__ . "/../../config/db.php";
 
 header("Content-Type: application/json; charset=utf-8");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 $user_id = (int)($_SESSION["user_id"] ?? 0);
 if ($user_id <= 0) {
