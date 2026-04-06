@@ -202,26 +202,26 @@ $dashboardQueues = [
 
     .queue-carousel-card {
       overflow: hidden;
-      height: 340px;
-      min-height: 340px;
-      border: 1px solid rgba(232, 199, 123, 0.28);
+      height: 292px;
+      min-height: 292px;
+      border: 1px solid rgba(232, 199, 123, 0.30);
     }
 
     .queue-carousel-card--mine {
-      background: linear-gradient(180deg, #fffdf8 0%, #fffaf0 100%);
-      box-shadow: 0 14px 30px rgba(153, 96, 16, 0.12);
+      background: linear-gradient(180deg, #fffdf8 0%, #fff9ef 100%);
+      box-shadow: 0 12px 26px rgba(153, 96, 16, 0.11);
     }
 
     .queue-carousel-card--latest {
-      background: linear-gradient(180deg, #fcfdff 0%, #f5f9ff 100%);
-      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.10);
-      border-color: rgba(147, 197, 253, 0.30);
+      background: linear-gradient(180deg, #fbfcff 0%, #f3f8ff 100%);
+      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.09);
+      border-color: rgba(147, 197, 253, 0.34);
     }
 
     .queue-carousel {
       display: grid;
       grid-template-rows: auto auto minmax(0, 1fr);
-      gap: 14px;
+      gap: 10px;
       flex: 1;
       min-height: 0;
       height: 100%;
@@ -232,6 +232,7 @@ $dashboardQueues = [
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      min-height: 36px;
     }
 
     .queue-carousel__nav {
@@ -364,8 +365,8 @@ $dashboardQueues = [
     }
 
     .queue-carousel-card--latest .queue-item {
-      border: 1px solid #d7e6fb;
-      background: #f8fbff;
+      border: 1px solid #c8dcfb;
+      background: #f7faff;
     }
 
     .queue-carousel-card--latest .queue-item:hover {
@@ -441,7 +442,7 @@ $dashboardQueues = [
     }
 
     .queue-item__label {
-      margin-top: 10px;
+      margin-top: 8px;
       font-size: 15px;
       font-weight: 700;
     }
@@ -456,10 +457,10 @@ $dashboardQueues = [
 
     .queue-item__details,
     .queue-item__meta {
-      margin-top: 4px;
+      margin-top: 2px;
       font-size: 13px;
-      line-height: 1.45;
-      min-height: 20px;
+      line-height: 1.4;
+      min-height: 18px;
       overflow: hidden;
       display: -webkit-box;
       -webkit-box-orient: vertical;
@@ -509,15 +510,15 @@ $dashboardQueues = [
       }
 
       .queue-carousel-card {
-        height: 320px;
-        min-height: 320px;
+        height: 284px;
+        min-height: 284px;
       }
     }
 
     @media (max-width: 640px) {
       .queue-carousel-card {
-        height: 300px;
-        min-height: 300px;
+        height: 272px;
+        min-height: 272px;
       }
 
       .queue-carousel__topbar {
