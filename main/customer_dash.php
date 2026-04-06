@@ -331,8 +331,11 @@ $dashboardQueues = [
       display: grid;
       gap: 10px;
       align-content: start;
+      align-items: start;
       min-height: 0;
       height: 100%;
+      padding: 0 6px;
+      box-sizing: border-box;
       overflow: hidden;
       opacity: 1;
       transition: opacity 0.2s ease;
@@ -346,11 +349,11 @@ $dashboardQueues = [
       border: 1px solid #e7d5ad;
       background: #fffaf0;
       border-radius: 14px;
-      padding: 14px;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
+      padding: 14px 16px;
+      min-height: 104px;
+      display: grid;
+      grid-template-rows: auto auto 20px;
+      align-content: start;
       width: 100%;
       box-sizing: border-box;
       transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
@@ -379,13 +382,15 @@ $dashboardQueues = [
     }
 
     .queue-item__head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 112px;
+      align-items: start;
+      column-gap: 12px;
+      min-height: 34px;
     }
 
     .queue-item__code {
+      margin-left: 0;
       font-size: 22px;
       font-weight: 700;
       line-height: 1.1;
@@ -404,6 +409,10 @@ $dashboardQueues = [
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      justify-self: end;
+      align-self: start;
+      width: 112px;
+      min-width: 112px;
       border-radius: 999px;
       padding: 5px 12px;
       font-size: 12px;
@@ -412,6 +421,8 @@ $dashboardQueues = [
       line-height: 1.2;
       border: 1px solid transparent;
       white-space: nowrap;
+      box-sizing: border-box;
+      text-align: center;
     }
 
     .queue-item__badge--pending {
@@ -446,8 +457,15 @@ $dashboardQueues = [
 
     .queue-item__label {
       margin-top: 8px;
+      min-height: 22px;
       font-size: 15px;
       font-weight: 700;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 100%;
+      padding-right: 124px;
+      box-sizing: border-box;
     }
 
     .queue-carousel-card--mine .queue-item__label {
@@ -463,11 +481,16 @@ $dashboardQueues = [
       margin-top: 2px;
       font-size: 13px;
       line-height: 1.4;
-      min-height: 18px;
+      min-height: 20px;
+      width: 100%;
+      max-width: 100%;
+      padding-right: 124px;
+      box-sizing: border-box;
       overflow: hidden;
       display: -webkit-box;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 1;
+      align-self: end;
     }
 
     .queue-carousel-card--mine .queue-item__details,
@@ -540,8 +563,22 @@ $dashboardQueues = [
       }
 
       .queue-item__head {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-template-columns: 1fr;
+        row-gap: 8px;
+        min-height: auto;
+      }
+
+      .queue-item {
+        min-height: 116px;
+        grid-template-rows: auto auto 20px;
+      }
+
+      .queue-carousel__list {
+        padding: 0 4px;
+      }
+
+      .queue-item {
+        padding: 12px 14px;
       }
 
       .queue-item__code {
@@ -549,7 +586,16 @@ $dashboardQueues = [
       }
 
       .queue-item__badge {
+        width: auto;
+        min-width: 0;
+        justify-self: start;
         white-space: normal;
+      }
+
+      .queue-item__label,
+      .queue-item__details,
+      .queue-item__meta {
+        padding-right: 0;
       }
 
       .queue-item__details,
