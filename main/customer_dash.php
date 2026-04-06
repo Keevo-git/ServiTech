@@ -204,6 +204,18 @@ $dashboardQueues = [
       overflow: hidden;
       height: 340px;
       min-height: 340px;
+      border: 1px solid rgba(232, 199, 123, 0.28);
+    }
+
+    .queue-carousel-card--mine {
+      background: linear-gradient(180deg, #fffdf8 0%, #fffaf0 100%);
+      box-shadow: 0 14px 30px rgba(153, 96, 16, 0.12);
+    }
+
+    .queue-carousel-card--latest {
+      background: linear-gradient(180deg, #fcfdff 0%, #f5f9ff 100%);
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.10);
+      border-color: rgba(147, 197, 253, 0.30);
     }
 
     .queue-carousel {
@@ -224,20 +236,34 @@ $dashboardQueues = [
 
     .queue-carousel__nav {
       border: 0;
-      background: #f7e6bf;
-      color: #4A0505;
       width: 36px;
       height: 36px;
       border-radius: 50%;
       font-size: 16px;
       font-weight: 700;
       cursor: pointer;
-      transition: transform 0.18s ease, background 0.18s ease;
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
       flex-shrink: 0;
     }
 
-    .queue-carousel__nav:hover {
+    .queue-carousel-card--mine .queue-carousel__nav {
+      background: #f7e6bf;
+      color: #4A0505;
+    }
+
+    .queue-carousel-card--mine .queue-carousel__nav:hover {
       background: #FAB12F;
+      transform: translateY(-1px);
+    }
+
+    .queue-carousel-card--latest .queue-carousel__nav {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .queue-carousel-card--latest .queue-carousel__nav:hover {
+      background: #bfdbfe;
+      color: #1e40af;
       transform: translateY(-1px);
     }
 
@@ -248,7 +274,6 @@ $dashboardQueues = [
     }
 
     .queue-carousel__category {
-      color: #4A0505;
       text-align: center;
       font-size: 20px;
       font-weight: 700;
@@ -256,6 +281,14 @@ $dashboardQueues = [
       text-transform: uppercase;
       flex: 1;
       min-width: 0;
+    }
+
+    .queue-carousel-card--mine .queue-carousel__category {
+      color: #4A0505;
+    }
+
+    .queue-carousel-card--latest .queue-carousel__category {
+      color: #143b7a;
     }
 
     .queue-carousel__dots {
@@ -271,12 +304,24 @@ $dashboardQueues = [
       border: 0;
       padding: 0;
       cursor: pointer;
-      background: #ead4a5;
       transition: transform 0.18s ease, background 0.18s ease;
     }
 
-    .queue-carousel__dot.is-active {
+    .queue-carousel-card--mine .queue-carousel__dot {
+      background: #ead4a5;
+    }
+
+    .queue-carousel-card--mine .queue-carousel__dot.is-active {
       background: #FAB12F;
+      transform: scale(1.15);
+    }
+
+    .queue-carousel-card--latest .queue-carousel__dot {
+      background: #bfdbfe;
+    }
+
+    .queue-carousel-card--latest .queue-carousel__dot.is-active {
+      background: #3b82f6;
       transform: scale(1.15);
     }
 
@@ -296,21 +341,37 @@ $dashboardQueues = [
     }
 
     .queue-item {
-      border: 1px solid #f0dfbe;
       border-radius: 14px;
       padding: 14px;
-      background: #fffaf0;
       min-height: 0;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      width: 100%;
+      box-sizing: border-box;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
     }
 
-    .queue-item:hover {
+    .queue-carousel-card--mine .queue-item {
+      border: 1px solid #f0dfbe;
+      background: #fffaf0;
+    }
+
+    .queue-carousel-card--mine .queue-item:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 18px rgba(74, 5, 5, 0.08);
       border-color: #e8c77b;
+    }
+
+    .queue-carousel-card--latest .queue-item {
+      border: 1px solid #d7e6fb;
+      background: #f8fbff;
+    }
+
+    .queue-carousel-card--latest .queue-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.08);
+      border-color: #93c5fd;
     }
 
     .queue-item__head {
@@ -321,11 +382,18 @@ $dashboardQueues = [
     }
 
     .queue-item__code {
-      color: #13274a;
       font-size: 22px;
       font-weight: 700;
       line-height: 1.1;
       word-break: break-word;
+    }
+
+    .queue-carousel-card--mine .queue-item__code {
+      color: #13274a;
+    }
+
+    .queue-carousel-card--latest .queue-item__code {
+      color: #163d73;
     }
 
     .queue-item__badge {
@@ -374,15 +442,21 @@ $dashboardQueues = [
 
     .queue-item__label {
       margin-top: 10px;
-      color: #4A0505;
       font-size: 15px;
       font-weight: 700;
+    }
+
+    .queue-carousel-card--mine .queue-item__label {
+      color: #4A0505;
+    }
+
+    .queue-carousel-card--latest .queue-item__label {
+      color: #163d73;
     }
 
     .queue-item__details,
     .queue-item__meta {
       margin-top: 4px;
-      color: #6b5a3b;
       font-size: 13px;
       line-height: 1.45;
       min-height: 20px;
@@ -392,16 +466,37 @@ $dashboardQueues = [
       -webkit-line-clamp: 1;
     }
 
+    .queue-carousel-card--mine .queue-item__details,
+    .queue-carousel-card--mine .queue-item__meta {
+      color: #6b5a3b;
+    }
+
+    .queue-carousel-card--latest .queue-item__details,
+    .queue-carousel-card--latest .queue-item__meta {
+      color: #4f6485;
+    }
+
     .queue-carousel__empty {
       display: grid;
       place-items: center;
       height: 100%;
-      border: 1px dashed #e0c991;
       border-radius: 14px;
-      background: #fffaf0;
-      color: #7a6b4f;
       text-align: center;
       padding: 18px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .queue-carousel-card--mine .queue-carousel__empty {
+      border: 1px dashed #e0c991;
+      background: #fffaf0;
+      color: #7a6b4f;
+    }
+
+    .queue-carousel-card--latest .queue-carousel__empty {
+      border: 1px dashed #bfdbfe;
+      background: #f8fbff;
+      color: #4f6485;
     }
 
     @media (max-width: 900px) {
