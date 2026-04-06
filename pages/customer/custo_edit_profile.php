@@ -1083,6 +1083,34 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         right: 0.65rem;
       }
     }
+    .profile-summary {
+      isolation: isolate;
+    }
+
+    .profile-summary::before,
+    .profile-summary::after {
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .profile-summary::after {
+      inset: auto -22px -22px auto;
+      width: 128px;
+      height: 128px;
+      opacity: 0.34;
+      filter: blur(16px);
+    }
+
+    .profile-summary > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .profile-meta,
+    .profile-meta-item {
+      position: relative;
+      z-index: 2;
+    }
   </style>
 </head>
 <body class="customer-layout customer-page--profile">
@@ -1434,6 +1462,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
 </body>
 </html>
+
 
 
 
