@@ -33,6 +33,10 @@
     var body = document.body;
     if (!body || body.dataset.service !== "printing") return;
 
+    var draftState = window.servitechPrintOrderDraft && typeof window.servitechPrintOrderDraft === "object"
+      ? window.servitechPrintOrderDraft
+      : null;
+
     var fileUpload = document.getElementById("fileUpload");
     var fileListEl = document.getElementById("fileAnalysisList");
     var fileMetaEl = document.getElementById("fileAnalysisMeta");
@@ -44,6 +48,7 @@
     var paymentMethodSelect = document.getElementById("paymentMethodSelect");
     var cashPaymentNote = document.getElementById("cashPaymentNote");
     var joinQueueBtn = document.getElementById("joinQueueBtn");
+    var notesInput = document.getElementById("notes");
     var summaryPaperSize = document.getElementById("summaryPaperSize");
     var summaryQty = document.getElementById("summaryQty");
     var summaryTotalPages = document.getElementById("summaryTotalPages");
@@ -74,13 +79,14 @@
 
     var state = {
       files: [],
+      file_names: [],
       uploaded_files: [],
       total_files: 0,
       total_images: 0,
       total_pages: 0,
       price_per_page: 0,
       estimated_total: 0,
-      error: "",
+      error: ""
     };
 
     window.servitechPrintingState = state;
@@ -187,35 +193,136 @@
       if (summaryTotal) summaryTotal.textContent = toPeso(state.estimated_total || 0);
     }
 
+    function hasSavedUploads() {
+      return Array.isArray(state.uploaded_files) && state.uploaded_files.length > 0;
+    }
+
+    function hasAnyFiles() {
+      return selectedFiles.length > 0 || hasSavedUploads();
+    }
+
+    function getPageCountFromInfo(fileInfo) {
+      if (!fileInfo || typeof fileInfo !== "object") return 0;
+      if (typeof fileInfo.slide_count !== "undefined") {
+        return Math.max(0, parseInt(fileInfo.slide_count, 10) || 0);
+      }
+      if (typeof fileInfo.page_count !== "undefined") {
+        return Math.max(0, parseInt(fileInfo.page_count, 10) || 0);
+      }
+      return 0;
+    }
+
+    function setSelectedColor(value) {
+      var normalized = (value || "").trim().toLowerCase();
+      document.querySelectorAll('input[name="color"]').forEach(function (radio) {
+        radio.checked = radio.value.trim().toLowerCase() === normalized;
+      });
+    }
+
+    function refreshSavedFileTotals() {
+      var analysisFiles = Array.isArray(state.files) ? state.files : [];
+      var draftNames = Array.isArray(state.file_names) ? state.file_names : [];
+      var uploadedFiles = Array.isArray(state.uploaded_files) ? state.uploaded_files : [];
+      var derivedCount = Math.max(analysisFiles.length, draftNames.length, uploadedFiles.length, 0);
+      var derivedPages = 0;
+      var derivedImages = 0;
+
+      if (analysisFiles.length) {
+        analysisFiles.forEach(function (fileInfo) {
+          derivedPages += getPageCountFromInfo(fileInfo);
+          var ext = String(fileInfo && fileInfo.file_type ? fileInfo.file_type : "").toLowerCase();
+          if (ext === "jpg" || ext === "jpeg" || ext === "png") {
+            derivedImages += 1;
+          }
+        });
+        state.total_pages = derivedPages;
+        state.total_images = derivedImages;
+      } else {
+        state.total_pages = Math.max(0, parseInt(state.total_pages, 10) || 0);
+        state.total_images = Math.max(0, parseInt(state.total_images, 10) || 0);
+      }
+
+      state.total_files = derivedCount;
+    }
+
+    function currentFileNames() {
+      if (selectedFiles.length) {
+        return selectedFiles.map(function (file) {
+          return file.name;
+        });
+      }
+
+      if (Array.isArray(state.file_names) && state.file_names.length) {
+        return state.file_names.filter(function (name) {
+          return typeof name === "string" && name.trim() !== "";
+        });
+      }
+
+      if (Array.isArray(state.uploaded_files) && state.uploaded_files.length) {
+        return state.uploaded_files.map(function (file) {
+          return (file && (file.original_name || file.file_name || "")) || "";
+        }).filter(function (name) {
+          return name !== "";
+        });
+      }
+
+      return [];
+    }
+
     function renderList() {
       fileListEl.innerHTML = "";
 
-      if (!selectedFiles.length) {
+      var displayItems = [];
+
+      if (selectedFiles.length) {
+        selectedFiles.forEach(function (sourceFile, index) {
+          var fileInfo = (Array.isArray(state.files) && state.files[index]) ? state.files[index] : {};
+          displayItems.push({
+            label: fileInfo.file_name || (sourceFile ? sourceFile.name : "File"),
+            type: (fileInfo.file_type || (sourceFile ? getExt(sourceFile.name) : "") || "file").toUpperCase(),
+            count: getPageCountFromInfo(fileInfo),
+            isSlides: typeof fileInfo.slide_count !== "undefined",
+            index: index
+          });
+        });
+      } else {
+        var analysisFiles = Array.isArray(state.files) ? state.files : [];
+        var draftNames = currentFileNames();
+        var uploadedFiles = Array.isArray(state.uploaded_files) ? state.uploaded_files : [];
+        var itemCount = Math.max(analysisFiles.length, draftNames.length, uploadedFiles.length, 0);
+
+        for (var i = 0; i < itemCount; i++) {
+          var savedInfo = analysisFiles[i] || {};
+          var uploadedInfo = uploadedFiles[i] || {};
+          displayItems.push({
+            label: savedInfo.file_name || draftNames[i] || uploadedInfo.original_name || uploadedInfo.file_name || "File",
+            type: (savedInfo.file_type || uploadedInfo.file_type || getExt(draftNames[i] || "") || "file").toUpperCase(),
+            count: getPageCountFromInfo(savedInfo),
+            isSlides: typeof savedInfo.slide_count !== "undefined",
+            index: i
+          });
+        }
+      }
+
+      if (!displayItems.length) {
         fileMetaEl.textContent = "No files uploaded yet.";
         return;
       }
 
-      state.files.forEach(function (fileInfo, index) {
-        var sourceFile = selectedFiles[index];
+      displayItems.forEach(function (item) {
         var li = document.createElement("li");
-        var ext = (fileInfo.file_type || (sourceFile ? getExt(sourceFile.name) : "")).toUpperCase() || "FILE";
-        var label = fileInfo.file_name || (sourceFile ? sourceFile.name : "File");
-        var countLabel = "";
-
-        if (typeof fileInfo.slide_count !== "undefined") {
-          countLabel = " - " + fileInfo.slide_count + " slide(s)";
-        } else if (typeof fileInfo.page_count !== "undefined") {
-          countLabel = " - " + fileInfo.page_count + " page(s)";
-        }
+        var countLabel = item.count > 0
+          ? " - " + item.count + (item.isSlides ? " slide(s)" : " page(s)")
+          : "";
 
         var info = document.createElement("span");
-        info.textContent = label + " (" + ext + ")" + countLabel + " ";
+        info.textContent = item.label + " (" + item.type + ")" + countLabel + " ";
 
         var removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.textContent = "Remove";
-        removeBtn.setAttribute("aria-label", "Remove " + label);
-        removeBtn.dataset.fileKey = sourceFile ? fileKey(sourceFile) : label + "|" + index;
+        removeBtn.setAttribute("aria-label", "Remove " + item.label);
+        removeBtn.dataset.fileIndex = String(item.index);
 
         li.appendChild(info);
         li.appendChild(removeBtn);
@@ -223,29 +330,44 @@
       });
 
       fileMetaEl.textContent =
-        selectedFiles.length + (selectedFiles.length === 1 ? " file selected" : " files selected") +
-        " | Total Pages: " + state.total_pages;
+        displayItems.length + (displayItems.length === 1 ? " file ready" : " files ready") +
+        " | Total Pages: " + (state.total_pages || 0);
     }
 
     function resetAnalysis(keepFeedback) {
-      state.files = selectedFiles.map(function (file) {
-        return {
-          file_name: file.name,
-          file_type: getExt(file.name),
-        };
-      });
-      state.total_files = selectedFiles.length;
-      state.total_images = 0;
-      state.total_pages = 0;
-      state.price_per_page = 0;
-      state.estimated_total = 0;
+      if (selectedFiles.length) {
+        state.files = selectedFiles.map(function (file) {
+          return {
+            file_name: file.name,
+            file_type: getExt(file.name)
+          };
+        });
+        state.file_names = selectedFiles.map(function (file) {
+          return file.name;
+        });
+        state.total_files = selectedFiles.length;
+        state.total_images = 0;
+        state.total_pages = 0;
+        state.price_per_page = 0;
+        state.estimated_total = 0;
+      } else if (hasSavedUploads()) {
+        refreshSavedFileTotals();
+      } else {
+        state.files = [];
+        state.file_names = [];
+        state.uploaded_files = [];
+        state.total_files = 0;
+        state.total_images = 0;
+        state.total_pages = 0;
+        state.price_per_page = 0;
+        state.estimated_total = 0;
+      }
+
       if (!keepFeedback) {
         state.error = "";
         setFeedback("", "error");
       }
-      if (!selectedFiles.length) {
-        state.uploaded_files = [];
-      }
+
       renderList();
       renderSummary();
     }
@@ -253,7 +375,7 @@
     async function analyzeSelectedFiles() {
       resetAnalysis(true);
 
-      if (!selectedFiles.length) {
+      if (!selectedFiles.length && !hasSavedUploads()) {
         state.error = "";
         setFeedback("", "error");
         return;
@@ -263,9 +385,16 @@
       formData.append("paper_size", paperSizeSelect.value || "");
       formData.append("color_option", getSelectedColor());
       formData.append("quantity", String(getQuantity()));
-      selectedFiles.forEach(function (file) {
-        formData.append("files[]", file, file.name);
-      });
+
+      if (selectedFiles.length) {
+        selectedFiles.forEach(function (file) {
+          formData.append("files[]", file, file.name);
+        });
+      } else {
+        formData.append("total_pages", String(state.total_pages || 0));
+        formData.append("total_files", String(state.total_files || 0));
+        formData.append("total_images", String(state.total_images || 0));
+      }
 
       var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
 
@@ -276,9 +405,9 @@
           headers: {
             Accept: "application/json",
             "X-Requested-With": "XMLHttpRequest",
-            "X-CSRF-Token": csrf,
+            "X-CSRF-Token": csrf
           },
-          body: formData,
+          body: formData
         });
 
         var raw = await res.text();
@@ -291,10 +420,12 @@
 
         if (!data.ok) {
           state.error = data.error || "Unable to analyze files.";
-          state.files = Array.isArray(data.files) && data.files.length ? data.files : state.files;
-          state.total_files = Number.isFinite(Number(data.total_files)) ? Number(data.total_files) : selectedFiles.length;
-          state.total_images = Number.isFinite(Number(data.total_images)) ? Number(data.total_images) : 0;
-          state.total_pages = Number.isFinite(Number(data.total_pages)) ? Number(data.total_pages) : 0;
+          if (selectedFiles.length && Array.isArray(data.files) && data.files.length) {
+            state.files = data.files;
+          }
+          state.total_files = Number.isFinite(Number(data.total_files)) ? Number(data.total_files) : state.total_files;
+          state.total_images = Number.isFinite(Number(data.total_images)) ? Number(data.total_images) : state.total_images;
+          state.total_pages = Number.isFinite(Number(data.total_pages)) ? Number(data.total_pages) : state.total_pages;
           state.price_per_page = 0;
           state.estimated_total = 0;
           renderList();
@@ -304,8 +435,10 @@
         }
 
         state.error = "";
-        state.files = Array.isArray(data.files) ? data.files : state.files;
-        state.total_files = Number(data.total_files) || selectedFiles.length;
+        if (selectedFiles.length && Array.isArray(data.files)) {
+          state.files = data.files;
+        }
+        state.total_files = Number(data.total_files) || state.total_files;
         state.total_images = Number(data.total_images) || 0;
         state.total_pages = Number(data.total_pages) || 0;
         state.price_per_page = Number(data.price_per_page) || 0;
@@ -325,6 +458,18 @@
     function addFiles(incoming) {
       var errors = [];
       var existing = {};
+
+      if (!selectedFiles.length && hasSavedUploads()) {
+        state.files = [];
+        state.file_names = [];
+        state.uploaded_files = [];
+        state.total_files = 0;
+        state.total_images = 0;
+        state.total_pages = 0;
+        state.price_per_page = 0;
+        state.estimated_total = 0;
+      }
+
       selectedFiles.forEach(function (f) {
         existing[fileKey(f)] = true;
       });
@@ -367,21 +512,74 @@
       analyzeSelectedFiles();
     }
 
-    function removeSelectedByKey(key) {
-      selectedFiles = selectedFiles.filter(function (f) {
-        return fileKey(f) !== key;
-      });
+    function removeSavedFileAt(index) {
+      if (index < 0) return;
+
+      if (Array.isArray(state.files) && state.files.length > index) {
+        state.files.splice(index, 1);
+      }
+      if (Array.isArray(state.file_names) && state.file_names.length > index) {
+        state.file_names.splice(index, 1);
+      }
+      if (Array.isArray(state.uploaded_files) && state.uploaded_files.length > index) {
+        state.uploaded_files.splice(index, 1);
+      }
 
       uploadedSignature = "";
-      state.uploaded_files = [];
       state.error = "";
       setFeedback("", "error");
-      syncFileInput();
-      resetAnalysis(true);
+
+      if (!hasSavedUploads()) {
+        resetAnalysis(true);
+        return;
+      }
+
+      refreshSavedFileTotals();
+      renderList();
+      renderSummary();
       analyzeSelectedFiles();
     }
 
+    function removeSelectedByIndex(index) {
+      if (index < 0) return;
+
+      if (selectedFiles.length) {
+        selectedFiles = selectedFiles.filter(function (file, fileIndex) {
+          return fileIndex !== index;
+        });
+
+        uploadedSignature = "";
+        state.uploaded_files = [];
+        state.error = "";
+        setFeedback("", "error");
+        syncFileInput();
+        resetAnalysis(true);
+        analyzeSelectedFiles();
+        return;
+      }
+
+      removeSavedFileAt(index);
+    }
+
     async function uploadSelectedFiles() {
+      if (!selectedFiles.length && hasSavedUploads()) {
+        return {
+          ok: true,
+          reused: true,
+          payload: {
+            uploaded_files: state.uploaded_files,
+            file_name: currentFileNames()[0] || null,
+            file_names: currentFileNames(),
+            total_files: state.total_files,
+            total_images: state.total_images,
+            total_pages: state.total_pages,
+            price_per_page: state.price_per_page,
+            estimated_total: state.estimated_total,
+            file_analysis: state.files
+          }
+        };
+      }
+
       if (!selectedFiles.length) {
         state.error = "Upload at least one file.";
         setFeedback(state.error, "error");
@@ -397,6 +595,7 @@
       if (sig !== "" && sig === uploadedSignature && state.uploaded_files.length) {
         return {
           ok: true,
+          reused: false,
           payload: {
             uploaded_files: state.uploaded_files,
             file_name: selectedFiles[0] ? selectedFiles[0].name : null,
@@ -406,8 +605,8 @@
             total_pages: state.total_pages,
             price_per_page: state.price_per_page,
             estimated_total: state.estimated_total,
-            file_analysis: state.files,
-          },
+            file_analysis: state.files
+          }
         };
       }
 
@@ -423,9 +622,9 @@
         headers: {
           Accept: "application/json",
           "X-Requested-With": "XMLHttpRequest",
-          "X-CSRF-Token": csrf,
+          "X-CSRF-Token": csrf
         },
-        body: fd,
+        body: fd
       });
 
       var raw = await res.text();
@@ -452,6 +651,7 @@
 
       return {
         ok: true,
+        reused: false,
         payload: {
           uploaded_files: state.uploaded_files,
           file_name: selectedFiles[0] ? selectedFiles[0].name : null,
@@ -461,8 +661,8 @@
           total_pages: state.total_pages,
           price_per_page: state.price_per_page,
           estimated_total: state.estimated_total,
-          file_analysis: state.files,
-        },
+          file_analysis: state.files
+        }
       };
     }
 
@@ -503,6 +703,7 @@
     }
 
     function buildPayload() {
+      var fileNames = currentFileNames();
       return {
         category: "printing",
         service_label: "Document Printing",
@@ -511,16 +712,16 @@
         quantity: getQuantity(),
         color_option: getSelectedColor(),
         payment_method: getPaymentMethod() || null,
-        notes: document.getElementById("notes") ? document.getElementById("notes").value.trim() : null,
-        file_name: selectedFiles[0] ? selectedFiles[0].name : null,
-        file_names: selectedFiles.length ? selectedFiles.map(function (file) { return file.name; }) : null,
+        notes: notesInput ? notesInput.value.trim() : null,
+        file_name: fileNames[0] || null,
+        file_names: fileNames.length ? fileNames : null,
         total_files: Number(state.total_files) || 0,
         total_images: Number(state.total_images) || 0,
         total_pages: Number(state.total_pages) || 0,
         price_per_page: Number(state.price_per_page) || 0,
         estimated_total: Number(state.estimated_total) || 0,
         file_analysis: Array.isArray(state.files) ? state.files : [],
-        uploaded_files: Array.isArray(state.uploaded_files) ? state.uploaded_files : [],
+        uploaded_files: Array.isArray(state.uploaded_files) ? state.uploaded_files : []
       };
     }
 
@@ -547,7 +748,7 @@
         setRadioInvalid("color", true);
       }
 
-      if (!selectedFiles.length) {
+      if (!hasAnyFiles()) {
         errors.push("Upload at least one file.");
         setFieldInvalid(fileUpload, true);
       }
@@ -626,6 +827,44 @@
       document.body.classList.add("modal-open");
     }
 
+    function restoreDraft() {
+      if (!draftState || typeof draftState !== "object") {
+        return;
+      }
+
+      var draftOrderType = (draftState.order_type || "").toLowerCase();
+      if (draftOrderType !== "online") {
+        return;
+      }
+
+      orderTypeSelect.value = "online";
+      paymentMethodSelect.value = draftState.payment_method || "";
+      paperSizeSelect.value = draftState.paper_size || "";
+      qtyInput.value = String(Math.max(1, parseInt(draftState.quantity, 10) || 1));
+      if (notesInput) {
+        notesInput.value = draftState.notes || "";
+      }
+      setSelectedColor(draftState.color_option || "");
+
+      state.files = Array.isArray(draftState.file_analysis) ? draftState.file_analysis.slice() : [];
+      state.file_names = Array.isArray(draftState.file_names) ? draftState.file_names.slice() : [];
+      state.uploaded_files = Array.isArray(draftState.uploaded_files) ? draftState.uploaded_files.slice() : [];
+      state.total_files = Number(draftState.total_files) || 0;
+      state.total_images = Number(draftState.total_images) || 0;
+      state.total_pages = Number(draftState.total_pages) || 0;
+      state.price_per_page = Number(draftState.price_per_page) || 0;
+      state.estimated_total = Number(draftState.estimated_total) || 0;
+      state.error = "";
+
+      if ((!state.file_names || !state.file_names.length) && state.uploaded_files.length) {
+        state.file_names = state.uploaded_files.map(function (file) {
+          return (file && file.original_name) || "";
+        }).filter(function (name) {
+          return name !== "";
+        });
+      }
+    }
+
     async function handleJoinQueue(event) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -653,6 +892,8 @@
           return;
         }
 
+        var canCleanupUploads = !uploadResult.reused;
+
         if (uploadResult.payload && typeof uploadResult.payload === "object") {
           for (var key in uploadResult.payload) {
             payload[key] = uploadResult.payload[key];
@@ -662,7 +903,9 @@
         if (payload.order_type === "online") {
           var draftResult = await saveOnlineDraft(payload);
           if (!draftResult.ok) {
-            await cleanupUploadedFiles(payload.uploaded_files);
+            if (canCleanupUploads) {
+              await cleanupUploadedFiles(payload.uploaded_files);
+            }
             setFeedback(draftResult.error || "Unable to continue to payment.", "error");
             return;
           }
@@ -673,7 +916,9 @@
 
         var result = await createQueue(payload);
         if (!result.ok) {
-          await cleanupUploadedFiles(payload.uploaded_files);
+          if (canCleanupUploads) {
+            await cleanupUploadedFiles(payload.uploaded_files);
+          }
           setFeedback("Queue not saved: " + (result.error || "Unknown error"), "error");
           return;
         }
@@ -682,7 +927,9 @@
         openSuccessModal(result.queue_code);
       } catch (err) {
         console.error(err);
-        await cleanupUploadedFiles(payload.uploaded_files);
+        if (payload && Array.isArray(payload.uploaded_files) && payload.uploaded_files.length && selectedFiles.length) {
+          await cleanupUploadedFiles(payload.uploaded_files);
+        }
         setFeedback("Network/server error. Please try again.", "error");
       } finally {
         setProcessingState(false);
@@ -699,9 +946,9 @@
     fileListEl.addEventListener("click", function (e) {
       var target = e.target;
       if (!target || target.tagName !== "BUTTON") return;
-      var key = target.dataset.fileKey || "";
-      if (!key) return;
-      removeSelectedByKey(key);
+      var index = parseInt(target.dataset.fileIndex || "-1", 10);
+      if (!Number.isInteger(index) || index < 0) return;
+      removeSelectedByIndex(index);
     });
 
     qtyInput.addEventListener("input", debouncedAnalyze);
@@ -714,6 +961,7 @@
 
     joinQueueBtn.addEventListener("click", handleJoinQueue, true);
 
+    restoreDraft();
     resetAnalysis(true);
     renderSummary();
     updateOrderTypeUi();

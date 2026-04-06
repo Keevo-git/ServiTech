@@ -60,7 +60,33 @@ if ($errors) {
 
 $existingDraft = $_SESSION["print_order_draft"] ?? null;
 if (is_array($existingDraft) && !empty($existingDraft["uploaded_files"]) && is_array($existingDraft["uploaded_files"])) {
-  servitech_cleanup_uploaded_print_files($existingDraft["uploaded_files"]);
+  $incomingSavedPaths = [];
+  foreach ($uploaded_files as $file) {
+    if (!is_array($file)) {
+      continue;
+    }
+
+    $savedPath = trim((string)($file["saved_path"] ?? ""));
+    if ($savedPath !== "") {
+      $incomingSavedPaths[$savedPath] = true;
+    }
+  }
+
+  $filesToCleanup = [];
+  foreach ($existingDraft["uploaded_files"] as $file) {
+    if (!is_array($file)) {
+      continue;
+    }
+
+    $savedPath = trim((string)($file["saved_path"] ?? ""));
+    if ($savedPath === "" || isset($incomingSavedPaths[$savedPath])) {
+      continue;
+    }
+
+    $filesToCleanup[] = $file;
+  }
+
+  servitech_cleanup_uploaded_print_files($filesToCleanup);
 }
 
 $_SESSION["print_order_draft"] = [
