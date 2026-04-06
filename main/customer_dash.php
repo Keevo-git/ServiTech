@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . "/../components/auth_guard.php";
 require_once __DIR__ . "/../config/db.php";
 
@@ -47,16 +47,18 @@ if ($activeQueue && isset($activeQueue["details"])) {
   }
 }
 
-// Ongoing only (matches ON-GOING SERVICE(S) card label)
-$stmt = $pdo->prepare("
-  SELECT COUNT(*) AS cnt
-  FROM queues
-  WHERE user_id = :uid
-    AND status = 'ONGOING'
-");
-$stmt->execute([":uid" => $user_id]);
-$ongoingCount = (int)($stmt->fetch()["cnt"] ?? 0);
-
+function fetch_last_queue_code(PDO $pdo, string $whereSql, array $params = []): string {
+  $stmt = $pdo->prepare("
+    SELECT queue_code
+    FROM queues
+    WHERE {$whereSql}
+    ORDER BY id DESC
+    LIMIT 1
+  ");
+  $stmt->execute($params);
+  $row = $stmt->fetch();
+  return trim((string)($row["queue_code"] ?? "")) ?: "---";
+}
 function build_details_line($details) {
   $parts = [];
   if (!empty($details["paper_size"])) $parts[] = $details["paper_size"];
@@ -81,6 +83,36 @@ $queueNo = $hasQueue ? ($activeQueue["queue_code"] ?? "#---") : "#---";
 $queueStatus = $hasQueue ? strtoupper($activeQueue["status"] ?? "PENDING") : "PENDING";
 $queueService = $hasQueue ? ($activeDetails["service_label"] ?? "---") : "---";
 $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
+$latestQueueNumbers = [
+  "Printing" => fetch_last_queue_code(
+    $pdo,
+    "category = :category
+     AND COALESCE(details->>'service_label', '') <> :online_label",
+    [
+      ":category" => "printing",
+      ":online_label" => "Online Print Order",
+    ]
+  ),
+  "Repair" => fetch_last_queue_code(
+    $pdo,
+    "category = :category",
+    [":category" => "repair"]
+  ),
+  "Installation" => fetch_last_queue_code(
+    $pdo,
+    "category = :category",
+    [":category" => "installation"]
+  ),
+  "Online Print Order" => fetch_last_queue_code(
+    $pdo,
+    "category = :category
+     AND COALESCE(details->>'service_label', '') = :online_label",
+    [
+      ":category" => "printing",
+      ":online_label" => "Online Print Order",
+    ]
+  ),
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,6 +122,39 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
   <title>ServiTech: Customer Dashboard</title>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260315h9">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h20">
+  <style>
+    .queue-summary-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .queue-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1e2c2;
+    }
+
+    .queue-summary-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .queue-summary-label {
+      color: #4A0505;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .queue-summary-code {
+      color: #13274a;
+      font-size: 22px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+  </style>
 </head>
 <body class="customer-layout customer-page--dashboard">
 
@@ -121,9 +186,16 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
   </div>
 
   <div class="dashboard-card">
-    <h3>ON-GOING SERVICE(S)</h3>
+    <h3>LAST QUEUE NUMBER(S)</h3>
     <div class="divider"></div>
-    <h1 id="ongoingCount"><?php echo str_pad((string)$ongoingCount, 2, "0", STR_PAD_LEFT); ?></h1>
+    <div class="queue-summary-list">
+      <?php foreach ($latestQueueNumbers as $label => $code): ?>
+        <div class="queue-summary-row">
+          <span class="queue-summary-label"><?php echo htmlspecialchars($label); ?></span>
+          <span class="queue-summary-code"><?php echo htmlspecialchars($code); ?></span>
+        </div>
+      <?php endforeach; ?>
+    </div>
   </div>
 </section>
 
@@ -178,3 +250,4 @@ $queueDetails = $hasQueue ? build_details_line($activeDetails) : "---";
 
 </body>
 </html>
+
