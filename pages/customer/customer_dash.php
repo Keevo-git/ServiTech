@@ -187,7 +187,8 @@ $dashboardQueues = [
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h20">
   <style>
     body.customer-layout.customer-page--dashboard .customer-dashboard {
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      display: grid;
+      grid-template-columns: 1fr 1fr !important;
       gap: 24px;
       align-items: stretch;
     }
@@ -201,13 +202,17 @@ $dashboardQueues = [
 
     .queue-carousel-card {
       overflow: hidden;
+      height: 470px;
+      min-height: 470px;
     }
 
     .queue-carousel {
       display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
       gap: 14px;
       flex: 1;
       min-height: 0;
+      height: 100%;
     }
 
     .queue-carousel__topbar {
@@ -279,9 +284,14 @@ $dashboardQueues = [
       display: grid;
       gap: 10px;
       align-content: start;
-      min-height: 158px;
+      min-height: 0;
+      height: 100%;
+      overflow-y: auto;
+      padding-right: 4px;
       opacity: 1;
       transition: opacity 0.2s ease;
+      scrollbar-width: thin;
+      scrollbar-color: #d8b56a #f8edd1;
     }
 
     .queue-carousel__list.is-fading {
@@ -293,6 +303,10 @@ $dashboardQueues = [
       border-radius: 14px;
       padding: 14px;
       background: #fffaf0;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
       transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
 
@@ -374,12 +388,17 @@ $dashboardQueues = [
       color: #6b5a3b;
       font-size: 13px;
       line-height: 1.45;
+      min-height: 38px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
     }
 
     .queue-carousel__empty {
       display: grid;
       place-items: center;
-      min-height: 158px;
+      height: 100%;
       border: 1px dashed #e0c991;
       border-radius: 14px;
       background: #fffaf0;
@@ -396,9 +415,19 @@ $dashboardQueues = [
       body.customer-layout.customer-page--dashboard .customer-dashboard > .dashboard-card {
         height: auto;
       }
+
+      .queue-carousel-card {
+        height: 450px;
+        min-height: 450px;
+      }
     }
 
     @media (max-width: 640px) {
+      .queue-carousel-card {
+        height: 420px;
+        min-height: 420px;
+      }
+
       .queue-carousel__topbar {
         gap: 8px;
       }
@@ -425,6 +454,11 @@ $dashboardQueues = [
 
       .queue-item__badge {
         white-space: normal;
+      }
+
+      .queue-item__details,
+      .queue-item__meta {
+        min-height: 34px;
       }
     }
   </style>
