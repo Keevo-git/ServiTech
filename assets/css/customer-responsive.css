@@ -306,6 +306,17 @@ body.customer-layout .status-modal textarea {
   padding: 12px 14px;
 }
 
+body.customer-layout select.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1.5 7 7.5 13 1.5' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 14px 9px;
+  padding-right: 40px;
+}
+
 body.customer-layout .form-file {
   padding: 11px 14px;
 }
