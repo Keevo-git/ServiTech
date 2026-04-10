@@ -145,9 +145,39 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     .printing-page .form-select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: none;
       box-sizing: border-box;
-      padding-right: 40px;
-      background-position: right 12px center;
+      display: block;
+      padding-right: 52px;
+      width: 100%;
+    }
+
+    .printing-page .select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .printing-page .select-wrapper::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 18px;
+      width: 14px;
+      height: 9px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1.5 7 7.5 13 1.5' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: 14px 9px;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+
+    .printing-page .select-wrapper .form-select {
+      box-sizing: border-box;
+      padding-right: 52px;
     }
 
     .printing-page .form-input {
@@ -421,33 +451,39 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 
             <div class="printing-field">
               <label for="orderTypeSelect">Order Type<span class="required">*</span></label>
-              <select class="form-select" id="orderTypeSelect">
-                <option value="" selected>Select order type</option>
-                <option value="walkin">Walk-in</option>
-                <option value="online">Online Print Order</option>
-              </select>
+              <div class="select-wrapper">
+                <select class="form-select" id="orderTypeSelect">
+                  <option value="" selected>Select order type</option>
+                  <option value="walkin">Walk-in</option>
+                  <option value="online">Online Print Order</option>
+                </select>
+              </div>
             </div>
 
             <div id="paymentSection" class="payment-section printing-field" hidden>
               <span class="payment-section__label">Online Order Payment</span>
               <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
-              <select class="form-select" id="paymentMethodSelect">
-                <option value="" selected>Select payment method</option>
-                <option value="cash">Cash</option>
-                <option value="gcash">GCash</option>
-              </select>
+              <div class="select-wrapper">
+                <select class="form-select" id="paymentMethodSelect">
+                  <option value="" selected>Select payment method</option>
+                  <option value="cash">Cash</option>
+                  <option value="gcash">GCash</option>
+                </select>
+              </div>
               <p id="cashPaymentNote" class="payment-section__hint" hidden>You must go to the store to complete payment before printing.</p>
             </div>
 
             <div class="printing-field">
               <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
-              <select class="form-select" id="paperSizeSelect">
-                <option value="" selected>Select paper size</option>
-                <option>Short Bond (8.5 x 11)</option>
-                <option>Long Bond (8.5 x 13)</option>
-                <option>A4</option>
-                <option>A3</option>
-              </select>
+              <div class="select-wrapper">
+                <select class="form-select" id="paperSizeSelect">
+                  <option value="" selected>Select paper size</option>
+                  <option>Short Bond (8.5 x 11)</option>
+                  <option>Long Bond (8.5 x 13)</option>
+                  <option>A4</option>
+                  <option>A3</option>
+                </select>
+              </div>
             </div>
 
             <div class="printing-field">
