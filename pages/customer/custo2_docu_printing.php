@@ -126,10 +126,14 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     .printing-page .static-text {
+      align-items: center;
+      box-sizing: border-box;
       border-radius: 16px;
+      display: flex;
       margin: 0;
       min-height: 56px;
       padding: 0.95rem 1rem;
+      width: 100%;
     }
 
     .printing-page .form-select,
@@ -138,6 +142,12 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     .printing-page .form-file {
       border-radius: 16px;
       min-height: 56px;
+    }
+
+    .printing-page .form-select {
+      box-sizing: border-box;
+      padding-right: 40px;
+      background-position: right 12px center;
     }
 
     .printing-page .form-input {
