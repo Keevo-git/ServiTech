@@ -127,9 +127,14 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 
     .printing-page .static-text {
       border-radius: 16px;
-      margin: 0;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
       min-height: 56px;
-      padding: 0.95rem 1rem;
+      line-height: 1.4;
+      margin: 0;
+      padding: 0 14px;
+      width: 100%;
     }
 
     .printing-page .form-select,
