@@ -18,6 +18,7 @@ $print_url = $is_admin
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
+  <link rel="icon" type="images/png" href="/assets/images/LOGO_SERVITECH.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260315h2">
 </head>
 <body>
