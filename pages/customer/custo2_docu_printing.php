@@ -30,6 +30,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Document Printing</title>
+  <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260315h9">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h15">
   <style>

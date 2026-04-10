@@ -229,6 +229,7 @@ $dashboardQueues = [
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
+  <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260406b3">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b3">
   <style>
