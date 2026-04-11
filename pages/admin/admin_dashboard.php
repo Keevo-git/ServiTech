@@ -21,7 +21,7 @@ $activeQueue = $dashboardStats["activeQueue"];
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech Admin Dashboard</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260411h3') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -127,7 +127,11 @@ $activeQueue = $dashboardStats["activeQueue"];
     <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>" class="card-link">
       <article class="card">
         <div class="icon icon--customer-list" aria-hidden="true">
-          <span class="icon-glyph icon-glyph--customer-list">CL</span>
+          <img
+            src="<?= project_url('/assets/images/LANDING_CUSTOMER_LIST.png') ?>"
+            alt=""
+            class="icon-image icon-image--customer-list"
+          >
         </div>
         <h4>Customer List</h4>
         <p>View registered customers</p>
