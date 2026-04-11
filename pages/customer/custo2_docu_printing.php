@@ -137,6 +137,13 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       width: 100%;
     }
 
+    .printing-page .service-type-display {
+      justify-content: flex-start;
+      line-height: 1.2;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
     .printing-page .form-select,
     .printing-page .form-input,
     .printing-page .form-textarea,
@@ -411,7 +418,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
           <div>
             <div class="printing-field">
               <label>Service Type<span class="required">*</span></label>
-              <p class="static-text">Document Printing</p>
+              <div class="static-text service-type-display">Document Printing</div>
             </div>
 
             <div class="printing-field">
