@@ -22,10 +22,14 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
         SELECT COUNT(*)
         FROM queues
-        WHERE 
-            LOWER(TRIM(COALESCE(category, ''))) LIKE '%online%'
-            OR LOWER(TRIM(COALESCE(\"type\", ''))) LIKE '%online%'
+        WHERE (
+            LOWER(TRIM(COALESCE(category, ''))) IN ('online_printorder', 'printing_online')
+            OR (
+                LOWER(TRIM(COALESCE(category, ''))) = 'printing'
+                AND LOWER(TRIM(COALESCE(details->>'order_type', ''))) = 'online'
+            )
             OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
+        )
         "
     );
 
@@ -39,10 +43,8 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
             LOWER(TRIM(COALESCE(category, ''))) IN ('walkin', 'printing_walkin', 'repair', 'installation')
             OR (
                 LOWER(TRIM(COALESCE(category, ''))) = 'printing'
-                AND (
-                    \"type\" IS NULL
-                    OR LOWER(TRIM(COALESCE(\"type\", ''))) = 'walkin'
-                )
+                AND COALESCE(NULLIF(LOWER(TRIM(COALESCE(details->>'order_type', ''))), ''), 'walkin') = 'walkin'
+                AND UPPER(TRIM(COALESCE(queue_code, ''))) NOT LIKE 'OP%'
             )
         )
         AND UPPER(TRIM(COALESCE(status, 'PENDING'))) NOT IN ('DONE', 'CANCELLED')
