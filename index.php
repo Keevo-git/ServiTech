@@ -19,7 +19,7 @@ $print_url = $is_admin
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260315h2">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260411-modal2">
 </head>
 <body>
 
@@ -87,6 +87,7 @@ $print_url = $is_admin
     <div class="service-type-cards">
       <div
         class="service-type-card"
+        data-service-modal="printing"
         role="button"
         tabindex="0"
         aria-label="Open Printing Service details"
@@ -99,6 +100,7 @@ $print_url = $is_admin
 
       <div
         class="service-type-card"
+        data-service-modal="repair"
         role="button"
         tabindex="0"
         aria-label="Open Device Repair Service details"
@@ -111,6 +113,7 @@ $print_url = $is_admin
 
       <div
         class="service-type-card"
+        data-service-modal="installation"
         role="button"
         tabindex="0"
         aria-label="Open Installation and Software details"
@@ -160,7 +163,7 @@ $print_url = $is_admin
   <?php include __DIR__ . "/components/footer.php"; ?>
 
   <script src="/assets/js/csrf.js"></script>
-  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/main.js?v=20260411-modal2"></script>
   <script src="/assets/js/header-menu.js" defer></script>
 </body>
 </html>

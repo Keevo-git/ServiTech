@@ -479,6 +479,16 @@ function handleServiceCardKeydown(event, sectionId) {
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".service-type-card[data-service-modal]").forEach((card) => {
+    const sectionId = card.dataset.serviceModal;
+    if (!sectionId) return;
+
+    card.addEventListener("click", () => openServiceModal(sectionId));
+    card.addEventListener("keydown", (event) => handleServiceCardKeydown(event, sectionId));
+  });
+});
+
 /* ==============================
    Generic modal close (outside click)
    ============================== */
