@@ -230,7 +230,7 @@
 
 /* if you only have ONE pill, push it to the right */
 .cl-modalHead .cl-pill{
-  margin-left: auto;
+  margin-left: 12px;
   margin-right: 54px !important;
   position: relative;
   z-index: 1;
