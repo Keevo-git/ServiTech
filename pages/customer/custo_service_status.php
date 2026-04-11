@@ -10,6 +10,91 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260326a6">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260326a6">
+  <style>
+    body.customer-layout.customer-page--status .status-page {
+      padding-inline: clamp(16px, 4vw, 32px);
+    }
+
+    body.customer-layout.customer-page--status .status-shell {
+      margin-top: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-page-header {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+      gap: clamp(12px, 2vw, 16px);
+      padding: clamp(14px, 2.5vw, 18px) clamp(16px, 3vw, 24px);
+    }
+
+    body.customer-layout.customer-page--status .status-page-back {
+      width: clamp(44px, 7vw, 52px);
+      height: clamp(44px, 7vw, 52px);
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      justify-self: start;
+      align-self: start;
+      padding: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.16);
+      text-decoration: none;
+      cursor: pointer;
+      overflow: hidden;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      transition: background-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    body.customer-layout.customer-page--status .status-page-back:hover {
+      background: rgba(255, 255, 255, 0.28);
+      opacity: 0.96;
+    }
+
+    body.customer-layout.customer-page--status .status-page-back:active {
+      background: rgba(255, 255, 255, 0.34);
+      transform: scale(0.98);
+    }
+
+    body.customer-layout.customer-page--status .status-page-back:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.92);
+      outline-offset: 2px;
+    }
+
+    body.customer-layout.customer-page--status .status-page-back img {
+      width: clamp(24px, 4vw, 30px);
+      max-width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    body.customer-layout.customer-page--status .status-page-header strong {
+      min-width: 0;
+      align-self: center;
+      line-height: 1.2;
+    }
+
+    @media (max-width: 640px) {
+      body.customer-layout.customer-page--status .status-page {
+        padding-inline: 14px;
+      }
+
+      body.customer-layout.customer-page--status .status-page-header {
+        gap: 12px;
+        padding: 14px 16px;
+      }
+    }
+
+    @media (min-width: 1025px) {
+      body.customer-layout.customer-page--status .status-page-back {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+      }
+    }
+  </style>
 </head>
 <body class="customer-layout customer-page--status">
 
@@ -18,7 +103,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <main class="form-page status-page">
   <section class="status-shell">
     <div class="status-page-header">
-      <a href="/pages/customer/customer_dash.php" class="status-page-back" aria-label="Back to dashboard">&larr;</a>
+      <a href="/pages/customer/customer_dash.php" class="status-page-back" aria-label="Back to dashboard">
+        <img src="/assets/images/arrow.png" alt="" aria-hidden="true">
+      </a>
       <strong>Service Status</strong>
     </div>
 
