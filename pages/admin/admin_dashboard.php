@@ -2,88 +2,17 @@
 require_once __DIR__ . "/_includes/admin_auth.php";
 require_once __DIR__ . "/../../config/app.php";
 require_once __DIR__ . "/../../config/db.php";
-
-function table_exists(PDO $pdo, string $tableName): bool
-{
-    try {
-        $stmt = $pdo->prepare("
-            SELECT EXISTS (
-                SELECT 1
-                FROM information_schema.tables
-                WHERE table_schema = ANY (current_schemas(false))
-                  AND table_name = :table_name
-            )
-        ");
-        $stmt->execute([":table_name" => strtolower(trim($tableName))]);
-        return (bool)$stmt->fetchColumn();
-    } catch (Throwable $e) {
-        return false;
-    }
-}
-
-function safe_count(PDO $pdo, string $sql, array $params = []): int
-{
-    try {
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        return (int)$stmt->fetchColumn();
-    } catch (Throwable $e) {
-        return 0;
-    }
-}
+require_once __DIR__ . "/_includes/dashboard_stats.php";
 
 function project_url(string $path): string
 {
     return htmlspecialchars(servitech_url($path), ENT_QUOTES, "UTF-8");
 }
 
-$hasOrdersTable = table_exists($pdo, "orders");
-$hasQueueTable = table_exists($pdo, "queue");
-$hasQueuesTable = table_exists($pdo, "queues");
-
-// Debug variables (safe defaults): avoid runtime fatal if not set
-$queuesStatusSample = [];
-
-// Customers card: total users
-$customers = safe_count($pdo, "SELECT COUNT(*) FROM users");
-
-// Online Orders card
-if ($hasQueuesTable) {
-    // Match current queue table exactly; exclude cancelled entries only
-    $onlineOrders = safe_count(
-        $pdo,
-        "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'"
-    );
-} elseif ($hasQueueTable) {
-    $onlineOrders = safe_count(
-        $pdo,
-        "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'"
-    );
-} elseif ($hasOrdersTable) {
-    // Back-compat, if old orders table exists in your environment
-    $onlineOrders = safe_count(
-        $pdo,
-        "SELECT COUNT(*) FROM orders WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) != 'cancelled'"
-    );
-} else {
-    $onlineOrders = 0;
-}
-
-// Active Queue card
-if ($hasQueuesTable) {
-    // Use exactly the queue list table states as active queue
-    $activeQueue = safe_count(
-        $pdo,
-        "SELECT COUNT(*) FROM queues WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) NOT IN ('done','cancelled')"
-    );
-} elseif ($hasQueueTable) {
-    $activeQueue = safe_count(
-        $pdo,
-        "SELECT COUNT(*) FROM queue WHERE LOWER(TRIM(COALESCE(status, queue_status, ''))) NOT IN ('done','cancelled')"
-    );
-} else {
-    $activeQueue = 0;
-}
+$dashboardStats = fetch_admin_dashboard_stats($pdo);
+$customers = $dashboardStats["customers"];
+$onlineOrders = $dashboardStats["onlineOrders"];
+$activeQueue = $dashboardStats["activeQueue"];
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -1,33 +1,9 @@
 <?php
 require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/_includes/dashboard_stats.php";
 
-function safe_count(PDO $pdo, string $sql): int {
-    try {
-        return (int)$pdo->query($sql)->fetchColumn();
-    } catch (Throwable $e) {
-        return 0;
-    }
-}
-
-// DATA
-$customers = safe_count($pdo, "SELECT COUNT(*) FROM users");
-
-$onlineOrders = safe_count(
-    $pdo,
-    "SELECT COUNT(*) FROM queues 
-     WHERE LOWER(TRIM(status)) != 'cancelled'"
-);
-
-$activeQueue = safe_count(
-    $pdo,
-    "SELECT COUNT(*) FROM queues 
-     WHERE LOWER(TRIM(status)) IN ('pending','for pick-up','processing')"
-);
+$dashboardStats = fetch_admin_dashboard_stats($pdo);
 
 // RESPONSE
 header("Content-Type: application/json");
-echo json_encode([
-    "customers" => $customers,
-    "onlineOrders" => $onlineOrders,
-    "activeQueue" => $activeQueue
-]);
+echo json_encode($dashboardStats);
