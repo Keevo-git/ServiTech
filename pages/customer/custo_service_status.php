@@ -522,7 +522,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         }
       });
     } catch (e) {
-      renderState("Could not connect to the server.", '<button id="retryQueuesBtn" type="button" class="btn-primary">Retry</button>');
+      renderState("Could not connect to the server.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
       return;
     }
 
@@ -532,19 +532,19 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       data = JSON.parse(text);
     } catch (e) {
       console.error("RAW response:", text);
-      renderState("Server returned an invalid response.", '<button id="retryQueuesBtn" type="button" class="btn-primary">Retry</button>');
+      renderState("Server returned an invalid response.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
       return;
     }
 
     listEl.innerHTML = "";
 
     if (!data.ok) {
-      renderState(data.error || "Unable to load your queue list.", '<button id="retryQueuesBtn" type="button" class="btn-primary">Retry</button>');
+      renderState(data.error || "Unable to load your queue list.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
       return;
     }
 
     if (!data.queues || data.queues.length === 0) {
-      renderState("No queues yet.", '<a href="/pages/customer/custo_place_queueing.php" class="btn-primary">Join Queue</a>');
+      renderState("No queues yet.", '<a href="/pages/customer/custo_place_queueing.php" class="btn-next">Join Queue</a>');
       return;
     }
 

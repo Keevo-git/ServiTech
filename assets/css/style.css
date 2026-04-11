@@ -359,6 +359,15 @@ body.modal-open {
   margin-top: 12px;
 }
 
+.modal .btn-primary {
+  background: #24120f;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 .modal .btn-secondary {
   background: #fff;
   color: #111;
@@ -1013,16 +1022,13 @@ select.form-select::-ms-expand {
 
 /* BUTTON BASE */
 .btn-back,
-.btn-primary,
 .btn-next {
   text-decoration: none;
-  padding: 12px 20px;
+  padding: 14px 48px;
   font-size: 16px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-weight: 600;
-  line-height: 1.2;
-  min-height: 44px;
-  transition: background-color 0.2s ease, opacity 0.2s ease, transform 0.16s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* BACK */
@@ -1032,53 +1038,17 @@ select.form-select::-ms-expand {
   box-shadow: 0 6px 12px rgba(0,0,0,0.35);
 }
 
-/* PRIMARY */
-.btn-primary,
-.btn-next,
-.btn-save {
-  appearance: none;
-  -webkit-appearance: none;
+/* NEXT */
+.btn-next {
   background: #fbbf24;
-  border: 1px solid transparent;
-  color: #111;
-  cursor: pointer;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+  color: #000;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
 }
 
 /* HOVER */
 .btn-back:hover,
-.btn-primary:hover,
-.btn-next:hover,
-.btn-save:hover {
+.btn-next:hover {
   transform: translateY(-2px);
-}
-
-.btn-primary:hover,
-.btn-next:hover,
-.btn-save:hover {
-  background: #e0ac1a;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.22);
-}
-
-.btn-primary:active,
-.btn-next:active,
-.btn-save:active {
-  background: #cb980f;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.18);
-  transform: scale(0.98);
-}
-
-.btn-primary:disabled,
-.btn-next:disabled,
-.btn-save:disabled,
-.btn-primary[disabled],
-.btn-next[disabled],
-.btn-save[disabled] {
-  cursor: not-allowed;
-  opacity: 0.55;
-  box-shadow: none;
-  transform: none;
-  filter: saturate(0.85);
 }
 
 
@@ -1327,6 +1297,25 @@ select.form-select::-ms-expand {
   margin-top: 30px;
 }
 
+.btn-save{
+  min-width: 220px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 15px;
+  color: #ffffff;
+  background: #ff9b2e;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.18);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-save:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(0,0,0,0.22);
+}
+
 .btn-cancel{
   min-width: 220px;
   padding: 12px 18px;
@@ -1540,14 +1529,12 @@ body {
   }
 
   .btn-back,
-  .btn-primary,
   .btn-next {
     width: 100%;
     text-align: center;
     padding: 12px 16px;
   }
 
-  .btn-primary,
   .btn-save,
   .btn-cancel {
     min-width: 0;
@@ -1722,9 +1709,7 @@ body {
 }
 
 .btn-back,
-.btn-primary,
-.btn-next,
-.btn-save {
+.btn-next {
   display: inline-flex;
   align-items: center;
   justify-content: center;

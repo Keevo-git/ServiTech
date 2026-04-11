@@ -472,7 +472,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
 
     .printing-page .form-actions .btn-back,
-    .printing-page .form-actions .btn-primary {
+    .printing-page .form-actions .btn-next {
       align-items: center;
       border-radius: 10px;
       display: inline-flex;
@@ -486,7 +486,14 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       width: 100%;
     }
 
-    .printing-page .form-actions .btn-primary {
+    .printing-page .form-actions .btn-next {
+      appearance: none;
+      -webkit-appearance: none;
+      background: #fbbf24;
+      border: none;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+      color: #000;
+      cursor: pointer;
       flex: 1 1 240px;
       margin: 0;
     }
@@ -573,7 +580,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
         flex-direction: column;
       }
 
-      .printing-page .form-actions .btn-primary,
+      .printing-page .form-actions .btn-next,
       .printing-page .form-actions .btn-back {
         flex: 0 0 auto;
         min-height: 48px;
@@ -697,7 +704,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
         <div class="form-actions form-actions--compact">
           <a href="/pages/customer/custo2_docu_printing.php" class="btn-back">Back</a>
-          <button type="submit" class="btn-primary" id="placePrintOrderBtn">Place Print Order</button>
+          <button type="submit" class="btn-next" id="placePrintOrderBtn">Place Print Order</button>
         </div>
       </form>
     </div>

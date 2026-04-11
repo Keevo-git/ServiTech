@@ -420,7 +420,6 @@ body.customer-layout .queue-success-modal__actions {
 }
 
 body.customer-layout .btn-back,
-body.customer-layout .btn-primary,
 body.customer-layout .btn-next,
 body.customer-layout .btn-save,
 body.customer-layout .btn-cancel,
@@ -433,7 +432,6 @@ body.customer-layout .modal-back {
 }
 
 body.customer-layout .btn-back,
-body.customer-layout .btn-primary,
 body.customer-layout .btn-next {
   min-width: 148px;
   padding: 13px 22px;
@@ -555,7 +553,6 @@ body.customer-layout .input-with-icon {
 
   body.customer-layout .navbar nav a,
   body.customer-layout .btn-back,
-  body.customer-layout .btn-primary,
   body.customer-layout .btn-next,
   body.customer-layout .btn-save,
   body.customer-layout .btn-cancel,
@@ -825,10 +822,8 @@ body.customer-layout.customer-page--print-order .form-actions {
 }
 
 body.customer-layout.customer-page--forms .btn-back,
-body.customer-layout.customer-page--forms .btn-primary,
 body.customer-layout.customer-page--forms .btn-next,
 body.customer-layout.customer-page--print-order .btn-back,
-body.customer-layout.customer-page--print-order .btn-primary,
 body.customer-layout.customer-page--print-order .btn-next {
   width: 100% !important;
 }
@@ -883,7 +878,6 @@ body.customer-layout .queue-success-modal__actions {
 }
 
 body.customer-layout .btn-back,
-body.customer-layout .btn-primary,
 body.customer-layout .btn-next,
 body.customer-layout .btn-save,
 body.customer-layout .btn-cancel,
@@ -898,7 +892,6 @@ body.customer-layout .status-page-back,
 body.customer-layout .back-arrow,
 body.customer-layout .modal-close,
 body.customer-layout .btn-back,
-body.customer-layout .btn-primary,
 body.customer-layout .btn-next,
 body.customer-layout .btn-save,
 body.customer-layout .btn-cancel,
@@ -1073,7 +1066,6 @@ body.customer-layout.customer-page--custo2 .form-actions {
 }
 
 body.customer-layout.customer-page--custo2 .btn-back,
-body.customer-layout.customer-page--custo2 .btn-primary,
 body.customer-layout.customer-page--custo2 .btn-next {
   width: 100% !important;
 }
@@ -1156,7 +1148,6 @@ body.customer-layout .summary-card {
   }
 
   body.customer-layout:not(.customer-page--custo2) .btn-back,
-  body.customer-layout:not(.customer-page--custo2) .btn-primary,
   body.customer-layout:not(.customer-page--custo2) .btn-next,
   body.customer-layout:not(.customer-page--custo2) .btn-save,
   body.customer-layout:not(.customer-page--custo2) .btn-cancel,
@@ -1201,7 +1192,6 @@ body.customer-layout.customer-page--print-order .form-page {
   }
 
   body.customer-layout.customer-page--print-order .btn-back,
-  body.customer-layout.customer-page--print-order .btn-primary,
   body.customer-layout.customer-page--print-order .btn-next {
     width: auto !important;
     min-width: 180px;
@@ -1364,10 +1354,16 @@ body.customer-layout.customer-page--profile .profile-actions {
   margin: 30px auto 0;
 }
 
-body.customer-layout.customer-page--profile .profile-actions .btn-primary,
+body.customer-layout.customer-page--profile .profile-actions .btn-save,
 body.customer-layout.customer-page--profile .profile-actions .btn-cancel {
   width: 100% !important;
   min-width: 0 !important;
+}
+
+body.customer-layout.customer-page--profile .profile-actions .btn-save {
+  background: linear-gradient(180deg, #ffb147 0%, #ff8b2d 100%);
+  border: 1px solid rgba(122, 47, 0, 0.26);
+  color: #ffffff;
 }
 
 body.customer-layout.customer-page--profile .profile-actions .btn-cancel,

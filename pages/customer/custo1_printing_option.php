@@ -40,7 +40,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     <div class="form-actions">
       <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
-      <button type="button" class="btn-primary" id="nextBtn" disabled>Next</button>
+      <button type="button" class="btn-next" id="nextBtn" disabled>Next</button>
     </div>
   </div>
 </section>

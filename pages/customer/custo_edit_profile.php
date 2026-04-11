@@ -725,7 +725,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       flex-wrap: wrap;
     }
 
-    .btn-secondary {
+    .btn-secondary,
+    .btn-primary {
+      border: 0;
       border-radius: 999px;
       padding: 0.9rem 1.3rem;
       font-weight: 700;
@@ -741,8 +743,21 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       box-shadow: 0 10px 18px rgba(74, 5, 5, 0.08);
     }
 
+    .btn-primary {
+      background: linear-gradient(135deg, #ffb347, #ff8a2d 58%, #d45a0a 100%);
+      color: #fff;
+      box-shadow: 0 14px 24px rgba(122, 47, 0, 0.22);
+    }
+
+    .btn-primary:hover,
     .btn-secondary:hover {
       transform: translateY(-1px);
+    }
+
+    .btn-primary[disabled] {
+      cursor: wait;
+      opacity: 0.75;
+      transform: none;
     }
 
     @media (max-width: 900px) {
