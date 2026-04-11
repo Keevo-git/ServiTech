@@ -128,13 +128,10 @@ function renderServiceModalBody(service) {
       ${service.cards
         .map((card) => {
           const clickable = card.detailKey ? " clickable" : "";
-          const action = card.detailKey
-            ? ` onclick="openServiceDetailModal('${card.detailKey}')" role="button" tabindex="0"`
-            : "";
           const extra = card.detailKey ? `<p class="more-details">Click for more details</p>` : "";
 
           return `
-        <div class="detail-card${clickable}"${action}>
+        <div class="detail-card${clickable}" data-detail-key="${card.detailKey || ""}">
           <h4>${card.title}</h4>
           ${card.lines.map((line) => `<p>${line}</p>`).join("")}
           ${extra}
@@ -161,6 +158,21 @@ function renderServiceDetailModalBody(detail) {
   `;
 }
 
+function bindServiceDetailCards(bodyEl) {
+  bodyEl.querySelectorAll(".detail-card.clickable").forEach((card) => {
+    const detailKey = card.dataset.detailKey;
+    if (!detailKey) return;
+
+    card.addEventListener("click", () => openServiceDetailModal(detailKey));
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openServiceDetailModal(detailKey);
+      }
+    });
+  });
+}
+
 function openServiceModal(sectionId) {
   const service = serviceModalData[sectionId];
   if (!service) return;
@@ -172,6 +184,7 @@ function openServiceModal(sectionId) {
 
   titleEl.textContent = service.title;
   bodyEl.innerHTML = renderServiceModalBody(service);
+  bindServiceDetailCards(bodyEl);
 
   overlay.style.display = "flex";
   syncBodyScrollLock();
@@ -223,21 +236,6 @@ function escCloseServiceModal(e) {
 
 function escCloseServiceDetailModal(e) {
   if (e.key === "Escape") closeServiceDetailModal();
-}
-
-function closeServiceModal() {
-  const overlay = document.getElementById("service-modal");
-  const bodyEl = document.getElementById("service-modal-body");
-
-  if (overlay) overlay.style.display = "none";
-  if (bodyEl) bodyEl.innerHTML = "";
-
-  document.removeEventListener("keydown", escCloseServiceModal);
-  syncBodyScrollLock();
-}
-
-function escCloseServiceModal(e) {
-  if (e.key === "Escape") closeServiceModal();
 }
 
 /* ==============================
