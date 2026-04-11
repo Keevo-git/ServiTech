@@ -3,7 +3,27 @@ if (!function_exists("admin_url")) {
     require_once __DIR__ . "/url.php";
 }
 ?>
-<footer class="footer">
+<style>
+  .admin-shared-footer {
+    background: linear-gradient(120deg, #112b4f, #1a3f73 52%, #265792) !important;
+    color: #ffffff !important;
+    box-shadow: 0 -10px 24px rgba(17, 43, 79, 0.16);
+  }
+
+  .admin-shared-footer .footer-logo-link,
+  .admin-shared-footer .footer-logo-link h1,
+  .admin-shared-footer .contact-item a,
+  .admin-shared-footer .contact-item span,
+  .admin-shared-footer .footer-bottom,
+  .admin-shared-footer .footer-left h3 {
+    color: #ffffff !important;
+  }
+
+  .admin-shared-footer .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+  }
+</style>
+<footer class="footer admin-shared-footer">
   <div class="footer-container">
     <div class="footer-left">
       <h3>Contact Us:</h3>
