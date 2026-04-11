@@ -28,7 +28,10 @@ $walkinStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
-  WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+  WHERE (
+      q.created_at <= (NOW() - INTERVAL '24 hours')
+      OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+    )
     AND (
       LOWER(TRIM(COALESCE(q.category, ''))) IN ('walkin', 'printing_walkin')
       OR (
@@ -46,7 +49,10 @@ $onlineStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
-  WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+  WHERE (
+      q.created_at <= (NOW() - INTERVAL '24 hours')
+      OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+    )
     AND (
       LOWER(TRIM(COALESCE(q.category, ''))) IN ('online_printorder', 'printing_online')
       OR (
@@ -133,7 +139,7 @@ $online = $onlineStmt->fetchAll();
           </thead>
           <tbody>
             <?php if (!$walkin): ?>
-              <tr><td colspan="5" style="color:#777;padding:14px;">No cancelled walk-in queues yet.</td></tr>
+              <tr><td colspan="5" style="color:#777;padding:14px;">No walk-in queues older than 24 hours yet.</td></tr>
             <?php else: ?>
               <?php foreach ($walkin as $r): ?>
                 <?php $cls = status_class($r["status"]); ?>
@@ -164,7 +170,7 @@ $online = $onlineStmt->fetchAll();
           </thead>
           <tbody>
             <?php if (!$online): ?>
-              <tr><td colspan="5" style="color:#777;padding:14px;">No cancelled online printing orders yet.</td></tr>
+              <tr><td colspan="5" style="color:#777;padding:14px;">No online printing orders older than 24 hours yet.</td></tr>
             <?php else: ?>
               <?php foreach ($online as $r): ?>
                 <?php $cls = status_class($r["status"]); ?>

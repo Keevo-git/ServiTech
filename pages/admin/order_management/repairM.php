@@ -29,6 +29,10 @@ $rows = $pdo->query("
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'repair'
+    AND (
+      q.created_at <= (NOW() - INTERVAL '24 hours')
+      OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+    )
   ORDER BY q.created_at DESC
 ")->fetchAll();
 ?>
