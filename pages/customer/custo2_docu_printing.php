@@ -118,14 +118,14 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       margin-bottom: 0.45rem;
     }
 
-    .printing-page .static-text,
+    body.customer-layout.printing-page .static-text,
     .printing-page .radio-group,
     #fileAnalysisPanel {
       background: var(--printing-surface-soft);
       border: 1px solid var(--printing-border);
     }
 
-    .printing-page .static-text {
+    body.customer-layout.printing-page .static-text {
       border-radius: 16px;
       box-sizing: border-box;
       display: flex;
@@ -137,18 +137,22 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       width: 100%;
     }
 
-    .printing-page .service-type-display {
+    body.customer-layout.printing-page .service-type-display {
       display: flex;
       align-items: center;
       box-sizing: border-box;
       height: 56px;
       min-height: 56px;
       justify-content: flex-start;
-      line-height: 1.2;
+      line-height: 1;
       margin: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      transform: none;
+      padding: 0 14px;
+    }
+
+    body.customer-layout.printing-page .service-type-display > span {
+      display: block;
+      line-height: 1.1;
+      transform: translateY(1px);
     }
 
     .printing-page .form-select,
@@ -425,7 +429,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
           <div>
             <div class="printing-field">
               <label>Service Type<span class="required">*</span></label>
-              <div class="static-text service-type-display">Document Printing</div>
+              <div class="static-text service-type-display"><span>Document Printing</span></div>
             </div>
 
             <div class="printing-field">
