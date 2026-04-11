@@ -36,6 +36,7 @@ $stmt = $pdo->prepare("
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE q.category IN ($in)
+    AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) != 'CANCELLED'
   ORDER BY q.created_at ASC
 ");
 $stmt->execute($cats);
