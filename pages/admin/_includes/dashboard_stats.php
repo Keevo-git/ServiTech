@@ -11,72 +11,45 @@ function admin_dashboard_safe_count(PDO $pdo, string $sql, array $params = []): 
     }
 }
 
-function admin_dashboard_text_sql(string $column): string
-{
-    return "LOWER(TRIM(COALESCE({$column}, '')))";
-}
-
-function admin_dashboard_status_sql(string $column): string
-{
-    return "UPPER(TRIM(COALESCE({$column}, 'PENDING')))";
-}
-
 function fetch_admin_dashboard_stats(PDO $pdo): array
 {
-    $categorySql = admin_dashboard_text_sql("category");
-    $typeSql = admin_dashboard_text_sql("\"type\"");
-    $statusSql = admin_dashboard_status_sql("status");
-    $queueCodeSql = "UPPER(TRIM(COALESCE(queue_code, '')))";
-
+    // CUSTOMERS (unchanged)
     $customers = admin_dashboard_safe_count($pdo, "SELECT COUNT(*) FROM users");
 
+    // ✅ ONLINE ORDERS (FIXED - FLEXIBLE MATCHING)
     $onlineOrders = admin_dashboard_safe_count(
         $pdo,
         "
         SELECT COUNT(*)
         FROM queues
-        WHERE (
-            {$categorySql} = :printing_online_category
-            OR {$categorySql} = :legacy_online_category
+        WHERE 
+            LOWER(TRIM(category)) = 'printing_online'
             OR (
-                {$categorySql} = :online_category
-                AND {$typeSql} = :online_type
+                LOWER(TRIM(category)) = 'printing'
+                AND LOWER(TRIM(COALESCE(\"type\", ''))) = 'online'
             )
-            OR {$queueCodeSql} LIKE :online_prefix
-        )
-        ",
-        [
-            ":printing_online_category" => "printing_online",
-            ":legacy_online_category" => "online_printorder",
-            ":online_category" => "printing",
-            ":online_type" => "online",
-            ":online_prefix" => "OP%",
-        ]
+            OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
+        "
     );
 
+    // ✅ ACTIVE QUEUE (FIXED - NO OVERLAP)
     $activeQueue = admin_dashboard_safe_count(
         $pdo,
         "
         SELECT COUNT(*)
         FROM queues
         WHERE (
-            {$categorySql} IN ('walkin', 'printing_walkin', 'repair', 'installation')
+            LOWER(TRIM(category)) IN ('walkin', 'printing_walkin', 'repair', 'installation')
             OR (
-                {$categorySql} = :legacy_printing_category
+                LOWER(TRIM(category)) = 'printing'
                 AND (
                     \"type\" IS NULL
-                    OR {$typeSql} = :walkin_type
+                    OR LOWER(TRIM(\"type\")) = 'walkin'
                 )
-                AND {$queueCodeSql} NOT LIKE :online_prefix
             )
         )
-          AND {$statusSql} NOT IN ('DONE', 'CANCELLED')
-        ",
-        [
-            ":legacy_printing_category" => "printing",
-            ":walkin_type" => "walkin",
-            ":online_prefix" => "OP%",
-        ]
+        AND UPPER(TRIM(COALESCE(status, 'PENDING'))) NOT IN ('DONE', 'CANCELLED')
+        "
     );
 
     return [
