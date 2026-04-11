@@ -156,10 +156,11 @@ main{ flex:1; }
 }
 
 .footer{
-  background-color:#4A0505;
+  background:linear-gradient(120deg,#112b4f,#1a3f73 52%,#265792);
   color:#ffffff;
   padding:30px 40px 20px;
   margin-top:30px;
+  box-shadow:0 -10px 24px rgba(17,43,79,.16);
 }
 
 .footer-container{
@@ -227,9 +228,9 @@ main{ flex:1; }
 .footer-bottom{
   text-align:center;
   margin-top:20px;
-  border-top:1px solid rgba(255,255,255,0.2);
+  border-top:1px solid rgba(255,255,255,0.18);
   padding-top:10px;
-  opacity:0.8;
+  opacity:0.9;
   font-size:13px;
 }
 
