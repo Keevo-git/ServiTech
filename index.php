@@ -85,137 +85,74 @@ $print_url = $is_admin
     <p>(Note: these are only the common requested services, you may contact us for inquiry of other services)</p>
 
     <div class="service-type-cards">
-      <div class="service-type-card" onclick="openServiceModal('printing')">
+      <div
+        class="service-type-card"
+        role="button"
+        tabindex="0"
+        aria-label="Open Printing Service details"
+        onclick="openServiceModal('printing')"
+        onkeydown="handleServiceCardKeydown(event, 'printing')"
+      >
         <img src="/assets/images/CARD_PRINTING.png" alt="Printing Service">
         <h3>Printing Service</h3>
       </div>
 
-      <div class="service-type-card" onclick="openServiceModal('repair')">
+      <div
+        class="service-type-card"
+        role="button"
+        tabindex="0"
+        aria-label="Open Device Repair Service details"
+        onclick="openServiceModal('repair')"
+        onkeydown="handleServiceCardKeydown(event, 'repair')"
+      >
         <img src="/assets/images/CARD_REPAIR.png" alt="Device Repair">
         <h3>Device Repair Service</h3>
       </div>
 
-      <div class="service-type-card" onclick="openServiceModal('installation')">
+      <div
+        class="service-type-card"
+        role="button"
+        tabindex="0"
+        aria-label="Open Installation and Software details"
+        onclick="openServiceModal('installation')"
+        onkeydown="handleServiceCardKeydown(event, 'installation')"
+      >
         <img src="/assets/images/CARD_INSTALLATION.png" alt="Installation Service">
         <h3>Installation / Software</h3>
       </div>
     </div>
-
-    <br><br><br><br>
-
-    <!-- Hidden service detail sections for modal content -->
-    <div class="service-details" id="printing">
-      <div class="service-grid">
-        <div class="detail-card">
-          <h4>Document Printing</h4>
-          <p>Long Bond Paper, Short Bond Paper, A4</p>
-          <p>Price varies by paper size and color option.</p>
-        </div>
-        <div class="detail-card">
-          <h4>Xerox</h4>
-          <p>Long Bond Paper: ₱5</p>
-          <p>Short Bond Paper: ₱3</p>
-          <p>A4: ₱3</p>
-        </div>
-        <div class="detail-card">
-          <h4>Rush ID</h4>
-          <p>Choose between packages 1–6.</p>
-          <p>Price varies by selected package.</p>
-        </div>
-        <div class="detail-card">
-          <h4>Laminating</h4>
-          <p>Manipis / Thin: ₱20</p>
-          <p>Makapal / Thick: ₱30</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="service-details" id="repair">
-      <div class="service-grid">
-        <div class="detail-card">
-          <h4>LCD Replacement</h4>
-          <p>For mobile phones and laptops.</p>
-          <p>Price range: ₱1200 – ₱5500</p>
-        </div>
-        <div class="detail-card">
-          <h4>Battery Replacement</h4>
-          <p>For mobile phones and laptops.</p>
-          <p>Price range: ₱700 – ₱2500</p>
-        </div>
-        <div class="detail-card">
-          <h4>Charging Pin Replacement</h4>
-          <p>For mobile phones and laptops.</p>
-          <p>Price range: ₱800 – ₱4000</p>
-        </div>
-        <div class="detail-card">
-          <h4>Speaker / Mouthpiece Replacement</h4>
-          <p>For mobile phones and laptops.</p>
-          <p>Price range: ₱700 – ₱1500</p>
-        </div>
-        <div class="detail-card">
-          <h4>Power Button Repair</h4>
-          <p>For mobile phones and laptops.</p>
-          <p>Price range: ₱500 – ₱2000</p>
-        </div>
-        <div class="detail-card">
-          <h4>Volume Repair</h4>
-          <p>For mobile phones and laptops.</p>
-          <p>Price range: ₱1000 – ₱2000</p>
-        </div>
-        <div class="detail-card">
-          <h4>Camera Repair</h4>
-          <p>For mobile phones and laptops.</p>
-          <p>Price range: ₱1500 – ₱5000</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="service-details" id="installation">
-      <div class="service-grid">
-        <div class="detail-card">
-          <h4>Reprogram Service</h4>
-          <p>Price range: ₱1000 – ₱4000</p>
-        </div>
-        <div class="detail-card">
-          <h4>Hang Logo Fix Service</h4>
-          <p>Price range: ₱1000 – ₱3500</p>
-        </div>
-        <div class="detail-card">
-          <h4>Boot Loop Fix Service</h4>
-          <p>Price range: ₱1000 – ₱5000</p>
-        </div>
-        <div class="detail-card">
-          <h4>Openline Samsung & iPhone</h4>
-          <p>Price range: ₱3500 – ₱6000</p>
-        </div>
-        <div class="detail-card">
-          <h4>Bypass Google Account</h4>
-          <p>Price range: ₱500 – ₱2000</p>
-        </div>
-        <div class="detail-card">
-          <h4>Bypass Password</h4>
-          <p>Price range: ₱1000 – ₱3000</p>
-        </div>
-      </div>
-    </div>
-
   </section>
 
   <div id="service-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal modal-content service-modal" role="dialog" aria-modal="true" aria-labelledby="service-modal-title">
-      <button class="close-btn" type="button" aria-label="Close" onclick="closeServiceModal()">×</button>
-      <h3 id="service-modal-title">Service Details</h3>
-      <div class="modal-divider"></div>
-      <div id="service-modal-body" class="modal-body service-grid"></div>
+      <button class="close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceModal()">&times;</button>
+      <div class="service-modal__header">
+        <div class="service-modal__eyebrow">Service Overview</div>
+        <h3 id="service-modal-title" class="service-modal__title">Service Details</h3>
+        <p id="service-modal-description" class="service-modal__description">Browse the available options and select an item to view more details.</p>
+      </div>
+      <div class="modal-divider service-modal__divider"></div>
+      <div id="service-modal-body" class="modal-body service-modal__body"></div>
+      <div class="service-modal__footer">
+        <button type="button" class="service-modal__action service-modal__action--secondary" onclick="closeServiceModal()">Close</button>
+      </div>
     </div>
   </div>
 
   <div id="service-detail-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal modal-content service-modal" role="dialog" aria-modal="true" aria-labelledby="service-detail-modal-title">
-      <button class="close-btn" type="button" aria-label="Close" onclick="closeServiceDetailModal()">×</button>
-      <h3 id="service-detail-modal-title">More Details</h3>
-      <div class="modal-divider"></div>
-      <div id="service-detail-modal-body" class="modal-body service-grid"></div>
+      <button class="close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceDetailModal()">&times;</button>
+      <div class="service-modal__header">
+        <div class="service-modal__eyebrow">Detailed View</div>
+        <h3 id="service-detail-modal-title" class="service-modal__title">More Details</h3>
+        <p id="service-detail-modal-description" class="service-modal__description">Review the selected service details and pricing information.</p>
+      </div>
+      <div class="modal-divider service-modal__divider"></div>
+      <div id="service-detail-modal-body" class="modal-body service-modal__body"></div>
+      <div class="service-modal__footer">
+        <button type="button" class="service-modal__action service-modal__action--ghost" onclick="closeServiceDetailModal()">Back</button>
+        <button type="button" class="service-modal__action service-modal__action--secondary" onclick="closeServiceModal()">Close All</button>
+      </div>
     </div>
   </div>
 
