@@ -178,14 +178,15 @@
 .cl-modalX{
   position:absolute;
   right: 14px;
-  top: 10px;
-  width: 34px;
-  height: 34px;
+  top: 8px;
+  width: 40px;
+  height: 40px;
   border:none;
   background:transparent;
-  font-size: 20px;
+  font-size: 28px;
+  font-weight: 700;
   cursor:pointer;
-  opacity:.8;
+  opacity:1;
   line-height: 1;
   display:inline-flex;
   align-items:center;
@@ -220,10 +221,10 @@
 .cl-pill{
   background:#e8f1ff;
   color:#1f4a8a;
-  padding: 5px 9px;
+  padding: 7px 12px;
   border-radius: 10px;
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: 700;
+  font-size: 15px;
   margin-left: 0; /* remove auto push */
 }
 
