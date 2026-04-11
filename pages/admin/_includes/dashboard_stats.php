@@ -35,16 +35,18 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
         SELECT COUNT(*)
         FROM queues
-        WHERE {$categorySql} = :legacy_online_category
-           OR (
+        WHERE (
+            {$categorySql} = :printing_online_category
+            OR {$categorySql} = :legacy_online_category
+            OR (
                 {$categorySql} = :online_category
-                AND (
-                    {$typeSql} = :online_type
-                    OR {$queueCodeSql} LIKE :online_prefix
-                )
-           )
+                AND {$typeSql} = :online_type
+            )
+            OR {$queueCodeSql} LIKE :online_prefix
+        )
         ",
         [
+            ":printing_online_category" => "printing_online",
             ":legacy_online_category" => "online_printorder",
             ":online_category" => "printing",
             ":online_type" => "online",
@@ -65,6 +67,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
                     \"type\" IS NULL
                     OR {$typeSql} = :walkin_type
                 )
+                AND {$queueCodeSql} NOT LIKE :online_prefix
             )
         )
           AND {$statusSql} NOT IN ('DONE', 'CANCELLED')
@@ -72,6 +75,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         [
             ":legacy_printing_category" => "printing",
             ":walkin_type" => "walkin",
+            ":online_prefix" => "OP%",
         ]
     );
 
