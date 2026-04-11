@@ -35,13 +35,17 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
         SELECT COUNT(*)
         FROM queues
-        WHERE {$categorySql} = :online_category
-          AND (
-            {$typeSql} = :online_type
-            OR {$queueCodeSql} LIKE :online_prefix
-          )
+        WHERE {$categorySql} = :legacy_online_category
+           OR (
+                {$categorySql} = :online_category
+                AND (
+                    {$typeSql} = :online_type
+                    OR {$queueCodeSql} LIKE :online_prefix
+                )
+           )
         ",
         [
+            ":legacy_online_category" => "online_printorder",
             ":online_category" => "printing",
             ":online_type" => "online",
             ":online_prefix" => "OP%",
@@ -54,7 +58,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         SELECT COUNT(*)
         FROM queues
         WHERE (
-            {$categorySql} IN ('printing_walkin', 'repair', 'installation')
+            {$categorySql} IN ('walkin', 'printing_walkin', 'repair', 'installation')
             OR (
                 {$categorySql} = :legacy_printing_category
                 AND (
