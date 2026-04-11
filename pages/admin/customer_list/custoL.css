@@ -205,7 +205,6 @@
 .cl-modalHead{
   display:flex;
   align-items:center;
-  gap: 10px;
   margin-bottom: 10px;
   padding-right: 56px;
 }
@@ -228,17 +227,10 @@
   margin-left: 0; /* remove auto push */
 }
 
-/* if you only have ONE pill, push it to the right */
-.cl-modalHead .cl-pill{
-  margin-left: 2px;
-  margin-right: 0 !important;
-  position: relative;
-  z-index: 1;
-}
-
-/* if later you add a second pill (order code), this keeps them both right */
-.cl-modalHead .cl-pill + .cl-pill{
-  margin-left: 6px;
+.cl-pill--inline{
+  display:inline-flex;
+  align-items:center;
+  margin-top: 2px;
 }
 
 /* make info box more compact */

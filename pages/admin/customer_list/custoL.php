@@ -132,13 +132,16 @@ function customer_code_from_id(int $id): string {
 
       <div class="cl-modalHead">
         <h3>Send Message to Customer</h3>
-        <span class="cl-pill" id="mCode">C-000</span>
       </div>
 
       <div class="cl-infoCard">
         <p class="cl-infoTitle">Customer Contact Information:</p>
 
         <div class="cl-infoGrid">
+          <div>
+            <small>Customer ID</small>
+            <div class="cl-pill cl-pill--inline" id="mCode">C-000</div>
+          </div>
           <div>
             <small>Name</small>
             <div class="cl-infoVal" id="mName">â€”</div>
