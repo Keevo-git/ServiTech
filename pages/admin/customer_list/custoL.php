@@ -74,7 +74,6 @@ function customer_code_from_id(int $id): string {
       <div class="cl-card">
         <div class="cl-toolbar">
           <div class="cl-search">
-            <span class="cl-searchIcon">ðŸ”</span>
             <input id="searchInput" type="text" placeholder="Search customers by name, email, or contact..." />
           </div>
         </div>
