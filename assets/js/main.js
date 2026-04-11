@@ -54,20 +54,68 @@ function closeModal(id) {
 /* ==============================
    Service list modal
    ============================== */
+const serviceModalData = {
+  printing: {
+    title: "Printing Service",
+    cards: [
+      { title: "Document Printing", lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."] },
+      { title: "Xerox", lines: ["Long Bond Paper: ₱5", "Short Bond Paper: ₱3", "A4: ₱3"] },
+      { title: "Rush ID", lines: ["Choose between packages 1–6.", "Price varies by selected package."] },
+      { title: "Laminating", lines: ["Manipis / Thin: ₱20", "Makapal / Thick: ₱30"] },
+    ],
+  },
+  repair: {
+    title: "Device Repair Service",
+    cards: [
+      { title: "LCD Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱1200 – ₱5500"] },
+      { title: "Battery Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱700 – ₱2500"] },
+      { title: "Charging Pin Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱800 – ₱4000"] },
+      { title: "Speaker / Mouthpiece Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱700 – ₱1500"] },
+      { title: "Power Button Repair", lines: ["For mobile phones and laptops.", "Price range: ₱500 – ₱2000"] },
+      { title: "Volume Repair", lines: ["For mobile phones and laptops.", "Price range: ₱1000 – ₱2000"] },
+      { title: "Camera Repair", lines: ["For mobile phones and laptops.", "Price range: ₱1500 – ₱5000"] },
+    ],
+  },
+  installation: {
+    title: "Installation / Software",
+    cards: [
+      { title: "Reprogram Service", lines: ["Price range: ₱1000 – ₱4000"] },
+      { title: "Hang Logo Fix Service", lines: ["Price range: ₱1000 – ₱3500"] },
+      { title: "Boot Loop Fix Service", lines: ["Price range: ₱1000 – ₱5000"] },
+      { title: "Openline Samsung & iPhone", lines: ["Price range: ₱3500 – ₱6000"] },
+      { title: "Bypass Google Account", lines: ["Price range: ₱500 – ₱2000"] },
+      { title: "Bypass Password", lines: ["Price range: ₱1000 – ₱3000"] },
+    ],
+  },
+};
+
+function renderServiceModalBody(service) {
+  return `
+    <div class="service-grid">
+      ${service.cards
+        .map(
+          (card) => `
+        <div class="detail-card">
+          <h4>${card.title}</h4>
+          ${card.lines.map((line) => `<p>${line}</p>`).join("")}
+        </div>`
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function openServiceModal(sectionId) {
-  const section = document.getElementById(sectionId);
-  if (!section) return;
+  const service = serviceModalData[sectionId];
+  if (!service) return;
 
   const overlay = document.getElementById("service-modal");
   const titleEl = document.getElementById("service-modal-title");
   const bodyEl = document.getElementById("service-modal-body");
   if (!overlay || !titleEl || !bodyEl) return;
 
-  const title = section.querySelector("h3")?.textContent || "Service";
-  titleEl.textContent = title;
-
-  const grid = section.querySelector(".service-grid");
-  bodyEl.innerHTML = grid ? grid.outerHTML : section.innerHTML;
+  titleEl.textContent = service.title;
+  bodyEl.innerHTML = renderServiceModalBody(service);
 
   overlay.style.display = "flex";
   syncBodyScrollLock();
