@@ -128,7 +128,7 @@ function customer_code_from_id(int $id): string {
 
   <div class="cl-modalOverlay" id="msgModal">
     <div class="cl-modalCard" role="dialog" aria-modal="true">
-      <button class="cl-modalX" type="button" id="closeModal">Ã—</button>
+      <button class="cl-modalX" type="button" id="closeModal" aria-label="Close modal">&times;</button>
 
       <div class="cl-modalHead">
         <h3>Send Message to Customer</h3>
