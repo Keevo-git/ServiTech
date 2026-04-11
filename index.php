@@ -210,6 +210,15 @@ $print_url = $is_admin
     </div>
   </div>
 
+  <div id="service-detail-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal modal-content service-modal" role="dialog" aria-modal="true" aria-labelledby="service-detail-modal-title">
+      <button class="close-btn" type="button" aria-label="Close" onclick="closeServiceDetailModal()">×</button>
+      <h3 id="service-detail-modal-title">More Details</h3>
+      <div class="modal-divider"></div>
+      <div id="service-detail-modal-body" class="modal-body service-grid"></div>
+    </div>
+  </div>
+
   <?php include __DIR__ . "/components/footer.php"; ?>
 
   <script src="/assets/js/csrf.js"></script>

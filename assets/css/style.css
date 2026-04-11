@@ -250,6 +250,37 @@ body {
   border-radius: 18px;
 }
 
+.service-modal .service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.service-modal .detail-card {
+  min-height: 160px;
+}
+
+.service-modal .detail-card.clickable {
+  cursor: pointer;
+}
+
+.service-modal .detail-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.service-modal .more-details {
+  margin-top: 12px;
+  color: #AF6C09;
+  font-weight: 600;
+}
+
+@media (max-width: 1000px) {
+  .service-modal .service-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 body.modal-open {
   overflow: hidden;
 }

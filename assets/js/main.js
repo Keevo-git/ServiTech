@@ -58,9 +58,17 @@ const serviceModalData = {
   printing: {
     title: "Printing Service",
     cards: [
-      { title: "Document Printing", lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."] },
+      {
+        title: "Document Printing",
+        lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
+        detailKey: "documentPrinting",
+      },
       { title: "Xerox", lines: ["Long Bond Paper: ₱5", "Short Bond Paper: ₱3", "A4: ₱3"] },
-      { title: "Rush ID", lines: ["Choose between packages 1–6.", "Price varies by selected package."] },
+      {
+        title: "Rush ID",
+        lines: ["Choose between packages 1–6.", "Price varies by selected package."],
+        detailKey: "rushId",
+      },
       { title: "Laminating", lines: ["Manipis / Thin: ₱20", "Makapal / Thick: ₱30"] },
     ],
   },
@@ -89,10 +97,58 @@ const serviceModalData = {
   },
 };
 
+const serviceModalDetailData = {
+  documentPrinting: {
+    title: "Document Printing",
+    cards: [
+      { title: "Long Bond Paper (Colored)", lines: ["Full – ₱10.00", "Half – ₱5.00"] },
+      { title: "Long Bond Paper (B&W)", lines: ["₱5.00"] },
+      { title: "Short Bond Paper (Colored)", lines: ["Full – ₱10.00", "Half – ₱5.00"] },
+      { title: "Short Bond Paper (B&W)", lines: ["₱5.00"] },
+      { title: "A4 (Colored)", lines: ["Full – ₱10.00", "Half – ₱5.00"] },
+      { title: "A4 (B&W)", lines: ["₱5.00"] },
+    ],
+  },
+  rushId: {
+    title: "Rush ID Packages",
+    cards: [
+      { title: "Package 1", lines: ["₱40.00", "1x1 (4pcs), 2x2 (2pcs)"] },
+      { title: "Package 2", lines: ["₱30.00", "1x1 (6pcs)"] },
+      { title: "Package 3", lines: ["₱30.00", "2x2 (4pcs)"] },
+      { title: "Package 4", lines: ["₱50.00", "2x2 (4pcs), 1x1 (4pcs)"] },
+      { title: "Package 5", lines: ["₱30.00", "Passport size (4pcs)"] },
+      { title: "Package 6", lines: ["₱50.00", "1x1 (10pcs)"] },
+    ],
+  },
+};
+
 function renderServiceModalBody(service) {
   return `
     <div class="service-grid">
       ${service.cards
+        .map((card) => {
+          const clickable = card.detailKey ? " clickable" : "";
+          const action = card.detailKey
+            ? ` onclick="openServiceDetailModal('${card.detailKey}')" role="button" tabindex="0"`
+            : "";
+          const extra = card.detailKey ? `<p class="more-details">Click for more details</p>` : "";
+
+          return `
+        <div class="detail-card${clickable}"${action}>
+          <h4>${card.title}</h4>
+          ${card.lines.map((line) => `<p>${line}</p>`).join("")}
+          ${extra}
+        </div>`;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function renderServiceDetailModalBody(detail) {
+  return `
+    <div class="service-grid">
+      ${detail.cards
         .map(
           (card) => `
         <div class="detail-card">
@@ -120,6 +176,53 @@ function openServiceModal(sectionId) {
   overlay.style.display = "flex";
   syncBodyScrollLock();
   document.addEventListener("keydown", escCloseServiceModal);
+}
+
+function openServiceDetailModal(detailKey) {
+  const detail = serviceModalDetailData[detailKey];
+  if (!detail) return;
+
+  const overlay = document.getElementById("service-detail-modal");
+  const titleEl = document.getElementById("service-detail-modal-title");
+  const bodyEl = document.getElementById("service-detail-modal-body");
+  if (!overlay || !titleEl || !bodyEl) return;
+
+  titleEl.textContent = detail.title;
+  bodyEl.innerHTML = renderServiceDetailModalBody(detail);
+
+  overlay.style.display = "flex";
+  syncBodyScrollLock();
+  document.addEventListener("keydown", escCloseServiceDetailModal);
+}
+
+function closeServiceModal() {
+  const overlay = document.getElementById("service-modal");
+  const bodyEl = document.getElementById("service-modal-body");
+
+  if (overlay) overlay.style.display = "none";
+  if (bodyEl) bodyEl.innerHTML = "";
+
+  document.removeEventListener("keydown", escCloseServiceModal);
+  syncBodyScrollLock();
+}
+
+function closeServiceDetailModal() {
+  const overlay = document.getElementById("service-detail-modal");
+  const bodyEl = document.getElementById("service-detail-modal-body");
+
+  if (overlay) overlay.style.display = "none";
+  if (bodyEl) bodyEl.innerHTML = "";
+
+  document.removeEventListener("keydown", escCloseServiceDetailModal);
+  syncBodyScrollLock();
+}
+
+function escCloseServiceModal(e) {
+  if (e.key === "Escape") closeServiceModal();
+}
+
+function escCloseServiceDetailModal(e) {
+  if (e.key === "Escape") closeServiceDetailModal();
 }
 
 function closeServiceModal() {
