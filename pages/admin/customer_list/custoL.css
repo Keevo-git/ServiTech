@@ -177,8 +177,8 @@
 
 .cl-modalX{
   position:absolute;
-  right: 10px;
-  top: 8px;
+  right: 12px;
+  top: 12px;
   width: 32px;
   height: 32px;
   border:none;
@@ -207,7 +207,7 @@
   align-items:center;
   gap: 10px;
   margin-bottom: 10px;
-  padding-right: 70px;
+  padding-right: 96px;
 }
 
 .cl-modalHead h3{
@@ -231,7 +231,7 @@
 /* if you only have ONE pill, push it to the right */
 .cl-modalHead .cl-pill{
   margin-left: auto;
-  margin-right: 20px;
+  margin-right: 38px;
 }
 
 /* if later you add a second pill (order code), this keeps them both right */
