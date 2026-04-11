@@ -24,23 +24,41 @@ function status_label(string $s): string
     };
 }
 
-$walkin = $pdo->query("
+$walkinStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
-  WHERE q.category = 'walkin'
-    AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+  WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+    AND (
+      LOWER(TRIM(COALESCE(q.category, ''))) IN ('walkin', 'printing_walkin')
+      OR (
+        LOWER(TRIM(COALESCE(q.category, ''))) = 'printing'
+        AND COALESCE(NULLIF(LOWER(TRIM(COALESCE(q.details->>'order_type', ''))), ''), 'walkin') = 'walkin'
+        AND UPPER(TRIM(COALESCE(q.queue_code, ''))) NOT LIKE 'OP%'
+      )
+    )
   ORDER BY q.created_at DESC
-")->fetchAll();
+");
+$walkinStmt->execute();
+$walkin = $walkinStmt->fetchAll();
 
-$online = $pdo->query("
+$onlineStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
-  WHERE q.category = 'online_printorder'
-    AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+  WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+    AND (
+      LOWER(TRIM(COALESCE(q.category, ''))) IN ('online_printorder', 'printing_online')
+      OR (
+        LOWER(TRIM(COALESCE(q.category, ''))) = 'printing'
+        AND LOWER(TRIM(COALESCE(q.details->>'order_type', ''))) = 'online'
+      )
+      OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
+    )
   ORDER BY q.created_at DESC
-")->fetchAll();
+");
+$onlineStmt->execute();
+$online = $onlineStmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
