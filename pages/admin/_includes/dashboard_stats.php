@@ -39,7 +39,6 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
           AND (
             {$typeSql} = :online_type
             OR {$queueCodeSql} LIKE :online_prefix
-            OR \"type\" IS NULL
           )
         ",
         [
