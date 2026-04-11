@@ -138,10 +138,17 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
     }
 
     .printing-page .service-type-display {
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      height: 56px;
+      min-height: 56px;
       justify-content: flex-start;
       line-height: 1.2;
+      margin: 0;
       padding-top: 0;
       padding-bottom: 0;
+      transform: none;
     }
 
     .printing-page .form-select,
