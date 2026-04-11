@@ -86,7 +86,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     <div class="form-actions">
       <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
-      <button type="button" class="btn-next" id="joinQueueBtn">Join Queue</button>
+      <button type="button" class="btn-primary" id="joinQueueBtn">Join Queue</button>
     </div>
   </div>
 </section>
