@@ -13,38 +13,35 @@ function admin_dashboard_safe_count(PDO $pdo, string $sql, array $params = []): 
 
 function fetch_admin_dashboard_stats(PDO $pdo): array
 {
-    // CUSTOMERS (unchanged)
+    // ✅ CUSTOMERS
     $customers = admin_dashboard_safe_count($pdo, "SELECT COUNT(*) FROM users");
 
-    // ✅ ONLINE ORDERS (FIXED - FLEXIBLE MATCHING)
+    // ✅ ONLINE ORDERS (BRUTE-FORCE FIX - WILL NOT RETURN 0 UNLESS NO DATA)
     $onlineOrders = admin_dashboard_safe_count(
         $pdo,
         "
         SELECT COUNT(*)
         FROM queues
         WHERE 
-            LOWER(TRIM(category)) = 'printing_online'
-            OR (
-                LOWER(TRIM(category)) = 'printing'
-                AND LOWER(TRIM(COALESCE(\"type\", ''))) = 'online'
-            )
+            LOWER(TRIM(COALESCE(category, ''))) LIKE '%online%'
+            OR LOWER(TRIM(COALESCE(\"type\", ''))) LIKE '%online%'
             OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
         "
     );
 
-    // ✅ ACTIVE QUEUE (FIXED - NO OVERLAP)
+    // ✅ ACTIVE QUEUE (CLEAN + NO OVERLAP WITH ONLINE)
     $activeQueue = admin_dashboard_safe_count(
         $pdo,
         "
         SELECT COUNT(*)
         FROM queues
         WHERE (
-            LOWER(TRIM(category)) IN ('walkin', 'printing_walkin', 'repair', 'installation')
+            LOWER(TRIM(COALESCE(category, ''))) IN ('walkin', 'printing_walkin', 'repair', 'installation')
             OR (
-                LOWER(TRIM(category)) = 'printing'
+                LOWER(TRIM(COALESCE(category, ''))) = 'printing'
                 AND (
                     \"type\" IS NULL
-                    OR LOWER(TRIM(\"type\")) = 'walkin'
+                    OR LOWER(TRIM(COALESCE(\"type\", ''))) = 'walkin'
                 )
             )
         )
