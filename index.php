@@ -103,9 +103,112 @@ $print_url = $is_admin
 
     <br><br><br><br>
 
-    <!-- Service cards -->
+    <!-- Hidden service detail sections for modal content -->
+    <div class="service-details" id="printing">
+      <div class="service-grid">
+        <div class="detail-card">
+          <h4>Document Printing</h4>
+          <p>Long Bond Paper, Short Bond Paper, A4</p>
+          <p>Price varies by paper size and color option.</p>
+        </div>
+        <div class="detail-card">
+          <h4>Xerox</h4>
+          <p>Long Bond Paper: ₱5</p>
+          <p>Short Bond Paper: ₱3</p>
+          <p>A4: ₱3</p>
+        </div>
+        <div class="detail-card">
+          <h4>Rush ID</h4>
+          <p>Choose between packages 1–6.</p>
+          <p>Price varies by selected package.</p>
+        </div>
+        <div class="detail-card">
+          <h4>Laminating</h4>
+          <p>Manipis / Thin: ₱20</p>
+          <p>Makapal / Thick: ₱30</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-details" id="repair">
+      <div class="service-grid">
+        <div class="detail-card">
+          <h4>LCD Replacement</h4>
+          <p>For mobile phones and laptops.</p>
+          <p>Price range: ₱1200 – ₱5500</p>
+        </div>
+        <div class="detail-card">
+          <h4>Battery Replacement</h4>
+          <p>For mobile phones and laptops.</p>
+          <p>Price range: ₱700 – ₱2500</p>
+        </div>
+        <div class="detail-card">
+          <h4>Charging Pin Replacement</h4>
+          <p>For mobile phones and laptops.</p>
+          <p>Price range: ₱800 – ₱4000</p>
+        </div>
+        <div class="detail-card">
+          <h4>Speaker / Mouthpiece Replacement</h4>
+          <p>For mobile phones and laptops.</p>
+          <p>Price range: ₱700 – ₱1500</p>
+        </div>
+        <div class="detail-card">
+          <h4>Power Button Repair</h4>
+          <p>For mobile phones and laptops.</p>
+          <p>Price range: ₱500 – ₱2000</p>
+        </div>
+        <div class="detail-card">
+          <h4>Volume Repair</h4>
+          <p>For mobile phones and laptops.</p>
+          <p>Price range: ₱1000 – ₱2000</p>
+        </div>
+        <div class="detail-card">
+          <h4>Camera Repair</h4>
+          <p>For mobile phones and laptops.</p>
+          <p>Price range: ₱1500 – ₱5000</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-details" id="installation">
+      <div class="service-grid">
+        <div class="detail-card">
+          <h4>Reprogram Service</h4>
+          <p>Price range: ₱1000 – ₱4000</p>
+        </div>
+        <div class="detail-card">
+          <h4>Hang Logo Fix Service</h4>
+          <p>Price range: ₱1000 – ₱3500</p>
+        </div>
+        <div class="detail-card">
+          <h4>Boot Loop Fix Service</h4>
+          <p>Price range: ₱1000 – ₱5000</p>
+        </div>
+        <div class="detail-card">
+          <h4>Openline Samsung & iPhone</h4>
+          <p>Price range: ₱3500 – ₱6000</p>
+        </div>
+        <div class="detail-card">
+          <h4>Bypass Google Account</h4>
+          <p>Price range: ₱500 – ₱2000</p>
+        </div>
+        <div class="detail-card">
+          <h4>Bypass Password</h4>
+          <p>Price range: ₱1000 – ₱3000</p>
+        </div>
+      </div>
+    </div>
 
   </section>
+
+  <div id="service-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal modal-content service-modal" role="dialog" aria-modal="true" aria-labelledby="service-modal-title">
+      <button class="close-btn" type="button" aria-label="Close" onclick="closeServiceModal()">×</button>
+      <h3 id="service-modal-title">Service Details</h3>
+      <div class="modal-divider"></div>
+      <div id="service-modal-body" class="modal-body service-grid"></div>
+    </div>
+  </div>
 
   <?php include __DIR__ . "/components/footer.php"; ?>
 
