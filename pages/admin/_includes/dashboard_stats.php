@@ -39,14 +39,13 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
           AND (
             {$typeSql} = :online_type
             OR {$queueCodeSql} LIKE :online_prefix
+            OR \"type\" IS NULL
           )
-          AND {$statusSql} != :cancelled_status
         ",
         [
             ":online_category" => "printing",
             ":online_type" => "online",
             ":online_prefix" => "OP%",
-            ":cancelled_status" => "CANCELLED",
         ]
     );
 
@@ -55,9 +54,22 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
         SELECT COUNT(*)
         FROM queues
-        WHERE {$categorySql} IN ('printing_walkin', 'repair', 'installation')
+        WHERE (
+            {$categorySql} IN ('printing_walkin', 'repair', 'installation')
+            OR (
+                {$categorySql} = :legacy_printing_category
+                AND (
+                    \"type\" IS NULL
+                    OR {$typeSql} = :walkin_type
+                )
+            )
+        )
           AND {$statusSql} NOT IN ('DONE', 'CANCELLED')
-        "
+        ",
+        [
+            ":legacy_printing_category" => "printing",
+            ":walkin_type" => "walkin",
+        ]
     );
 
     return [
