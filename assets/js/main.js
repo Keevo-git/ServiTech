@@ -57,15 +57,20 @@ function closeModal(id) {
 const serviceModalData = {
   printing: {
     title: "Printing Service",
+    description: "Choose a printing option to view the available sizes, packages, and pricing details.",
     cards: [
       {
         title: "Document Printing",
+        icon: "print",
+        badge: "Selectable",
         lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
         detailKey: "documentPrinting",
       },
       { title: "Xerox", lines: ["Long Bond Paper: ₱5", "Short Bond Paper: ₱3", "A4: ₱3"] },
       {
         title: "Rush ID",
+        icon: "id",
+        badge: "Selectable",
         lines: ["Choose between packages 1–6.", "Price varies by selected package."],
         detailKey: "rushId",
       },
@@ -238,6 +243,242 @@ function escCloseServiceDetailModal(e) {
   if (e.key === "Escape") closeServiceDetailModal();
 }
 
+serviceModalData.printing.description = "Choose a printing option to view the available sizes, packages, and pricing details.";
+serviceModalData.printing.cards = [
+  {
+    title: "Document Printing",
+    icon: "print",
+    badge: "Selectable",
+    lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
+    detailKey: "documentPrinting",
+  },
+  {
+    title: "Rush ID",
+    icon: "id",
+    badge: "Selectable",
+    lines: ["Choose between packages 1-6.", "Price varies by selected package."],
+    detailKey: "rushId",
+  },
+  {
+    title: "Xerox",
+    icon: "copy",
+    lines: ["Long Bond Paper: PHP 5", "Short Bond Paper: PHP 3", "A4: PHP 3"],
+  },
+  {
+    title: "Laminating",
+    icon: "laminate",
+    lines: ["Manipis / Thin: PHP 20", "Makapal / Thick: PHP 30"],
+  },
+];
+
+serviceModalData.repair.description = "Explore common hardware repairs for mobile phones and laptops with estimated price ranges.";
+serviceModalData.repair.cards = [
+  { title: "LCD Replacement", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 1200 - PHP 5500"] },
+  { title: "Battery Replacement", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 700 - PHP 2500"] },
+  { title: "Charging Pin Replacement", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 800 - PHP 4000"] },
+  { title: "Speaker / Mouthpiece Replacement", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 700 - PHP 1500"] },
+  { title: "Power Button Repair", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 500 - PHP 2000"] },
+  { title: "Volume Repair", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 1000 - PHP 2000"] },
+  { title: "Camera Repair", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 1500 - PHP 5000"] },
+];
+
+serviceModalData.installation.description = "Browse software fixes and setup services for device recovery, unlocking, and account bypass.";
+serviceModalData.installation.cards = [
+  { title: "Reprogram Service", icon: "install", lines: ["Price range: PHP 1000 - PHP 4000"] },
+  { title: "Hang Logo Fix Service", icon: "install", lines: ["Price range: PHP 1000 - PHP 3500"] },
+  { title: "Boot Loop Fix Service", icon: "install", lines: ["Price range: PHP 1000 - PHP 5000"] },
+  { title: "Openline Samsung & iPhone", icon: "install", lines: ["Price range: PHP 3500 - PHP 6000"] },
+  { title: "Bypass Google Account", icon: "install", lines: ["Price range: PHP 500 - PHP 2000"] },
+  { title: "Bypass Password", icon: "install", lines: ["Price range: PHP 1000 - PHP 3000"] },
+];
+
+serviceModalDetailData.documentPrinting.description = "Select the document format and print style that best matches your request.";
+serviceModalDetailData.documentPrinting.cards = [
+  { title: "Long Bond Paper (Colored)", icon: "print", lines: ["Full - PHP 10.00", "Half - PHP 5.00"] },
+  { title: "Long Bond Paper (B&W)", icon: "print", lines: ["PHP 5.00"] },
+  { title: "Short Bond Paper (Colored)", icon: "print", lines: ["Full - PHP 10.00", "Half - PHP 5.00"] },
+  { title: "Short Bond Paper (B&W)", icon: "print", lines: ["PHP 5.00"] },
+  { title: "A4 (Colored)", icon: "print", lines: ["Full - PHP 10.00", "Half - PHP 5.00"] },
+  { title: "A4 (B&W)", icon: "print", lines: ["PHP 5.00"] },
+];
+
+serviceModalDetailData.rushId.description = "Compare the available Rush ID package combinations and included photo sizes.";
+serviceModalDetailData.rushId.cards = [
+  { title: "Package 1", icon: "id", lines: ["PHP 40.00", "1x1 (4pcs), 2x2 (2pcs)"] },
+  { title: "Package 2", icon: "id", lines: ["PHP 30.00", "1x1 (6pcs)"] },
+  { title: "Package 3", icon: "id", lines: ["PHP 30.00", "2x2 (4pcs)"] },
+  { title: "Package 4", icon: "id", lines: ["PHP 50.00", "2x2 (4pcs), 1x1 (4pcs)"] },
+  { title: "Package 5", icon: "id", lines: ["PHP 30.00", "Passport size (4pcs)"] },
+  { title: "Package 6", icon: "id", lines: ["PHP 50.00", "1x1 (10pcs)"] },
+];
+
+function getServiceIcon(iconKey) {
+  const icons = {
+    print: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3h10v4H7V3zm-1 6h12a3 3 0 0 1 3 3v4h-3v5H6v-5H3v-4a3 3 0 0 1 3-3zm2 5v3h8v-3H8z"></path>
+      </svg>`,
+    repair: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="m21.4 20-6.7-6.7a5.9 5.9 0 0 1-5.2-1.5 6 6 0 0 1-1.6-5.9l3.1 3.1 2.1-2.1L10 3.8A6 6 0 0 1 16 5.4a5.9 5.9 0 0 1 1.5 5.2l6.7 6.7z"></path>
+      </svg>`,
+    install: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 2 4 6v6c0 5.2 3.4 9 8 10 4.6-1 8-4.8 8-10V6zm0 5 4 4h-3v4h-2v-4H8z"></path>
+      </svg>`,
+    id: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 5h18v14H3zm4 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm4 1h7v2h-7zm0 4h5v2h-5z"></path>
+      </svg>`,
+    copy: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M8 8h11v13H8zm-3-5h11v3H8a3 3 0 0 0-3 3v8H5z"></path>
+      </svg>`,
+    laminate: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M5 4h14v4H5zm1 6h12l2 10H4zm4 2v5h4v-5z"></path>
+      </svg>`,
+    default: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 2 2 7l10 5 10-5zm0 8L2 5v12l10 5 10-5V5z"></path>
+      </svg>`,
+  };
+
+  return icons[iconKey] || icons.default;
+}
+
+function renderServiceModalBody(service) {
+  return `
+    <div class="service-grid">
+      ${service.cards
+        .map((card) => {
+          const clickable = card.detailKey ? " clickable" : "";
+          const attrs = card.detailKey
+            ? ` role="button" tabindex="0" aria-label="Open ${card.title} details"`
+            : "";
+          const badge = card.badge ? `<span class="service-option-card__badge">${card.badge}</span>` : "";
+          const cta = card.detailKey
+            ? `<span class="service-option-card__cta">View details</span>`
+            : `<span class="service-option-card__cta service-option-card__cta--muted">Information only</span>`;
+
+          return `
+        <div class="detail-card service-option-card${clickable}" data-detail-key="${card.detailKey || ""}"${attrs}>
+          <div class="service-option-card__top">
+            <div class="service-option-card__icon">${getServiceIcon(card.icon)}</div>
+            ${badge}
+          </div>
+          <div class="service-option-card__content">
+            <h4>${card.title}</h4>
+            ${card.lines.map((line) => `<p>${line}</p>`).join("")}
+          </div>
+          <div class="service-option-card__bottom">
+            ${cta}
+          </div>
+        </div>`;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function renderServiceDetailModalBody(detail) {
+  return `
+    <div class="service-grid">
+      ${detail.cards
+        .map(
+          (card) => `
+        <div class="detail-card service-option-card">
+          <div class="service-option-card__top">
+            <div class="service-option-card__icon">${getServiceIcon(card.icon)}</div>
+          </div>
+          <div class="service-option-card__content">
+            <h4>${card.title}</h4>
+            ${card.lines.map((line) => `<p>${line}</p>`).join("")}
+          </div>
+        </div>`
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function openServiceModal(sectionId) {
+  const service = serviceModalData[sectionId];
+  if (!service) return;
+
+  const overlay = document.getElementById("service-modal");
+  const titleEl = document.getElementById("service-modal-title");
+  const descriptionEl = document.getElementById("service-modal-description");
+  const bodyEl = document.getElementById("service-modal-body");
+  if (!overlay || !titleEl || !bodyEl) return;
+
+  titleEl.textContent = service.title;
+  if (descriptionEl) descriptionEl.textContent = service.description || "Browse the available service options.";
+  bodyEl.innerHTML = renderServiceModalBody(service);
+  bindServiceDetailCards(bodyEl);
+
+  overlay.style.display = "flex";
+  overlay.setAttribute("aria-hidden", "false");
+  syncBodyScrollLock();
+  document.addEventListener("keydown", escCloseServiceModal);
+}
+
+function openServiceDetailModal(detailKey) {
+  const detail = serviceModalDetailData[detailKey];
+  if (!detail) return;
+
+  const overlay = document.getElementById("service-detail-modal");
+  const titleEl = document.getElementById("service-detail-modal-title");
+  const descriptionEl = document.getElementById("service-detail-modal-description");
+  const bodyEl = document.getElementById("service-detail-modal-body");
+  if (!overlay || !titleEl || !bodyEl) return;
+
+  titleEl.textContent = detail.title;
+  if (descriptionEl) descriptionEl.textContent = detail.description || "Review the available service details.";
+  bodyEl.innerHTML = renderServiceDetailModalBody(detail);
+
+  overlay.style.display = "flex";
+  overlay.setAttribute("aria-hidden", "false");
+  syncBodyScrollLock();
+  document.addEventListener("keydown", escCloseServiceDetailModal);
+}
+
+function closeServiceModal() {
+  const overlay = document.getElementById("service-modal");
+  const bodyEl = document.getElementById("service-modal-body");
+
+  if (overlay) {
+    overlay.style.display = "none";
+    overlay.setAttribute("aria-hidden", "true");
+  }
+  if (bodyEl) bodyEl.innerHTML = "";
+
+  closeServiceDetailModal();
+  document.removeEventListener("keydown", escCloseServiceModal);
+  syncBodyScrollLock();
+}
+
+function closeServiceDetailModal() {
+  const overlay = document.getElementById("service-detail-modal");
+  const bodyEl = document.getElementById("service-detail-modal-body");
+
+  if (overlay) {
+    overlay.style.display = "none";
+    overlay.setAttribute("aria-hidden", "true");
+  }
+  if (bodyEl) bodyEl.innerHTML = "";
+
+  document.removeEventListener("keydown", escCloseServiceDetailModal);
+  syncBodyScrollLock();
+}
+
+function handleServiceCardKeydown(event, sectionId) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    openServiceModal(sectionId);
+  }
+}
+
 /* ==============================
    Generic modal close (outside click)
    ============================== */
@@ -248,6 +489,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (modal.id === "service-modal") {
         closeServiceModal();
+        return;
+      }
+
+      if (modal.id === "service-detail-modal") {
+        closeServiceDetailModal();
         return;
       }
 

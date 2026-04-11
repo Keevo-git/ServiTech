@@ -121,6 +121,7 @@ $print_url = $is_admin
         <h3>Installation / Software</h3>
       </div>
     </div>
+
   </section>
 
   <div id="service-modal" class="modal-overlay" aria-hidden="true">
