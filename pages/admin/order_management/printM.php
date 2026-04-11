@@ -24,21 +24,9 @@ function status_label(string $s): string
     };
 }
 
-$walkin = $pdo->query("
-  SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
-  FROM queues q
-  JOIN users u ON u.id = q.user_id
-  WHERE q.category = 'walkin'
-  ORDER BY q.created_at DESC
-")->fetchAll();
-
-$online = $pdo->query("
-  SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
-  FROM queues q
-  JOIN users u ON u.id = q.user_id
-  WHERE q.category = 'online_printorder'
-  ORDER BY q.created_at DESC
-")->fetchAll();
+// Temporary display pause: keep printing order data hidden without deleting records.
+$walkin = [];
+$online = [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
