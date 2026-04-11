@@ -238,9 +238,25 @@ body.admin-dashboard .card .icon{
 }
 
 body.admin-dashboard .card .icon--customer-list{
-  color: #f8fbff;
-  text-shadow: 0 1px 0 rgba(15, 39, 70, 0.25);
-  filter: brightness(1.45) saturate(1.15);
+  background: linear-gradient(145deg, #355fa3, #4f84d1);
+  box-shadow:
+    inset 0 -2px 0 rgba(0,0,0,0.14),
+    0 8px 18px rgba(39, 82, 146, 0.22);
+}
+
+body.admin-dashboard .icon-glyph{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+body.admin-dashboard .icon-glyph--customer-list{
+  color: #f6dfbf;
+  font-size: 15px;
+  text-shadow: 0 1px 0 rgba(22, 45, 82, 0.22);
 }
 
 body.admin-dashboard .card h4{
