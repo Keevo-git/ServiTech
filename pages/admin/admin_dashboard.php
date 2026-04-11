@@ -128,7 +128,7 @@ $activeQueue = $dashboardStats["activeQueue"];
       <article class="card">
         <div class="icon icon--customer-list" aria-hidden="true">
           <img
-            src="<?= project_url('/pages/admin/IMAGES/LANDING_CUSTOMER_LIST.png') ?>"
+            src="<?= project_url('/pages/admin/IMAGES/LANDING_CUSTOMER_LIST.png?v=20260411h4') ?>"
             alt=""
             class="icon-image icon-image--customer-list"
           >
