@@ -126,7 +126,7 @@ $activeQueue = $dashboardStats["activeQueue"];
 
     <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>" class="card-link">
       <article class="card">
-        <div class="icon">&#x1F465;</div>
+        <div class="icon icon--customer-list">&#x1F465;</div>
         <h4>Customer List</h4>
         <p>View registered customers</p>
       </article>
