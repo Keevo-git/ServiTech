@@ -594,23 +594,66 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       box-shadow: 0 14px 24px rgba(74, 5, 5, 0.12);
     }
 
-    .status-toast,
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    .modal-overlay,
+    .alert-modal,
     .status-banner {
       border-radius: 16px;
-      padding: 0.95rem 1rem;
-      margin-bottom: 1rem;
       border: 1px solid transparent;
       line-height: 1.55;
     }
 
-    .status-toast {
-      position: sticky;
-      top: 1rem;
-      z-index: 20;
-      margin: 0 auto 1rem;
-      max-width: 1080px;
-      box-shadow: 0 14px 28px rgba(74, 5, 5, 0.16);
-      transition: opacity 0.25s ease, transform 0.25s ease;
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+
+    .alert-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: min(calc(100% - 2rem), 420px);
+      padding: 1.35rem 1.25rem 1.2rem;
+      margin: 0;
+      z-index: 1000;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      background: #fffdf9;
+      box-shadow: 0 22px 50px rgba(34, 18, 8, 0.28);
+    }
+
+    .modal-overlay.active,
+    .alert-modal.active {
+      display: block;
+    }
+
+    .alert-modal h2 {
+      margin: 0 0 0.45rem;
+      font-size: 1.35rem;
+      line-height: 1.2;
+    }
+
+    .alert-modal p {
+      margin: 0;
+      font-size: 0.98rem;
+    }
+
+    .alert-modal__actions {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .alert-modal__actions .btn-primary,
+    .alert-modal__actions .btn-secondary {
+      min-width: 120px;
     }
 
     .status-success {
@@ -839,6 +882,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     .status-banner {
+      padding: 0.95rem 1rem;
+      margin-bottom: 1rem;
       margin: 0 1.8rem 1rem;
     }
 
@@ -1114,13 +1159,25 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
   </style>
 </head>
-<body class="customer-layout customer-page--profile">
+<body class="customer-layout customer-page--profile<?php echo $flashMessage !== "" ? " modal-open" : ""; ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
 <?php if ($flashMessage !== ""): ?>
-  <div id="profileToast" class="status-toast <?php echo $flashType === "success" ? "status-success" : "status-info"; ?>" role="status" aria-live="polite">
-    <?php echo e($flashMessage); ?>
+  <div id="profileAlertOverlay" class="modal-overlay active" aria-hidden="true"></div>
+  <div
+    id="profileAlertModal"
+    class="alert-modal active <?php echo $flashType === "success" ? "status-success" : "status-info"; ?>"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="profileAlertTitle"
+    aria-describedby="profileAlertMessage"
+  >
+    <h2 id="profileAlertTitle"><?php echo $flashType === "success" ? "Success" : "Notice"; ?></h2>
+    <p id="profileAlertMessage"><?php echo e($flashMessage); ?></p>
+    <div class="alert-modal__actions">
+      <button id="profileAlertClose" type="button" class="btn-primary">OK</button>
+    </div>
   </div>
 <?php endif; ?>
 
@@ -1326,13 +1383,35 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
   (function () {
     const form = document.getElementById("editProfileForm");
     const submitButton = document.getElementById("saveProfileBtn");
-    const toast = document.getElementById("profileToast");
+    const alertModal = document.getElementById("profileAlertModal");
+    const alertOverlay = document.getElementById("profileAlertOverlay");
+    const alertClose = document.getElementById("profileAlertClose");
 
-    if (toast) {
-      window.setTimeout(function () {
-        toast.style.opacity = "0";
-        toast.style.transform = "translateY(-8px)";
-      }, 3500);
+    function closeAlertModal() {
+      if (alertModal) {
+        alertModal.classList.remove("active");
+        alertModal.setAttribute("hidden", "hidden");
+      }
+      if (alertOverlay) {
+        alertOverlay.classList.remove("active");
+        alertOverlay.setAttribute("hidden", "hidden");
+      }
+      document.body.classList.remove("modal-open");
+    }
+
+    if (alertModal && alertOverlay) {
+      if (alertClose) {
+        alertClose.focus();
+        alertClose.addEventListener("click", closeAlertModal);
+      }
+
+      alertOverlay.addEventListener("click", closeAlertModal);
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeAlertModal();
+        }
+      });
     }
 
     if (!form || !submitButton) {
