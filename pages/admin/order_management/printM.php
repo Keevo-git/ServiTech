@@ -24,9 +24,23 @@ function status_label(string $s): string
     };
 }
 
-// Temporary display pause: keep printing order data hidden without deleting records.
-$walkin = [];
-$online = [];
+$walkin = $pdo->query("
+  SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
+  FROM queues q
+  JOIN users u ON u.id = q.user_id
+  WHERE q.category = 'walkin'
+    AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+  ORDER BY q.created_at DESC
+")->fetchAll();
+
+$online = $pdo->query("
+  SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
+  FROM queues q
+  JOIN users u ON u.id = q.user_id
+  WHERE q.category = 'online_printorder'
+    AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
+  ORDER BY q.created_at DESC
+")->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -101,7 +115,7 @@ $online = [];
           </thead>
           <tbody>
             <?php if (!$walkin): ?>
-              <tr><td colspan="5" style="color:#777;padding:14px;">No walk-in queues yet.</td></tr>
+              <tr><td colspan="5" style="color:#777;padding:14px;">No cancelled walk-in queues yet.</td></tr>
             <?php else: ?>
               <?php foreach ($walkin as $r): ?>
                 <?php $cls = status_class($r["status"]); ?>
@@ -132,7 +146,7 @@ $online = [];
           </thead>
           <tbody>
             <?php if (!$online): ?>
-              <tr><td colspan="5" style="color:#777;padding:14px;">No online printing orders yet.</td></tr>
+              <tr><td colspan="5" style="color:#777;padding:14px;">No cancelled online printing orders yet.</td></tr>
             <?php else: ?>
               <?php foreach ($online as $r): ?>
                 <?php $cls = status_class($r["status"]); ?>
