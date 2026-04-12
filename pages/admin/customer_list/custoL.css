@@ -175,16 +175,16 @@
   position:relative;
 }
 
-.cl-modalX{
+.cl-modalCard > .cl-modalX{
   position:absolute;
-  right: 12px;
-  top: 8px;
-  width: 52px;
-  height: 52px;
-  border:none;
+  right: 10px;
+  top: 6px;
+  width: 60px !important;
+  height: 60px !important;
+  border:none !important;
   background:transparent;
-  font-size: 38px !important;
-  font-weight: 800;
+  font-size: 44px !important;
+  font-weight: 800 !important;
   cursor:pointer;
   opacity:1;
   line-height: 1 !important;
@@ -192,16 +192,18 @@
   align-items:center;
   justify-content:center;
   border-radius:999px;
-  color:#1f4a8a;
+  color:#1f4a8a !important;
   transition: background .18s ease, color .18s ease, transform .18s ease;
   z-index: 2;
-  padding: 0;
+  padding: 0 !important;
+  min-width: 60px;
+  min-height: 60px;
 }
 
-.cl-modalX:hover{
+.cl-modalCard > .cl-modalX:hover{
   background: rgba(31,74,138,0.08);
   color:#173a69;
-  transform: scale(1.06);
+  transform: scale(1.04);
 }
 
 .cl-modalHead{
@@ -236,10 +238,10 @@
 }
 
 .cl-customerCode{
-  font-size: 24px !important;
-  font-weight: 800;
+  font-size: 28px !important;
+  font-weight: 900 !important;
   line-height: 1.2;
-  padding: 10px 16px;
+  padding: 12px 18px;
   letter-spacing: 0.02em;
 }
 
