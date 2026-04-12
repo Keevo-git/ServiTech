@@ -140,7 +140,7 @@ function customer_code_from_id(int $id): string {
         <div class="cl-infoGrid">
           <div>
             <small>Customer ID</small>
-            <div class="cl-pill cl-pill--inline" id="mCode">C-000</div>
+            <div class="cl-pill cl-pill--inline cl-customerCode" id="mCode">C-000</div>
           </div>
           <div>
             <small>Name</small>
