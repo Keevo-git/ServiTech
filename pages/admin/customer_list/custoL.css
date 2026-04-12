@@ -237,12 +237,12 @@
   margin-top: 2px;
 }
 
-.cl-customerCode{
-  font-size: 34px !important;
+.cl-infoCard #mCode.cl-customerCode{
+  font-size: 40px !important;
   font-weight: 900 !important;
-  line-height: 1.15;
-  padding: 14px 20px;
-  letter-spacing: 0.02em;
+  line-height: 1.1 !important;
+  padding: 14px 20px !important;
+  letter-spacing: 0.03em;
 }
 
 /* make info box more compact */
