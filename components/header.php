@@ -232,7 +232,10 @@ if ($notificationAction !== "") {
 
 $notificationUserId = servitech_notification_user_id();
 $notificationEndpoint = servitech_url("/components/header.php");
-$notificationCsrfToken = servitech_csrf_token();
+$notificationCsrfToken = (string)($_SESSION["csrf_token"] ?? "");
+if ($notificationCsrfToken === "" && !headers_sent()) {
+    $notificationCsrfToken = servitech_csrf_token();
+}
 $notificationSupabaseUrl = servitech_notification_supabase_url((string)($host ?? ""));
 $notificationSupabaseAnonKey = servitech_notification_supabase_anon_key();
 ?>
