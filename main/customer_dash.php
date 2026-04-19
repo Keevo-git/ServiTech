@@ -689,7 +689,7 @@ $dashboardQueues = [
   </div>
 
   <div class="dashboard-card queue-carousel-card queue-carousel-card--latest">
-    <h3>LATEST QUEUE</h3>
+    <h3>JC STORE'S LATEST QUEUE</h3>
     <div class="divider"></div>
 
     <div class="queue-carousel">

@@ -5,7 +5,7 @@
 
       <div class="contact-item">
         <img src="/assets/images/FOOTER_FB.png" alt="Facebook">
-        <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer">JC Store</a>
+        <a href="https://www.facebook.com/JCstorebagbaguin" target="_blank" rel="noopener noreferrer">JC Store</a>
       </div>
 
       <div class="contact-item">
