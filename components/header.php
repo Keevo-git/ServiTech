@@ -238,6 +238,13 @@ if ($notificationCsrfToken === "" && !headers_sent()) {
 }
 $notificationSupabaseUrl = servitech_notification_supabase_url((string)($host ?? ""));
 $notificationSupabaseAnonKey = servitech_notification_supabase_anon_key();
+$notificationRoutes = [
+    "printing" => servitech_url("/pages/customer/custo_service_status.php"),
+    "online_printorder" => servitech_url("/pages/customer/custo_service_status.php"),
+    "repair" => servitech_url("/pages/customer/custo_service_status.php"),
+    "installation" => servitech_url("/pages/customer/custo_service_status.php"),
+    "fallback" => servitech_url("/pages/customer/custo_service_status.php"),
+];
 ?>
 <header class="navbar has-nav-menu navbar--notifications">
   <a href="/index.php" class="logo">
@@ -649,6 +656,7 @@ $notificationSupabaseAnonKey = servitech_notification_supabase_anon_key();
         userId: <?= json_encode($notificationUserId) ?>,
         supabaseUrl: <?= json_encode($notificationSupabaseUrl) ?>,
         supabaseAnonKey: <?= json_encode($notificationSupabaseAnonKey) ?>,
+        routes: <?= json_encode($notificationRoutes) ?>,
       };
 
       var toggleButton = root.querySelector("[data-notification-toggle]");
@@ -693,6 +701,36 @@ $notificationSupabaseAnonKey = servitech_notification_supabase_anon_key();
         };
       }
 
+      function normalizeNotificationType(type) {
+        return String(type || "")
+          .trim()
+          .toLowerCase()
+          .replace(/[\s-]+/g, "_");
+      }
+
+      function buildNotificationUrl(notification) {
+        var normalizedType = normalizeNotificationType(notification.type);
+        var referenceId = Number(notification.reference_id || 0);
+        var route = config.routes.fallback;
+
+        if (normalizedType === "printing" || normalizedType === "online_printorder") {
+          route = config.routes.printing;
+        } else if (normalizedType === "repair") {
+          route = config.routes.repair;
+        } else if (normalizedType === "installation") {
+          route = config.routes.installation;
+        }
+
+        if (referenceId <= 0) {
+          return route;
+        }
+
+        var url = new URL(route, window.location.origin);
+        url.searchParams.set("queue_id", String(referenceId));
+        url.searchParams.set("open", "notification");
+        return url.toString();
+      }
+
       function setBadgeCount(count) {
         unreadCount = Math.max(0, Number(count) || 0);
         badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
@@ -725,6 +763,9 @@ $notificationSupabaseAnonKey = servitech_notification_supabase_anon_key();
         item.className = "notification-item" + (notification.is_read ? "" : " is-unread");
         item.dataset.notificationId = String(notification.id);
         item.dataset.notificationRead = notification.is_read ? "true" : "false";
+        item.dataset.notificationType = notification.type || "";
+        item.dataset.notificationReferenceId = notification.reference_id == null ? "" : String(notification.reference_id);
+        item.dataset.notificationUrl = buildNotificationUrl(notification);
 
         var content = document.createElement("span");
         content.className = "notification-item__content";
@@ -880,6 +921,30 @@ $notificationSupabaseAnonKey = servitech_notification_supabase_anon_key();
         setBadgeCount(data.unread_count || 0);
       }
 
+      async function handleNotificationClick(item) {
+        if (!item) {
+          return;
+        }
+
+        var notificationId = Number(item.dataset.notificationId || 0);
+        var targetUrl = item.dataset.notificationUrl || buildNotificationUrl({
+          type: item.dataset.notificationType || "",
+          reference_id: item.dataset.notificationReferenceId || ""
+        });
+
+        try {
+          if (notificationId > 0 && item.dataset.notificationRead !== "true") {
+            await markNotificationAsRead(notificationId);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+
+        if (targetUrl) {
+          window.location.href = targetUrl;
+        }
+      }
+
       async function markAllAsRead() {
         var data = await postAction("mark_all_read");
         list.querySelectorAll(".notification-item").forEach(function (item) {
@@ -951,9 +1016,7 @@ $notificationSupabaseAnonKey = servitech_notification_supabase_anon_key();
           return;
         }
 
-        markNotificationAsRead(Number(item.dataset.notificationId)).catch(function (error) {
-          console.error(error);
-        });
+        handleNotificationClick(item);
       });
 
       markAllButton.addEventListener("click", function () {

@@ -246,6 +246,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.setAttribute("aria-label", `Open details for queue ${q.queue_code || ""}`);
 
     div.dataset.queue = q.queue_code || "";
+    div.dataset.queueId = q.id || "";
     div.dataset.type = q.category || "";
     div.dataset.service = q.service_label || "";
     div.dataset.paper = q.paper_size || "";
@@ -509,6 +510,41 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     closeDetail?.focus();
   }
 
+  function getRequestedQueueId() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedId = Number(params.get("queue_id") || 0);
+    return requestedId > 0 ? requestedId : 0;
+  }
+
+  function clearRequestedQueueFromUrl() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("queue_id");
+    url.searchParams.delete("open");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }
+
+  function maybeOpenRequestedQueue() {
+    const requestedId = getRequestedQueueId();
+    if (!requestedId) {
+      return;
+    }
+
+    const targetCard = listEl.querySelector('[data-queue-id="' + String(requestedId) + '"]');
+    if (!targetCard) {
+      return;
+    }
+
+    targetCard.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+    window.setTimeout(() => {
+      openDetail(targetCard);
+    }, 240);
+    clearRequestedQueueFromUrl();
+  }
+
   async function loadQueues(){
     renderState("Loading queue list...");
 
@@ -560,6 +596,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         }
       });
     });
+
+    maybeOpenRequestedQueue();
   }
 
   [closeDetail, modalCloseBtn].forEach(btn => {
