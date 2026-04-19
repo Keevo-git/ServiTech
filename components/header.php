@@ -255,7 +255,6 @@ $notificationRoutes = [
   <nav id="customer-header-menu" data-collapsible-menu>
     <a href="/pages/customer/customer_dash.php">Dashboard</a>
     <a href="/index.php">Services</a>
-    <a href="/auth/logout.php">Logout</a>
   </nav>
 
   <div class="header-utility">
@@ -304,6 +303,8 @@ $notificationRoutes = [
       </div>
     <?php endif; ?>
 
+    <a href="/auth/logout.php" class="header-utility__link">Logout</a>
+
     <button
       class="nav-toggle"
       type="button"
@@ -339,6 +340,43 @@ $notificationRoutes = [
     gap: 10px;
     position: relative;
     z-index: 1200;
+  }
+
+  .navbar.has-nav-menu.navbar--notifications .header-utility__link,
+  .navbar.has-nav-menu.navbar--notifications .header-utility__link:visited {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 11px 22px;
+    border: 1px solid rgba(74, 5, 5, 0.22);
+    border-radius: 14px;
+    background-color: #ffffff;
+    color: #4A0505;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    transition: background-color 0.28s ease, color 0.28s ease, box-shadow 0.28s ease, transform 0.18s ease;
+  }
+
+  .navbar.has-nav-menu.navbar--notifications .header-utility__link:hover {
+    background-color: #ff8b2c;
+    color: #ffffff;
+    border-color: rgba(255, 139, 44, 0.92);
+    box-shadow: 0 7px 16px rgba(0, 0, 0, 0.24);
+    transform: translateY(-1px);
+  }
+
+  .navbar.has-nav-menu.navbar--notifications .header-utility__link:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.2);
+  }
+
+  .navbar.has-nav-menu.navbar--notifications .header-utility__link:focus-visible {
+    outline: 2px solid #ff8b2c;
+    outline-offset: 2px;
   }
 
   .navbar.has-nav-menu.navbar--notifications .notification-menu {
@@ -619,6 +657,14 @@ $notificationRoutes = [
       width: 42px;
       height: 42px;
       border-radius: 12px;
+    }
+
+    .navbar.has-nav-menu.navbar--notifications .header-utility__link,
+    .navbar.has-nav-menu.navbar--notifications .header-utility__link:visited {
+      min-height: 42px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 14px;
     }
 
     .notification-dropdown {
