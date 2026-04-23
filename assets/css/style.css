@@ -1243,6 +1243,7 @@ body.auth-page {
 }
 
 .login-form {
+  display: grid;
   gap: 18px;
 }
 
@@ -1262,6 +1263,8 @@ body.auth-page {
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .forgot-link:hover {
@@ -1298,19 +1301,22 @@ body.auth-page {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 6px 0;
+  gap: 14px;
+  margin: 18px 0 16px;
 }
 
-.auth-divider::before {
+.auth-divider::before,
+.auth-divider::after {
   content: "";
-  position: absolute;
-  inset: 50% 0 auto;
-  border-top: 1px solid rgba(74, 5, 5, 0.12);
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(74, 5, 5, 0.06) 0%, rgba(74, 5, 5, 0.16) 100%);
 }
 
 .auth-divider span {
   position: relative;
-  padding: 0 14px;
+  flex: 0 0 auto;
+  padding: 0 2px;
   background: #ffffff;
   color: #8b7d72;
   font-size: 12px;
@@ -1320,17 +1326,29 @@ body.auth-page {
 
 .social-auth {
   display: grid;
+  justify-items: center;
   gap: 12px;
+  width: 100%;
+  margin-top: 2px;
+  margin-bottom: 4px;
 }
 
 .google-signin-slot {
   display: flex;
   justify-content: center;
-  min-height: 44px;
+  align-items: center;
+  width: 100%;
+  min-height: 54px;
+}
+
+.google-signin-slot > div {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .google-button {
-  width: 100%;
+  width: min(100%, 100%);
   min-height: 52px;
   padding: 13px 16px;
   border: 1px solid #ddd2c6;
@@ -1344,6 +1362,19 @@ body.auth-page {
   font-size: 15px;
   font-weight: 700;
   box-shadow: 0 10px 22px rgba(36, 18, 15, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.18s ease, background-color 0.2s ease;
+}
+
+.google-button:hover:not(:disabled) {
+  border-color: #ccb8a4;
+  background: #fffdfa;
+  box-shadow: 0 14px 24px rgba(36, 18, 15, 0.12);
+  transform: translateY(-1px);
+}
+
+.google-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(36, 18, 15, 0.08);
 }
 
 .google-button:disabled {
@@ -1362,10 +1393,11 @@ body.auth-page {
 
 .auth-note {
   margin: 0;
-  color: #6f635b;
-  font-size: 13px;
+  color: #8a7d73;
+  font-size: 12px;
   line-height: 1.5;
   text-align: center;
+  max-width: 48ch;
 }
 
 .login-form.is-submitting {
@@ -1453,6 +1485,11 @@ body.auth-page {
     border-radius: 22px;
   }
 
+  .auth-card--login {
+    padding: 20px 16px;
+    border-radius: 22px;
+  }
+
   .form-section,
   .form-section--compact {
     padding: 18px 16px;
@@ -1469,8 +1506,21 @@ body.auth-page {
   }
 
   .form-field__topline {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .forgot-link {
+    margin-left: 0;
+  }
+
+  .auth-divider {
+    margin: 16px 0 14px;
+  }
+
+  .social-auth {
+    gap: 10px;
   }
 }
 

@@ -151,6 +151,7 @@
     const googleFallbackButton = document.getElementById("googleFallbackButton");
     const googleFallbackLabel = document.getElementById("googleFallbackLabel");
     const googleSignInHint = document.getElementById("googleSignInHint");
+    const authCard = document.querySelector(".auth-card--login");
 
     const loginFields = {
       email: {
@@ -300,6 +301,11 @@
           return;
         }
 
+        const preferredButtonWidth = Math.max(
+          280,
+          Math.min(googleSignInSlot.clientWidth || authCard.clientWidth || 360, 640)
+        );
+
         google.accounts.id.initialize({
           client_id: config.googleClientId,
           callback: handleGoogleCredential,
@@ -313,7 +319,7 @@
           size: "large",
           text: "continue_with",
           shape: "rectangular",
-          width: 360
+          width: preferredButtonWidth
         });
 
         googleSignInHint.textContent = "Use your Google account to sign in or create your ServiTech account instantly.";

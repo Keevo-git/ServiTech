@@ -459,6 +459,11 @@
           return;
         }
 
+        const preferredButtonWidth = Math.max(
+          280,
+          Math.min(signInSlot.clientWidth || authCard.clientWidth || 360, 640)
+        );
+
         google.accounts.id.initialize({
           client_id: config.googleClientId,
           callback: handleRegisterGoogleCredential,
@@ -472,7 +477,7 @@
           size: "large",
           text: "continue_with",
           shape: "rectangular",
-          width: 360
+          width: preferredButtonWidth
         });
 
         signInHint.textContent = "Use your Google account to create or access your ServiTech account instantly.";
