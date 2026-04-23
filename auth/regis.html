@@ -359,9 +359,9 @@
           <span>OR</span>
         </div>
         <div class="social-auth">
-          <div class="google-button-shell">
+          <div class="google-container google-button-shell">
             <div id="registerGoogleSignInSlot" class="google-signin-slot" aria-live="polite"></div>
-            <button type="button" id="registerGoogleFallbackButton" class="google-button">
+            <button type="button" id="registerGoogleFallbackButton" class="google-btn google-button">
               <span class="google-button__icon" aria-hidden="true">
                 <svg viewBox="0 0 18 18" width="18" height="18" role="img" focusable="false">
                   <path fill="#EA4335" d="M9 7.03v3.41h4.84c-.21 1.1-.84 2.03-1.8 2.66l2.91 2.25c1.7-1.56 2.68-3.86 2.68-6.6 0-.63-.06-1.24-.18-1.82H9z"></path>
@@ -463,10 +463,10 @@
           return;
         }
 
-        const preferredButtonWidth = Math.max(
-          280,
-          Math.min(signInSlot.clientWidth || authCard.clientWidth || 360, 640)
-        );
+        const preferredButtonWidth = signInSlot.parentElement?.clientWidth
+          || signInSlot.clientWidth
+          || authCard.clientWidth
+          || 360;
 
         google.accounts.id.initialize({
           client_id: config.googleClientId,
