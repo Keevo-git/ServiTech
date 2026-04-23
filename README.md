@@ -32,6 +32,7 @@
 - `APP_BASE_PATH` (default: `/ServiTech`; set `/` if app is hosted at domain root)
 - `SESSION_LIFETIME_SECONDS` (default: 30 days)
 - `APP_DEBUG` (`1` to enable PHP error display, otherwise disabled)
+- `GOOGLE_CLIENT_ID` (required to enable Sign in with Google on the login page)
 
 ## Local Development
 - Create `config/db.local.php` from `config/db.local.example.php` if you prefer file-based local DB config.

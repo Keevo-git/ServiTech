@@ -13,10 +13,16 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 $email = strtolower(trim($_POST["email"] ?? ""));
 $password = (string)($_POST["password"] ?? "");
 
+if ($email === "" || $password === "") {
+    header("Location: /auth/log_in.html?login=required");
+    exit();
+}
+
 try {
     $stmt = $pdo->prepare("
         SELECT id, email,
                COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer') AS role,
+               COALESCE(NULLIF(to_jsonb(users)->>'google_id', ''), '') AS google_id,
                COALESCE(
                    NULLIF(to_jsonb(users)->>'password_hash', ''),
                    NULLIF(to_jsonb(users)->>'password', '')
@@ -68,6 +74,12 @@ try {
 
         unset($_SESSION["admin_logged_in"], $_SESSION["admin_email"]);
         header("Location: /pages/customer/customer_dash.php");
+        exit();
+    }
+
+    $googleId = trim((string)($user["google_id"] ?? ""));
+    if ($user && $googleId !== "" && $storedHash === "") {
+        header("Location: /auth/log_in.html?login=google_required");
         exit();
     }
 
