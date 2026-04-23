@@ -14,9 +14,26 @@ $fullname = trim($_POST["fullname"] ?? "");
 $contact  = trim($_POST["contact"] ?? $_POST["contacts"] ?? "");
 $email    = strtolower(trim($_POST["email"] ?? ""));
 $password_raw = (string)($_POST["password"] ?? "");
+$confirm_password = (string)($_POST["confirm_password"] ?? "");
+$privacy_consent = (string)($_POST["privacy_consent"] ?? "");
 
-if ($fullname === "" || $email === "" || $password_raw === "") {
-    header("Location: /auth/regis.html?error=1");
+if ($fullname === "" || $contact === "" || $email === "" || $password_raw === "" || $confirm_password === "") {
+    header("Location: /auth/regis.html?error=required");
+    exit();
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    header("Location: /auth/regis.html?error=invalid_email");
+    exit();
+}
+
+if ($password_raw !== $confirm_password) {
+    header("Location: /auth/regis.html?error=mismatch");
+    exit();
+}
+
+if ($privacy_consent !== "1") {
+    header("Location: /auth/regis.html?error=privacy");
     exit();
 }
 
@@ -58,7 +75,6 @@ try {
 
 } catch (PDOException $e) {
     error_log("register error: " . $e->getMessage());
-    header("Location: /auth/regis.html?error=1");
+    header("Location: /auth/regis.html?error=error");
     exit();
 }
-
