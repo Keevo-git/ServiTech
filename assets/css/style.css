@@ -986,9 +986,9 @@ body.auth-page {
 
 .auth-page--login {
   background:
-    radial-gradient(circle at top left, rgba(255, 188, 72, 0.32), transparent 30%),
-    radial-gradient(circle at right center, rgba(74, 5, 5, 0.07), transparent 22%),
-    linear-gradient(180deg, #fffaf5 0%, #fff3e7 100%);
+    radial-gradient(circle at top left, rgba(255, 188, 72, 0.55), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(255, 119, 46, 0.28), transparent 28%),
+    linear-gradient(180deg, #fff7ed 0%, #fff2de 100%);
 }
 
 .auth-card {
@@ -1102,7 +1102,11 @@ body.auth-page {
 .auth-card--register input[type="text"],
 .auth-card--register input[type="email"],
 .auth-card--register input[type="password"],
-.auth-card--register input[type="tel"] {
+.auth-card--register input[type="tel"],
+.auth-card--login input[type="text"],
+.auth-card--login input[type="email"],
+.auth-card--login input[type="password"],
+.auth-card--login input[type="tel"] {
   width: 100%;
   min-height: 52px;
   padding: 14px 16px;
@@ -1114,12 +1118,14 @@ body.auth-page {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.auth-card--register input::placeholder {
+.auth-card--register input::placeholder,
+.auth-card--login input::placeholder {
   color: #9b8f84;
   font-style: normal;
 }
 
-.auth-card--register input:focus {
+.auth-card--register input:focus,
+.auth-card--login input:focus {
   outline: none;
   border-color: #ff8b2c;
   box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.15);
@@ -1127,6 +1133,7 @@ body.auth-page {
 }
 
 .auth-card--register input.is-invalid,
+.auth-card--login input.is-invalid,
 .auth-card--register .consent-card.is-invalid {
   border-color: #c62828;
   box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.1);
@@ -1237,6 +1244,10 @@ body.auth-page {
 
 .login-form {
   gap: 18px;
+}
+
+.login-form .form-field {
+  gap: 8px;
 }
 
 .form-field__topline {
