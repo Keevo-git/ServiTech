@@ -55,10 +55,7 @@
         </div>
 
         <div class="form-field">
-          <div class="form-field__topline">
-            <label for="loginPassword">Password</label>
-            <a href="/legacy/auth_html/forget_pass.html" class="forgot-link">Forgot Password?</a>
-          </div>
+          <label for="loginPassword">Password</label>
           <div class="password-input-wrap">
             <input
               id="loginPassword"
@@ -69,6 +66,9 @@
               required
             >
             <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password">Show</button>
+          </div>
+          <div class="forgot-password-container">
+            <a href="/legacy/auth_html/forget_pass.html" class="forgot-link">Forgot Password?</a>
           </div>
           <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
         </div>

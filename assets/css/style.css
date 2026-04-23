@@ -1284,12 +1284,19 @@ body.auth-page {
   gap: 12px;
 }
 
+.forgot-password-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 5px;
+}
+
 .forgot-link {
   color: #9a4f08;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
-  margin-left: auto;
+  line-height: 1.4;
   white-space: nowrap;
 }
 
@@ -1616,8 +1623,8 @@ body.auth-page {
     flex-wrap: wrap;
   }
 
-  .forgot-link {
-    margin-left: 0;
+  .forgot-password-container {
+    margin-top: 4px;
   }
 
   .auth-divider {
