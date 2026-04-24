@@ -1412,8 +1412,9 @@ body.customer-layout.customer-page--queue .queue-join-page-title {
   color: #18110d;
   font-size: clamp(24px, 3vw, 30px);
   line-height: 1.2;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.02em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 body.customer-layout.customer-page--queue .queue-join-page-copy {
@@ -1454,8 +1455,9 @@ body.customer-layout.customer-page--queue .queue-join-title {
   color: #4a0505;
   font-size: clamp(24px, 3vw, 30px);
   line-height: 1.2;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.02em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 body.customer-layout.customer-page--queue .queue-join-subtitle {
@@ -1552,10 +1554,20 @@ body.customer-layout.customer-page--queue .queue-join-submit {
   color: #ffffff !important;
   border: 1px solid rgba(129, 78, 78, 0.25);
   box-shadow: 0 12px 22px rgba(122, 73, 73, 0.16) !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, filter 0.18s ease;
 }
 
 body.customer-layout.customer-page--queue .queue-join-submit:hover:not(:disabled) {
-  background: linear-gradient(180deg, #af6f6f 0%, #9c5f5f 100%) !important;
+  background: linear-gradient(180deg, #c98d8d 0%, #a96262 100%) !important;
+  box-shadow: 0 16px 28px rgba(122, 73, 73, 0.22) !important;
+  transform: translateY(-2px);
+  filter: saturate(1.05);
+}
+
+body.customer-layout.customer-page--queue .queue-join-submit:active:not(:disabled) {
+  background: linear-gradient(180deg, #9f5f5f 0%, #844a4a 100%) !important;
+  box-shadow: 0 8px 16px rgba(122, 73, 73, 0.18) !important;
+  transform: translateY(1px) scale(0.99);
 }
 
 body.customer-layout.customer-page--queue .queue-join-submit:disabled {
@@ -1571,6 +1583,7 @@ body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
   padding: 14px 28px;
   font-size: 15px;
   border-radius: 12px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease, filter 0.18s ease;
 }
 
 body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
@@ -1578,7 +1591,23 @@ body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
 }
 
 body.customer-layout.customer-page--queue .queue-join-actions .btn-back {
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+  background: linear-gradient(180deg, #111111 0%, #000000 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.24);
+}
+
+body.customer-layout.customer-page--queue .queue-join-actions .btn-back:hover {
+  background: linear-gradient(180deg, #262626 0%, #080808 100%);
+  box-shadow: 0 16px 26px rgba(0, 0, 0, 0.28);
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+
+body.customer-layout.customer-page--queue .queue-join-actions .btn-back:active {
+  background: linear-gradient(180deg, #050505 0%, #1a1a1a 100%);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.22);
+  transform: translateY(1px) scale(0.99);
 }
 
 @media (max-width: 900px) {
