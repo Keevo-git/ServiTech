@@ -7,7 +7,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Place Queueing Customer</title>
-  <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
+  <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="/assets/css/style.css?v=20260315h14">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h16">
 </head>
@@ -15,31 +15,102 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
-<main class="queue-page-shell">
-  <section class="choose-service" aria-labelledby="queue-service-title">
-    <h2 id="queue-service-title">CHOOSE A SERVICE</h2>
-
-    <div class="choose-grid">
-      <a href="/pages/customer/custo1_printing_option.php" class="choose-card">
-        <img src="/assets/images/CARD_PRINTING.png" alt="Printing">
-        <span>PRINTING</span>
-      </a>
-
-      <a href="/pages/customer/custo1_repair_option.php" class="choose-card">
-        <img src="/assets/images/CARD_REPAIR.png" alt="Repair">
-        <span>REPAIR</span>
-      </a>
-
-      <a href="/pages/customer/custo1_installation_option.php" class="choose-card">
-        <img src="/assets/images/CARD_INSTALLATION.png" alt="Installation">
-        <span>INSTALLATION</span>
-      </a>
+<section class="form-page queue-join-page">
+  <div class="form-page-shell queue-join-shell">
+    <div class="form-page-intro queue-join-intro">
+      <h2 class="page-title">Join Queue</h2>
+      <p class="page-subtitle">Fill in the details to proceed with your service request.</p>
     </div>
-  </section>
-</main>
+
+    <form class="form-card queue-join-card" id="queueJoinForm" novalidate>
+      <div class="queue-join-card__header">
+        <p class="queue-join-card__eyebrow">Queue Service</p>
+        <h3 class="step-title">1. Select a Service</h3>
+        <p class="queue-join-card__copy">Choose the service you want to queue for. We'll take you to the next step with the correct form.</p>
+      </div>
+
+      <div class="queue-service-options" role="radiogroup" aria-label="Select a service to join the queue">
+        <label class="queue-service-option" for="queueServicePrinting">
+          <input id="queueServicePrinting" type="radio" name="queue_service" value="printing">
+          <span class="queue-service-option__media">
+            <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
+          </span>
+          <span class="queue-service-option__body">
+            <span class="queue-service-option__title">Printing</span>
+            <span class="queue-service-option__text">Document printing, xerox, rush ID, and laminating services.</span>
+          </span>
+        </label>
+
+        <label class="queue-service-option" for="queueServiceRepair">
+          <input id="queueServiceRepair" type="radio" name="queue_service" value="repair">
+          <span class="queue-service-option__media">
+            <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
+          </span>
+          <span class="queue-service-option__body">
+            <span class="queue-service-option__title">Repair</span>
+            <span class="queue-service-option__text">Device troubleshooting, diagnostics, and repair service requests.</span>
+          </span>
+        </label>
+
+        <label class="queue-service-option" for="queueServiceInstallation">
+          <input id="queueServiceInstallation" type="radio" name="queue_service" value="installation">
+          <span class="queue-service-option__media">
+            <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
+          </span>
+          <span class="queue-service-option__body">
+            <span class="queue-service-option__title">Installation</span>
+            <span class="queue-service-option__text">Software setup, hardware installation, and related support requests.</span>
+          </span>
+        </label>
+      </div>
+
+      <p class="queue-join-note">Need to submit a print file instead? You can still continue through the Printing option and select the exact service on the next page.</p>
+
+      <div class="form-actions queue-join-actions">
+        <a href="/pages/customer/customer_dash.php" class="btn-back">Back to Dashboard</a>
+        <button type="submit" class="btn-next queue-join-submit" id="queueJoinSubmit" disabled>Continue to Queue</button>
+      </div>
+    </form>
+  </div>
+</section>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 
+<script>
+  const queueJoinForm = document.getElementById("queueJoinForm");
+  const queueJoinSubmit = document.getElementById("queueJoinSubmit");
+  const queueServiceInputs = Array.from(document.querySelectorAll('input[name="queue_service"]'));
+
+  function updateQueueJoinState() {
+    const selectedService = document.querySelector('input[name="queue_service"]:checked');
+    queueJoinSubmit.disabled = !selectedService;
+  }
+
+  queueServiceInputs.forEach((input) => {
+    input.addEventListener("change", updateQueueJoinState);
+  });
+
+  queueJoinForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const selectedService = document.querySelector('input[name="queue_service"]:checked');
+    if (!selectedService) {
+      const firstInput = queueServiceInputs[0];
+      if (firstInput) {
+        firstInput.focus();
+      }
+      return;
+    }
+
+    const routes = {
+      printing: "/pages/customer/custo1_printing_option.php",
+      repair: "/pages/customer/custo1_repair_option.php",
+      installation: "/pages/customer/custo1_installation_option.php"
+    };
+
+    window.location.href = routes[selectedService.value] || "/pages/customer/custo_place_queueing.php";
+  });
+</script>
+
 </body>
 </html>
-
