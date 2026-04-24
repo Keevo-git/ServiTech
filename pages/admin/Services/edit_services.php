@@ -186,7 +186,6 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
     <div class="ms-accent"></div>
 
     <div class="ms-body">
-      <button class="ms-close" type="button" id="msX" aria-label="Close">&times;</button>
       <input type="hidden" id="ms_id" value="">
       <div class="ms-row2">
         <div class="ms-field">
