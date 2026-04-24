@@ -17,42 +17,26 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <section class="form-page queue-join-page">
   <div class="form-page-shell queue-join-shell">
-    <div class="form-page-intro queue-join-intro">
-      <h2 class="page-title">Join Queue</h2>
-      <p class="page-subtitle">Fill in the details to proceed with your service request.</p>
-    </div>
-
     <form class="form-card queue-join-card" id="queueJoinForm" novalidate>
       <div class="queue-join-card__header">
-        <p class="queue-join-card__eyebrow">Queue Service</p>
-        <h3 class="step-title">Choose a Service</h3>
-        <p class="queue-join-card__copy">Select the service you want to queue for and continue to the next step.</p>
+        <h2 class="queue-join-title">CHOOSE A SERVICE</h2>
       </div>
 
-      <div class="queue-service-options" role="radiogroup" aria-label="Select a service to join the queue">
-        <label class="queue-service-option" for="queueServicePrinting">
-          <input id="queueServicePrinting" type="radio" name="queue_service" value="printing">
-          <span class="queue-service-option__media">
-            <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
-          </span>
-          <span class="queue-service-option__title">Printing</span>
-        </label>
+      <div class="queue-service-options" role="group" aria-label="Choose a service">
+        <button type="button" class="queue-service-card" data-service="printing" aria-pressed="false">
+          <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
+          <span>PRINTING</span>
+        </button>
 
-        <label class="queue-service-option" for="queueServiceRepair">
-          <input id="queueServiceRepair" type="radio" name="queue_service" value="repair">
-          <span class="queue-service-option__media">
-            <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
-          </span>
-          <span class="queue-service-option__title">Repair</span>
-        </label>
+        <button type="button" class="queue-service-card" data-service="repair" aria-pressed="false">
+          <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
+          <span>REPAIR</span>
+        </button>
 
-        <label class="queue-service-option" for="queueServiceInstallation">
-          <input id="queueServiceInstallation" type="radio" name="queue_service" value="installation">
-          <span class="queue-service-option__media">
-            <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
-          </span>
-          <span class="queue-service-option__title">Installation</span>
-        </label>
+        <button type="button" class="queue-service-card" data-service="installation" aria-pressed="false">
+          <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
+          <span>INSTALLATION</span>
+        </button>
       </div>
 
       <div class="form-actions queue-join-actions">
@@ -68,25 +52,36 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <script>
   const queueJoinForm = document.getElementById("queueJoinForm");
   const queueJoinSubmit = document.getElementById("queueJoinSubmit");
-  const queueServiceInputs = Array.from(document.querySelectorAll('input[name="queue_service"]'));
+  const queueServiceCards = Array.from(document.querySelectorAll(".queue-service-card"));
+  let selectedService = "";
 
   function updateQueueJoinState() {
-    const selectedService = document.querySelector('input[name="queue_service"]:checked');
     queueJoinSubmit.disabled = !selectedService;
   }
 
-  queueServiceInputs.forEach((input) => {
-    input.addEventListener("change", updateQueueJoinState);
+  function setSelectedService(service) {
+    selectedService = service;
+    queueServiceCards.forEach((card) => {
+      const isActive = card.dataset.service === service;
+      card.classList.toggle("is-selected", isActive);
+      card.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+    updateQueueJoinState();
+  }
+
+  queueServiceCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      setSelectedService(card.dataset.service || "");
+    });
   });
 
   queueJoinForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const selectedService = document.querySelector('input[name="queue_service"]:checked');
     if (!selectedService) {
-      const firstInput = queueServiceInputs[0];
-      if (firstInput) {
-        firstInput.focus();
+      const firstCard = queueServiceCards[0];
+      if (firstCard) {
+        firstCard.focus();
       }
       return;
     }
@@ -97,7 +92,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       installation: "/pages/customer/custo1_installation_option.php"
     };
 
-    window.location.href = routes[selectedService.value] || "/pages/customer/custo_place_queueing.php";
+    window.location.href = routes[selectedService] || "/pages/customer/custo_place_queueing.php";
   });
 </script>
 
