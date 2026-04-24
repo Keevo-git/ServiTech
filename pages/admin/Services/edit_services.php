@@ -27,7 +27,7 @@ try {
   if ($count === 0) {
     $seedData = [
       // Printing Services
-      ['printing', 'Document Printing', "Long Bond Paper, Short Bond Paper, A4\nPrice varies by paper size and color option.", 5.00, 1, 0],
+      ['printing', 'Document Printing', "Short Bond Paper (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nShort Bond Paper (B&W)\n₱5.00\n\nA4 (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nA4 (B&W)\n₱5.00", 5.00, 1, 0],
       ['printing', 'Xerox', "Long Bond Paper: ₱5\nShort Bond Paper: ₱3\nA4: ₱3", 3.00, 1, 1],
       ['printing', 'Rush ID', "Choose between packages 1-6.\nPrice varies by selected package.", 30.00, 1, 2],
       ['printing', 'Laminating', "Manipis / Thin: ₱20\nMakapal / Thick: ₱30", 20.00, 1, 3],
@@ -212,7 +212,8 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 
       <div class="ms-field">
         <label>Description</label>
-        <textarea id="ms_description" placeholder="Short Bond Paper, Long Bond Paper, A4..."></textarea>
+        <textarea id="ms_description" placeholder="Short Bond Paper (Colored)\nFull - 10.00\nHalf - 5.00\n\nShort Bond Paper (B&W)\n5.00"></textarea>
+        <small>Use newline-separated entries. Add a blank line between option groups to edit Full/Half blocks separately.</small>
       </div>
 
       <div class="ms-row2">

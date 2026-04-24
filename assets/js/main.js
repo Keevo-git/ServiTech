@@ -366,20 +366,26 @@ async function loadServicesFromDatabase() {
       }
 
       // Convert API response to serviceModalData format
+      const serviceDetailKeys = {
+        printing: {
+          "Document Printing": "documentPrinting",
+          "Rush ID": "rushId",
+        },
+      };
+
       const categoryData = serviceModalData[category] || { title: "", cards: [] };
-      categoryData.cards = data.services.map((service, index) => {
-        // Parse description field - split by newlines to create lines array
+      categoryData.cards = data.services.map((service) => {
         const lines = (service.description || "")
           .split("\n")
-          .map(line => line.trim())
-          .filter(line => line.length > 0);
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
 
         return {
           title: service.name,
           icon: category,
           lines: lines.length > 0 ? lines : [service.description || ""],
           badge: service.active ? "Selectable" : undefined,
-          detailKey: undefined, // Can be set if service has sub-items
+          detailKey: serviceDetailKeys[category]?.[service.name],
         };
       });
 
@@ -393,6 +399,41 @@ async function loadServicesFromDatabase() {
       console.error(`Error loading services for category ${category}:`, error);
       // Fallback to hardcoded data already set in serviceModalData
     }
+  }
+}
+
+function parseDescriptionBlocks(description) {
+  const blocks = description
+    .split(/\r?\n\s*\r?\n/)
+    .map((block) => block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean))
+    .filter((block) => block.length > 0);
+
+  return blocks.map((block) => {
+    if (block.length === 1) {
+      return { title: block[0], lines: [] };
+    }
+    return {
+      title: block[0],
+      lines: block.slice(1),
+    };
+  });
+}
+
+async function fetchServiceDetail(category, serviceName) {
+  try {
+    const url = `${servitechUrl(`/api/services_public.php`)}?action=detail&category=${encodeURIComponent(category)}&service=${encodeURIComponent(serviceName)}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    if (!data.ok || !data.service) {
+      throw new Error(data.error || "Service not found");
+    }
+
+    return data.service;
+  } catch (error) {
+    console.error("Error fetching service detail:", error);
+    return null;
   }
 }
 
@@ -472,9 +513,11 @@ function openServiceModal(sectionId) {
   document.addEventListener("keydown", escCloseServiceModal);
 }
 
-function openServiceDetailModal(detailKey) {
-  const detail = serviceModalDetailData[detailKey];
-  if (!detail) return;
+async function openServiceDetailModal(detailKey) {
+  const detailMeta = {
+    documentPrinting: { category: "printing", name: "Document Printing" },
+    rushId: { category: "printing", name: "Rush ID" },
+  };
 
   const overlay = document.getElementById("service-detail-modal");
   const titleEl = document.getElementById("service-detail-modal-title");
@@ -482,9 +525,28 @@ function openServiceDetailModal(detailKey) {
   const bodyEl = document.getElementById("service-detail-modal-body");
   if (!overlay || !titleEl || !bodyEl) return;
 
-  titleEl.textContent = detail.title;
-  if (descriptionEl) descriptionEl.textContent = detail.description || "Review the available service details.";
-  bodyEl.innerHTML = renderServiceDetailModalBody(detail);
+  const meta = detailMeta[detailKey];
+  if (meta) {
+    const service = await fetchServiceDetail(meta.category, meta.name);
+    if (service) {
+      titleEl.textContent = service.name;
+      if (descriptionEl) descriptionEl.textContent = service.description || "Review the available service details.";
+      const cards = parseDescriptionBlocks(service.description || "");
+      bodyEl.innerHTML = renderServiceDetailModalBody({ cards });
+    } else {
+      const fallback = serviceModalDetailData[detailKey];
+      if (!fallback) return;
+      titleEl.textContent = fallback.title;
+      if (descriptionEl) descriptionEl.textContent = fallback.description || "Review the available service details.";
+      bodyEl.innerHTML = renderServiceDetailModalBody(fallback);
+    }
+  } else {
+    const detail = serviceModalDetailData[detailKey];
+    if (!detail) return;
+    titleEl.textContent = detail.title;
+    if (descriptionEl) descriptionEl.textContent = detail.description || "Review the available service details.";
+    bodyEl.innerHTML = renderServiceDetailModalBody(detail);
+  }
 
   overlay.style.display = "flex";
   overlay.setAttribute("aria-hidden", "false");
