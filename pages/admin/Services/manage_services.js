@@ -38,17 +38,12 @@
     const hasHalf = extractOptionPrice(description, "Half");
     const usePrice = defaultPrice ?? "";
 
-    if (hasFull || hasHalf) {
-      showPriceModeField(true);
-      if (!["full", "half"].includes(fPriceMode.value)) {
-        fPriceMode.value = hasFull ? "full" : "half";
-      }
-      setPriceForMode(fPriceMode.value, description, usePrice);
-    } else {
-      showPriceModeField(false);
-      fPriceMode.value = "default";
-      setPriceForMode("default", description, usePrice);
+    // Show the dropdown always, so the user can choose Full/Half explicitly.
+    showPriceModeField(true);
+    if (!["full", "half", "default"].includes(fPriceMode.value)) {
+      fPriceMode.value = hasFull ? "full" : hasHalf ? "half" : "default";
     }
+    setPriceForMode(fPriceMode.value, description, usePrice);
   }
 
   function setPriceForMode(mode, description, defaultPrice) {
@@ -64,13 +59,20 @@
   }
 
   function replaceOptionPrice(description, option, newPrice) {
-    if (!description || !newPrice) return description;
-    const regex = new RegExp(`(${option}\\s*[-–—]?\\s*)₱?\\s*[0-9]+(?:\\.[0-9]+)?`, "i");
-    if (regex.test(description)) {
-      return description.replace(regex, `$1${newPrice}`);
+    const normalizedDescription = description || "";
+    const regex = new RegExp(`(${option}\s*[-–—]?\s*)₱?\s*[0-9]+(?:\.[0-9]+)?`, "i");
+    if (regex.test(normalizedDescription)) {
+      return normalizedDescription.replace(regex, `$1${newPrice}`);
     }
-    return description;
+
+    if (!newPrice) return normalizedDescription;
+    const line = `${option} - ${newPrice}`;
+    if (normalizedDescription.trim() === "") {
+      return line;
+    }
+    return normalizedDescription.trimEnd() + "\n" + line;
   }
+
   function hideErr(){ errBox.textContent=""; errBox.style.display="none"; }
 
   function openModal(mode, data){
