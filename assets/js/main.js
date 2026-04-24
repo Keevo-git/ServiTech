@@ -347,6 +347,55 @@ function getServiceIcon(iconKey) {
   return icons[iconKey] || icons.default;
 }
 
+/* ==============================
+   Load Services Dynamically from Database
+   ============================== */
+async function loadServicesFromDatabase() {
+  const baseUrl = servitechBasePath();
+  const categories = ["printing", "repair", "installation"];
+
+  for (const category of categories) {
+    try {
+      const response = await fetch(`${baseUrl}/api/services_public.php?action=list&category=${category}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const data = await response.json();
+      if (!data.ok || !data.services || !Array.isArray(data.services)) {
+        console.warn(`No services found for category: ${category}`);
+        continue;
+      }
+
+      // Convert API response to serviceModalData format
+      const categoryData = serviceModalData[category] || { title: "", cards: [] };
+      categoryData.cards = data.services.map((service, index) => {
+        // Parse description field - split by newlines to create lines array
+        const lines = (service.description || "")
+          .split("\n")
+          .map(line => line.trim())
+          .filter(line => line.length > 0);
+
+        return {
+          title: service.name,
+          icon: category,
+          lines: lines.length > 0 ? lines : [service.description || ""],
+          badge: service.active ? "Selectable" : undefined,
+          detailKey: undefined, // Can be set if service has sub-items
+        };
+      });
+
+      // Update the serviceModalData
+      if (!serviceModalData[category]) {
+        serviceModalData[category] = categoryData;
+      } else {
+        serviceModalData[category].cards = categoryData.cards;
+      }
+    } catch (error) {
+      console.error(`Error loading services for category ${category}:`, error);
+      // Fallback to hardcoded data already set in serviceModalData
+    }
+  }
+}
+
 function renderServiceModalBody(service) {
   return `
     <div class="service-grid">
@@ -480,6 +529,9 @@ function handleServiceCardKeydown(event, sectionId) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Load services from database (with fallback to hardcoded data)
+  loadServicesFromDatabase();
+
   document.querySelectorAll(".service-type-card[data-service-modal]").forEach((card) => {
     const sectionId = card.dataset.serviceModal;
     if (!sectionId) return;

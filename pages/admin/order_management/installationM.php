@@ -30,7 +30,7 @@ $rows = $pdo->query("
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'installation'
     AND (
-      q.created_at <= (NOW() - INTERVAL '24 hours')
+      q.created_at <= (NOW() - INTERVAL '15 minutes')
       OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
     )
   ORDER BY q.created_at DESC

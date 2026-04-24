@@ -19,6 +19,51 @@ try {
   ");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_category ON services(category)");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_active ON services(active)");
+  
+  // Seed default services if table is empty
+  $countStmt = $pdo->query("SELECT COUNT(*) FROM services");
+  $count = (int)($countStmt->fetchColumn() ?: 0);
+  
+  if ($count === 0) {
+    $seedData = [
+      // Printing Services
+      ['printing', 'Document Printing', "Long Bond Paper, Short Bond Paper, A4\nPrice varies by paper size and color option.", 5.00, 1, 0],
+      ['printing', 'Xerox', "Long Bond Paper: ₱5\nShort Bond Paper: ₱3\nA4: ₱3", 3.00, 1, 1],
+      ['printing', 'Rush ID', "Choose between packages 1-6.\nPrice varies by selected package.", 30.00, 1, 2],
+      ['printing', 'Laminating', "Manipis / Thin: ₱20\nMakapal / Thick: ₱30", 20.00, 1, 3],
+      // Repair Services
+      ['repair', 'LCD Replacement', "For mobile phones and laptops.\nPrice range: ₱1200 – ₱5500", 1200.00, 1, 0],
+      ['repair', 'Battery Replacement', "For mobile phones and laptops.\nPrice range: ₱700 – ₱2500", 700.00, 1, 1],
+      ['repair', 'Charging Pin Replacement', "For mobile phones and laptops.\nPrice range: ₱800 – ₱4000", 800.00, 1, 2],
+      ['repair', 'Speaker / Mouthpiece Replacement', "For mobile phones and laptops.\nPrice range: ₱700 – ₱1500", 700.00, 1, 3],
+      ['repair', 'Power Button Repair', "For mobile phones and laptops.\nPrice range: ₱500 – ₱2000", 500.00, 1, 4],
+      ['repair', 'Volume Repair', "For mobile phones and laptops.\nPrice range: ₱1000 – ₱2000", 1000.00, 1, 5],
+      ['repair', 'Camera Repair', "For mobile phones and laptops.\nPrice range: ₱1500 – ₱5000", 1500.00, 1, 6],
+      // Installation Services
+      ['installation', 'Reprogram Service', 'Price range: ₱1000 – ₱4000', 1000.00, 1, 0],
+      ['installation', 'Hang Logo Fix Service', 'Price range: ₱1000 – ₱3500', 1000.00, 1, 1],
+      ['installation', 'Boot Loop Fix Service', 'Price range: ₱1000 – ₱5000', 1000.00, 1, 2],
+      ['installation', 'Openline Samsung & iPhone', 'Price range: ₱3500 – ₱6000', 3500.00, 1, 3],
+      ['installation', 'Bypass Google Account', 'Price range: ₱500 – ₱2000', 500.00, 1, 4],
+      ['installation', 'Bypass Password', 'Price range: ₱1000 – ₱3000', 1000.00, 1, 5],
+    ];
+    
+    $insertStmt = $pdo->prepare("
+      INSERT INTO services (category, name, description, price, active, sort_order)
+      VALUES (:category, :name, :description, :price, :active, :sort_order)
+    ");
+    
+    foreach ($seedData as [$category, $name, $description, $price, $active, $sort_order]) {
+      $insertStmt->execute([
+        ':category' => $category,
+        ':name' => $name,
+        ':description' => $description,
+        ':price' => $price,
+        ':active' => $active,
+        ':sort_order' => $sort_order,
+      ]);
+    }
+  }
 } catch (Throwable $e) {}
 
 $tab = $_GET["tab"] ?? "printing";

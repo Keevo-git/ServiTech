@@ -22,7 +22,7 @@ $stmt = $pdo->prepare("
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'repair'
     AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) != 'CANCELLED'
-    AND q.created_at > (NOW() - INTERVAL '24 hours')
+    AND q.created_at > (NOW() - INTERVAL '15 minutes')
   ORDER BY q.created_at ASC
 ");
 $stmt->execute();
