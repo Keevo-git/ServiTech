@@ -218,9 +218,23 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 
       <div class="ms-row2">
         <div class="ms-field">
+          <label>Price Mode</label>
+          <select id="ms_priceMode">
+            <option value="default">Default price</option>
+            <option value="full">Full price</option>
+            <option value="half">Half price</option>
+          </select>
+        </div>
+        <div class="ms-field">
           <label>Price (optional)</label>
           <input id="ms_price" type="text" placeholder="e.g., 10.00">
         </div>
+      </div>
+      <div class="ms-field">
+        <small>Choose Full or Half when editing print price lines inside the description.</small>
+      </div>
+
+      <div class="ms-row2">
         <div class="ms-field">
           <label>Sort order</label>
           <input id="ms_sort" type="number" value="0">
