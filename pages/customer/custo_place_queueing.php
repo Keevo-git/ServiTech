@@ -25,8 +25,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     <form class="form-card queue-join-card" id="queueJoinForm" novalidate>
       <div class="queue-join-card__header">
         <p class="queue-join-card__eyebrow">Queue Service</p>
-        <h3 class="step-title">1. Select a Service</h3>
-        <p class="queue-join-card__copy">Choose the service you want to queue for. We'll take you to the next step with the correct form.</p>
+        <h3 class="step-title">Choose a Service</h3>
+        <p class="queue-join-card__copy">Select the service you want to queue for and continue to the next step.</p>
       </div>
 
       <div class="queue-service-options" role="radiogroup" aria-label="Select a service to join the queue">
@@ -35,10 +35,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <span class="queue-service-option__media">
             <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
           </span>
-          <span class="queue-service-option__body">
-            <span class="queue-service-option__title">Printing</span>
-            <span class="queue-service-option__text">Document printing, xerox, rush ID, and laminating services.</span>
-          </span>
+          <span class="queue-service-option__title">Printing</span>
         </label>
 
         <label class="queue-service-option" for="queueServiceRepair">
@@ -46,10 +43,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <span class="queue-service-option__media">
             <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
           </span>
-          <span class="queue-service-option__body">
-            <span class="queue-service-option__title">Repair</span>
-            <span class="queue-service-option__text">Device troubleshooting, diagnostics, and repair service requests.</span>
-          </span>
+          <span class="queue-service-option__title">Repair</span>
         </label>
 
         <label class="queue-service-option" for="queueServiceInstallation">
@@ -57,14 +51,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <span class="queue-service-option__media">
             <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
           </span>
-          <span class="queue-service-option__body">
-            <span class="queue-service-option__title">Installation</span>
-            <span class="queue-service-option__text">Software setup, hardware installation, and related support requests.</span>
-          </span>
+          <span class="queue-service-option__title">Installation</span>
         </label>
       </div>
-
-      <p class="queue-join-note">Need to submit a print file instead? You can still continue through the Printing option and select the exact service on the next page.</p>
 
       <div class="form-actions queue-join-actions">
         <a href="/pages/customer/customer_dash.php" class="btn-back">Back to Dashboard</a>

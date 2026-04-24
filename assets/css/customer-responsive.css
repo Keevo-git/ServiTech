@@ -1449,20 +1449,24 @@ body.customer-layout.customer-page--queue .queue-join-note {
 
 body.customer-layout.customer-page--queue .queue-service-options {
   display: grid;
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2.5vw, 28px);
 }
 
 body.customer-layout.customer-page--queue .queue-service-option {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 16px;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+  gap: 14px;
   width: 100%;
-  padding: 18px;
+  min-height: 250px;
+  padding: 24px 18px;
   border: 1px solid #ecd6bc;
-  border-radius: 20px;
-  background: #fffdf9;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #fdf8f2 100%);
   box-shadow: 0 10px 24px rgba(74, 5, 5, 0.07);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
@@ -1491,7 +1495,7 @@ body.customer-layout.customer-page--queue .queue-service-option input:checked + 
   background: linear-gradient(180deg, #fff2da 0%, #ffe2b1 100%);
 }
 
-body.customer-layout.customer-page--queue .queue-service-option input:checked + .queue-service-option__media + .queue-service-option__body .queue-service-option__title {
+body.customer-layout.customer-page--queue .queue-service-option input:checked + .queue-service-option__media + .queue-service-option__title {
   color: #7c3f06;
 }
 
@@ -1505,32 +1509,28 @@ body.customer-layout.customer-page--queue .queue-service-option__media {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 88px;
-  height: 88px;
-  padding: 10px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #fff8ee 0%, #ffe9ca 100%);
-  border: 1px solid rgba(74, 5, 5, 0.06);
+  width: 100%;
+  max-width: 152px;
+  min-height: 122px;
+  padding: 8px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff8ee 0%, #fff0d8 100%);
+  border: 1px solid rgba(74, 5, 5, 0.05);
   flex-shrink: 0;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 body.customer-layout.customer-page--queue .queue-service-option__media img {
   width: 100%;
-  max-width: 56px;
+  max-width: 112px;
   height: auto;
-}
-
-body.customer-layout.customer-page--queue .queue-service-option__body {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
 }
 
 body.customer-layout.customer-page--queue .queue-service-option__title {
   font-size: 18px;
   font-weight: 800;
   color: #4a0505;
+  line-height: 1.25;
 }
 
 body.customer-layout.customer-page--queue .queue-service-option__text {
@@ -1539,7 +1539,12 @@ body.customer-layout.customer-page--queue .queue-service-option__text {
 }
 
 body.customer-layout.customer-page--queue .queue-join-actions {
-  margin-top: 4px;
+  margin-top: 6px;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 16px !important;
 }
 
 body.customer-layout.customer-page--queue .queue-join-submit {
@@ -1559,20 +1564,45 @@ body.customer-layout.customer-page--queue .queue-join-submit:disabled {
   box-shadow: none !important;
 }
 
+body.customer-layout.customer-page--queue .queue-join-actions .btn-back,
+body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
+  width: auto !important;
+  min-width: 220px;
+}
+
 @media (max-width: 720px) {
   body.customer-layout.customer-page--queue .queue-join-page {
     padding: 28px 14px 42px;
   }
 
   body.customer-layout.customer-page--queue .queue-service-option {
-    grid-template-columns: 1fr;
-    justify-items: start;
-    text-align: left;
+    min-height: 228px;
   }
 
   body.customer-layout.customer-page--queue .queue-service-option__media {
-    width: 76px;
-    height: 76px;
+    max-width: 132px;
+    min-height: 110px;
+  }
+
+  body.customer-layout.customer-page--queue .queue-service-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  body.customer-layout.customer-page--queue .queue-service-options {
+    grid-template-columns: 1fr;
+  }
+
+  body.customer-layout.customer-page--queue .queue-join-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  body.customer-layout.customer-page--queue .queue-join-actions .btn-back,
+  body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
+    width: 100% !important;
+    min-width: 0;
   }
 }
 
