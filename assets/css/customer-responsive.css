@@ -1469,7 +1469,7 @@ body.customer-layout.customer-page--queue .queue-service-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
-  gap: 16px;
+  gap: 20px;
 }
 
 body.customer-layout.customer-page--queue .queue-service-card {
@@ -1477,11 +1477,11 @@ body.customer-layout.customer-page--queue .queue-service-card {
   grid-template-rows: auto auto;
   place-items: center;
   text-align: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   min-width: 0;
-  min-height: 140px;
-  padding: 18px 14px 16px;
+  min-height: 176px;
+  padding: 24px 18px 20px;
   border: 1px solid rgba(126, 79, 33, 0.10);
   border-radius: 18px;
   background: linear-gradient(180deg, #fffdfa 0%, #fdf7ef 100%);
@@ -1511,8 +1511,8 @@ body.customer-layout.customer-page--queue .queue-service-card.is-selected {
 }
 
 body.customer-layout.customer-page--queue .queue-service-card__media {
-  width: 96px;
-  height: 80px;
+  width: 112px;
+  height: 92px;
   display: grid;
   place-items: center;
   border-radius: 14px;
@@ -1521,9 +1521,9 @@ body.customer-layout.customer-page--queue .queue-service-card__media {
 }
 
 body.customer-layout.customer-page--queue .queue-service-card img {
-  width: min(100%, 66px);
-  max-width: 66px;
-  height: 66px;
+  width: min(100%, 76px);
+  max-width: 76px;
+  height: 76px;
   display: block;
   margin: 0 auto;
   object-fit: contain;
@@ -1531,7 +1531,7 @@ body.customer-layout.customer-page--queue .queue-service-card img {
 
 body.customer-layout.customer-page--queue .queue-service-card__label {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
   color: #4a0505;
   line-height: 1.2;
