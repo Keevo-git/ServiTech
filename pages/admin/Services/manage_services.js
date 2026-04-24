@@ -13,11 +13,38 @@
   const fName = qs("#ms_name");
   const fDesc = qs("#ms_description");
   const fPrice = qs("#ms_price");
-  const fPriceMode = qs("#ms_priceMode");
   const fActive = qs("#ms_active");
   const fSort = qs("#ms_sort");
 
-  const fPriceModeField = fPriceMode?.closest(".ms-field");
+  function getFPriceMode() {
+    return qs("#ms_priceMode");
+  }
+
+  function getFPriceModeField() {
+    const el = getFPriceMode();
+    return el ? el.closest(".ms-field") : null;
+  }
+
+  function ensurePriceModeField() {
+    let priceMode = getFPriceMode();
+    if (priceMode) return priceMode;
+
+    const priceField = qs("#ms_price")?.closest(".ms-field");
+    if (!priceField || !priceField.parentNode) return null;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "ms-field";
+    wrapper.innerHTML = `
+      <label>Price Mode</label>
+      <select id="ms_priceMode">
+        <option value="default">Default price</option>
+        <option value="full">Full price</option>
+        <option value="half">Half price</option>
+      </select>
+    `;
+    priceField.parentNode.insertBefore(wrapper, priceField);
+    return getFPriceMode();
+  }
 
   function showErr(msg){ errBox.textContent = msg; errBox.style.display="block"; }
 
@@ -28,22 +55,24 @@
   }
 
   function showPriceModeField(show) {
-    if (!fPriceModeField) return;
-    fPriceModeField.style.display = show ? "" : "none";
+    const field = getFPriceModeField();
+    if (!field) return;
+    field.style.display = show ? "" : "none";
   }
 
   function syncPriceMode(description, defaultPrice) {
-    if (!fPriceMode) return;
+    const priceMode = ensurePriceModeField();
+    if (!priceMode) return;
     const hasFull = extractOptionPrice(description, "Full");
     const hasHalf = extractOptionPrice(description, "Half");
     const usePrice = defaultPrice ?? "";
 
-    // Show the dropdown always, so the user can choose Full/Half explicitly.
+    // Show the dropdown always so the user can choose Full/Half explicitly.
     showPriceModeField(true);
-    if (!["full", "half", "default"].includes(fPriceMode.value)) {
-      fPriceMode.value = hasFull ? "full" : hasHalf ? "half" : "default";
+    if (!["full", "half", "default"].includes(priceMode.value)) {
+      priceMode.value = hasFull ? "full" : hasHalf ? "half" : "default";
     }
-    setPriceForMode(fPriceMode.value, description, usePrice);
+    setPriceForMode(priceMode.value, description, usePrice);
   }
 
   function setPriceForMode(mode, description, defaultPrice) {
@@ -132,17 +161,20 @@
     });
   });
 
-  fPriceMode?.addEventListener("change", ()=>{
-    syncPriceMode(fDesc.value, fPrice.value);
+  document.addEventListener("change", (event) => {
+    if (event.target && event.target.id === "ms_priceMode") {
+      syncPriceMode(fDesc.value, fPrice.value);
+    }
   });
 
   qs("#msSave")?.addEventListener("click", async ()=>{
     hideErr();
 
+    const priceMode = getFPriceMode();
     let descriptionValue = fDesc.value.trim();
-    if (fPriceMode?.value === "full") {
+    if (priceMode?.value === "full") {
       descriptionValue = replaceOptionPrice(descriptionValue, "Full", fPrice.value.trim());
-    } else if (fPriceMode?.value === "half") {
+    } else if (priceMode?.value === "half") {
       descriptionValue = replaceOptionPrice(descriptionValue, "Half", fPrice.value.trim());
     }
 
