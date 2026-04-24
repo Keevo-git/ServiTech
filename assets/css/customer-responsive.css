@@ -1511,8 +1511,8 @@ body.customer-layout.customer-page--queue .queue-service-card.is-selected {
 }
 
 body.customer-layout.customer-page--queue .queue-service-card__media {
-  width: 86px;
-  height: 72px;
+  width: 96px;
+  height: 80px;
   display: grid;
   place-items: center;
   border-radius: 14px;
@@ -1521,9 +1521,9 @@ body.customer-layout.customer-page--queue .queue-service-card__media {
 }
 
 body.customer-layout.customer-page--queue .queue-service-card img {
-  width: min(100%, 58px);
-  max-width: 58px;
-  height: 58px;
+  width: min(100%, 66px);
+  max-width: 66px;
+  height: 66px;
   display: block;
   margin: 0 auto;
   object-fit: contain;

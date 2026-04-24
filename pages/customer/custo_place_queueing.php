@@ -9,7 +9,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <title>ServiTech: Place Queueing Customer</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="/assets/css/style.css?v=20260315h14">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260424q2">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260424q3">
 </head>
 <body class="customer-layout customer-page--queue">
 
