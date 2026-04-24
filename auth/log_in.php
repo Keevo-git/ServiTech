@@ -1,34 +1,17 @@
+<?php
+require_once __DIR__ . "/_shared.php";
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Login</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260423l1">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=" . AUTH_UI_VERSION) ?>">
 </head>
 <body class="auth-page auth-page--login">
 
-  <header class="navbar has-nav-menu">
-    <a href="/index.php" class="logo">
-      <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
-      <h1>ServiTech</h1>
-    </a>
-    <button
-      class="nav-toggle"
-      type="button"
-      aria-label="Toggle navigation menu"
-      aria-expanded="false"
-      aria-controls="login-header-menu"
-    >
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-    </button>
-    <nav id="login-header-menu" data-collapsible-menu>
-      <a href="/index.php">Services Home</a>
-      <a href="/auth/regis.html">Register</a>
-    </nav>
-  </header>
+<?php render_auth_header("login-header-menu", "/auth/regis.php", "Register"); ?>
 
   <main class="auth-shell">
     <section class="auth-card auth-card--login" aria-labelledby="login-title">
@@ -40,7 +23,7 @@
 
       <div id="loginMessage" class="form-alert" role="alert" hidden></div>
 
-      <form id="loginForm" action="/auth/login.php" method="POST" class="register-form login-form" novalidate autocomplete="on">
+      <form id="loginForm" action="<?= auth_url("/auth/login.php") ?>" method="POST" class="register-form login-form" novalidate autocomplete="on">
         <div class="form-field">
           <label for="loginEmail">Email Address</label>
           <input
@@ -68,7 +51,7 @@
             <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password">Show</button>
           </div>
           <div class="forgot-password-container">
-            <a href="/legacy/auth_html/forget_pass.html" class="forgot-link">Forgot Password?</a>
+            <a href="<?= auth_url("/legacy/auth_html/forget_pass.html") ?>" class="forgot-link">Forgot Password?</a>
           </div>
           <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
         </div>
@@ -98,49 +81,20 @@
         <p id="googleSignInHint" class="auth-note">Checking Google sign-in availability...</p>
       </div>
 
-      <a href="/auth/regis.html" class="back-login">Don't have an account yet? Create one</a>
+      <a href="<?= auth_url("/auth/regis.php") ?>" class="back-login">Don't have an account yet? Create one</a>
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-left">
-        <h3>Contact Us:</h3>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_FB.png" alt="Facebook">
-          <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer">
-            JC Store
-          </a>
-        </div>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_EMAIL.png" alt="Email">
-          <a href="mailto:servitech@gmail.com">
-            servitech@gmail.com
-          </a>
-        </div>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_PHONE.png" alt="Phone">
-          <span>+63 912 393 4321</span>
-        </div>
-      </div>
-
-      <div class="footer-right">
-        <a href="/index.php" class="footer-logo-link">
-          <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
-          <h1>ServiTech: JC Store</h1>
-        </a>
-      </div>
-    </div>
-
-    <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
-  </footer>
+<?php render_auth_footer(); ?>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="/assets/js/csrf.js" defer></script>
+  <script src="<?= auth_url("/assets/js/csrf.js") ?>" defer></script>
   <script>
+    const loginPageUrl = <?= auth_json_url("/auth/log_in.php") ?>;
+    const googleLoginUrl = <?= auth_json_url("/auth/google_login.php") ?>;
+    const googleConfigUrl = <?= auth_json_url("/auth/google_config.php") ?>;
+    const defaultCustomerRedirectUrl = <?= auth_json_url("/pages/customer/customer_dash.php") ?>;
+
     const loginForm = document.getElementById("loginForm");
     const loginSubmit = document.getElementById("loginSubmit");
     const loginMessage = document.getElementById("loginMessage");
@@ -244,7 +198,7 @@
       }
 
       if (loginCode || registeredCode || logoutCode) {
-        window.history.replaceState({}, document.title, "/auth/log_in.html");
+        window.history.replaceState({}, document.title, loginPageUrl);
       }
     }
 
@@ -258,7 +212,7 @@
       setGoogleLoading(true);
 
       try {
-        const result = await fetch("/auth/google_login.php", {
+        const result = await fetch(googleLoginUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -274,7 +228,7 @@
           throw new Error(payload.error || "Google sign-in failed.");
         }
 
-        window.location.href = payload.redirect || "/pages/customer/customer_dash.php";
+        window.location.href = payload.redirect || defaultCustomerRedirectUrl;
       } catch (error) {
         setMessage("error", error.message || "Google sign-in failed. Please try again.");
         setGoogleLoading(false);
@@ -283,7 +237,7 @@
 
     async function loadGoogleSignIn() {
       try {
-        const response = await fetch("/auth/google_config.php", {
+        const response = await fetch(googleConfigUrl, {
           credentials: "same-origin",
           headers: {
             "Accept": "application/json"
@@ -373,7 +327,7 @@
     }, 300);
   </script>
 
-  <script src="/assets/js/header-menu.js" defer></script>
+  <script src="<?= auth_url("/assets/js/header-menu.js") ?>" defer></script>
 
 </body>
 </html>

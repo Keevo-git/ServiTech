@@ -4,7 +4,7 @@ require_once __DIR__ . "/../../../config/session_check.php";
 require_once __DIR__ . "/url.php";
 
 if (!servitech_is_logged_in()) {
-    header("Location: " . admin_url_raw("/auth/log_in.html"));
+    header("Location: " . admin_url_raw("/auth/log_in.php"));
     exit();
 }
 

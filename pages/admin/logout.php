@@ -14,5 +14,5 @@ setcookie(session_name(), "", [
     "samesite" => "Lax",
 ]);
 
-header("Location: " . admin_url_raw("/auth/log_in.html?logout=1"));
+header("Location: " . admin_url_raw("/auth/log_in.php?logout=1"));
 exit();

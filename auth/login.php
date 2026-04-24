@@ -1,12 +1,13 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/app.php";
 
 servitech_enforce_same_origin(false);
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("Location: /auth/log_in.html");
+    header("Location: " . servitech_url("/auth/log_in.php"));
     exit();
 }
 
@@ -14,7 +15,7 @@ $email = strtolower(trim($_POST["email"] ?? ""));
 $password = (string)($_POST["password"] ?? "");
 
 if ($email === "" || $password === "") {
-    header("Location: /auth/log_in.html?login=required");
+    header("Location: " . servitech_url("/auth/log_in.php?login=required"));
     exit();
 }
 
@@ -45,7 +46,6 @@ try {
             $is_valid = password_verify($password, $storedHash);
             $rehashNeeded = $is_valid && password_needs_rehash($storedHash, PASSWORD_DEFAULT);
         } else {
-            // Backward compatibility for legacy rows that stored plain-text passwords.
             $is_valid = hash_equals($storedHash, $password);
             $rehashNeeded = $is_valid;
         }
@@ -68,27 +68,25 @@ try {
         if ($_SESSION["role"] === "admin") {
             $_SESSION["admin_logged_in"] = true;
             $_SESSION["admin_email"] = (string)($user["email"] ?? $email);
-            header("Location: /pages/admin/admin_dashboard.php");
+            header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
             exit();
         }
 
         unset($_SESSION["admin_logged_in"], $_SESSION["admin_email"]);
-        header("Location: /pages/customer/customer_dash.php");
+        header("Location: " . servitech_url("/pages/customer/customer_dash.php"));
         exit();
     }
 
     $googleId = trim((string)($user["google_id"] ?? ""));
     if ($user && $googleId !== "" && $storedHash === "") {
-        header("Location: /auth/log_in.html?login=google_required");
+        header("Location: " . servitech_url("/auth/log_in.php?login=google_required"));
         exit();
     }
 
-    header("Location: /auth/log_in.html?login=fail");
+    header("Location: " . servitech_url("/auth/log_in.php?login=fail"));
     exit();
-
 } catch (PDOException $e) {
     error_log("login error: " . $e->getMessage());
-    header("Location: /auth/log_in.html?login=fail");
+    header("Location: " . servitech_url("/auth/log_in.php?login=fail"));
     exit();
 }
-

@@ -2,12 +2,13 @@
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/app.php";
 
 servitech_enforce_csrf_token(false);
 
 $user_id = (int)($_SESSION["user_id"] ?? 0);
 if ($user_id <= 0) {
-  header("Location: /auth/log_in.html");
+  header("Location: " . servitech_url("/auth/log_in.php"));
   exit();
 }
 

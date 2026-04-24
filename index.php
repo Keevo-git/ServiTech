@@ -1,16 +1,17 @@
 <?php
 require_once __DIR__ . "/config/session_check.php"; // use your consistent session setup
+require_once __DIR__ . "/config/app.php";
 $is_logged_in = servitech_is_logged_in();
 $is_admin = servitech_is_admin();
 $queue_url = $is_admin
   ? "/pages/admin/queue_list/printing.php"
-  : ($is_logged_in ? "/pages/customer/custo_place_queueing.php" : "/auth/log_in.html");
+  : ($is_logged_in ? "/pages/customer/custo_place_queueing.php" : "/auth/log_in.php");
 $status_url = $is_admin
   ? "/pages/admin/order_management/printM.php"
-  : ($is_logged_in ? "/pages/customer/custo_service_status.php" : "/auth/log_in.html");
+  : ($is_logged_in ? "/pages/customer/custo_service_status.php" : "/auth/log_in.php");
 $print_url = $is_admin
   ? "/pages/admin/order_management/printM.php"
-  : ($is_logged_in ? "/pages/customer/custo2_docu_printing.php" : "/auth/log_in.html");
+  : ($is_logged_in ? "/pages/customer/custo2_docu_printing.php" : "/auth/log_in.php");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,15 +19,15 @@ $print_url = $is_admin
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
-  <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260411-modal2">
+  <link rel="icon" type="images/png" href="<?= htmlspecialchars(servitech_url('/assets/images/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" >
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260424auth1'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 
   <!-- NAVBAR -->
   <header class="navbar has-nav-menu">
-    <a href="/index.php" class="logo">
-      <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
+    <a href="<?= htmlspecialchars(servitech_url('/index.php'), ENT_QUOTES, 'UTF-8') ?>" class="logo">
+      <img src="<?= htmlspecialchars(servitech_url('/assets/images/LOGO_SERVITECH.png'), ENT_QUOTES, 'UTF-8') ?>" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
     </a>
     <button
@@ -43,15 +44,15 @@ $print_url = $is_admin
     <nav id="landing-header-menu" data-collapsible-menu>
       <?php if ($is_logged_in): ?>
         <?php if ($is_admin): ?>
-          <a href="/pages/admin/admin_dashboard.php">Admin Dashboard</a>
-          <a href="/pages/admin/logout.php">Logout</a>
+          <a href="<?= htmlspecialchars(servitech_url('/pages/admin/admin_dashboard.php'), ENT_QUOTES, 'UTF-8') ?>">Admin Dashboard</a>
+          <a href="<?= htmlspecialchars(servitech_url('/pages/admin/logout.php'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
         <?php else: ?>
-          <a href="/pages/customer/customer_dash.php">Home</a>
-          <a href="/auth/logout.php">Logout</a>
+          <a href="<?= htmlspecialchars(servitech_url('/pages/customer/customer_dash.php'), ENT_QUOTES, 'UTF-8') ?>">Home</a>
+          <a href="<?= htmlspecialchars(servitech_url('/auth/logout.php'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
         <?php endif; ?>
       <?php else: ?>
-        <a href="/auth/regis.html">Register</a>
-        <a href="/auth/log_in.html">Login</a>
+        <a href="<?= htmlspecialchars(servitech_url('/auth/regis.php'), ENT_QUOTES, 'UTF-8') ?>">Register</a>
+        <a href="<?= htmlspecialchars(servitech_url('/auth/log_in.php'), ENT_QUOTES, 'UTF-8') ?>">Login</a>
       <?php endif; ?>
     </nav>
   </header>
@@ -62,18 +63,18 @@ $print_url = $is_admin
     <p>Offering printing, repairing, and installation services</p>
 
     <div class="hero-cards">
-      <a href="<?php echo $queue_url; ?>" class="hero-card">
-        <img src="/assets/images/LANDING_QUEUEING.png" alt="Queueing" class="hero-icon">
+      <a href="<?= htmlspecialchars(servitech_url($queue_url), ENT_QUOTES, 'UTF-8') ?>" class="hero-card">
+        <img src="<?= htmlspecialchars(servitech_url('/assets/images/LANDING_QUEUEING.png'), ENT_QUOTES, 'UTF-8') ?>" alt="Queueing" class="hero-icon">
         <h4>QUEUEING</h4>
       </a>
 
-      <a href="<?php echo $status_url; ?>" class="hero-card">
-        <img src="/assets/images/LANDING_SERVICE-STAT.png" alt="Service Status" class="hero-icon">
+      <a href="<?= htmlspecialchars(servitech_url($status_url), ENT_QUOTES, 'UTF-8') ?>" class="hero-card">
+        <img src="<?= htmlspecialchars(servitech_url('/assets/images/LANDING_SERVICE-STAT.png'), ENT_QUOTES, 'UTF-8') ?>" alt="Service Status" class="hero-icon">
         <h4>SERVICE STATUS</h4>
       </a>
 
-      <a href="<?php echo $print_url; ?>" class="hero-card">
-        <img src="/assets/images/LANDING_PRINT-ORD.png" alt="Print Order" class="hero-icon">
+      <a href="<?= htmlspecialchars(servitech_url($print_url), ENT_QUOTES, 'UTF-8') ?>" class="hero-card">
+        <img src="<?= htmlspecialchars(servitech_url('/assets/images/LANDING_PRINT-ORD.png'), ENT_QUOTES, 'UTF-8') ?>" alt="Print Order" class="hero-icon">
         <h4>PRINT ORDER</h4>
       </a>
     </div>

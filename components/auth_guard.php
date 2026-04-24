@@ -3,7 +3,7 @@
 require_once __DIR__ . "/../config/session_check.php";
 
 if (!servitech_is_logged_in()) {
-    header("Location: " . servitech_url("/auth/log_in.html"));
+    header("Location: " . servitech_url("/auth/log_in.php"));
     exit();
 }
 

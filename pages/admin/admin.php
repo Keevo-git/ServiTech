@@ -1,5 +1,5 @@
 <?php
-// Admin auth is handled by /auth/login.php.
+// Admin auth is handled by /auth/log_in.php.
 require_once __DIR__ . "/../../config/session_check.php";
 require_once __DIR__ . "/_includes/url.php";
 
@@ -13,5 +13,5 @@ if (servitech_is_customer()) {
     exit();
 }
 
-header("Location: " . admin_url_raw("/auth/log_in.html"));
+header("Location: " . admin_url_raw("/auth/log_in.php"));
 exit();

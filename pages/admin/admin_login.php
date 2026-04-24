@@ -1,5 +1,5 @@
 <?php
-// Admin login route is centralized in /auth/log_in.html.
+// Admin login route is centralized in /auth/log_in.php.
 // Keep this file as a compatibility redirect.
 require_once __DIR__ . "/../../config/session_check.php";
 require_once __DIR__ . "/_includes/url.php";
@@ -14,5 +14,5 @@ if (servitech_is_customer()) {
     exit();
 }
 
-header("Location: " . admin_url_raw("/auth/log_in.html"));
+header("Location: " . admin_url_raw("/auth/log_in.php"));
 exit();

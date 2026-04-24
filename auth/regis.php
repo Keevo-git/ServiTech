@@ -1,34 +1,17 @@
+<?php
+require_once __DIR__ . "/_shared.php";
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Register</title>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260423r1">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=" . AUTH_UI_VERSION) ?>">
 </head>
 <body class="auth-page auth-page--register">
 
-  <header class="navbar has-nav-menu">
-    <a href="/index.php" class="logo">
-      <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
-      <h1>ServiTech</h1>
-    </a>
-    <button
-      class="nav-toggle"
-      type="button"
-      aria-label="Toggle navigation menu"
-      aria-expanded="false"
-      aria-controls="register-header-menu"
-    >
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-    </button>
-    <nav id="register-header-menu" data-collapsible-menu>
-      <a href="/index.php">Services Home</a>
-      <a href="/auth/log_in.html">Login</a>
-    </nav>
-  </header>
+<?php render_auth_header("register-header-menu", "/auth/log_in.php", "Login"); ?>
 
   <main class="auth-shell">
     <section class="auth-card auth-card--register" aria-labelledby="register-title">
@@ -40,7 +23,7 @@
 
       <div id="serverErrorMessage" class="form-alert form-alert--error" role="alert" hidden></div>
 
-      <form id="registerForm" action="/auth/register.php" method="POST" class="register-form" novalidate>
+      <form id="registerForm" action="<?= auth_url("/auth/register.php") ?>" method="POST" class="register-form" novalidate>
         <section class="form-section" aria-labelledby="personal-info-title">
           <div class="form-section__header">
             <h2 id="personal-info-title">Personal Info</h2>
@@ -50,42 +33,20 @@
           <div class="form-grid form-grid--two">
             <div class="form-field">
               <label for="fullname">Full Name</label>
-              <input
-                id="fullname"
-                name="fullname"
-                type="text"
-                placeholder="Enter your full name"
-                autocomplete="name"
-                required
-              >
+              <input id="fullname" name="fullname" type="text" placeholder="Enter your full name" autocomplete="name" required>
               <p class="field-error" id="fullnameError" aria-live="polite"></p>
             </div>
 
             <div class="form-field">
               <label for="contact">Contact Number</label>
-              <input
-                id="contact"
-                name="contact"
-                type="tel"
-                inputmode="tel"
-                placeholder="Enter your contact number"
-                autocomplete="tel"
-                required
-              >
+              <input id="contact" name="contact" type="tel" inputmode="tel" placeholder="Enter your contact number" autocomplete="tel" required>
               <p class="field-error" id="contactError" aria-live="polite"></p>
             </div>
           </div>
 
           <div class="form-field">
             <label for="email">Email Address</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Enter your email address"
-              autocomplete="email"
-              required
-            >
+            <input id="email" name="email" type="email" placeholder="Enter your email address" autocomplete="email" required>
             <p class="field-error" id="emailError" aria-live="polite"></p>
           </div>
         </section>
@@ -99,29 +60,13 @@
           <div class="form-grid form-grid--two">
             <div class="form-field">
               <label for="password">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Create a password"
-                autocomplete="new-password"
-                minlength="8"
-                required
-              >
+              <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="8" required>
               <p class="field-error" id="passwordError" aria-live="polite"></p>
             </div>
 
             <div class="form-field">
               <label for="confirmPassword">Confirm Password</label>
-              <input
-                id="confirmPassword"
-                name="confirm_password"
-                type="password"
-                placeholder="Re-enter your password"
-                autocomplete="new-password"
-                minlength="8"
-                required
-              >
+              <input id="confirmPassword" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="8" required>
               <p class="field-error" id="confirmPasswordError" aria-live="polite"></p>
             </div>
           </div>
@@ -162,7 +107,7 @@
         <p id="registerGoogleSignInHint" class="auth-note">Checking Google sign-in availability...</p>
       </div>
 
-      <a href="/auth/log_in.html" class="back-login">Already have an account? Log in</a>
+      <a href="<?= auth_url("/auth/log_in.php") ?>" class="back-login">Already have an account? Log in</a>
     </section>
   </main>
 
@@ -176,45 +121,16 @@
     </div>
   </div>
 
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-left">
-        <h3>Contact Us:</h3>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_FB.png" alt="Facebook">
-          <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer">
-            JC Store
-          </a>
-        </div>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_EMAIL.png" alt="Email">
-          <a href="mailto:servitech@gmail.com">
-            servitech@gmail.com
-          </a>
-        </div>
-
-        <div class="contact-item">
-          <img src="/assets/images/FOOTER_PHONE.png" alt="Phone">
-          <span>+63 912 393 4321</span>
-        </div>
-      </div>
-
-      <div class="footer-right">
-        <a href="/index.php" class="footer-logo-link">
-          <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="footer-servitech-logo">
-          <h1>ServiTech: JC Store</h1>
-        </a>
-      </div>
-    </div>
-
-    <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
-  </footer>
+<?php render_auth_footer(); ?>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="/assets/js/csrf.js" defer></script>
+  <script src="<?= auth_url("/assets/js/csrf.js") ?>" defer></script>
   <script>
+    const registerPageUrl = <?= auth_json_url("/auth/regis.php") ?>;
+    const googleLoginUrl = <?= auth_json_url("/auth/google_login.php") ?>;
+    const googleConfigUrl = <?= auth_json_url("/auth/google_config.php") ?>;
+    const defaultCustomerRedirectUrl = <?= auth_json_url("/pages/customer/customer_dash.php") ?>;
+
     const registerForm = document.getElementById("registerForm");
     const submitButton = document.getElementById("registerSubmit");
     const serverErrorMessage = document.getElementById("serverErrorMessage");
@@ -349,7 +265,7 @@
 
       serverErrorMessage.textContent = errorMap[errorCode];
       serverErrorMessage.hidden = false;
-      window.history.replaceState({}, document.title, "/auth/regis.html");
+      window.history.replaceState({}, document.title, registerPageUrl);
     }
 
     function openPolicyModal(type) {
@@ -396,7 +312,7 @@
       setRegisterGoogleLoading(true);
 
       try {
-        const result = await fetch("/auth/google_login.php", {
+        const result = await fetch(googleLoginUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -412,7 +328,7 @@
           throw new Error(payload.error || "Google sign-in failed.");
         }
 
-        window.location.href = payload.redirect || "/pages/customer/customer_dash.php";
+        window.location.href = payload.redirect || defaultCustomerRedirectUrl;
       } catch (error) {
         setRegisterError(error.message || "Google sign-in failed. Please try again.");
         setRegisterGoogleLoading(false);
@@ -429,7 +345,7 @@
       }
 
       try {
-        const response = await fetch("/auth/google_config.php", {
+        const response = await fetch(googleConfigUrl, {
           credentials: "same-origin",
           headers: {
             "Accept": "application/json"
@@ -542,7 +458,7 @@
     }, 300);
   </script>
 
-  <script src="/assets/js/header-menu.js" defer></script>
+  <script src="<?= auth_url("/assets/js/header-menu.js") ?>" defer></script>
 
 </body>
 </html>
