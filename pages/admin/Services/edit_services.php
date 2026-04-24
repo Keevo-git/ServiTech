@@ -145,7 +145,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
         </thead>
         <tbody>
         <?php if (!$services): ?>
-          <tr><td colspan="5" style="padding:14px;color:#666;font-weight:800;">No services yet. Click â€œ+ Add Servicesâ€.</td></tr>
+          <tr><td colspan="5" style="padding:14px;color:#666;font-weight:800;">No services yet. Click &ldquo;+ Add Services&rdquo;.</td></tr>
         <?php else: ?>
           <?php foreach($services as $s):
             $payload = [
@@ -161,7 +161,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
             <tr>
               <td><?= h($s["name"]) ?></td>
               <td><?= h($s["description"]) ?></td>
-              <td><?= $s["price"]===null ? "â€”" : "â‚±".h(number_format((float)$s["price"],2)) ?></td>
+              <td><?= $s["price"]===null ? "&mdash;" : "&#8369;".h(number_format((float)$s["price"],2)) ?></td>
               <td><span class="ms-pill <?= (int)$s["active"] ? "on":"off" ?>"><?= (int)$s["active"] ? "ON":"OFF" ?></span></td>
               <td class="ms-actions">
                 <button class="edit" type="button" data-ms-edit='<?= h(json_encode($payload)) ?>'>Edit</button>
@@ -178,7 +178,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 
 <div class="ms-overlay" id="msOverlay">
   <div class="ms-modal">
-    <button class="ms-x" id="msX" type="button">Ã—</button>
+    <button class="ms-x" id="msX" type="button" aria-label="Close">&times;</button>
 
     <div class="ms-mhead">
       <h3 id="msModalTitle">Add Service</h3>
@@ -186,6 +186,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
     <div class="ms-accent"></div>
 
     <div class="ms-body">
+      <button class="ms-close" type="button" id="msX" aria-label="Close">&times;</button>
       <input type="hidden" id="ms_id" value="">
       <div class="ms-row2">
         <div class="ms-field">
