@@ -9,7 +9,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <title>ServiTech: Place Queueing Customer</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="/assets/css/style.css?v=20260315h14">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260424q1">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260424q2">
 </head>
 <body class="customer-layout customer-page--queue">
 
@@ -17,25 +17,38 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <section class="form-page queue-join-page">
   <div class="form-page-shell queue-join-shell">
+    <div class="queue-join-intro">
+      <h1 class="queue-join-page-title">Join Queue</h1>
+      <p class="queue-join-page-copy">Fill in the details to proceed with your service request.</p>
+    </div>
+
     <form class="form-card queue-join-card" id="queueJoinForm" novalidate>
       <div class="queue-join-card__header">
-        <h2 class="queue-join-title">CHOOSE A SERVICE</h2>
+        <p class="queue-join-kicker">Queue Service</p>
+        <h2 class="queue-join-title">Choose a Service</h2>
+        <p class="queue-join-subtitle">Select the service you want to queue for and continue to the next step.</p>
       </div>
 
       <div class="queue-service-options" role="group" aria-label="Choose a service">
         <button type="button" class="queue-service-card" data-service="printing" aria-pressed="false">
-          <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
-          <span>PRINTING</span>
+          <span class="queue-service-card__media">
+            <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
+          </span>
+          <span class="queue-service-card__label">Printing</span>
         </button>
 
         <button type="button" class="queue-service-card" data-service="repair" aria-pressed="false">
-          <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
-          <span>REPAIR</span>
+          <span class="queue-service-card__media">
+            <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
+          </span>
+          <span class="queue-service-card__label">Repair</span>
         </button>
 
         <button type="button" class="queue-service-card" data-service="installation" aria-pressed="false">
-          <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
-          <span>INSTALLATION</span>
+          <span class="queue-service-card__media">
+            <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
+          </span>
+          <span class="queue-service-card__label">Installation</span>
         </button>
       </div>
 

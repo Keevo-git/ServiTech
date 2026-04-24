@@ -1389,8 +1389,8 @@ body.customer-layout.customer-page--profile .profile-actions .btn-cancel:hover {
 body.customer-layout.customer-page--queue {
   min-height: 100vh;
   background:
-    radial-gradient(980px 320px at 50% -140px, rgba(244, 149, 43, 0.14), transparent 68%),
-    linear-gradient(180deg, #fffaf5 0%, #fff5eb 52%, #fdf1e4 100%) !important;
+    radial-gradient(700px 260px at 50% 10%, rgba(245, 166, 72, 0.12), transparent 72%),
+    linear-gradient(180deg, #fffaf4 0%, #fff4e6 54%, #ffefd6 100%) !important;
 }
 
 body.customer-layout.customer-page--queue .queue-join-page {
@@ -1399,57 +1399,93 @@ body.customer-layout.customer-page--queue .queue-join-page {
 }
 
 body.customer-layout.customer-page--queue .queue-join-shell {
-  width: min(100%, 1080px) !important;
+  width: min(100%, 860px) !important;
   margin: 0 auto !important;
+}
+
+body.customer-layout.customer-page--queue .queue-join-intro {
+  margin: 0 0 18px;
+}
+
+body.customer-layout.customer-page--queue .queue-join-page-title {
+  margin: 0 0 6px;
+  color: #18110d;
+  font-size: clamp(30px, 4vw, 40px);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+body.customer-layout.customer-page--queue .queue-join-page-copy {
+  margin: 0;
+  color: #6f6055;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 body.customer-layout.customer-page--queue .queue-join-card {
   display: grid;
-  gap: 30px;
+  gap: 26px;
   width: 100%;
-  padding: clamp(28px, 3vw, 36px) !important;
-  border-radius: 22px !important;
+  padding: clamp(18px, 3vw, 28px) !important;
+  border-radius: 20px !important;
   border: 1px solid rgba(74, 5, 5, 0.08) !important;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(249, 249, 249, 0.99) 100%) !important;
-  box-shadow: 0 18px 34px rgba(74, 5, 5, 0.10) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(252, 249, 245, 0.98) 100%) !important;
+  box-shadow: 0 18px 36px rgba(120, 70, 18, 0.14) !important;
 }
 
 body.customer-layout.customer-page--queue .queue-join-card__header {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+body.customer-layout.customer-page--queue .queue-join-kicker {
+  margin: 0;
+  color: #d97706;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 body.customer-layout.customer-page--queue .queue-join-title {
   margin: 0;
   color: #4a0505;
-  font-size: clamp(22px, 2vw, 30px);
+  font-size: clamp(22px, 3vw, 34px);
   line-height: 1.1;
   font-weight: 800;
-  letter-spacing: 0.02em;
-  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+body.customer-layout.customer-page--queue .queue-join-subtitle {
+  margin: 0;
+  color: #7a6558;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 body.customer-layout.customer-page--queue .queue-service-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
-  gap: 24px;
+  gap: 16px;
 }
 
 body.customer-layout.customer-page--queue .queue-service-card {
   display: grid;
-  grid-template-rows: minmax(128px, 1fr) auto;
+  grid-template-rows: auto auto;
   place-items: center;
   text-align: center;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   min-width: 0;
-  min-height: 240px;
-  padding: 26px 22px 24px;
-  border: 1px solid rgba(74, 5, 5, 0.08);
-  border-radius: 20px;
-  background: #f9f9f9;
-  box-shadow: 0 10px 24px rgba(74, 5, 5, 0.08);
+  min-height: 140px;
+  padding: 18px 14px 16px;
+  border: 1px solid rgba(126, 79, 33, 0.10);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffdfa 0%, #fdf7ef 100%);
+  box-shadow: 0 14px 26px rgba(116, 79, 26, 0.10);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   appearance: none;
@@ -1457,44 +1493,53 @@ body.customer-layout.customer-page--queue .queue-service-card {
 }
 
 body.customer-layout.customer-page--queue .queue-service-card:hover {
-  transform: translateY(-2px);
-  border-color: #efb46c;
-  box-shadow: 0 16px 30px rgba(74, 5, 5, 0.12);
+  transform: translateY(-3px);
+  border-color: rgba(239, 180, 108, 0.95);
+  box-shadow: 0 18px 30px rgba(116, 79, 26, 0.16);
 }
 
 body.customer-layout.customer-page--queue .queue-service-card:focus-visible {
   outline: none;
   border-color: #d97706;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18), 0 16px 30px rgba(74, 5, 5, 0.12);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15), 0 18px 30px rgba(116, 79, 26, 0.16);
 }
 
 body.customer-layout.customer-page--queue .queue-service-card.is-selected {
-  border-color: #f59e0b;
-  background: linear-gradient(180deg, #fffdf9 0%, #fff3e2 100%);
-  box-shadow: 0 18px 34px rgba(154, 79, 8, 0.13);
+  border-color: rgba(208, 116, 33, 0.55);
+  background: linear-gradient(180deg, #fff8ee 0%, #fff0dc 100%);
+  box-shadow: 0 18px 30px rgba(154, 79, 8, 0.18);
+}
+
+body.customer-layout.customer-page--queue .queue-service-card__media {
+  width: 86px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff1d9 0%, #f7ebdb 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 body.customer-layout.customer-page--queue .queue-service-card img {
-  width: min(100%, 116px);
-  max-width: 116px;
-  height: 104px;
+  width: min(100%, 58px);
+  max-width: 58px;
+  height: 58px;
   display: block;
   margin: 0 auto;
   object-fit: contain;
 }
 
-body.customer-layout.customer-page--queue .queue-service-card span {
+body.customer-layout.customer-page--queue .queue-service-card__label {
   display: block;
-  align-self: start;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 800;
   color: #4a0505;
-  line-height: 1.25;
-  letter-spacing: 0.02em;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 body.customer-layout.customer-page--queue .queue-join-actions {
-  margin-top: 6px;
+  margin-top: 2px;
   display: flex !important;
   flex-direction: row !important;
   justify-content: space-between !important;
@@ -1503,18 +1548,18 @@ body.customer-layout.customer-page--queue .queue-join-actions {
 }
 
 body.customer-layout.customer-page--queue .queue-join-submit {
-  background: linear-gradient(180deg, #4a0505 0%, #7f1313 100%) !important;
+  background: linear-gradient(180deg, #b97878 0%, #aa6d6d 100%) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(74, 5, 5, 0.18);
-  box-shadow: 0 14px 26px rgba(74, 5, 5, 0.18) !important;
+  border: 1px solid rgba(129, 78, 78, 0.25);
+  box-shadow: 0 12px 22px rgba(122, 73, 73, 0.16) !important;
 }
 
 body.customer-layout.customer-page--queue .queue-join-submit:hover:not(:disabled) {
-  background: linear-gradient(180deg, #5e0808 0%, #951717 100%) !important;
+  background: linear-gradient(180deg, #af6f6f 0%, #9c5f5f 100%) !important;
 }
 
 body.customer-layout.customer-page--queue .queue-join-submit:disabled {
-  opacity: 0.62;
+  opacity: 0.68;
   cursor: not-allowed;
   box-shadow: none !important;
 }
@@ -1522,11 +1567,18 @@ body.customer-layout.customer-page--queue .queue-join-submit:disabled {
 body.customer-layout.customer-page--queue .queue-join-actions .btn-back,
 body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
   width: auto !important;
-  min-width: 220px;
+  min-width: 180px;
+  padding: 14px 28px;
+  font-size: 15px;
+  border-radius: 12px;
 }
 
 body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
   margin-left: auto;
+}
+
+body.customer-layout.customer-page--queue .queue-join-actions .btn-back {
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
 }
 
 @media (max-width: 900px) {
@@ -1535,23 +1587,27 @@ body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
   }
 
   body.customer-layout.customer-page--queue .queue-join-shell {
-    width: min(100%, 900px) !important;
+    width: min(100%, 740px) !important;
   }
 
   body.customer-layout.customer-page--queue .queue-service-options {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
+    gap: 16px;
   }
 }
 
 @media (max-width: 560px) {
+  body.customer-layout.customer-page--queue .queue-join-page-title {
+    font-size: 28px;
+  }
+
   body.customer-layout.customer-page--queue .queue-join-shell {
     width: 100% !important;
   }
 
   body.customer-layout.customer-page--queue .queue-service-options {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 14px;
   }
 
   body.customer-layout.customer-page--queue .queue-join-actions {
