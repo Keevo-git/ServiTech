@@ -1,6 +1,28 @@
 <?php
 require_once __DIR__ . "/app.php";
 
+function servitech_google_env_value(string $key): string
+{
+    $candidates = [
+        getenv($key),
+        $_ENV[$key] ?? null,
+        $_SERVER[$key] ?? null,
+    ];
+
+    if (function_exists("apache_getenv")) {
+        $candidates[] = apache_getenv($key, true);
+        $candidates[] = apache_getenv($key);
+    }
+
+    foreach ($candidates as $candidate) {
+        if (is_string($candidate) && trim($candidate) !== "") {
+            return trim($candidate);
+        }
+    }
+
+    return "";
+}
+
 function servitech_google_local_config(): array
 {
     static $config = null;
@@ -21,9 +43,9 @@ function servitech_google_local_config(): array
 
 function servitech_google_client_id(): string
 {
-    $raw = getenv("GOOGLE_CLIENT_ID");
-    if (is_string($raw) && trim($raw) !== "") {
-        return trim($raw);
+    $envClientId = servitech_google_env_value("GOOGLE_CLIENT_ID");
+    if ($envClientId !== "") {
+        return $envClientId;
     }
 
     $localConfig = servitech_google_local_config();
