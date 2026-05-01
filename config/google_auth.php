@@ -41,6 +41,24 @@ function servitech_google_local_config(): array
     return $config;
 }
 
+function servitech_google_project_config(): array
+{
+    static $config = null;
+    if ($config !== null) {
+        return $config;
+    }
+
+    $configPath = __DIR__ . "/google.client.php";
+    if (!is_file($configPath)) {
+        $config = [];
+        return $config;
+    }
+
+    $loaded = require $configPath;
+    $config = is_array($loaded) ? $loaded : [];
+    return $config;
+}
+
 function servitech_google_client_id(): string
 {
     $envClientId = servitech_google_env_value("GOOGLE_CLIENT_ID");
@@ -50,7 +68,13 @@ function servitech_google_client_id(): string
 
     $localConfig = servitech_google_local_config();
     $localClientId = $localConfig["client_id"] ?? "";
-    return is_string($localClientId) ? trim($localClientId) : "";
+    if (is_string($localClientId) && trim($localClientId) !== "") {
+        return trim($localClientId);
+    }
+
+    $projectConfig = servitech_google_project_config();
+    $projectClientId = $projectConfig["client_id"] ?? "";
+    return is_string($projectClientId) ? trim($projectClientId) : "";
 }
 
 function servitech_google_is_enabled(): bool
