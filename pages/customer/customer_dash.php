@@ -247,6 +247,21 @@ $dashboardQueues = [
       min-width: 0;
     }
 
+    body.customer-layout.customer-page--dashboard .quick-access {
+      max-width: 1000px !important;
+      margin: 0 auto !important;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-grid {
+      display: flex !important;
+      justify-content: center !important;
+      gap: 25px !important;
+      flex-wrap: wrap !important;
+      grid-template-columns: none !important;
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+    }
+
     .queue-carousel-card {
       overflow: hidden;
       height: 306px;
