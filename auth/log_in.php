@@ -75,7 +75,7 @@ require_once __DIR__ . "/_shared.php";
                 <path fill="#FBBC05" d="M9 3.58c1.32 0 2.5.45 3.43 1.33l2.57-2.57C13.46.9 11.42 0 9 0A9 9 0 0 0 .96 4.97l3 2.33C4.67 5.16 6.66 3.58 9 3.58z"></path>
               </svg>
             </span>
-            <span id="googleFallbackLabel" class="google-button__label">Continue with Google</span>
+            <span id="googleFallbackLabel" class="google-button__label">Continue with Google Account</span>
           </button>
         </div>
         <p id="googleSignInHint" class="auth-note">Checking Google sign-in availability...</p>
@@ -171,7 +171,7 @@ require_once __DIR__ . "/_shared.php";
 
     function setGoogleLoading(isLoading) {
       googleFallbackButton.disabled = isLoading;
-      googleFallbackLabel.textContent = isLoading ? "Connecting to Google..." : "Continue with Google";
+      googleFallbackLabel.textContent = isLoading ? "Connecting to Google account..." : "Continue with Google Account";
       googleFallbackButton.classList.toggle("is-loading", isLoading);
     }
 
@@ -190,9 +190,9 @@ require_once __DIR__ . "/_shared.php";
       } else if (loginCode === "required") {
         setMessage("error", "Enter your email address and password to continue.");
       } else if (loginCode === "google_required") {
-        setMessage("error", "This account uses Google sign-in. Continue with Google to access it.");
+        setMessage("error", "This account uses Google account sign-in. Continue with Google Account to access it.");
       } else if (loginCode === "google_unavailable") {
-        setMessage("error", "Google sign-in is currently unavailable. Please use your email and password.");
+        setMessage("error", "Google account sign-in is currently unavailable. Please use your email and password.");
       } else if (loginCode === "fail") {
         setMessage("error", "Invalid email or password.");
       }
@@ -204,7 +204,7 @@ require_once __DIR__ . "/_shared.php";
 
     async function handleGoogleCredential(response) {
       if (!response || !response.credential) {
-        setMessage("error", "Google sign-in did not return a valid credential. Please try again.");
+        setMessage("error", "Google account sign-in did not return a valid credential. Please try again.");
         return;
       }
 
@@ -225,12 +225,12 @@ require_once __DIR__ . "/_shared.php";
         const payload = await result.json();
 
         if (!result.ok || !payload.ok) {
-          throw new Error(payload.error || "Google sign-in failed.");
+          throw new Error(payload.error || "Google account sign-in failed.");
         }
 
         window.location.href = payload.redirect || defaultCustomerRedirectUrl;
       } catch (error) {
-        setMessage("error", error.message || "Google sign-in failed. Please try again.");
+        setMessage("error", error.message || "Google account sign-in failed. Please try again.");
         setGoogleLoading(false);
       }
     }
@@ -246,13 +246,13 @@ require_once __DIR__ . "/_shared.php";
         const config = await response.json();
 
         if (!response.ok || !config.googleEnabled || !config.googleClientId) {
-          googleSignInHint.textContent = "Google sign-in is not configured yet.";
+          googleSignInHint.textContent = "Google account sign-in is not configured yet.";
           googleFallbackButton.disabled = true;
           return;
         }
 
         if (!window.google || !google.accounts || !google.accounts.id) {
-          googleSignInHint.textContent = "Google sign-in could not be loaded. Please refresh the page.";
+          googleSignInHint.textContent = "Google account sign-in could not be loaded. Please refresh the page.";
           googleFallbackButton.disabled = true;
           return;
         }
@@ -281,7 +281,7 @@ require_once __DIR__ . "/_shared.php";
         googleSignInHint.textContent = "Use your Google account to sign in or create your ServiTech account instantly.";
         googleFallbackButton.disabled = false;
       } catch (error) {
-        googleSignInHint.textContent = "Google sign-in is currently unavailable. Please use your email and password.";
+        googleSignInHint.textContent = "Google account sign-in is currently unavailable. Please use your email and password.";
         googleFallbackButton.disabled = true;
       }
     }
@@ -322,7 +322,7 @@ require_once __DIR__ . "/_shared.php";
         loadGoogleSignIn();
       } else if (googleLoadAttempts >= 20) {
         clearInterval(googleLoadTimer);
-        googleSignInHint.textContent = "Google sign-in could not be loaded. Please refresh the page.";
+        googleSignInHint.textContent = "Google account sign-in could not be loaded. Please refresh the page.";
       }
     }, 300);
   </script>

@@ -6,3 +6,4 @@
 !/uploads/printing/
 /uploads/printing/*
 !/uploads/printing/.gitignore
+/config/google.local.php

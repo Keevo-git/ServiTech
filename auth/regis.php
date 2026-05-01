@@ -101,7 +101,7 @@ require_once __DIR__ . "/_shared.php";
                 <path fill="#FBBC05" d="M9 3.58c1.32 0 2.5.45 3.43 1.33l2.57-2.57C13.46.9 11.42 0 9 0A9 9 0 0 0 .96 4.97l3 2.33C4.67 5.16 6.66 3.58 9 3.58z"></path>
               </svg>
             </span>
-            <span id="registerGoogleFallbackLabel" class="google-button__label">Continue with Google</span>
+            <span id="registerGoogleFallbackLabel" class="google-button__label">Continue with Google Account</span>
           </button>
         </div>
         <p id="registerGoogleSignInHint" class="auth-note">Checking Google sign-in availability...</p>
@@ -294,7 +294,7 @@ require_once __DIR__ . "/_shared.php";
       }
 
       fallbackButton.disabled = false;
-      fallbackLabel.textContent = isLoading ? "Connecting to Google..." : "Continue with Google";
+      fallbackLabel.textContent = isLoading ? "Connecting to Google account..." : "Continue with Google Account";
       fallbackButton.classList.toggle("is-loading", isLoading);
     }
 
@@ -305,7 +305,7 @@ require_once __DIR__ . "/_shared.php";
 
     async function handleRegisterGoogleCredential(response) {
       if (!response || !response.credential) {
-        setRegisterError("Google sign-in did not return a valid credential. Please try again.");
+        setRegisterError("Google account sign-in did not return a valid credential. Please try again.");
         return;
       }
 
@@ -325,12 +325,12 @@ require_once __DIR__ . "/_shared.php";
         const payload = await result.json();
 
         if (!result.ok || !payload.ok) {
-          throw new Error(payload.error || "Google sign-in failed.");
+          throw new Error(payload.error || "Google account sign-in failed.");
         }
 
         window.location.href = payload.redirect || defaultCustomerRedirectUrl;
       } catch (error) {
-        setRegisterError(error.message || "Google sign-in failed. Please try again.");
+        setRegisterError(error.message || "Google account sign-in failed. Please try again.");
         setRegisterGoogleLoading(false);
       }
     }
@@ -361,7 +361,7 @@ require_once __DIR__ . "/_shared.php";
         }
 
         if (!window.google || !google.accounts || !google.accounts.id) {
-          signInHint.textContent = "Google sign-in could not be loaded. Please refresh the page.";
+          signInHint.textContent = "Google account sign-in could not be loaded. Please refresh the page.";
           signInHint.hidden = false;
           fallbackButton.disabled = true;
           return;
@@ -391,7 +391,7 @@ require_once __DIR__ . "/_shared.php";
         signInHint.textContent = "Use your Google account to create or access your ServiTech account instantly.";
         signInHint.hidden = true;
       } catch (error) {
-        signInHint.textContent = "Google sign-in is currently unavailable. Please use the form above.";
+        signInHint.textContent = "Google account sign-in is currently unavailable. Please use the form above.";
         signInHint.hidden = false;
         fallbackButton.disabled = true;
       }
@@ -451,7 +451,7 @@ require_once __DIR__ . "/_shared.php";
         clearInterval(registerGoogleLoadTimer);
         const signInHint = document.getElementById("registerGoogleSignInHint");
         if (signInHint) {
-          signInHint.textContent = "Google sign-in could not be loaded. Please refresh the page.";
+          signInHint.textContent = "Google account sign-in could not be loaded. Please refresh the page.";
           signInHint.hidden = false;
         }
       }

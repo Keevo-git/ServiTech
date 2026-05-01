@@ -1,10 +1,34 @@
 <?php
 require_once __DIR__ . "/app.php";
 
+function servitech_google_local_config(): array
+{
+    static $config = null;
+    if ($config !== null) {
+        return $config;
+    }
+
+    $configPath = __DIR__ . "/google.local.php";
+    if (!is_file($configPath)) {
+        $config = [];
+        return $config;
+    }
+
+    $loaded = require $configPath;
+    $config = is_array($loaded) ? $loaded : [];
+    return $config;
+}
+
 function servitech_google_client_id(): string
 {
     $raw = getenv("GOOGLE_CLIENT_ID");
-    return is_string($raw) ? trim($raw) : "";
+    if (is_string($raw) && trim($raw) !== "") {
+        return trim($raw);
+    }
+
+    $localConfig = servitech_google_local_config();
+    $localClientId = $localConfig["client_id"] ?? "";
+    return is_string($localClientId) ? trim($localClientId) : "";
 }
 
 function servitech_google_is_enabled(): bool

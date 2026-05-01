@@ -34,6 +34,11 @@
 - `APP_DEBUG` (`1` to enable PHP error display, otherwise disabled)
 - `GOOGLE_CLIENT_ID` (required to enable Sign in with Google on the login page)
 
+## Google Account Sign-In
+- You can enable Google account sign-in with either the `GOOGLE_CLIENT_ID` environment variable or a local config file.
+- To use a local config file, copy `config/google.local.example.php` to `config/google.local.php` and paste your Google OAuth Web Client ID into `client_id`.
+- Keep `config/google.local.php` out of version control.
+
 ## Local Development
 - Create `config/db.local.php` from `config/db.local.example.php` if you prefer file-based local DB config.
 - Keep real credentials out of version control.
