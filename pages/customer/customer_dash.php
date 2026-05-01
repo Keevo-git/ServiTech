@@ -268,13 +268,16 @@ $dashboardQueues = [
       flex: 1 1 0 !important;
       min-width: 230px !important;
       max-width: 316px !important;
+      align-self: stretch !important;
     }
 
     body.customer-layout.customer-page--dashboard .quick-card {
       display: flex !important;
       flex-direction: column !important;
+      justify-content: space-between !important;
       width: 100% !important;
       height: 100% !important;
+      min-height: 220px !important;
     }
 
     .queue-carousel-card {
