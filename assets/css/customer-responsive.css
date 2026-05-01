@@ -1602,6 +1602,28 @@ body.customer-layout.customer-page--queue .queue-join-actions .btn-next {
   margin-left: auto;
 }
 
+body.customer-layout.customer-page--queue .queue-join-actions .queue-join-submit {
+  background: #f6e8ba !important;
+  color: #6c4d08 !important;
+  border-color: rgba(151, 108, 16, 0.22) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
+body.customer-layout.customer-page--queue .queue-join-actions .queue-join-submit:not(:disabled) {
+  background: linear-gradient(180deg, #f6d56a 0%, #e6b62f 52%, #c98a13 100%) !important;
+  color: #2e2100 !important;
+  border-color: rgba(132, 90, 7, 0.36) !important;
+  box-shadow: 0 12px 22px rgba(201, 138, 19, 0.28) !important;
+  cursor: pointer;
+}
+
+body.customer-layout.customer-page--queue .queue-join-actions .queue-join-submit:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e8bf43 0%, #d39b20 52%, #ad700a 100%) !important;
+  box-shadow: 0 16px 28px rgba(173, 112, 10, 0.32) !important;
+  filter: brightness(0.96) saturate(1.04);
+}
+
 body.customer-layout.customer-page--queue .queue-join-actions .btn-back {
   background: linear-gradient(180deg, #111111 0%, #000000 100%);
   color: #ffffff;
