@@ -257,9 +257,24 @@ $dashboardQueues = [
       justify-content: center !important;
       gap: 25px !important;
       flex-wrap: wrap !important;
+      align-items: stretch !important;
       grid-template-columns: none !important;
       margin-left: 0 !important;
       padding-left: 0 !important;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-card-link {
+      display: flex !important;
+      flex: 1 1 0 !important;
+      min-width: 230px !important;
+      max-width: 316px !important;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-card {
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+      height: 100% !important;
     }
 
     .queue-carousel-card {
