@@ -11,8 +11,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <link rel="stylesheet" href="/assets/css/style.css?v=20260326a6">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260326a6">
   <style>
+    body.customer-layout.customer-page--status {
+      background:
+        radial-gradient(900px 300px at 50% 8%, rgba(255, 178, 80, 0.14), transparent 70%),
+        linear-gradient(180deg, #fffaf3 0%, #fff4e6 52%, #ffe6c2 100%) !important;
+      background-color: #fff4e4 !important;
+    }
+
     body.customer-layout.customer-page--status .status-page {
       padding-inline: clamp(16px, 4vw, 32px);
+      background: transparent !important;
     }
 
     body.customer-layout.customer-page--status .status-shell {
