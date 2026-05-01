@@ -25,6 +25,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       align-items: center;
       gap: clamp(10px, 2vw, 14px);
       padding: clamp(12px, 2.4vw, 16px) clamp(16px, 3vw, 22px);
+      min-height: 72px;
     }
 
     body.customer-layout.customer-page--status .status-page-back {
@@ -91,13 +92,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status .queue-card {
       justify-content: center;
-      gap: 14px;
-      padding: clamp(18px, 3vw, 24px);
+      align-items: center;
+      gap: 16px;
+      min-height: 156px;
+      padding: clamp(20px, 3vw, 26px);
       border-radius: 18px;
       border: 1px solid rgba(74, 5, 5, 0.10);
       background: linear-gradient(180deg, #ffffff 0%, #fffaf4 100%);
       box-shadow: 0 14px 28px rgba(74, 5, 5, 0.09);
       cursor: pointer;
+      text-align: center;
     }
 
     body.customer-layout.customer-page--status .queue-card:focus-visible {
@@ -106,6 +110,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     body.customer-layout.customer-page--status .queue-card__head {
+      width: 100%;
+      justify-content: center;
       align-items: center;
       gap: 10px 14px;
     }
@@ -128,6 +134,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     body.customer-layout.customer-page--status .queue-card__divider {
+      width: min(100%, 260px);
       margin: 0;
       opacity: 0.85;
     }
@@ -137,6 +144,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       gap: 5px;
       font-size: 14px;
       line-height: 1.45;
+      justify-items: center;
+      margin: 0;
+      max-width: 100%;
     }
 
     body.customer-layout.customer-page--status .queue-card__meta strong {
@@ -148,6 +158,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status .queue-card__meta small {
       margin-top: 0;
+      color: #5f6b7a;
+      font-size: 13px;
+      line-height: 1.35;
       overflow-wrap: anywhere;
     }
 
@@ -163,12 +176,20 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
       body.customer-layout.customer-page--status .queue-card {
         border-radius: 16px;
+        min-height: 0;
         padding: 18px 16px;
       }
 
       body.customer-layout.customer-page--status .queue-card__head {
-        align-items: flex-start;
+        align-items: center;
         flex-direction: column;
+        gap: 8px;
+      }
+
+      body.customer-layout.customer-page--status .queue-card__badge {
+        min-height: 28px;
+        display: inline-flex;
+        align-items: center;
       }
     }
 
@@ -297,20 +318,34 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return "";
   }
 
+  function formatKnownLabel(value){
+    const raw = (value || "").toString().trim();
+    if (!raw) return "";
+
+    return raw
+      .replace(/print\s*order/ig, "Print Order")
+      .replace(/printorder/ig, "Print Order")
+      .replace(/document\s*printing/ig, "Document Printing")
+      .replace(/rush\s*id/ig, "Rush ID");
+  }
+
   function formatLabel(value){
-    return (value || "")
+    return formatKnownLabel(value)
       .toString()
       .trim()
       .replace(/[_-]+/g, " ")
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
       .toLowerCase()
-      .replace(/(^|\s)\S/g, (match) => match.toUpperCase());
+      .replace(/(^|\s)\S/g, (match) => match.toUpperCase())
+      .replace(/\bId\b/g, "ID");
   }
 
   function formatServiceLabel(value){
     const raw = (value || "").toString().trim();
     if (!raw) return "";
 
-    const compact = raw.replace(/[\s_-]+/g, "").toLowerCase();
+    const normalizedRaw = formatKnownLabel(raw);
+    const compact = normalizedRaw.replace(/[^a-z0-9]/gi, "").toLowerCase();
     const knownLabels = {
       printorder: "Print Order",
       documentprinting: "Document Printing",
@@ -324,7 +359,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return knownLabels[compact];
     }
 
-    return raw
+    return normalizedRaw
       .replace(/[_-]+/g, " ")
       .replace(/([a-z])([A-Z])/g, "$1 $2")
       .replace(/\s+/g, " ")
