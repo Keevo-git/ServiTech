@@ -22,20 +22,20 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     body.customer-layout.customer-page--status .status-page-header {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
-      align-items: start;
-      gap: clamp(12px, 2vw, 16px);
-      padding: clamp(14px, 2.5vw, 18px) clamp(16px, 3vw, 24px);
+      align-items: center;
+      gap: clamp(10px, 2vw, 14px);
+      padding: clamp(12px, 2.4vw, 16px) clamp(16px, 3vw, 22px);
     }
 
     body.customer-layout.customer-page--status .status-page-back {
-      width: clamp(44px, 7vw, 52px);
-      height: clamp(44px, 7vw, 52px);
+      width: clamp(42px, 5vw, 46px);
+      height: clamp(42px, 5vw, 46px);
       min-height: 44px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       justify-self: start;
-      align-self: start;
+      align-self: center;
       padding: 0;
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.42);
@@ -64,7 +64,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     body.customer-layout.customer-page--status .status-page-back img {
-      width: clamp(24px, 4vw, 30px);
+      width: clamp(20px, 3vw, 24px);
       max-width: 100%;
       height: auto;
       display: block;
@@ -75,7 +75,80 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     body.customer-layout.customer-page--status .status-page-header strong {
       min-width: 0;
       align-self: center;
+      font-size: clamp(20px, 2.6vw, 24px);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-panel {
+      padding: clamp(18px, 4vw, 30px);
+    }
+
+    body.customer-layout.customer-page--status .queue-list {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: clamp(14px, 2vw, 20px);
+    }
+
+    body.customer-layout.customer-page--status .queue-card {
+      justify-content: center;
+      gap: 14px;
+      padding: clamp(18px, 3vw, 24px);
+      border-radius: 18px;
+      border: 1px solid rgba(74, 5, 5, 0.10);
+      background: linear-gradient(180deg, #ffffff 0%, #fffaf4 100%);
+      box-shadow: 0 14px 28px rgba(74, 5, 5, 0.09);
+      cursor: pointer;
+    }
+
+    body.customer-layout.customer-page--status .queue-card:focus-visible {
+      outline: 2px solid #4a0505;
+      outline-offset: 3px;
+    }
+
+    body.customer-layout.customer-page--status .queue-card__head {
+      align-items: center;
+      gap: 10px 14px;
+    }
+
+    body.customer-layout.customer-page--status .queue-card__code {
+      font-size: clamp(18px, 2.5vw, 22px);
       line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    body.customer-layout.customer-page--status .queue-card__badge {
+      flex: 0 0 auto;
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 11px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    body.customer-layout.customer-page--status .queue-card__divider {
+      margin: 0;
+      opacity: 0.85;
+    }
+
+    body.customer-layout.customer-page--status .queue-card__meta {
+      display: grid;
+      gap: 5px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    body.customer-layout.customer-page--status .queue-card__meta strong {
+      color: #24120f;
+      font-size: clamp(16px, 2vw, 18px);
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    body.customer-layout.customer-page--status .queue-card__meta small {
+      margin-top: 0;
+      overflow-wrap: anywhere;
     }
 
     @media (max-width: 640px) {
@@ -87,11 +160,24 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         gap: 12px;
         padding: 14px 16px;
       }
+
+      body.customer-layout.customer-page--status .queue-card {
+        border-radius: 16px;
+        padding: 18px 16px;
+      }
+
+      body.customer-layout.customer-page--status .queue-card__head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
 
     @media (min-width: 1025px) {
       body.customer-layout.customer-page--status .status-page-back {
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+        width: 46px;
+        height: 46px;
+        min-height: 46px;
+        box-shadow: 0 7px 14px rgba(0, 0, 0, 0.14);
       }
     }
   </style>
@@ -220,6 +306,32 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       .replace(/(^|\s)\S/g, (match) => match.toUpperCase());
   }
 
+  function formatServiceLabel(value){
+    const raw = (value || "").toString().trim();
+    if (!raw) return "";
+
+    const compact = raw.replace(/[\s_-]+/g, "").toLowerCase();
+    const knownLabels = {
+      printorder: "Print Order",
+      documentprinting: "Document Printing",
+      rushid: "Rush ID",
+      openlinesamsungiphone: "Openline Samsung & iPhone",
+      bypassgoogleaccount: "Bypass Google Account",
+      bypasspassword: "Bypass Password"
+    };
+
+    if (knownLabels[compact]) {
+      return knownLabels[compact];
+    }
+
+    return raw
+      .replace(/[_-]+/g, " ")
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/(^|\s)\S/g, (match) => match.toUpperCase());
+  }
+
   function badgeTone(status){
     const s = (status || "PENDING").toUpperCase();
     if (s.includes("ONGOING")) return "ongoing";
@@ -248,7 +360,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.dataset.queue = q.queue_code || "";
     div.dataset.queueId = q.id || "";
     div.dataset.type = q.category || "";
-    div.dataset.service = q.service_label || "";
+    div.dataset.service = formatServiceLabel(q.service_label || "");
     div.dataset.paper = q.paper_size || "";
     div.dataset.qty = q.quantity || "";
     div.dataset.color = q.color_option || "";
@@ -267,7 +379,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       </div>
       <hr class="queue-card__divider">
       <p class="queue-card__meta">
-        <strong>${esc(q.service_label || "Service")}</strong>
+        <strong>${esc(formatServiceLabel(q.service_label || "Service"))}</strong>
         <small>${esc(formatLabel(q.category || ""))}</small>
       </p>
     `;
