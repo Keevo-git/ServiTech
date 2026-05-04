@@ -185,10 +185,11 @@
   scrollbar-gutter: stable;
 }
 
-.cl-modalCard > .cl-modalX{
-  position:absolute;
-  right: 28px;
-  top: 14px;
+.cl-modalHead .cl-modalX{
+  position: static;
+  margin-left: auto;
+  margin-right: 4px;
+  flex: 0 0 auto;
   width: 34px !important;
   height: 34px !important;
   border:none !important;
@@ -204,13 +205,12 @@
   border-radius: 10px;
   color:#1f4a8a !important;
   transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
-  z-index: 2;
   padding: 0 !important;
   min-width: 34px;
   min-height: 34px;
 }
 
-.cl-modalCard > .cl-modalX:hover{
+.cl-modalHead .cl-modalX:hover{
   background: rgba(31,74,138,0.09);
   color:#173a69;
   box-shadow: 0 4px 10px rgba(31,74,138,0.12);
@@ -219,8 +219,10 @@
 .cl-modalHead{
   display:flex;
   align-items:center;
+  justify-content:space-between;
+  gap: 14px;
   margin-bottom: 16px;
-  padding-right: 68px;
+  padding-right: 0;
 }
 
 .cl-modalHead h3{
