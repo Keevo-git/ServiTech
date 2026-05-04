@@ -37,7 +37,7 @@ function customer_code_from_id(int $id): string {
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260411h3') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260411h4') ?>">
 </head>
 
 <body>
@@ -130,6 +130,7 @@ function customer_code_from_id(int $id): string {
     <div class="cl-modalCard" role="dialog" aria-modal="true" aria-labelledby="messageModalTitle">
       <button class="cl-modalX" type="button" id="closeModal" aria-label="Close modal">&times;</button>
 
+      <div class="cl-modalBody">
       <div class="cl-modalHead">
         <h3 id="messageModalTitle">Send Message to Customer</h3>
       </div>
@@ -184,6 +185,7 @@ function customer_code_from_id(int $id): string {
         <button class="cl-btn cl-btn--light" type="button" id="cancelBtn">Cancel</button>
         <a class="cl-btn cl-btn--maroon" id="sendEmailLink" href="#">Send Email</a>
       </div>
+      </div>
     </div>
   </div>
   <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
@@ -221,12 +223,25 @@ function customer_code_from_id(int $id): string {
         document.getElementById('mContact').textContent = btn.dataset.contact || '';
         document.getElementById('mMessage').value = '';
 
-        const email = encodeURIComponent(btn.dataset.email || '');
+        const email = btn.dataset.email || '';
+        const subject = 'ServiTech Service Update';
         document.getElementById('sendEmailLink').href =
-          `mailto:${email}?subject=` + encodeURIComponent('ServiTech Notification');
+          `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 
         modal.style.display = 'flex';
       });
+    });
+
+    document.getElementById('sendEmailLink')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('mEmail')?.textContent.trim() || '';
+      const subject = 'ServiTech Service Update';
+      const body = document.getElementById('mMessage')?.value.trim() || '';
+
+      if (!email) return;
+
+      window.location.href =
+        `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
     document.querySelectorAll('.cl-tplBtn').forEach(b => {
