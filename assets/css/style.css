@@ -1504,6 +1504,24 @@ body.auth-page {
   opacity: 1;
 }
 
+.auth-page--login .auth-divider span {
+  background: transparent;
+}
+
+.auth-page--login .auth-card .back-login {
+  text-decoration: none;
+}
+
+.auth-page--login .auth-card .back-login:hover {
+  color: #a11d16;
+}
+
+.auth-page--login .auth-card .back-login:focus-visible {
+  outline: 2px solid #4a0505;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 .auth-note[hidden] {
   display: none;
 }
