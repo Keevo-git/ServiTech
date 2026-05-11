@@ -37,7 +37,7 @@ $rows = $stmt->fetchAll();
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260511qmsg') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -117,7 +117,7 @@ $rows = $stmt->fetchAll();
                   <button class="btn-done" data-id="<?= (int)$r["id"] ?>">Done</button>
                   <button class="btn-cancel" data-id="<?= (int)$r["id"] ?>">Cancel</button>
                   <button
-                    class="btn-message"
+                    class="btn-pickup btn-message"
                     data-id="<?= (int)$r["id"] ?>"
                     data-queue-code="<?= esc($r["queue_code"]) ?>"
                     data-customer="<?= esc($r["fullname"]) ?>"
