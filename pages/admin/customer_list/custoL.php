@@ -112,6 +112,7 @@ function customer_code_from_id(int $id): string {
                     <td class="cl-contact"><?= htmlspecialchars($contact) ?></td>
                     <td class="cl-tdActions">
                       <button class="cl-msgBtn" type="button"
+                        data-user-id="<?= (int)$c["id"] ?>"
                         data-code="<?= htmlspecialchars($code) ?>"
                         data-name="<?= htmlspecialchars($name) ?>"
                         data-email="<?= htmlspecialchars($email) ?>"
@@ -233,6 +234,7 @@ function customer_code_from_id(int $id): string {
         document.getElementById('mEmail').textContent = btn.dataset.email || '';
         document.getElementById('mContact').textContent = btn.dataset.contact || '';
         document.getElementById('mMessage').value = '';
+        modal.dataset.userId = btn.dataset.userId || '';
         setSendStatus('');
 
         modal.style.display = 'flex';
@@ -242,6 +244,7 @@ function customer_code_from_id(int $id): string {
     sendEmailBtn?.addEventListener('click', async () => {
       const email = document.getElementById('mEmail')?.textContent.trim() || '';
       const name = document.getElementById('mName')?.textContent.trim() || '';
+      const userId = modal?.dataset.userId || '';
       const subject = 'ServiTech Service Update';
       const body = document.getElementById('mMessage')?.value.trim() || '';
 
@@ -262,6 +265,7 @@ function customer_code_from_id(int $id): string {
 
       const formData = new FormData();
       formData.append('csrf_token', csrfToken);
+      formData.append('user_id', userId);
       formData.append('email', email);
       formData.append('name', name);
       formData.append('subject', subject);
@@ -279,7 +283,7 @@ function customer_code_from_id(int $id): string {
           throw new Error(data.error || 'Email sending failed.');
         }
 
-        setSendStatus(data.message || 'Email sent.', 'success');
+        setSendStatus(data.warning || data.message || 'Email sent.', data.warning ? 'error' : 'success');
       } catch (error) {
         setSendStatus(error.message || 'Email sending failed.', 'error');
       } finally {

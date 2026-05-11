@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
+require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -18,6 +19,7 @@ $email = trim((string)($_POST["email"] ?? ""));
 $name = trim((string)($_POST["name"] ?? ""));
 $message = trim((string)($_POST["message"] ?? ""));
 $subject = trim((string)($_POST["subject"] ?? "ServiTech Service Update"));
+$userId = (int)($_POST["user_id"] ?? 0);
 
 if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     respond(["ok" => false, "error" => "Customer email is missing or invalid."], 422);
@@ -27,8 +29,30 @@ if ($message === "") {
     respond(["ok" => false, "error" => "Please enter a message before sending."], 422);
 }
 
+if ($userId <= 0) {
+    respond(["ok" => false, "error" => "Customer account is missing."], 422);
+}
+
 if ($subject === "") {
     $subject = "ServiTech Service Update";
+}
+
+$userStmt = $pdo->prepare("
+    SELECT id, email, fullname
+    FROM users
+    WHERE id = :id
+    LIMIT 1
+");
+$userStmt->execute([":id" => $userId]);
+$customer = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$customer) {
+    respond(["ok" => false, "error" => "Customer account was not found."], 404);
+}
+
+$accountEmail = trim((string)($customer["email"] ?? ""));
+if (strcasecmp($accountEmail, $email) !== 0) {
+    respond(["ok" => false, "error" => "Customer email no longer matches this account."], 409);
 }
 
 $safeName = $name !== "" ? $name : "Customer";
@@ -58,4 +82,38 @@ if (!$sent) {
     ], 500);
 }
 
-respond(["ok" => true, "message" => "Email sent to {$email}."]);
+$notificationMessage = "ServiTech Service Update: " . $message;
+$warning = "";
+
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS notifications (
+            id BIGSERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            type TEXT NOT NULL DEFAULT 'admin_message',
+            reference_id INTEGER NULL,
+            message TEXT NOT NULL,
+            is_read BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    ");
+
+    $notificationStmt = $pdo->prepare("
+        INSERT INTO notifications (user_id, type, reference_id, message, is_read, created_at)
+        VALUES (:user_id, :type, NULL, :message, FALSE, NOW())
+    ");
+    $notificationStmt->execute([
+        ":user_id" => $userId,
+        ":type" => "admin_message",
+        ":message" => $notificationMessage,
+    ]);
+} catch (Throwable $exception) {
+    error_log("customer email notification insert failed: " . $exception->getMessage());
+    $warning = "Email sent, but the account notification could not be created.";
+}
+
+respond([
+    "ok" => true,
+    "message" => "Email sent to {$email} and added to the customer notifications.",
+    "warning" => $warning,
+]);
