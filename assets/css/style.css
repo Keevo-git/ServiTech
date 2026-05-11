@@ -721,6 +721,12 @@ body.modal-open {
   line-height: 1.55;
 }
 
+.service-price-range {
+  font-weight: 600;
+  color: #7a2e0e;
+  margin-top: 5px;
+}
+
 .service-option-card__price,
 .service-detail-price {
   display: flex;

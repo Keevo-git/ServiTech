@@ -11,12 +11,14 @@ try {
       name VARCHAR(120) NOT NULL,
       description VARCHAR(255) NOT NULL DEFAULT '',
       price NUMERIC(10,2) NULL,
+      price_range VARCHAR(255) NOT NULL DEFAULT '',
       active BOOLEAN NOT NULL DEFAULT TRUE,
       sort_order INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   ");
+  $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS price_range VARCHAR(255) NOT NULL DEFAULT ''");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_category ON services(category)");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_active ON services(active)");
   
@@ -49,8 +51,8 @@ try {
     ];
     
     $insertStmt = $pdo->prepare("
-      INSERT INTO services (category, name, description, price, active, sort_order)
-      VALUES (:category, :name, :description, :price, :active, :sort_order)
+      INSERT INTO services (category, name, description, price, price_range, active, sort_order)
+      VALUES (:category, :name, :description, :price, :price_range, :active, :sort_order)
     ");
     
     foreach ($seedData as [$category, $name, $description, $price, $active, $sort_order]) {
@@ -59,18 +61,43 @@ try {
         ':name' => $name,
         ':description' => $description,
         ':price' => $price,
+        ':price_range' => '',
         ':active' => $active,
         ':sort_order' => $sort_order,
       ]);
     }
   }
+  $pdo->exec("
+    UPDATE services
+    SET price_range = CASE
+      WHEN category = 'printing' AND LOWER(name) LIKE '%document%printing%' THEN '₱5 – ₱10'
+      WHEN category = 'printing' AND LOWER(name) LIKE '%xerox%' THEN '₱3 – ₱5'
+      WHEN category = 'printing' AND LOWER(name) LIKE '%rush%id%' THEN '₱30 – ₱50'
+      WHEN category = 'printing' AND LOWER(name) LIKE '%laminat%' THEN '₱20 – ₱30'
+      WHEN category = 'repair' AND LOWER(name) LIKE '%lcd%' THEN '₱1200 – ₱5500'
+      WHEN category = 'repair' AND LOWER(name) LIKE '%battery%' THEN '₱700 – ₱2500'
+      WHEN category = 'repair' AND LOWER(name) LIKE '%charging%' THEN '₱800 – ₱4000'
+      WHEN category = 'repair' AND (LOWER(name) LIKE '%speaker%' OR LOWER(name) LIKE '%mouthpiece%') THEN '₱700 – ₱1500'
+      WHEN category = 'repair' AND LOWER(name) LIKE '%power%' THEN '₱500 – ₱2000'
+      WHEN category = 'repair' AND LOWER(name) LIKE '%volume%' THEN '₱1000 – ₱2000'
+      WHEN category = 'repair' AND LOWER(name) LIKE '%camera%' THEN '₱1500 – ₱5000'
+      WHEN category = 'installation' AND LOWER(name) LIKE '%reprogram%' THEN '₱1000 – ₱4000'
+      WHEN category = 'installation' AND LOWER(name) LIKE '%hang logo%' THEN '₱1000 – ₱3500'
+      WHEN category = 'installation' AND LOWER(name) LIKE '%boot%' THEN '₱1000 – ₱5000'
+      WHEN category = 'installation' AND LOWER(name) LIKE '%openline%' THEN '₱3500 – ₱6000'
+      WHEN category = 'installation' AND LOWER(name) LIKE '%google%' THEN '₱500 – ₱2000'
+      WHEN category = 'installation' AND LOWER(name) LIKE '%password%' THEN '₱1000 – ₱3000'
+      ELSE price_range
+    END
+    WHERE price_range = ''
+  ");
 } catch (Throwable $e) {}
 
 $tab = $_GET["tab"] ?? "printing";
 if (!in_array($tab, ["printing","repair","installation"], true)) $tab = "printing";
 
 $stmt = $pdo->prepare("
-  SELECT id, category, name, description, price,
+  SELECT id, category, name, description, price, price_range,
          CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
   FROM services
   WHERE category=:cat
@@ -138,14 +165,15 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
           <tr>
             <th style="width:220px">Services</th>
             <th>Description</th>
-            <th style="width:90px">Price</th>
+            <th style="width:150px">Price Range</th>
+            <th style="width:90px">Base Price</th>
             <th style="width:90px">Active</th>
             <th style="width:140px">Actions</th>
           </tr>
         </thead>
         <tbody>
         <?php if (!$services): ?>
-          <tr><td colspan="5" style="padding:14px;color:#666;font-weight:800;">No services yet. Click &ldquo;+ Add Services&rdquo;.</td></tr>
+          <tr><td colspan="6" style="padding:14px;color:#666;font-weight:800;">No services yet. Click &ldquo;+ Add Services&rdquo;.</td></tr>
         <?php else: ?>
           <?php foreach($services as $s):
             $payload = [
@@ -154,6 +182,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
               "name" => (string)$s["name"],
               "description" => (string)$s["description"],
               "price" => $s["price"],
+              "price_range" => (string)$s["price_range"],
               "active" => (int)$s["active"],
               "sort_order" => (int)$s["sort_order"],
             ];
@@ -161,6 +190,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
             <tr>
               <td><?= h($s["name"]) ?></td>
               <td><?= h($s["description"]) ?></td>
+              <td><?= h($s["price_range"] ?: "Not set") ?></td>
               <td><?= $s["price"]===null ? "&mdash;" : "&#8369;".h(number_format((float)$s["price"],2)) ?></td>
               <td><span class="ms-pill <?= (int)$s["active"] ? "on":"off" ?>"><?= (int)$s["active"] ? "ON":"OFF" ?></span></td>
               <td class="ms-actions">
@@ -216,6 +246,12 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
         <small>Use newline-separated entries. Add a blank line between option groups to edit Full/Half blocks separately.</small>
       </div>
 
+      <div class="ms-field">
+        <label>Price Range</label>
+        <input id="ms_price_range" type="text" placeholder="e.g., ₱1000 – ₱5000">
+        <small>This appears on the landing page service card.</small>
+      </div>
+
       <div class="ms-row2">
         <div class="ms-field">
           <label>Price Mode</label>
@@ -256,7 +292,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260511price-range') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

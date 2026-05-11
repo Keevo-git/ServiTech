@@ -54,6 +54,12 @@ function formatServicePrice(price) {
   return `PHP ${numericPrice.toFixed(2)}`;
 }
 
+function formatServicePriceRange(priceRange) {
+  const value = String(priceRange || "").trim();
+  if (value === "") return "";
+  return /^price\s*range\s*:/i.test(value) ? value : `Price Range: ${value}`;
+}
+
 function openModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
@@ -121,6 +127,8 @@ const serviceModalData = {
     ],
   },
 };
+
+let serviceDataLoadPromise = null;
 
 const serviceModalDetailData = {
   documentPrinting: {
@@ -198,7 +206,15 @@ function bindServiceDetailCards(bodyEl) {
   });
 }
 
-function openServiceModal(sectionId) {
+async function openServiceModal(sectionId) {
+  if (serviceDataLoadPromise) {
+    try {
+      await serviceDataLoadPromise;
+    } catch (error) {
+      console.error("Service data load failed:", error);
+    }
+  }
+
   const service = serviceModalData[sectionId];
   if (!service) return;
 
@@ -433,7 +449,7 @@ async function loadServicesFromDatabase() {
 
   for (const category of categories) {
     try {
-      const response = await fetch(`${baseUrl}/api/services_public.php?action=list&category=${category}`);
+      const response = await fetch(`${baseUrl}/api/services_public.php?action=list&category=${category}`, { cache: "no-store" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
       const data = await response.json();
@@ -456,6 +472,7 @@ async function loadServicesFromDatabase() {
           icon: getServiceIconKey(category, service.name),
           lines: lines.length > 0 ? lines : [service.description || ""],
           priceLabel: formatServicePrice(service.price),
+          priceRange: service.price_range || "",
           badge: service.active ? "Selectable" : undefined,
           detailKey: getServiceDetailKey(category, service.name),
         };
@@ -519,10 +536,14 @@ function renderServiceModalBody(service) {
             ? ` role="button" tabindex="0" aria-label="Open ${escapeHtml(card.title)} details"`
             : "";
           const badge = card.badge ? `<span class="service-option-card__badge">${card.badge}</span>` : "";
-          const cta = card.detailKey
-            ? `<span class="service-option-card__cta">View details</span>`
-            : `<span class="service-option-card__cta service-option-card__cta--muted">Information only</span>`;
           const lines = getServiceCardLines(service, card);
+          const priceRange = formatServicePriceRange(card.priceRange);
+          const priceRangeMarkup = priceRange
+            ? `<p class="service-price-range">${escapeHtml(priceRange)}</p>`
+            : "";
+          const cta = card.detailKey
+            ? `<div class="service-option-card__bottom"><span class="service-option-card__cta">View details</span></div>`
+            : "";
           const iconClass = service.category === "repair"
             ? "service-option-card__icon service-card-icon service-card-icon--repair"
             : "service-option-card__icon";
@@ -536,10 +557,9 @@ function renderServiceModalBody(service) {
           <div class="service-option-card__content">
             <h4>${escapeHtml(card.title)}</h4>
             ${lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+            ${priceRangeMarkup}
           </div>
-          <div class="service-option-card__bottom">
-            ${cta}
-          </div>
+          ${cta}
         </div>`;
         })
         .join("")}
@@ -578,7 +598,15 @@ function renderServiceDetailModalBody(detail) {
   `;
 }
 
-function openServiceModal(sectionId) {
+async function openServiceModal(sectionId) {
+  if (serviceDataLoadPromise) {
+    try {
+      await serviceDataLoadPromise;
+    } catch (error) {
+      console.error("Service data load failed:", error);
+    }
+  }
+
   const service = serviceModalData[sectionId];
   if (!service) return;
 
@@ -657,7 +685,7 @@ function handleServiceCardKeydown(event, sectionId) {
 
 document.addEventListener("DOMContentLoaded", () => {
   // Load services from database (with fallback to hardcoded data)
-  loadServicesFromDatabase();
+  serviceDataLoadPromise = loadServicesFromDatabase();
 
   document.querySelectorAll(".service-type-card[data-service-modal]").forEach((card) => {
     const sectionId = card.dataset.serviceModal;

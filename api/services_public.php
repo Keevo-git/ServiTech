@@ -8,7 +8,8 @@
 require_once __DIR__ . "/../config/db.php";
 
 header("Content-Type: application/json; charset=utf-8");
-header("Cache-Control: public, max-age=300"); // Cache for 5 minutes
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
 
 $action = $_GET["action"] ?? "";
 $category = $_GET["category"] ?? null;
@@ -19,6 +20,12 @@ function respond(array $arr): void
     exit();
 }
 
+try {
+    $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS price_range VARCHAR(255) NOT NULL DEFAULT ''");
+} catch (Throwable $e) {
+    // Keep the public page resilient; admin migration will surface schema issues.
+}
+
 if ($action === "list" && $category) {
     // Fetch services by category
     if (!in_array($category, ["printing", "repair", "installation"], true)) {
@@ -27,7 +34,7 @@ if ($action === "list" && $category) {
 
     try {
         $stmt = $pdo->prepare("
-          SELECT id, category, name, description, price,
+          SELECT id, category, name, description, price, price_range,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
           WHERE category = :category AND active = TRUE
@@ -59,7 +66,7 @@ if ($action === "detail" && $category) {
 
     try {
         $stmt = $pdo->prepare("
-          SELECT id, category, name, description, price,
+          SELECT id, category, name, description, price, price_range,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
           WHERE category = :category AND name = :name AND active = TRUE

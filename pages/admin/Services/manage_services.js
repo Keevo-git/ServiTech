@@ -13,6 +13,7 @@
   const fName = qs("#ms_name");
   const fDesc = qs("#ms_description");
   const fPrice = qs("#ms_price");
+  const fPriceRange = qs("#ms_price_range");
   const fActive = qs("#ms_active");
   const fSort = qs("#ms_sort");
 
@@ -113,6 +114,7 @@
     fCat.value = data?.category || window.MS_ACTIVE_TAB || "printing";
     fName.value = data?.name || "";
     fDesc.value = data?.description || "";
+    if (fPriceRange) fPriceRange.value = data?.price_range || "";
     fActive.value = (data?.active ?? 1) ? "1" : "0";
     fSort.value = data?.sort_order ?? 0;
 
@@ -185,6 +187,7 @@
     fd.append("name", fName.value.trim());
     fd.append("description", descriptionValue);
     fd.append("price", fPrice.value.trim());
+    fd.append("price_range", fPriceRange ? fPriceRange.value.trim() : "");
     fd.append("active", fActive.value);
     fd.append("sort_order", fSort.value);
 

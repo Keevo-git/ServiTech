@@ -14,12 +14,14 @@ try {
         name VARCHAR(120) NOT NULL,
         description VARCHAR(255) NOT NULL DEFAULT '',
         price NUMERIC(10,2) NULL,
+        price_range VARCHAR(255) NOT NULL DEFAULT '',
         active BOOLEAN NOT NULL DEFAULT TRUE,
         sort_order INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     ");
+    $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS price_range VARCHAR(255) NOT NULL DEFAULT ''");
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_category ON services(category)");
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_active ON services(active)");
     
@@ -52,8 +54,8 @@ try {
       ];
       
       $insertStmt = $pdo->prepare("
-        INSERT INTO services (category, name, description, price, active, sort_order)
-        VALUES (:category, :name, :description, :price, :active, :sort_order)
+        INSERT INTO services (category, name, description, price, price_range, active, sort_order)
+        VALUES (:category, :name, :description, :price, :price_range, :active, :sort_order)
       ");
       
       foreach ($seedData as [$category, $name, $description, $price, $active, $sort_order]) {
@@ -62,11 +64,36 @@ try {
           ':name' => $name,
           ':description' => $description,
           ':price' => $price,
+          ':price_range' => '',
           ':active' => $active,
           ':sort_order' => $sort_order,
         ]);
       }
     }
+    $pdo->exec("
+      UPDATE services
+      SET price_range = CASE
+        WHEN category = 'printing' AND LOWER(name) LIKE '%document%printing%' THEN '₱5 – ₱10'
+        WHEN category = 'printing' AND LOWER(name) LIKE '%xerox%' THEN '₱3 – ₱5'
+        WHEN category = 'printing' AND LOWER(name) LIKE '%rush%id%' THEN '₱30 – ₱50'
+        WHEN category = 'printing' AND LOWER(name) LIKE '%laminat%' THEN '₱20 – ₱30'
+        WHEN category = 'repair' AND LOWER(name) LIKE '%lcd%' THEN '₱1200 – ₱5500'
+        WHEN category = 'repair' AND LOWER(name) LIKE '%battery%' THEN '₱700 – ₱2500'
+        WHEN category = 'repair' AND LOWER(name) LIKE '%charging%' THEN '₱800 – ₱4000'
+        WHEN category = 'repair' AND (LOWER(name) LIKE '%speaker%' OR LOWER(name) LIKE '%mouthpiece%') THEN '₱700 – ₱1500'
+        WHEN category = 'repair' AND LOWER(name) LIKE '%power%' THEN '₱500 – ₱2000'
+        WHEN category = 'repair' AND LOWER(name) LIKE '%volume%' THEN '₱1000 – ₱2000'
+        WHEN category = 'repair' AND LOWER(name) LIKE '%camera%' THEN '₱1500 – ₱5000'
+        WHEN category = 'installation' AND LOWER(name) LIKE '%reprogram%' THEN '₱1000 – ₱4000'
+        WHEN category = 'installation' AND LOWER(name) LIKE '%hang logo%' THEN '₱1000 – ₱3500'
+        WHEN category = 'installation' AND LOWER(name) LIKE '%boot%' THEN '₱1000 – ₱5000'
+        WHEN category = 'installation' AND LOWER(name) LIKE '%openline%' THEN '₱3500 – ₱6000'
+        WHEN category = 'installation' AND LOWER(name) LIKE '%google%' THEN '₱500 – ₱2000'
+        WHEN category = 'installation' AND LOWER(name) LIKE '%password%' THEN '₱1000 – ₱3000'
+        ELSE price_range
+      END
+      WHERE price_range = ''
+    ");
 } catch (Throwable $e) {
     // Keep API resilient even if schema migration is restricted.
 }
@@ -88,7 +115,7 @@ if ($action === "list") {
         $params[":cat"] = $cat;
     }
     $stmt = $pdo->prepare("
-      SELECT id, category, name, description, price,
+      SELECT id, category, name, description, price, price_range,
              CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
       FROM services
       $where
@@ -104,6 +131,7 @@ if ($action === "save") {
     $name = trim((string)($_POST["name"] ?? ""));
     $description = trim((string)($_POST["description"] ?? ""));
     $priceRaw = trim((string)($_POST["price"] ?? ""));
+    $priceRange = trim((string)($_POST["price_range"] ?? ""));
     $active = isset($_POST["active"]) ? (int)($_POST["active"]) : 1;
     $sort_order = isset($_POST["sort_order"]) ? (int)($_POST["sort_order"]) : 0;
 
@@ -129,6 +157,7 @@ if ($action === "save") {
               name=:name,
               description=:description,
               price=:price,
+              price_range=:price_range,
               active=:active,
               sort_order=:sort_order,
               updated_at=NOW()
@@ -139,6 +168,7 @@ if ($action === "save") {
             ":name" => $name,
             ":description" => $description,
             ":price" => $price,
+            ":price_range" => $priceRange,
             ":active" => ($active ? true : false),
             ":sort_order" => $sort_order,
             ":id" => $id,
@@ -147,8 +177,8 @@ if ($action === "save") {
     }
 
     $stmt = $pdo->prepare("
-      INSERT INTO services (category, name, description, price, active, sort_order)
-      VALUES (:category, :name, :description, :price, :active, :sort_order)
+      INSERT INTO services (category, name, description, price, price_range, active, sort_order)
+      VALUES (:category, :name, :description, :price, :price_range, :active, :sort_order)
       RETURNING id
     ");
     $stmt->execute([
@@ -156,6 +186,7 @@ if ($action === "save") {
         ":name" => $name,
         ":description" => $description,
         ":price" => $price,
+        ":price_range" => $priceRange,
         ":active" => ($active ? true : false),
         ":sort_order" => $sort_order,
     ]);
