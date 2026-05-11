@@ -66,6 +66,45 @@ body {
   color: #fff;
 }
 
+.landing-announcement {
+  background: #fff7ed;
+  border-bottom: 1px solid #fed7aa;
+}
+
+.landing-announcement__inner {
+  width: min(1120px, 92vw);
+  margin: 0 auto;
+  padding: 14px 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+
+.landing-announcement__inner > span {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #ffedd5;
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.landing-announcement strong {
+  display: block;
+  color: #4A0505;
+  font-size: 17px;
+  margin-bottom: 4px;
+}
+
+.landing-announcement p {
+  margin: 0;
+  color: #5f4434;
+  line-height: 1.45;
+}
+
 
 /* HERO */
 .hero {

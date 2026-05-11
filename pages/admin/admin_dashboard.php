@@ -253,6 +253,14 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
       </article>
     </a>
 
+    <a href="<?= project_url('/pages/admin/announcement.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon">&#x1F4E3;</div>
+        <h4>Announcement</h4>
+        <p>Post a notice on the landing page</p>
+      </article>
+    </a>
+
   </section>
 
 

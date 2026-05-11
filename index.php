@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/config/session_check.php"; // use your consistent session setup
 require_once __DIR__ . "/config/app.php";
+require_once __DIR__ . "/config/db.php";
 $is_logged_in = servitech_is_logged_in();
 $is_admin = servitech_is_admin();
 $queue_url = $is_admin
@@ -12,6 +13,30 @@ $status_url = $is_admin
 $print_url = $is_admin
   ? "/pages/admin/order_management/printM.php"
   : ($is_logged_in ? "/pages/customer/custo2_docu_printing.php" : "/auth/log_in.php");
+
+$landingAnnouncement = null;
+try {
+  $pdo->exec("
+    CREATE TABLE IF NOT EXISTS announcements (
+      id BIGSERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  ");
+  $announcementStmt = $pdo->query("
+    SELECT title, message
+    FROM announcements
+    WHERE active = TRUE
+    ORDER BY updated_at DESC, id DESC
+    LIMIT 1
+  ");
+  $landingAnnouncement = $announcementStmt->fetch(PDO::FETCH_ASSOC) ?: null;
+} catch (Throwable $exception) {
+  $landingAnnouncement = null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -56,6 +81,18 @@ $print_url = $is_admin
       <?php endif; ?>
     </nav>
   </header>
+
+  <?php if ($landingAnnouncement): ?>
+    <section class="landing-announcement" aria-label="Announcement">
+      <div class="landing-announcement__inner">
+        <span>Announcement</span>
+        <div>
+          <strong><?= htmlspecialchars((string)($landingAnnouncement["title"] ?? ""), ENT_QUOTES, "UTF-8") ?></strong>
+          <p><?= nl2br(htmlspecialchars((string)($landingAnnouncement["message"] ?? ""), ENT_QUOTES, "UTF-8")) ?></p>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
 
   <!-- HERO -->
   <section class="hero">
