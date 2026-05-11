@@ -516,11 +516,14 @@ function renderServiceModalBody(service) {
             ? `<span class="service-option-card__cta">View details</span>`
             : `<span class="service-option-card__cta service-option-card__cta--muted">Information only</span>`;
           const lines = getServiceCardLines(service, card);
+          const iconClass = service.category === "repair"
+            ? "service-option-card__icon service-card-icon service-card-icon--repair"
+            : "service-option-card__icon";
 
           return `
         <div class="detail-card service-option-card${clickable}" data-detail-key="${card.detailKey || ""}"${attrs}>
           <div class="service-option-card__top">
-            <div class="service-option-card__icon">${getServiceIcon(card.icon)}</div>
+            <div class="${iconClass}">${getServiceIcon(card.icon)}</div>
             ${badge}
           </div>
           <div class="service-option-card__content">

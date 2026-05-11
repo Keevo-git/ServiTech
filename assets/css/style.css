@@ -560,6 +560,24 @@ body.modal-open {
   fill: currentColor;
 }
 
+.service-card-icon--repair {
+  width: 60px;
+  height: 60px;
+  flex: 0 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-card-icon--repair svg,
+.service-card-icon--repair i,
+.service-card-icon--repair img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+}
+
 .service-option-card__badge {
   padding: 6px 10px;
   border-radius: 999px;
