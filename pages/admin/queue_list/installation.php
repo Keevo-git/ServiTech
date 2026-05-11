@@ -116,6 +116,13 @@ $rows = $stmt->fetchAll();
                   <button class="btn-pickup" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
                   <button class="btn-done" data-id="<?= (int)$r["id"] ?>">Done</button>
                   <button class="btn-cancel" data-id="<?= (int)$r["id"] ?>">Cancel</button>
+                  <button
+                    class="btn-message"
+                    data-id="<?= (int)$r["id"] ?>"
+                    data-queue-code="<?= esc($r["queue_code"]) ?>"
+                    data-customer="<?= esc($r["fullname"]) ?>"
+                    data-service="Installation Service"
+                  >Message</button>
                   <button class="btn-delete" data-id="<?= (int)$r["id"] ?>" title="Delete">x</button>
                 </td>
               </tr>
@@ -131,6 +138,7 @@ $rows = $stmt->fetchAll();
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
+<?php require_once __DIR__ . "/_queue_message_modal.php"; ?>
 <script>
 (function(){
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");

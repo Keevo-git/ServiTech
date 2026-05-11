@@ -2,7 +2,6 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
-require_once __DIR__ . "/../../../config/csrf.php";
 
 $stmt = $pdo->prepare("
   SELECT
@@ -24,7 +23,6 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute();
 $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$csrfToken = servitech_csrf_token();
 
 function customer_code_from_id(int $id): string {
   return "C-" . str_pad((string)$id, 3, "0", STR_PAD_LEFT);
@@ -88,14 +86,13 @@ function customer_code_from_id(int $id): string {
                 <th>Customer Name</th>
                 <th>Email</th>
                 <th>Contact</th>
-                <th class="cl-thActions">Actions</th>
               </tr>
             </thead>
 
             <tbody>
               <?php if (!$customers): ?>
                 <tr>
-                  <td colspan="5" class="cl-empty">No registered customers yet.</td>
+                  <td colspan="4" class="cl-empty">No registered customers yet.</td>
                 </tr>
               <?php else: ?>
                 <?php foreach ($customers as $c): ?>
@@ -110,15 +107,6 @@ function customer_code_from_id(int $id): string {
                     <td class="cl-name"><?= htmlspecialchars($name) ?></td>
                     <td class="cl-email"><?= htmlspecialchars($email) ?></td>
                     <td class="cl-contact"><?= htmlspecialchars($contact) ?></td>
-                    <td class="cl-tdActions">
-                      <button class="cl-msgBtn" type="button"
-                        data-user-id="<?= (int)$c["id"] ?>"
-                        data-code="<?= htmlspecialchars($code) ?>"
-                        data-name="<?= htmlspecialchars($name) ?>"
-                        data-email="<?= htmlspecialchars($email) ?>"
-                        data-contact="<?= htmlspecialchars($contact) ?>"
-                      >Message</button>
-                    </td>
                   </tr>
                 <?php endforeach; ?>
               <?php endif; ?>
@@ -129,191 +117,17 @@ function customer_code_from_id(int $id): string {
     </div>
   </main>
 
-  <div class="cl-modalOverlay" id="msgModal">
-    <div class="cl-modalCard" role="dialog" aria-modal="true" aria-labelledby="messageModalTitle">
-      <div class="cl-modalBody">
-        <div class="cl-modalHead">
-          <h3 id="messageModalTitle">Send Message to Customer</h3>
-          <button class="cl-modalX" type="button" id="closeModal" aria-label="Close modal">&times;</button>
-        </div>
-
-      <div class="cl-infoCard">
-        <p class="cl-infoTitle">Customer Contact Information:</p>
-
-        <div class="cl-infoGrid">
-          <div>
-            <small>Customer ID</small>
-            <div class="cl-pill cl-pill--inline cl-customerCode" id="mCode">C-000</div>
-          </div>
-          <div>
-            <small>Name</small>
-            <div class="cl-infoVal" id="mName">â€”</div>
-          </div>
-
-          <div>
-            <small>Contact Number</small>
-            <div class="cl-copyRow">
-              <div class="cl-infoVal" id="mContact">â€”</div>
-              <button class="cl-copyBtn" type="button" data-copy="mContact">Copy</button>
-            </div>
-          </div>
-
-          <div>
-            <small>Email</small>
-            <div class="cl-copyRow">
-              <div class="cl-infoVal cl-underline" id="mEmail">â€”</div>
-              <button class="cl-copyBtn" type="button" data-copy="mEmail">Copy</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="cl-section">
-        <p class="cl-sectionTitle">Select Message Template</p>
-        <div class="cl-tplGrid">
-          <button class="cl-tplBtn" type="button" data-tpl="Ready for Pick-Up">Ready for Pick-Up</button>
-          <button class="cl-tplBtn" type="button" data-tpl="Cancellation Confirmation">Cancellation Confirmation</button>
-          <button class="cl-tplBtn" type="button" data-tpl="No Available Repair Part">No Available Repair Part</button>
-          <button class="cl-tplBtn" type="button" data-tpl="No Available Repairman">No Available Repairman</button>
-        </div>
-      </div>
-
-      <div class="cl-section">
-        <p class="cl-sectionTitle">Message</p>
-        <textarea class="cl-textarea" id="mMessage" placeholder="Type your message here..."></textarea>
-        <p class="cl-sendStatus" id="sendEmailStatus" aria-live="polite"></p>
-      </div>
-
-      <div class="cl-actions">
-        <button class="cl-btn cl-btn--light" type="button" id="cancelBtn">Cancel</button>
-        <button class="cl-btn cl-btn--maroon" type="button" id="sendEmailBtn">Send Email</button>
-      </div>
-      </div>
-    </div>
-  </div>
   <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
   <script>
-    const csrfToken = <?= json_encode($csrfToken) ?>;
-    const sendEmailUrl = <?= json_encode(admin_url('/pages/admin/customer_list/send_customer_email.php')) ?>;
     const searchInput = document.getElementById('searchInput');
     const rows = Array.from(document.querySelectorAll('#customersTable tbody tr.cl-row'));
     searchInput?.addEventListener('input', () => {
       const q = (searchInput.value || '').toLowerCase();
       rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none');
     });
-
-    const modal = document.getElementById('msgModal');
-    const sendEmailBtn = document.getElementById('sendEmailBtn');
-    const sendEmailStatus = document.getElementById('sendEmailStatus');
-    const close = () => modal.style.display = 'none';
-    const setSendStatus = (message, type = '') => {
-      if (!sendEmailStatus) return;
-      sendEmailStatus.textContent = message;
-      sendEmailStatus.className = `cl-sendStatus${type ? ` is-${type}` : ''}`;
-    };
-    document.getElementById('closeModal')?.addEventListener('click', close);
-    document.getElementById('cancelBtn')?.addEventListener('click', close);
-    modal?.addEventListener('click', (e) => { if(e.target === modal) close(); });
-
-    const templates = {
-      "Ready for Pick-Up":
-`Good day, our dear customer, mabuhay! This is ServiTech. We are pleased to inform you that your order is now ready for pickup. You may claim your item at our JC Store at your most convenient time. Thank you for trusting our service!`,
-      "No Available Repair Part":
-`Good day, our dear customer, mabuhay! This is ServiTech. We would like to inform you that the required part for your device repair is currently unavailable. We apologize for the inconvenience. Kindly advise if you prefer to wait or proceed with cancellation. Thank you!`,
-      "Cancellation Confirmation":
-`Good day, our dear customer, mabuhay! This is ServiTech. We would like to confirm your cancellation request. Please reply YES to finalize the cancellation. Thank you, and we apologize for any inconvenience this may have caused.`,
-      "No Available Repairman":
-`Good day, our dear customer, mabuhay! This is ServiTech. We would like to notify you that there is currently no available repairman to process your repair request. We sincerely apologize for the inconvenience. We will update you as soon as a technician becomes available. Thank you for your patience.`
-    };
-
-    document.querySelectorAll('.cl-msgBtn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.getElementById('mCode').textContent = btn.dataset.code || '';
-        document.getElementById('mName').textContent = btn.dataset.name || '';
-        document.getElementById('mEmail').textContent = btn.dataset.email || '';
-        document.getElementById('mContact').textContent = btn.dataset.contact || '';
-        document.getElementById('mMessage').value = '';
-        modal.dataset.userId = btn.dataset.userId || '';
-        setSendStatus('');
-
-        modal.style.display = 'flex';
-      });
-    });
-
-    sendEmailBtn?.addEventListener('click', async () => {
-      const email = document.getElementById('mEmail')?.textContent.trim() || '';
-      const name = document.getElementById('mName')?.textContent.trim() || '';
-      const userId = modal?.dataset.userId || '';
-      const subject = 'ServiTech Service Update';
-      const body = document.getElementById('mMessage')?.value.trim() || '';
-
-      if (!email) {
-        setSendStatus('Customer email is missing.', 'error');
-        return;
-      }
-
-      if (!body) {
-        setSendStatus('Please enter a message before sending.', 'error');
-        return;
-      }
-
-      const originalText = sendEmailBtn.textContent;
-      sendEmailBtn.disabled = true;
-      sendEmailBtn.textContent = 'Sending...';
-      setSendStatus('Sending email...', 'pending');
-
-      const formData = new FormData();
-      formData.append('csrf_token', csrfToken);
-      formData.append('user_id', userId);
-      formData.append('email', email);
-      formData.append('name', name);
-      formData.append('subject', subject);
-      formData.append('message', body);
-
-      try {
-        const response = await fetch(sendEmailUrl, {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin'
-        });
-        const data = await response.json();
-
-        if (!response.ok || !data.ok) {
-          throw new Error(data.error || 'Email sending failed.');
-        }
-
-        setSendStatus(data.warning || data.message || 'Email sent.', data.warning ? 'error' : 'success');
-      } catch (error) {
-        setSendStatus(error.message || 'Email sending failed.', 'error');
-      } finally {
-        sendEmailBtn.disabled = false;
-        sendEmailBtn.textContent = originalText;
-      }
-    });
-
-    document.querySelectorAll('.cl-tplBtn').forEach(b => {
-      b.addEventListener('click', () => {
-        const key = b.dataset.tpl;
-        const msg = templates[key] || '';
-        const ta = document.getElementById('mMessage');
-        ta.value = msg + "\n\n";
-        ta.focus();
-        ta.selectionStart = ta.selectionEnd = ta.value.length;
-      });
-    });
-
-    document.querySelectorAll('.cl-copyBtn').forEach(b => {
-      b.addEventListener('click', async () => {
-        const id = b.dataset.copy;
-        const txt = document.getElementById(id)?.textContent || '';
-        try { await navigator.clipboard.writeText(txt); } catch(e) {}
-      });
-    });
   </script>
 
   <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
 </html>
-
-

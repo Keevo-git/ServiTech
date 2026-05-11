@@ -158,6 +158,10 @@ td.actions {
   background: #7f4f62;
 }
 
+.btn-message {
+  background: #214f91;
+}
+
 .btn-delete {
   background: transparent;
   border: 1px solid #e9bcc2;
@@ -172,6 +176,172 @@ td.actions {
   font-weight: 800;
 }
 
+.qmsg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(9, 20, 35, 0.56);
+}
+
+.qmsg-modal {
+  width: min(620px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  overflow: auto;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #d9e3ef;
+  box-shadow: 0 24px 70px rgba(8, 22, 42, 0.28);
+  padding: 22px;
+}
+
+.qmsg-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.qmsg-head p {
+  margin: 0 0 5px;
+  color: #c45f10;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.qmsg-head h3 {
+  margin: 0;
+  color: #102b4d;
+  font-size: 24px;
+}
+
+.qmsg-close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #f2f6fb;
+  color: #102b4d;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.qmsg-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #d8e2ee;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.qmsg-info span,
+.qmsg-field span {
+  display: block;
+  margin-bottom: 5px;
+  color: #5d728c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.qmsg-info strong {
+  color: #102b4d;
+  font-size: 14px;
+}
+
+.qmsg-templates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.qmsg-templates button {
+  min-height: 42px;
+  border: 1px solid #d8e2ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #102b4d;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.qmsg-templates button:hover {
+  border-color: #8fb0da;
+  background: #f4f8fd;
+}
+
+.qmsg-field textarea {
+  width: 100%;
+  min-height: 132px;
+  resize: vertical;
+  border: 1px solid #ccd9e8;
+  border-radius: 10px;
+  padding: 12px;
+  color: #102b4d;
+  font: inherit;
+}
+
+.qmsg-status {
+  min-height: 20px;
+  margin: 10px 0 0;
+  color: #496078;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.qmsg-status.is-pending {
+  color: #23518f;
+}
+
+.qmsg-status.is-success {
+  color: #176a32;
+}
+
+.qmsg-status.is-error {
+  color: #8d1717;
+}
+
+.qmsg-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.qmsg-btn {
+  min-width: 110px;
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.qmsg-btn--light {
+  background: #fff;
+  border-color: #d8e2ee;
+  color: #102b4d;
+}
+
+.qmsg-btn--primary {
+  background: #214f91;
+  color: #fff;
+}
+
+.qmsg-btn:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 @media (max-width: 980px) {
   .tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -184,6 +354,11 @@ td.actions {
   }
 
   .tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .qmsg-info,
+  .qmsg-templates {
     grid-template-columns: 1fr;
   }
 }

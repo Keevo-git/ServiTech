@@ -15,14 +15,12 @@ function respond(array $payload, int $status = 200): void
     exit();
 }
 
-$email = trim((string)($_POST["email"] ?? ""));
-$name = trim((string)($_POST["name"] ?? ""));
+$queueId = (int)($_POST["queue_id"] ?? 0);
 $message = trim((string)($_POST["message"] ?? ""));
-$subject = trim((string)($_POST["subject"] ?? "ServiTech Service Update"));
-$userId = (int)($_POST["user_id"] ?? 0);
+$subject = trim((string)($_POST["subject"] ?? "ServiTech Queue Update"));
 
-if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    respond(["ok" => false, "error" => "Customer email is missing or invalid."], 422);
+if ($queueId <= 0) {
+    respond(["ok" => false, "error" => "Queue entry is missing."], 422);
 }
 
 if ($message === "") {
@@ -30,41 +28,40 @@ if ($message === "") {
 }
 
 if ($subject === "") {
-    $subject = "ServiTech Service Update";
+    $subject = "ServiTech Queue Update";
 }
 
-if ($userId > 0) {
-    $userStmt = $pdo->prepare("
-        SELECT id, email, fullname
-        FROM users
-        WHERE id = :id
-        LIMIT 1
-    ");
-    $userStmt->execute([":id" => $userId]);
-} else {
-    $userStmt = $pdo->prepare("
-        SELECT id, email, fullname
-        FROM users
-        WHERE LOWER(email) = LOWER(:email)
-        LIMIT 1
-    ");
-    $userStmt->execute([":email" => $email]);
+$stmt = $pdo->prepare("
+    SELECT
+        q.id,
+        q.queue_code,
+        q.category,
+        q.user_id,
+        u.fullname,
+        u.email
+    FROM queues q
+    JOIN users u ON u.id = q.user_id
+    WHERE q.id = :id
+    LIMIT 1
+");
+$stmt->execute([":id" => $queueId]);
+$queue = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$queue) {
+    respond(["ok" => false, "error" => "Queue entry was not found."], 404);
 }
 
-$customer = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$customer) {
-    respond(["ok" => false, "error" => "Customer account was not found."], 404);
+$email = trim((string)($queue["email"] ?? ""));
+if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    respond(["ok" => false, "error" => "Customer email is missing or invalid."], 422);
 }
 
-$userId = (int)($customer["id"] ?? 0);
-$accountEmail = trim((string)($customer["email"] ?? ""));
-if (strcasecmp($accountEmail, $email) !== 0) {
-    respond(["ok" => false, "error" => "Customer email no longer matches this account."], 409);
-}
+$queueCode = trim((string)($queue["queue_code"] ?? ""));
+$customerName = trim((string)($queue["fullname"] ?? ""));
+$safeName = $customerName !== "" ? $customerName : "Customer";
 
-$safeName = $name !== "" ? $name : "Customer";
 $body = "Good day {$safeName},\n\n"
+    . "Queue Number: {$queueCode}\n\n"
     . $message
     . "\n\nServiTech: JC Repair Shop";
 
@@ -90,7 +87,7 @@ if (!$sent) {
     ], 500);
 }
 
-$notificationMessage = "ServiTech Service Update: " . $message;
+$notificationMessage = "Queue {$queueCode}: " . $message;
 $warning = "";
 
 try {
@@ -108,20 +105,21 @@ try {
 
     $notificationStmt = $pdo->prepare("
         INSERT INTO notifications (user_id, type, reference_id, message, is_read, created_at)
-        VALUES (:user_id, :type, NULL, :message, FALSE, NOW())
+        VALUES (:user_id, :type, :reference_id, :message, FALSE, NOW())
     ");
     $notificationStmt->execute([
-        ":user_id" => $userId,
-        ":type" => "admin_message",
+        ":user_id" => (int)$queue["user_id"],
+        ":type" => trim((string)($queue["category"] ?? "admin_message")),
+        ":reference_id" => $queueId,
         ":message" => $notificationMessage,
     ]);
 } catch (Throwable $exception) {
-    error_log("customer email notification insert failed: " . $exception->getMessage());
+    error_log("queue message notification insert failed: " . $exception->getMessage());
     $warning = "Email sent, but the account notification could not be created.";
 }
 
 respond([
     "ok" => true,
-    "message" => "Email sent to {$email} and added to the customer notifications.",
+    "message" => "Queue message sent to {$email} and added to the customer notifications.",
     "warning" => $warning,
 ]);
