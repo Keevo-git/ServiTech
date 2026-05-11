@@ -105,7 +105,7 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <title>Manage Announcement</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260511a1') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260511a2') ?>">
 </head>
 <body>
   <header class="navbar has-nav-menu">
