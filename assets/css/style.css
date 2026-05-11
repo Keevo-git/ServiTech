@@ -67,42 +67,94 @@ body {
 }
 
 .landing-announcement {
-  background: #fff7ed;
-  border-bottom: 1px solid #fed7aa;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(112deg, #4A0505 0%, #4A0505 52%, transparent 52.2%),
+    linear-gradient(112deg, transparent 0%, transparent 57%, #ff8b2c 57.2%, #ff8b2c 62%, transparent 62.2%),
+    linear-gradient(90deg, #fff8ef 0%, #fff2df 100%);
+  border-bottom: 1px solid rgba(74, 5, 5, 0.16);
+  box-shadow: 0 10px 24px rgba(74, 5, 5, 0.12);
 }
 
 .landing-announcement__inner {
   width: min(1120px, 92vw);
   margin: 0 auto;
-  padding: 14px 0;
+  min-height: 92px;
+  padding: 18px 0;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 14px;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
 }
 
-.landing-announcement__inner > span {
+.landing-announcement__badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
   display: inline-flex;
-  padding: 6px 10px;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #ffedd5, #ffffff);
+  color: #4A0505;
+  box-shadow: 0 12px 24px rgba(74, 5, 5, 0.2);
+  font-size: 24px;
+}
+
+.landing-announcement__content {
+  max-width: 760px;
+}
+
+.landing-announcement__content > span {
+  display: inline-flex;
+  margin-bottom: 6px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: #ffedd5;
-  color: #9a3412;
-  font-size: 12px;
+  background: rgba(255, 139, 44, 0.16);
+  color: #ffedd5;
+  border: 1px solid rgba(255, 237, 213, 0.32);
+  font-size: 11px;
   font-weight: 900;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .landing-announcement strong {
   display: block;
-  color: #4A0505;
-  font-size: 17px;
+  color: #ffffff;
+  font-size: clamp(18px, 2vw, 24px);
   margin-bottom: 4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
 .landing-announcement p {
   margin: 0;
-  color: #5f4434;
+  color: rgba(255, 248, 239, 0.9);
   line-height: 1.45;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .landing-announcement {
+    background:
+      linear-gradient(135deg, #4A0505 0%, #681414 68%, #ff8b2c 160%);
+  }
+
+  .landing-announcement__inner {
+    grid-template-columns: 46px minmax(0, 1fr);
+    min-height: auto;
+    padding: 14px 0;
+    gap: 12px;
+  }
+
+  .landing-announcement__badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    font-size: 20px;
+  }
 }
 
 
