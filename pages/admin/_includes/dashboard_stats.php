@@ -11,6 +11,17 @@ function admin_dashboard_safe_count(PDO $pdo, string $sql, array $params = []): 
     }
 }
 
+function admin_dashboard_fetch_rows(PDO $pdo, string $sql, array $params = []): array
+{
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
 function fetch_admin_dashboard_stats(PDO $pdo): array
 {
     // ✅ CUSTOMERS
@@ -51,9 +62,90 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
     );
 
+    $serviceExpression = "
+        COALESCE(
+            NULLIF(TRIM(details->>'service_label'), ''),
+            CASE
+                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('online_printorder', 'printing_online')
+                    OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
+                    THEN 'Online Print Order'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('walkin', 'printing_walkin') THEN 'Walk-in Printing'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) = 'printing' THEN 'Document Printing'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) = 'repair' THEN 'Repair Service'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) = 'installation' THEN 'Installation Service'
+                ELSE 'Other Service'
+            END
+        )
+    ";
+
+    $mostRequested = admin_dashboard_fetch_rows(
+        $pdo,
+        "
+        SELECT {$serviceExpression} AS label, COUNT(*) AS total
+        FROM queues
+        GROUP BY label
+        ORDER BY total DESC, label ASC
+        LIMIT 5
+        "
+    );
+
+    $serviceMix = admin_dashboard_fetch_rows(
+        $pdo,
+        "
+        SELECT
+            CASE
+                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('online_printorder', 'printing_online')
+                    OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
+                    THEN 'Online Printing'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('printing', 'walkin', 'printing_walkin') THEN 'Walk-in Printing'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) = 'repair' THEN 'Repair'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) = 'installation' THEN 'Installation'
+                ELSE 'Other'
+            END AS label,
+            COUNT(*) AS total
+        FROM queues
+        GROUP BY label
+        ORDER BY total DESC, label ASC
+        "
+    );
+
+    $todayQueues = admin_dashboard_safe_count(
+        $pdo,
+        "SELECT COUNT(*) FROM queues WHERE created_at >= CURRENT_DATE"
+    );
+
+    $todayCompleted = admin_dashboard_safe_count(
+        $pdo,
+        "
+        SELECT COUNT(*)
+        FROM queues
+        WHERE created_at >= CURRENT_DATE
+          AND UPPER(TRIM(COALESCE(status, ''))) = 'DONE'
+        "
+    );
+
+    $todayCancelled = admin_dashboard_safe_count(
+        $pdo,
+        "
+        SELECT COUNT(*)
+        FROM queues
+        WHERE created_at >= CURRENT_DATE
+          AND UPPER(TRIM(COALESCE(status, ''))) = 'CANCELLED'
+        "
+    );
+
     return [
         "customers" => $customers,
         "onlineOrders" => $onlineOrders,
         "activeQueue" => $activeQueue,
+        "analytics" => [
+            "mostRequested" => $mostRequested,
+            "serviceMix" => $serviceMix,
+            "today" => [
+                "queues" => $todayQueues,
+                "completed" => $todayCompleted,
+                "cancelled" => $todayCancelled,
+            ],
+        ],
     ];
 }

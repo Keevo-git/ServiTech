@@ -13,6 +13,10 @@ $dashboardStats = fetch_admin_dashboard_stats($pdo);
 $customers = $dashboardStats["customers"];
 $onlineOrders = $dashboardStats["onlineOrders"];
 $activeQueue = $dashboardStats["activeQueue"];
+$dashboardAnalytics = $dashboardStats["analytics"] ?? [];
+$mostRequested = is_array($dashboardAnalytics["mostRequested"] ?? null) ? $dashboardAnalytics["mostRequested"] : [];
+$serviceMix = is_array($dashboardAnalytics["serviceMix"] ?? null) ? $dashboardAnalytics["serviceMix"] : [];
+$todayAnalytics = is_array($dashboardAnalytics["today"] ?? null) ? $dashboardAnalytics["today"] : [];
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 ?>
 <!DOCTYPE html>
@@ -104,6 +108,95 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
       <p class="stat-note">Currently waiting for service</p>
     </div>
 
+  </section>
+
+  <h3 class="section-title">Live Analytics</h3>
+
+  <section class="analytics-grid">
+    <article class="analytics-card analytics-card--wide">
+      <div class="analytics-head">
+        <div>
+          <h4>Most Requested Services</h4>
+          <p>Ranked by total queue requests</p>
+        </div>
+        <span class="live-pill">Live</span>
+      </div>
+      <div class="analytics-list" id="mostRequestedList">
+        <?php if (!$mostRequested): ?>
+          <p class="analytics-empty">No queue requests yet.</p>
+        <?php else: ?>
+          <?php foreach ($mostRequested as $index => $item): ?>
+            <?php
+              $label = trim((string)($item["label"] ?? "Service"));
+              $total = (int)($item["total"] ?? 0);
+            ?>
+            <div class="analytics-row">
+              <span class="analytics-rank"><?= $index + 1 ?></span>
+              <span class="analytics-label"><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></span>
+              <strong><?= $total ?></strong>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </div>
+    </article>
+
+    <article class="analytics-card">
+      <div class="analytics-head">
+        <div>
+          <h4>Service Mix</h4>
+          <p>All-time request share</p>
+        </div>
+      </div>
+      <div class="analytics-bars" id="serviceMixBars">
+        <?php if (!$serviceMix): ?>
+          <p class="analytics-empty">No service data yet.</p>
+        <?php else: ?>
+          <?php
+            $maxServiceMix = max(array_map(static fn($item) => (int)($item["total"] ?? 0), $serviceMix));
+            $maxServiceMix = max(1, $maxServiceMix);
+          ?>
+          <?php foreach ($serviceMix as $item): ?>
+            <?php
+              $label = trim((string)($item["label"] ?? "Service"));
+              $total = (int)($item["total"] ?? 0);
+              $width = max(6, (int)round(($total / $maxServiceMix) * 100));
+            ?>
+            <div class="analytics-bar">
+              <div class="analytics-bar__meta">
+                <span><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></span>
+                <strong><?= $total ?></strong>
+              </div>
+              <div class="analytics-bar__track">
+                <span style="width: <?= $width ?>%"></span>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </div>
+    </article>
+
+    <article class="analytics-card">
+      <div class="analytics-head">
+        <div>
+          <h4>Today</h4>
+          <p>Queue activity since midnight</p>
+        </div>
+      </div>
+      <div class="today-metrics">
+        <div>
+          <span>New queues</span>
+          <strong id="todayQueuesCount"><?= (int)($todayAnalytics["queues"] ?? 0) ?></strong>
+        </div>
+        <div>
+          <span>Completed</span>
+          <strong id="todayCompletedCount"><?= (int)($todayAnalytics["completed"] ?? 0) ?></strong>
+        </div>
+        <div>
+          <span>Cancelled</span>
+          <strong id="todayCancelledCount"><?= (int)($todayAnalytics["cancelled"] ?? 0) ?></strong>
+        </div>
+      </div>
+    </article>
   </section>
 
   <h3 class="section-title">Quick Access</h3>

@@ -45,6 +45,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 🔥 REAL-TIME DASHBOARD UPDATE
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  }[char]));
+}
+
+function renderMostRequested(items) {
+  const list = document.getElementById("mostRequestedList");
+  if (!list) return;
+
+  if (!Array.isArray(items) || items.length === 0) {
+    list.innerHTML = '<p class="analytics-empty">No queue requests yet.</p>';
+    return;
+  }
+
+  list.innerHTML = items.map((item, index) => {
+    const total = Number(item.total || 0);
+    return `
+      <div class="analytics-row">
+        <span class="analytics-rank">${index + 1}</span>
+        <span class="analytics-label">${escapeHtml(item.label || "Service")}</span>
+        <strong>${Number.isFinite(total) ? total : 0}</strong>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderServiceMix(items) {
+  const list = document.getElementById("serviceMixBars");
+  if (!list) return;
+
+  if (!Array.isArray(items) || items.length === 0) {
+    list.innerHTML = '<p class="analytics-empty">No service data yet.</p>';
+    return;
+  }
+
+  const totals = items.map((item) => Number(item.total || 0)).filter(Number.isFinite);
+  const max = Math.max(1, ...totals);
+  list.innerHTML = items.map((item) => {
+    const total = Number(item.total || 0);
+    const safeTotal = Number.isFinite(total) ? total : 0;
+    const width = Math.max(6, Math.round((safeTotal / max) * 100));
+    return `
+      <div class="analytics-bar">
+        <div class="analytics-bar__meta">
+          <span>${escapeHtml(item.label || "Service")}</span>
+          <strong>${safeTotal}</strong>
+        </div>
+        <div class="analytics-bar__track"><span style="width: ${width}%"></span></div>
+      </div>
+    `;
+  }).join("");
+}
+
+function updateAnalytics(analytics) {
+  const data = analytics || {};
+  renderMostRequested(data.mostRequested);
+  renderServiceMix(data.serviceMix);
+
+  const today = data.today || {};
+  const todayQueuesEl = document.getElementById("todayQueuesCount");
+  const todayCompletedEl = document.getElementById("todayCompletedCount");
+  const todayCancelledEl = document.getElementById("todayCancelledCount");
+
+  if (todayQueuesEl) todayQueuesEl.textContent = Number(today.queues || 0);
+  if (todayCompletedEl) todayCompletedEl.textContent = Number(today.completed || 0);
+  if (todayCancelledEl) todayCancelledEl.textContent = Number(today.cancelled || 0);
+}
+
 async function fetchStats() {
   try {
     const res = await fetch("/pages/admin/get_dashboard_stats.php");
@@ -57,6 +130,7 @@ async function fetchStats() {
     if (customersEl) customersEl.textContent = data.customers;
     if (ordersEl) ordersEl.textContent = data.onlineOrders;
     if (queueEl) queueEl.textContent = data.activeQueue;
+    updateAnalytics(data.analytics);
 
   } catch (err) {
     console.error("Failed to fetch stats:", err);
