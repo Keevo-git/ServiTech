@@ -1,5 +1,30 @@
 /* use your custoL.css as-is (no code changes required) */
 
+.cl-sendStatus {
+  min-height: 20px;
+  margin: 8px 0 0;
+  color: #496078;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cl-sendStatus.is-pending {
+  color: #23518f;
+}
+
+.cl-sendStatus.is-success {
+  color: #176a32;
+}
+
+.cl-sendStatus.is-error {
+  color: #8d1717;
+}
+
+#sendEmailBtn:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 * { font-family: "Segoe UI", Arial, sans-serif !important; }
 
 :root{

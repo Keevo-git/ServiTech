@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/../../../config/csrf.php";
 
 $stmt = $pdo->prepare("
   SELECT
@@ -23,6 +24,7 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute();
 $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$csrfToken = servitech_csrf_token();
 
 function customer_code_from_id(int $id): string {
   return "C-" . str_pad((string)$id, 3, "0", STR_PAD_LEFT);
@@ -178,11 +180,12 @@ function customer_code_from_id(int $id): string {
       <div class="cl-section">
         <p class="cl-sectionTitle">Message</p>
         <textarea class="cl-textarea" id="mMessage" placeholder="Type your message here..."></textarea>
+        <p class="cl-sendStatus" id="sendEmailStatus" aria-live="polite"></p>
       </div>
 
       <div class="cl-actions">
         <button class="cl-btn cl-btn--light" type="button" id="cancelBtn">Cancel</button>
-        <a class="cl-btn cl-btn--maroon" id="sendEmailLink" href="#">Send Email</a>
+        <button class="cl-btn cl-btn--maroon" type="button" id="sendEmailBtn">Send Email</button>
       </div>
       </div>
     </div>
@@ -190,6 +193,8 @@ function customer_code_from_id(int $id): string {
   <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
   <script>
+    const csrfToken = <?= json_encode($csrfToken) ?>;
+    const sendEmailUrl = <?= json_encode(admin_url('/pages/admin/customer_list/send_customer_email.php')) ?>;
     const searchInput = document.getElementById('searchInput');
     const rows = Array.from(document.querySelectorAll('#customersTable tbody tr.cl-row'));
     searchInput?.addEventListener('input', () => {
@@ -198,7 +203,14 @@ function customer_code_from_id(int $id): string {
     });
 
     const modal = document.getElementById('msgModal');
+    const sendEmailBtn = document.getElementById('sendEmailBtn');
+    const sendEmailStatus = document.getElementById('sendEmailStatus');
     const close = () => modal.style.display = 'none';
+    const setSendStatus = (message, type = '') => {
+      if (!sendEmailStatus) return;
+      sendEmailStatus.textContent = message;
+      sendEmailStatus.className = `cl-sendStatus${type ? ` is-${type}` : ''}`;
+    };
     document.getElementById('closeModal')?.addEventListener('click', close);
     document.getElementById('cancelBtn')?.addEventListener('click', close);
     modal?.addEventListener('click', (e) => { if(e.target === modal) close(); });
@@ -221,26 +233,59 @@ function customer_code_from_id(int $id): string {
         document.getElementById('mEmail').textContent = btn.dataset.email || '';
         document.getElementById('mContact').textContent = btn.dataset.contact || '';
         document.getElementById('mMessage').value = '';
-
-        const email = btn.dataset.email || '';
-        const subject = 'ServiTech Service Update';
-        document.getElementById('sendEmailLink').href =
-          `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+        setSendStatus('');
 
         modal.style.display = 'flex';
       });
     });
 
-    document.getElementById('sendEmailLink')?.addEventListener('click', (e) => {
-      e.preventDefault();
+    sendEmailBtn?.addEventListener('click', async () => {
       const email = document.getElementById('mEmail')?.textContent.trim() || '';
+      const name = document.getElementById('mName')?.textContent.trim() || '';
       const subject = 'ServiTech Service Update';
       const body = document.getElementById('mMessage')?.value.trim() || '';
 
-      if (!email) return;
+      if (!email) {
+        setSendStatus('Customer email is missing.', 'error');
+        return;
+      }
 
-      window.location.href =
-        `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      if (!body) {
+        setSendStatus('Please enter a message before sending.', 'error');
+        return;
+      }
+
+      const originalText = sendEmailBtn.textContent;
+      sendEmailBtn.disabled = true;
+      sendEmailBtn.textContent = 'Sending...';
+      setSendStatus('Sending email...', 'pending');
+
+      const formData = new FormData();
+      formData.append('csrf_token', csrfToken);
+      formData.append('email', email);
+      formData.append('name', name);
+      formData.append('subject', subject);
+      formData.append('message', body);
+
+      try {
+        const response = await fetch(sendEmailUrl, {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || 'Email sending failed.');
+        }
+
+        setSendStatus(data.message || 'Email sent.', 'success');
+      } catch (error) {
+        setSendStatus(error.message || 'Email sending failed.', 'error');
+      } finally {
+        sendEmailBtn.disabled = false;
+        sendEmailBtn.textContent = originalText;
+      }
     });
 
     document.querySelectorAll('.cl-tplBtn').forEach(b => {
