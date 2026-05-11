@@ -3,6 +3,10 @@
   margin: 22px auto 36px;
 }
 
+body .navbar .nav-toggle {
+  display: none;
+}
+
 .announcement-hero {
   margin-bottom: 18px;
   padding: 24px;
