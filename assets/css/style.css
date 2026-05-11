@@ -567,6 +567,38 @@ body.modal-open {
   line-height: 1.55;
 }
 
+.service-option-card__price,
+.service-detail-price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(154, 79, 8, 0.08);
+  color: #4A0505;
+}
+
+.service-detail-price {
+  margin: 0 0 16px;
+}
+
+.service-option-card__price span,
+.service-detail-price span {
+  color: #7b5f4a;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.service-option-card__price strong,
+.service-detail-price strong {
+  color: #4A0505;
+  font-size: 16px;
+  font-weight: 900;
+}
+
 .service-option-card__cta {
   font-size: 13px;
   font-weight: 700;

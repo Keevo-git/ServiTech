@@ -37,6 +37,23 @@ function servitechUrl(path) {
   return `${servitechBasePath()}${cleanPath}`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  }[char]));
+}
+
+function formatServicePrice(price) {
+  if (price === null || price === undefined || price === "") return "";
+  const numericPrice = Number(price);
+  if (!Number.isFinite(numericPrice)) return "";
+  return `PHP ${numericPrice.toFixed(2)}`;
+}
+
 function openModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
@@ -384,6 +401,7 @@ async function loadServicesFromDatabase() {
           title: service.name,
           icon: category,
           lines: lines.length > 0 ? lines : [service.description || ""],
+          priceLabel: formatServicePrice(service.price),
           badge: service.active ? "Selectable" : undefined,
           detailKey: serviceDetailKeys[category]?.[service.name],
         };
@@ -444,9 +462,12 @@ function renderServiceModalBody(service) {
         .map((card) => {
           const clickable = card.detailKey ? " clickable" : "";
           const attrs = card.detailKey
-            ? ` role="button" tabindex="0" aria-label="Open ${card.title} details"`
+            ? ` role="button" tabindex="0" aria-label="Open ${escapeHtml(card.title)} details"`
             : "";
           const badge = card.badge ? `<span class="service-option-card__badge">${card.badge}</span>` : "";
+          const price = card.priceLabel
+            ? `<p class="service-option-card__price"><span>Price</span><strong>${escapeHtml(card.priceLabel)}</strong></p>`
+            : "";
           const cta = card.detailKey
             ? `<span class="service-option-card__cta">View details</span>`
             : `<span class="service-option-card__cta service-option-card__cta--muted">Information only</span>`;
@@ -458,8 +479,9 @@ function renderServiceModalBody(service) {
             ${badge}
           </div>
           <div class="service-option-card__content">
-            <h4>${card.title}</h4>
-            ${card.lines.map((line) => `<p>${line}</p>`).join("")}
+            <h4>${escapeHtml(card.title)}</h4>
+            ${card.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+            ${price}
           </div>
           <div class="service-option-card__bottom">
             ${cta}
@@ -472,7 +494,12 @@ function renderServiceModalBody(service) {
 }
 
 function renderServiceDetailModalBody(detail) {
+  const price = detail.priceLabel
+    ? `<div class="service-detail-price"><span>Price</span><strong>${escapeHtml(detail.priceLabel)}</strong></div>`
+    : "";
+
   return `
+    ${price}
     <div class="service-grid">
       ${detail.cards
         .map(
@@ -482,8 +509,8 @@ function renderServiceDetailModalBody(detail) {
             <div class="service-option-card__icon">${getServiceIcon(card.icon)}</div>
           </div>
           <div class="service-option-card__content">
-            <h4>${card.title}</h4>
-            ${card.lines.map((line) => `<p>${line}</p>`).join("")}
+            <h4>${escapeHtml(card.title)}</h4>
+            ${card.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
           </div>
         </div>`
         )
@@ -532,7 +559,10 @@ async function openServiceDetailModal(detailKey) {
       titleEl.textContent = service.name;
       if (descriptionEl) descriptionEl.textContent = service.description || "Review the available service details.";
       const cards = parseDescriptionBlocks(service.description || "");
-      bodyEl.innerHTML = renderServiceDetailModalBody({ cards });
+      bodyEl.innerHTML = renderServiceDetailModalBody({
+        cards,
+        priceLabel: formatServicePrice(service.price),
+      });
     } else {
       const fallback = serviceModalDetailData[detailKey];
       if (!fallback) return;
