@@ -37,6 +37,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($action === "clear") {
             $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
             $notice = "Announcement hidden from the landing page.";
+        } elseif ($action === "delete") {
+            $id = (int)($_POST["id"] ?? 0);
+            if ($id <= 0) {
+                throw new RuntimeException("Invalid announcement.");
+            }
+
+            $stmt = $pdo->prepare("DELETE FROM announcements WHERE id = :id");
+            $stmt->execute([":id" => $id]);
+            $notice = "Announcement deleted.";
         } else {
             $title = trim((string)($_POST["title"] ?? ""));
             $message = trim((string)($_POST["message"] ?? ""));
@@ -207,9 +216,17 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
                 <strong><?= ann_h($item["title"] ?? "") ?></strong>
                 <p><?= ann_h($item["message"] ?? "") ?></p>
               </div>
-              <span class="<?= !empty($item["active"]) ? "is-active" : "" ?>">
-                <?= !empty($item["active"]) ? "Active" : "Hidden" ?>
-              </span>
+              <div class="announcement-item__actions">
+                <span class="<?= !empty($item["active"]) ? "is-active" : "" ?>">
+                  <?= !empty($item["active"]) ? "Active" : "Hidden" ?>
+                </span>
+                <form method="post" onsubmit="return confirm('Delete this announcement?');">
+                  <input type="hidden" name="csrf_token" value="<?= ann_h($csrfToken) ?>">
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="id" value="<?= (int)($item["id"] ?? 0) ?>">
+                  <button type="submit">Delete</button>
+                </form>
+              </div>
             </div>
           <?php endforeach; ?>
         </div>
