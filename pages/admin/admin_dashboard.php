@@ -26,7 +26,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech Admin Dashboard</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260411h3') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260511analytics2') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -112,8 +112,8 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 
   <h3 class="section-title">Live Analytics</h3>
 
-  <section class="analytics-grid">
-    <article class="analytics-card analytics-card--wide">
+  <section class="analytics-grid analytics-grid--visual">
+    <article class="analytics-card analytics-card--wide analytics-card--dark">
       <div class="analytics-head">
         <div>
           <h4>Most Requested Services</h4>
@@ -121,7 +121,8 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
         </div>
         <span class="live-pill">Live</span>
       </div>
-      <div class="analytics-list analytics-list--ranked" id="mostRequestedList">
+      <div class="analytics-chart-shell">
+        <div class="analytics-list analytics-list--ranked" id="mostRequestedList">
         <?php if (!$mostRequested): ?>
           <p class="analytics-empty">No queue requests yet.</p>
         <?php else: ?>
@@ -145,17 +146,18 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
             </div>
           <?php endforeach; ?>
         <?php endif; ?>
+        </div>
       </div>
     </article>
 
-    <article class="analytics-card">
+    <article class="analytics-card analytics-card--chart">
       <div class="analytics-head">
         <div>
           <h4>Service Mix</h4>
           <p>All-time request share</p>
         </div>
       </div>
-      <div class="analytics-bars" id="serviceMixBars">
+      <div class="analytics-bars analytics-bars--visual" id="serviceMixBars">
         <?php if (!$serviceMix): ?>
           <p class="analytics-empty">No service data yet.</p>
         <?php else: ?>
@@ -183,7 +185,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
       </div>
     </article>
 
-    <article class="analytics-card">
+    <article class="analytics-card analytics-card--today">
       <div class="analytics-head">
         <div>
           <h4>Today</h4>
