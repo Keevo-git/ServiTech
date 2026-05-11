@@ -29,27 +29,35 @@ if ($message === "") {
     respond(["ok" => false, "error" => "Please enter a message before sending."], 422);
 }
 
-if ($userId <= 0) {
-    respond(["ok" => false, "error" => "Customer account is missing."], 422);
-}
-
 if ($subject === "") {
     $subject = "ServiTech Service Update";
 }
 
-$userStmt = $pdo->prepare("
-    SELECT id, email, fullname
-    FROM users
-    WHERE id = :id
-    LIMIT 1
-");
-$userStmt->execute([":id" => $userId]);
+if ($userId > 0) {
+    $userStmt = $pdo->prepare("
+        SELECT id, email, fullname
+        FROM users
+        WHERE id = :id
+        LIMIT 1
+    ");
+    $userStmt->execute([":id" => $userId]);
+} else {
+    $userStmt = $pdo->prepare("
+        SELECT id, email, fullname
+        FROM users
+        WHERE LOWER(email) = LOWER(:email)
+        LIMIT 1
+    ");
+    $userStmt->execute([":email" => $email]);
+}
+
 $customer = $userStmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$customer) {
     respond(["ok" => false, "error" => "Customer account was not found."], 404);
 }
 
+$userId = (int)($customer["id"] ?? 0);
 $accountEmail = trim((string)($customer["email"] ?? ""));
 if (strcasecmp($accountEmail, $email) !== 0) {
     respond(["ok" => false, "error" => "Customer email no longer matches this account."], 409);
