@@ -158,8 +158,17 @@ td.actions {
   background: #7f4f62;
 }
 
-.btn-message {
+td.actions button.btn-message {
   background: #214f91;
+  color: #fff;
+  border: none;
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+td.actions button.btn-message:hover {
+  background: #183e76;
 }
 
 .btn-delete {

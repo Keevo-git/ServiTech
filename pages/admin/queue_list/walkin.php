@@ -117,7 +117,7 @@ $rows = $stmt->fetchAll();
                   <button class="btn-done" data-id="<?= (int)$r["id"] ?>">Done</button>
                   <button class="btn-cancel" data-id="<?= (int)$r["id"] ?>">Cancel</button>
                   <button
-                    class="btn-pickup btn-message"
+                    class="btn-message"
                     data-id="<?= (int)$r["id"] ?>"
                     data-queue-code="<?= esc($r["queue_code"]) ?>"
                     data-customer="<?= esc($r["fullname"]) ?>"
