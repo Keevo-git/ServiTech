@@ -20,7 +20,7 @@ $print_url = $is_admin
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <link rel="icon" type="images/png" href="<?= htmlspecialchars(servitech_url('/assets/images/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" >
-  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260511landing1'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260511landing2'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 
@@ -130,7 +130,7 @@ $print_url = $is_admin
 
   <div id="service-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal modal-content service-modal" role="dialog" aria-modal="true" aria-labelledby="service-modal-title">
-      <button class="close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceModal()">&times;</button>
+      <button class="btn-close close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceModal()">&times;</button>
       <div class="service-modal__header">
         <div class="service-modal__eyebrow">Service Overview</div>
         <h3 id="service-modal-title" class="service-modal__title">Service Details</h3>
@@ -146,7 +146,7 @@ $print_url = $is_admin
 
   <div id="service-detail-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal modal-content service-modal" role="dialog" aria-modal="true" aria-labelledby="service-detail-modal-title">
-      <button class="close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceDetailModal()">&times;</button>
+      <button class="btn-close close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceDetailModal()">&times;</button>
       <div class="service-modal__header">
         <div class="service-modal__eyebrow">Detailed View</div>
         <h3 id="service-detail-modal-title" class="service-modal__title">More Details</h3>
@@ -164,7 +164,7 @@ $print_url = $is_admin
   <?php include __DIR__ . "/components/footer.php"; ?>
 
   <script src="/assets/js/csrf.js"></script>
-  <script src="/assets/js/main.js?v=20260511landing1"></script>
+  <script src="/assets/js/main.js?v=20260511landing2"></script>
   <script src="/assets/js/header-menu.js" defer></script>
 </body>
 </html>

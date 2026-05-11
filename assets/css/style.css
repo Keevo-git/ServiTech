@@ -377,16 +377,22 @@ body.modal-open {
   width: 42px;
   height: 42px;
   border-radius: 999px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   color: #5b3310;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  font-size: 28px;
+  line-height: 1;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .service-modal__close:hover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255, 139, 44, 0.14);
-  transform: rotate(90deg);
+  color: #4A0505;
 }
 
 .service-modal__header {
@@ -594,6 +600,10 @@ body.modal-open {
   color: #4A0505;
 }
 
+.service-option-card__price {
+  display: none;
+}
+
 .service-detail-price {
   margin: 0 0 16px;
 }
@@ -696,15 +706,30 @@ body.modal-open {
   cursor: pointer;
 }
 
+.btn-close,
 .close-btn {
   position: absolute;
   top: 12px;
   right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   background: none;
   border: none;
   font-size: 24px;
+  line-height: 1;
   color: #4A0505;
   cursor: pointer;
+}
+
+.btn-close:hover,
+.close-btn:hover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-divider {

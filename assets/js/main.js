@@ -73,6 +73,7 @@ function closeModal(id) {
    ============================== */
 const serviceModalData = {
   printing: {
+    category: "printing",
     title: "Printing Service",
     description: "Choose a printing option to view the available sizes, packages, and pricing details.",
     cards: [
@@ -95,6 +96,7 @@ const serviceModalData = {
     ],
   },
   repair: {
+    category: "repair",
     title: "Device Repair Service",
     cards: [
       { title: "LCD Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱1200 – ₱5500"] },
@@ -107,6 +109,7 @@ const serviceModalData = {
     ],
   },
   installation: {
+    category: "installation",
     title: "Installation / Software",
     cards: [
       { title: "Reprogram Service", lines: ["Price range: ₱1000 – ₱4000"] },
@@ -379,6 +382,34 @@ function getServiceIconKey(category, serviceName) {
   return "default";
 }
 
+function getServiceCardFallbackLine(category, serviceName) {
+  const normalizedName = String(serviceName || "").toLowerCase();
+
+  if (category === "printing") {
+    if (normalizedName.includes("document printing")) return "Print documents using common paper sizes and color options.";
+    if (normalizedName.includes("xerox")) return "Photocopy service for common paper sizes.";
+    if (normalizedName.includes("rush id")) return "ID photo packages for common size requirements.";
+    if (normalizedName.includes("laminat")) return "Protect documents with thin or thick laminating options.";
+  }
+
+  if (category === "repair") return "Hardware repair service for supported mobile phones and laptops.";
+  if (category === "installation") return "Software setup and device recovery support.";
+  return "Service information available upon request.";
+}
+
+function isServiceCardPriceLine(line) {
+  const value = String(line || "").trim();
+  return /(?:^|\s)(?:price|php|\u20b1)\b/i.test(value) || /\u20b1\s*\d/i.test(value);
+}
+
+function getServiceCardLines(service, card) {
+  const category = service.category || "";
+  const lines = (card.lines || []).filter((line) => !isServiceCardPriceLine(line));
+
+  if (lines.length > 0) return lines;
+  return [getServiceCardFallbackLine(category, card.title)];
+}
+
 /* ==============================
    Load Services Dynamically from Database
    ============================== */
@@ -406,6 +437,7 @@ async function loadServicesFromDatabase() {
       };
 
       const categoryData = serviceModalData[category] || { title: "", cards: [] };
+      categoryData.category = category;
       categoryData.cards = data.services.map((service) => {
         const lines = (service.description || "")
           .split("\n")
@@ -480,12 +512,10 @@ function renderServiceModalBody(service) {
             ? ` role="button" tabindex="0" aria-label="Open ${escapeHtml(card.title)} details"`
             : "";
           const badge = card.badge ? `<span class="service-option-card__badge">${card.badge}</span>` : "";
-          const price = card.priceLabel
-            ? `<p class="service-option-card__price"><span>Price</span><strong>${escapeHtml(card.priceLabel)}</strong></p>`
-            : "";
           const cta = card.detailKey
             ? `<span class="service-option-card__cta">View details</span>`
             : `<span class="service-option-card__cta service-option-card__cta--muted">Information only</span>`;
+          const lines = getServiceCardLines(service, card);
 
           return `
         <div class="detail-card service-option-card${clickable}" data-detail-key="${card.detailKey || ""}"${attrs}>
@@ -495,8 +525,7 @@ function renderServiceModalBody(service) {
           </div>
           <div class="service-option-card__content">
             <h4>${escapeHtml(card.title)}</h4>
-            ${card.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
-            ${price}
+            ${lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
           </div>
           <div class="service-option-card__bottom">
             ${cta}
