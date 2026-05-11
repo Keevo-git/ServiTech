@@ -311,22 +311,22 @@ serviceModalData.installation.cards = [
 
 serviceModalDetailData.documentPrinting.description = "Select the document format and print style that best matches your request.";
 serviceModalDetailData.documentPrinting.cards = [
-  { title: "Long Bond Paper (Colored)", icon: "print", lines: ["Full - PHP 10.00", "Half - PHP 5.00"] },
-  { title: "Long Bond Paper (B&W)", icon: "print", lines: ["PHP 5.00"] },
-  { title: "Short Bond Paper (Colored)", icon: "print", lines: ["Full - PHP 10.00", "Half - PHP 5.00"] },
-  { title: "Short Bond Paper (B&W)", icon: "print", lines: ["PHP 5.00"] },
-  { title: "A4 (Colored)", icon: "print", lines: ["Full - PHP 10.00", "Half - PHP 5.00"] },
-  { title: "A4 (B&W)", icon: "print", lines: ["PHP 5.00"] },
+  { title: "Long Bond Paper (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
+  { title: "Long Bond Paper (B&W)", icon: "print", lines: ["\u20B15.00"] },
+  { title: "Short Bond Paper (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
+  { title: "Short Bond Paper (B&W)", icon: "print", lines: ["\u20B15.00"] },
+  { title: "A4 (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
+  { title: "A4 (B&W)", icon: "print", lines: ["\u20B15.00"] },
 ];
 
 serviceModalDetailData.rushId.description = "Compare the available Rush ID package combinations and included photo sizes.";
 serviceModalDetailData.rushId.cards = [
-  { title: "Package 1", icon: "id", lines: ["PHP 40.00", "1x1 (4pcs), 2x2 (2pcs)"] },
-  { title: "Package 2", icon: "id", lines: ["PHP 30.00", "1x1 (6pcs)"] },
-  { title: "Package 3", icon: "id", lines: ["PHP 30.00", "2x2 (4pcs)"] },
-  { title: "Package 4", icon: "id", lines: ["PHP 50.00", "2x2 (4pcs), 1x1 (4pcs)"] },
-  { title: "Package 5", icon: "id", lines: ["PHP 30.00", "Passport size (4pcs)"] },
-  { title: "Package 6", icon: "id", lines: ["PHP 50.00", "1x1 (10pcs)"] },
+  { title: "Package 1", icon: "id", lines: ["\u20B140.00", "1x1 - 4pcs, 2x2 - 2pcs"] },
+  { title: "Package 2", icon: "id", lines: ["\u20B130.00", "1x1 - 6pcs"] },
+  { title: "Package 3", icon: "id", lines: ["\u20B130.00", "2x2 - 4pcs"] },
+  { title: "Package 4", icon: "id", lines: ["\u20B150.00", "2x2 - 4pcs, 1x1 - 4pcs"] },
+  { title: "Package 5", icon: "id", lines: ["\u20B130.00", "Passport size - 4pcs"] },
+  { title: "Package 6", icon: "id", lines: ["\u20B150.00", "1x1 - 10pcs"] },
 ];
 
 function getServiceIcon(iconKey) {
@@ -364,6 +364,21 @@ function getServiceIcon(iconKey) {
   return icons[iconKey] || icons.default;
 }
 
+function getServiceIconKey(category, serviceName) {
+  const normalizedName = String(serviceName || "").toLowerCase();
+
+  if (category === "printing") {
+    if (normalizedName.includes("xerox")) return "copy";
+    if (normalizedName.includes("rush id")) return "id";
+    if (normalizedName.includes("laminat")) return "laminate";
+    return "print";
+  }
+
+  if (category === "repair") return "repair";
+  if (category === "installation") return "install";
+  return "default";
+}
+
 /* ==============================
    Load Services Dynamically from Database
    ============================== */
@@ -399,7 +414,7 @@ async function loadServicesFromDatabase() {
 
         return {
           title: service.name,
-          icon: category,
+          icon: getServiceIconKey(category, service.name),
           lines: lines.length > 0 ? lines : [service.description || ""],
           priceLabel: formatServicePrice(service.price),
           badge: service.active ? "Selectable" : undefined,
@@ -541,42 +556,18 @@ function openServiceModal(sectionId) {
 }
 
 async function openServiceDetailModal(detailKey) {
-  const detailMeta = {
-    documentPrinting: { category: "printing", name: "Document Printing" },
-    rushId: { category: "printing", name: "Rush ID" },
-  };
-
   const overlay = document.getElementById("service-detail-modal");
   const titleEl = document.getElementById("service-detail-modal-title");
   const descriptionEl = document.getElementById("service-detail-modal-description");
   const bodyEl = document.getElementById("service-detail-modal-body");
   if (!overlay || !titleEl || !bodyEl) return;
 
-  const meta = detailMeta[detailKey];
-  if (meta) {
-    const service = await fetchServiceDetail(meta.category, meta.name);
-    if (service) {
-      titleEl.textContent = service.name;
-      if (descriptionEl) descriptionEl.textContent = service.description || "Review the available service details.";
-      const cards = parseDescriptionBlocks(service.description || "");
-      bodyEl.innerHTML = renderServiceDetailModalBody({
-        cards,
-        priceLabel: formatServicePrice(service.price),
-      });
-    } else {
-      const fallback = serviceModalDetailData[detailKey];
-      if (!fallback) return;
-      titleEl.textContent = fallback.title;
-      if (descriptionEl) descriptionEl.textContent = fallback.description || "Review the available service details.";
-      bodyEl.innerHTML = renderServiceDetailModalBody(fallback);
-    }
-  } else {
-    const detail = serviceModalDetailData[detailKey];
-    if (!detail) return;
-    titleEl.textContent = detail.title;
-    if (descriptionEl) descriptionEl.textContent = detail.description || "Review the available service details.";
-    bodyEl.innerHTML = renderServiceDetailModalBody(detail);
-  }
+  const detail = serviceModalDetailData[detailKey];
+  if (!detail) return;
+
+  titleEl.textContent = detail.title;
+  if (descriptionEl) descriptionEl.textContent = detail.description || "Review the available service details.";
+  bodyEl.innerHTML = renderServiceDetailModalBody(detail);
 
   overlay.style.display = "flex";
   overlay.setAttribute("aria-hidden", "false");

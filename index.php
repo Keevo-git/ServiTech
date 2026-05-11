@@ -20,7 +20,7 @@ $print_url = $is_admin
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <link rel="icon" type="images/png" href="<?= htmlspecialchars(servitech_url('/assets/images/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" >
-  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260424auth1'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260511landing1'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 
@@ -164,7 +164,7 @@ $print_url = $is_admin
   <?php include __DIR__ . "/components/footer.php"; ?>
 
   <script src="/assets/js/csrf.js"></script>
-  <script src="/assets/js/main.js?v=20260411-modal2"></script>
+  <script src="/assets/js/main.js?v=20260511landing1"></script>
   <script src="/assets/js/header-menu.js" defer></script>
 </body>
 </html>
