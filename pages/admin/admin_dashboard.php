@@ -13,6 +13,7 @@ $dashboardStats = fetch_admin_dashboard_stats($pdo);
 $customers = $dashboardStats["customers"];
 $onlineOrders = $dashboardStats["onlineOrders"];
 $activeQueue = $dashboardStats["activeQueue"];
+$dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,8 +60,8 @@ $activeQueue = $dashboardStats["activeQueue"];
         <span>&#x1F512;</span>
         Admin Access
       </span>
-      <span class="hero-time">
-        <?php echo date('M d, Y, h:i A'); ?>
+      <span class="hero-time" id="adminNow">
+        <?= htmlspecialchars($dashboardNow->format("M d, Y, h:i:s A"), ENT_QUOTES, "UTF-8") ?>
       </span>
     </div>
   </section>

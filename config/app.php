@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set("Asia/Manila");
+
 function servitech_base_path(): string
 {
     static $basePath = null;
