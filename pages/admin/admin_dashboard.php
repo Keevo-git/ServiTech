@@ -121,18 +121,26 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
         </div>
         <span class="live-pill">Live</span>
       </div>
-      <div class="analytics-list" id="mostRequestedList">
+      <div class="analytics-list analytics-list--ranked" id="mostRequestedList">
         <?php if (!$mostRequested): ?>
           <p class="analytics-empty">No queue requests yet.</p>
         <?php else: ?>
+          <?php
+            $maxMostRequested = max(array_map(static fn($item) => (int)($item["total"] ?? 0), $mostRequested));
+            $maxMostRequested = max(1, $maxMostRequested);
+          ?>
           <?php foreach ($mostRequested as $index => $item): ?>
             <?php
               $label = trim((string)($item["label"] ?? "Service"));
               $total = (int)($item["total"] ?? 0);
+              $width = max(8, (int)round(($total / $maxMostRequested) * 100));
             ?>
             <div class="analytics-row">
               <span class="analytics-rank"><?= $index + 1 ?></span>
-              <span class="analytics-label"><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></span>
+              <span class="analytics-row__body">
+                <span class="analytics-label"><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></span>
+                <span class="analytics-mini-track"><span style="width: <?= $width ?>%"></span></span>
+              </span>
               <strong><?= $total ?></strong>
             </div>
           <?php endforeach; ?>
@@ -184,14 +192,17 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
       </div>
       <div class="today-metrics">
         <div>
+          <i aria-hidden="true"></i>
           <span>New queues</span>
           <strong id="todayQueuesCount"><?= (int)($todayAnalytics["queues"] ?? 0) ?></strong>
         </div>
         <div>
+          <i aria-hidden="true"></i>
           <span>Completed</span>
           <strong id="todayCompletedCount"><?= (int)($todayAnalytics["completed"] ?? 0) ?></strong>
         </div>
         <div>
+          <i aria-hidden="true"></i>
           <span>Cancelled</span>
           <strong id="todayCancelledCount"><?= (int)($todayAnalytics["cancelled"] ?? 0) ?></strong>
         </div>

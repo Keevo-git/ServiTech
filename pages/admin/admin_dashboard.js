@@ -64,13 +64,20 @@ function renderMostRequested(items) {
     return;
   }
 
+  const totals = items.map((item) => Number(item.total || 0)).filter(Number.isFinite);
+  const max = Math.max(1, ...totals);
   list.innerHTML = items.map((item, index) => {
     const total = Number(item.total || 0);
+    const safeTotal = Number.isFinite(total) ? total : 0;
+    const width = Math.max(8, Math.round((safeTotal / max) * 100));
     return `
       <div class="analytics-row">
         <span class="analytics-rank">${index + 1}</span>
-        <span class="analytics-label">${escapeHtml(item.label || "Service")}</span>
-        <strong>${Number.isFinite(total) ? total : 0}</strong>
+        <span class="analytics-row__body">
+          <span class="analytics-label">${escapeHtml(item.label || "Service")}</span>
+          <span class="analytics-mini-track"><span style="width: ${width}%"></span></span>
+        </span>
+        <strong>${safeTotal}</strong>
       </div>
     `;
   }).join("");
