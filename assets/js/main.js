@@ -313,6 +313,7 @@ serviceModalData.installation.cards = [
 ];
 
 serviceModalDetailData.documentPrinting.description = "Select the document format and print style that best matches your request.";
+serviceModalDetailData.documentPrinting.title = "Document Printing Price Ranges";
 serviceModalDetailData.documentPrinting.cards = [
   { title: "Long Bond Paper (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
   { title: "Long Bond Paper (B&W)", icon: "print", lines: ["\u20B15.00"] },
@@ -324,13 +325,26 @@ serviceModalDetailData.documentPrinting.cards = [
 
 serviceModalDetailData.rushId.description = "Compare the available Rush ID package combinations and included photo sizes.";
 serviceModalDetailData.rushId.cards = [
-  { title: "Package 1", icon: "id", lines: ["\u20B140.00", "1x1 - 4pcs, 2x2 - 2pcs"] },
-  { title: "Package 2", icon: "id", lines: ["\u20B130.00", "1x1 - 6pcs"] },
-  { title: "Package 3", icon: "id", lines: ["\u20B130.00", "2x2 - 4pcs"] },
-  { title: "Package 4", icon: "id", lines: ["\u20B150.00", "2x2 - 4pcs, 1x1 - 4pcs"] },
-  { title: "Package 5", icon: "id", lines: ["\u20B130.00", "Passport size - 4pcs"] },
-  { title: "Package 6", icon: "id", lines: ["\u20B150.00", "1x1 - 10pcs"] },
+  { title: "Package 1", icon: "id", price: "\u20B140.00", lines: ["1x1 (4pcs)", "2x2 (2pcs)"] },
+  { title: "Package 2", icon: "id", price: "\u20B130.00", lines: ["1x1 (6pcs)"] },
+  { title: "Package 3", icon: "id", price: "\u20B130.00", lines: ["2x2 (4pcs)"] },
+  { title: "Package 4", icon: "id", price: "\u20B150.00", lines: ["2x2 (4pcs)", "1x1 (4pcs)"] },
+  { title: "Package 5", icon: "id", price: "\u20B130.00", lines: ["Passport size (4pcs)"] },
+  { title: "Package 6", icon: "id", price: "\u20B150.00", lines: ["1x1 (10pcs)"] },
 ];
+
+function getServiceDetailKey(category, serviceName) {
+  if (category !== "printing") return undefined;
+
+  const normalizedName = String(serviceName || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, " ");
+
+  if (normalizedName.includes("document") && normalizedName.includes("printing")) return "documentPrinting";
+  if (normalizedName.includes("rush") && normalizedName.includes("id")) return "rushId";
+  return undefined;
+}
 
 function getServiceIcon(iconKey) {
   const icons = {
@@ -429,13 +443,6 @@ async function loadServicesFromDatabase() {
       }
 
       // Convert API response to serviceModalData format
-      const serviceDetailKeys = {
-        printing: {
-          "Document Printing": "documentPrinting",
-          "Rush ID": "rushId",
-        },
-      };
-
       const categoryData = serviceModalData[category] || { title: "", cards: [] };
       categoryData.category = category;
       categoryData.cards = data.services.map((service) => {
@@ -450,7 +457,7 @@ async function loadServicesFromDatabase() {
           lines: lines.length > 0 ? lines : [service.description || ""],
           priceLabel: formatServicePrice(service.price),
           badge: service.active ? "Selectable" : undefined,
-          detailKey: serviceDetailKeys[category]?.[service.name],
+          detailKey: getServiceDetailKey(category, service.name),
         };
       });
 
@@ -547,17 +554,22 @@ function renderServiceDetailModalBody(detail) {
 
   return `
     ${price}
-    <div class="service-grid">
+    <div class="service-grid service-detail-grid">
       ${detail.cards
         .map(
           (card) => `
-        <div class="detail-card service-option-card">
+        <div class="detail-card service-option-card service-detail-card">
           <div class="service-option-card__top">
             <div class="service-option-card__icon">${getServiceIcon(card.icon)}</div>
           </div>
           <div class="service-option-card__content">
-            <h4>${escapeHtml(card.title)}</h4>
-            ${card.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+            <div class="service-detail-card__heading">
+              <h4>${escapeHtml(card.title)}</h4>
+              ${card.price ? `<strong>${escapeHtml(card.price)}</strong>` : ""}
+            </div>
+            <div class="service-detail-card__lines">
+              ${card.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+            </div>
           </div>
         </div>`
         )

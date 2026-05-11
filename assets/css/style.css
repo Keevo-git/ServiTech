@@ -641,6 +641,50 @@ body.modal-open {
   font-weight: 900;
 }
 
+.service-modal .service-detail-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.service-modal .service-detail-card {
+  min-height: 0;
+  gap: 14px;
+  padding: 20px;
+}
+
+.service-detail-card__heading {
+  display: grid;
+  gap: 8px;
+}
+
+.service-detail-card__heading h4 {
+  margin: 0;
+}
+
+.service-detail-card__heading strong {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 139, 44, 0.14);
+  color: #8a4304;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.service-detail-card__lines {
+  display: grid;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.service-detail-card__lines p {
+  font-size: 14px;
+  color: #4b443c;
+}
+
 .service-option-card__cta {
   font-size: 13px;
   font-weight: 700;
@@ -835,6 +879,26 @@ body.modal-open {
 @media (max-width: 520px){
   .hero-cards { grid-template-columns: repeat(1, 1fr); }
   .service-type-cards { grid-template-columns: 1fr; }
+
+  .modal-content.service-modal {
+    width: calc(100vw - 20px);
+    min-height: 0;
+    max-height: calc(100vh - 20px);
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .service-modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .service-modal__action {
+    width: 100%;
+  }
+
+  .service-modal .service-detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
  
 
