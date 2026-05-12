@@ -105,7 +105,7 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <title>Manage Announcement</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260513a3') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260513a4') ?>">
 </head>
 <body>
   <header class="navbar has-nav-menu">
@@ -188,9 +188,9 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="landing-announcement-preview__card">
               <div class="landing-announcement-preview__icon" aria-hidden="true">&#x1F4E3;</div>
               <div class="landing-announcement-preview__text">
-                <span class="landing-announcement-preview__label">ANNOUNCEMENT</span>
+                <span class="landing-announcement-preview__label">Announcement</span>
                 <span class="landing-announcement-preview__title"><?= ann_h($activeAnnouncement["title"] ?? "") ?></span>
-                <span class="landing-announcement-preview__status"><?= ann_h($activeAnnouncement["message"] ?? "") ?></span>
+                <span class="landing-announcement-preview__message"><?= ann_h($activeAnnouncement["message"] ?? "") ?></span>
               </div>
             </div>
           </div>
@@ -222,14 +222,20 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
                 <p><?= ann_h($item["message"] ?? "") ?></p>
               </div>
               <div class="announcement-item__actions">
-                <span class="<?= !empty($item["active"]) ? "is-active" : "" ?>">
+                <button
+                  class="status-btn <?= !empty($item["active"]) ? "active" : "hidden" ?>"
+                  type="button"
+                  data-id="<?= (int)($item["id"] ?? 0) ?>"
+                  data-status="<?= !empty($item["active"]) ? "hidden" : "active" ?>"
+                  aria-label="<?= !empty($item["active"]) ? "Hide announcement" : "Set announcement active" ?>"
+                >
                   <?= !empty($item["active"]) ? "Active" : "Hidden" ?>
-                </span>
+                </button>
                 <form method="post" onsubmit="return confirm('Delete this announcement?');">
                   <input type="hidden" name="csrf_token" value="<?= ann_h($csrfToken) ?>">
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="<?= (int)($item["id"] ?? 0) ?>">
-                  <button type="submit">Delete</button>
+                  <button class="announcement-delete-btn" type="submit">Delete</button>
                 </form>
               </div>
             </div>
@@ -240,6 +246,36 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   </main>
 
   <?php require_once __DIR__ . "/_includes/admin_footer.php"; ?>
+  <script>
+    document.querySelectorAll(".status-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        btn.disabled = true;
+
+        fetch("update_announcement_status.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": <?= json_encode($csrfToken) ?>
+          },
+          body: JSON.stringify({
+            id: btn.dataset.id,
+            status: btn.dataset.status
+          })
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (!data.ok) {
+              throw new Error(data.error || "Unable to update announcement.");
+            }
+            location.reload();
+          })
+          .catch((error) => {
+            btn.disabled = false;
+            alert(error.message);
+          });
+      });
+    });
+  </script>
   <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
 </html>
