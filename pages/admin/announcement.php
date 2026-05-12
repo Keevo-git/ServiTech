@@ -105,7 +105,7 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <title>Manage Announcement</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260513a4') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260513a5') ?>">
 </head>
 <body>
   <header class="navbar has-nav-menu">
@@ -191,6 +191,13 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
                 <span class="landing-announcement-preview__label">Announcement</span>
                 <span class="landing-announcement-preview__title"><?= ann_h($activeAnnouncement["title"] ?? "") ?></span>
                 <span class="landing-announcement-preview__message"><?= ann_h($activeAnnouncement["message"] ?? "") ?></span>
+                <?php if (!empty($activeAnnouncement["updated_at"])): ?>
+                  <time class="landing-announcement-preview__date" datetime="<?= ann_h((string)$activeAnnouncement["updated_at"]) ?>">
+                    <?= ann_h(date("F j, Y", strtotime((string)$activeAnnouncement["updated_at"]))) ?>
+                    <span aria-hidden="true">&bull;</span>
+                    <?= ann_h(date("g:i A", strtotime((string)$activeAnnouncement["updated_at"]))) ?>
+                  </time>
+                <?php endif; ?>
               </div>
             </div>
           </div>

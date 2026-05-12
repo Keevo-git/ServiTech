@@ -27,7 +27,7 @@ try {
     )
   ");
   $announcementStmt = $pdo->query("
-    SELECT title, message
+    SELECT title, message, updated_at
     FROM announcements
     WHERE active = TRUE
     ORDER BY updated_at DESC, id DESC
@@ -45,7 +45,7 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <link rel="icon" type="images/png" href="<?= htmlspecialchars(servitech_url('/assets/images/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" >
-  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260513landing10'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260513landing11'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 
@@ -94,6 +94,13 @@ try {
           <span class="announcement-message">
             <?= htmlspecialchars((string)($landingAnnouncement["message"] ?? ""), ENT_QUOTES, "UTF-8") ?>
           </span>
+          <?php if (!empty($landingAnnouncement["updated_at"])): ?>
+            <time class="announcement-date" datetime="<?= htmlspecialchars((string)$landingAnnouncement["updated_at"], ENT_QUOTES, "UTF-8") ?>">
+              <?= htmlspecialchars(date("F j, Y", strtotime((string)$landingAnnouncement["updated_at"])), ENT_QUOTES, "UTF-8") ?>
+              <span aria-hidden="true">&bull;</span>
+              <?= htmlspecialchars(date("g:i A", strtotime((string)$landingAnnouncement["updated_at"])), ENT_QUOTES, "UTF-8") ?>
+            </time>
+          <?php endif; ?>
         </div>
       </div>
     </section>
