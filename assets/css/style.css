@@ -66,119 +66,77 @@ body {
   color: #fff;
 }
 
-.landing-announcement {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(120deg, #071b33 0%, #4A0505 56%, #681414 100%);
-  border-bottom: 5px solid #ff8b2c;
-  box-shadow: 0 14px 32px rgba(7, 27, 51, 0.28);
-}
-
-.landing-announcement::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: clamp(36px, 10vw, 150px);
-  width: 112px;
-  height: 100%;
-  transform: skewX(-18deg);
-  background: linear-gradient(180deg, #ff8b2c 0%, #ffbc48 100%);
-  box-shadow:
-    -24px 0 0 rgba(255, 255, 255, 0.12),
-    24px 0 0 rgba(255, 139, 44, 0.26);
-}
-
-.landing-announcement::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.landing-announcement__inner {
-  width: min(1120px, 92vw);
-  margin: 0 auto;
-  min-height: 108px;
-  padding: 22px 0;
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  align-items: center;
-  gap: 16px;
-  position: relative;
-  z-index: 1;
-}
-
-.landing-announcement__badge {
-  width: 54px;
-  height: 54px;
-  border-radius: 16px;
-  display: inline-flex;
+.announcement-bar {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 16px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, #ffffff, #ffedd5);
-  color: #4A0505;
-  border: 2px solid rgba(255, 188, 72, 0.55);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
-  font-size: 24px;
-}
-
-.landing-announcement__content {
-  max-width: 760px;
-}
-
-.landing-announcement__content > span {
-  display: inline-flex;
-  margin-bottom: 6px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #ff8b2c;
+  gap: 10px;
+  background: linear-gradient(90deg, #4A0505, #8f2424 56%, #a83232);
   color: #ffffff;
-  border: 1px solid rgba(255, 237, 213, 0.4);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  box-shadow: 0 6px 18px rgba(74, 5, 5, 0.18);
 }
 
-.landing-announcement strong {
-  display: block;
+.announcement-bar__icon {
+  flex: 0 0 auto;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.announcement-bar__text {
+  min-width: 0;
+  max-width: min(1080px, calc(100vw - 64px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: center;
+  overflow: hidden;
+}
+
+.announcement-bar__text strong {
+  flex: 0 0 auto;
+  max-width: 34%;
   color: #ffffff;
-  font-size: clamp(18px, 2vw, 24px);
-  margin-bottom: 4px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.34);
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.landing-announcement p {
-  margin: 0;
-  color: #fff3df;
-  line-height: 1.45;
-  font-weight: 750;
+.announcement-bar__text span {
+  min-width: 0;
+  color: #fff1e8;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 720px) {
-  .landing-announcement {
-    background: linear-gradient(135deg, #071b33 0%, #4A0505 70%, #7a1c1c 100%);
+  .announcement-bar {
+    min-height: 52px;
+    align-items: flex-start;
+    padding: 9px 14px;
   }
 
-  .landing-announcement::before {
-    right: -42px;
-    width: 74px;
-    opacity: 0.72;
+  .announcement-bar__icon {
+    padding-top: 2px;
   }
 
-  .landing-announcement__inner {
-    grid-template-columns: 46px minmax(0, 1fr);
-    min-height: auto;
-    padding: 14px 0;
-    gap: 12px;
+  .announcement-bar__text {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
   }
 
-  .landing-announcement__badge {
-    width: 44px;
-    height: 44px;
-    border-radius: 13px;
-    font-size: 20px;
+  .announcement-bar__text strong {
+    max-width: 100%;
   }
 }
 
@@ -188,7 +146,7 @@ body {
   background: linear-gradient(180deg, #ff772e, #ffbc48); 
   color: #fff;
   text-align: center;
-  padding: 100px 20px;
+  padding: 72px 20px 92px;
 }
 
 .hero h2 {
@@ -2684,7 +2642,7 @@ body {
 }
 
 .hero {
-  padding: clamp(56px, 10vw, 100px) 20px;
+  padding: clamp(52px, 7vw, 72px) 20px clamp(72px, 9vw, 92px);
 }
 
 .hero h2 {
