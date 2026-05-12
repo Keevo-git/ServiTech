@@ -148,54 +148,41 @@ body .navbar .nav-toggle {
 
 .landing-announcement-preview {
   margin-bottom: 14px;
-  min-height: 48px;
-  padding: 8px 14px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   border-radius: 8px;
-  background: linear-gradient(90deg, #4A0505, #8f2424 56%, #a83232);
+  background: linear-gradient(90deg, #7a0c0c, #b83232);
   color: #ffffff;
-  box-shadow: 0 8px 18px rgba(74, 5, 5, 0.16);
+  box-shadow: 0 4px 14px rgba(74, 5, 5, 0.16);
 }
 
-.landing-announcement-preview__icon {
-  flex: 0 0 auto;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.landing-announcement-preview__text {
-  min-width: 0;
+.landing-announcement-preview__content {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  max-width: 100%;
   font-size: 14px;
-  line-height: 1.35;
+  line-height: 1.4;
   text-align: center;
-  overflow: hidden;
+  flex-wrap: wrap;
 }
 
-.landing-announcement-preview__text strong {
-  flex: 0 0 auto;
-  max-width: 34%;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 800;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.landing-announcement-preview__icon {
+  font-size: 16px;
+  line-height: 1;
 }
 
-.landing-announcement-preview__text span {
-  min-width: 0;
-  color: #fff1e8;
+.landing-announcement-preview__title {
+  font-weight: 600;
+}
+
+.landing-announcement-preview__status {
+  opacity: 0.86;
+  font-size: 13px;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .announcement-empty {
@@ -294,25 +281,6 @@ body .navbar .nav-toggle {
 }
 
 @media (max-width: 620px) {
-  .landing-announcement-preview {
-    align-items: flex-start;
-  }
-
-  .landing-announcement-preview__icon {
-    padding-top: 2px;
-  }
-
-  .landing-announcement-preview__text {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 2px;
-    text-align: left;
-  }
-
-  .landing-announcement-preview__text strong {
-    max-width: 100%;
-  }
-
   .announcement-item {
     grid-template-columns: 1fr;
   }

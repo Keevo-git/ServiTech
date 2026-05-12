@@ -105,7 +105,7 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <title>Manage Announcement</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260513a1') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260513a2') ?>">
 </head>
 <body>
   <header class="navbar has-nav-menu">
@@ -183,12 +183,12 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
           <p>Only one announcement is shown at a time.</p>
         </div>
 
-        <?php if ($activeAnnouncement): ?>
+        <?php if (!empty($activeAnnouncement["title"])): ?>
           <div class="landing-announcement-preview" role="status" aria-label="Announcement preview">
-            <span class="landing-announcement-preview__icon" aria-hidden="true">&#x1F4E3;</span>
-            <div class="landing-announcement-preview__text">
-              <strong><?= ann_h($activeAnnouncement["title"] ?? "") ?></strong>
-              <span><?= ann_h($activeAnnouncement["message"] ?? "") ?></span>
+            <div class="landing-announcement-preview__content">
+              <span class="landing-announcement-preview__icon" aria-hidden="true">&#x1F4E3;</span>
+              <span class="landing-announcement-preview__title"><?= ann_h($activeAnnouncement["title"] ?? "") ?></span>
+              <span class="landing-announcement-preview__status"><?= ann_h($activeAnnouncement["message"] ?? "") ?></span>
             </div>
           </div>
           <form method="post" class="announcement-clear">
