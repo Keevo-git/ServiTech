@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     updateClock();
-    setInterval(updateClock, 30000);
+    setInterval(updateClock, 1000);
   }
 
   const counters = Array.from(document.querySelectorAll(".value[data-count]"));
