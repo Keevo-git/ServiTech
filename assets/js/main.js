@@ -81,12 +81,11 @@ const serviceModalData = {
   printing: {
     category: "printing",
     title: "Printing Service",
-    description: "Choose a printing option to view the available sizes, packages, and pricing details.",
+    description: "Review printing options, available sizes, packages, and pricing details.",
     cards: [
       {
         title: "Document Printing",
         icon: "print",
-        badge: "Selectable",
         lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
         detailKey: "documentPrinting",
       },
@@ -94,7 +93,6 @@ const serviceModalData = {
       {
         title: "Rush ID",
         icon: "id",
-        badge: "Selectable",
         lines: ["Choose between packages 1–6.", "Price varies by selected package."],
         detailKey: "rushId",
       },
@@ -279,19 +277,17 @@ function escCloseServiceDetailModal(e) {
   if (e.key === "Escape") closeServiceDetailModal();
 }
 
-serviceModalData.printing.description = "Choose a printing option to view the available sizes, packages, and pricing details.";
+serviceModalData.printing.description = "Review printing options, available sizes, packages, and pricing details.";
 serviceModalData.printing.cards = [
   {
     title: "Document Printing",
     icon: "print",
-    badge: "Selectable",
     lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
     detailKey: "documentPrinting",
   },
   {
     title: "Rush ID",
     icon: "id",
-    badge: "Selectable",
     lines: ["Choose between packages 1-6.", "Price varies by selected package."],
     detailKey: "rushId",
   },
@@ -328,7 +324,7 @@ serviceModalData.installation.cards = [
   { title: "Bypass Password", icon: "install", lines: ["Price range: PHP 1000 - PHP 3000"] },
 ];
 
-serviceModalDetailData.documentPrinting.description = "Select the document format and print style that best matches your request.";
+serviceModalDetailData.documentPrinting.description = "Review document formats, print styles, and price ranges.";
 serviceModalDetailData.documentPrinting.title = "Document Printing Price Ranges";
 serviceModalDetailData.documentPrinting.cards = [
   { title: "Long Bond Paper (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
@@ -473,7 +469,6 @@ async function loadServicesFromDatabase() {
           lines: lines.length > 0 ? lines : [service.description || ""],
           priceLabel: formatServicePrice(service.price),
           priceRange: service.price_range || "",
-          badge: service.active ? "Selectable" : undefined,
           detailKey: getServiceDetailKey(category, service.name),
         };
       });
@@ -535,7 +530,6 @@ function renderServiceModalBody(service) {
           const attrs = card.detailKey
             ? ` role="button" tabindex="0" aria-label="Open ${escapeHtml(card.title)} details"`
             : "";
-          const badge = card.badge ? `<span class="service-option-card__badge">${card.badge}</span>` : "";
           const lines = getServiceCardLines(service, card);
           const priceRange = formatServicePriceRange(card.priceRange);
           const priceRangeMarkup = priceRange
@@ -552,7 +546,6 @@ function renderServiceModalBody(service) {
         <div class="detail-card service-option-card${clickable}" data-detail-key="${card.detailKey || ""}"${attrs}>
           <div class="service-option-card__top">
             <div class="${iconClass}">${getServiceIcon(card.icon)}</div>
-            ${badge}
           </div>
           <div class="service-option-card__content">
             <h4>${escapeHtml(card.title)}</h4>

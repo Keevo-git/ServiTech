@@ -694,15 +694,6 @@ body.modal-open {
   margin: auto;
 }
 
-.service-option-card__badge {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(154, 79, 8, 0.08);
-  color: #9a4f08;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .service-option-card h4 {
   margin: 0;
   padding-bottom: 10px;
