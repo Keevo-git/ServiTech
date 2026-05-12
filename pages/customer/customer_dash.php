@@ -281,23 +281,47 @@ $dashboardQueues = [
       min-height: 220px !important;
     }
 
+    body.customer-layout.customer-page--dashboard .customer-hero {
+      padding: 0 !important;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__inner {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 40px 20px;
+      box-sizing: border-box;
+    }
+
     body.customer-layout.customer-page--dashboard .customer-hero,
     body.customer-layout.customer-page--dashboard .customer-hero h2,
-    body.customer-layout.customer-page--dashboard .customer-hero p {
+    body.customer-layout.customer-page--dashboard .customer-hero p,
+    body.customer-layout.customer-page--dashboard .customer-hero__time {
       color: #fff;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero h2 {
+      margin-bottom: 8px;
       font-weight: 700;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero p {
+      margin-bottom: 0;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__time {
-      display: block;
-      margin-top: 14px;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.15);
+      font-size: 0.85rem;
+      font-weight: 500;
+      line-height: 1.3;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 18px rgba(92, 42, 4, 0.13);
     }
 
     .queue-carousel-card {
@@ -726,11 +750,13 @@ $dashboardQueues = [
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
 <section class="customer-hero">
-  <h2>Welcome, <span id="customerName"><?php echo htmlspecialchars($display_name); ?></span>!</h2>
-  <p>Manage your queue, request status and print orders.</p>
-  <time class="customer-hero__time" id="customerNow" datetime="<?php echo htmlspecialchars($dashboardNow->format(DateTimeInterface::ATOM), ENT_QUOTES, "UTF-8"); ?>">
-    <?php echo htmlspecialchars($dashboardNow->format("F d, Y, h:i A"), ENT_QUOTES, "UTF-8"); ?>
-  </time>
+  <div class="customer-hero__inner">
+    <h2>Welcome, <span id="customerName"><?php echo htmlspecialchars($display_name); ?></span>!</h2>
+    <p>Manage your queue, request status and print orders.</p>
+    <time class="customer-hero__time live-datetime" id="customerNow" datetime="<?php echo htmlspecialchars($dashboardNow->format(DateTimeInterface::ATOM), ENT_QUOTES, "UTF-8"); ?>">
+      <?php echo htmlspecialchars($dashboardNow->format("M d, Y, h:i:s A"), ENT_QUOTES, "UTF-8"); ?>
+    </time>
+  </div>
 </section>
 
 <section class="customer-dashboard">
@@ -824,6 +850,7 @@ $dashboardQueues = [
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit",
       hour12: true
     });
 
