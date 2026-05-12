@@ -206,6 +206,7 @@ function fetch_latest_queue_items(PDO $pdo, string $categoryKey, int $limit): ar
   return $items;
 }
 $display_name = format_fullname($fullname);
+$dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $queueCategories = ["online_print", "printing", "installation", "repair"];
 $queueCategoryMeta = [];
 $activeQueues = [];
@@ -278,6 +279,25 @@ $dashboardQueues = [
       width: 100% !important;
       height: 100% !important;
       min-height: 220px !important;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero,
+    body.customer-layout.customer-page--dashboard .customer-hero h2,
+    body.customer-layout.customer-page--dashboard .customer-hero p {
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero h2 {
+      font-weight: 700;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__time {
+      display: block;
+      margin-top: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
     }
 
     .queue-carousel-card {
@@ -708,6 +728,9 @@ $dashboardQueues = [
 <section class="customer-hero">
   <h2>Welcome, <span id="customerName"><?php echo htmlspecialchars($display_name); ?></span>!</h2>
   <p>Manage your queue, request status and print orders.</p>
+  <time class="customer-hero__time" id="customerNow" datetime="<?php echo htmlspecialchars($dashboardNow->format(DateTimeInterface::ATOM), ENT_QUOTES, "UTF-8"); ?>">
+    <?php echo htmlspecialchars($dashboardNow->format("F d, Y, h:i A"), ENT_QUOTES, "UTF-8"); ?>
+  </time>
 </section>
 
 <section class="customer-dashboard">
@@ -791,6 +814,28 @@ $dashboardQueues = [
   let dashboardQueues = <?php echo json_encode($dashboardQueues, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
   let activeQueueIndex = 0;
   let recentQueueIndex = 0;
+
+  const customerNowEl = document.getElementById("customerNow");
+  if (customerNowEl) {
+    const customerClockFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
+
+    const updateCustomerClock = () => {
+      const now = new Date();
+      customerNowEl.textContent = customerClockFormatter.format(now);
+      customerNowEl.dateTime = now.toISOString();
+    };
+
+    updateCustomerClock();
+    window.setInterval(updateCustomerClock, 1000);
+  }
 
   function servitechBasePath() {
     const pathname = window.location.pathname || "";

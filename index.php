@@ -27,7 +27,7 @@ try {
     )
   ");
   $announcementStmt = $pdo->query("
-    SELECT title, message, updated_at
+    SELECT title, message
     FROM announcements
     WHERE active = TRUE
     ORDER BY updated_at DESC, id DESC
@@ -94,13 +94,6 @@ try {
           <span class="announcement-message">
             <?= htmlspecialchars((string)($landingAnnouncement["message"] ?? ""), ENT_QUOTES, "UTF-8") ?>
           </span>
-          <?php if (!empty($landingAnnouncement["updated_at"])): ?>
-            <time class="announcement-date" datetime="<?= htmlspecialchars((string)$landingAnnouncement["updated_at"], ENT_QUOTES, "UTF-8") ?>">
-              <?= htmlspecialchars(date("F j, Y", strtotime((string)$landingAnnouncement["updated_at"])), ENT_QUOTES, "UTF-8") ?>
-              <span aria-hidden="true">&bull;</span>
-              <?= htmlspecialchars(date("g:i A", strtotime((string)$landingAnnouncement["updated_at"])), ENT_QUOTES, "UTF-8") ?>
-            </time>
-          <?php endif; ?>
         </div>
       </div>
     </section>
