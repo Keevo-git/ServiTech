@@ -45,7 +45,7 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <link rel="icon" type="images/png" href="<?= htmlspecialchars(servitech_url('/assets/images/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" >
-  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260513landing8'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260513landing9'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 
@@ -83,17 +83,20 @@ try {
   </header>
 
   <?php if (!empty($landingAnnouncement["title"])): ?>
-    <div class="announcement-bar" role="status" aria-label="Announcement">
-      <div class="announcement-content">
-        <span class="announcement-icon" aria-hidden="true">&#x1F4E3;</span>
-        <span class="announcement-title">
-          <?= htmlspecialchars((string)($landingAnnouncement["title"] ?? ""), ENT_QUOTES, "UTF-8") ?>
-        </span>
-        <span class="announcement-status">
-          <?= htmlspecialchars((string)($landingAnnouncement["message"] ?? ""), ENT_QUOTES, "UTF-8") ?>
-        </span>
+    <section class="announcement-section" role="status" aria-label="Announcement">
+      <div class="announcement-card">
+        <div class="announcement-icon" aria-hidden="true">&#x1F4E3;</div>
+        <div class="announcement-text">
+          <span class="announcement-label">ANNOUNCEMENT</span>
+          <span class="announcement-title">
+            <?= htmlspecialchars((string)($landingAnnouncement["title"] ?? ""), ENT_QUOTES, "UTF-8") ?>
+          </span>
+          <span class="announcement-status">
+            <?= htmlspecialchars((string)($landingAnnouncement["message"] ?? ""), ENT_QUOTES, "UTF-8") ?>
+          </span>
+        </div>
       </div>
-    </div>
+    </section>
   <?php endif; ?>
 
   <!-- HERO -->

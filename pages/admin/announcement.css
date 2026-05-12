@@ -148,41 +148,66 @@ body .navbar .nav-toggle {
 
 .landing-announcement-preview {
   margin-bottom: 14px;
-  padding: 10px 14px;
+  padding: 16px 18px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   border-radius: 8px;
-  background: linear-gradient(90deg, #7a0c0c, #b83232);
+  background: linear-gradient(90deg, #5c0a0a, #a83232);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(74, 5, 5, 0.16);
+  border-bottom: 3px solid #ff8b2c;
+  box-shadow: 0 10px 22px rgba(74, 5, 5, 0.16);
 }
 
-.landing-announcement-preview__content {
+.landing-announcement-preview__card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 15px;
   max-width: 100%;
-  font-size: 14px;
-  line-height: 1.4;
-  text-align: center;
-  flex-wrap: wrap;
 }
 
 .landing-announcement-preview__icon {
-  font-size: 16px;
+  flex: 0 0 auto;
+  background: #f5d7b5;
+  color: #7a2e0e;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 18px;
   line-height: 1;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+
+.landing-announcement-preview__text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.landing-announcement-preview__label {
+  width: fit-content;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: #ff9d4d;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .landing-announcement-preview__title {
-  font-weight: 600;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .landing-announcement-preview__status {
-  opacity: 0.86;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.88);
   font-size: 13px;
-  font-weight: 500;
+  line-height: 1.4;
 }
 
 .announcement-empty {
