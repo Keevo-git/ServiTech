@@ -31,7 +31,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 <body class="admin-dashboard">
 
 <header class="topbar has-nav-menu">
-  <div class="topbar-inner">
+  <div class="topbar-inner header-container">
     <div class="brand">
       <p class="brand-tag">Control Center</p>
       <span>ServiTech Admin</span>
@@ -54,9 +54,9 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
   </div>
 </header>
 
-<main class="container">
+<main class="container main-container dashboard-content">
 
-  <section class="hero">
+  <section class="hero hero-wrapper hero-container">
     <h1>Operations Dashboard</h1>
     <p>Live overview of customer activity, orders, and service queue.</p>
     <div class="hero-meta">
@@ -214,7 +214,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 
   <h3 class="section-title">Quick Access</h3>
 
-  <section class="quick-grid">
+  <section class="quick-grid quick-access-section quick-access-grid">
     <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link">
       <article class="card">
         <div class="icon">&#x23F3;</div>

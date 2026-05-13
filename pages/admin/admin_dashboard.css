@@ -40,13 +40,21 @@ body.admin-dashboard .topbar{
 }
 
 body.admin-dashboard .topbar-inner{
-  width: min(1200px, 92vw);
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 0;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+body.admin-dashboard .header-container{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 body.admin-dashboard .brand{
@@ -97,8 +105,8 @@ body.admin-dashboard .btn-home{
 }
 
 body.admin-dashboard .hero{
-  width: min(1200px, 92vw);
-  margin: 22px auto 0;
+  width: 100%;
+  margin: 0;
   background: linear-gradient(135deg, #19375f, #24588f 55%, #2e6fae);
   color: #f7fbff;
   padding: 26px 28px;
@@ -146,21 +154,45 @@ body.admin-dashboard .hero-time{
 }
 
 body.admin-dashboard .hero{
-  margin-bottom: 18px;
+  margin-bottom: 0;
 }
 
 body.admin-dashboard .container{
-  width: min(1200px, 92vw);
-  margin: 18px auto 34px;
-  padding: 0;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 34px;
+  padding: 20px;
   background: transparent;
   min-height: auto;
+}
+
+body.admin-dashboard .main-container{
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
+}
+
+body.admin-dashboard .dashboard-content{
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+body.admin-dashboard .hero-wrapper{
+  padding-top: 30px;
+}
+
+body.admin-dashboard .hero-container{
+  width: 100%;
+  border-radius: 16px;
 }
 
 body.admin-dashboard .stats{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 20px;
+  width: 100%;
 }
 
 body.admin-dashboard .stat{
@@ -193,7 +225,7 @@ body.admin-dashboard .stat-note{
 }
 
 body.admin-dashboard .section-title{
-  margin: 20px 0 10px;
+  margin: 0 0 -10px;
   font-size: 18px;
   letter-spacing: .3px;
 }
@@ -516,8 +548,19 @@ body.admin-dashboard .today-metrics strong{
 
 body.admin-dashboard .quick-grid{
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+body.admin-dashboard .quick-access-section{
+  width: 100%;
+}
+
+body.admin-dashboard .quick-access-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
 }
 
 body.admin-dashboard .card-link{
@@ -747,7 +790,7 @@ body.admin-dashboard .topbar.has-nav-menu .nav-toggle__bar {
 
 @media (max-width: 900px) {
   body.admin-dashboard .topbar.has-nav-menu .topbar-inner {
-    padding: 12px 0;
+    padding: 12px 20px;
     flex-wrap: wrap;
   }
 

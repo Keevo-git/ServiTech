@@ -234,41 +234,62 @@ $dashboardQueues = [
   <link rel="stylesheet" href="/assets/css/style.css?v=20260406b3">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b3">
   <style>
-    body.customer-layout.customer-page--dashboard .customer-dashboard {
-      display: grid;
-      grid-template-columns: 1fr 1fr !important;
-      gap: 24px;
-      align-items: stretch;
+    body.customer-layout.customer-page--dashboard .navbar.has-nav-menu.navbar--notifications {
+      padding-left: max(20px, calc((100% - 1200px) / 2 + 20px));
+      padding-right: max(20px, calc((100% - 1200px) / 2 + 20px));
     }
 
-    body.customer-layout.customer-page--dashboard .customer-dashboard > .dashboard-card {
+    body.customer-layout.customer-page--dashboard .main-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-content {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-dashboard.cards-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 20px;
+      align-items: stretch;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-dashboard.cards-row > .dashboard-card {
       height: 100%;
       display: flex;
       flex-direction: column;
       min-width: 0;
     }
 
-    body.customer-layout.customer-page--dashboard .quick-access {
-      max-width: 1000px !important;
-      margin: 0 auto !important;
+    body.customer-layout.customer-page--dashboard .quick-access.quick-access-section {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 0 60px !important;
     }
 
-    body.customer-layout.customer-page--dashboard .quick-grid {
-      display: flex !important;
-      justify-content: center !important;
-      gap: 25px !important;
-      flex-wrap: wrap !important;
+    body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 20px !important;
       align-items: stretch !important;
-      grid-template-columns: none !important;
       margin-left: 0 !important;
       padding-left: 0 !important;
     }
 
     body.customer-layout.customer-page--dashboard .quick-card-link {
       display: flex !important;
-      flex: 1 1 0 !important;
       min-width: 230px !important;
-      max-width: 316px !important;
+      max-width: none !important;
       align-self: stretch !important;
     }
 
@@ -282,9 +303,10 @@ $dashboardQueues = [
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero.hero-wrapper {
-      width: min(1200px, 92vw);
-      margin: 22px auto 0;
+      width: 100%;
+      margin: 0;
       padding: 0 !important;
+      padding-top: 30px !important;
       background: transparent;
     }
 
@@ -665,11 +687,12 @@ $dashboardQueues = [
     }
 
     @media (max-width: 900px) {
-      body.customer-layout.customer-page--dashboard .customer-dashboard {
+      body.customer-layout.customer-page--dashboard .customer-dashboard.cards-row,
+      body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
         grid-template-columns: 1fr !important;
       }
 
-      body.customer-layout.customer-page--dashboard .customer-dashboard > .dashboard-card {
+      body.customer-layout.customer-page--dashboard .customer-dashboard.cards-row > .dashboard-card {
         height: auto;
       }
 
@@ -758,6 +781,7 @@ $dashboardQueues = [
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
+<main class="main-container dashboard-content">
 <section class="customer-hero hero-wrapper">
   <div class="customer-hero__inner hero-container">
     <h2>Welcome, <span id="customerName"><?php echo htmlspecialchars($display_name); ?></span>!</h2>
@@ -768,7 +792,7 @@ $dashboardQueues = [
   </div>
 </section>
 
-<section class="customer-dashboard">
+<section class="customer-dashboard cards-row">
   <div class="dashboard-card queue-carousel-card queue-carousel-card--mine">
     <h3>MY CURRENT REQUESTS</h3>
     <div class="divider"></div>
@@ -802,11 +826,11 @@ $dashboardQueues = [
   </div>
 </section>
 
-<section class="quick-access">
+<section class="quick-access quick-access-section">
   <h3>Quick Access</h3>
   <div class="divider"></div>
 
-  <div class="quick-grid">
+  <div class="quick-grid quick-access-grid">
     <a href="/pages/customer/custo_place_queueing.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
@@ -838,6 +862,7 @@ $dashboardQueues = [
     </a>
   </div>
 </section>
+</main>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 
