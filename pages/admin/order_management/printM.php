@@ -231,10 +231,10 @@ $online = $onlineStmt->fetchAll();
 
       <div class="om-error" id="omError"></div>
 
-      <div class="om-actions">
-        <button class="om-btn om-btn--danger" type="button" id="omDelete">Delete</button>
-        <button class="om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
-        <button class="om-btn om-btn--maroon" type="button" id="omSave">Save</button>
+      <div class="modal-actions om-actions">
+        <button class="btn-delete om-btn om-btn--danger" type="button" id="omDelete">Delete</button>
+        <button class="btn-cancel om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
+        <button class="btn-save om-btn om-btn--maroon" type="button" id="omSave">Save</button>
       </div>
     </div>
   </div>
