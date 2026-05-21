@@ -123,78 +123,84 @@ $online = $onlineStmt->fetchAll();
           <h3>All Orders <small>Manage and update order statuses</small></h3>
         </div>
 
-        <div class="tab-container">
-          <div class="tab-list">
-            <a class="tab active" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
-            <a class="tab" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
-            <a class="tab" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
+        <div class="orders-scroll-wrapper">
+          <div class="orders-content">
+            <div class="tab-container">
+              <div class="tab-list order-tabs">
+                <a class="tab active" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
+                <a class="tab" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
+                <a class="tab" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
+              </div>
+            </div>
+
+            <div class="table-section">
+              <div class="walkin-title">Walk-in Queue - Manage and update order statuses</div>
+              <div class="table-block">
+                <table class="orders table-content">
+                  <thead>
+                    <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                  </thead>
+                  <tbody>
+                    <?php if (!$walkin): ?>
+                      <tr><td colspan="5" style="color:#777;padding:14px;">No walk-in queues older than 15 minutes yet.</td></tr>
+                    <?php else: ?>
+                      <?php foreach ($walkin as $r): ?>
+                        <?php $cls = status_class($r["status"]); ?>
+                        <tr>
+                          <td><?= htmlspecialchars($r["queue_code"]) ?></td>
+                          <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                          <td><span class="status-pill <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                          <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
+                          <td>
+                            <button
+                              class="update-btn"
+                              data-id="<?= (int)$r["id"] ?>"
+                              data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
+                              data-status="<?= htmlspecialchars($r["status"]) ?>"
+                              data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
+                            >Update Status</button>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="section-title-small" style="margin-top:18px;">Online Orders - Pre-ordered printing requests</div>
+              <div class="table-block">
+                <table class="orders table-content">
+                  <thead>
+                    <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                  </thead>
+                  <tbody>
+                    <?php if (!$online): ?>
+                      <tr><td colspan="5" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
+                    <?php else: ?>
+                      <?php foreach ($online as $r): ?>
+                        <?php $cls = status_class($r["status"]); ?>
+                        <tr>
+                          <td><?= htmlspecialchars($r["queue_code"]) ?></td>
+                          <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                          <td><span class="status-pill <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                          <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
+                          <td>
+                            <button
+                              class="update-btn"
+                              data-id="<?= (int)$r["id"] ?>"
+                              data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
+                              data-status="<?= htmlspecialchars($r["status"]) ?>"
+                              data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
+                            >Update Status</button>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="walkin-title">Walk-in Queue - Manage and update order statuses</div>
-        <div class="table-scroll-wrapper">
-          <table class="orders table-content">
-            <thead>
-              <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
-            </thead>
-            <tbody>
-              <?php if (!$walkin): ?>
-                <tr><td colspan="5" style="color:#777;padding:14px;">No walk-in queues older than 15 minutes yet.</td></tr>
-              <?php else: ?>
-                <?php foreach ($walkin as $r): ?>
-                  <?php $cls = status_class($r["status"]); ?>
-                  <tr>
-                    <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                    <td><?= htmlspecialchars($r["fullname"]) ?></td>
-                    <td><span class="status-pill <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                    <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
-                    <td>
-                      <button
-                        class="update-btn"
-                        data-id="<?= (int)$r["id"] ?>"
-                        data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                        data-status="<?= htmlspecialchars($r["status"]) ?>"
-                        data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
-                      >Update Status</button>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="section-title-small" style="margin-top:18px;">Online Orders - Pre-ordered printing requests</div>
-        <div class="table-scroll-wrapper">
-          <table class="orders table-content">
-            <thead>
-              <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
-            </thead>
-            <tbody>
-              <?php if (!$online): ?>
-                <tr><td colspan="5" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
-              <?php else: ?>
-                <?php foreach ($online as $r): ?>
-                  <?php $cls = status_class($r["status"]); ?>
-                  <tr>
-                    <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                    <td><?= htmlspecialchars($r["fullname"]) ?></td>
-                    <td><span class="status-pill <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                    <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
-                    <td>
-                      <button
-                        class="update-btn"
-                        data-id="<?= (int)$r["id"] ?>"
-                        data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                        data-status="<?= htmlspecialchars($r["status"]) ?>"
-                        data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
-                      >Update Status</button>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

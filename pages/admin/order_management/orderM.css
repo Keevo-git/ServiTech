@@ -82,10 +82,32 @@ body.admin-dashboard .page-frame {
   margin: 10px 0 14px;
 }
 
+.orders-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.orders-content {
+  min-width: 1000px;
+}
+
 .tab-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(120px, 1fr));
-  gap: 8px;
+  display: flex;
+  gap: 15px;
+  width: 100%;
+}
+
+.order-tabs {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+}
+
+.order-tabs .tab,
+.order-tabs button {
+  flex: 1;
+  min-width: 200px;
 }
 
 .tab {
@@ -126,7 +148,7 @@ body.admin-dashboard .page-frame {
 table.orders {
   width: 100%;
   border-collapse: collapse;
-  min-width: 900px;
+  min-width: 1000px;
 }
 
 .table-scroll-wrapper {
@@ -136,7 +158,16 @@ table.orders {
 }
 
 .table-content {
-  min-width: 900px;
+  min-width: 1000px;
+}
+
+.table-section {
+  width: 100%;
+}
+
+.table-section table {
+  width: 100%;
+  min-width: 1000px;
 }
 
 table.orders th,
@@ -409,19 +440,9 @@ table.orders th {
   color: #fff;
 }
 
-@media (max-width: 820px) {
-  .tab-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 560px) {
   .page-inner {
     padding: 18px 12px;
-  }
-
-  .tab-list {
-    grid-template-columns: 1fr;
   }
 
   .om-actions {
