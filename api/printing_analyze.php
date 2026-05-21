@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
+require_once __DIR__ . "/../config/db.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -71,6 +72,53 @@ function normalize_color_option(string $color): string {
   if ($v === "colored half" || $v === "colored - half" || $v === "colored (half)") return "half";
 
   return "";
+}
+
+function extract_document_printing_price(string $description, string $option): ?float {
+  $pattern = "/\\b" . preg_quote($option, "/") . "\\s*[-\\x{2013}\\x{2014}]?\\s*₱?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
+  if (preg_match($pattern, $description, $matches)) {
+    return max(0, (float)$matches[1]);
+  }
+
+  return null;
+}
+
+function fetch_document_printing_prices(PDO $pdo): array {
+  $prices = [
+    "default" => 5.0,
+    "full" => 10.0,
+    "half" => 5.0,
+  ];
+
+  try {
+    $stmt = $pdo->prepare("
+      SELECT description, price
+      FROM services
+      WHERE category = 'printing'
+        AND LOWER(name) LIKE '%document%printing%'
+        AND active = TRUE
+      ORDER BY sort_order ASC, id ASC
+      LIMIT 1
+    ");
+    $stmt->execute();
+    $service = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($service)) {
+      return $prices;
+    }
+
+    $description = (string)($service["description"] ?? "");
+    $default = isset($service["price"]) ? max(0, (float)$service["price"]) : $prices["default"];
+    $half = extract_document_printing_price($description, "Half") ?? $default;
+    $full = extract_document_printing_price($description, "Full") ?? max($half, $default);
+
+    return [
+      "default" => $default,
+      "full" => $full,
+      "half" => $half,
+    ];
+  } catch (Throwable $e) {
+    return $prices;
+  }
 }
 
 function count_pdf_pages(string $path): int {
@@ -166,7 +214,7 @@ function estimate_ppt_slides(string $path): int {
   return max(1, (int)ceil(($size ?: 1) / (150 * 1024)));
 }
 
-function compute_print_pricing(string $paperRaw, string $colorRaw, int $quantity, int $totalPages): array {
+function compute_print_pricing(PDO $pdo, string $paperRaw, string $colorRaw, int $quantity, int $totalPages): array {
   $paper = normalize_paper_size($paperRaw);
   if ($paper === "") {
     return ["ok" => false, "error" => "Select a valid paper size."];
@@ -181,7 +229,12 @@ function compute_print_pricing(string $paperRaw, string $colorRaw, int $quantity
     return ["ok" => false, "error" => "Select a valid color option."];
   }
 
-  $pricePerPage = ($color === "full") ? 10 : 5;
+  $prices = fetch_document_printing_prices($pdo);
+  $pricePerPage = match ($color) {
+    "full" => $prices["full"],
+    "half" => $prices["half"],
+    default => $prices["default"],
+  };
   $safeQty = max(1, $quantity);
   $safePages = max(0, $totalPages);
   $estimatedTotal = $safePages * $pricePerPage * $safeQty;
@@ -309,7 +362,7 @@ if ($total_pages < 1) {
   ], 422);
 }
 
-$pricing = compute_print_pricing($paper_size, $color_option, $quantity, $total_pages);
+$pricing = compute_print_pricing($pdo, $paper_size, $color_option, $quantity, $total_pages);
 if (!$pricing["ok"]) {
   printing_json_exit([
     "ok" => false,

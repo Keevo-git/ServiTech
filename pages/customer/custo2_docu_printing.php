@@ -1,8 +1,52 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
+require_once __DIR__ . "/../../config/db.php";
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $printDraft = [];
+$printPricing = [
+  "default_price" => 5.0,
+  "full_price" => 10.0,
+  "half_price" => 5.0,
+];
+
+function document_printing_extract_price(string $description, string $option): ?float {
+  $pattern = "/\\b" . preg_quote($option, "/") . "\\s*[-\\x{2013}\\x{2014}]?\\s*₱?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
+  if (preg_match($pattern, $description, $matches)) {
+    return max(0, (float)$matches[1]);
+  }
+
+  return null;
+}
+
+try {
+  $serviceStmt = $pdo->prepare("
+    SELECT description, price
+    FROM services
+    WHERE category = 'printing'
+      AND LOWER(name) LIKE '%document%printing%'
+      AND active = TRUE
+    ORDER BY sort_order ASC, id ASC
+    LIMIT 1
+  ");
+  $serviceStmt->execute();
+  $documentPrintingService = $serviceStmt->fetch(PDO::FETCH_ASSOC);
+
+  if (is_array($documentPrintingService)) {
+    $description = (string)($documentPrintingService["description"] ?? "");
+    $defaultPrice = isset($documentPrintingService["price"]) ? max(0, (float)$documentPrintingService["price"]) : 5.0;
+    $halfPrice = document_printing_extract_price($description, "Half") ?? $defaultPrice;
+    $fullPrice = document_printing_extract_price($description, "Full") ?? max($halfPrice, $defaultPrice);
+
+    $printPricing = [
+      "default_price" => $defaultPrice,
+      "full_price" => $fullPrice,
+      "half_price" => $halfPrice,
+    ];
+  }
+} catch (Throwable $e) {
+  // Keep the order form usable if the service table is unavailable.
+}
 
 if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft["order_type"] ?? ""))) === "online") {
   $printDraft = [
@@ -556,8 +600,9 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 <script src="/assets/js/main.js?v=20260326c4"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260406a4"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260521price-summary"></script>
 </body>
 </html>
 

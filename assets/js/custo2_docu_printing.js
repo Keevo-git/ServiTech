@@ -36,6 +36,9 @@
     var draftState = window.servitechPrintOrderDraft && typeof window.servitechPrintOrderDraft === "object"
       ? window.servitechPrintOrderDraft
       : null;
+    var dynamicPricing = window.servitechDocumentPrintPricing && typeof window.servitechDocumentPrintPricing === "object"
+      ? window.servitechDocumentPrintPricing
+      : {};
 
     var fileUpload = document.getElementById("fileUpload");
     var fileListEl = document.getElementById("fileAnalysisList");
@@ -106,12 +109,21 @@
     function getClientPricePerPage() {
       var paperSize = (paperSizeSelect.value || "").trim().toLowerCase();
       var colorOption = getSelectedColor().trim().toLowerCase();
+      var defaultPrice = Number(dynamicPricing.default_price);
+      var fullPrice = Number(dynamicPricing.full_price);
+      var halfPrice = Number(dynamicPricing.half_price);
 
-      if (!paperSize || !colorOption || paperSize === "a3") {
+      if (!paperSize || paperSize === "a3") {
         return 0;
       }
 
-      return colorOption === "colored full" ? 10 : 5;
+      if (!Number.isFinite(defaultPrice) || defaultPrice <= 0) defaultPrice = 5;
+      if (!Number.isFinite(halfPrice) || halfPrice <= 0) halfPrice = defaultPrice;
+      if (!Number.isFinite(fullPrice) || fullPrice <= 0) fullPrice = Math.max(halfPrice, defaultPrice);
+
+      if (colorOption === "colored full") return fullPrice;
+      if (colorOption === "colored half") return halfPrice;
+      return defaultPrice;
     }
 
     function syncClientPricing() {
@@ -123,7 +135,7 @@
       }
 
       state.price_per_page = pricePerPage;
-      state.estimated_total = (Number(state.total_pages) || 0) * pricePerPage * getQuantity();
+      state.estimated_total = Math.max(1, Number(state.total_pages) || 0) * pricePerPage * getQuantity();
     }
 
     function getQuantity() {
