@@ -37,6 +37,12 @@
     return normalizedCategory === "printing" && normalizedName.includes("xerox");
   }
 
+  function isRushIdService(category, name) {
+    const normalizedCategory = String(category || "").trim().toLowerCase();
+    const normalizedName = String(name || "").trim().toLowerCase();
+    return normalizedCategory === "printing" && normalizedName.includes("rush") && normalizedName.includes("id");
+  }
+
   function parseMoneyValues(value) {
     const matches = String(value || "").match(/[0-9]+(?:\.[0-9]+)?/g);
     if (!matches) return [];
@@ -355,6 +361,94 @@
     syncXeroxPriceRange();
   }
 
+  function ensureRushPackageGrid() {
+    let grid = qs("#ms_rushPackageGrid");
+    if (grid) return grid;
+    if (!fPriceField || !fPriceField.parentNode || !fPriceField.parentNode.parentNode) return null;
+
+    grid = document.createElement("div");
+    grid.className = "ms-row2";
+    grid.id = "ms_rushPackageGrid";
+    grid.innerHTML = [1, 2, 3, 4, 5, 6].map((number) => `
+      <div class="ms-field">
+        <label>Package ${number} Price</label>
+        <input id="ms_rush_package_${number}" type="text" placeholder="e.g., ${number === 1 ? "40.00" : "30.00"}">
+      </div>
+    `).join("");
+    fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
+    return grid;
+  }
+
+  function getRushPackageInput(number) {
+    ensureRushPackageGrid();
+    return qs(`#ms_rush_package_${number}`);
+  }
+
+  function getRushPackagePrices(data) {
+    let storedPrices = null;
+    if (data?.pricing_json) {
+      try {
+        storedPrices = typeof data.pricing_json === "string"
+          ? JSON.parse(data.pricing_json)
+          : data.pricing_json;
+      } catch (err) {
+        storedPrices = null;
+      }
+    }
+
+    const defaults = { package1: 40, package2: 30, package3: 30, package4: 50, package5: 30, package6: 50 };
+    const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
+    const low = rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : (data?.price || fPrice?.value || "30");
+    const high = rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "50";
+
+    return {
+      package1: storedPrices?.package1 ?? defaults.package1 ?? high,
+      package2: storedPrices?.package2 ?? defaults.package2 ?? low,
+      package3: storedPrices?.package3 ?? defaults.package3 ?? low,
+      package4: storedPrices?.package4 ?? defaults.package4 ?? high,
+      package5: storedPrices?.package5 ?? defaults.package5 ?? low,
+      package6: storedPrices?.package6 ?? defaults.package6 ?? high,
+    };
+  }
+
+  function getRushPackageValues() {
+    return {
+      package1: getRushPackageInput(1)?.value.trim() || "",
+      package2: getRushPackageInput(2)?.value.trim() || "",
+      package3: getRushPackageInput(3)?.value.trim() || "",
+      package4: getRushPackageInput(4)?.value.trim() || "",
+      package5: getRushPackageInput(5)?.value.trim() || "",
+      package6: getRushPackageInput(6)?.value.trim() || "",
+    };
+  }
+
+  function syncRushPackageRange() {
+    if (!fPriceRange) return;
+    const values = Object.values(getRushPackageValues()).map(Number).filter((value) => Number.isFinite(value));
+    if (!values.length) return;
+    fPriceRange.value = formatPesoRange(Math.min(...values), Math.max(...values));
+  }
+
+  function setRushIdUi(enabled, data) {
+    const grid = ensureRushPackageGrid();
+
+    if (grid) grid.style.display = enabled ? "" : "none";
+    if (!enabled) return;
+
+    if (fPriceModeField) fPriceModeField.style.display = "none";
+    if (fPriceField) fPriceField.style.display = "none";
+    if (fPriceHint) fPriceHint.textContent = "Rush ID package names stay fixed. Only package prices change.";
+    if (fDescriptionHint) fDescriptionHint.textContent = "Description is optional. Package prices are saved from the fields below.";
+
+    const prices = getRushPackagePrices(data || {});
+    [1, 2, 3, 4, 5, 6].forEach((number) => {
+      const input = getRushPackageInput(number);
+      if (input) input.value = prices[`package${number}`];
+    });
+    if (fPrice) fPrice.value = prices.package2;
+    syncRushPackageRange();
+  }
+
   function openModal(mode, data){
     hideErr();
     overlay.style.display="flex";
@@ -372,9 +466,11 @@
     fPrice.value = priceValue;
     const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
     const isXerox = isXeroxService(fCat.value, fName.value);
+    const isRushId = isRushIdService(fCat.value, fName.value);
     setDocumentPrintingUi(isDocumentPrinting, data);
     setXeroxUi(isXerox, data);
-    if (!isDocumentPrinting && !isXerox) syncPriceMode(fDesc.value, priceValue);
+    setRushIdUi(isRushId, data);
+    if (!isDocumentPrinting && !isXerox && !isRushId) syncPriceMode(fDesc.value, priceValue);
   }
 
   function closeModal(){ overlay.style.display="none"; hideErr(); }
@@ -426,14 +522,17 @@
     if (event.target && (event.target.id === "ms_category" || event.target.id === "ms_name")) {
       const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
       const isXerox = isXeroxService(fCat.value, fName.value);
+      const isRushId = isRushIdService(fCat.value, fName.value);
       setDocumentPrintingUi(isDocumentPrinting);
       setXeroxUi(isXerox);
+      setRushIdUi(isRushId);
     }
   });
 
   document.addEventListener("input", (event) => {
     const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
     const isXerox = isXeroxService(fCat.value, fName.value);
+    const isRushId = isRushIdService(fCat.value, fName.value);
     if (!event.target) return;
 
     if (isDocumentPrinting && [
@@ -457,6 +556,11 @@
       "ms_xerox_a3_price",
     ].includes(event.target.id)) {
       syncXeroxPriceRange();
+      return;
+    }
+
+    if (isRushId && /^ms_rush_package_[1-6]$/.test(event.target.id)) {
+      syncRushPackageRange();
     }
   });
 
@@ -467,6 +571,7 @@
     let descriptionValue = fDesc.value.trim();
     const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
     const isXerox = isXeroxService(fCat.value, fName.value);
+    const isRushId = isRushIdService(fCat.value, fName.value);
     if (isDocumentPrinting) {
       const prices = getDocumentPriceValues();
       const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
@@ -497,6 +602,16 @@
 
       syncXeroxPriceRange();
       fPrice.value = prices.short;
+    } else if (isRushId) {
+      const prices = getRushPackageValues();
+      const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
+      if (invalid) {
+        showErr("Enter valid prices for Rush ID packages 1-6.");
+        return;
+      }
+
+      syncRushPackageRange();
+      fPrice.value = prices.package2;
     } else if (priceMode?.value === "full") {
       descriptionValue = replaceOptionPrice(descriptionValue, "Full", fPrice.value.trim());
     } else if (priceMode?.value === "half") {
@@ -515,6 +630,8 @@
       fd.append("pricing_json", JSON.stringify(getDocumentPriceValues()));
     } else if (isXerox) {
       fd.append("pricing_json", JSON.stringify(getXeroxPriceValues()));
+    } else if (isRushId) {
+      fd.append("pricing_json", JSON.stringify(getRushPackageValues()));
     }
     fd.append("active", fActive.value);
     fd.append("sort_order", fSort.value);

@@ -1,5 +1,47 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
+require_once __DIR__ . "/../../config/db.php";
+
+$rushPricing = [
+  "package1" => 40.0,
+  "package2" => 30.0,
+  "package3" => 30.0,
+  "package4" => 50.0,
+  "package5" => 30.0,
+  "package6" => 50.0,
+];
+
+try {
+  $rushStmt = $pdo->prepare("
+    SELECT price, pricing_json::text AS pricing_json
+    FROM services
+    WHERE category = 'printing'
+      AND LOWER(name) LIKE '%rush%'
+      AND LOWER(name) LIKE '%id%'
+      AND active = TRUE
+    ORDER BY sort_order ASC, id ASC
+    LIMIT 1
+  ");
+  $rushStmt->execute();
+  $rushService = $rushStmt->fetch(PDO::FETCH_ASSOC);
+
+  if (is_array($rushService)) {
+    $storedPricing = json_decode((string)($rushService["pricing_json"] ?? ""), true);
+    if (is_array($storedPricing)) {
+      foreach ($rushPricing as $key => $fallback) {
+        if (isset($storedPricing[$key]) && is_numeric($storedPricing[$key])) {
+          $rushPricing[$key] = max(0, (float)$storedPricing[$key]);
+        }
+      }
+    }
+  }
+} catch (Throwable $e) {
+  // Keep the Rush ID form usable if service pricing cannot be loaded.
+}
+
+function rush_price(array $pricing, string $key): string {
+  return number_format((float)($pricing[$key] ?? 0), 2, ".", "");
+}
 ?>
 
 <!DOCTYPE html>
@@ -35,12 +77,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <label for="packageSelect">Select Package<span class="required">*</span></label>
             <select id="packageSelect" class="form-select">
               <option value="" selected disabled>Select a Package</option>
-              <option data-price="40">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) &mdash; &#8369;40</option>
-              <option data-price="30">Package 2: 1x1 (6pcs.) &mdash; &#8369;30</option>
-              <option data-price="30">Package 3: 2x2 (4pcs.) &mdash; &#8369;30</option>
-              <option data-price="50">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) &mdash; &#8369;50</option>
-              <option data-price="30">Package 5: Passport size (4pcs.) &mdash; &#8369;30</option>
-              <option data-price="50">Package 6: 1x1 (10pcs.) &mdash; &#8369;50</option>
+              <option data-price="<?= rush_price($rushPricing, "package1") ?>">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package1") ?></option>
+              <option data-price="<?= rush_price($rushPricing, "package2") ?>">Package 2: 1x1 (6pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package2") ?></option>
+              <option data-price="<?= rush_price($rushPricing, "package3") ?>">Package 3: 2x2 (4pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package3") ?></option>
+              <option data-price="<?= rush_price($rushPricing, "package4") ?>">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package4") ?></option>
+              <option data-price="<?= rush_price($rushPricing, "package5") ?>">Package 5: Passport size (4pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package5") ?></option>
+              <option data-price="<?= rush_price($rushPricing, "package6") ?>">Package 6: 1x1 (10pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package6") ?></option>
             </select>
 
             <div class="two-col-fields">
@@ -114,7 +156,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260326c4"></script>
+<script src="/assets/js/main.js?v=20260521rush-prices"></script>
 
 </body>
 </html>

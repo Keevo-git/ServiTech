@@ -134,6 +134,40 @@ function buildDocumentPrintingDetailCards(service) {
   ];
 }
 
+function getRushIdPackagePrices(service) {
+  let storedPrices = null;
+  if (service?.pricing_json) {
+    try {
+      storedPrices = typeof service.pricing_json === "string"
+        ? JSON.parse(service.pricing_json)
+        : service.pricing_json;
+    } catch (error) {
+      storedPrices = null;
+    }
+  }
+
+  return {
+    package1: storedPrices?.package1 ?? 40,
+    package2: storedPrices?.package2 ?? 30,
+    package3: storedPrices?.package3 ?? 30,
+    package4: storedPrices?.package4 ?? 50,
+    package5: storedPrices?.package5 ?? 30,
+    package6: storedPrices?.package6 ?? 50,
+  };
+}
+
+function buildRushIdDetailCards(service) {
+  const prices = getRushIdPackagePrices(service);
+  return [
+    { title: "Package 1", icon: "id", price: formatPesoPrice(prices.package1), lines: ["1x1 (4pcs)", "2x2 (2pcs)"] },
+    { title: "Package 2", icon: "id", price: formatPesoPrice(prices.package2), lines: ["1x1 (6pcs)"] },
+    { title: "Package 3", icon: "id", price: formatPesoPrice(prices.package3), lines: ["2x2 (4pcs)"] },
+    { title: "Package 4", icon: "id", price: formatPesoPrice(prices.package4), lines: ["2x2 (4pcs)", "1x1 (4pcs)"] },
+    { title: "Package 5", icon: "id", price: formatPesoPrice(prices.package5), lines: ["Passport size (4pcs)"] },
+    { title: "Package 6", icon: "id", price: formatPesoPrice(prices.package6), lines: ["1x1 (10pcs)"] },
+  ];
+}
+
 function openModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
@@ -540,6 +574,8 @@ async function loadServicesFromDatabase() {
         const detailKey = getServiceDetailKey(category, service.name);
         if (detailKey === "documentPrinting") {
           serviceModalDetailData.documentPrinting.cards = buildDocumentPrintingDetailCards(service);
+        } else if (detailKey === "rushId") {
+          serviceModalDetailData.rushId.cards = buildRushIdDetailCards(service);
         }
 
         return {
@@ -1014,6 +1050,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isXerox && refs.paperSizeSelect) {
       const price = xeroxPriceMap[payload.paper_size] ?? 0;
+      payload.price_per_page = price;
+      payload.estimated_total = price * payload.quantity;
+    } else if (refs.packageSelect) {
+      const selectedOption = refs.packageSelect.options[refs.packageSelect.selectedIndex];
+      const price = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : 0;
       payload.price_per_page = price;
       payload.estimated_total = price * payload.quantity;
     }
