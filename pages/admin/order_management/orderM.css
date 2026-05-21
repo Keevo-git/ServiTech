@@ -6,24 +6,26 @@ body.admin-dashboard .container {
 }
 
 body.admin-dashboard .order-header {
-  background: linear-gradient(135deg, #2f5d8a, #3b6fa5);
+  background: linear-gradient(135deg, #19375f, #24588f 55%, #2e6fae);
   border-radius: 18px;
   padding: 30px 40px;
   color: #fff;
   margin-top: 20px;
   margin-bottom: 25px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
 body.admin-dashboard .order-header h1 {
   margin: 0;
   font-size: clamp(26px, 3vw, 34px);
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 body.admin-dashboard .order-header p {
   margin: 8px 0 0;
   color: rgba(244, 250, 255, 0.92);
+  opacity: 0.9;
   max-width: 680px;
 }
 
