@@ -202,20 +202,23 @@ $online = $onlineStmt->fetchAll();
 
 <div class="om-modalOverlay" id="statusModal">
   <div class="om-modalCard" role="dialog" aria-modal="true">
-    <button class="om-modalX" type="button" id="omClose">&times;</button>
-
-    <div class="om-modalHead">
-      <h3>Update Status</h3>
-      <span class="om-pill" id="omQueueCode">-</span>
+    <div class="modal-header-custom om-modalHead">
+      <h2>Update Status</h2>
+      <button class="modal-close om-modalX" type="button" id="omClose">&times;</button>
     </div>
 
-    <div class="om-modalBody">
-      <div class="om-row">
-        <span class="om-label">Customer</span>
-        <div class="om-value" id="omCustomer">-</div>
+    <div class="modal-body om-modalBody">
+      <div class="modal-field om-row">
+        <label class="om-label">Order ID</label>
+        <p class="order-id" id="omQueueCode">-</p>
       </div>
 
-      <div class="om-row">
+      <div class="modal-field om-row">
+        <label class="om-label">Customer</label>
+        <p class="modal-value" id="omCustomer">-</p>
+      </div>
+
+      <div class="modal-field om-row">
         <label class="om-label" for="omStatus">Select Status</label>
         <select class="om-select" id="omStatus">
           <option value="PENDING">Pending</option>

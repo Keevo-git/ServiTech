@@ -207,7 +207,8 @@ table.orders th {
   border: 1px solid #dce5f2;
 }
 
-.om-modalX {
+.om-modalX,
+.modal-close {
   position: absolute;
   right: 12px;
   top: 8px;
@@ -218,7 +219,8 @@ table.orders th {
   color: #304d72;
 }
 
-.om-modalHead {
+.om-modalHead,
+.modal-header-custom {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -227,9 +229,15 @@ table.orders th {
   border-bottom: 1px solid #ebf0f7;
 }
 
-.om-modalHead h3 {
+.om-modalHead h3,
+.modal-header-custom h2 {
   margin: 0;
   color: #173760;
+}
+
+.modal-header-custom h2 {
+  font-size: 22px;
+  line-height: 1.25;
 }
 
 .om-pill {
@@ -242,7 +250,8 @@ table.orders th {
   font-weight: 800;
 }
 
-.om-modalBody {
+.om-modalBody,
+.modal-body {
   padding: 14px 16px 16px;
 }
 
@@ -261,6 +270,35 @@ table.orders th {
 .om-value {
   font-weight: 700;
   color: #111;
+}
+
+.modal-field {
+  margin-bottom: 15px;
+}
+
+.modal-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #666;
+}
+
+.modal-value {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.order-id {
+  display: inline-block;
+  margin: 0;
+  background: #e6eef8;
+  color: #2c4e73;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .om-select {
