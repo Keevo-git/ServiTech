@@ -76,12 +76,12 @@ $rows = $pdo->query("
   </div>
 </header>
 
-<section class="hero">
-  <div class="hero-inner">
+<div class="container">
+  <div class="order-header">
     <h1>Order Management</h1>
     <p>Review installation orders and update statuses in real time.</p>
   </div>
-</section>
+</div>
 
 <main class="container">
   <div class="page-frame">

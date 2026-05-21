@@ -1,4 +1,32 @@
 /* Order management pages (admin) */
+body.admin-dashboard .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+body.admin-dashboard .order-header {
+  background: linear-gradient(135deg, #2f5d8a, #3b6fa5);
+  border-radius: 18px;
+  padding: 30px 40px;
+  color: #fff;
+  margin-top: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+body.admin-dashboard .order-header h1 {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 34px);
+  letter-spacing: 0.3px;
+}
+
+body.admin-dashboard .order-header p {
+  margin: 8px 0 0;
+  color: rgba(244, 250, 255, 0.92);
+  max-width: 680px;
+}
+
 body.admin-dashboard .page-frame {
   width: 100%;
   margin: 0 0 22px;
