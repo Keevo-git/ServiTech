@@ -325,6 +325,13 @@ table.orders th {
   margin-top: 14px;
 }
 
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 .om-btn {
   flex: 1;
   border: none;
@@ -332,6 +339,47 @@ table.orders th {
   padding: 11px 10px;
   font-weight: 900;
   cursor: pointer;
+}
+
+.modal-actions button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.modal-actions .btn-save {
+  background: linear-gradient(135deg, #2c4e73, #3b6fa5);
+  color: #fff;
+}
+
+.modal-actions .btn-save:hover {
+  background: linear-gradient(135deg, #3b6fa5, #2c4e73);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(44, 78, 115, 0.3);
+}
+
+.modal-actions .btn-delete {
+  background: linear-gradient(135deg, #c82333, #ff4d4d);
+  color: #fff;
+}
+
+.modal-actions .btn-delete:hover {
+  background: linear-gradient(135deg, #ff4d4d, #c82333);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(200, 35, 51, 0.3);
+}
+
+.modal-actions .btn-cancel {
+  background: #d6dbe3;
+  color: #2c3e50;
+}
+
+.modal-actions .btn-cancel:hover {
+  background: #c9d1db;
+  transform: translateY(-1px);
 }
 
 .om-btn--danger {
