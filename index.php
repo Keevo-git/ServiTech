@@ -203,7 +203,7 @@ try {
   <?php include __DIR__ . "/components/footer.php"; ?>
 
   <script src="/assets/js/csrf.js"></script>
-  <script src="/assets/js/main.js?v=20260521a3-a4-prices"></script>
+  <script src="/assets/js/main.js?v=20260521pricing-json"></script>
   <script src="/assets/js/header-menu.js" defer></script>
 </body>
 </html>

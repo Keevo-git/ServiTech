@@ -22,6 +22,7 @@ function respond(array $arr): void
 
 try {
     $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS price_range VARCHAR(255) NOT NULL DEFAULT ''");
+    $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS pricing_json JSONB NULL");
 } catch (Throwable $e) {
     // Keep the public page resilient; admin migration will surface schema issues.
 }
@@ -34,7 +35,7 @@ if ($action === "list" && $category) {
 
     try {
         $stmt = $pdo->prepare("
-          SELECT id, category, name, description, price, price_range,
+          SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
           WHERE category = :category AND active = TRUE
@@ -66,7 +67,7 @@ if ($action === "detail" && $category) {
 
     try {
         $stmt = $pdo->prepare("
-          SELECT id, category, name, description, price, price_range,
+          SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
           WHERE category = :category AND name = :name AND active = TRUE

@@ -15,6 +15,7 @@ try {
         description VARCHAR(255) NOT NULL DEFAULT '',
         price NUMERIC(10,2) NULL,
         price_range VARCHAR(255) NOT NULL DEFAULT '',
+        pricing_json JSONB NULL,
         active BOOLEAN NOT NULL DEFAULT TRUE,
         sort_order INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -22,6 +23,7 @@ try {
       )
     ");
     $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS price_range VARCHAR(255) NOT NULL DEFAULT ''");
+    $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS pricing_json JSONB NULL");
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_category ON services(category)");
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_active ON services(active)");
     
@@ -115,7 +117,7 @@ if ($action === "list") {
         $params[":cat"] = $cat;
     }
     $stmt = $pdo->prepare("
-      SELECT id, category, name, description, price, price_range,
+      SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
              CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
       FROM services
       $where
@@ -132,6 +134,8 @@ if ($action === "save") {
     $description = trim((string)($_POST["description"] ?? ""));
     $priceRaw = trim((string)($_POST["price"] ?? ""));
     $priceRange = trim((string)($_POST["price_range"] ?? ""));
+    $pricingJsonRaw = trim((string)($_POST["pricing_json"] ?? ""));
+    $pricingJson = null;
     $active = isset($_POST["active"]) ? (int)($_POST["active"]) : 1;
     $sort_order = isset($_POST["sort_order"]) ? (int)($_POST["sort_order"]) : 0;
 
@@ -150,6 +154,14 @@ if ($action === "save") {
         $price = (float)$priceRaw;
     }
 
+    if ($pricingJsonRaw !== "") {
+        $decodedPricing = json_decode($pricingJsonRaw, true);
+        if (!is_array($decodedPricing)) {
+            respond(["ok" => false, "error" => "Invalid pricing data"]);
+        }
+        $pricingJson = json_encode($decodedPricing, JSON_UNESCAPED_UNICODE);
+    }
+
     if ($id > 0) {
         $stmt = $pdo->prepare("
           UPDATE services
@@ -158,6 +170,7 @@ if ($action === "save") {
               description=:description,
               price=:price,
               price_range=:price_range,
+              pricing_json=CAST(:pricing_json AS jsonb),
               active=:active,
               sort_order=:sort_order,
               updated_at=NOW()
@@ -169,6 +182,7 @@ if ($action === "save") {
             ":description" => $description,
             ":price" => $price,
             ":price_range" => $priceRange,
+            ":pricing_json" => $pricingJson,
             ":active" => ($active ? true : false),
             ":sort_order" => $sort_order,
             ":id" => $id,
@@ -177,8 +191,8 @@ if ($action === "save") {
     }
 
     $stmt = $pdo->prepare("
-      INSERT INTO services (category, name, description, price, price_range, active, sort_order)
-      VALUES (:category, :name, :description, :price, :price_range, :active, :sort_order)
+      INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
+      VALUES (:category, :name, :description, :price, :price_range, CAST(:pricing_json AS jsonb), :active, :sort_order)
       RETURNING id
     ");
     $stmt->execute([
@@ -187,6 +201,7 @@ if ($action === "save") {
         ":description" => $description,
         ":price" => $price,
         ":price_range" => $priceRange,
+        ":pricing_json" => $pricingJson,
         ":active" => ($active ? true : false),
         ":sort_order" => $sort_order,
     ]);

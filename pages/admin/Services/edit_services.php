@@ -12,6 +12,7 @@ try {
       description VARCHAR(255) NOT NULL DEFAULT '',
       price NUMERIC(10,2) NULL,
       price_range VARCHAR(255) NOT NULL DEFAULT '',
+      pricing_json JSONB NULL,
       active BOOLEAN NOT NULL DEFAULT TRUE,
       sort_order INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -19,6 +20,7 @@ try {
     )
   ");
   $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS price_range VARCHAR(255) NOT NULL DEFAULT ''");
+  $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS pricing_json JSONB NULL");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_category ON services(category)");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_services_active ON services(active)");
   
@@ -97,7 +99,7 @@ $tab = $_GET["tab"] ?? "printing";
 if (!in_array($tab, ["printing","repair","installation"], true)) $tab = "printing";
 
 $stmt = $pdo->prepare("
-  SELECT id, category, name, description, price, price_range,
+  SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
          CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
   FROM services
   WHERE category=:cat
@@ -190,6 +192,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
               "description" => (string)$s["description"],
               "price" => $s["price"],
               "price_range" => (string)$s["price_range"],
+              "pricing_json" => (string)($s["pricing_json"] ?? ""),
               "active" => (int)$s["active"],
               "sort_order" => (int)$s["sort_order"],
             ];
@@ -301,7 +304,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260521a3-a4-prices') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260521pricing-json') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

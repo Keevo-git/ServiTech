@@ -124,7 +124,7 @@ function fetch_document_printing_prices(PDO $pdo): array {
 
   try {
     $stmt = $pdo->prepare("
-      SELECT description, price, price_range
+      SELECT description, price, price_range, pricing_json::text AS pricing_json
       FROM services
       WHERE category = 'printing'
         AND LOWER(name) LIKE '%document%printing%'
@@ -139,20 +139,21 @@ function fetch_document_printing_prices(PDO $pdo): array {
     }
 
     $description = (string)($service["description"] ?? "");
+    $storedPricing = json_decode((string)($service["pricing_json"] ?? ""), true);
     $rangePrices = extract_document_printing_price_range((string)($service["price_range"] ?? ""));
     $default = $rangePrices[0] ?? (isset($service["price"]) ? max(0, (float)$service["price"]) : $prices["short_half"]);
     $half = extract_document_printing_price($description, "Half") ?? $default;
     $full = extract_document_printing_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($half, $default));
 
     return [
-      "long_full" => extract_document_printing_block_price($description, "Long Bond", "Full") ?? $full,
-      "long_half" => extract_document_printing_block_price($description, "Long Bond", "Half") ?? $half,
-      "short_full" => extract_document_printing_block_price($description, "Short Bond", "Full") ?? $full,
-      "short_half" => extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half,
-      "a4_full" => extract_document_printing_block_price($description, "A4", "Full") ?? $full,
-      "a4_half" => extract_document_printing_block_price($description, "A4", "Half") ?? $half,
-      "a3_full" => extract_document_printing_block_price($description, "A3", "Full") ?? $full,
-      "a3_half" => extract_document_printing_block_price($description, "A3", "Half") ?? $half,
+      "long_full" => isset($storedPricing["longFull"]) ? (float)$storedPricing["longFull"] : (extract_document_printing_block_price($description, "Long Bond", "Full") ?? $full),
+      "long_half" => isset($storedPricing["longHalf"]) ? (float)$storedPricing["longHalf"] : (extract_document_printing_block_price($description, "Long Bond", "Half") ?? $half),
+      "short_full" => isset($storedPricing["shortFull"]) ? (float)$storedPricing["shortFull"] : (extract_document_printing_block_price($description, "Short Bond", "Full") ?? $full),
+      "short_half" => isset($storedPricing["shortHalf"]) ? (float)$storedPricing["shortHalf"] : (extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half),
+      "a4_full" => isset($storedPricing["a4Full"]) ? (float)$storedPricing["a4Full"] : (extract_document_printing_block_price($description, "A4", "Full") ?? $full),
+      "a4_half" => isset($storedPricing["a4Half"]) ? (float)$storedPricing["a4Half"] : (extract_document_printing_block_price($description, "A4", "Half") ?? $half),
+      "a3_full" => isset($storedPricing["a3Full"]) ? (float)$storedPricing["a3Full"] : (extract_document_printing_block_price($description, "A3", "Full") ?? $full),
+      "a3_half" => isset($storedPricing["a3Half"]) ? (float)$storedPricing["a3Half"] : (extract_document_printing_block_price($description, "A3", "Half") ?? $half),
     ];
   } catch (Throwable $e) {
     return $prices;

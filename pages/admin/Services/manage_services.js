@@ -154,20 +154,31 @@
   }
 
   function getDocumentPrices(data) {
+    let storedPrices = null;
+    if (data?.pricing_json) {
+      try {
+        storedPrices = typeof data.pricing_json === "string"
+          ? JSON.parse(data.pricing_json)
+          : data.pricing_json;
+      } catch (err) {
+        storedPrices = null;
+      }
+    }
+
     const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
     const description = String(data?.description || fDesc?.value || "");
     const low = rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : (data?.price || fPrice?.value || "5");
     const high = rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "10";
 
     return {
-      longFull: extractBlockPrice(description, "Long Bond", "Full") || high,
-      longHalf: extractBlockPrice(description, "Long Bond", "Half") || low,
-      shortFull: extractBlockPrice(description, "Short Bond", "Full") || high,
-      shortHalf: extractBlockPrice(description, "Short Bond", "Half") || low,
-      a4Full: extractBlockPrice(description, "A4", "Full") || high,
-      a4Half: extractBlockPrice(description, "A4", "Half") || low,
-      a3Full: extractBlockPrice(description, "A3", "Full") || high,
-      a3Half: extractBlockPrice(description, "A3", "Half") || low,
+      longFull: storedPrices?.longFull ?? extractBlockPrice(description, "Long Bond", "Full") ?? high,
+      longHalf: storedPrices?.longHalf ?? extractBlockPrice(description, "Long Bond", "Half") ?? low,
+      shortFull: storedPrices?.shortFull ?? extractBlockPrice(description, "Short Bond", "Full") ?? high,
+      shortHalf: storedPrices?.shortHalf ?? extractBlockPrice(description, "Short Bond", "Half") ?? low,
+      a4Full: storedPrices?.a4Full ?? extractBlockPrice(description, "A4", "Full") ?? high,
+      a4Half: storedPrices?.a4Half ?? extractBlockPrice(description, "A4", "Half") ?? low,
+      a3Full: storedPrices?.a3Full ?? extractBlockPrice(description, "A3", "Full") ?? high,
+      a3Half: storedPrices?.a3Half ?? extractBlockPrice(description, "A3", "Half") ?? low,
     };
   }
 
@@ -182,26 +193,6 @@
       a3Full: getDocumentPriceInput("#ms_a3_full_price")?.value.trim() || "",
       a3Half: getDocumentPriceInput("#ms_a3_half_price")?.value.trim() || "",
     };
-  }
-
-  function buildDocumentDescription(prices) {
-    return [
-      "Long Bond Paper",
-      `Full - ${prices.longFull}`,
-      `Half / B&W - ${prices.longHalf}`,
-      "",
-      "Short Bond Paper",
-      `Full - ${prices.shortFull}`,
-      `Half / B&W - ${prices.shortHalf}`,
-      "",
-      "A4",
-      `Full - ${prices.a4Full}`,
-      `Half / B&W - ${prices.a4Half}`,
-      "",
-      "A3",
-      `Full - ${prices.a3Full}`,
-      `Half / B&W - ${prices.a3Half}`,
-    ].join("\n");
   }
 
   function syncDocumentPriceRange() {
@@ -361,7 +352,6 @@
         return;
       }
 
-      descriptionValue = buildDocumentDescription(prices);
       syncDocumentPriceRange();
       fPrice.value = prices.shortHalf;
     } else if (priceMode?.value === "full") {
@@ -378,6 +368,9 @@
     fd.append("description", descriptionValue);
     fd.append("price", fPrice.value.trim());
     fd.append("price_range", fPriceRange ? fPriceRange.value.trim() : "");
+    if (isDocumentPrintingService(fCat.value, fName.value)) {
+      fd.append("pricing_json", JSON.stringify(getDocumentPriceValues()));
+    }
     fd.append("active", fActive.value);
     fd.append("sort_order", fSort.value);
 

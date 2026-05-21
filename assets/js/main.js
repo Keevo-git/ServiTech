@@ -83,20 +83,31 @@ function getDocumentBlockPrice(description, blockName, option) {
 }
 
 function getDocumentPrintingPrices(service) {
+  let storedPrices = null;
+  if (service?.pricing_json) {
+    try {
+      storedPrices = typeof service.pricing_json === "string"
+        ? JSON.parse(service.pricing_json)
+        : service.pricing_json;
+    } catch (error) {
+      storedPrices = null;
+    }
+  }
+
   const rangePrices = parseServiceMoneyValues(service?.price_range);
   const description = String(service?.description || "");
   const defaultPrice = rangePrices[0] ?? Number(service?.price) ?? 5;
   const highPrice = rangePrices[rangePrices.length - 1] ?? Math.max(defaultPrice, 10);
 
   return {
-    longFull: getDocumentBlockPrice(description, "Long Bond", "Full") ?? highPrice,
-    longHalf: getDocumentBlockPrice(description, "Long Bond", "Half") ?? defaultPrice,
-    shortFull: getDocumentBlockPrice(description, "Short Bond", "Full") ?? highPrice,
-    shortHalf: getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
-    a4Full: getDocumentBlockPrice(description, "A4", "Full") ?? highPrice,
-    a4Half: getDocumentBlockPrice(description, "A4", "Half") ?? defaultPrice,
-    a3Full: getDocumentBlockPrice(description, "A3", "Full") ?? highPrice,
-    a3Half: getDocumentBlockPrice(description, "A3", "Half") ?? defaultPrice,
+    longFull: storedPrices?.longFull ?? getDocumentBlockPrice(description, "Long Bond", "Full") ?? highPrice,
+    longHalf: storedPrices?.longHalf ?? getDocumentBlockPrice(description, "Long Bond", "Half") ?? defaultPrice,
+    shortFull: storedPrices?.shortFull ?? getDocumentBlockPrice(description, "Short Bond", "Full") ?? highPrice,
+    shortHalf: storedPrices?.shortHalf ?? getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
+    a4Full: storedPrices?.a4Full ?? getDocumentBlockPrice(description, "A4", "Full") ?? highPrice,
+    a4Half: storedPrices?.a4Half ?? getDocumentBlockPrice(description, "A4", "Half") ?? defaultPrice,
+    a3Full: storedPrices?.a3Full ?? getDocumentBlockPrice(description, "A3", "Full") ?? highPrice,
+    a3Half: storedPrices?.a3Half ?? getDocumentBlockPrice(description, "A3", "Half") ?? defaultPrice,
   };
 }
 
