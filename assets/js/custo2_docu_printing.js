@@ -109,21 +109,21 @@
     function getClientPricePerPage() {
       var paperSize = (paperSizeSelect.value || "").trim().toLowerCase();
       var colorOption = getSelectedColor().trim().toLowerCase();
-      var defaultPrice = Number(dynamicPricing.default_price);
-      var fullPrice = Number(dynamicPricing.full_price);
-      var halfPrice = Number(dynamicPricing.half_price);
 
       if (!paperSize || paperSize === "a3") {
         return 0;
       }
 
-      if (!Number.isFinite(defaultPrice) || defaultPrice <= 0) defaultPrice = 5;
-      if (!Number.isFinite(halfPrice) || halfPrice <= 0) halfPrice = defaultPrice;
-      if (!Number.isFinite(fullPrice) || fullPrice <= 0) fullPrice = Math.max(halfPrice, defaultPrice);
+      var isLong = paperSize.indexOf("long bond") !== -1 || paperSize.indexOf("8.5 x 13") !== -1;
+      var fullPrice = Number(isLong ? dynamicPricing.long_full_price : dynamicPricing.short_full_price);
+      var halfPrice = Number(isLong ? dynamicPricing.long_half_price : dynamicPricing.short_half_price);
+
+      if (!Number.isFinite(halfPrice) || halfPrice <= 0) halfPrice = 5;
+      if (!Number.isFinite(fullPrice) || fullPrice <= 0) fullPrice = Math.max(halfPrice, 10);
 
       if (colorOption === "colored full") return fullPrice;
       if (colorOption === "colored half") return halfPrice;
-      return defaultPrice;
+      return halfPrice;
     }
 
     function syncClientPricing() {

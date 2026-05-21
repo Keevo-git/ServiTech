@@ -5,15 +5,32 @@ require_once __DIR__ . "/../../config/db.php";
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $printDraft = [];
 $printPricing = [
-  "default_price" => 5.0,
-  "full_price" => 10.0,
-  "half_price" => 5.0,
+  "long_full_price" => 10.0,
+  "long_half_price" => 5.0,
+  "short_full_price" => 10.0,
+  "short_half_price" => 5.0,
 ];
 
 function document_printing_extract_price(string $description, string $option): ?float {
   $pattern = "/\\b" . preg_quote($option, "/") . "\\s*[-\\x{2013}\\x{2014}]?\\s*₱?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
   if (preg_match($pattern, $description, $matches)) {
     return max(0, (float)$matches[1]);
+  }
+
+  return null;
+}
+
+function document_printing_extract_block_price(string $description, string $blockName, string $option): ?float {
+  $blocks = preg_split("/\\r?\\n\\s*\\r?\\n/", $description) ?: [];
+  foreach ($blocks as $block) {
+    if (stripos($block, $blockName) === false) {
+      continue;
+    }
+
+    $pattern = "/\\b" . preg_quote($option, "/") . "\\s*(?:\\/\\s*B&W)?\\s*[-\\x{2013}\\x{2014}]?\\s*\\x{20B1}?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
+    if (preg_match($pattern, $block, $matches)) {
+      return max(0, (float)$matches[1]);
+    }
   }
 
   return null;
@@ -51,9 +68,10 @@ try {
     $fullPrice = document_printing_extract_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($halfPrice, $defaultPrice));
 
     $printPricing = [
-      "default_price" => $defaultPrice,
-      "full_price" => $fullPrice,
-      "half_price" => $halfPrice,
+      "long_full_price" => document_printing_extract_block_price($description, "Long Bond", "Full") ?? $fullPrice,
+      "long_half_price" => document_printing_extract_block_price($description, "Long Bond", "Half") ?? $halfPrice,
+      "short_full_price" => document_printing_extract_block_price($description, "Short Bond", "Full") ?? $fullPrice,
+      "short_half_price" => document_printing_extract_block_price($description, "Short Bond", "Half") ?? $halfPrice,
     ];
   }
 } catch (Throwable $e) {
@@ -614,7 +632,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260521price-summary"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260521paper-size-prices"></script>
 </body>
 </html>
 

@@ -74,34 +74,42 @@ function formatPesoPrice(value) {
   return `\u20B1${amount.toFixed(2)}`;
 }
 
-function getDocumentPrintingPricePair(service) {
+function getDocumentBlockPrice(description, blockName, option) {
+  const blocks = String(description || "").split(/\r?\n\s*\r?\n/);
+  const block = blocks.find((item) => item.toLowerCase().includes(blockName.toLowerCase()));
+  if (!block) return null;
+  const match = block.match(new RegExp(`\\b${option}\\s*(?:/\\s*B&W)?\\s*[-\\u2013\\u2014]?\\s*\\u20B1?\\s*(\\d+(?:\\.\\d+)?)`, "i"));
+  return match ? Number(match[1]) : null;
+}
+
+function getDocumentPrintingPrices(service) {
   const rangePrices = parseServiceMoneyValues(service?.price_range);
   const description = String(service?.description || "");
-  const fullMatch = description.match(/\bFull\s*[-\u2013\u2014]?\s*\u20B1?\s*(\d+(?:\.\d+)?)/i);
-  const halfMatch = description.match(/\bHalf\s*[-\u2013\u2014]?\s*\u20B1?\s*(\d+(?:\.\d+)?)/i);
   const defaultPrice = rangePrices[0] ?? Number(service?.price) ?? 5;
-  const lowPrice = halfMatch ? Number(halfMatch[1]) : defaultPrice;
-  const highPrice = fullMatch ? Number(fullMatch[1]) : (rangePrices[rangePrices.length - 1] ?? Math.max(lowPrice, defaultPrice));
+  const highPrice = rangePrices[rangePrices.length - 1] ?? Math.max(defaultPrice, 10);
 
   return {
-    low: Number.isFinite(lowPrice) ? lowPrice : 5,
-    high: Number.isFinite(highPrice) ? highPrice : 10,
+    longFull: getDocumentBlockPrice(description, "Long Bond", "Full") ?? highPrice,
+    longHalf: getDocumentBlockPrice(description, "Long Bond", "Half") ?? defaultPrice,
+    shortFull: getDocumentBlockPrice(description, "Short Bond", "Full") ?? highPrice,
+    shortHalf: getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
   };
 }
 
 function buildDocumentPrintingDetailCards(service) {
-  const prices = getDocumentPrintingPricePair(service);
-  const fullLine = `Full - ${formatPesoPrice(prices.high)}`;
-  const halfLine = `Half - ${formatPesoPrice(prices.low)}`;
-  const bwLine = formatPesoPrice(prices.low);
+  const prices = getDocumentPrintingPrices(service);
+  const longFullLine = `Full - ${formatPesoPrice(prices.longFull)}`;
+  const longHalfLine = `Half - ${formatPesoPrice(prices.longHalf)}`;
+  const shortFullLine = `Full - ${formatPesoPrice(prices.shortFull)}`;
+  const shortHalfLine = `Half - ${formatPesoPrice(prices.shortHalf)}`;
 
   return [
-    { title: "Long Bond Paper (Colored)", icon: "print", lines: [fullLine, halfLine] },
-    { title: "Long Bond Paper (B&W)", icon: "print", lines: [bwLine] },
-    { title: "Short Bond Paper (Colored)", icon: "print", lines: [fullLine, halfLine] },
-    { title: "Short Bond Paper (B&W)", icon: "print", lines: [bwLine] },
-    { title: "A4 (Colored)", icon: "print", lines: [fullLine, halfLine] },
-    { title: "A4 (B&W)", icon: "print", lines: [bwLine] },
+    { title: "Long Bond Paper (Colored)", icon: "print", lines: [longFullLine, longHalfLine] },
+    { title: "Long Bond Paper (B&W)", icon: "print", lines: [formatPesoPrice(prices.longHalf)] },
+    { title: "Short Bond Paper (Colored)", icon: "print", lines: [shortFullLine, shortHalfLine] },
+    { title: "Short Bond Paper (B&W)", icon: "print", lines: [formatPesoPrice(prices.shortHalf)] },
+    { title: "A4 (Colored)", icon: "print", lines: [shortFullLine, shortHalfLine] },
+    { title: "A4 (B&W)", icon: "print", lines: [formatPesoPrice(prices.shortHalf)] },
   ];
 }
 

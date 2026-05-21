@@ -83,6 +83,22 @@ function extract_document_printing_price(string $description, string $option): ?
   return null;
 }
 
+function extract_document_printing_block_price(string $description, string $blockName, string $option): ?float {
+  $blocks = preg_split("/\\r?\\n\\s*\\r?\\n/", $description) ?: [];
+  foreach ($blocks as $block) {
+    if (stripos($block, $blockName) === false) {
+      continue;
+    }
+
+    $pattern = "/\\b" . preg_quote($option, "/") . "\\s*(?:\\/\\s*B&W)?\\s*[-\\x{2013}\\x{2014}]?\\s*\\x{20B1}?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
+    if (preg_match($pattern, $block, $matches)) {
+      return max(0, (float)$matches[1]);
+    }
+  }
+
+  return null;
+}
+
 function extract_document_printing_price_range(string $priceRange): array {
   if (!preg_match_all("/[0-9]+(?:\\.[0-9]+)?/", $priceRange, $matches) || empty($matches[0])) {
     return [];
@@ -96,9 +112,10 @@ function extract_document_printing_price_range(string $priceRange): array {
 
 function fetch_document_printing_prices(PDO $pdo): array {
   $prices = [
-    "default" => 5.0,
-    "full" => 10.0,
-    "half" => 5.0,
+    "long_full" => 10.0,
+    "long_half" => 5.0,
+    "short_full" => 10.0,
+    "short_half" => 5.0,
   ];
 
   try {
@@ -119,14 +136,15 @@ function fetch_document_printing_prices(PDO $pdo): array {
 
     $description = (string)($service["description"] ?? "");
     $rangePrices = extract_document_printing_price_range((string)($service["price_range"] ?? ""));
-    $default = $rangePrices[0] ?? (isset($service["price"]) ? max(0, (float)$service["price"]) : $prices["default"]);
+    $default = $rangePrices[0] ?? (isset($service["price"]) ? max(0, (float)$service["price"]) : $prices["short_half"]);
     $half = extract_document_printing_price($description, "Half") ?? $default;
     $full = extract_document_printing_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($half, $default));
 
     return [
-      "default" => $default,
-      "full" => $full,
-      "half" => $half,
+      "long_full" => extract_document_printing_block_price($description, "Long Bond", "Full") ?? $full,
+      "long_half" => extract_document_printing_block_price($description, "Long Bond", "Half") ?? $half,
+      "short_full" => extract_document_printing_block_price($description, "Short Bond", "Full") ?? $full,
+      "short_half" => extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half,
     ];
   } catch (Throwable $e) {
     return $prices;
@@ -242,10 +260,11 @@ function compute_print_pricing(PDO $pdo, string $paperRaw, string $colorRaw, int
   }
 
   $prices = fetch_document_printing_prices($pdo);
+  $paperPrefix = ($paper === "long") ? "long" : "short";
   $pricePerPage = match ($color) {
-    "full" => $prices["full"],
-    "half" => $prices["half"],
-    default => $prices["default"],
+    "full" => $prices[$paperPrefix . "_full"],
+    "half" => $prices[$paperPrefix . "_half"],
+    default => $prices[$paperPrefix . "_half"],
   };
   $safeQty = max(1, $quantity);
   $safePages = max(0, $totalPages);
