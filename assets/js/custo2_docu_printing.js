@@ -110,13 +110,16 @@
       var paperSize = (paperSizeSelect.value || "").trim().toLowerCase();
       var colorOption = getSelectedColor().trim().toLowerCase();
 
-      if (!paperSize || paperSize === "a3") {
+      if (!paperSize) {
         return 0;
       }
 
       var isLong = paperSize.indexOf("long bond") !== -1 || paperSize.indexOf("8.5 x 13") !== -1;
-      var fullPrice = Number(isLong ? dynamicPricing.long_full_price : dynamicPricing.short_full_price);
-      var halfPrice = Number(isLong ? dynamicPricing.long_half_price : dynamicPricing.short_half_price);
+      var isA4 = paperSize === "a4";
+      var isA3 = paperSize === "a3";
+      var prefix = isLong ? "long" : (isA4 ? "a4" : (isA3 ? "a3" : "short"));
+      var fullPrice = Number(dynamicPricing[prefix + "_full_price"]);
+      var halfPrice = Number(dynamicPricing[prefix + "_half_price"]);
 
       if (!Number.isFinite(halfPrice) || halfPrice <= 0) halfPrice = 5;
       if (!Number.isFinite(fullPrice) || fullPrice <= 0) fullPrice = Math.max(halfPrice, 10);
@@ -850,11 +853,6 @@
       if (!hasAnyFiles()) {
         errors.push("Upload at least one file.");
         setFieldInvalid(fileUpload, true);
-      }
-
-      if (payload.paper_size === "A3") {
-        errors.push("Not Available: A3 printing is not available.");
-        setFieldInvalid(paperSizeSelect, true);
       }
 
       if (payload.order_type === "online" && !payload.payment_method) {

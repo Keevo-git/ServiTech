@@ -116,6 +116,10 @@ function fetch_document_printing_prices(PDO $pdo): array {
     "long_half" => 5.0,
     "short_full" => 10.0,
     "short_half" => 5.0,
+    "a4_full" => 10.0,
+    "a4_half" => 5.0,
+    "a3_full" => 10.0,
+    "a3_half" => 5.0,
   ];
 
   try {
@@ -145,6 +149,10 @@ function fetch_document_printing_prices(PDO $pdo): array {
       "long_half" => extract_document_printing_block_price($description, "Long Bond", "Half") ?? $half,
       "short_full" => extract_document_printing_block_price($description, "Short Bond", "Full") ?? $full,
       "short_half" => extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half,
+      "a4_full" => extract_document_printing_block_price($description, "A4", "Full") ?? $full,
+      "a4_half" => extract_document_printing_block_price($description, "A4", "Half") ?? $half,
+      "a3_full" => extract_document_printing_block_price($description, "A3", "Full") ?? $full,
+      "a3_half" => extract_document_printing_block_price($description, "A3", "Half") ?? $half,
     ];
   } catch (Throwable $e) {
     return $prices;
@@ -250,17 +258,18 @@ function compute_print_pricing(PDO $pdo, string $paperRaw, string $colorRaw, int
     return ["ok" => false, "error" => "Select a valid paper size."];
   }
 
-  if ($paper === "a3") {
-    return ["ok" => false, "error" => "Not Available: A3 printing is not available."];
-  }
-
   $color = normalize_color_option($colorRaw);
   if ($color === "") {
     return ["ok" => false, "error" => "Select a valid color option."];
   }
 
   $prices = fetch_document_printing_prices($pdo);
-  $paperPrefix = ($paper === "long") ? "long" : "short";
+  $paperPrefix = match ($paper) {
+    "long" => "long",
+    "a4" => "a4",
+    "a3" => "a3",
+    default => "short",
+  };
   $pricePerPage = match ($color) {
     "full" => $prices[$paperPrefix . "_full"],
     "half" => $prices[$paperPrefix . "_half"],

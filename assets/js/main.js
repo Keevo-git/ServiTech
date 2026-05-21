@@ -93,6 +93,10 @@ function getDocumentPrintingPrices(service) {
     longHalf: getDocumentBlockPrice(description, "Long Bond", "Half") ?? defaultPrice,
     shortFull: getDocumentBlockPrice(description, "Short Bond", "Full") ?? highPrice,
     shortHalf: getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
+    a4Full: getDocumentBlockPrice(description, "A4", "Full") ?? highPrice,
+    a4Half: getDocumentBlockPrice(description, "A4", "Half") ?? defaultPrice,
+    a3Full: getDocumentBlockPrice(description, "A3", "Full") ?? highPrice,
+    a3Half: getDocumentBlockPrice(description, "A3", "Half") ?? defaultPrice,
   };
 }
 
@@ -102,14 +106,20 @@ function buildDocumentPrintingDetailCards(service) {
   const longHalfLine = `Half - ${formatPesoPrice(prices.longHalf)}`;
   const shortFullLine = `Full - ${formatPesoPrice(prices.shortFull)}`;
   const shortHalfLine = `Half - ${formatPesoPrice(prices.shortHalf)}`;
+  const a4FullLine = `Full - ${formatPesoPrice(prices.a4Full)}`;
+  const a4HalfLine = `Half - ${formatPesoPrice(prices.a4Half)}`;
+  const a3FullLine = `Full - ${formatPesoPrice(prices.a3Full)}`;
+  const a3HalfLine = `Half - ${formatPesoPrice(prices.a3Half)}`;
 
   return [
     { title: "Long Bond Paper (Colored)", icon: "print", lines: [longFullLine, longHalfLine] },
     { title: "Long Bond Paper (B&W)", icon: "print", lines: [formatPesoPrice(prices.longHalf)] },
     { title: "Short Bond Paper (Colored)", icon: "print", lines: [shortFullLine, shortHalfLine] },
     { title: "Short Bond Paper (B&W)", icon: "print", lines: [formatPesoPrice(prices.shortHalf)] },
-    { title: "A4 (Colored)", icon: "print", lines: [shortFullLine, shortHalfLine] },
-    { title: "A4 (B&W)", icon: "print", lines: [formatPesoPrice(prices.shortHalf)] },
+    { title: "A4 (Colored)", icon: "print", lines: [a4FullLine, a4HalfLine] },
+    { title: "A4 (B&W)", icon: "print", lines: [formatPesoPrice(prices.a4Half)] },
+    { title: "A3 (Colored)", icon: "print", lines: [a3FullLine, a3HalfLine] },
+    { title: "A3 (B&W)", icon: "print", lines: [formatPesoPrice(prices.a3Half)] },
   ];
 }
 
@@ -1052,11 +1062,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!hasFiles) {
         errors.push("Upload at least one file.");
         setFieldInvalid(refs.fileUpload, true);
-      }
-
-      if (payload.paper_size === "A3") {
-        errors.push("Not Available: A3 printing is not available.");
-        setFieldInvalid(refs.paperSizeSelect, true);
       }
 
       if (printState && printState.error) {

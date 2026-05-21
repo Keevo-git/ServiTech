@@ -9,6 +9,10 @@ $printPricing = [
   "long_half_price" => 5.0,
   "short_full_price" => 10.0,
   "short_half_price" => 5.0,
+  "a4_full_price" => 10.0,
+  "a4_half_price" => 5.0,
+  "a3_full_price" => 10.0,
+  "a3_half_price" => 5.0,
 ];
 
 function document_printing_extract_price(string $description, string $option): ?float {
@@ -72,6 +76,10 @@ try {
       "long_half_price" => document_printing_extract_block_price($description, "Long Bond", "Half") ?? $halfPrice,
       "short_full_price" => document_printing_extract_block_price($description, "Short Bond", "Full") ?? $fullPrice,
       "short_half_price" => document_printing_extract_block_price($description, "Short Bond", "Half") ?? $halfPrice,
+      "a4_full_price" => document_printing_extract_block_price($description, "A4", "Full") ?? $fullPrice,
+      "a4_half_price" => document_printing_extract_block_price($description, "A4", "Half") ?? $halfPrice,
+      "a3_full_price" => document_printing_extract_block_price($description, "A3", "Full") ?? $fullPrice,
+      "a3_half_price" => document_printing_extract_block_price($description, "A3", "Half") ?? $halfPrice,
     ];
   }
 } catch (Throwable $e) {
@@ -632,7 +640,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260521paper-size-prices"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260521a3-a4-prices"></script>
 </body>
 </html>
 
