@@ -103,6 +103,29 @@
       return checked ? checked.value : "";
     }
 
+    function getClientPricePerPage() {
+      var paperSize = (paperSizeSelect.value || "").trim().toLowerCase();
+      var colorOption = getSelectedColor().trim().toLowerCase();
+
+      if (!paperSize || !colorOption || paperSize === "a3") {
+        return 0;
+      }
+
+      return colorOption === "colored full" ? 10 : 5;
+    }
+
+    function syncClientPricing() {
+      var pricePerPage = getClientPricePerPage();
+      if (pricePerPage <= 0) {
+        state.price_per_page = 0;
+        state.estimated_total = 0;
+        return;
+      }
+
+      state.price_per_page = pricePerPage;
+      state.estimated_total = (Number(state.total_pages) || 0) * pricePerPage * getQuantity();
+    }
+
     function getQuantity() {
       var qty = parseInt(qtyInput.value, 10);
       if (!Number.isFinite(qty) || qty < 1) return 1;
@@ -203,6 +226,7 @@
     }
 
     function renderSummary() {
+      syncClientPricing();
       var size = paperSizeSelect.value || "";
       if (summaryPaperSize) {
         summaryPaperSize.textContent = size ? size : "Not Selected";
