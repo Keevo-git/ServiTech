@@ -60,6 +60,51 @@ function formatServicePriceRange(priceRange) {
   return /^price\s*range\s*:/i.test(value) ? value : `Price Range: ${value}`;
 }
 
+function parseServiceMoneyValues(value) {
+  return String(value || "")
+    .match(/\d+(?:\.\d+)?/g)
+    ?.map((item) => Number(item))
+    .filter((item) => Number.isFinite(item) && item >= 0)
+    .sort((a, b) => a - b) || [];
+}
+
+function formatPesoPrice(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "";
+  return `\u20B1${amount.toFixed(2)}`;
+}
+
+function getDocumentPrintingPricePair(service) {
+  const rangePrices = parseServiceMoneyValues(service?.price_range);
+  const description = String(service?.description || "");
+  const fullMatch = description.match(/\bFull\s*[-\u2013\u2014]?\s*\u20B1?\s*(\d+(?:\.\d+)?)/i);
+  const halfMatch = description.match(/\bHalf\s*[-\u2013\u2014]?\s*\u20B1?\s*(\d+(?:\.\d+)?)/i);
+  const defaultPrice = rangePrices[0] ?? Number(service?.price) ?? 5;
+  const lowPrice = halfMatch ? Number(halfMatch[1]) : defaultPrice;
+  const highPrice = fullMatch ? Number(fullMatch[1]) : (rangePrices[rangePrices.length - 1] ?? Math.max(lowPrice, defaultPrice));
+
+  return {
+    low: Number.isFinite(lowPrice) ? lowPrice : 5,
+    high: Number.isFinite(highPrice) ? highPrice : 10,
+  };
+}
+
+function buildDocumentPrintingDetailCards(service) {
+  const prices = getDocumentPrintingPricePair(service);
+  const fullLine = `Full - ${formatPesoPrice(prices.high)}`;
+  const halfLine = `Half - ${formatPesoPrice(prices.low)}`;
+  const bwLine = formatPesoPrice(prices.low);
+
+  return [
+    { title: "Long Bond Paper (Colored)", icon: "print", lines: [fullLine, halfLine] },
+    { title: "Long Bond Paper (B&W)", icon: "print", lines: [bwLine] },
+    { title: "Short Bond Paper (Colored)", icon: "print", lines: [fullLine, halfLine] },
+    { title: "Short Bond Paper (B&W)", icon: "print", lines: [bwLine] },
+    { title: "A4 (Colored)", icon: "print", lines: [fullLine, halfLine] },
+    { title: "A4 (B&W)", icon: "print", lines: [bwLine] },
+  ];
+}
+
 function openModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
@@ -463,13 +508,18 @@ async function loadServicesFromDatabase() {
           .map((line) => line.trim())
           .filter((line) => line.length > 0);
 
+        const detailKey = getServiceDetailKey(category, service.name);
+        if (detailKey === "documentPrinting") {
+          serviceModalDetailData.documentPrinting.cards = buildDocumentPrintingDetailCards(service);
+        }
+
         return {
           title: service.name,
           icon: getServiceIconKey(category, service.name),
           lines: lines.length > 0 ? lines : [service.description || ""],
           priceLabel: formatServicePrice(service.price),
           priceRange: service.price_range || "",
-          detailKey: getServiceDetailKey(category, service.name),
+          detailKey,
         };
       });
 

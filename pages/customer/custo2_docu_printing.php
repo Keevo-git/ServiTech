@@ -19,9 +19,20 @@ function document_printing_extract_price(string $description, string $option): ?
   return null;
 }
 
+function document_printing_extract_price_range(string $priceRange): array {
+  if (!preg_match_all("/[0-9]+(?:\\.[0-9]+)?/", $priceRange, $matches) || empty($matches[0])) {
+    return [];
+  }
+
+  $prices = array_map(static fn($value) => max(0, (float)$value), $matches[0]);
+  sort($prices, SORT_NUMERIC);
+
+  return $prices;
+}
+
 try {
   $serviceStmt = $pdo->prepare("
-    SELECT description, price
+    SELECT description, price, price_range
     FROM services
     WHERE category = 'printing'
       AND LOWER(name) LIKE '%document%printing%'
@@ -34,9 +45,10 @@ try {
 
   if (is_array($documentPrintingService)) {
     $description = (string)($documentPrintingService["description"] ?? "");
-    $defaultPrice = isset($documentPrintingService["price"]) ? max(0, (float)$documentPrintingService["price"]) : 5.0;
+    $rangePrices = document_printing_extract_price_range((string)($documentPrintingService["price_range"] ?? ""));
+    $defaultPrice = $rangePrices[0] ?? (isset($documentPrintingService["price"]) ? max(0, (float)$documentPrintingService["price"]) : 5.0);
     $halfPrice = document_printing_extract_price($description, "Half") ?? $defaultPrice;
-    $fullPrice = document_printing_extract_price($description, "Full") ?? max($halfPrice, $defaultPrice);
+    $fullPrice = document_printing_extract_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($halfPrice, $defaultPrice));
 
     $printPricing = [
       "default_price" => $defaultPrice,
