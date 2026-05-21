@@ -74,14 +74,6 @@ body.admin-dashboard .page-frame {
   color: #5d728c;
 }
 
-.tab-container {
-  background: #edf3fb;
-  border: 1px solid #d3deea;
-  border-radius: 12px;
-  padding: 8px;
-  margin: 10px 0 14px;
-}
-
 .orders-scroll-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -92,25 +84,27 @@ body.admin-dashboard .page-frame {
   min-width: 1000px;
 }
 
-.tab-list {
-  display: flex;
-  gap: 15px;
-  width: 100%;
-}
-
 .order-tabs {
   display: flex;
   gap: 15px;
   width: 100%;
+  flex-wrap: nowrap;
+  padding-left: 0;
+  padding-right: 0;
+  margin: 10px 0 14px;
+  background: #edf3fb;
+  border: 1px solid #d3deea;
+  border-radius: 12px;
 }
 
 .order-tabs .tab,
 .order-tabs button {
-  flex: 1;
+  flex: 1 0 0;
   min-width: 200px;
 }
 
 .tab {
+  display: block;
   text-align: center;
   padding: 10px 12px;
   border-radius: 9px;
@@ -119,6 +113,7 @@ body.admin-dashboard .page-frame {
   color: #1b3f70;
   text-decoration: none;
   font-weight: 700;
+  white-space: nowrap;
   transition: all 0.18s ease;
 }
 
@@ -161,11 +156,13 @@ table.orders {
   min-width: 1000px;
 }
 
-.table-section {
+.tab-content {
   width: 100%;
+  padding-left: 0;
+  padding-right: 0;
 }
 
-.table-section table {
+.tab-content table {
   width: 100%;
   min-width: 1000px;
 }

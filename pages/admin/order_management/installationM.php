@@ -94,44 +94,48 @@ $rows = $pdo->query("
           <h3>All Orders <small>Manage and update order statuses</small></h3>
         </div>
 
-        <div class="tab-container">
-          <div class="tab-list">
-            <a class="tab" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
-            <a class="tab" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
-            <a class="tab active" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
+        <div class="orders-scroll-wrapper">
+          <div class="orders-content">
+            <div class="order-tabs">
+              <a class="tab" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
+              <a class="tab" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
+              <a class="tab active" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
+            </div>
+
+            <div class="tab-content installation">
+              <div class="walkin-title">Installation Queue - Manage and update order statuses</div>
+              <table class="orders table-content">
+                <thead>
+                  <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  <?php if (!$rows): ?>
+                    <tr><td colspan="5" style="color:#777;padding:14px;">No installation queues yet.</td></tr>
+                  <?php else: ?>
+                    <?php foreach ($rows as $r): ?>
+                      <?php $cls = status_class($r["status"]); ?>
+                      <tr>
+                        <td><?= htmlspecialchars($r["queue_code"]) ?></td>
+                        <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                        <td><span class="status-pill <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                        <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
+                        <td>
+                          <button
+                            class="update-btn"
+                            data-id="<?= (int)$r["id"] ?>"
+                            data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
+                            data-status="<?= htmlspecialchars($r["status"]) ?>"
+                            data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
+                          >Update Status</button>
+                        </td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-
-        <div class="walkin-title">Installation Queue - Manage and update order statuses</div>
-        <table class="orders">
-          <thead>
-            <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
-          </thead>
-          <tbody>
-            <?php if (!$rows): ?>
-              <tr><td colspan="5" style="color:#777;padding:14px;">No installation queues yet.</td></tr>
-            <?php else: ?>
-              <?php foreach ($rows as $r): ?>
-                <?php $cls = status_class($r["status"]); ?>
-                <tr>
-                  <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                  <td><?= htmlspecialchars($r["fullname"]) ?></td>
-                  <td><span class="status-pill <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                  <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
-                  <td>
-                    <button
-                      class="update-btn"
-                      data-id="<?= (int)$r["id"] ?>"
-                      data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                      data-status="<?= htmlspecialchars($r["status"]) ?>"
-                      data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
-                    >Update Status</button>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            <?php endif; ?>
-          </tbody>
-        </table>
       </div>
     </div>
   </div>
