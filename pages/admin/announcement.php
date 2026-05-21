@@ -37,6 +37,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($action === "clear") {
             $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
             $notice = "Announcement hidden from the landing page.";
+        } elseif ($action === "toggle_status") {
+            $id = (int)($_POST["announcement_id"] ?? 0);
+            $status = trim((string)($_POST["status"] ?? ""));
+
+            if ($id <= 0 || !in_array($status, ["active", "hidden"], true)) {
+                throw new RuntimeException("Invalid announcement status.");
+            }
+
+            if ($status === "active") {
+                $pdo->beginTransaction();
+                $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
+
+                $stmt = $pdo->prepare("UPDATE announcements SET active = TRUE, updated_at = NOW() WHERE id = :id");
+                $stmt->execute([":id" => $id]);
+
+                if ($stmt->rowCount() < 1) {
+                    $pdo->rollBack();
+                    throw new RuntimeException("Announcement not found.");
+                }
+
+                $pdo->commit();
+                $notice = "Announcement published on the landing page.";
+            } else {
+                $stmt = $pdo->prepare("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE id = :id");
+                $stmt->execute([":id" => $id]);
+
+                if ($stmt->rowCount() < 1) {
+                    throw new RuntimeException("Announcement not found.");
+                }
+
+                $notice = "Announcement hidden from the landing page.";
+            }
         } elseif ($action === "delete") {
             $id = (int)($_POST["id"] ?? 0);
             if ($id <= 0) {
@@ -46,6 +78,56 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $stmt = $pdo->prepare("DELETE FROM announcements WHERE id = :id");
             $stmt->execute([":id" => $id]);
             $notice = "Announcement deleted.";
+        } elseif ($action === "edit_announcement") {
+            $id = (int)($_POST["announcement_id"] ?? 0);
+            $title = trim((string)($_POST["title"] ?? ""));
+            $message = trim((string)($_POST["message"] ?? ""));
+            $status = trim((string)($_POST["status"] ?? ""));
+
+            if ($id <= 0) {
+                throw new RuntimeException("Invalid announcement.");
+            }
+
+            if ($title === "" || $message === "") {
+                throw new RuntimeException("Title and message are required.");
+            }
+
+            if (!in_array($status, ["active", "hidden"], true)) {
+                throw new RuntimeException("Invalid announcement status.");
+            }
+
+            $existsStmt = $pdo->prepare("SELECT id FROM announcements WHERE id = :id");
+            $existsStmt->execute([":id" => $id]);
+            if (!$existsStmt->fetch(PDO::FETCH_ASSOC)) {
+                throw new RuntimeException("Announcement not found.");
+            }
+
+            $active = $status === "active" ? 1 : 0;
+
+            if ($active) {
+                $pdo->beginTransaction();
+                $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
+            }
+
+            $stmt = $pdo->prepare("
+                UPDATE announcements
+                SET title = :title, message = :message, active = :active, updated_at = NOW()
+                WHERE id = :id
+            ");
+            $stmt->execute([
+                ":id" => $id,
+                ":title" => $title,
+                ":message" => $message,
+                ":active" => $active,
+            ]);
+
+            if ($pdo->inTransaction()) {
+                $pdo->commit();
+            }
+
+            $notice = $active
+                ? "Announcement updated and published on the landing page."
+                : "Announcement updated and saved as hidden.";
         } else {
             $title = trim((string)($_POST["title"] ?? ""));
             $message = trim((string)($_POST["message"] ?? ""));
@@ -74,6 +156,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 : "Announcement saved as inactive.";
         }
     } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
         $error = $exception->getMessage();
     }
 }
@@ -106,6 +192,144 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260521announcement1') ?>">
+  <style>
+    .announcement-item .announcement-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0;
+    }
+
+    .announcement-item .announcement-actions form {
+      margin: 0;
+    }
+
+    .status-toggle {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .status-toggle.active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-toggle.hidden {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .edit-btn {
+      background: #3b82f6;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      margin-left: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .delete-btn {
+      background: #7f1d1d;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      margin-left: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .status-toggle:hover,
+    .edit-btn:hover,
+    .delete-btn:hover {
+      opacity: 0.85;
+    }
+
+    .announcement-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .announcement-modal.is-open {
+      display: flex;
+    }
+
+    .announcement-modal__panel {
+      width: min(560px, 100%);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+    }
+
+    .announcement-modal__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid #e0e8f2;
+    }
+
+    .announcement-modal__head h3 {
+      margin: 0;
+      color: #112338;
+    }
+
+    .announcement-modal__close {
+      border: 0;
+      border-radius: 999px;
+      background: #eef4fb;
+      color: #17345a;
+      cursor: pointer;
+      font-size: 22px;
+      height: 34px;
+      line-height: 1;
+      width: 34px;
+      transition: all 0.2s ease;
+    }
+
+    .announcement-modal__close:hover {
+      opacity: 0.85;
+    }
+
+    .announcement-modal .announcement-form {
+      padding: 20px;
+    }
+
+    .announcement-modal .announcement-actions {
+      gap: 10px;
+    }
+
+    .announcement-form select {
+      width: 100%;
+      border: 1px solid #cbd8e8;
+      border-radius: 11px;
+      padding: 12px 13px;
+      color: #112338;
+      font: inherit;
+      background: #fff;
+    }
+
+    @media (max-width: 620px) {
+      .announcement-item .announcement-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+    }
+  </style>
 </head>
 <body>
   <header class="navbar has-nav-menu">
@@ -221,21 +445,36 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
                 <strong><?= ann_h($item["title"] ?? "") ?></strong>
                 <p><?= ann_h($item["message"] ?? "") ?></p>
               </div>
-              <div class="announcement-item__actions">
+              <div class="announcement-actions">
+                <form method="post">
+                  <input type="hidden" name="csrf_token" value="<?= ann_h($csrfToken) ?>">
+                  <input type="hidden" name="action" value="toggle_status">
+                  <input type="hidden" name="announcement_id" value="<?= (int)($item["id"] ?? 0) ?>">
+                  <input type="hidden" name="status" value="<?= !empty($item["active"]) ? "hidden" : "active" ?>">
+                  <button
+                    class="status-toggle <?= !empty($item["active"]) ? "active" : "hidden" ?>"
+                    type="submit"
+                    aria-label="<?= !empty($item["active"]) ? "Hide announcement" : "Set announcement active" ?>"
+                  >
+                    <?= !empty($item["active"]) ? "Active" : "Hidden" ?>
+                  </button>
+                </form>
                 <button
-                  class="status-btn <?= !empty($item["active"]) ? "active" : "hidden" ?>"
+                  class="edit-btn"
                   type="button"
+                  data-edit-announcement
                   data-id="<?= (int)($item["id"] ?? 0) ?>"
-                  data-status="<?= !empty($item["active"]) ? "hidden" : "active" ?>"
-                  aria-label="<?= !empty($item["active"]) ? "Hide announcement" : "Set announcement active" ?>"
+                  data-title="<?= ann_h($item["title"] ?? "") ?>"
+                  data-message="<?= ann_h($item["message"] ?? "") ?>"
+                  data-status="<?= !empty($item["active"]) ? "active" : "hidden" ?>"
                 >
-                  <?= !empty($item["active"]) ? "Active" : "Hidden" ?>
+                  Edit
                 </button>
                 <form method="post" onsubmit="return confirm('Delete this announcement?');">
                   <input type="hidden" name="csrf_token" value="<?= ann_h($csrfToken) ?>">
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="<?= (int)($item["id"] ?? 0) ?>">
-                  <button class="announcement-delete-btn" type="submit">Delete</button>
+                  <button class="delete-btn" type="submit">Delete</button>
                 </form>
               </div>
             </div>
@@ -245,35 +484,83 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
     </section>
   </main>
 
+  <div class="announcement-modal" id="announcementEditModal" aria-hidden="true">
+    <div class="announcement-modal__panel" role="dialog" aria-modal="true" aria-labelledby="announcementEditTitle">
+      <div class="announcement-modal__head">
+        <h3 id="announcementEditTitle">Edit Announcement</h3>
+        <button class="announcement-modal__close" type="button" data-close-edit aria-label="Close edit dialog">&times;</button>
+      </div>
+
+      <form method="post" class="announcement-form">
+        <input type="hidden" name="csrf_token" value="<?= ann_h($csrfToken) ?>">
+        <input type="hidden" name="action" value="edit_announcement">
+        <input type="hidden" name="announcement_id" id="editAnnouncementId">
+
+        <label>
+          <span>Title</span>
+          <input name="title" id="editAnnouncementTitle" type="text" maxlength="90" required>
+        </label>
+
+        <label>
+          <span>Message</span>
+          <textarea name="message" id="editAnnouncementMessage" maxlength="420" rows="6" required></textarea>
+        </label>
+
+        <label>
+          <span>Status</span>
+          <select name="status" id="editAnnouncementStatus">
+            <option value="active">Active</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </label>
+
+        <div class="announcement-actions">
+          <button class="announcement-btn announcement-btn--ghost" type="button" data-close-edit>Cancel</button>
+          <button class="announcement-btn announcement-btn--primary" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <?php require_once __DIR__ . "/_includes/admin_footer.php"; ?>
   <script>
-    document.querySelectorAll(".status-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        btn.disabled = true;
+    const editModal = document.getElementById("announcementEditModal");
+    const editId = document.getElementById("editAnnouncementId");
+    const editTitle = document.getElementById("editAnnouncementTitle");
+    const editMessage = document.getElementById("editAnnouncementMessage");
+    const editStatus = document.getElementById("editAnnouncementStatus");
 
-        fetch("update_announcement_status.php", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": <?= json_encode($csrfToken) ?>
-          },
-          body: JSON.stringify({
-            id: btn.dataset.id,
-            status: btn.dataset.status
-          })
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (!data.ok) {
-              throw new Error(data.error || "Unable to update announcement.");
-            }
-            location.reload();
-          })
-          .catch((error) => {
-            btn.disabled = false;
-            alert(error.message);
-          });
+    function closeEditModal() {
+      editModal.classList.remove("is-open");
+      editModal.setAttribute("aria-hidden", "true");
+    }
+
+    document.querySelectorAll("[data-edit-announcement]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        editId.value = btn.dataset.id || "";
+        editTitle.value = btn.dataset.title || "";
+        editMessage.value = btn.dataset.message || "";
+        editStatus.value = btn.dataset.status || "hidden";
+        editModal.classList.add("is-open");
+        editModal.setAttribute("aria-hidden", "false");
+        editTitle.focus();
       });
+    });
+
+    document.querySelectorAll("[data-close-edit]").forEach((btn) => {
+      btn.addEventListener("click", closeEditModal);
+    });
+
+    editModal.addEventListener("click", (event) => {
+      if (event.target === editModal) {
+        closeEditModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && editModal.classList.contains("is-open")) {
+        closeEditModal();
+      }
     });
   </script>
   <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
