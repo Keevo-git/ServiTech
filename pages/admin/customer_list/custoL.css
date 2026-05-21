@@ -15,6 +15,11 @@
   padding: 36px 18px 60px;
 }
 
+.admin-container.cl-main{
+  background: transparent;
+  padding: 0 20px 40px;
+}
+
 .cl-wrap{
   max-width: 1180px;
   margin: 0 auto;

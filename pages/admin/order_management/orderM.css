@@ -6,17 +6,11 @@ body.admin-dashboard .container {
 }
 
 body.admin-dashboard .order-header {
-  background: linear-gradient(135deg, #19375f, #24588f 55%, #2e6fae);
-  border-radius: 18px;
+  max-width: 1200px;
+  margin: 0 auto 20px;
   padding: 30px 40px;
-  color: #fff;
-  margin-top: 20px;
-  margin-bottom: 25px;
-<<<<<<< HEAD
-  box-shadow: 0 14px 38px rgba(23, 45, 74, 0.26);
-=======
+  background: linear-gradient(135deg, #2c4e73, #3b6fa5);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
->>>>>>> 7d944680b3fcd1fd3231399f1799febc3cdb6b22
 }
 
 body.admin-dashboard .order-header h1 {

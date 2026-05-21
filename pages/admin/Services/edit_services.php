@@ -116,7 +116,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   <title>Manage Services</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521layout') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css') ?>">
 </head>
 <body>
@@ -143,6 +143,13 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   </nav>
 </header>
 
+<div class="admin-wrapper">
+  <section class="admin-hero">
+    <h1>Manage Services</h1>
+    <p>Manage and update services shown on the landing page.</p>
+  </section>
+
+<main class="admin-container">
 <div class="ms-wrap">
   <div class="ms-card">
     <div class="ms-head">
@@ -204,6 +211,8 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
       </table>
     </div>
   </div>
+</div>
+</main>
 </div>
 
 <div class="ms-overlay" id="msOverlay">

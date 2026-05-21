@@ -107,6 +107,37 @@ main{ flex:1; }
   font-weight:700;
 }
 
+.admin-wrapper{
+  padding-top:30px;
+}
+
+.admin-hero{
+  width:calc(100% - 40px);
+  max-width:1200px;
+  margin:0 auto 20px;
+  padding:30px 40px;
+  border-radius:18px;
+  background:linear-gradient(135deg, #2c4e73, #3b6fa5);
+  color:#fff;
+  box-shadow:0 10px 30px rgba(0,0,0,0.12);
+}
+
+.admin-hero h1{
+  margin:0;
+}
+
+.admin-hero p{
+  margin:8px 0 0;
+  color:rgba(255,255,255,.92);
+}
+
+.admin-container{
+  width:calc(100% - 40px);
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 20px 40px;
+}
+
 .hero{
   width:min(1200px,92vw);
   margin:22px auto 0;
@@ -127,6 +158,18 @@ main{ flex:1; }
   padding:0;
   min-height:auto;
   background:transparent;
+}
+
+.admin-container .page-frame{
+  width:auto;
+  margin:0 -20px;
+}
+
+.admin-container > .cl-wrap,
+.admin-container > .ms-wrap{
+  max-width:none;
+  margin:0 -20px;
+  padding:0;
 }
 
 .page-frame{

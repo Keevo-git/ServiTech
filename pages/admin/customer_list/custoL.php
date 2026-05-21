@@ -36,8 +36,8 @@ function customer_code_from_id(int $id): string {
   <title>Customer List</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260411h6') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521layout') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260521layout') ?>">
 </head>
 
 <body>
@@ -64,7 +64,13 @@ function customer_code_from_id(int $id): string {
     </nav>
   </header>
 
-  <main class="cl-main">
+  <div class="admin-wrapper">
+    <section class="admin-hero">
+      <h1>Customer List</h1>
+      <p>View registered customers and search account details.</p>
+    </section>
+
+  <main class="admin-container cl-main">
     <div class="cl-wrap">
       <div class="cl-head">
         <h2 class="cl-title">Customer List</h2>
@@ -116,6 +122,7 @@ function customer_code_from_id(int $id): string {
       </div>
     </div>
   </main>
+  </div>
 
   <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 

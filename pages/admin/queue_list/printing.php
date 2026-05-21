@@ -50,7 +50,7 @@ $rows = $stmt->fetchAll();
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Printing</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521layout') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260511qmsg') ?>">
 </head>
@@ -82,14 +82,13 @@ $rows = $stmt->fetchAll();
   </div>
 </header>
 
-<section class="hero">
-  <div class="hero-inner">
+<div class="admin-wrapper">
+  <section class="admin-hero">
     <h1>Queue Management</h1>
     <p>Monitor and update all service queue entries.</p>
-  </div>
-</section>
+  </section>
 
-<main class="container">
+<main class="admin-container">
   <div class="page-frame">
     <div class="page-inner">
       <div class="panel">
@@ -149,6 +148,7 @@ $rows = $stmt->fetchAll();
     </div>
   </div>
 </main>
+</div>
 
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 

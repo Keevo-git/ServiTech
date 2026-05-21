@@ -73,9 +73,9 @@ $online = $onlineStmt->fetchAll();
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Order Management - Printing</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521layout') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260521layout') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
 <body class="admin-dashboard">
@@ -106,14 +106,13 @@ $online = $onlineStmt->fetchAll();
   </div>
 </header>
 
-<div class="container">
-  <div class="order-header">
+<div class="admin-wrapper">
+  <section class="admin-hero order-header">
     <h1>Order Management</h1>
     <p>Review printing orders and update statuses in real time.</p>
-  </div>
-</div>
+  </section>
 
-<main class="container">
+<main class="admin-container">
   <div class="page-frame">
     <div class="page-inner">
       <h2>Order Management</h2>
@@ -197,6 +196,7 @@ $online = $onlineStmt->fetchAll();
     </div>
   </div>
 </main>
+</div>
 
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
