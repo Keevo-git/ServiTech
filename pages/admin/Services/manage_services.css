@@ -1,7 +1,7 @@
 /* Manage Services (Admin) */
 :root{ --maroon:#1f4a8a; --accent:#24a8bc; }
 
-.ms-wrap{ max-width:1100px; margin:26px auto 60px; padding:0 16px; }
+.ms-wrap{ max-width:1100px; margin:26px auto 60px; padding:0; }
 .ms-card{
   background:#fff;
   border-radius:16px;
@@ -32,8 +32,16 @@
   font-weight:800; cursor:pointer;
 }
 
-.ms-tableWrap{ background:#f2f7fd; border-radius:10px; padding:10px; border:1px solid #dce6f3; }
-.ms-table{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
+.ms-tableWrap{
+  width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  background:#f2f7fd;
+  border-radius:10px;
+  padding:10px;
+  border:1px solid #dce6f3;
+}
+.ms-table{ width:100%; min-width:900px; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
 .ms-table th, .ms-table td{ padding:10px 12px; border-bottom:1px solid rgba(0,0,0,.08); font-size:13px; }
 .ms-table th{ background:#ecf3fb; color:#1a426f; text-align:left; font-weight:900; }
 .ms-actions button{ border:none; background:transparent; cursor:pointer; font-weight:900; }
@@ -54,7 +62,9 @@
   z-index:99999; padding:18px;
 }
 .ms-modal{
-  width:min(520px, 96vw);
+  width:90%;
+  max-width:400px;
+  margin:auto;
   max-height:calc(100vh - 36px);
   background:#fff; border-radius:14px; overflow:hidden;
   box-shadow:0 26px 70px rgba(0,0,0,.28);
@@ -98,4 +108,40 @@
 @media (max-height: 720px) {
   .ms-overlay{ align-items:flex-start; }
   .ms-modal{ max-height:calc(100vh - 24px); }
+}
+
+@media (max-width: 700px) {
+  .ms-head{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .ms-tabs{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .ms-row2{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .ms-card,
+  .ms-modal{
+    padding:15px;
+  }
+
+  .ms-add,
+  .ms-actions button,
+  .ms-btn{
+    width:100%;
+    margin-bottom:8px;
+  }
+
+  .ms-foot{
+    flex-direction:column;
+    padding-left:0;
+    padding-right:0;
+  }
 }

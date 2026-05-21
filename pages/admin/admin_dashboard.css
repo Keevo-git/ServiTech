@@ -110,7 +110,7 @@ body.admin-dashboard .hero{
   background: linear-gradient(135deg, #19375f, #24588f 55%, #2e6fae);
   color: #f7fbff;
   padding: 26px 28px;
-  border-radius: 18px;
+  border-radius: 20px;
   box-shadow: 0 14px 38px rgba(23, 45, 74, 0.26);
 }
 
@@ -168,8 +168,7 @@ body.admin-dashboard .container{
 
 body.admin-dashboard .main-container{
   max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
   padding: 20px;
 }
 
@@ -553,8 +552,20 @@ body.admin-dashboard .quick-grid{
   width: 100%;
 }
 
+body.admin-dashboard .analytics-section{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
 body.admin-dashboard .quick-access-section{
   width: 100%;
+}
+
+body.admin-dashboard .quick-access{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
 body.admin-dashboard .quick-access-grid{
@@ -741,11 +752,46 @@ body.admin-dashboard .footer-bottom{
   }
 }
 
+@media (max-width: 1024px){
+  body.admin-dashboard .quick-access,
+  body.admin-dashboard .quick-access-grid,
+  body.admin-dashboard .analytics-section{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 600px){
   body.admin-dashboard .stats,
+  body.admin-dashboard .quick-access,
   body.admin-dashboard .quick-grid,
+  body.admin-dashboard .quick-access-grid,
+  body.admin-dashboard .analytics-section,
   body.admin-dashboard .today-metrics{
     grid-template-columns: 1fr;
+  }
+
+  body.admin-dashboard .hero{
+    padding: 20px 15px;
+    text-align: left;
+  }
+
+  body.admin-dashboard .hero h1{
+    font-size: 20px;
+  }
+
+  body.admin-dashboard .hero p{
+    font-size: 14px;
+  }
+
+  body.admin-dashboard .topbar .btn,
+  body.admin-dashboard button{
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  body.admin-dashboard .topbar.has-nav-menu .nav-toggle{
+    width: 42px;
+    margin-bottom: 0;
   }
 
   body.admin-dashboard .footer-container{
@@ -844,6 +890,22 @@ body.admin-dashboard .topbar.has-nav-menu .nav-toggle__bar {
     justify-content: center;
     text-align: center;
     margin: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  body.admin-dashboard .topbar.has-nav-menu .actions[data-collapsible-menu] {
+    display: none;
+  }
+
+  body.admin-dashboard .topbar.has-nav-menu.is-menu-open .actions[data-collapsible-menu] {
+    display: flex;
+  }
+
+  body.admin-dashboard .topbar.has-nav-menu .nav-toggle {
+    display: inline-flex;
+    width: 42px;
+    margin-bottom: 0;
   }
 }
 

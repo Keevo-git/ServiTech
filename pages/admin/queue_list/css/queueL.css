@@ -34,7 +34,7 @@ body.admin-dashboard .page-frame {
   border-radius: 14px;
   border: 1px solid #d7e0eb;
   box-shadow: 0 10px 24px rgba(20, 48, 79, 0.08);
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 .tabs {
@@ -74,7 +74,17 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 14px;
-  min-width: 860px;
+  min-width: 900px;
+}
+
+.table-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-content {
+  min-width: 900px;
 }
 
 th,
@@ -369,5 +379,22 @@ td.actions button.btn-message:hover {
   .qmsg-info,
   .qmsg-templates {
     grid-template-columns: 1fr;
+  }
+
+  .actions button,
+  .qmsg-templates button,
+  .qmsg-btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .qmsg-modal {
+    width: 90%;
+    max-width: 400px;
+    padding: 15px;
+  }
+
+  .qmsg-actions {
+    flex-direction: column;
   }
 }

@@ -53,7 +53,7 @@ body.admin-dashboard .page-frame {
   margin-bottom: 18px;
   border: 1px solid #d7e0eb;
   box-shadow: 0 10px 24px rgba(19, 45, 75, 0.08);
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 .panel-heading {
@@ -126,7 +126,17 @@ body.admin-dashboard .page-frame {
 table.orders {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+  min-width: 900px;
+}
+
+.table-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-content {
+  min-width: 900px;
 }
 
 table.orders th,
@@ -199,7 +209,9 @@ table.orders th {
 }
 
 .om-modalCard {
-  width: min(520px, 92vw);
+  width: 90%;
+  max-width: 400px;
+  margin: auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.28);
@@ -414,6 +426,22 @@ table.orders th {
 
   .om-actions {
     flex-direction: column;
+  }
+
+  .om-modalCard {
+    padding: 0;
+  }
+
+  .om-modalBody,
+  .modal-body {
+    padding: 15px;
+  }
+
+  .update-btn,
+  .modal-actions button,
+  .om-btn {
+    width: 100%;
+    margin-bottom: 8px;
   }
 }
 

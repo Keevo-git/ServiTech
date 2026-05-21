@@ -108,11 +108,12 @@ main{ flex:1; }
 }
 
 .admin-wrapper{
-  padding-top:30px;
+  width:100%;
+  padding:30px 20px 0;
 }
 
 .admin-hero{
-  width:calc(100% - 40px);
+  width:100%;
   max-width:1200px;
   margin:0 auto 20px;
   padding:30px 40px;
@@ -132,10 +133,16 @@ main{ flex:1; }
 }
 
 .admin-container{
-  width:calc(100% - 40px);
+  width:100%;
   max-width:1200px;
   margin:0 auto;
-  padding:0 20px 40px;
+  padding:0 0 40px;
+}
+
+.main-container{
+  max-width:1200px;
+  margin:0 auto;
+  padding:20px;
 }
 
 .hero{
@@ -162,14 +169,24 @@ main{ flex:1; }
 
 .admin-container .page-frame{
   width:auto;
-  margin:0 -20px;
+  margin:0;
 }
 
 .admin-container > .cl-wrap,
 .admin-container > .ms-wrap{
   max-width:none;
-  margin:0 -20px;
+  margin:0;
   padding:0;
+}
+
+.table-scroll-wrapper{
+  width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.table-content{
+  min-width:900px;
 }
 
 .page-frame{
@@ -292,12 +309,56 @@ main{ flex:1; }
 
 @media(max-width:900px){
   .navbar{
-    flex-direction:column;
-    align-items:flex-start;
+    padding:15px 20px;
+  }
+
+  .admin-wrapper{
+    padding:24px 16px 0;
+  }
+
+  .admin-hero{
+    padding:26px 24px;
   }
 }
 
 @media(max-width:600px){
+  .admin-wrapper{
+    padding:18px 12px 0;
+  }
+
+  .admin-hero,
+  .hero{
+    padding:20px 15px;
+    text-align:left;
+    border-radius:20px;
+  }
+
+  .admin-hero h1,
+  .hero h1{
+    font-size:20px;
+  }
+
+  .admin-hero p,
+  .hero p{
+    font-size:14px;
+  }
+
+  .main-container{
+    padding:20px;
+  }
+
+  .btn,
+  button{
+    width:100%;
+    margin-bottom:8px;
+  }
+
+  .nav-toggle,
+  .navbar.has-nav-menu .nav-toggle{
+    width:42px;
+    margin-bottom:0;
+  }
+
   .footer-container{
     flex-direction:column-reverse;
     text-align:center;
@@ -390,6 +451,28 @@ main{ flex:1; }
   .navbar.has-nav-menu .nav-toggle {
     margin-left: auto;
     align-self: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar.has-nav-menu .nav-toggle {
+    display: inline-flex;
+    width: 42px;
+    margin-bottom: 0;
+  }
+
+  .navbar.has-nav-menu nav[data-collapsible-menu] {
+    display: none;
+  }
+
+  .navbar.has-nav-menu.is-menu-open nav[data-collapsible-menu] {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) {
+  .navbar.has-nav-menu .nav-toggle {
+    display: none;
   }
 }
 
