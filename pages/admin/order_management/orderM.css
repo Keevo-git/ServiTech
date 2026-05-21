@@ -12,7 +12,11 @@ body.admin-dashboard .order-header {
   color: #fff;
   margin-top: 20px;
   margin-bottom: 25px;
+<<<<<<< HEAD
   box-shadow: 0 14px 38px rgba(23, 45, 74, 0.26);
+=======
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+>>>>>>> 7d944680b3fcd1fd3231399f1799febc3cdb6b22
 }
 
 body.admin-dashboard .order-header h1 {
