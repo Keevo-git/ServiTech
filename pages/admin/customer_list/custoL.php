@@ -36,8 +36,8 @@ function customer_code_from_id(int $id): string {
   <title>Customer List</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521layout') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260521layout') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260521responsive') ?>">
 </head>
 
 <body>
@@ -84,8 +84,8 @@ function customer_code_from_id(int $id): string {
           </div>
         </div>
 
-        <div class="cl-tableWrap">
-          <table class="cl-table" id="customersTable">
+        <div class="cl-tableWrap table-scroll-wrapper">
+          <table class="cl-table table-content" id="customersTable">
             <thead>
               <tr>
                 <th>Customer ID</th>

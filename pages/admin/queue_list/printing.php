@@ -50,9 +50,9 @@ $rows = $stmt->fetchAll();
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Printing</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521layout') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260511qmsg') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260521responsive') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -99,51 +99,53 @@ $rows = $stmt->fetchAll();
           <a class="tab" href="<?= admin_url('/pages/admin/queue_list/installation.php') ?>">Installation</a>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Customer Name</th>
-              <th>Service Details</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-          <?php if (!$rows): ?>
-            <tr>
-              <td colspan="5" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
-            </tr>
-          <?php else: ?>
-            <?php foreach ($rows as $r): ?>
+        <div class="table-scroll-wrapper">
+          <table class="table-content">
+            <thead>
               <tr>
-                <td><?= esc($r["queue_code"]) ?></td>
-                <td><?= esc($r["fullname"]) ?></td>
-                <td><?= esc(service_label($r["category"])) ?></td>
-                <td>
-                  <span class="status-pill <?= esc(status_class($r["status"])) ?>">
-                    <?= esc($r["status"]) ?>
-                  </span>
-                </td>
-                <td class="actions">
-                  <button class="btn-start" data-id="<?= (int)$r["id"] ?>">Start</button>
-                  <button class="btn-pickup" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
-                  <button class="btn-done" data-id="<?= (int)$r["id"] ?>">Done</button>
-                  <button class="btn-cancel" data-id="<?= (int)$r["id"] ?>">Cancel</button>
-                  <button
-                    class="btn-message"
-                    data-id="<?= (int)$r["id"] ?>"
-                    data-queue-code="<?= esc($r["queue_code"]) ?>"
-                    data-customer="<?= esc($r["fullname"]) ?>"
-                    data-service="<?= esc(service_label($r["category"])) ?>"
-                  >Message</button>
-                  <button class="btn-delete" data-id="<?= (int)$r["id"] ?>" title="Delete">x</button>
-                </td>
+                <th>Order ID</th>
+                <th>Customer Name</th>
+                <th>Service Details</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            <?php endforeach; ?>
-          <?php endif; ?>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+            <?php if (!$rows): ?>
+              <tr>
+                <td colspan="5" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
+              </tr>
+            <?php else: ?>
+              <?php foreach ($rows as $r): ?>
+                <tr>
+                  <td><?= esc($r["queue_code"]) ?></td>
+                  <td><?= esc($r["fullname"]) ?></td>
+                  <td><?= esc(service_label($r["category"])) ?></td>
+                  <td>
+                    <span class="status-pill <?= esc(status_class($r["status"])) ?>">
+                      <?= esc($r["status"]) ?>
+                    </span>
+                  </td>
+                  <td class="actions">
+                    <button class="btn-start" data-id="<?= (int)$r["id"] ?>">Start</button>
+                    <button class="btn-pickup" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
+                    <button class="btn-done" data-id="<?= (int)$r["id"] ?>">Done</button>
+                    <button class="btn-cancel" data-id="<?= (int)$r["id"] ?>">Cancel</button>
+                    <button
+                      class="btn-message"
+                      data-id="<?= (int)$r["id"] ?>"
+                      data-queue-code="<?= esc($r["queue_code"]) ?>"
+                      data-customer="<?= esc($r["fullname"]) ?>"
+                      data-service="<?= esc(service_label($r["category"])) ?>"
+                    >Message</button>
+                    <button class="btn-delete" data-id="<?= (int)$r["id"] ?>" title="Delete">x</button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

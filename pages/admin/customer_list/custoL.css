@@ -75,11 +75,16 @@
 }
 
 /* table */
-.cl-tableWrap{ overflow:auto; border-radius: 16px; }
+.cl-tableWrap{
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 16px;
+}
 
 .cl-table{
   width:100%;
-  min-width: 860px;
+  min-width: 900px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -398,6 +403,13 @@
 
   .cl-actions .cl-btn{
     width:100%;
+  }
+
+  .cl-btn,
+  .cl-copyBtn,
+  .cl-tplBtn{
+    width:100%;
+    margin-bottom:8px;
   }
 }
 
