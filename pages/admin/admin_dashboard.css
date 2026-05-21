@@ -604,6 +604,21 @@ body.admin-dashboard .card .icon--customer-list{
   overflow: hidden;
 }
 
+body.admin-dashboard .card .icon--announcement{
+  width: auto;
+  height: auto;
+  min-height: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(166, 27, 27, 0.1);
+  color: #7a0f0f;
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 body.admin-dashboard .icon-image{
   display: inline-flex;
   max-width: 100%;

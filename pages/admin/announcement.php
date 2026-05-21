@@ -105,7 +105,7 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <title>Manage Announcement</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260513a4') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260521announcement1') ?>">
 </head>
 <body>
   <header class="navbar has-nav-menu">
@@ -185,19 +185,14 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
 
         <?php if (!empty($activeAnnouncement["title"])): ?>
           <div class="landing-announcement-preview" role="status" aria-label="Announcement preview">
-            <div class="landing-announcement-preview__card">
-              <div class="landing-announcement-preview__icon" aria-hidden="true">&#x1F4E3;</div>
-              <div class="landing-announcement-preview__text">
-                <span class="landing-announcement-preview__label">Announcement</span>
-                <span class="landing-announcement-preview__title"><?= ann_h($activeAnnouncement["title"] ?? "") ?></span>
-                <span class="landing-announcement-preview__message"><?= ann_h($activeAnnouncement["message"] ?? "") ?></span>
-                <?php if (!empty($activeAnnouncement["updated_at"])): ?>
-                  <time class="landing-announcement-preview__date" datetime="<?= ann_h((string)$activeAnnouncement["updated_at"]) ?>">
-                    <?= ann_h(date("F j, Y • g:i A", strtotime((string)$activeAnnouncement["updated_at"]))) ?>
-                  </time>
-                <?php endif; ?>
-              </div>
-            </div>
+            <span class="landing-announcement-preview__label">Announcement</span>
+            <span class="landing-announcement-preview__title"><?= ann_h($activeAnnouncement["title"] ?? "") ?></span>
+            <span class="landing-announcement-preview__message"><?= ann_h($activeAnnouncement["message"] ?? "") ?></span>
+            <?php if (!empty($activeAnnouncement["updated_at"])): ?>
+              <time class="landing-announcement-preview__date" datetime="<?= ann_h((string)$activeAnnouncement["updated_at"]) ?>">
+                <?= ann_h(date("F j, Y • g:i A", strtotime((string)$activeAnnouncement["updated_at"]))) ?>
+              </time>
+            <?php endif; ?>
           </div>
           <form method="post" class="announcement-clear">
             <input type="hidden" name="csrf_token" value="<?= ann_h($csrfToken) ?>">
