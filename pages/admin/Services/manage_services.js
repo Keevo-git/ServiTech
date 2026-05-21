@@ -16,6 +16,97 @@
   const fPriceRange = qs("#ms_price_range");
   const fActive = qs("#ms_active");
   const fSort = qs("#ms_sort");
+  const fPriceModeField = qs("#ms_priceModeField");
+  const fPriceField = qs("#ms_priceField");
+  const fPriceLabel = qs("#ms_priceLabel");
+  const fPriceHint = qs("#ms_price_hint");
+  const fDescriptionHint = qs("#ms_description_hint");
+
+  function isDocumentPrintingService(category, name) {
+    const normalizedCategory = String(category || "").trim().toLowerCase();
+    const normalizedName = String(name || "").trim().toLowerCase();
+    return normalizedCategory === "printing" && normalizedName.includes("document") && normalizedName.includes("printing");
+  }
+
+  function parseMoneyValues(value) {
+    const matches = String(value || "").match(/[0-9]+(?:\.[0-9]+)?/g);
+    if (!matches) return [];
+    return matches
+      .map((item) => Number(item))
+      .filter((item) => Number.isFinite(item) && item >= 0)
+      .sort((a, b) => a - b);
+  }
+
+  function formatPlainPrice(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "";
+    return number.toFixed(2).replace(/\.00$/, "");
+  }
+
+  function formatPesoRange(low, high) {
+    return `₱${formatPlainPrice(low)} – ₱${formatPlainPrice(high)}`;
+  }
+
+  function ensureDocumentFullPriceField() {
+    let field = qs("#ms_documentFullPriceField");
+    if (field) return field;
+    if (!fPriceField || !fPriceField.parentNode) return null;
+
+    field = document.createElement("div");
+    field.className = "ms-field";
+    field.id = "ms_documentFullPriceField";
+    field.innerHTML = `
+      <label>Full Price</label>
+      <input id="ms_document_full_price" type="text" placeholder="e.g., 10.00">
+    `;
+    fPriceField.parentNode.insertBefore(field, fPriceField);
+    return field;
+  }
+
+  function getDocumentFullPriceInput() {
+    ensureDocumentFullPriceField();
+    return qs("#ms_document_full_price");
+  }
+
+  function getDocumentPrices(data) {
+    const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
+    const description = String(data?.description || fDesc?.value || "");
+    const fullFromDescription = extractOptionPrice(description, "Full");
+    const halfFromDescription = extractOptionPrice(description, "Half");
+    const fallbackPrice = data?.price ?? fPrice?.value ?? "";
+
+    return {
+      half: halfFromDescription || (rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : fallbackPrice || "5"),
+      full: fullFromDescription || (rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "10"),
+    };
+  }
+
+  function setDocumentPrintingUi(enabled, data) {
+    const fullPriceField = ensureDocumentFullPriceField();
+    const fullPriceInput = getDocumentFullPriceInput();
+
+    if (fPriceModeField) fPriceModeField.style.display = enabled ? "none" : "";
+    if (fullPriceField) fullPriceField.style.display = enabled ? "" : "none";
+
+    if (fPriceLabel) fPriceLabel.textContent = enabled ? "Half / B&W Price" : "Price (optional)";
+    if (fPriceHint) {
+      fPriceHint.textContent = enabled
+        ? "Document Printing keeps paper/color groups fixed. Only these shared prices change."
+        : "Choose Full or Half when editing print price lines inside the description.";
+    }
+    if (fDescriptionHint) {
+      fDescriptionHint.textContent = enabled
+        ? "Paper and color groups are fixed on the customer page. Edit the wording only if needed."
+        : "Use newline-separated entries. For Document Printing, paper and color groups are fixed on the customer page.";
+    }
+
+    if (!enabled) return;
+
+    const prices = getDocumentPrices(data || {});
+    if (fullPriceInput) fullPriceInput.value = prices.full;
+    if (fPrice) fPrice.value = prices.half;
+    if (fPriceRange) fPriceRange.value = formatPesoRange(prices.half, prices.full);
+  }
 
   function getFPriceMode() {
     return qs("#ms_priceMode");
@@ -56,7 +147,7 @@
   }
 
   function showPriceModeField(show) {
-    const field = getFPriceModeField();
+    const field = fPriceModeField || getFPriceModeField();
     if (!field) return;
     field.style.display = show ? "" : "none";
   }
@@ -120,7 +211,11 @@
 
     const priceValue = (data?.price ?? "") === null ? "" : (data?.price ?? "");
     fPrice.value = priceValue;
-    syncPriceMode(fDesc.value, priceValue);
+    const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
+    setDocumentPrintingUi(isDocumentPrinting, data);
+    if (!isDocumentPrinting) {
+      syncPriceMode(fDesc.value, priceValue);
+    }
   }
 
   function closeModal(){ overlay.style.display="none"; hideErr(); }
@@ -165,7 +260,23 @@
 
   document.addEventListener("change", (event) => {
     if (event.target && event.target.id === "ms_priceMode") {
+      if (isDocumentPrintingService(fCat.value, fName.value)) return;
       syncPriceMode(fDesc.value, fPrice.value);
+    }
+
+    if (event.target && (event.target.id === "ms_category" || event.target.id === "ms_name")) {
+      setDocumentPrintingUi(isDocumentPrintingService(fCat.value, fName.value));
+    }
+  });
+
+  document.addEventListener("input", (event) => {
+    if (!isDocumentPrintingService(fCat.value, fName.value)) return;
+    if (!event.target || !["ms_price", "ms_document_full_price"].includes(event.target.id)) return;
+
+    const fullPrice = getDocumentFullPriceInput()?.value.trim() || "";
+    const halfPrice = fPrice.value.trim();
+    if (fPriceRange && halfPrice !== "" && fullPrice !== "") {
+      fPriceRange.value = formatPesoRange(halfPrice, fullPrice);
     }
   });
 
@@ -174,7 +285,23 @@
 
     const priceMode = getFPriceMode();
     let descriptionValue = fDesc.value.trim();
-    if (priceMode?.value === "full") {
+    if (isDocumentPrintingService(fCat.value, fName.value)) {
+      const fullPrice = getDocumentFullPriceInput()?.value.trim() || "";
+      const halfPrice = fPrice.value.trim();
+
+      if (!halfPrice || !fullPrice || !isFinite(Number(halfPrice)) || !isFinite(Number(fullPrice))) {
+        showErr("Enter valid Full Price and Half / B&W Price.");
+        return;
+      }
+
+      if (Number(fullPrice) < Number(halfPrice)) {
+        showErr("Full Price should be greater than or equal to Half / B&W Price.");
+        return;
+      }
+
+      if (fPriceRange) fPriceRange.value = formatPesoRange(halfPrice, fullPrice);
+      fPrice.value = halfPrice;
+    } else if (priceMode?.value === "full") {
       descriptionValue = replaceOptionPrice(descriptionValue, "Full", fPrice.value.trim());
     } else if (priceMode?.value === "half") {
       descriptionValue = replaceOptionPrice(descriptionValue, "Half", fPrice.value.trim());

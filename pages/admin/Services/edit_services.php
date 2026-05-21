@@ -252,7 +252,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
       <div class="ms-field">
         <label>Description</label>
         <textarea id="ms_description" placeholder="Short Bond Paper (Colored)\nFull - 10.00\nHalf - 5.00\n\nShort Bond Paper (B&W)\n5.00"></textarea>
-        <small>Use newline-separated entries. Add a blank line between option groups to edit Full/Half blocks separately.</small>
+        <small id="ms_description_hint">Use newline-separated entries. For Document Printing, paper and color groups are fixed on the customer page.</small>
       </div>
 
       <div class="ms-field">
@@ -262,7 +262,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
       </div>
 
       <div class="ms-row2">
-        <div class="ms-field">
+        <div class="ms-field" id="ms_priceModeField">
           <label>Price Mode</label>
           <select id="ms_priceMode">
             <option value="default">Default price</option>
@@ -270,13 +270,13 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
             <option value="half">Half price</option>
           </select>
         </div>
-        <div class="ms-field">
-          <label>Price (optional)</label>
+        <div class="ms-field" id="ms_priceField">
+          <label id="ms_priceLabel">Price (optional)</label>
           <input id="ms_price" type="text" placeholder="e.g., 10.00">
         </div>
       </div>
       <div class="ms-field">
-        <small>Choose Full or Half when editing print price lines inside the description.</small>
+        <small id="ms_price_hint">Choose Full or Half when editing print price lines inside the description.</small>
       </div>
 
       <div class="ms-row2">
@@ -301,7 +301,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260511price-range') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260521document-prices') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
