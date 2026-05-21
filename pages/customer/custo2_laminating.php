@@ -1,5 +1,42 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
+require_once __DIR__ . "/../../config/db.php";
+
+$laminatingPricing = [
+  "thin" => 20.0,
+  "thick" => 30.0,
+];
+
+function laminating_price(array $pricing, string $key): string {
+  return number_format((float)($pricing[$key] ?? 0), 2, ".", "");
+}
+
+try {
+  $laminatingStmt = $pdo->prepare("
+    SELECT price, pricing_json::text AS pricing_json
+    FROM services
+    WHERE category = 'printing'
+      AND LOWER(name) LIKE '%laminat%'
+      AND active = TRUE
+    ORDER BY sort_order ASC, id ASC
+    LIMIT 1
+  ");
+  $laminatingStmt->execute();
+  $laminatingService = $laminatingStmt->fetch(PDO::FETCH_ASSOC);
+
+  if (is_array($laminatingService)) {
+    $storedPricing = json_decode((string)($laminatingService["pricing_json"] ?? ""), true);
+    if (is_array($storedPricing)) {
+      foreach ($laminatingPricing as $key => $fallback) {
+        if (isset($storedPricing[$key]) && is_numeric($storedPricing[$key])) {
+          $laminatingPricing[$key] = max(0, (float)$storedPricing[$key]);
+        }
+      }
+    }
+  }
+} catch (Throwable $e) {
+  // Keep the Laminating form usable if service pricing cannot be loaded.
+}
 ?>
 
 <!DOCTYPE html>
@@ -35,8 +72,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <label for="lamTypeSelect">Lamination Type<span class="required">*</span></label>
             <select class="form-select" id="lamTypeSelect">
               <option value="" selected disabled>Select lamination type</option>
-              <option value="thin" data-price="20">Thin (Manipis)</option>
-              <option value="thick" data-price="30">Thick (Makapal)</option>
+              <option value="thin" data-price="<?= laminating_price($laminatingPricing, "thin") ?>">Thin (Manipis) &mdash; &#8369;<?= laminating_price($laminatingPricing, "thin") ?></option>
+              <option value="thick" data-price="<?= laminating_price($laminatingPricing, "thick") ?>">Thick (Makapal) &mdash; &#8369;<?= laminating_price($laminatingPricing, "thick") ?></option>
             </select>
 
             <label for="notes">Additional Instructions / Edit Request</label>
@@ -86,7 +123,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260326c4"></script>
+<script src="/assets/js/main.js?v=20260521laminating-prices"></script>
 
 </body>
 </html>

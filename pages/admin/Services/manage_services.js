@@ -43,6 +43,12 @@
     return normalizedCategory === "printing" && normalizedName.includes("rush") && normalizedName.includes("id");
   }
 
+  function isLaminatingService(category, name) {
+    const normalizedCategory = String(category || "").trim().toLowerCase();
+    const normalizedName = String(name || "").trim().toLowerCase();
+    return normalizedCategory === "printing" && normalizedName.includes("laminat");
+  }
+
   function parseMoneyValues(value) {
     const matches = String(value || "").match(/[0-9]+(?:\.[0-9]+)?/g);
     if (!matches) return [];
@@ -449,6 +455,92 @@
     syncRushPackageRange();
   }
 
+  function ensureLaminatingPriceGrid() {
+    let grid = qs("#ms_laminatingPriceGrid");
+    if (grid) return grid;
+    if (!fPriceField || !fPriceField.parentNode || !fPriceField.parentNode.parentNode) return null;
+
+    grid = document.createElement("div");
+    grid.className = "ms-row2";
+    grid.id = "ms_laminatingPriceGrid";
+    grid.innerHTML = `
+      <div class="ms-field">
+        <label>Thin Price</label>
+        <input id="ms_laminating_thin_price" type="text" placeholder="e.g., 20.00">
+      </div>
+      <div class="ms-field">
+        <label>Thick Price</label>
+        <input id="ms_laminating_thick_price" type="text" placeholder="e.g., 30.00">
+      </div>
+    `;
+    fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
+    return grid;
+  }
+
+  function getLaminatingPriceInput(selector) {
+    ensureLaminatingPriceGrid();
+    return qs(selector);
+  }
+
+  function getLaminatingPrices(data) {
+    let storedPrices = null;
+    if (data?.pricing_json) {
+      try {
+        storedPrices = typeof data.pricing_json === "string"
+          ? JSON.parse(data.pricing_json)
+          : data.pricing_json;
+      } catch (err) {
+        storedPrices = null;
+      }
+    }
+
+    const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
+    const description = String(data?.description || fDesc?.value || "");
+    const linePrice = (label) => {
+      const match = description.match(new RegExp(`${label}[^0-9]*([0-9]+(?:\\.[0-9]+)?)`, "i"));
+      return match ? match[1] : null;
+    };
+
+    return {
+      thin: storedPrices?.thin ?? linePrice("Thin") ?? linePrice("Manipis") ?? (rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : (data?.price || fPrice?.value || "20")),
+      thick: storedPrices?.thick ?? linePrice("Thick") ?? linePrice("Makapal") ?? (rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "30"),
+    };
+  }
+
+  function getLaminatingPriceValues() {
+    return {
+      thin: getLaminatingPriceInput("#ms_laminating_thin_price")?.value.trim() || "",
+      thick: getLaminatingPriceInput("#ms_laminating_thick_price")?.value.trim() || "",
+    };
+  }
+
+  function syncLaminatingPriceRange() {
+    if (!fPriceRange) return;
+    const values = Object.values(getLaminatingPriceValues()).map(Number).filter((value) => Number.isFinite(value));
+    if (!values.length) return;
+    fPriceRange.value = formatPesoRange(Math.min(...values), Math.max(...values));
+  }
+
+  function setLaminatingUi(enabled, data) {
+    const grid = ensureLaminatingPriceGrid();
+
+    if (grid) grid.style.display = enabled ? "" : "none";
+    if (!enabled) return;
+
+    if (fPriceModeField) fPriceModeField.style.display = "none";
+    if (fPriceField) fPriceField.style.display = "none";
+    if (fPriceHint) fPriceHint.textContent = "Laminating uses one price for Thin and one price for Thick.";
+    if (fDescriptionHint) fDescriptionHint.textContent = "Description is optional. Thin/Thick prices are saved from the fields below.";
+
+    const prices = getLaminatingPrices(data || {});
+    const thinInput = getLaminatingPriceInput("#ms_laminating_thin_price");
+    const thickInput = getLaminatingPriceInput("#ms_laminating_thick_price");
+    if (thinInput) thinInput.value = prices.thin;
+    if (thickInput) thickInput.value = prices.thick;
+    if (fPrice) fPrice.value = prices.thin;
+    syncLaminatingPriceRange();
+  }
+
   function openModal(mode, data){
     hideErr();
     overlay.style.display="flex";
@@ -467,10 +559,12 @@
     const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
     const isXerox = isXeroxService(fCat.value, fName.value);
     const isRushId = isRushIdService(fCat.value, fName.value);
+    const isLaminating = isLaminatingService(fCat.value, fName.value);
     setDocumentPrintingUi(isDocumentPrinting, data);
     setXeroxUi(isXerox, data);
     setRushIdUi(isRushId, data);
-    if (!isDocumentPrinting && !isXerox && !isRushId) syncPriceMode(fDesc.value, priceValue);
+    setLaminatingUi(isLaminating, data);
+    if (!isDocumentPrinting && !isXerox && !isRushId && !isLaminating) syncPriceMode(fDesc.value, priceValue);
   }
 
   function closeModal(){ overlay.style.display="none"; hideErr(); }
@@ -523,9 +617,11 @@
       const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
       const isXerox = isXeroxService(fCat.value, fName.value);
       const isRushId = isRushIdService(fCat.value, fName.value);
+      const isLaminating = isLaminatingService(fCat.value, fName.value);
       setDocumentPrintingUi(isDocumentPrinting);
       setXeroxUi(isXerox);
       setRushIdUi(isRushId);
+      setLaminatingUi(isLaminating);
     }
   });
 
@@ -533,6 +629,7 @@
     const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
     const isXerox = isXeroxService(fCat.value, fName.value);
     const isRushId = isRushIdService(fCat.value, fName.value);
+    const isLaminating = isLaminatingService(fCat.value, fName.value);
     if (!event.target) return;
 
     if (isDocumentPrinting && [
@@ -561,6 +658,14 @@
 
     if (isRushId && /^ms_rush_package_[1-6]$/.test(event.target.id)) {
       syncRushPackageRange();
+      return;
+    }
+
+    if (isLaminating && [
+      "ms_laminating_thin_price",
+      "ms_laminating_thick_price",
+    ].includes(event.target.id)) {
+      syncLaminatingPriceRange();
     }
   });
 
@@ -572,6 +677,7 @@
     const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
     const isXerox = isXeroxService(fCat.value, fName.value);
     const isRushId = isRushIdService(fCat.value, fName.value);
+    const isLaminating = isLaminatingService(fCat.value, fName.value);
     if (isDocumentPrinting) {
       const prices = getDocumentPriceValues();
       const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
@@ -612,6 +718,16 @@
 
       syncRushPackageRange();
       fPrice.value = prices.package2;
+    } else if (isLaminating) {
+      const prices = getLaminatingPriceValues();
+      const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
+      if (invalid) {
+        showErr("Enter valid Thin and Thick laminating prices.");
+        return;
+      }
+
+      syncLaminatingPriceRange();
+      fPrice.value = prices.thin;
     } else if (priceMode?.value === "full") {
       descriptionValue = replaceOptionPrice(descriptionValue, "Full", fPrice.value.trim());
     } else if (priceMode?.value === "half") {
@@ -632,6 +748,8 @@
       fd.append("pricing_json", JSON.stringify(getXeroxPriceValues()));
     } else if (isRushId) {
       fd.append("pricing_json", JSON.stringify(getRushPackageValues()));
+    } else if (isLaminating) {
+      fd.append("pricing_json", JSON.stringify(getLaminatingPriceValues()));
     }
     fd.append("active", fActive.value);
     fd.append("sort_order", fSort.value);

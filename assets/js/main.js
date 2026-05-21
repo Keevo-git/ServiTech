@@ -168,6 +168,32 @@ function buildRushIdDetailCards(service) {
   ];
 }
 
+function getLaminatingPrices(service) {
+  let storedPrices = null;
+  if (service?.pricing_json) {
+    try {
+      storedPrices = typeof service.pricing_json === "string"
+        ? JSON.parse(service.pricing_json)
+        : service.pricing_json;
+    } catch (error) {
+      storedPrices = null;
+    }
+  }
+
+  return {
+    thin: storedPrices?.thin ?? 20,
+    thick: storedPrices?.thick ?? 30,
+  };
+}
+
+function buildLaminatingCardLines(service) {
+  const prices = getLaminatingPrices(service);
+  return [
+    `Manipis / Thin: ${formatPesoPrice(prices.thin)}`,
+    `Makapal / Thick: ${formatPesoPrice(prices.thick)}`,
+  ];
+}
+
 function openModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
@@ -576,6 +602,11 @@ async function loadServicesFromDatabase() {
           serviceModalDetailData.documentPrinting.cards = buildDocumentPrintingDetailCards(service);
         } else if (detailKey === "rushId") {
           serviceModalDetailData.rushId.cards = buildRushIdDetailCards(service);
+        }
+
+        const serviceName = String(service.name || "").toLowerCase();
+        if (category === "printing" && serviceName.includes("laminat")) {
+          lines.splice(0, lines.length, ...buildLaminatingCardLines(service));
         }
 
         return {
