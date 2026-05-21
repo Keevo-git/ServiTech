@@ -88,7 +88,6 @@ body.admin-dashboard .page-frame {
   display: flex;
   gap: 15px;
   width: 100%;
-  flex-wrap: nowrap;
   padding-left: 0;
   padding-right: 0;
   margin: 10px 0 14px;
@@ -99,7 +98,7 @@ body.admin-dashboard .page-frame {
 
 .order-tabs .tab,
 .order-tabs button {
-  flex: 1 0 0;
+  flex: 1;
   min-width: 200px;
 }
 
@@ -156,13 +155,13 @@ table.orders {
   min-width: 1000px;
 }
 
-.tab-content {
+.table-section {
   width: 100%;
   padding-left: 0;
   padding-right: 0;
 }
 
-.tab-content table {
+.table-section table {
   width: 100%;
   min-width: 1000px;
 }

@@ -131,7 +131,7 @@ $online = $onlineStmt->fetchAll();
               <a class="tab" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
             </div>
 
-            <div class="tab-content printing">
+            <div class="table-section">
               <div class="walkin-title">Walk-in Queue - Manage and update order statuses</div>
               <table class="orders table-content">
                 <thead>

@@ -102,7 +102,7 @@ $rows = $pdo->query("
               <a class="tab" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
             </div>
 
-            <div class="tab-content repair">
+            <div class="table-section">
               <div class="walkin-title">Repair Queue - Manage and update order statuses</div>
               <table class="orders table-content">
                 <thead>
