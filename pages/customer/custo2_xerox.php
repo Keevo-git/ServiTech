@@ -1,5 +1,51 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
+require_once __DIR__ . "/../../config/db.php";
+
+$xeroxPricing = [
+  "long" => 5.0,
+  "short" => 3.0,
+  "a4" => 3.0,
+  "a3" => 5.0,
+];
+
+function xerox_extract_line_price(string $description, string $label): ?float {
+  $pattern = "/" . preg_quote($label, "/") . "\\s*:?\\s*\\x{20B1}?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
+  if (preg_match($pattern, $description, $matches)) {
+    return max(0, (float)$matches[1]);
+  }
+
+  return null;
+}
+
+try {
+  $xeroxStmt = $pdo->prepare("
+    SELECT description, price, pricing_json::text AS pricing_json
+    FROM services
+    WHERE category = 'printing'
+      AND LOWER(name) LIKE '%xerox%'
+      AND active = TRUE
+    ORDER BY sort_order ASC, id ASC
+    LIMIT 1
+  ");
+  $xeroxStmt->execute();
+  $xeroxService = $xeroxStmt->fetch(PDO::FETCH_ASSOC);
+
+  if (is_array($xeroxService)) {
+    $description = (string)($xeroxService["description"] ?? "");
+    $storedPricing = json_decode((string)($xeroxService["pricing_json"] ?? ""), true);
+    $fallbackPrice = isset($xeroxService["price"]) ? max(0, (float)$xeroxService["price"]) : 3.0;
+
+    $xeroxPricing = [
+      "long" => isset($storedPricing["long"]) ? (float)$storedPricing["long"] : (xerox_extract_line_price($description, "Long Bond Paper") ?? 5.0),
+      "short" => isset($storedPricing["short"]) ? (float)$storedPricing["short"] : (xerox_extract_line_price($description, "Short Bond Paper") ?? $fallbackPrice),
+      "a4" => isset($storedPricing["a4"]) ? (float)$storedPricing["a4"] : (xerox_extract_line_price($description, "A4") ?? $fallbackPrice),
+      "a3" => isset($storedPricing["a3"]) ? (float)$storedPricing["a3"] : (xerox_extract_line_price($description, "A3") ?? 5.0),
+    ];
+  }
+} catch (Throwable $e) {
+  // Keep the Xerox form usable if service pricing cannot be loaded.
+}
 ?>
 
 <!DOCTYPE html>
@@ -38,6 +84,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
               <option>Short Bond (8.5 x 11)</option>
               <option>Long Bond (8.5 x 13)</option>
               <option>A4</option>
+              <option>A3</option>
             </select>
 
             <label for="qtyInput">Quantity / Copies<span class="required">*</span></label>
@@ -95,7 +142,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260326c4"></script>
+<script>
+  window.servitechXeroxPricing = <?= json_encode($xeroxPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+</script>
+<script src="/assets/js/main.js?v=20260521xerox-prices"></script>
 
 </body>
 </html>

@@ -814,10 +814,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const isXerox = svc === "xerox";
 
   const xeroxPriceMap = {
-    "Long Bond (8.5 x 13)": 5,
-    "Short Bond (8.5 x 11)": 3,
-    A4: 3,
-    A3: 5,
+    "Long Bond (8.5 x 13)": Number(window.servitechXeroxPricing?.long) || 5,
+    "Short Bond (8.5 x 11)": Number(window.servitechXeroxPricing?.short) || 3,
+    A4: Number(window.servitechXeroxPricing?.a4) || 3,
+    A3: Number(window.servitechXeroxPricing?.a3) || 5,
   };
 
   function updateSummary() {
@@ -975,7 +975,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fileName = derivedFileNames.length ? derivedFileNames[0] : null;
     const fileNames = derivedFileNames;
 
-    return {
+    const payload = {
       category: (document.body?.dataset?.service || "general").toLowerCase(),
       service_label: buildServiceLabel(),
       paper_size: refs.paperSizeSelect ? refs.paperSizeSelect.value : null,
@@ -1011,6 +1011,14 @@ document.addEventListener("DOMContentLoaded", () => {
         ? printState.uploaded_files
         : null,
     };
+
+    if (isXerox && refs.paperSizeSelect) {
+      const price = xeroxPriceMap[payload.paper_size] ?? 0;
+      payload.price_per_page = price;
+      payload.estimated_total = price * payload.quantity;
+    }
+
+    return payload;
   }
 
   function validatePayload(payload) {

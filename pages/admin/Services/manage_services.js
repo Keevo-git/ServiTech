@@ -31,6 +31,12 @@
     return normalizedCategory === "printing" && normalizedName.includes("document") && normalizedName.includes("printing");
   }
 
+  function isXeroxService(category, name) {
+    const normalizedCategory = String(category || "").trim().toLowerCase();
+    const normalizedName = String(name || "").trim().toLowerCase();
+    return normalizedCategory === "printing" && normalizedName.includes("xerox");
+  }
+
   function parseMoneyValues(value) {
     const matches = String(value || "").match(/[0-9]+(?:\.[0-9]+)?/g);
     if (!matches) return [];
@@ -242,6 +248,113 @@
     syncDocumentPriceRange();
   }
 
+  function ensureXeroxPriceGrid() {
+    let grid = qs("#ms_xeroxPriceGrid");
+    if (grid) return grid;
+    if (!fPriceField || !fPriceField.parentNode || !fPriceField.parentNode.parentNode) return null;
+
+    grid = document.createElement("div");
+    grid.className = "ms-row2";
+    grid.id = "ms_xeroxPriceGrid";
+    grid.innerHTML = `
+      <div class="ms-field">
+        <label>Long Bond Price</label>
+        <input id="ms_xerox_long_price" type="text" placeholder="e.g., 5.00">
+      </div>
+      <div class="ms-field">
+        <label>Short Bond Price</label>
+        <input id="ms_xerox_short_price" type="text" placeholder="e.g., 3.00">
+      </div>
+      <div class="ms-field">
+        <label>A4 Price</label>
+        <input id="ms_xerox_a4_price" type="text" placeholder="e.g., 3.00">
+      </div>
+      <div class="ms-field">
+        <label>A3 Price</label>
+        <input id="ms_xerox_a3_price" type="text" placeholder="e.g., 5.00">
+      </div>
+    `;
+    fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
+    return grid;
+  }
+
+  function getXeroxPriceInput(selector) {
+    ensureXeroxPriceGrid();
+    return qs(selector);
+  }
+
+  function getXeroxPrices(data) {
+    let storedPrices = null;
+    if (data?.pricing_json) {
+      try {
+        storedPrices = typeof data.pricing_json === "string"
+          ? JSON.parse(data.pricing_json)
+          : data.pricing_json;
+      } catch (err) {
+        storedPrices = null;
+      }
+    }
+
+    const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
+    const description = String(data?.description || fDesc?.value || "");
+    const low = rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : (data?.price || fPrice?.value || "3");
+    const high = rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "5";
+    const linePrice = (label) => {
+      const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const match = description.match(new RegExp(`${escaped}\\s*:?\\s*\\u20B1?\\s*([0-9]+(?:\\.[0-9]+)?)`, "i"));
+      return match ? match[1] : null;
+    };
+
+    return {
+      long: storedPrices?.long ?? linePrice("Long Bond Paper") ?? high,
+      short: storedPrices?.short ?? linePrice("Short Bond Paper") ?? low,
+      a4: storedPrices?.a4 ?? linePrice("A4") ?? low,
+      a3: storedPrices?.a3 ?? linePrice("A3") ?? high,
+    };
+  }
+
+  function getXeroxPriceValues() {
+    return {
+      long: getXeroxPriceInput("#ms_xerox_long_price")?.value.trim() || "",
+      short: getXeroxPriceInput("#ms_xerox_short_price")?.value.trim() || "",
+      a4: getXeroxPriceInput("#ms_xerox_a4_price")?.value.trim() || "",
+      a3: getXeroxPriceInput("#ms_xerox_a3_price")?.value.trim() || "",
+    };
+  }
+
+  function syncXeroxPriceRange() {
+    if (!fPriceRange) return;
+    const values = Object.values(getXeroxPriceValues()).map(Number).filter((value) => Number.isFinite(value));
+    if (!values.length) return;
+    fPriceRange.value = formatPesoRange(Math.min(...values), Math.max(...values));
+  }
+
+  function setXeroxUi(enabled, data) {
+    const grid = ensureXeroxPriceGrid();
+
+    if (grid) grid.style.display = enabled ? "" : "none";
+    if (!enabled) return;
+
+    if (fPriceModeField) fPriceModeField.style.display = "none";
+    if (fPriceField) fPriceField.style.display = "none";
+    if (fPriceHint) fPriceHint.textContent = "Xerox uses one full price per paper size.";
+    if (fDescriptionHint) fDescriptionHint.textContent = "Description is optional. Paper prices are saved from the fields below.";
+
+    const prices = getXeroxPrices(data || {});
+    const inputMap = {
+      "#ms_xerox_long_price": prices.long,
+      "#ms_xerox_short_price": prices.short,
+      "#ms_xerox_a4_price": prices.a4,
+      "#ms_xerox_a3_price": prices.a3,
+    };
+    Object.keys(inputMap).forEach((selector) => {
+      const input = getXeroxPriceInput(selector);
+      if (input) input.value = inputMap[selector];
+    });
+    if (fPrice) fPrice.value = prices.short;
+    syncXeroxPriceRange();
+  }
+
   function openModal(mode, data){
     hideErr();
     overlay.style.display="flex";
@@ -258,8 +371,10 @@
     const priceValue = (data?.price ?? "") === null ? "" : (data?.price ?? "");
     fPrice.value = priceValue;
     const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
+    const isXerox = isXeroxService(fCat.value, fName.value);
     setDocumentPrintingUi(isDocumentPrinting, data);
-    if (!isDocumentPrinting) syncPriceMode(fDesc.value, priceValue);
+    setXeroxUi(isXerox, data);
+    if (!isDocumentPrinting && !isXerox) syncPriceMode(fDesc.value, priceValue);
   }
 
   function closeModal(){ overlay.style.display="none"; hideErr(); }
@@ -309,13 +424,19 @@
     }
 
     if (event.target && (event.target.id === "ms_category" || event.target.id === "ms_name")) {
-      setDocumentPrintingUi(isDocumentPrintingService(fCat.value, fName.value));
+      const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
+      const isXerox = isXeroxService(fCat.value, fName.value);
+      setDocumentPrintingUi(isDocumentPrinting);
+      setXeroxUi(isXerox);
     }
   });
 
   document.addEventListener("input", (event) => {
-    if (!isDocumentPrintingService(fCat.value, fName.value)) return;
-    if (!event.target || ![
+    const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
+    const isXerox = isXeroxService(fCat.value, fName.value);
+    if (!event.target) return;
+
+    if (isDocumentPrinting && [
       "ms_long_full_price",
       "ms_long_half_price",
       "ms_short_full_price",
@@ -324,9 +445,19 @@
       "ms_a4_half_price",
       "ms_a3_full_price",
       "ms_a3_half_price",
-    ].includes(event.target.id)) return;
+    ].includes(event.target.id)) {
+      syncDocumentPriceRange();
+      return;
+    }
 
-    syncDocumentPriceRange();
+    if (isXerox && [
+      "ms_xerox_long_price",
+      "ms_xerox_short_price",
+      "ms_xerox_a4_price",
+      "ms_xerox_a3_price",
+    ].includes(event.target.id)) {
+      syncXeroxPriceRange();
+    }
   });
 
   qs("#msSave")?.addEventListener("click", async ()=>{
@@ -334,7 +465,9 @@
 
     const priceMode = getFPriceMode();
     let descriptionValue = fDesc.value.trim();
-    if (isDocumentPrintingService(fCat.value, fName.value)) {
+    const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
+    const isXerox = isXeroxService(fCat.value, fName.value);
+    if (isDocumentPrinting) {
       const prices = getDocumentPriceValues();
       const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
       if (invalid) {
@@ -354,6 +487,16 @@
 
       syncDocumentPriceRange();
       fPrice.value = prices.shortHalf;
+    } else if (isXerox) {
+      const prices = getXeroxPriceValues();
+      const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
+      if (invalid) {
+        showErr("Enter valid Xerox prices for Long Bond, Short Bond, A4, and A3.");
+        return;
+      }
+
+      syncXeroxPriceRange();
+      fPrice.value = prices.short;
     } else if (priceMode?.value === "full") {
       descriptionValue = replaceOptionPrice(descriptionValue, "Full", fPrice.value.trim());
     } else if (priceMode?.value === "half") {
@@ -368,8 +511,10 @@
     fd.append("description", descriptionValue);
     fd.append("price", fPrice.value.trim());
     fd.append("price_range", fPriceRange ? fPriceRange.value.trim() : "");
-    if (isDocumentPrintingService(fCat.value, fName.value)) {
+    if (isDocumentPrinting) {
       fd.append("pricing_json", JSON.stringify(getDocumentPriceValues()));
+    } else if (isXerox) {
+      fd.append("pricing_json", JSON.stringify(getXeroxPriceValues()));
     }
     fd.append("active", fActive.value);
     fd.append("sort_order", fSort.value);
