@@ -95,7 +95,7 @@ require_once __DIR__ . "/_shared.php";
   <div class="policy-modal" id="policyModal" hidden>
     <div class="policy-modal__backdrop" data-close-modal></div>
     <div class="policy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle" aria-describedby="policyModalContent" tabindex="-1">
-      <button type="button" class="policy-modal__close" data-close-modal aria-label="Close policy dialog">&times;</button>
+      <button type="button" class="policy-modal__close" data-close-modal aria-label="Close modal">&times;</button>
       <div class="policy-modal__header">
         <p class="policy-modal__eyebrow">Account Policies</p>
         <h2 id="policyModalTitle">ServiTech Data Privacy Policy</h2>
@@ -130,7 +130,6 @@ require_once __DIR__ . "/_shared.php";
     const policyModalDialog = policyModal.querySelector(".policy-modal__dialog");
     const policyModalTitle = document.getElementById("policyModalTitle");
     const policyModalContent = document.getElementById("policyModalContent");
-    const policyModalCloseButton = policyModal.querySelector(".policy-modal__close");
     const authCard = document.querySelector(".auth-card--login");
     let activePolicyTrigger = null;
 
@@ -159,21 +158,87 @@ require_once __DIR__ . "/_shared.php";
       privacy: {
         title: "ServiTech Data Privacy Policy",
         body: `
-          <p>ServiTech respects and values the privacy of all users accessing the platform. This Privacy Policy explains how user information is collected, used, stored, and protected within the ServiTech system. ServiTech is a student-developed academic capstone project intended for educational, demonstration, and evaluation purposes only.</p>
-          <p>ServiTech may collect personal information such as full name, email address, contact number, account credentials, uploaded files, queue transaction details, and service request information. The collected data is used solely for account registration, authentication, queue management, printing, repair, installation, laminating, rush ID services, customer communication, academic evaluation, and system improvement.</p>
-          <p>Uploaded files and documents are processed only for the requested transaction and are not intentionally shared with unauthorized individuals or third parties. ServiTech implements reasonable security measures to protect user information from unauthorized access, misuse, disclosure, or alteration, while access to information is limited only to authorized personnel involved in system operations and service processing.</p>
-          <p>As an academic project, ServiTech may still contain technical limitations, maintenance interruptions, or system issues inherent in educational systems. By using the platform, users agree to provide accurate information and ensure that uploaded content complies with applicable laws, school regulations, and ethical standards.</p>
-          <p>ServiTech reserves the right to update or modify this Privacy Policy whenever necessary to improve security, functionality, academic evaluation, and operational performance. For concerns or inquiries regarding privacy and data usage, users may contact theservitech.store@gmail.com.</p>
+          <section class="policy-section">
+            <h3>Overview</h3>
+            <p>ServiTech respects and values the privacy of all users accessing the platform. This Privacy Policy explains how user information is collected, used, stored, and protected within the ServiTech system.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Information Collection</h3>
+            <p>ServiTech may collect personal information such as full name, email address, contact number, account credentials, uploaded files, queue transaction details, and service request information.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Purpose of Data Usage</h3>
+            <p>Collected data is used solely for account registration, authentication, queue management, printing, repair, installation, laminating, rush ID services, customer communication, academic evaluation, and system improvement.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Data Protection</h3>
+            <p>Uploaded files and documents are processed only for the requested transaction and are not intentionally shared with unauthorized individuals or third parties. ServiTech implements reasonable security measures to protect user information from unauthorized access, misuse, disclosure, or alteration.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Academic Purpose</h3>
+            <p>ServiTech is a student-developed academic capstone project intended for educational, demonstration, and evaluation purposes only. As an academic project, it may still contain technical limitations, maintenance interruptions, or system issues inherent in educational systems.</p>
+          </section>
+          <section class="policy-section">
+            <h3>User Responsibility</h3>
+            <p>By using the platform, users agree to provide accurate information and ensure that uploaded content complies with applicable laws, school regulations, and ethical standards.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Policy Updates</h3>
+            <p>ServiTech reserves the right to update or modify this Privacy Policy whenever necessary to improve security, functionality, academic evaluation, and operational performance.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Contact Information</h3>
+            <p>For concerns or inquiries regarding privacy and data usage, users may contact theservitech.store@gmail.com.</p>
+          </section>
         `
       },
       terms: {
         title: "ServiTech Terms & Conditions",
         body: `
-          <p>By creating an account and using the ServiTech platform, users agree to comply with the following Terms and Conditions. ServiTech is a student academic capstone project developed for educational, demonstration, and evaluation purposes. The platform is intended to simulate queueing and service management operations for learning and academic presentation.</p>
-          <p>Users are responsible for maintaining the confidentiality of their account credentials and providing complete, accurate, and updated information during registration and service transactions. ServiTech may only be used for lawful and appropriate service requests related to printing, repair, installation, laminating, rush ID processing, and other related services.</p>
-          <p>Users are solely responsible for all uploaded files, documents, and submitted content. Uploading illegal, harmful, offensive, or unauthorized materials is strictly prohibited. Queue estimates, turnaround times, and service availability may vary depending on operational workload, testing conditions, and staff availability.</p>
-          <p>As an academic project, ServiTech may experience temporary errors, maintenance periods, incomplete features, or technical limitations. The developers shall not be held liable for losses, delays, or interruptions caused by technical issues beyond reasonable control. Users must not misuse the platform, attempt unauthorized access, interfere with system operations, or compromise platform security and functionality.</p>
-          <p>ServiTech reserves the right to modify, improve, suspend, or update system features, workflows, and services whenever necessary for academic evaluation, operational improvement, and security purposes. By continuing to use the platform, users acknowledge that they have read, understood, and agreed to the ServiTech Data Privacy Policy and Terms & Conditions.</p>
+          <section class="policy-section">
+            <h3>Overview</h3>
+            <p>By creating an account and using the ServiTech platform, users agree to comply with these Terms and Conditions.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Academic Purpose</h3>
+            <p>ServiTech is a student academic capstone project developed for educational, demonstration, and evaluation purposes. The platform is intended to simulate queueing and service management operations for learning and academic presentation.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Account Responsibility</h3>
+            <p>Users are responsible for maintaining the confidentiality of their account credentials and for all activity made through their account.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Accurate Information</h3>
+            <p>Users must provide complete, accurate, and updated information during registration and service transactions.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Proper Use of the Platform</h3>
+            <p>ServiTech may only be used for lawful and appropriate service requests related to printing, repair, installation, laminating, rush ID processing, and other related services.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Uploaded Files and Content</h3>
+            <p>Users are solely responsible for all uploaded files, documents, and submitted content. Uploading illegal, harmful, offensive, or unauthorized materials is strictly prohibited.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Queue and Service Processing</h3>
+            <p>Queue estimates, turnaround times, and service availability may vary depending on operational workload, testing conditions, and staff availability.</p>
+          </section>
+          <section class="policy-section">
+            <h3>System Limitations</h3>
+            <p>As an academic project, ServiTech may experience temporary errors, maintenance periods, incomplete features, or technical limitations. The developers shall not be held liable for losses, delays, or interruptions caused by technical issues beyond reasonable control.</p>
+          </section>
+          <section class="policy-section">
+            <h3>User Conduct</h3>
+            <p>Users must not misuse the platform, attempt unauthorized access, interfere with system operations, or compromise platform security and functionality.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Modification of Services</h3>
+            <p>ServiTech reserves the right to modify, improve, suspend, or update system features, workflows, and services whenever necessary for academic evaluation, operational improvement, and security purposes.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Agreement and Acceptance</h3>
+            <p>By continuing to use the platform, users acknowledge that they have read, understood, and agreed to the ServiTech Data Privacy Policy and Terms & Conditions.</p>
+          </section>
         `
       }
     };
@@ -191,7 +256,7 @@ require_once __DIR__ . "/_shared.php";
       document.body.classList.add("modal-open");
       document.documentElement.classList.add("modal-open");
       policyModalContent.scrollTop = 0;
-      policyModalCloseButton.focus();
+      policyModalDialog.focus();
     }
 
     function closePolicyModal() {

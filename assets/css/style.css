@@ -1799,7 +1799,7 @@ body.auth-page {
   justify-content: center;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: clamp(12px, 3vw, 24px);
+  padding: clamp(14px, 3vw, 28px);
   overflow: hidden;
 }
 
@@ -1813,14 +1813,12 @@ body.auth-page {
 
 .policy-modal__dialog {
   position: relative;
-  width: min(720px, 92vw);
-  height: min(620px, calc(100vh - 32px));
-  height: min(620px, calc(100dvh - 32px));
-  max-height: calc(100vh - 32px);
-  max-height: calc(100dvh - 32px);
+  width: min(880px, 92vw);
+  max-height: 82vh;
+  max-height: 82dvh;
   padding: 0;
   border: 1px solid rgba(74, 5, 5, 0.1);
-  border-radius: 22px;
+  border-radius: 24px;
   background: linear-gradient(180deg, #fffdf9 0%, #fff8ef 100%);
   box-shadow: 0 30px 70px rgba(36, 18, 15, 0.36);
   z-index: 1;
@@ -1832,10 +1830,10 @@ body.auth-page {
 
 .policy-modal__close {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 36px;
-  height: 36px;
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 999px;
   background: rgba(74, 5, 5, 0.06);
@@ -1856,8 +1854,8 @@ body.auth-page {
 
 .policy-modal__header {
   flex: 0 0 auto;
-  padding: 24px 32px 16px;
-  padding-right: 64px;
+  padding: 26px 34px 18px;
+  padding-right: 76px;
   border-bottom: 1px solid rgba(74, 5, 5, 0.08);
   background:
     linear-gradient(90deg, rgba(255, 139, 44, 0.13), rgba(255, 255, 255, 0)),
@@ -1876,27 +1874,48 @@ body.auth-page {
 .policy-modal__dialog h2 {
   margin: 0;
   color: #4A0505;
-  font-size: clamp(23px, 2.4vw, 30px);
+  font-size: clamp(30px, 3vw, 34px);
   line-height: 1.18;
 }
 
 .policy-modal__content {
   flex: 1 1 auto;
   min-height: 0;
-  max-width: 66ch;
   width: 100%;
-  margin: 0 auto;
-  padding: 18px 32px 24px;
+  padding: 22px 34px 28px;
   color: #51463f;
-  line-height: 1.58;
-  font-size: 14px;
+  line-height: 1.68;
+  font-size: 14.5px;
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
 
 .policy-modal__content p {
-  margin: 0 0 12px;
+  margin: 0;
+}
+
+.policy-section {
+  padding: 14px 0 16px;
+  border-bottom: 1px solid rgba(74, 5, 5, 0.08);
+}
+
+.policy-section:first-child {
+  padding-top: 0;
+}
+
+.policy-section:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.policy-section h3 {
+  margin: 0 0 8px;
+  color: #4A0505;
+  font-size: 15.5px;
+  line-height: 1.35;
+  font-weight: 800;
 }
 
 .policy-modal__content p:last-child {
@@ -1904,17 +1923,21 @@ body.auth-page {
 }
 
 .policy-modal__content::-webkit-scrollbar {
-  width: 10px;
+  width: 7px;
 }
 
 .policy-modal__content::-webkit-scrollbar-track {
-  background: rgba(74, 5, 5, 0.06);
+  background: rgba(74, 5, 5, 0.035);
   border-radius: 999px;
 }
 
 .policy-modal__content::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #ff8b2c 0%, #9a4f08 100%);
+  background: rgba(154, 79, 8, 0.32);
   border-radius: 999px;
+}
+
+.policy-modal__content::-webkit-scrollbar-thumb:hover {
+  background: rgba(154, 79, 8, 0.46);
 }
 
 .auth-policy-note {
@@ -1951,11 +1974,9 @@ body.auth-page {
   }
 
   .policy-modal__dialog {
-    width: min(94vw, 720px);
-    height: calc(100vh - 24px);
-    height: calc(100dvh - 24px);
-    max-height: calc(100vh - 24px);
-    max-height: calc(100dvh - 24px);
+    width: 92vw;
+    max-height: 85vh;
+    max-height: 85dvh;
     border-radius: 18px;
   }
 
@@ -1967,19 +1988,26 @@ body.auth-page {
   }
 
   .policy-modal__header {
-    padding: 18px 18px 13px;
-    padding-right: 58px;
+    padding: 20px 18px 14px;
+    padding-right: 62px;
+  }
+
+  .policy-modal__dialog h2 {
+    font-size: clamp(24px, 7vw, 28px);
   }
 
   .policy-modal__content {
-    max-width: none;
     padding: 16px 18px 20px;
-    font-size: 13.5px;
-    line-height: 1.55;
+    font-size: 14px;
+    line-height: 1.62;
   }
 
-  .policy-modal__content p {
-    margin-bottom: 11px;
+  .policy-section {
+    padding: 12px 0 14px;
+  }
+
+  .policy-section h3 {
+    font-size: 15px;
   }
 
   .form-field__topline {
