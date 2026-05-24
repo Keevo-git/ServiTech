@@ -34,6 +34,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <option>Mobile Phone / Tablet</option>
             <option>Laptop</option>
             <option>Desktop</option>
+            <option>Other</option>
           </select>
 
           <label for="repairServiceSelect">Select Service<span class="required">*</span></label>
@@ -46,6 +47,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <option data-min="500" data-max="2000">Power Button Repair &mdash; (&#8369;500 &ndash; &#8369;2000)</option>
             <option data-min="1000" data-max="2000">Volume Repair &mdash; (&#8369;1000 &ndash; &#8369;2000)</option>
             <option data-min="1500" data-max="5000">Part(s) Upgrade &mdash; (&#8369;1500 &ndash; &#8369;5000)</option>
+            <option>Other Repair Request &mdash; Price to be assessed</option>
           </select>
 
           <label for="repairNotes">Additional Information/Other Request:</label>
