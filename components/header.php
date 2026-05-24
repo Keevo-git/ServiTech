@@ -668,8 +668,15 @@ $notificationRoutes = [
     }
 
     .notification-dropdown {
-      width: min(360px, calc(100vw - 16px));
-      right: -4px;
+      position: fixed;
+      top: 76px;
+      left: 10px;
+      right: 10px;
+      width: auto;
+      max-height: calc(100vh - 96px);
+      border-radius: 16px;
+      transform-origin: top center;
+      z-index: 2000;
     }
 
     .notification-dropdown__actions {
@@ -678,6 +685,24 @@ $notificationRoutes = [
 
     .notification-action-btn {
       width: 100%;
+    }
+
+    .notification-list {
+      max-height: calc(100vh - 250px);
+    }
+
+    .notification-item {
+      padding: 11px 12px;
+      gap: 10px;
+    }
+
+    .notification-item__message {
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .notification-item__time {
+      font-size: 0.76rem;
     }
   }
 </style>
