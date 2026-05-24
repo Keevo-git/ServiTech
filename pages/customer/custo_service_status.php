@@ -93,6 +93,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       padding: clamp(18px, 4vw, 30px);
     }
 
+    body.customer-layout.customer-page--status #detailModal {
+      z-index: 5000 !important;
+    }
+
     body.customer-layout.customer-page--status .queue-list {
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
       gap: clamp(14px, 2vw, 20px);
