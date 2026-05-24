@@ -252,11 +252,6 @@ $notificationRoutes = [
     <h1>ServiTech</h1>
   </a>
 
-  <nav id="customer-header-menu" data-collapsible-menu>
-    <a href="/pages/customer/customer_dash.php">Dashboard</a>
-    <a href="/index.php">Services</a>
-  </nav>
-
   <div class="header-utility">
     <?php if ($notificationUserId > 0): ?>
       <div class="notification-menu" data-notification-menu>
@@ -317,6 +312,11 @@ $notificationRoutes = [
       <span class="nav-toggle__bar"></span>
     </button>
   </div>
+
+  <nav id="customer-header-menu" data-collapsible-menu>
+    <a href="/pages/customer/customer_dash.php">Dashboard</a>
+    <a href="/index.php">Services</a>
+  </nav>
 </header>
 
 <style>
@@ -328,12 +328,16 @@ $notificationRoutes = [
   }
 
   .navbar.has-nav-menu.navbar--notifications nav[data-collapsible-menu] {
+    grid-column: 2;
+    grid-row: 1;
     margin-left: 0;
     justify-content: flex-end;
     min-width: 0;
   }
 
   .navbar.has-nav-menu.navbar--notifications .header-utility {
+    grid-column: 3;
+    grid-row: 1;
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
