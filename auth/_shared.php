@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/../config/app.php";
 
-const AUTH_UI_VERSION = "20260424auth1";
+const AUTH_UI_VERSION = "20260525auth2";
 
 if (!function_exists("auth_url_raw")) {
     function auth_url_raw(string $path = "/"): string

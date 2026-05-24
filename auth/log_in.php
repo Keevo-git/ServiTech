@@ -189,6 +189,7 @@ require_once __DIR__ . "/_shared.php";
       policyModalContent.innerHTML = documentConfig.body;
       policyModal.hidden = false;
       document.body.classList.add("modal-open");
+      document.documentElement.classList.add("modal-open");
       policyModalContent.scrollTop = 0;
       policyModalCloseButton.focus();
     }
@@ -196,6 +197,7 @@ require_once __DIR__ . "/_shared.php";
     function closePolicyModal() {
       policyModal.hidden = true;
       document.body.classList.remove("modal-open");
+      document.documentElement.classList.remove("modal-open");
 
       if (activePolicyTrigger) {
         activePolicyTrigger.focus();

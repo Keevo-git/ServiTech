@@ -373,8 +373,10 @@ body {
 }
 
 body.modal-open,
+html.modal-open,
 html:has(body.modal-open) {
   overflow: hidden;
+  height: 100%;
 }
 
 .service-details h3 {
@@ -1792,9 +1794,12 @@ body.auth-page {
   position: fixed;
   inset: 0;
   z-index: 1200;
-  display: grid;
-  place-items: center;
-  padding: clamp(16px, 4vw, 32px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(12px, 3vw, 24px);
   overflow: hidden;
 }
 
@@ -1808,11 +1813,14 @@ body.auth-page {
 
 .policy-modal__dialog {
   position: relative;
-  width: min(780px, 92vw);
-  max-height: 80vh;
+  width: min(720px, 92vw);
+  height: min(620px, calc(100vh - 32px));
+  height: min(620px, calc(100dvh - 32px));
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
   padding: 0;
   border: 1px solid rgba(74, 5, 5, 0.1);
-  border-radius: 26px;
+  border-radius: 22px;
   background: linear-gradient(180deg, #fffdf9 0%, #fff8ef 100%);
   box-shadow: 0 30px 70px rgba(36, 18, 15, 0.36);
   z-index: 1;
@@ -1824,15 +1832,15 @@ body.auth-page {
 
 .policy-modal__close {
   position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 42px;
-  height: 42px;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 999px;
   background: rgba(74, 5, 5, 0.06);
   color: #4A0505;
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
@@ -1848,8 +1856,8 @@ body.auth-page {
 
 .policy-modal__header {
   flex: 0 0 auto;
-  padding: clamp(24px, 4vw, 34px) clamp(24px, 4vw, 38px) 20px;
-  padding-right: 78px;
+  padding: 24px 32px 16px;
+  padding-right: 64px;
   border-bottom: 1px solid rgba(74, 5, 5, 0.08);
   background:
     linear-gradient(90deg, rgba(255, 139, 44, 0.13), rgba(255, 255, 255, 0)),
@@ -1857,7 +1865,7 @@ body.auth-page {
 }
 
 .policy-modal__eyebrow {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: #9a4f08;
   font-size: 12px;
   font-weight: 800;
@@ -1868,27 +1876,27 @@ body.auth-page {
 .policy-modal__dialog h2 {
   margin: 0;
   color: #4A0505;
-  font-size: clamp(24px, 3vw, 32px);
+  font-size: clamp(23px, 2.4vw, 30px);
   line-height: 1.18;
 }
 
 .policy-modal__content {
   flex: 1 1 auto;
   min-height: 0;
-  max-width: 68ch;
+  max-width: 66ch;
   width: 100%;
   margin: 0 auto;
-  padding: 24px clamp(24px, 4vw, 38px) clamp(26px, 4vw, 38px);
+  padding: 18px 32px 24px;
   color: #51463f;
-  line-height: 1.65;
-  font-size: 15px;
+  line-height: 1.58;
+  font-size: 14px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
 
 .policy-modal__content p {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
 }
 
 .policy-modal__content p:last-child {
@@ -1943,32 +1951,35 @@ body.auth-page {
   }
 
   .policy-modal__dialog {
-    width: min(92vw, 780px);
-    max-height: 80vh;
-    border-radius: 22px;
+    width: min(94vw, 720px);
+    height: calc(100vh - 24px);
+    height: calc(100dvh - 24px);
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    border-radius: 18px;
   }
 
   .policy-modal__close {
-    top: 14px;
-    right: 14px;
-    width: 38px;
-    height: 38px;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
   }
 
   .policy-modal__header {
-    padding: 22px 20px 16px;
-    padding-right: 66px;
+    padding: 18px 18px 13px;
+    padding-right: 58px;
   }
 
   .policy-modal__content {
     max-width: none;
-    padding: 20px;
-    font-size: 14px;
-    line-height: 1.65;
+    padding: 16px 18px 20px;
+    font-size: 13.5px;
+    line-height: 1.55;
   }
 
   .policy-modal__content p {
-    margin-bottom: 14px;
+    margin-bottom: 11px;
   }
 
   .form-field__topline {
