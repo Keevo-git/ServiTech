@@ -633,37 +633,64 @@ $notificationRoutes = [
 
     .navbar.has-nav-menu.navbar--notifications .logo {
       grid-column: 1;
+      grid-row: 1;
+      min-width: 0;
     }
 
     .navbar.has-nav-menu.navbar--notifications .header-utility {
       grid-column: 2;
+      grid-row: 1;
       justify-self: end;
       margin-left: 0;
     }
 
     .navbar.has-nav-menu.navbar--notifications nav[data-collapsible-menu] {
       grid-column: 1 / -1;
+      grid-row: 2;
       width: 100%;
+      margin-top: 0;
     }
   }
 
   @media (max-width: 520px) {
-    .navbar.has-nav-menu.navbar--notifications .header-utility {
+    .navbar.has-nav-menu.navbar--notifications {
+      grid-template-columns: minmax(112px, 1fr) auto;
+      column-gap: 8px;
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+    .navbar.has-nav-menu.navbar--notifications .logo {
       gap: 8px;
+    }
+
+    .navbar.has-nav-menu.navbar--notifications .servitech-logo {
+      width: 34px;
+      height: 34px;
+    }
+
+    .navbar.has-nav-menu.navbar--notifications .logo h1 {
+      font-size: 1.2rem;
+      line-height: 1.1;
+    }
+
+    .navbar.has-nav-menu.navbar--notifications .header-utility {
+      gap: 6px;
+      min-width: 0;
     }
 
     .navbar.has-nav-menu.navbar--notifications .notification-btn,
     .navbar.has-nav-menu.navbar--notifications .header-utility .nav-toggle {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
     }
 
     .navbar.has-nav-menu.navbar--notifications .header-utility__link,
     .navbar.has-nav-menu.navbar--notifications .header-utility__link:visited {
-      min-height: 42px;
-      padding: 10px 16px;
-      border-radius: 12px;
+      min-height: 40px;
+      padding: 9px 13px;
+      border-radius: 11px;
       font-size: 14px;
     }
 
