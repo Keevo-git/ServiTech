@@ -94,10 +94,12 @@ require_once __DIR__ . "/_shared.php";
 
   <div class="policy-modal" id="policyModal" hidden>
     <div class="policy-modal__backdrop" data-close-modal></div>
-    <div class="policy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle">
+    <div class="policy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle" aria-describedby="policyModalContent" tabindex="-1">
       <button type="button" class="policy-modal__close" data-close-modal aria-label="Close policy dialog">&times;</button>
-      <p class="policy-modal__eyebrow">Account Policies</p>
-      <h2 id="policyModalTitle">ServiTech Data Privacy Policy</h2>
+      <div class="policy-modal__header">
+        <p class="policy-modal__eyebrow">Account Policies</p>
+        <h2 id="policyModalTitle">ServiTech Data Privacy Policy</h2>
+      </div>
       <div class="policy-modal__content" id="policyModalContent"></div>
     </div>
   </div>
@@ -125,9 +127,12 @@ require_once __DIR__ . "/_shared.php";
     const googleFallbackLabel = document.getElementById("googleFallbackLabel");
     const googleSignInHint = document.getElementById("googleSignInHint");
     const policyModal = document.getElementById("policyModal");
+    const policyModalDialog = policyModal.querySelector(".policy-modal__dialog");
     const policyModalTitle = document.getElementById("policyModalTitle");
     const policyModalContent = document.getElementById("policyModalContent");
+    const policyModalCloseButton = policyModal.querySelector(".policy-modal__close");
     const authCard = document.querySelector(".auth-card--login");
+    let activePolicyTrigger = null;
 
     const loginFields = {
       email: {
@@ -179,15 +184,49 @@ require_once __DIR__ . "/_shared.php";
         return;
       }
 
+      activePolicyTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       policyModalTitle.textContent = documentConfig.title;
       policyModalContent.innerHTML = documentConfig.body;
       policyModal.hidden = false;
       document.body.classList.add("modal-open");
+      policyModalContent.scrollTop = 0;
+      policyModalCloseButton.focus();
     }
 
     function closePolicyModal() {
       policyModal.hidden = true;
       document.body.classList.remove("modal-open");
+
+      if (activePolicyTrigger) {
+        activePolicyTrigger.focus();
+        activePolicyTrigger = null;
+      }
+    }
+
+    function trapPolicyModalFocus(event) {
+      if (event.key !== "Tab" || policyModal.hidden) {
+        return;
+      }
+
+      const focusableElements = policyModalDialog.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstFocusable = focusableElements[0];
+      const lastFocusable = focusableElements[focusableElements.length - 1];
+
+      if (!firstFocusable || !lastFocusable) {
+        event.preventDefault();
+        policyModalDialog.focus();
+        return;
+      }
+
+      if (event.shiftKey && document.activeElement === firstFocusable) {
+        event.preventDefault();
+        lastFocusable.focus();
+      } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+        event.preventDefault();
+        firstFocusable.focus();
+      }
     }
 
     function setFieldState(fieldConfig, message) {
@@ -384,7 +423,10 @@ require_once __DIR__ . "/_shared.php";
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !policyModal.hidden) {
         closePolicyModal();
+        return;
       }
+
+      trapPolicyModalFocus(event);
     });
 
     applyPageMessageFromQuery();
