@@ -1805,11 +1805,14 @@ body.auth-page {
 .policy-modal__dialog {
   position: relative;
   width: min(100%, 620px);
+  max-height: min(82vh, 720px);
   padding: 28px;
   border-radius: 24px;
   background: #ffffff;
   box-shadow: 0 28px 56px rgba(36, 18, 15, 0.34);
   z-index: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .policy-modal__close {
@@ -1852,6 +1855,12 @@ body.auth-page {
   color: #51463f;
   line-height: 1.7;
   font-size: 15px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.auth-policy-note {
+  margin: 0 0 16px;
 }
 
 @media (max-width: 768px) {

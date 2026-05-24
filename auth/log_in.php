@@ -81,9 +81,26 @@ require_once __DIR__ . "/_shared.php";
         <p id="googleSignInHint" class="auth-note">Checking Google sign-in availability...</p>
       </div>
 
+      <p class="auth-note auth-policy-note">
+        By using this service, you understand and agree to the ServiTech
+        <button type="button" class="text-link" data-doc-trigger="privacy">Data Privacy Policy</button>
+        and
+        <button type="button" class="text-link" data-doc-trigger="terms">Terms &amp; Conditions</button>.
+      </p>
+
       <a href="<?= auth_url("/auth/regis.php") ?>" class="back-login">Don't have an account yet? Create one</a>
     </section>
   </main>
+
+  <div class="policy-modal" id="policyModal" hidden>
+    <div class="policy-modal__backdrop" data-close-modal></div>
+    <div class="policy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle">
+      <button type="button" class="policy-modal__close" data-close-modal aria-label="Close policy dialog">&times;</button>
+      <p class="policy-modal__eyebrow">Account Policies</p>
+      <h2 id="policyModalTitle">ServiTech Data Privacy Policy</h2>
+      <div class="policy-modal__content" id="policyModalContent"></div>
+    </div>
+  </div>
 
 <?php render_auth_footer(); ?>
 
@@ -107,6 +124,9 @@ require_once __DIR__ . "/_shared.php";
     const googleFallbackButton = document.getElementById("googleFallbackButton");
     const googleFallbackLabel = document.getElementById("googleFallbackLabel");
     const googleSignInHint = document.getElementById("googleSignInHint");
+    const policyModal = document.getElementById("policyModal");
+    const policyModalTitle = document.getElementById("policyModalTitle");
+    const policyModalContent = document.getElementById("policyModalContent");
     const authCard = document.querySelector(".auth-card--login");
 
     const loginFields = {
@@ -129,6 +149,46 @@ require_once __DIR__ . "/_shared.php";
         validate: (value) => value ? "" : "Password is required."
       }
     };
+
+    const policyDocuments = {
+      privacy: {
+        title: "ServiTech Data Privacy Policy",
+        body: `
+          <p>ServiTech respects and values the privacy of all users accessing the platform. This Privacy Policy explains how user information is collected, used, stored, and protected within the ServiTech system. ServiTech is a student-developed academic capstone project intended for educational, demonstration, and evaluation purposes only.</p>
+          <p>ServiTech may collect personal information such as full name, email address, contact number, account credentials, uploaded files, queue transaction details, and service request information. The collected data is used solely for account registration, authentication, queue management, printing, repair, installation, laminating, rush ID services, customer communication, academic evaluation, and system improvement.</p>
+          <p>Uploaded files and documents are processed only for the requested transaction and are not intentionally shared with unauthorized individuals or third parties. ServiTech implements reasonable security measures to protect user information from unauthorized access, misuse, disclosure, or alteration, while access to information is limited only to authorized personnel involved in system operations and service processing.</p>
+          <p>As an academic project, ServiTech may still contain technical limitations, maintenance interruptions, or system issues inherent in educational systems. By using the platform, users agree to provide accurate information and ensure that uploaded content complies with applicable laws, school regulations, and ethical standards.</p>
+          <p>ServiTech reserves the right to update or modify this Privacy Policy whenever necessary to improve security, functionality, academic evaluation, and operational performance. For concerns or inquiries regarding privacy and data usage, users may contact theservitech.store@gmail.com.</p>
+        `
+      },
+      terms: {
+        title: "ServiTech Terms & Conditions",
+        body: `
+          <p>By creating an account and using the ServiTech platform, users agree to comply with the following Terms and Conditions. ServiTech is a student academic capstone project developed for educational, demonstration, and evaluation purposes. The platform is intended to simulate queueing and service management operations for learning and academic presentation.</p>
+          <p>Users are responsible for maintaining the confidentiality of their account credentials and providing complete, accurate, and updated information during registration and service transactions. ServiTech may only be used for lawful and appropriate service requests related to printing, repair, installation, laminating, rush ID processing, and other related services.</p>
+          <p>Users are solely responsible for all uploaded files, documents, and submitted content. Uploading illegal, harmful, offensive, or unauthorized materials is strictly prohibited. Queue estimates, turnaround times, and service availability may vary depending on operational workload, testing conditions, and staff availability.</p>
+          <p>As an academic project, ServiTech may experience temporary errors, maintenance periods, incomplete features, or technical limitations. The developers shall not be held liable for losses, delays, or interruptions caused by technical issues beyond reasonable control. Users must not misuse the platform, attempt unauthorized access, interfere with system operations, or compromise platform security and functionality.</p>
+          <p>ServiTech reserves the right to modify, improve, suspend, or update system features, workflows, and services whenever necessary for academic evaluation, operational improvement, and security purposes. By continuing to use the platform, users acknowledge that they have read, understood, and agreed to the ServiTech Data Privacy Policy and Terms & Conditions.</p>
+        `
+      }
+    };
+
+    function openPolicyModal(type) {
+      const documentConfig = policyDocuments[type];
+      if (!documentConfig) {
+        return;
+      }
+
+      policyModalTitle.textContent = documentConfig.title;
+      policyModalContent.innerHTML = documentConfig.body;
+      policyModal.hidden = false;
+      document.body.classList.add("modal-open");
+    }
+
+    function closePolicyModal() {
+      policyModal.hidden = true;
+      document.body.classList.remove("modal-open");
+    }
 
     function setFieldState(fieldConfig, message) {
       fieldConfig.error.textContent = message;
@@ -311,6 +371,20 @@ require_once __DIR__ . "/_shared.php";
       loginPassword.type = showPassword ? "text" : "password";
       passwordToggle.textContent = showPassword ? "Hide" : "Show";
       passwordToggle.setAttribute("aria-label", showPassword ? "Hide password" : "Show password");
+    });
+
+    document.querySelectorAll("[data-doc-trigger]").forEach((button) => {
+      button.addEventListener("click", () => openPolicyModal(button.dataset.docTrigger));
+    });
+
+    policyModal.querySelectorAll("[data-close-modal]").forEach((element) => {
+      element.addEventListener("click", closePolicyModal);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !policyModal.hidden) {
+        closePolicyModal();
+      }
     });
 
     applyPageMessageFromQuery();
