@@ -667,6 +667,16 @@ body.modal-open {
   padding: 0;
 }
 
+.service-card-icon--repair svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .service-option-card h4 {
   margin: 0;
   padding-bottom: 10px;

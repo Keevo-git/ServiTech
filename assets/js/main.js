@@ -509,7 +509,7 @@ function getServiceIcon(iconKey) {
       </svg>`,
     repair: `
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="m21.4 20-6.7-6.7a5.9 5.9 0 0 1-5.2-1.5 6 6 0 0 1-1.6-5.9l3.1 3.1 2.1-2.1L10 3.8A6 6 0 0 1 16 5.4a5.9 5.9 0 0 1 1.5 5.2l6.7 6.7z"></path>
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.7-3.7a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9l-3.7 3.7z"></path>
       </svg>`,
     install: `
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
