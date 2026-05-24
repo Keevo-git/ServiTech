@@ -10,12 +10,24 @@ $requestMethod = (string)($_SERVER["REQUEST_METHOD"] ?? "GET");
 
 function forgot_password_ensure_columns(PDO $pdo): void
 {
-    $pdo->exec("
-        ALTER TABLE users
-        ADD COLUMN IF NOT EXISTS reset_token TEXT,
-        ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ
-    ");
-    $pdo->exec("CREATE INDEX IF NOT EXISTS users_reset_token_idx ON users (reset_token) WHERE reset_token IS NOT NULL");
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    servitech_forgot_password_mail_log("Database driver: {$driver}");
+
+    if ($driver === "pgsql") {
+        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)");
+        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ");
+        $pdo->exec("CREATE INDEX IF NOT EXISTS users_reset_token_idx ON users (reset_token) WHERE reset_token IS NOT NULL");
+        return;
+    }
+
+    if ($driver === "mysql") {
+        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255) NULL");
+        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires DATETIME NULL");
+        $pdo->exec("CREATE INDEX users_reset_token_idx ON users (reset_token)");
+        return;
+    }
+
+    throw new RuntimeException("Unsupported database driver for password reset columns: {$driver}");
 }
 
 function forgot_password_reset_url(string $token): string
@@ -28,17 +40,21 @@ if ($requestMethod === "POST") {
     servitech_enforce_csrf_token(false);
 
     $submittedEmail = strtolower(trim((string)($_POST["email"] ?? "")));
+    servitech_forgot_password_mail_log("Forgot password submit started. Server time: " . date(DATE_ATOM) . "; submitted email={$submittedEmail}");
 
     if ($submittedEmail === "" || !filter_var($submittedEmail, FILTER_VALIDATE_EMAIL)) {
         $messageType = "error";
         $messageText = "Enter a valid email address to request a reset link.";
+        servitech_forgot_password_mail_log("Forgot password validation failed: invalid email.");
     } else {
         try {
             require_once __DIR__ . "/../config/db.php";
+            servitech_forgot_password_mail_log("Database connection loaded.");
 
             $stmt = $pdo->prepare("SELECT id, email FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1");
             $stmt->execute([":email" => $submittedEmail]);
             $user = $stmt->fetch();
+            servitech_forgot_password_mail_log("Users table lookup result for {$submittedEmail}: " . ($user ? "email exists" : "email does not exist"));
 
             if ($user) {
                 forgot_password_ensure_columns($pdo);
@@ -47,6 +63,7 @@ if ($requestMethod === "POST") {
                 $tokenHash = hash("sha256", $token);
                 $email = (string)$user["email"];
                 $resetUrl = forgot_password_reset_url($token);
+                servitech_forgot_password_mail_log("Reset link generated for {$email}: {$resetUrl}");
 
                 $update = $pdo->prepare("
                     UPDATE users
@@ -59,6 +76,7 @@ if ($requestMethod === "POST") {
                     ":user_id" => (int)$user["id"],
                     ":reset_token" => $tokenHash,
                 ]);
+                servitech_forgot_password_mail_log("Token save result for user id " . (int)$user["id"] . ": affected rows=" . $update->rowCount());
 
                 $mailResult = servitech_send_password_reset_mail($email, $resetUrl);
                 if (!$mailResult["ok"]) {
@@ -70,8 +88,10 @@ if ($requestMethod === "POST") {
                         throw new RuntimeException("Email sending failed: " . (string)$mailResult["error"]);
                     }
 
-                    throw new RuntimeException("Email sending failed. Check mail_error.log for details.");
+                    throw new RuntimeException("Email sending failed: " . (string)$mailResult["error"]);
                 }
+            } else {
+                servitech_forgot_password_mail_log("No email sent because {$submittedEmail} is not registered.");
             }
 
             $messageType = "success";
@@ -79,10 +99,9 @@ if ($requestMethod === "POST") {
             $submittedEmail = "";
         } catch (Throwable $e) {
             servitech_mail_log("forgot password error: " . $e->getMessage());
+            servitech_forgot_password_mail_log("Forgot password exception: " . $e->getMessage());
             $messageType = "error";
-            $messageText = servitech_mail_debug_enabled()
-                ? "Email sending failed during testing: " . $e->getMessage()
-                : "We could not process the reset request right now. Please try again.";
+            $messageText = "Mailer Error: " . $e->getMessage();
         }
     }
 }

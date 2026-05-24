@@ -18,5 +18,5 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    die("DB connection failed: " . $e->getMessage());
+    throw new RuntimeException("DB connection failed: " . $e->getMessage(), 0, $e);
 }

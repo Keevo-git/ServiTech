@@ -9,10 +9,31 @@ function servitech_mail_error_log_path(): string
     return __DIR__ . "/../mail_error.log";
 }
 
+function servitech_forgot_password_mail_log_path(): string
+{
+    return __DIR__ . "/../logs/forgot_password_mail.log";
+}
+
+function servitech_write_log_file(string $path, string $message): void
+{
+    $directory = dirname($path);
+    if (!is_dir($directory)) {
+        @mkdir($directory, 0775, true);
+    }
+
+    $line = "[" . date("Y-m-d H:i:s") . "] " . $message . PHP_EOL;
+    @file_put_contents($path, $line, FILE_APPEND | LOCK_EX);
+}
+
 function servitech_mail_log(string $message): void
 {
-    $line = "[" . date("Y-m-d H:i:s") . "] " . $message . PHP_EOL;
-    @file_put_contents(servitech_mail_error_log_path(), $line, FILE_APPEND | LOCK_EX);
+    servitech_write_log_file(servitech_mail_error_log_path(), $message);
+    error_log($message);
+}
+
+function servitech_forgot_password_mail_log(string $message): void
+{
+    servitech_write_log_file(servitech_forgot_password_mail_log_path(), $message);
     error_log($message);
 }
 
@@ -153,7 +174,10 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
     $fromName = servitech_mail_config_value("SMTP_FROM_NAME", "from_name", "ServiTech");
     $replyTo = servitech_mail_config_value("SMTP_REPLY_TO", "reply_to", $defaultSender);
 
+    servitech_forgot_password_mail_log("SMTP config: host={$host}; port={$port}; encryption={$encryption}; username={$username}; from={$fromEmail}; reply_to={$replyTo}");
+
     if ($host === "" || $fromEmail === "" || $username === "" || $password === "") {
+        servitech_forgot_password_mail_log("SMTP configuration failed: missing host/from/username/password. Password configured: " . ($password !== "" ? "yes" : "no"));
         return ["ok" => false, "error" => "SMTP is not configured. Set SMTP_PASSWORD to the Gmail App Password for theservitech.store@gmail.com."];
     }
 
@@ -174,23 +198,33 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
         ]
     );
     if ($phpMailerResult["available"]) {
+        servitech_forgot_password_mail_log("PHPMailer send result for {$toEmail}: " . ($phpMailerResult["ok"] ? "success" : "failed: " . $phpMailerResult["error"]));
         return ["ok" => $phpMailerResult["ok"], "error" => $phpMailerResult["error"]];
     }
+
+    servitech_forgot_password_mail_log("PHPMailer is not installed or autoloadable; falling back to direct SMTP socket sender.");
 
     $transportHost = ($encryption === "ssl" ? "ssl://" : "") . $host;
     $errno = 0;
     $errstr = "";
+    servitech_forgot_password_mail_log("SMTP connection attempt: {$transportHost}:{$port}");
     $socket = @stream_socket_client($transportHost . ":" . $port, $errno, $errstr, 20, STREAM_CLIENT_CONNECT);
     if (!$socket) {
+        servitech_forgot_password_mail_log("SMTP connection failed: errno={$errno}; error=" . ($errstr !== "" ? $errstr : "unknown error"));
         return ["ok" => false, "error" => "SMTP connection failed: " . ($errstr !== "" ? $errstr : "unknown error")];
     }
+
+    servitech_forgot_password_mail_log("SMTP connection opened.");
 
     stream_set_timeout($socket, 20);
     $response = servitech_smtp_read_response($socket);
     if ((int)$response["code"] !== 220) {
         fclose($socket);
+        servitech_forgot_password_mail_log("SMTP greeting failed: " . $response["message"]);
         return ["ok" => false, "error" => "SMTP greeting failed: " . $response["message"]];
     }
+
+    servitech_forgot_password_mail_log("SMTP greeting ok: " . $response["message"]);
 
     $serverName = $_SERVER["SERVER_NAME"] ?? "servitech.store";
     $result = servitech_smtp_command($socket, "EHLO " . $serverName, [250]);
@@ -208,8 +242,11 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
 
         if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
             fclose($socket);
+            servitech_forgot_password_mail_log("SMTP TLS negotiation failed.");
             return ["ok" => false, "error" => "SMTP TLS negotiation failed."];
         }
+
+        servitech_forgot_password_mail_log("SMTP STARTTLS negotiation ok.");
 
         $result = servitech_smtp_command($socket, "EHLO " . $serverName, [250]);
         if (!$result["ok"]) {
@@ -234,8 +271,11 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
         $result = servitech_smtp_command($socket, base64_encode($password), [235]);
         if (!$result["ok"]) {
             fclose($socket);
+            servitech_forgot_password_mail_log("SMTP authentication failed for {$username}. Gmail requires 2-Step Verification and an App Password, not the normal Gmail password.");
             return ["ok" => false, "error" => "SMTP authentication failed."];
         }
+
+        servitech_forgot_password_mail_log("SMTP authentication ok for {$username}.");
     }
 
     $encodedSubject = "=?UTF-8?B?" . base64_encode($subject) . "?=";
@@ -289,9 +329,11 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
     fclose($socket);
 
     if (!in_array((int)$response["code"], [250], true)) {
+        servitech_forgot_password_mail_log("SMTP message delivery failed: " . $response["message"]);
         return ["ok" => false, "error" => "SMTP message delivery failed: " . $response["message"]];
     }
 
+    servitech_forgot_password_mail_log("SMTP message accepted by server for {$toEmail}: " . $response["message"]);
     return ["ok" => true, "error" => ""];
 }
 
@@ -334,8 +376,11 @@ function servitech_load_phpmailer(): bool
 function servitech_send_phpmailer_mail(string $toEmail, string $subject, string $textBody, string $htmlBody, array $config): array
 {
     if (!servitech_load_phpmailer()) {
+        servitech_forgot_password_mail_log("PHPMailer setup check failed: vendor/autoload.php not found or PHPMailer classes missing.");
         return ["available" => false, "ok" => false, "error" => "PHPMailer is not installed. Install phpmailer/phpmailer with Composer or place PHPMailer source files in PHPMailer/src."];
     }
+
+    servitech_forgot_password_mail_log("PHPMailer setup check ok.");
 
     $debugOutput = "";
 
@@ -373,6 +418,7 @@ function servitech_send_phpmailer_mail(string $toEmail, string $subject, string 
         }
 
         if (!$sent) {
+            servitech_forgot_password_mail_log("PHPMailer ErrorInfo for {$toEmail}: " . $mail->ErrorInfo);
             return ["available" => true, "ok" => false, "error" => $mail->ErrorInfo];
         }
 
