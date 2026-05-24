@@ -635,6 +635,8 @@ body.modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  text-align: center;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
   line-height: 1;
 }
@@ -659,10 +661,10 @@ body.modal-open {
 .service-card-icon--repair svg,
 .service-card-icon--repair i,
 .service-card-icon--repair img {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: auto;
+  display: block;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
 }
 
 .service-option-card h4 {
