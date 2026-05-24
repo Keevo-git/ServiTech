@@ -43,9 +43,9 @@ $rows = $pdo->query("
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Order Management - Installation</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260524match-printing') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
 <body class="admin-dashboard">
@@ -76,14 +76,13 @@ $rows = $pdo->query("
   </div>
 </header>
 
-<div class="container">
-  <div class="order-header">
+<div class="admin-wrapper">
+  <section class="admin-hero order-header">
     <h1>Order Management</h1>
     <p>Review installation orders and update statuses in real time.</p>
-  </div>
-</div>
+  </section>
 
-<main class="container">
+<main class="admin-container">
   <div class="page-frame">
     <div class="page-inner">
       <h2>Order Management</h2>
@@ -140,25 +139,29 @@ $rows = $pdo->query("
     </div>
   </div>
 </main>
+</div>
 
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <div class="om-modalOverlay" id="statusModal">
   <div class="om-modalCard" role="dialog" aria-modal="true">
-    <button class="om-modalX" type="button" id="omClose">&times;</button>
-
-    <div class="om-modalHead">
-      <h3>Update Status</h3>
-      <span class="om-pill" id="omQueueCode">-</span>
+    <div class="modal-header-custom om-modalHead">
+      <h2>Update Status</h2>
+      <button class="modal-close om-modalX" type="button" id="omClose">&times;</button>
     </div>
 
-    <div class="om-modalBody">
-      <div class="om-row">
-        <span class="om-label">Customer</span>
-        <div class="om-value" id="omCustomer">-</div>
+    <div class="modal-body om-modalBody">
+      <div class="modal-field om-row">
+        <label class="om-label">Order ID</label>
+        <p class="order-id" id="omQueueCode">-</p>
       </div>
 
-      <div class="om-row">
+      <div class="modal-field om-row">
+        <label class="om-label">Customer</label>
+        <p class="modal-value" id="omCustomer">-</p>
+      </div>
+
+      <div class="modal-field om-row">
         <label class="om-label" for="omStatus">Select Status</label>
         <select class="om-select" id="omStatus">
           <option value="PENDING">Pending</option>
@@ -171,10 +174,10 @@ $rows = $pdo->query("
 
       <div class="om-error" id="omError"></div>
 
-      <div class="om-actions">
-        <button class="om-btn om-btn--danger" type="button" id="omDelete">Delete</button>
-        <button class="om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
-        <button class="om-btn om-btn--maroon" type="button" id="omSave">Save</button>
+      <div class="modal-actions om-actions">
+        <button class="btn-delete om-btn om-btn--danger" type="button" id="omDelete">Delete</button>
+        <button class="btn-cancel om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
+        <button class="btn-save om-btn om-btn--maroon" type="button" id="omSave">Save</button>
       </div>
     </div>
   </div>
