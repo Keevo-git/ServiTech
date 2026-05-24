@@ -64,11 +64,13 @@ if ($requestMethod === "POST") {
                 if (!$mailResult["ok"]) {
                     $clear = $pdo->prepare("UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = :user_id");
                     $clear->execute([":user_id" => (int)$user["id"]]);
-                    error_log("forgot password mail error: " . (string)$mailResult["error"]);
+                    servitech_mail_log("forgot password mail error for {$email}: " . (string)$mailResult["error"]);
 
                     if (servitech_mail_debug_enabled()) {
                         throw new RuntimeException("Email sending failed: " . (string)$mailResult["error"]);
                     }
+
+                    throw new RuntimeException("Email sending failed. Check mail_error.log for details.");
                 }
             }
 
@@ -76,7 +78,7 @@ if ($requestMethod === "POST") {
             $messageText = "If that email is registered, a password reset link has been sent.";
             $submittedEmail = "";
         } catch (Throwable $e) {
-            error_log("forgot password error: " . $e->getMessage());
+            servitech_mail_log("forgot password error: " . $e->getMessage());
             $messageType = "error";
             $messageText = servitech_mail_debug_enabled()
                 ? "Email sending failed during testing: " . $e->getMessage()

@@ -1,5 +1,21 @@
 <?php
 
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+
+function servitech_mail_error_log_path(): string
+{
+    return __DIR__ . "/../mail_error.log";
+}
+
+function servitech_mail_log(string $message): void
+{
+    $line = "[" . date("Y-m-d H:i:s") . "] " . $message . PHP_EOL;
+    @file_put_contents(servitech_mail_error_log_path(), $line, FILE_APPEND | LOCK_EX);
+    error_log($message);
+}
+
 function servitech_mail_env_value(string $key): string
 {
     $candidates = [
@@ -141,6 +157,26 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
         return ["ok" => false, "error" => "SMTP is not configured. Set SMTP_PASSWORD to the Gmail App Password for theservitech.store@gmail.com."];
     }
 
+    $phpMailerResult = servitech_send_phpmailer_mail(
+        $toEmail,
+        $subject,
+        $textBody,
+        $htmlBody,
+        [
+            "host" => $host,
+            "port" => $port,
+            "username" => $username,
+            "password" => $password,
+            "encryption" => $encryption,
+            "from_email" => $fromEmail,
+            "from_name" => $fromName,
+            "reply_to" => $replyTo,
+        ]
+    );
+    if ($phpMailerResult["available"]) {
+        return ["ok" => $phpMailerResult["ok"], "error" => $phpMailerResult["error"]];
+    }
+
     $transportHost = ($encryption === "ssl" ? "ssl://" : "") . $host;
     $errno = 0;
     $errstr = "";
@@ -257,6 +293,103 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
     }
 
     return ["ok" => true, "error" => ""];
+}
+
+function servitech_load_phpmailer(): bool
+{
+    if (class_exists(PHPMailer::class)) {
+        return true;
+    }
+
+    $autoloadPaths = [
+        __DIR__ . "/../vendor/autoload.php",
+        __DIR__ . "/vendor/autoload.php",
+    ];
+
+    foreach ($autoloadPaths as $autoloadPath) {
+        if (is_file($autoloadPath)) {
+            require_once $autoloadPath;
+            if (class_exists(PHPMailer::class)) {
+                return true;
+            }
+        }
+    }
+
+    $manualBase = __DIR__ . "/../PHPMailer/src";
+    $manualFiles = [
+        $manualBase . "/Exception.php",
+        $manualBase . "/PHPMailer.php",
+        $manualBase . "/SMTP.php",
+    ];
+
+    if (is_file($manualFiles[0]) && is_file($manualFiles[1]) && is_file($manualFiles[2])) {
+        foreach ($manualFiles as $manualFile) {
+            require_once $manualFile;
+        }
+    }
+
+    return class_exists(PHPMailer::class);
+}
+
+function servitech_send_phpmailer_mail(string $toEmail, string $subject, string $textBody, string $htmlBody, array $config): array
+{
+    if (!servitech_load_phpmailer()) {
+        return ["available" => false, "ok" => false, "error" => "PHPMailer is not installed. Install phpmailer/phpmailer with Composer or place PHPMailer source files in PHPMailer/src."];
+    }
+
+    $debugOutput = "";
+
+    try {
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = (string)$config["host"];
+        $mail->Port = (int)$config["port"];
+        $mail->SMTPAuth = true;
+        $mail->Username = (string)$config["username"];
+        $mail->Password = (string)$config["password"];
+        $mail->SMTPSecure = ((string)$config["encryption"] === "ssl")
+            ? PHPMailer::ENCRYPTION_SMTPS
+            : PHPMailer::ENCRYPTION_STARTTLS;
+
+        if (servitech_mail_debug_enabled()) {
+            $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+            $mail->Debugoutput = static function (string $str, int $level) use (&$debugOutput): void {
+                $debugOutput .= "SMTP debug {$level}: {$str}\n";
+            };
+        }
+
+        $mail->CharSet = "UTF-8";
+        $mail->setFrom((string)$config["from_email"], (string)$config["from_name"]);
+        $mail->addReplyTo((string)$config["reply_to"]);
+        $mail->addAddress($toEmail);
+        $mail->Subject = $subject;
+        $mail->Body = $htmlBody !== "" ? $htmlBody : nl2br(htmlspecialchars($textBody, ENT_QUOTES, "UTF-8"));
+        $mail->AltBody = $textBody;
+        $mail->isHTML($htmlBody !== "");
+
+        $sent = $mail->send();
+        if ($debugOutput !== "") {
+            servitech_mail_log("PHPMailer SMTP debug for {$toEmail}:\n" . $debugOutput);
+        }
+
+        if (!$sent) {
+            return ["available" => true, "ok" => false, "error" => $mail->ErrorInfo];
+        }
+
+        return ["available" => true, "ok" => true, "error" => ""];
+    } catch (PHPMailerException $e) {
+        if ($debugOutput !== "") {
+            servitech_mail_log("PHPMailer SMTP debug for {$toEmail}:\n" . $debugOutput);
+        }
+
+        return ["available" => true, "ok" => false, "error" => $e->getMessage()];
+    } catch (Throwable $e) {
+        if ($debugOutput !== "") {
+            servitech_mail_log("PHPMailer SMTP debug for {$toEmail}:\n" . $debugOutput);
+        }
+
+        return ["available" => true, "ok" => false, "error" => $e->getMessage()];
+    }
 }
 
 function servitech_send_password_reset_mail(string $toEmail, string $resetUrl): array
