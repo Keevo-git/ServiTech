@@ -10,7 +10,7 @@
 
       <div class="contact-item">
         <img src="/assets/images/FOOTER_EMAIL.png" alt="Email">
-        <a href="mailto:servitech@gmail.com">servitech@gmail.com</a>
+        <a href="mailto:theservitech.store@gmail.com">theservitech.store@gmail.com</a>
       </div>
 
       <div class="contact-item">

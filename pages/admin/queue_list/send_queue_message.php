@@ -73,7 +73,7 @@ $headers = [
     "Content-Type: text/plain; charset=UTF-8",
     "Content-Transfer-Encoding: 8bit",
     "From: {$fromName} <{$fromEmail}>",
-    "Reply-To: servitech@gmail.com",
+    "Reply-To: theservitech.store@gmail.com",
     "Return-Path: {$fromEmail}",
     "X-Mailer: PHP/" . PHP_VERSION,
 ];

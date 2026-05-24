@@ -78,7 +78,9 @@ if ($requestMethod === "POST") {
         } catch (Throwable $e) {
             error_log("forgot password error: " . $e->getMessage());
             $messageType = "error";
-            $messageText = "We could not process the reset request right now. Please try again.";
+            $messageText = servitech_mail_debug_enabled()
+                ? "Email sending failed during testing: " . $e->getMessage()
+                : "We could not process the reset request right now. Please try again.";
         }
     }
 }

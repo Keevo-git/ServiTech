@@ -71,8 +71,8 @@ if (!function_exists("render_auth_footer")) {
 
         <div class="contact-item">
           <img src="<?= auth_url("/assets/images/FOOTER_EMAIL.png") ?>" alt="Email">
-          <a href="mailto:servitech@gmail.com">
-            servitech@gmail.com
+          <a href="mailto:theservitech.store@gmail.com">
+            theservitech.store@gmail.com
           </a>
         </div>
 
