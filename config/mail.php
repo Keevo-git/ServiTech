@@ -113,19 +113,32 @@ function servitech_mail_dot_stuff(string $body): string
     return implode("\r\n", $lines);
 }
 
-function servitech_send_smtp_mail(string $toEmail, string $subject, string $textBody): array
+function servitech_mail_format_address(string $email, string $name = ""): string
 {
-    $host = servitech_mail_config_value("SMTP_HOST", "host");
+    $email = trim($email);
+    $name = trim($name);
+    if ($name === "") {
+        return "<" . $email . ">";
+    }
+
+    $encodedName = "=?UTF-8?B?" . base64_encode($name) . "?=";
+    return $encodedName . " <" . $email . ">";
+}
+
+function servitech_send_smtp_mail(string $toEmail, string $subject, string $textBody, string $htmlBody = ""): array
+{
+    $defaultSender = "theservitech.store@gmail.com";
+    $host = servitech_mail_config_value("SMTP_HOST", "host", "smtp.gmail.com");
     $port = (int)servitech_mail_config_value("SMTP_PORT", "port", "587");
-    $username = servitech_mail_config_value("SMTP_USERNAME", "username");
+    $username = servitech_mail_config_value("SMTP_USERNAME", "username", $defaultSender);
     $password = servitech_mail_config_value("SMTP_PASSWORD", "password");
     $encryption = strtolower(servitech_mail_config_value("SMTP_ENCRYPTION", "encryption", "tls"));
-    $fromEmail = servitech_mail_config_value("SMTP_FROM_EMAIL", "from_email", $username);
+    $fromEmail = servitech_mail_config_value("SMTP_FROM_EMAIL", "from_email", $defaultSender);
     $fromName = servitech_mail_config_value("SMTP_FROM_NAME", "from_name", "ServiTech");
-    $replyTo = servitech_mail_config_value("SMTP_REPLY_TO", "reply_to", $fromEmail);
+    $replyTo = servitech_mail_config_value("SMTP_REPLY_TO", "reply_to", $defaultSender);
 
-    if ($host === "" || $fromEmail === "") {
-        return ["ok" => false, "error" => "SMTP is not configured. Set SMTP_HOST, SMTP_FROM_EMAIL, SMTP_USERNAME, and SMTP_PASSWORD."];
+    if ($host === "" || $fromEmail === "" || $username === "" || $password === "") {
+        return ["ok" => false, "error" => "SMTP is not configured. Set SMTP_PASSWORD to the Gmail App Password for theservitech.store@gmail.com."];
     }
 
     $transportHost = ($encryption === "ssl" ? "ssl://" : "") . $host;
@@ -190,17 +203,37 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
     }
 
     $encodedSubject = "=?UTF-8?B?" . base64_encode($subject) . "?=";
+    $hasHtmlBody = trim($htmlBody) !== "";
+    $boundary = "servitech_" . bin2hex(random_bytes(12));
     $headers = [
-        "From: " . $fromName . " <" . $fromEmail . ">",
-        "To: <" . $toEmail . ">",
-        "Reply-To: " . $replyTo,
+        "From: " . servitech_mail_format_address($fromEmail, $fromName),
+        "To: " . servitech_mail_format_address($toEmail),
+        "Reply-To: " . servitech_mail_format_address($replyTo),
         "Subject: " . $encodedSubject,
         "MIME-Version: 1.0",
-        "Content-Type: text/plain; charset=UTF-8",
-        "Content-Transfer-Encoding: 8bit",
+        "Message-ID: <" . bin2hex(random_bytes(16)) . "@servitech.store>",
         "Date: " . date(DATE_RFC2822),
+        "X-Mailer: ServiTech SMTP",
     ];
-    $message = implode("\r\n", $headers) . "\r\n\r\n" . servitech_mail_dot_stuff($textBody);
+
+    if ($hasHtmlBody) {
+        $headers[] = "Content-Type: multipart/alternative; boundary=\"" . $boundary . "\"";
+        $messageBody = "--" . $boundary . "\r\n"
+            . "Content-Type: text/plain; charset=UTF-8\r\n"
+            . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+            . $textBody . "\r\n\r\n"
+            . "--" . $boundary . "\r\n"
+            . "Content-Type: text/html; charset=UTF-8\r\n"
+            . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+            . $htmlBody . "\r\n\r\n"
+            . "--" . $boundary . "--";
+    } else {
+        $headers[] = "Content-Type: text/plain; charset=UTF-8";
+        $headers[] = "Content-Transfer-Encoding: 8bit";
+        $messageBody = $textBody;
+    }
+
+    $message = implode("\r\n", $headers) . "\r\n\r\n" . servitech_mail_dot_stuff($messageBody);
 
     foreach ([
         ["MAIL FROM:<" . $fromEmail . ">", [250]],
@@ -228,26 +261,42 @@ function servitech_send_smtp_mail(string $toEmail, string $subject, string $text
 
 function servitech_send_password_reset_mail(string $toEmail, string $resetUrl): array
 {
-    $subject = "Reset your ServiTech password";
-    $body = "We received a request to reset your ServiTech password.\n\n"
-        . "Open this link to choose a new password:\n{$resetUrl}\n\n"
+    $subject = "ServiTech Password Reset Request";
+    $textBody = "You requested a password reset for your ServiTech account.\n\n"
+        . "Use this secure link to choose a new password:\n{$resetUrl}\n\n"
         . "This link expires in 1 hour. If you did not request this, you can ignore this email.";
+    $safeResetUrl = htmlspecialchars($resetUrl, ENT_QUOTES, "UTF-8");
+    $htmlBody = '<!doctype html>
+<html>
+<body style="margin:0;padding:0;background:#fff7ed;font-family:Arial,Helvetica,sans-serif;color:#24120f;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff7ed;padding:28px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #f0d6bd;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="padding:24px 28px;background:#4A0505;color:#ffffff;">
+              <h1 style="margin:0;font-size:22px;line-height:1.25;">ServiTech</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px;">
+              <h2 style="margin:0 0 12px;color:#4A0505;font-size:22px;line-height:1.3;">Password reset request</h2>
+              <p style="margin:0 0 18px;font-size:15px;line-height:1.6;">You requested a password reset for your ServiTech account.</p>
+              <p style="margin:0 0 24px;font-size:15px;line-height:1.6;">Use the button below to choose a new password. This link expires in 1 hour.</p>
+              <p style="margin:0 0 24px;">
+                <a href="' . $safeResetUrl . '" style="display:inline-block;background:#4A0505;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 18px;border-radius:6px;">Reset Password</a>
+              </p>
+              <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:#65564d;">If the button does not work, copy and paste this link into your browser:</p>
+              <p style="margin:0 0 22px;font-size:13px;line-height:1.6;word-break:break-all;"><a href="' . $safeResetUrl . '" style="color:#7c130d;">' . $safeResetUrl . '</a></p>
+              <p style="margin:0;font-size:13px;line-height:1.6;color:#65564d;">If you did not request this password reset, you can ignore this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>';
 
-    $smtpHost = servitech_mail_config_value("SMTP_HOST", "host");
-    if ($smtpHost !== "") {
-        return servitech_send_smtp_mail($toEmail, $subject, $body);
-    }
-
-    $fromEmail = servitech_mail_config_value("SMTP_FROM_EMAIL", "from_email", "servitech@gmail.com");
-    $headers = [
-        "From: ServiTech <" . $fromEmail . ">",
-        "Reply-To: " . $fromEmail,
-        "Content-Type: text/plain; charset=UTF-8",
-    ];
-
-    $sent = @mail($toEmail, $subject, $body, implode("\r\n", $headers), "-f" . $fromEmail);
-    return [
-        "ok" => $sent,
-        "error" => $sent ? "" : "PHP mail() failed and SMTP_HOST is not configured.",
-    ];
+    return servitech_send_smtp_mail($toEmail, $subject, $textBody, $htmlBody);
 }
