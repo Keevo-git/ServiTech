@@ -7,3 +7,4 @@
 /uploads/printing/*
 !/uploads/printing/.gitignore
 /config/google.local.php
+/config/mail.local.php

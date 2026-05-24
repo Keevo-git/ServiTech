@@ -51,7 +51,7 @@ require_once __DIR__ . "/_shared.php";
             <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password">Show</button>
           </div>
           <div class="forgot-password-container">
-            <a href="<?= auth_url("/legacy/auth_html/forget_pass.html") ?>" class="forgot-link">Forgot Password?</a>
+            <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link">Forgot Password?</a>
           </div>
           <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
         </div>
@@ -195,9 +195,11 @@ require_once __DIR__ . "/_shared.php";
         setMessage("error", "Google account sign-in is currently unavailable. Please use your email and password.");
       } else if (loginCode === "fail") {
         setMessage("error", "Invalid email or password.");
+      } else if (params.get("reset") === "success") {
+        setMessage("success", "Your password has been updated. You can now log in with your new password.");
       }
 
-      if (loginCode || registeredCode || logoutCode) {
+      if (loginCode || registeredCode || logoutCode || params.get("reset")) {
         window.history.replaceState({}, document.title, loginPageUrl);
       }
     }
