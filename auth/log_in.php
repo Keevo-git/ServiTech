@@ -195,9 +195,11 @@ require_once __DIR__ . "/_shared.php";
         setMessage("error", "Google account sign-in is currently unavailable. Please use your email and password.");
       } else if (loginCode === "fail") {
         setMessage("error", "Invalid email or password.");
+      } else if (params.get("reset") === "success") {
+        setMessage("success", "Your password has been updated. You can now log in with your new password.");
       }
 
-      if (loginCode || registeredCode || logoutCode) {
+      if (loginCode || registeredCode || logoutCode || params.get("reset")) {
         window.history.replaceState({}, document.title, loginPageUrl);
       }
     }

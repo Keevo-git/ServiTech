@@ -1,53 +1,26 @@
 <?php
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/../config/session_check.php";
+require_once __DIR__ . "/../config/mail.php";
 
 $messageType = "";
 $messageText = "";
 $submittedEmail = "";
 $requestMethod = (string)($_SERVER["REQUEST_METHOD"] ?? "GET");
 
-function forgot_password_absolute_url(string $path): string
-{
-    $host = (string)($_SERVER["HTTP_HOST"] ?? "");
-    if ($host === "") {
-        return auth_url_raw($path);
-    }
-
-    $scheme = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ? "https" : "http";
-    return $scheme . "://" . $host . auth_url_raw($path);
-}
-
-function forgot_password_ensure_table(PDO $pdo): void
+function forgot_password_ensure_columns(PDO $pdo): void
 {
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS password_reset_requests (
-            id BIGSERIAL PRIMARY KEY,
-            user_id BIGINT NOT NULL,
-            email TEXT NOT NULL,
-            token_hash TEXT NOT NULL UNIQUE,
-            expires_at TIMESTAMPTZ NOT NULL,
-            used_at TIMESTAMPTZ NULL,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS reset_token TEXT,
+        ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ
     ");
-    $pdo->exec("CREATE INDEX IF NOT EXISTS password_reset_requests_token_hash_idx ON password_reset_requests (token_hash)");
-    $pdo->exec("CREATE INDEX IF NOT EXISTS password_reset_requests_user_id_idx ON password_reset_requests (user_id)");
+    $pdo->exec("CREATE INDEX IF NOT EXISTS users_reset_token_idx ON users (reset_token) WHERE reset_token IS NOT NULL");
 }
 
-function forgot_password_send_mail(string $email, string $resetUrl): bool
+function forgot_password_reset_url(string $token): string
 {
-    $subject = "Reset your ServiTech password";
-    $body = "We received a request to reset your ServiTech password.\n\n"
-        . "Open this link to choose a new password:\n{$resetUrl}\n\n"
-        . "This link expires in 1 hour. If you did not request this, you can ignore this email.";
-    $headers = [
-        "From: ServiTech <servitech@gmail.com>",
-        "Reply-To: servitech@gmail.com",
-        "Content-Type: text/plain; charset=UTF-8",
-    ];
-
-    return @mail($email, $subject, $body, implode("\r\n", $headers));
+    return "https://servitech.store/auth/reset_password.php?token=" . urlencode($token);
 }
 
 if ($requestMethod === "POST") {
@@ -68,24 +41,35 @@ if ($requestMethod === "POST") {
             $user = $stmt->fetch();
 
             if ($user) {
-                forgot_password_ensure_table($pdo);
+                forgot_password_ensure_columns($pdo);
 
                 $token = bin2hex(random_bytes(32));
                 $tokenHash = hash("sha256", $token);
                 $email = (string)$user["email"];
-                $resetUrl = forgot_password_absolute_url("/auth/reset_password.php?token=" . urlencode($token));
+                $resetUrl = forgot_password_reset_url($token);
 
-                $insert = $pdo->prepare("
-                    INSERT INTO password_reset_requests (user_id, email, token_hash, expires_at)
-                    VALUES (:user_id, :email, :token_hash, NOW() + INTERVAL '1 hour')
+                $update = $pdo->prepare("
+                    UPDATE users
+                    SET reset_token = :reset_token,
+                        reset_token_expires = NOW() + INTERVAL '1 hour',
+                        updated_at = NOW()
+                    WHERE id = :user_id
                 ");
-                $insert->execute([
+                $update->execute([
                     ":user_id" => (int)$user["id"],
-                    ":email" => $email,
-                    ":token_hash" => $tokenHash,
+                    ":reset_token" => $tokenHash,
                 ]);
 
-                forgot_password_send_mail($email, $resetUrl);
+                $mailResult = servitech_send_password_reset_mail($email, $resetUrl);
+                if (!$mailResult["ok"]) {
+                    $clear = $pdo->prepare("UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = :user_id");
+                    $clear->execute([":user_id" => (int)$user["id"]]);
+                    error_log("forgot password mail error: " . (string)$mailResult["error"]);
+
+                    if (servitech_mail_debug_enabled()) {
+                        throw new RuntimeException("Email sending failed: " . (string)$mailResult["error"]);
+                    }
+                }
             }
 
             $messageType = "success";
@@ -147,7 +131,7 @@ $csrfToken = servitech_csrf_token();
         <button type="submit" id="forgotPasswordSubmit" class="auth-submit">Send Reset Link</button>
       </form>
 
-      <a href="<?= auth_url("/auth/log_in.php") ?>" class="back-login">Back to login</a>
+      <a href="<?= auth_url("/auth/log_in.php") ?>" class="back-login back-login--spaced">Back to login</a>
     </section>
   </main>
 

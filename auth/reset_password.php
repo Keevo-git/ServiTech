@@ -16,11 +16,10 @@ function reset_password_lookup(PDO $pdo, string $token): ?array
     }
 
     $stmt = $pdo->prepare("
-        SELECT id, user_id, email
-        FROM password_reset_requests
-        WHERE token_hash = :token_hash
-          AND used_at IS NULL
-          AND expires_at > NOW()
+        SELECT id, email
+        FROM users
+        WHERE reset_token = :token_hash
+          AND reset_token_expires > NOW()
         LIMIT 1
     ");
     $stmt->execute([":token_hash" => hash("sha256", $token)]);
@@ -66,16 +65,15 @@ if ($requestMethod === "POST") {
             $update = $pdo->prepare("UPDATE users SET password_hash = :password_hash, updated_at = NOW() WHERE id = :user_id");
             $update->execute([
                 ":password_hash" => password_hash($password, PASSWORD_DEFAULT),
-                ":user_id" => (int)$resetRequest["user_id"],
+                ":user_id" => (int)$resetRequest["id"],
             ]);
 
-            $consume = $pdo->prepare("UPDATE password_reset_requests SET used_at = NOW() WHERE id = :id");
-            $consume->execute([":id" => (int)$resetRequest["id"]]);
+            $consume = $pdo->prepare("UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = :user_id");
+            $consume->execute([":user_id" => (int)$resetRequest["id"]]);
 
             $pdo->commit();
-            $tokenIsUsable = false;
-            $messageType = "success";
-            $messageText = "Your password has been updated. You can now log in with your new password.";
+            header("Location: " . auth_url_raw("/auth/log_in.php?reset=success"));
+            exit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();

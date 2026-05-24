@@ -1204,6 +1204,10 @@ body.modal-open {
   transform: translateY(-2px);
 }
 
+.back-login--spaced {
+  margin-top: 24px;
+}
+
 body.auth-page {
   min-height: 100vh;
 }
