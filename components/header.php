@@ -713,6 +713,10 @@ $notificationRoutes = [
       var markAllButton = root.querySelector("[data-notification-mark-all]");
       var clearAllButton = root.querySelector("[data-notification-clear]");
       var unreadCount = 0;
+      var notificationPollTimer = null;
+      var notificationRefreshInFlight = false;
+      var realtimeConnected = false;
+      var notificationPollMs = 4000;
 
       function formatDate(value) {
         if (!value) {
@@ -956,6 +960,30 @@ $notificationRoutes = [
         setBadgeCount(data.unread_count || 0);
       }
 
+      async function refreshNotifications() {
+        if (notificationRefreshInFlight || document.hidden) {
+          return;
+        }
+
+        notificationRefreshInFlight = true;
+
+        try {
+          await Promise.all([loadNotifications(), loadUnreadCount()]);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          notificationRefreshInFlight = false;
+        }
+      }
+
+      function startNotificationPolling() {
+        if (notificationPollTimer) {
+          return;
+        }
+
+        notificationPollTimer = window.setInterval(refreshNotifications, notificationPollMs);
+      }
+
       async function markNotificationAsRead(notificationId) {
         var item = getNotificationItem(notificationId);
         if (!item || item.dataset.notificationRead === "true") {
@@ -1013,6 +1041,7 @@ $notificationRoutes = [
       function initRealtime() {
         if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase || !window.supabase.createClient) {
           console.warn("Supabase realtime was not initialized. Missing client config.");
+          startNotificationPolling();
           return;
         }
 
@@ -1036,7 +1065,12 @@ $notificationRoutes = [
               }
             }
           )
-          .subscribe();
+          .subscribe(function (status) {
+            realtimeConnected = status === "SUBSCRIBED";
+            if (!realtimeConnected) {
+              startNotificationPolling();
+            }
+          });
       }
 
       toggleButton.addEventListener("click", function (event) {
@@ -1053,6 +1087,12 @@ $notificationRoutes = [
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
           closeDropdown();
+        }
+      });
+
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+          refreshNotifications();
         }
       });
 
@@ -1082,12 +1122,10 @@ $notificationRoutes = [
       window.markAllAsRead = markAllAsRead;
       window.clearAllNotifications = clearAllNotifications;
 
-      Promise.all([loadNotifications(), loadUnreadCount()])
-        .catch(function (error) {
-          console.error(error);
-        })
+      refreshNotifications()
         .finally(function () {
           initRealtime();
+          startNotificationPolling();
         });
     })();
   </script>
