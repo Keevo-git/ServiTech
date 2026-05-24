@@ -321,29 +321,35 @@ $notificationRoutes = [
 
 <style>
   .navbar.has-nav-menu.navbar--notifications {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    display: flex;
     align-items: center;
+    flex-wrap: nowrap;
     gap: 12px;
   }
 
   .navbar.has-nav-menu.navbar--notifications nav[data-collapsible-menu] {
-    grid-column: 2;
-    grid-row: 1;
+    order: 2;
+    flex: 0 1 auto;
     margin-left: 0;
     justify-content: flex-end;
     min-width: 0;
   }
 
   .navbar.has-nav-menu.navbar--notifications .header-utility {
-    grid-column: 3;
-    grid-row: 1;
+    order: 3;
+    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
     position: relative;
     z-index: 1200;
+  }
+
+  .navbar.has-nav-menu.navbar--notifications .logo {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .navbar.has-nav-menu.navbar--notifications .header-utility__link,
@@ -631,6 +637,7 @@ $notificationRoutes = [
 
   @media (max-width: 900px) {
     .navbar.has-nav-menu.navbar--notifications {
+      display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       row-gap: 10px;
     }
