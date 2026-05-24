@@ -325,6 +325,8 @@ $notificationRoutes = [
     align-items: center;
     flex-wrap: nowrap;
     gap: 12px;
+    width: 100%;
+    padding: 20px 60px;
   }
 
   .navbar.has-nav-menu.navbar--notifications nav[data-collapsible-menu] {
@@ -640,6 +642,7 @@ $notificationRoutes = [
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       row-gap: 10px;
+      padding: 18px 24px;
     }
 
     .navbar.has-nav-menu.navbar--notifications .logo {

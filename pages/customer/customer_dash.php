@@ -234,11 +234,6 @@ $dashboardQueues = [
   <link rel="stylesheet" href="/assets/css/style.css?v=20260406b3">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b3">
   <style>
-    body.customer-layout.customer-page--dashboard .navbar.has-nav-menu.navbar--notifications {
-      padding-left: max(20px, calc((100% - 1200px) / 2 + 20px));
-      padding-right: max(20px, calc((100% - 1200px) / 2 + 20px));
-    }
-
     body.customer-layout.customer-page--dashboard .main-container {
       width: 100%;
       max-width: 1200px;
