@@ -639,30 +639,30 @@ $notificationRoutes = [
 
   @media (max-width: 900px) {
     .navbar.has-nav-menu.navbar--notifications {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      row-gap: 10px;
-      padding: 18px 24px;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      grid-template-areas:
+        "brand utility"
+        "menu menu" !important;
+      row-gap: 10px !important;
+      padding: 18px 24px !important;
     }
 
     .navbar.has-nav-menu.navbar--notifications .logo {
-      grid-column: 1;
-      grid-row: 1;
-      min-width: 0;
+      grid-area: brand !important;
+      min-width: 0 !important;
     }
 
     .navbar.has-nav-menu.navbar--notifications .header-utility {
-      grid-column: 2;
-      grid-row: 1;
-      justify-self: end;
-      margin-left: 0;
+      grid-area: utility !important;
+      justify-self: end !important;
+      margin-left: 0 !important;
     }
 
     .navbar.has-nav-menu.navbar--notifications nav[data-collapsible-menu] {
-      grid-column: 1 / -1;
-      grid-row: 2;
-      width: 100%;
-      margin-top: 0;
+      grid-area: menu !important;
+      width: 100% !important;
+      margin-top: 0 !important;
     }
   }
 
