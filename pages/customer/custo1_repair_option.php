@@ -10,7 +10,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <title>ServiTech: Repair Option</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260410d1">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
 </head>
 <body class="customer-layout customer-page--forms" data-service="repair">
 
@@ -71,7 +71,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260326c4"></script>
+<script src="/assets/js/main.js?v=20260524-queue-fix"></script>
 
 </body>
 </html>

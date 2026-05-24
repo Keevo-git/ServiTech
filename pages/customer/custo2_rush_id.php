@@ -52,7 +52,7 @@ function rush_price(array $pricing, string $key): string {
   <title>ServiTech: Rush ID</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260410d1">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
   <style>
     .printing-upload-card .form-file {
       margin-bottom: 0.45rem;
@@ -244,8 +244,8 @@ function rush_price(array $pricing, string $key): string {
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/rush_id_upload.js?v=20260524a1"></script>
-<script src="/assets/js/main.js?v=20260521rush-prices"></script>
+<script src="/assets/js/rush_id_upload.js?v=20260524-queue-fix"></script>
+<script src="/assets/js/main.js?v=20260524-queue-fix"></script>
 
 </body>
 </html>

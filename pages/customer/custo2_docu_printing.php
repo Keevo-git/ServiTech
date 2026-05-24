@@ -115,7 +115,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
   <title>ServiTech: Document Printing</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260410d1">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
   <style>
     .printing-page {
       --printing-accent: #5f0e0f;
@@ -443,19 +443,13 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       align-items: stretch !important;
       display: grid !important;
       gap: 12px !important;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
     .queue-success-modal__actions > * {
       flex: 0 0 auto !important;
       min-height: 48px;
       width: 100% !important;
-    }
-
-    @media (min-width: 768px) {
-      .queue-success-modal__actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
     }
 
     @media (max-width: 980px) {

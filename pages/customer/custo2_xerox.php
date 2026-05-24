@@ -56,7 +56,7 @@ try {
   <title>ServiTech: Xerox</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260410d1">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2" data-service="xerox">
 
@@ -145,7 +145,7 @@ try {
 <script>
   window.servitechXeroxPricing = <?= json_encode($xeroxPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260521xerox-prices"></script>
+<script src="/assets/js/main.js?v=20260524-queue-fix"></script>
 
 </body>
 </html>
