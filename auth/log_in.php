@@ -51,7 +51,7 @@ require_once __DIR__ . "/_shared.php";
             <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password">Show</button>
           </div>
           <div class="forgot-password-container">
-            <a href="<?= auth_url("/legacy/auth_html/forget_pass.html") ?>" class="forgot-link">Forgot Password?</a>
+            <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link">Forgot Password?</a>
           </div>
           <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
         </div>
