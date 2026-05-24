@@ -74,6 +74,15 @@ function formatPesoPrice(value) {
   return `\u20B1${amount.toFixed(2)}`;
 }
 
+function getXeroxPriceMap() {
+  return {
+    "Long Bond (8.5 x 13)": Number(window.servitechXeroxPricing?.long) || 5,
+    "Short Bond (8.5 x 11)": Number(window.servitechXeroxPricing?.short) || 3,
+    A4: Number(window.servitechXeroxPricing?.a4) || 3,
+    A3: Number(window.servitechXeroxPricing?.a3) || 5,
+  };
+}
+
 function getDocumentBlockPrice(description, blockName, option) {
   const blocks = String(description || "").split(/\r?\n\s*\r?\n/);
   const block = blocks.find((item) => item.toLowerCase().includes(blockName.toLowerCase()));
@@ -880,12 +889,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const svc = document.body?.dataset?.service || "";
   const isXerox = svc === "xerox";
 
-  const xeroxPriceMap = {
-    "Long Bond (8.5 x 13)": Number(window.servitechXeroxPricing?.long) || 5,
-    "Short Bond (8.5 x 11)": Number(window.servitechXeroxPricing?.short) || 3,
-    A4: Number(window.servitechXeroxPricing?.a4) || 3,
-    A3: Number(window.servitechXeroxPricing?.a3) || 5,
-  };
+  const xeroxPriceMap = getXeroxPriceMap();
 
   function updateSummary() {
     const qty = parseInt(qtyInput.value, 10) || 1;
@@ -959,6 +963,9 @@ document.addEventListener("DOMContentLoaded", () => {
     installationTypeSelect: document.getElementById("installationTypeSelect"),
     fileUpload: document.getElementById("fileUpload"),
   };
+  const svc = (document.body?.dataset?.service || "").toLowerCase();
+  const isXerox = svc === "xerox";
+  const xeroxPriceMap = getXeroxPriceMap();
 
   function setFieldInvalid(el, invalid) {
     if (!el) return;
@@ -1083,6 +1090,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const price = xeroxPriceMap[payload.paper_size] ?? 0;
       payload.price_per_page = price;
       payload.estimated_total = price * payload.quantity;
+    } else if (refs.lamTypeSelect) {
+      const selectedOption = refs.lamTypeSelect.options[refs.lamTypeSelect.selectedIndex];
+      const price = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : 0;
+      payload.price_per_page = price;
+      payload.estimated_total = price * payload.quantity;
     } else if (refs.packageSelect) {
       const selectedOption = refs.packageSelect.options[refs.packageSelect.selectedIndex];
       const price = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : 0;
@@ -1100,7 +1112,7 @@ document.addEventListener("DOMContentLoaded", () => {
       errors.push("Please complete the service selection first.");
     }
 
-    if (refs.paperSizeSelect && !payload.paper_size) {
+    if (refs.paperSizeSelect && (!payload.paper_size || refs.paperSizeSelect.selectedOptions[0]?.disabled)) {
       errors.push("Select paper size.");
       setFieldInvalid(refs.paperSizeSelect, true);
     }
@@ -1110,27 +1122,27 @@ document.addEventListener("DOMContentLoaded", () => {
       setFieldInvalid(refs.qtyInput, true);
     }
 
-    if (refs.packageSelect && !refs.packageSelect.value) {
+    if (refs.packageSelect && (!refs.packageSelect.value || refs.packageSelect.selectedOptions[0]?.disabled)) {
       errors.push("Select a package.");
       setFieldInvalid(refs.packageSelect, true);
     }
 
-    if (refs.lamTypeSelect && !refs.lamTypeSelect.value) {
+    if (refs.lamTypeSelect && (!refs.lamTypeSelect.value || refs.lamTypeSelect.selectedOptions[0]?.disabled)) {
       errors.push("Select lamination type.");
       setFieldInvalid(refs.lamTypeSelect, true);
     }
 
-    if (refs.repairServiceSelect && !refs.repairServiceSelect.value) {
+    if (refs.repairServiceSelect && (!refs.repairServiceSelect.value || refs.repairServiceSelect.selectedOptions[0]?.disabled)) {
       errors.push("Select repair service.");
       setFieldInvalid(refs.repairServiceSelect, true);
     }
 
-    if (refs.deviceTypeSelect && !refs.deviceTypeSelect.value) {
+    if (refs.deviceTypeSelect && (!refs.deviceTypeSelect.value || refs.deviceTypeSelect.selectedOptions[0]?.disabled)) {
       errors.push("Select device type.");
       setFieldInvalid(refs.deviceTypeSelect, true);
     }
 
-    if (refs.installationTypeSelect && !refs.installationTypeSelect.value) {
+    if (refs.installationTypeSelect && (!refs.installationTypeSelect.value || refs.installationTypeSelect.selectedOptions[0]?.disabled)) {
       errors.push("Select installation type.");
       setFieldInvalid(refs.installationTypeSelect, true);
     }

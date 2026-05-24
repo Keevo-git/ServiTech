@@ -80,7 +80,7 @@ try {
 
             <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
             <select class="form-select" id="paperSizeSelect">
-              <option selected disabled>Select paper size</option>
+              <option value="" selected disabled>Select paper size</option>
               <option>Short Bond (8.5 x 11)</option>
               <option>Long Bond (8.5 x 13)</option>
               <option>A4</option>
