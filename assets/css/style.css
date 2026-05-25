@@ -1797,6 +1797,10 @@ body.auth-page {
   transition: color 0.2s ease, opacity 0.2s ease;
 }
 
+.auth-card .back-login--spaced {
+  margin-top: 18px;
+}
+
 .auth-card .back-login:hover {
   color: #a11d16;
   opacity: 1;
