@@ -120,7 +120,10 @@ require_once __DIR__ . "/_shared.php";
         </svg>
       </button>
       <div class="policy-modal__header">
-        <p class="policy-modal__eyebrow">Account Policies</p>
+        <div class="policy-modal__brand">
+          <img src="<?= auth_url("/assets/images/LOGO_SERVITECH.png") ?>" alt="" class="policy-modal__logo" aria-hidden="true">
+          <p class="policy-modal__eyebrow">Account Policies</p>
+        </div>
         <h2 id="policyModalTitle">Data Privacy Policy</h2>
       </div>
       <div class="policy-modal__content" id="policyModalContent"></div>

@@ -1479,13 +1479,14 @@ body.auth-page {
   color: #9a4f08;
   font: inherit;
   font-weight: 700;
-  text-decoration: underline;
+  text-decoration: none;
   text-underline-offset: 3px;
   cursor: pointer;
 }
 
 .text-link:hover {
   color: #c26a0a;
+  text-decoration: underline;
 }
 
 .auth-submit {
@@ -1750,7 +1751,7 @@ body.auth-page {
   color: #7c130d;
   font-size: 14px;
   font-weight: 600;
-  text-decoration: underline;
+  text-decoration: none;
   text-underline-offset: 3px;
   transition: color 0.2s ease, opacity 0.2s ease;
 }
@@ -1758,6 +1759,7 @@ body.auth-page {
 .auth-card .back-login:hover {
   color: #a11d16;
   opacity: 1;
+  text-decoration: underline;
 }
 
 .auth-page--login .auth-divider span {
@@ -1878,8 +1880,24 @@ body.auth-page {
     rgba(255, 255, 255, 0.72);
 }
 
+.policy-modal__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.policy-modal__logo {
+  display: block;
+  width: auto;
+  height: 32px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
 .policy-modal__eyebrow {
-  margin: 0 0 12px;
+  margin: 0;
   color: #9a4f08;
   font-size: 12px;
   font-weight: 800;
@@ -2018,8 +2036,13 @@ body.auth-page {
     padding-right: 66px;
   }
 
-  .policy-modal__eyebrow {
+  .policy-modal__brand {
+    gap: 9px;
     margin-bottom: 10px;
+  }
+
+  .policy-modal__logo {
+    height: 28px;
   }
 
   .policy-modal__dialog h2 {
@@ -2083,6 +2106,15 @@ body.auth-page {
 
   .policy-modal__eyebrow {
     font-size: 11px;
+  }
+
+  .policy-modal__brand {
+    gap: 8px;
+    margin-bottom: 9px;
+  }
+
+  .policy-modal__logo {
+    height: 24px;
   }
 
   .policy-modal__dialog h2 {
