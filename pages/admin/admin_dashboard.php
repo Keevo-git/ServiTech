@@ -26,32 +26,31 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech Admin Dashboard</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260521responsive') ?>">
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
 </head>
 <body class="admin-dashboard">
 
-<header class="topbar has-nav-menu">
-  <div class="topbar-inner header-container">
-    <div class="brand">
-      <p class="brand-tag">Control Center</p>
-      <span>ServiTech Admin</span>
-    </div>
-    <button
-      class="nav-toggle"
-      type="button"
-      aria-label="Toggle navigation menu"
-      aria-expanded="false"
-      aria-controls="admin-header-menu"
-    >
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-    </button>
-    <div class="actions" id="admin-header-menu" data-collapsible-menu>
-      <a href="<?= project_url('/index.php') ?>" class="btn btn-home">Home</a>
-      <a href="<?= project_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
-    </div>
-  </div>
+<header class="navbar has-nav-menu">
+  <a href="<?= project_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
+    <img src="<?= project_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
+    <h1>ServiTech Admin</h1>
+  </a>
+  <button
+    class="nav-toggle"
+    type="button"
+    aria-label="Toggle navigation menu"
+    aria-expanded="false"
+    aria-controls="admin-header-menu"
+  >
+    <span class="nav-toggle__bar"></span>
+    <span class="nav-toggle__bar"></span>
+    <span class="nav-toggle__bar"></span>
+  </button>
+  <nav id="admin-header-menu" data-collapsible-menu>
+    <a href="<?= project_url('/index.php') ?>">Home</a>
+    <a href="<?= project_url('/pages/admin/logout.php') ?>">Logout</a>
+  </nav>
 </header>
 
 <main class="container main-container dashboard-content">

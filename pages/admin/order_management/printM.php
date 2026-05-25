@@ -80,30 +80,28 @@ $online = $onlineStmt->fetchAll();
 </head>
 <body class="admin-dashboard">
 
-<header class="topbar has-nav-menu">
-  <div class="topbar-inner">
-    <div class="brand">
-      <p class="brand-tag">Operations</p>
-      <span>ServiTech Admin</span>
-    </div>
-    <button
-      class="nav-toggle"
-      type="button"
-      aria-label="Toggle navigation menu"
-      aria-expanded="false"
-      aria-controls="admin-header-menu"
-    >
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-    </button>
-    <div class="actions" id="admin-header-menu" data-collapsible-menu>
-      <a href="<?= admin_url('/index.php') ?>" class="btn btn-home">Home</a>
-      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="btn">Dashboard</a>
-      <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>" class="btn">Customer List</a>
-      <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
-    </div>
-  </div>
+<header class="navbar has-nav-menu">
+  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
+    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
+    <h1>ServiTech Admin</h1>
+  </a>
+  <button
+    class="nav-toggle"
+    type="button"
+    aria-label="Toggle navigation menu"
+    aria-expanded="false"
+    aria-controls="admin-header-menu"
+  >
+    <span class="nav-toggle__bar"></span>
+    <span class="nav-toggle__bar"></span>
+    <span class="nav-toggle__bar"></span>
+  </button>
+  <nav id="admin-header-menu" data-collapsible-menu>
+    <a href="<?= admin_url('/index.php') ?>">Home</a>
+    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
+    <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
+    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
+  </nav>
 </header>
 
 <div class="admin-wrapper">

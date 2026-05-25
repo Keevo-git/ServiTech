@@ -35,46 +35,43 @@ $rows = $stmt->fetchAll();
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Repair</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260511qmsg') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260521responsive') ?>">
 </head>
 <body class="admin-dashboard">
 
-<header class="topbar has-nav-menu">
-  <div class="topbar-inner">
-    <div class="brand">
-      <p class="brand-tag">Operations</p>
-      <span>ServiTech Admin</span>
-    </div>
-    <button
-      class="nav-toggle"
-      type="button"
-      aria-label="Toggle navigation menu"
-      aria-expanded="false"
-      aria-controls="admin-header-menu"
-    >
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-    </button>
-    <div class="actions" id="admin-header-menu" data-collapsible-menu>
-      <a href="<?= admin_url('/index.php') ?>" class="btn btn-home">Home</a>
-      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="btn">Dashboard</a>
-      <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>" class="btn">Customer List</a>
-      <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="btn">Logout</a>
-    </div>
-  </div>
+<header class="navbar has-nav-menu">
+  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
+    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
+    <h1>ServiTech Admin</h1>
+  </a>
+  <button
+    class="nav-toggle"
+    type="button"
+    aria-label="Toggle navigation menu"
+    aria-expanded="false"
+    aria-controls="admin-header-menu"
+  >
+    <span class="nav-toggle__bar"></span>
+    <span class="nav-toggle__bar"></span>
+    <span class="nav-toggle__bar"></span>
+  </button>
+  <nav id="admin-header-menu" data-collapsible-menu>
+    <a href="<?= admin_url('/index.php') ?>">Home</a>
+    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
+    <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
+    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
+  </nav>
 </header>
 
-<section class="hero">
-  <div class="hero-inner">
+<div class="admin-wrapper">
+  <section class="admin-hero">
     <h1>Queue Management</h1>
     <p>Monitor and update all service queue entries.</p>
-  </div>
-</section>
+  </section>
 
-<main class="container">
+<main class="admin-container">
   <div class="page-frame">
     <div class="page-inner">
       <div class="panel">
@@ -85,7 +82,8 @@ $rows = $stmt->fetchAll();
           <a class="tab" href="<?= admin_url('/pages/admin/queue_list/installation.php') ?>">Installation</a>
         </div>
 
-        <table>
+        <div class="table-scroll-wrapper">
+          <table class="table-content">
           <thead>
             <tr>
               <th>Order ID</th>
@@ -129,11 +127,13 @@ $rows = $stmt->fetchAll();
             <?php endforeach; ?>
           <?php endif; ?>
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </main>
+</div>
 
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 

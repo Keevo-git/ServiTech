@@ -44,8 +44,8 @@ function customer_code_from_id(int $id): string {
 
   <header class="navbar has-nav-menu">
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
-      <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo" class="servitech-logo">
-      <h1>ServiTech: JC Repair Shop</h1>
+      <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
+      <h1>ServiTech Admin</h1>
     </a>
     <button
       class="nav-toggle"
@@ -60,6 +60,7 @@ function customer_code_from_id(int $id): string {
     </button>
     <nav id="admin-customer-header-menu" data-collapsible-menu>
       <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
+      <a href="<?= admin_url('/index.php') ?>">View Landing</a>
       <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
     </nav>
   </header>
