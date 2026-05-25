@@ -1903,13 +1903,14 @@ body.auth-page {
 
 .policy-modal__logo {
   display: block;
-  width: 30px;
-  max-width: 30px;
-  height: 30px;
-  max-height: 30px;
-  flex: 0 0 30px;
+  width: 36px;
+  max-width: 36px;
+  height: 36px;
+  max-height: 36px;
+  flex: 0 0 36px;
   flex-shrink: 0;
   object-fit: contain;
+  image-rendering: auto;
 }
 
 .policy-modal__eyebrow {
@@ -2072,11 +2073,11 @@ body.auth-page {
   }
 
   .policy-modal__logo {
-    width: 28px;
-    max-width: 28px;
-    height: 28px;
-    max-height: 28px;
-    flex-basis: 28px;
+    width: 32px;
+    max-width: 32px;
+    height: 32px;
+    max-height: 32px;
+    flex-basis: 32px;
   }
 
   .policy-modal__dialog h2 {
@@ -2147,11 +2148,11 @@ body.auth-page {
   }
 
   .policy-modal__logo {
-    width: 26px;
-    max-width: 26px;
-    height: 26px;
-    max-height: 26px;
-    flex-basis: 26px;
+    width: 32px;
+    max-width: 32px;
+    height: 32px;
+    max-height: 32px;
+    flex-basis: 32px;
   }
 
   .policy-modal__dialog h2 {
