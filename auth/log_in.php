@@ -48,18 +48,7 @@ require_once __DIR__ . "/_shared.php";
               autocomplete="current-password"
               required
             >
-            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false">
-              <svg class="password-toggle__icon password-toggle__icon--show" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M2.25 12s3.5-6.25 9.75-6.25S21.75 12 21.75 12 18.25 18.25 12 18.25 2.25 12 2.25 12Z"></path>
-                <circle cx="12" cy="12" r="3.25"></circle>
-              </svg>
-              <svg class="password-toggle__icon password-toggle__icon--hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M3.25 3.25 20.75 20.75"></path>
-                <path d="M9.9 5.95A9.52 9.52 0 0 1 12 5.75c6.25 0 9.75 6.25 9.75 6.25a16.12 16.12 0 0 1-3.02 3.64"></path>
-                <path d="M14.14 14.14A3.25 3.25 0 0 1 9.86 9.86"></path>
-                <path d="M6.54 6.8C3.77 8.44 2.25 12 2.25 12s3.5 6.25 9.75 6.25c1.48 0 2.82-.35 4.01-.89"></path>
-              </svg>
-            </button>
+            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
           </div>
           <div class="forgot-password-container">
             <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link">Forgot Password?</a>
@@ -497,6 +486,25 @@ require_once __DIR__ . "/_shared.php";
       passwordToggle.setAttribute("aria-pressed", showPassword ? "true" : "false");
       passwordToggle.classList.toggle("is-visible", showPassword);
     });
+
+    function updatePasswordToggleVisibility() {
+      const hasPassword = Boolean(loginPassword.value);
+      passwordToggle.classList.toggle("has-value", hasPassword);
+      passwordToggle.tabIndex = hasPassword ? 0 : -1;
+      passwordToggle.setAttribute("aria-hidden", hasPassword ? "false" : "true");
+
+      if (!hasPassword) {
+        loginPassword.type = "password";
+        passwordToggle.classList.remove("is-visible");
+        passwordToggle.setAttribute("aria-label", "Show password");
+        passwordToggle.setAttribute("aria-pressed", "false");
+      }
+    }
+
+    loginPassword.addEventListener("input", updatePasswordToggleVisibility);
+    loginPassword.addEventListener("change", updatePasswordToggleVisibility);
+    window.addEventListener("pageshow", updatePasswordToggleVisibility);
+    updatePasswordToggleVisibility();
 
     document.querySelectorAll("[data-doc-trigger]").forEach((button) => {
       button.addEventListener("click", () => openPolicyModal(button.dataset.docTrigger));
