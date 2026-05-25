@@ -13,10 +13,27 @@ if ($user_id <= 0) {
 
 try {
   $stmt = $pdo->prepare("
-    SELECT id, queue_code, category, status, details, created_at, updated_at
-    FROM queues
-    WHERE user_id = :uid
-    ORDER BY created_at DESC
+    SELECT
+      q.id,
+      q.queue_code,
+      q.category,
+      q.status,
+      q.details,
+      q.created_at,
+      q.updated_at,
+      p.payment_method,
+      p.reference_number AS payment_reference_number,
+      p.status AS payment_status
+    FROM queues q
+    LEFT JOIN LATERAL (
+      SELECT payment_method, reference_number, status
+      FROM payments
+      WHERE queue_id = q.id
+      ORDER BY id DESC
+      LIMIT 1
+    ) p ON TRUE
+    WHERE q.user_id = :uid
+    ORDER BY q.created_at DESC
   ");
   $stmt->execute([":uid" => $user_id]);
   $rows = $stmt->fetchAll();
@@ -40,6 +57,9 @@ try {
       "status" => $r["status"],
       "created_at" => $r["created_at"],
       "updated_at" => $r["updated_at"],
+      "payment_method" => $r["payment_method"] ?? ($details["payment_method"] ?? null),
+      "reference_number" => $r["payment_reference_number"] ?? ($details["reference_number"] ?? null),
+      "payment_status" => $r["payment_status"] ?? ($details["payment_status"] ?? null),
       "service_label" => $details["service_label"] ?? null,
       "paper_size" => $details["paper_size"] ?? null,
       "quantity" => $details["quantity"] ?? null,

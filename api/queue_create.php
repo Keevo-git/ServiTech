@@ -25,6 +25,7 @@ $category = strtolower(trim((string)($data["category"] ?? "printing")));
 $service_label = trim((string)($data["service_label"] ?? ""));
 $order_type = strtolower(trim((string)($data["order_type"] ?? "")));
 $payment_method = strtolower(trim((string)($data["payment_method"] ?? "")));
+$reference_number = trim((string)($data["reference_number"] ?? ""));
 
 if ($service_label === "") {
   echo json_encode(["ok" => false, "error" => "Service label required"]);
@@ -42,6 +43,11 @@ if (!in_array($order_type, ["walkin", "online"], true)) {
 
 if (!in_array($payment_method, ["cash", "gcash"], true)) {
   $payment_method = "";
+}
+
+if ($payment_method === "gcash" && $reference_number === "") {
+  echo json_encode(["ok" => false, "error" => "Reference number is required for GCash payments."]);
+  exit();
 }
 
 $prefix = servitech_get_queue_prefix_for_category($category);
@@ -67,6 +73,7 @@ $details = [
   "quantity" => isset($data["quantity"]) ? max(1, (int)$data["quantity"]) : null,
   "color_option" => $data["color_option"] ?? null,
   "payment_method" => $payment_method !== "" ? $payment_method : null,
+  "reference_number" => $payment_method === "gcash" ? $reference_number : null,
   "package_label" => $data["package_label"] ?? null,
   "lamination_type" => $data["lamination_type"] ?? null,
   "device_type" => $data["device_type"] ?? null,

@@ -95,6 +95,258 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status #detailModal {
       z-index: 5000 !important;
+      align-items: center !important;
+      background: rgba(32, 18, 15, 0.48) !important;
+      justify-content: center !important;
+      padding: clamp(14px, 3vw, 28px) !important;
+      backdrop-filter: blur(4px);
+    }
+
+    body.customer-layout.customer-page--status .status-modal {
+      background: linear-gradient(180deg, #fffdf9 0%, #fff8ef 100%) !important;
+      border: 1px solid rgba(95, 14, 15, 0.14) !important;
+      border-radius: 22px !important;
+      box-shadow: 0 28px 70px rgba(74, 5, 5, 0.22) !important;
+      color: #24120f;
+      display: grid;
+      gap: 1rem;
+      margin: auto !important;
+      max-height: min(88vh, 820px) !important;
+      max-width: 760px !important;
+      overflow: auto;
+      padding: clamp(18px, 3vw, 26px) !important;
+      position: relative;
+      width: min(100%, 760px) !important;
+    }
+
+    body.customer-layout.customer-page--status .status-modal__header {
+      align-items: start;
+      display: grid;
+      gap: 0.4rem;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding-right: 0.2rem;
+    }
+
+    body.customer-layout.customer-page--status .status-modal__eyebrow {
+      color: #8a5f34;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-title {
+      color: #4a0505 !important;
+      font-size: clamp(1.35rem, 3vw, 1.85rem) !important;
+      line-height: 1.15;
+      margin: 0 !important;
+      overflow-wrap: anywhere;
+      padding-right: 2.4rem;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close {
+      align-items: center !important;
+      background: #fff7ed !important;
+      border: 1px solid rgba(95, 14, 15, 0.12) !important;
+      border-radius: 999px !important;
+      box-shadow: 0 8px 18px rgba(74, 5, 5, 0.08);
+      color: #7f1d1d !important;
+      cursor: pointer;
+      display: inline-flex !important;
+      font-size: 1.35rem !important;
+      font-weight: 700;
+      height: 40px !important;
+      justify-content: center !important;
+      line-height: 1 !important;
+      padding: 0 0 2px !important;
+      position: absolute !important;
+      right: clamp(16px, 3vw, 24px) !important;
+      top: clamp(16px, 3vw, 24px) !important;
+      transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      width: 40px !important;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close:hover,
+    body.customer-layout.customer-page--status .status-modal .modal-close:focus-visible {
+      background: #fee2e2 !important;
+      border-color: rgba(185, 28, 28, 0.22) !important;
+      box-shadow: 0 10px 22px rgba(185, 28, 28, 0.14);
+      color: #b91c1c !important;
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    body.customer-layout.customer-page--status .status-modal__grid {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    body.customer-layout.customer-page--status .status-modal__section {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(95, 14, 15, 0.11);
+      border-radius: 16px;
+      display: grid;
+      gap: 0.75rem;
+      padding: clamp(14px, 2.2vw, 18px);
+    }
+
+    body.customer-layout.customer-page--status .status-modal__section-title {
+      color: #5f0e0f;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status #modalPaymentDetails,
+    body.customer-layout.customer-page--status #modalExtra {
+      display: grid;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-detail-row,
+    body.customer-layout.customer-page--status #modalExtra .status-detail-row {
+      align-items: start;
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: minmax(120px, 0.34fr) minmax(0, 1fr);
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    body.customer-layout.customer-page--status .status-detail-label {
+      color: #7c625b !important;
+      font-size: 0.76rem !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .status-detail-value {
+      color: #24120f !important;
+      font-size: 0.95rem;
+      font-weight: 650;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    body.customer-layout.customer-page--status .status-notes {
+      display: grid;
+      gap: 0.45rem;
+      margin: 0 !important;
+    }
+
+    body.customer-layout.customer-page--status .status-modal textarea {
+      background: #fffaf4 !important;
+      border: 1px solid rgba(95, 14, 15, 0.12) !important;
+      border-radius: 14px !important;
+      color: #24120f !important;
+      min-height: 82px !important;
+      padding: 0.8rem 0.9rem !important;
+      resize: vertical;
+      width: 100%;
+    }
+
+    body.customer-layout.customer-page--status .file-list {
+      display: grid !important;
+      gap: 0.55rem !important;
+      min-width: 0;
+    }
+
+    body.customer-layout.customer-page--status .file-entry {
+      align-items: center;
+      background: #fff7ed !important;
+      border: 1px solid rgba(240, 138, 0, 0.28) !important;
+      border-radius: 12px !important;
+      color: #5f0e0f !important;
+      display: flex !important;
+      font-weight: 750;
+      justify-content: space-between;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      padding: 0.7rem 0.85rem !important;
+      text-decoration: none !important;
+      transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    body.customer-layout.customer-page--status a.file-entry::after {
+      content: "Open";
+      background: #f08a00;
+      border-radius: 999px;
+      color: #fff;
+      flex: 0 0 auto;
+      font-size: 0.72rem;
+      margin-left: 0.8rem;
+      padding: 0.28rem 0.62rem;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status a.file-entry:hover {
+      background: #fff1dd !important;
+      border-color: rgba(240, 138, 0, 0.46) !important;
+      transform: translateY(-1px);
+    }
+
+    body.customer-layout.customer-page--status .payment-verification-note {
+      color: #775d58;
+      font-size: 0.88rem;
+      margin: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-payment-qr {
+      align-items: center;
+      background: #fffaf4;
+      border: 1px solid rgba(95, 14, 15, 0.12);
+      border-radius: 14px;
+      display: none;
+      gap: 0.8rem;
+      grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+      padding: 0.8rem;
+    }
+
+    body.customer-layout.customer-page--status .status-payment-qr.is-visible {
+      display: grid;
+    }
+
+    body.customer-layout.customer-page--status .status-payment-qr img {
+      display: block;
+      height: auto;
+      max-width: 180px;
+      object-fit: contain;
+      width: 100%;
+    }
+
+    body.customer-layout.customer-page--status .status-modal__footer {
+      display: flex;
+      justify-content: center;
+      padding-top: 0.1rem;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-back {
+      background: linear-gradient(180deg, #fbbf24 0%, #f08a00 100%) !important;
+      border: 0 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 10px 20px rgba(95, 14, 15, 0.16);
+      color: #24120f !important;
+      cursor: pointer;
+      font-weight: 800;
+      min-height: 46px;
+      min-width: min(100%, 220px);
+      padding: 0.8rem 1.35rem !important;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-back:hover {
+      box-shadow: 0 12px 24px rgba(95, 14, 15, 0.2);
+      filter: saturate(1.05);
+      transform: translateY(-1px);
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-back:active {
+      transform: translateY(0);
     }
 
     body.customer-layout.customer-page--status .queue-list {
@@ -239,6 +491,27 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         display: inline-flex;
         align-items: center;
       }
+
+      body.customer-layout.customer-page--status .status-modal {
+        border-radius: 18px !important;
+        max-height: calc(100vh - 28px) !important;
+      }
+
+      body.customer-layout.customer-page--status .status-detail-row,
+      body.customer-layout.customer-page--status #modalExtra .status-detail-row {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+      }
+
+      body.customer-layout.customer-page--status .status-payment-qr {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+      }
+
+      body.customer-layout.customer-page--status .status-modal .modal-back {
+        width: 100%;
+      }
     }
 
     @media (min-width: 1025px) {
@@ -273,47 +546,66 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       <div class="modal status-modal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle" tabindex="-1">
         <button id="closeDetail" class="modal-close" type="button" aria-label="Close details">&times;</button>
 
-        <h3 id="detailModalTitle" class="modal-title">
-          Queue: <span id="modalQueue"></span>
-        </h3>
-
-        <div class="modal-divider"></div>
-
-        <div class="modal-body">
-          <div class="status-detail-row">
-            <span class="status-detail-label">Category</span>
-            <span id="modalType" class="status-detail-value"></span>
-          </div>
-
-          <div class="status-detail-row">
-            <span class="status-detail-label">Service</span>
-            <span id="modalService" class="status-detail-value"></span>
-          </div>
-
-          <div id="modalExtra"></div>
-
-          <div class="status-detail-row status-detail-row--files">
-            <span id="modalFileLabel" class="status-detail-label">Attached File</span>
-            <div id="modalFile" class="status-detail-value file-list"></div>
-          </div>
-
-          <div class="status-detail-row modal-price">
-            <span class="status-detail-label">Price</span>
-            <span id="modalPrice" class="status-detail-value">To be assessed</span>
-          </div>
-
-          <div class="status-notes">
-            <label for="modalNotes">Notes</label>
-            <textarea id="modalNotes" readonly></textarea>
-          </div>
-
-          <div class="modal-status">
-            <span class="status-detail-label">Current Status</span>
-            <span id="modalStatus"></span>
+        <div class="status-modal__header">
+          <div>
+            <p class="status-modal__eyebrow">Queue Details</p>
+            <h3 id="detailModalTitle" class="modal-title">
+              <span id="modalQueue"></span>
+            </h3>
           </div>
         </div>
 
-        <button id="modalCloseBtn" class="modal-back" type="button">Back</button>
+        <div class="status-modal__grid modal-body">
+          <section class="status-modal__section" aria-labelledby="serviceDetailsTitle">
+            <h4 id="serviceDetailsTitle" class="status-modal__section-title">Service Details</h4>
+            <div class="status-detail-row">
+              <span class="status-detail-label">Category</span>
+              <span id="modalType" class="status-detail-value"></span>
+            </div>
+            <div class="status-detail-row">
+              <span class="status-detail-label">Service</span>
+              <span id="modalService" class="status-detail-value"></span>
+            </div>
+            <div id="modalExtra"></div>
+            <div class="status-detail-row modal-price">
+              <span class="status-detail-label">Price</span>
+              <span id="modalPrice" class="status-detail-value">To be assessed</span>
+            </div>
+            <div class="status-notes">
+              <label class="status-detail-label" for="modalNotes">Notes</label>
+              <textarea id="modalNotes" readonly></textarea>
+            </div>
+          </section>
+
+          <section class="status-modal__section" aria-labelledby="attachedFilesTitle">
+            <h4 id="attachedFilesTitle" class="status-modal__section-title">Attached Files</h4>
+            <div class="status-detail-row status-detail-row--files">
+              <span id="modalFileLabel" class="status-detail-label">Attached File</span>
+              <div id="modalFile" class="status-detail-value file-list"></div>
+            </div>
+          </section>
+
+          <section class="status-modal__section" aria-labelledby="paymentDetailsTitle">
+            <h4 id="paymentDetailsTitle" class="status-modal__section-title">Payment Details</h4>
+            <div id="modalPaymentDetails"></div>
+            <div id="modalPaymentQr" class="status-payment-qr">
+              <img src="/assets/images/gcash-qr.jpg" alt="JC Shop GCash QR code">
+              <p class="payment-verification-note">Use this QR for GCash payments. Submitted references are subject to shop verification.</p>
+            </div>
+          </section>
+
+          <section class="status-modal__section" aria-labelledby="currentStatusTitle">
+            <h4 id="currentStatusTitle" class="status-modal__section-title">Current Status</h4>
+            <div class="status-detail-row modal-status">
+              <span class="status-detail-label">Status</span>
+              <span id="modalStatus"></span>
+            </div>
+          </section>
+        </div>
+
+        <div class="status-modal__footer">
+          <button id="modalCloseBtn" class="modal-back" type="button">Close</button>
+        </div>
       </div>
     </div>
   </section>
@@ -427,6 +719,49 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return "pending";
   }
 
+  function formatPaymentMethod(value){
+    const key = String(value || "").trim().toLowerCase();
+    if (key === "gcash") return "GCash";
+    if (key === "cash") return "Cash / Pay at Store";
+    return "Not specified";
+  }
+
+  function paymentStatusInfo(queueData){
+    const details = queueData && typeof queueData.details === "object" && queueData.details
+      ? queueData.details
+      : {};
+    const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
+    const reference = String(queueData.reference_number || details.reference_number || "").trim();
+    const rawStatus = String(queueData.payment_status || details.payment_status || "").trim();
+    const normalized = rawStatus.toLowerCase();
+
+    if (normalized === "paid" || normalized === "verified" || normalized === "completed") {
+      return { label: "Paid", tone: "done", note: "" };
+    }
+
+    if (normalized === "unpaid" || normalized === "failed" || normalized === "declined") {
+      return { label: "Unpaid", tone: "cancelled", note: "" };
+    }
+
+    if (rawStatus) {
+      return { label: formatLabel(rawStatus), tone: "pending", note: "Payment is subject to shop verification." };
+    }
+
+    if (method === "gcash" && reference) {
+      return { label: "Payment Submitted for Verification", tone: "pending", note: "Payment is subject to shop verification." };
+    }
+
+    if (method === "gcash") {
+      return { label: "Pending GCash Reference", tone: "pending", note: "Submit or confirm your GCash reference with the shop." };
+    }
+
+    if (method === "cash") {
+      return { label: "Pay at Store", tone: "pending", note: "" };
+    }
+
+    return { label: "Not specified", tone: "pending", note: "" };
+  }
+
   function renderState(message, actionHtml){
     listEl.innerHTML = `
       <div class="status-empty-state">
@@ -457,6 +792,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.dataset.notes = q.notes || "";
     div.dataset.file = q.file_name || "";
     div.dataset.status = q.status || "";
+    div.dataset.paymentMethod = q.payment_method || q.details?.payment_method || "";
+    div.dataset.referenceNumber = q.reference_number || q.details?.reference_number || "";
+    div.dataset.paymentStatus = q.payment_status || q.details?.payment_status || "";
     div.queueData = q;
 
     div.innerHTML = `
@@ -677,15 +1015,51 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     `;
   }
 
+  function renderPaymentDetails(queueData){
+    const details = queueData && typeof queueData.details === "object" && queueData.details
+      ? queueData.details
+      : {};
+    const paymentEl = document.getElementById("modalPaymentDetails");
+    const paymentQr = document.getElementById("modalPaymentQr");
+    const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
+    const reference = String(queueData.reference_number || details.reference_number || "").trim();
+    const status = paymentStatusInfo(queueData);
+
+    if (!paymentEl) return;
+
+    paymentEl.innerHTML = `
+      <div class="status-detail-row">
+        <span class="status-detail-label">Payment Method</span>
+        <span class="status-detail-value">${esc(formatPaymentMethod(method))}</span>
+      </div>
+      <div class="status-detail-row">
+        <span class="status-detail-label">Reference Number</span>
+        <span class="status-detail-value">${esc(reference || "-")}</span>
+      </div>
+      <div class="status-detail-row">
+        <span class="status-detail-label">Payment Status</span>
+        <span class="status-detail-value">
+          <span class="status-badge status-${status.tone}">${esc(status.label)}</span>
+        </span>
+      </div>
+      ${status.note ? `<p class="payment-verification-note">${esc(status.note)}</p>` : ""}
+    `;
+
+    if (paymentQr) {
+      paymentQr.classList.toggle("is-visible", method === "gcash");
+    }
+  }
+
   function openDetail(card){
     const queueData = card.queueData || {};
 
-    document.getElementById("modalQueue").textContent = card.dataset.queue || "";
+    document.getElementById("modalQueue").textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
     document.getElementById("modalType").textContent = formatLabel(card.dataset.type || "");
     document.getElementById("modalService").textContent = card.dataset.service || "";
     document.getElementById("modalNotes").value = card.dataset.notes || "";
     document.getElementById("modalPrice").textContent = getQueuePriceLabel(queueData);
     renderAttachedFiles(queueData);
+    renderPaymentDetails(queueData);
 
     const statusEl = document.getElementById("modalStatus");
     const status = (card.dataset.status || "PENDING").toUpperCase();

@@ -962,6 +962,8 @@ document.addEventListener("DOMContentLoaded", () => {
     deviceTypeSelect: document.getElementById("deviceTypeSelect"),
     installationTypeSelect: document.getElementById("installationTypeSelect"),
     fileUpload: document.getElementById("fileUpload"),
+    paymentMethodSelect: document.getElementById("paymentMethodSelect"),
+    referenceNumberInput: document.getElementById("referenceNumberInput"),
   };
   const svc = (document.body?.dataset?.service || "").toLowerCase();
   const isXerox = svc === "xerox";
@@ -998,6 +1000,8 @@ document.addEventListener("DOMContentLoaded", () => {
       refs.deviceTypeSelect,
       refs.installationTypeSelect,
       refs.fileUpload,
+      refs.paymentMethodSelect,
+      refs.referenceNumberInput,
     ].forEach((el) => setFieldInvalid(el, false));
     setRadioInvalid("color", false);
     setFeedback("", "error");
@@ -1084,6 +1088,8 @@ document.addEventListener("DOMContentLoaded", () => {
       uploaded_files: printState && Array.isArray(printState.uploaded_files)
         ? printState.uploaded_files
         : null,
+      payment_method: refs.paymentMethodSelect ? refs.paymentMethodSelect.value : null,
+      reference_number: refs.referenceNumberInput ? refs.referenceNumberInput.value.trim() : null,
     };
 
     if (isXerox && refs.paperSizeSelect) {
@@ -1147,6 +1153,16 @@ document.addEventListener("DOMContentLoaded", () => {
       setFieldInvalid(refs.installationTypeSelect, true);
     }
 
+    if (refs.paymentMethodSelect && (!refs.paymentMethodSelect.value || refs.paymentMethodSelect.selectedOptions[0]?.disabled)) {
+      errors.push("Select payment method.");
+      setFieldInvalid(refs.paymentMethodSelect, true);
+    }
+
+    if (refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash" && refs.referenceNumberInput && !refs.referenceNumberInput.value.trim()) {
+      errors.push("Enter your GCash reference number.");
+      setFieldInvalid(refs.referenceNumberInput, true);
+    }
+
     const hasColorOptions = document.querySelectorAll('input[name="color"]').length > 0;
     if (hasColorOptions && !payload.color_option) {
       errors.push("Select a color option.");
@@ -1174,6 +1190,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     return errors;
+  }
+
+  function syncPaymentUi() {
+    const method = refs.paymentMethodSelect ? refs.paymentMethodSelect.value : "";
+    const referenceWrap = document.getElementById("referenceNumberWrap");
+    const gcashCard = document.getElementById("rushGcashCard");
+    const isGcash = method === "gcash";
+
+    if (referenceWrap) referenceWrap.style.display = isGcash ? "block" : "none";
+    if (gcashCard) gcashCard.classList.toggle("is-visible", isGcash);
+    if (refs.referenceNumberInput) refs.referenceNumberInput.required = isGcash;
   }
 
   async function createQueue(payload) {
@@ -1226,6 +1253,11 @@ document.addEventListener("DOMContentLoaded", () => {
         window.servitechResetUploadedFiles();
       }
     }
+  }
+
+  if (refs.paymentMethodSelect) {
+    refs.paymentMethodSelect.addEventListener("change", syncPaymentUi);
+    syncPaymentUi();
   }
 
   joinBtn.addEventListener("click", async (e) => {
