@@ -242,7 +242,7 @@ function rush_price(array $pricing, string $key): string {
       </div>
 
       <div class="form-card form-card--secondary rush-payment-card">
-        <h3 class="step-title">3. PAYMENT</h3>
+        <h3 class="step-title">4. PAYMENT</h3>
         <div class="rush-payment-grid">
           <div>
             <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
@@ -267,7 +267,7 @@ function rush_price(array $pricing, string $key): string {
       </div>
 
       <div class="form-card form-card--secondary printing-upload-card">
-        <h3 class="step-title">4. UPLOAD FILES</h3>
+        <h3 class="step-title">5. UPLOAD FILES</h3>
 
         <div class="printing-field">
           <label for="fileUpload">Upload your photo/document</label>
