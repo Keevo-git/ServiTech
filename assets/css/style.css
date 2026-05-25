@@ -1575,24 +1575,55 @@ body.auth-page {
 }
 
 .password-input-wrap input {
-  padding-right: 78px;
+  padding-right: 58px;
 }
 
 .password-toggle {
   position: absolute;
   top: 50%;
-  right: 12px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
   transform: translateY(-50%);
   border: none;
+  border-radius: 50%;
   background: transparent;
   color: #7c130d;
-  font-size: 13px;
-  font-weight: 800;
   cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.password-toggle:hover {
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  background: rgba(124, 19, 13, 0.08);
   color: #a11d16;
+}
+
+.password-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 19, 13, 0.18);
+}
+
+.password-toggle__icon {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.password-toggle__icon--hide,
+.password-toggle.is-visible .password-toggle__icon--show {
+  display: none;
+}
+
+.password-toggle.is-visible .password-toggle__icon--hide {
+  display: block;
 }
 
 .auth-divider {
@@ -2226,12 +2257,13 @@ body.auth-page {
   }
 
   .password-input-wrap input {
-    padding-right: 4.5rem;
+    padding-right: 3.75rem;
   }
 
   .password-toggle {
-    right: 0.75rem;
-    font-size: 0.75rem;
+    right: 0.7rem;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 }
 
