@@ -1888,11 +1888,13 @@ body.auth-page {
   min-width: 0;
 }
 
-.policy-modal__logo {
+.policy-modal .policy-modal__logo {
   display: block;
-  width: auto;
+  width: 32px;
+  max-width: 32px;
   height: 32px;
-  flex: 0 0 auto;
+  max-height: 32px;
+  flex: 0 0 32px;
   object-fit: contain;
 }
 
@@ -2041,8 +2043,12 @@ body.auth-page {
     margin-bottom: 10px;
   }
 
-  .policy-modal__logo {
+  .policy-modal .policy-modal__logo {
+    width: 28px;
+    max-width: 28px;
     height: 28px;
+    max-height: 28px;
+    flex-basis: 28px;
   }
 
   .policy-modal__dialog h2 {
@@ -2113,8 +2119,12 @@ body.auth-page {
     margin-bottom: 9px;
   }
 
-  .policy-modal__logo {
+  .policy-modal .policy-modal__logo {
+    width: 24px;
+    max-width: 24px;
     height: 24px;
+    max-height: 24px;
+    flex-basis: 24px;
   }
 
   .policy-modal__dialog h2 {
