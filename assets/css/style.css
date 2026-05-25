@@ -1897,17 +1897,18 @@ body.auth-page {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   min-width: 0;
 }
 
 .policy-modal__logo {
   display: block;
-  width: 22px;
-  max-width: 22px;
-  height: 22px;
-  max-height: 22px;
-  flex: 0 0 22px;
+  width: 30px;
+  max-width: 30px;
+  height: 30px;
+  max-height: 30px;
+  flex: 0 0 30px;
+  flex-shrink: 0;
   object-fit: contain;
 }
 
@@ -1919,14 +1920,6 @@ body.auth-page {
   letter-spacing: 0.08em;
   line-height: 1.2;
   text-transform: uppercase;
-}
-
-.policy-modal__system {
-  margin: 3px 0 0;
-  color: #6f635b;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
 }
 
 .policy-modal__dialog h2 {
@@ -2079,11 +2072,11 @@ body.auth-page {
   }
 
   .policy-modal__logo {
-    width: 21px;
-    max-width: 21px;
-    height: 21px;
-    max-height: 21px;
-    flex-basis: 21px;
+    width: 28px;
+    max-width: 28px;
+    height: 28px;
+    max-height: 28px;
+    flex-basis: 28px;
   }
 
   .policy-modal__dialog h2 {
@@ -2154,11 +2147,11 @@ body.auth-page {
   }
 
   .policy-modal__logo {
-    width: 20px;
-    max-width: 20px;
-    height: 20px;
-    max-height: 20px;
-    flex-basis: 20px;
+    width: 26px;
+    max-width: 26px;
+    height: 26px;
+    max-height: 26px;
+    flex-basis: 26px;
   }
 
   .policy-modal__dialog h2 {
