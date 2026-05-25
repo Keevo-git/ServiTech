@@ -40,7 +40,7 @@ $rows = $stmt->fetchAll();
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260526status-badges') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260526submitted-layout') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -92,6 +92,7 @@ $rows = $stmt->fetchAll();
               <th>Order ID</th>
               <th>Customer Name</th>
               <th>Service Details</th>
+              <th>Submitted</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -99,7 +100,7 @@ $rows = $stmt->fetchAll();
           <tbody>
           <?php if (!$rows): ?>
             <tr>
-              <td colspan="5" style="text-align:center;padding:18px;color:#666;">No installation queues yet.</td>
+              <td colspan="6" style="text-align:center;padding:18px;color:#666;">No installation queues yet.</td>
             </tr>
           <?php else: ?>
             <?php foreach ($rows as $r): ?>
@@ -107,6 +108,12 @@ $rows = $stmt->fetchAll();
                 <td><?= esc($r["queue_code"]) ?></td>
                 <td><?= esc($r["fullname"]) ?></td>
                 <td>Installation Service</td>
+                <td>
+                  <span class="submitted-stack">
+                    <strong><?= esc(admin_queue_submitted_date($r["created_at"])) ?></strong>
+                    <small><?= esc(admin_queue_submitted_time($r["created_at"])) ?></small>
+                  </span>
+                </td>
                 <td>
                   <span class="status-badge <?= esc(status_class($r["status"])) ?>">
                     <?= esc($r["status"]) ?>
