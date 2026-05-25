@@ -567,7 +567,7 @@ $dashboardQueues = [
       width: 112px;
       min-width: 112px;
       border-radius: 999px;
-      padding: 5px 12px;
+      padding: 6px 12px;
       font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
@@ -579,33 +579,33 @@ $dashboardQueues = [
     }
 
     .queue-item__badge--pending {
-      background: #f3f4f6;
-      color: #4b5563;
-      border-color: #d1d5db;
+      background: #fef3c7;
+      color: #b45309;
+      border-color: transparent;
     }
 
     .queue-item__badge--ongoing {
-      background: #fff7ed;
-      color: #c2410c;
-      border-color: #fdba74;
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-color: transparent;
     }
 
     .queue-item__badge--pickup {
-      background: #eff6ff;
-      color: #2563eb;
-      border-color: #93c5fd;
+      background: #ffedd5;
+      color: #c2410c;
+      border-color: transparent;
     }
 
     .queue-item__badge--done {
-      background: #ecfdf5;
-      color: #16a34a;
-      border-color: #86efac;
+      background: #dcfce7;
+      color: #15803d;
+      border-color: transparent;
     }
 
     .queue-item__badge--cancelled {
-      background: #fef2f2;
-      color: #dc2626;
-      border-color: #fca5a5;
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: transparent;
     }
 
     .queue-item__label {

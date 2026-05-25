@@ -104,36 +104,39 @@ th {
 .status-pill {
   display: inline-flex;
   align-items: center;
-  padding: 6px 11px;
+  justify-content: center;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.2px;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .status-pending {
-  background: #fff4dc;
-  color: #a86b06;
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .status-inprogress {
-  background: #e1efff;
-  color: #145cc0;
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .status-pickup {
-  background: #e7f2ff;
-  color: #0b5db8;
+  background: #ffedd5;
+  color: #c2410c;
 }
 
 .status-complete {
-  background: #e6fbef;
-  color: #1f9d52;
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .status-cancelled {
-  background: #ffe7e7;
-  color: #b10b0b;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 td.actions {

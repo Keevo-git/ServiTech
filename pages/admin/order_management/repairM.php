@@ -8,9 +8,10 @@ function status_class(string $s): string
     $s = strtoupper(trim($s));
     return match ($s) {
         "PENDING" => "status-pending",
-        "ONGOING", "FOR PICK-UP" => "status-inprogress",
+        "ONGOING" => "status-inprogress",
+        "FOR PICK-UP" => "status-pickup",
         "DONE" => "status-complete",
-        "CANCELLED" => "status-onhold",
+        "CANCELLED" => "status-cancelled",
         default => "status-pending",
     };
 }

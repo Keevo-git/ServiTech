@@ -136,13 +136,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status .queue-card__badge {
       flex: 0 0 auto;
-      padding: 6px 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
       border-radius: 999px;
-      font-size: 11px;
-      line-height: 1;
-      letter-spacing: 0.04em;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
       text-transform: uppercase;
       white-space: nowrap;
+      text-align: center;
     }
 
     body.customer-layout.customer-page--status .queue-card__divider {
@@ -382,8 +387,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   function badgeTone(status){
     const s = (status || "PENDING").toUpperCase();
     if (s.includes("ONGOING")) return "ongoing";
-    if (s.includes("FOR PICK-UP") || s.includes("READY")) return "ready";
-    if (s.includes("CANCEL")) return "cancel";
+    if (s.includes("FOR PICK-UP") || s.includes("READY")) return "pickup";
+    if (s.includes("DONE")) return "done";
+    if (s.includes("CANCEL")) return "cancelled";
     return "pending";
   }
 
