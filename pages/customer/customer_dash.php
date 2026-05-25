@@ -231,8 +231,8 @@ $dashboardQueues = [
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260406b3">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260406b3">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260526status-badges">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <style>
     body.customer-layout.customer-page--dashboard .main-container {
       width: 100%;
@@ -921,9 +921,10 @@ $dashboardQueues = [
   }
 
   function normalizeStatusTone(value) {
-    const raw = String(value ?? "").trim().toLowerCase();
+    const raw = String(value ?? "").trim().toLowerCase().replace(/[\s_]+/g, "-");
     if (["pending", "ongoing", "pickup", "done", "cancelled"].includes(raw)) return raw;
-    if (raw === "for pick-up") return "pickup";
+    if (raw === "for-pick-up" || raw === "for-pickup") return "pickup";
+    if (raw === "canceled") return "cancelled";
     return "pending";
   }
 
@@ -970,7 +971,7 @@ $dashboardQueues = [
         <article class="queue-item">
           <div class="queue-item__head">
             <div class="queue-item__code">${code}</div>
-            <div class="queue-item__badge queue-item__badge--${tone}">${badge}</div>
+            <div class="status-badge queue-item__badge status-${tone} queue-item__badge--${tone}">${badge}</div>
           </div>
           <div class="queue-item__label">${serviceLabel}</div>
           <div class="queue-item__details">${detailsLabel}</div>

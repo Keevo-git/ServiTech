@@ -943,6 +943,7 @@ body.customer-layout .status-page-header {
   background: #d97706;
 }
 
+body.customer-layout .status-badge,
 body.customer-layout .queue-card__badge,
 body.customer-layout #modalStatus,
 body.customer-layout .modal-status-pill {
@@ -953,18 +954,29 @@ body.customer-layout .modal-status-pill {
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1;
   text-align: center;
+  white-space: nowrap;
   background: #fef3c7;
   color: #b45309;
 }
 
+body.customer-layout #modalStatus.status-pending,
+body.customer-layout .status-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+body.customer-layout #modalStatus.status-ongoing,
+body.customer-layout .status-ongoing,
 body.customer-layout .queue-card__badge--ongoing,
 body.customer-layout .modal-status-pill--ongoing {
   background: #dbeafe;
   color: #1d4ed8;
 }
 
+body.customer-layout #modalStatus.status-pickup,
+body.customer-layout .status-pickup,
 body.customer-layout .queue-card__badge--pickup,
 body.customer-layout .modal-status-pill--pickup,
 body.customer-layout .queue-card__badge--ready,
@@ -973,12 +985,16 @@ body.customer-layout .modal-status-pill--ready {
   color: #c2410c;
 }
 
+body.customer-layout #modalStatus.status-done,
+body.customer-layout .status-done,
 body.customer-layout .queue-card__badge--done,
 body.customer-layout .modal-status-pill--done {
   background: #dcfce7;
   color: #15803d;
 }
 
+body.customer-layout #modalStatus.status-cancelled,
+body.customer-layout .status-cancelled,
 body.customer-layout .queue-card__badge--cancelled,
 body.customer-layout .modal-status-pill--cancelled,
 body.customer-layout .queue-card__badge--cancel,

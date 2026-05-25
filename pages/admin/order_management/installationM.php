@@ -5,13 +5,13 @@ require_once __DIR__ . "/../_includes/url.php";
 
 function status_class(string $s): string
 {
-    $s = strtoupper(trim($s));
-    return match ($s) {
-        "PENDING" => "status-pending",
-        "ONGOING" => "status-inprogress",
-        "FOR PICK-UP" => "status-pickup",
-        "DONE" => "status-complete",
-        "CANCELLED" => "status-cancelled",
+    $key = strtolower(trim($s));
+    $key = preg_replace('/[\s_]+/', '-', $key);
+    return match ($key) {
+        "ongoing" => "status-ongoing",
+        "for-pick-up", "for-pickup" => "status-pickup",
+        "done" => "status-done",
+        "cancelled", "canceled" => "status-cancelled",
         default => "status-pending",
     };
 }
@@ -46,7 +46,7 @@ $rows = $pdo->query("
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260524match-printing') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260526status-badges') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
 <body class="admin-dashboard">
@@ -115,7 +115,7 @@ $rows = $pdo->query("
                       <tr>
                         <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                         <td><?= htmlspecialchars($r["fullname"]) ?></td>
-                        <td><span class="status-pill <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                        <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                         <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
                         <td>
                           <button

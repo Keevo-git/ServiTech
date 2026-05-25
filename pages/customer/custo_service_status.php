@@ -8,8 +8,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260326a6">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260326a6">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260526status-badges">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <style>
     body.customer-layout.customer-page--status {
       background:
@@ -134,6 +134,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       letter-spacing: 0;
     }
 
+    body.customer-layout.customer-page--status .status-badge,
     body.customer-layout.customer-page--status .queue-card__badge {
       flex: 0 0 auto;
       display: inline-flex;
@@ -148,6 +149,36 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       text-transform: uppercase;
       white-space: nowrap;
       text-align: center;
+    }
+
+    body.customer-layout.customer-page--status #modalStatus.status-pending,
+    body.customer-layout.customer-page--status .status-pending {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    body.customer-layout.customer-page--status #modalStatus.status-ongoing,
+    body.customer-layout.customer-page--status .status-ongoing {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    body.customer-layout.customer-page--status #modalStatus.status-pickup,
+    body.customer-layout.customer-page--status .status-pickup {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    body.customer-layout.customer-page--status #modalStatus.status-done,
+    body.customer-layout.customer-page--status .status-done {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    body.customer-layout.customer-page--status #modalStatus.status-cancelled,
+    body.customer-layout.customer-page--status .status-cancelled {
+      background: #fee2e2;
+      color: #b91c1c;
     }
 
     body.customer-layout.customer-page--status .queue-card__divider {
@@ -385,11 +416,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   }
 
   function badgeTone(status){
-    const s = (status || "PENDING").toUpperCase();
-    if (s.includes("ONGOING")) return "ongoing";
-    if (s.includes("FOR PICK-UP") || s.includes("READY")) return "pickup";
-    if (s.includes("DONE")) return "done";
-    if (s.includes("CANCEL")) return "cancelled";
+    const key = String(status || "PENDING")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_]+/g, "-");
+    if (key === "ongoing") return "ongoing";
+    if (key === "for-pick-up" || key === "for-pickup" || key === "ready") return "pickup";
+    if (key === "done") return "done";
+    if (key === "cancelled" || key === "canceled") return "cancelled";
     return "pending";
   }
 
@@ -428,7 +462,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.innerHTML = `
       <div class="queue-card__head">
         <div class="queue-card__code">${esc(q.queue_code)}</div>
-        <div class="queue-card__badge queue-card__badge--${tone}">${esc(q.status || "PENDING")}</div>
+        <div class="status-badge queue-card__badge status-${tone} queue-card__badge--${tone}">${esc(q.status || "PENDING")}</div>
       </div>
       <hr class="queue-card__divider">
       <p class="queue-card__meta">
@@ -657,7 +691,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const status = (card.dataset.status || "PENDING").toUpperCase();
     const tone = badgeTone(status);
     statusEl.textContent = status;
-    statusEl.className = "modal-status-pill modal-status-pill--" + tone;
+    statusEl.className = "status-badge modal-status-pill status-" + tone + " modal-status-pill--" + tone;
 
     const extra = document.getElementById("modalExtra");
     extra.innerHTML = [

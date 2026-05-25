@@ -3474,6 +3474,7 @@ body {
   overflow-wrap: anywhere;
 }
 
+.status-badge,
 .queue-card__badge {
   display: inline-flex;
   align-items: center;
@@ -3484,8 +3485,34 @@ body {
   border-radius: 999px;
   font-weight: 700;
   font-size: 12px;
-  line-height: 1.2;
+  line-height: 1;
   text-align: center;
+  white-space: nowrap;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-ongoing {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-pickup {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.status-done {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .queue-card__divider {

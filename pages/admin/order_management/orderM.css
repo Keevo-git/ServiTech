@@ -179,6 +179,7 @@ table.orders th {
   font-weight: 800;
 }
 
+.status-badge,
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -187,8 +188,9 @@ table.orders th {
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1;
   text-align: center;
+  white-space: nowrap;
 }
 
 .status-pending {
@@ -196,6 +198,7 @@ table.orders th {
   color: #b45309;
 }
 
+.status-ongoing,
 .status-inprogress {
   background: #dbeafe;
   color: #1d4ed8;
@@ -206,6 +209,7 @@ table.orders th {
   color: #c2410c;
 }
 
+.status-done,
 .status-complete {
   background: #dcfce7;
   color: #15803d;

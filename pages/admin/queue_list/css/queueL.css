@@ -101,6 +101,7 @@ th {
   letter-spacing: 0.2px;
 }
 
+.status-badge,
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -110,8 +111,9 @@ th {
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.2px;
-  line-height: 1.2;
+  line-height: 1;
   text-align: center;
+  white-space: nowrap;
 }
 
 .status-pending {
@@ -119,6 +121,7 @@ th {
   color: #b45309;
 }
 
+.status-ongoing,
 .status-inprogress {
   background: #dbeafe;
   color: #1d4ed8;
@@ -129,6 +132,7 @@ th {
   color: #c2410c;
 }
 
+.status-done,
 .status-complete {
   background: #dcfce7;
   color: #15803d;

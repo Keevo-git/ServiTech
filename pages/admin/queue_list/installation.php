@@ -8,12 +8,15 @@ function esc($value): string {
 }
 
 function status_class($status): string {
-  $s = strtoupper(trim((string)$status));
-  if ($s === "ONGOING") return "status-inprogress";
-  if ($s === "FOR PICK-UP") return "status-pickup";
-  if ($s === "DONE") return "status-complete";
-  if ($s === "CANCELLED") return "status-cancelled";
-  return "status-pending";
+  $key = strtolower(trim((string)$status));
+  $key = preg_replace('/[\s_]+/', '-', $key);
+  return match ($key) {
+    "ongoing" => "status-ongoing",
+    "for-pick-up", "for-pickup" => "status-pickup",
+    "done" => "status-done",
+    "cancelled", "canceled" => "status-cancelled",
+    default => "status-pending",
+  };
 }
 
 $stmt = $pdo->prepare("
@@ -37,7 +40,7 @@ $rows = $stmt->fetchAll();
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260526status-badges') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -105,7 +108,7 @@ $rows = $stmt->fetchAll();
                 <td><?= esc($r["fullname"]) ?></td>
                 <td>Installation Service</td>
                 <td>
-                  <span class="status-pill <?= esc(status_class($r["status"])) ?>">
+                  <span class="status-badge <?= esc(status_class($r["status"])) ?>">
                     <?= esc($r["status"]) ?>
                   </span>
                 </td>
