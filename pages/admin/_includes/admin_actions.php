@@ -36,7 +36,16 @@ if (!isset($statusMap[$action])) {
 
 $newStatus = $statusMap[$action];
 
-$stmt = $pdo->prepare("UPDATE queues SET status = ? WHERE id = ?");
-$stmt->execute([$newStatus, $id]);
+$stmt = $pdo->prepare("
+  UPDATE queues
+  SET
+    status = ?,
+    completed_at = CASE
+      WHEN ? = 'DONE' THEN COALESCE(completed_at, NOW())
+      ELSE NULL
+    END
+  WHERE id = ?
+");
+$stmt->execute([$newStatus, $newStatus, $id]);
 
 echo json_encode(["ok" => true, "status" => $newStatus]);

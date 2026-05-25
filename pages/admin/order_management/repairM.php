@@ -26,7 +26,7 @@ function status_label(string $s): string
 }
 
 $rows = $pdo->query("
-  SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
+  SELECT q.id, q.queue_code, q.status, q.created_at, q.completed_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'repair'
@@ -46,7 +46,7 @@ $rows = $pdo->query("
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260526status-badges') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260526submitted-completed') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
 <body class="admin-dashboard">
@@ -104,11 +104,11 @@ $rows = $pdo->query("
               <div class="walkin-title">Repair Queue - Manage and update order statuses</div>
               <table class="orders table-content">
                 <thead>
-                  <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                  <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                   <?php if (!$rows): ?>
-                    <tr><td colspan="5" style="color:#777;padding:14px;">No repair queues yet.</td></tr>
+                    <tr><td colspan="6" style="color:#777;padding:14px;">No repair queues yet.</td></tr>
                   <?php else: ?>
                     <?php foreach ($rows as $r): ?>
                       <?php $cls = status_class($r["status"]); ?>
@@ -116,7 +116,22 @@ $rows = $pdo->query("
                         <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                         <td><?= htmlspecialchars($r["fullname"]) ?></td>
                         <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                        <td><?= htmlspecialchars(date("m/d/Y", strtotime($r["created_at"]))) ?></td>
+                        <td>
+                          <span class="datetime-stack">
+                            <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
+                            <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
+                          </span>
+                        </td>
+                        <td>
+                          <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
+                            <span class="datetime-stack datetime-stack--muted">
+                              <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
+                              <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
+                            </span>
+                          <?php else: ?>
+                            <span class="datetime-empty">-</span>
+                          <?php endif; ?>
+                        </td>
                         <td>
                           <button
                             class="update-btn"

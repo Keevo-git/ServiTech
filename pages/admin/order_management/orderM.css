@@ -81,7 +81,7 @@ body.admin-dashboard .page-frame {
 }
 
 .orders-content {
-  min-width: 1000px;
+  min-width: 1080px;
 }
 
 .order-tabs {
@@ -142,7 +142,7 @@ body.admin-dashboard .page-frame {
 table.orders {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1000px;
+  min-width: 1080px;
 }
 
 .table-scroll-wrapper {
@@ -152,7 +152,7 @@ table.orders {
 }
 
 .table-content {
-  min-width: 1000px;
+  min-width: 1080px;
 }
 
 .table-section {
@@ -163,19 +163,76 @@ table.orders {
 
 .table-section table {
   width: 100%;
-  min-width: 1000px;
+  min-width: 1080px;
 }
 
 table.orders th,
 table.orders td {
-  padding: 12px;
+  padding: 14px 12px;
   border-bottom: 1px solid #e4ebf4;
   text-align: left;
   font-size: 14px;
+  vertical-align: middle;
 }
 
 table.orders th {
   color: #5d728c;
+  font-weight: 800;
+}
+
+table.orders th:nth-child(1),
+table.orders td:nth-child(1) {
+  width: 120px;
+}
+
+table.orders th:nth-child(2),
+table.orders td:nth-child(2) {
+  width: 260px;
+}
+
+table.orders th:nth-child(3),
+table.orders td:nth-child(3) {
+  width: 160px;
+}
+
+table.orders th:nth-child(4),
+table.orders td:nth-child(4),
+table.orders th:nth-child(5),
+table.orders td:nth-child(5) {
+  width: 135px;
+}
+
+table.orders th:nth-child(6),
+table.orders td:nth-child(6) {
+  width: 180px;
+}
+
+.datetime-stack {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.datetime-stack strong {
+  color: #102b4d;
+  font-size: 13px;
+}
+
+.datetime-stack small {
+  color: #5d728c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.datetime-stack--muted strong,
+.datetime-stack--muted small {
+  color: #6c7d91;
+}
+
+.datetime-empty {
+  color: #7b8796;
   font-weight: 800;
 }
 

@@ -16,8 +16,17 @@ if ($id <= 0 || !in_array($status, $allowed, true)) {
 }
 
 try {
-  $stmt = $pdo->prepare("UPDATE queues SET status = :status WHERE id = :id");
-  $stmt->execute([":status" => $status, ":id" => $id]);
+  $stmt = $pdo->prepare("
+    UPDATE queues
+    SET
+      status = :status,
+      completed_at = CASE
+        WHEN :status_done = 'DONE' THEN COALESCE(completed_at, NOW())
+        ELSE NULL
+      END
+    WHERE id = :id
+  ");
+  $stmt->execute([":status" => $status, ":status_done" => $status, ":id" => $id]);
 
   echo json_encode(["ok" => true]);
 } catch (PDOException $e) {
