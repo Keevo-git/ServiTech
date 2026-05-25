@@ -165,8 +165,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status #modalStatus.status-pickup,
     body.customer-layout.customer-page--status .status-pickup {
-      background: #ffedd5;
-      color: #c2410c;
+      background: #ede9fe;
+      color: #7c3aed;
     }
 
     body.customer-layout.customer-page--status #modalStatus.status-done,

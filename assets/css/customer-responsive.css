@@ -981,8 +981,8 @@ body.customer-layout .queue-card__badge--pickup,
 body.customer-layout .modal-status-pill--pickup,
 body.customer-layout .queue-card__badge--ready,
 body.customer-layout .modal-status-pill--ready {
-  background: #ffedd5;
-  color: #c2410c;
+  background: #ede9fe;
+  color: #7c3aed;
 }
 
 body.customer-layout #modalStatus.status-done,

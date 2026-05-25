@@ -591,8 +591,8 @@ $dashboardQueues = [
     }
 
     .queue-item__badge--pickup {
-      background: #ffedd5;
-      color: #c2410c;
+      background: #ede9fe;
+      color: #7c3aed;
       border-color: transparent;
     }
 
