@@ -1799,9 +1799,10 @@ body.auth-page {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: clamp(14px, 3vw, 28px);
+  padding: 24px;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -1809,37 +1810,38 @@ body.auth-page {
 .policy-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(36, 18, 15, 0.58);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: rgba(24, 18, 16, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .policy-modal__dialog {
   position: relative;
   width: min(880px, 92vw);
-  max-height: min(82vh, 760px);
-  max-height: min(82dvh, 760px);
+  max-height: 82vh;
+  max-height: 82dvh;
   padding: 0;
-  border: 1px solid rgba(74, 5, 5, 0.1);
-  border-radius: 22px;
-  background: linear-gradient(180deg, #fffdf9 0%, #fff8ef 100%);
-  box-shadow: 0 30px 70px rgba(36, 18, 15, 0.36);
+  border: 1px solid rgba(74, 5, 5, 0.08);
+  border-radius: 24px;
+  background: #fffdf8;
+  box-shadow: 0 28px 70px rgba(35, 22, 18, 0.34), 0 8px 22px rgba(74, 5, 5, 0.12);
   z-index: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   outline: none;
+  box-sizing: border-box;
 }
 
 .policy-modal__close {
   position: absolute;
-  top: 20px;
-  right: 22px;
-  width: 44px;
-  height: 44px;
+  top: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
   border: none;
   border-radius: 999px;
-  background: rgba(74, 5, 5, 0.055);
+  background: rgba(74, 5, 5, 0.07);
   color: #4A0505;
   display: flex;
   align-items: center;
@@ -1851,8 +1853,8 @@ body.auth-page {
 }
 
 .policy-modal__close svg {
-  width: 19px;
-  height: 19px;
+  width: 20px;
+  height: 20px;
   display: block;
   stroke: currentColor;
   stroke-width: 2.2;
@@ -1863,44 +1865,36 @@ body.auth-page {
 
 .policy-modal__close:hover,
 .policy-modal__close:focus-visible {
-  background: rgba(74, 5, 5, 0.12);
+  background: rgba(74, 5, 5, 0.13);
   color: #7c130d;
   outline: 3px solid rgba(255, 139, 44, 0.24);
   outline-offset: 2px;
   box-shadow: 0 8px 18px rgba(74, 5, 5, 0.08);
+  transform: translateY(-1px);
 }
 
 .policy-modal__header {
   flex: 0 0 auto;
-  padding: 30px 38px 22px;
-  padding-right: 92px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 38px 40px 28px;
+  padding-right: 104px;
   border-bottom: 1px solid rgba(74, 5, 5, 0.08);
-  background:
-    linear-gradient(90deg, rgba(255, 139, 44, 0.13), rgba(255, 255, 255, 0)),
-    rgba(255, 255, 255, 0.72);
+  background: #fffdf8;
 }
 
 .policy-modal__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 14px;
   min-width: 0;
-}
-
-.policy-modal .policy-modal__logo {
-  display: block;
-  width: 32px;
-  max-width: 32px;
-  height: 32px;
-  max-height: 32px;
-  flex: 0 0 32px;
-  object-fit: contain;
 }
 
 .policy-modal__eyebrow {
   margin: 0;
-  color: #9a4f08;
+  color: #9a4b07;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -1911,19 +1905,21 @@ body.auth-page {
 .policy-modal__dialog h2 {
   margin: 0;
   color: #4A0505;
-  font-size: clamp(28px, 2.7vw, 34px);
-  line-height: 1.2;
+  font-size: 32px;
+  line-height: 1.18;
+  font-weight: 800;
   max-width: 720px;
+  letter-spacing: 0;
 }
 
 .policy-modal__content {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  padding: 26px 38px 32px;
+  padding: 32px 40px 40px;
   color: #51463f;
-  line-height: 1.78;
-  font-size: 14.75px;
+  line-height: 1.7;
+  font-size: 15px;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
@@ -1935,10 +1931,23 @@ body.auth-page {
 
 .policy-modal__content p {
   margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.policy-modal__content a {
+  color: #7c130d;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.policy-modal__content a:hover,
+.policy-modal__content a:focus-visible {
+  color: #a11d16;
+  text-decoration: underline;
 }
 
 .policy-section {
-  padding: 18px 0 20px;
+  padding: 20px 0 22px;
   border-bottom: 1px solid rgba(74, 5, 5, 0.08);
 }
 
@@ -1952,9 +1961,9 @@ body.auth-page {
 }
 
 .policy-section h3 {
-  margin: 0 0 9px;
+  margin: 0 0 10px;
   color: #4A0505;
-  font-size: 15.5px;
+  font-size: 16px;
   line-height: 1.35;
   font-weight: 800;
 }
@@ -2015,17 +2024,17 @@ body.auth-page {
   }
 
   .policy-modal__dialog {
-    width: min(94vw, 640px);
-    max-height: 88vh;
-    max-height: 88dvh;
-    border-radius: 18px;
+    width: 92vw;
+    max-height: 85vh;
+    max-height: 85dvh;
+    border-radius: 22px;
   }
 
   .policy-modal__close {
-    top: 14px;
-    right: 14px;
-    width: 40px;
-    height: 40px;
+    top: 18px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
   }
 
   .policy-modal__close svg {
@@ -2034,35 +2043,26 @@ body.auth-page {
   }
 
   .policy-modal__header {
-    padding: 22px 18px 17px;
-    padding-right: 66px;
+    padding: 28px 24px 22px;
+    padding-right: 78px;
   }
 
   .policy-modal__brand {
-    gap: 9px;
-    margin-bottom: 10px;
-  }
-
-  .policy-modal .policy-modal__logo {
-    width: 28px;
-    max-width: 28px;
-    height: 28px;
-    max-height: 28px;
-    flex-basis: 28px;
+    margin-bottom: 12px;
   }
 
   .policy-modal__dialog h2 {
-    font-size: clamp(23px, 6.2vw, 28px);
+    font-size: 28px;
   }
 
   .policy-modal__content {
-    padding: 18px 18px 22px;
-    font-size: 14px;
-    line-height: 1.72;
+    padding: 24px;
+    font-size: 15px;
+    line-height: 1.7;
   }
 
   .policy-section {
-    padding: 15px 0 17px;
+    padding: 18px 0 20px;
   }
 
   .policy-section h3 {
@@ -2090,14 +2090,14 @@ body.auth-page {
 
 @media (max-width: 420px) {
   .policy-modal {
-    padding: 10px;
+    padding: 12px;
   }
 
   .policy-modal__close {
-    top: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
   }
 
   .policy-modal__close svg {
@@ -2106,8 +2106,8 @@ body.auth-page {
   }
 
   .policy-modal__header {
-    padding: 20px 16px 16px;
-    padding-right: 58px;
+    padding: 24px 24px 20px;
+    padding-right: 72px;
   }
 
   .policy-modal__eyebrow {
@@ -2115,24 +2115,15 @@ body.auth-page {
   }
 
   .policy-modal__brand {
-    gap: 8px;
-    margin-bottom: 9px;
-  }
-
-  .policy-modal .policy-modal__logo {
-    width: 24px;
-    max-width: 24px;
-    height: 24px;
-    max-height: 24px;
-    flex-basis: 24px;
+    margin-bottom: 10px;
   }
 
   .policy-modal__dialog h2 {
-    font-size: clamp(21px, 6vw, 25px);
+    font-size: 24px;
   }
 
   .policy-modal__content {
-    padding: 16px;
+    padding: 24px;
   }
 }
 

@@ -102,7 +102,6 @@ require_once __DIR__ . "/_shared.php";
       </button>
       <div class="policy-modal__header">
         <div class="policy-modal__brand">
-          <img src="<?= auth_url("/assets/images/LOGO_SERVITECH.png") ?>" alt="" class="policy-modal__logo" aria-hidden="true">
           <p class="policy-modal__eyebrow">Account Policies</p>
         </div>
         <h2 id="policyModalTitle">ServiTech Data Privacy Policy</h2>
@@ -183,11 +182,11 @@ require_once __DIR__ . "/_shared.php";
           </section>
           <section class="policy-section">
             <h3>Academic Purpose</h3>
-            <p>ServiTech is a student-developed academic capstone project intended for educational, demonstration, and evaluation purposes only. As an academic project, it may still contain technical limitations, maintenance interruptions, or system issues inherent in educational systems.</p>
+            <p>ServiTech is a student academic capstone project developed for educational, demonstration, and evaluation purposes. The platform is intended to simulate queueing and service management operations for learning and academic presentation.</p>
           </section>
           <section class="policy-section">
             <h3>User Responsibility</h3>
-            <p>By using the platform, users agree to provide accurate information and ensure that uploaded content complies with applicable laws, school regulations, and ethical standards.</p>
+            <p>Users agree to provide accurate information and ensure that uploaded content complies with applicable laws, school regulations, and ethical standards.</p>
           </section>
           <section class="policy-section">
             <h3>Policy Updates</h3>
@@ -195,7 +194,7 @@ require_once __DIR__ . "/_shared.php";
           </section>
           <section class="policy-section">
             <h3>Contact Information</h3>
-            <p>For concerns or inquiries regarding privacy and data usage, users may contact theservitech.store@gmail.com.</p>
+            <p>For concerns or inquiries regarding privacy and data usage, users may contact:<br><a href="mailto:theservitech.store@gmail.com">theservitech.store@gmail.com</a></p>
           </section>
         `
       },
@@ -232,7 +231,7 @@ require_once __DIR__ . "/_shared.php";
           </section>
           <section class="policy-section">
             <h3>System Limitations</h3>
-            <p>As an academic project, ServiTech may experience temporary errors, maintenance periods, incomplete features, or technical limitations. The developers shall not be held liable for losses, delays, or interruptions caused by technical issues beyond reasonable control.</p>
+            <p>As an academic project, ServiTech may experience temporary errors, maintenance periods, incomplete features, or technical limitations. Developers shall not be held liable for interruptions caused by technical issues beyond reasonable control.</p>
           </section>
           <section class="policy-section">
             <h3>User Conduct</h3>
