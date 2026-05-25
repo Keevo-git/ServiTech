@@ -72,7 +72,7 @@
 
       submitBtn.disabled = true;
       submitBtn.dataset.originalLabel = submitBtn.dataset.originalLabel || submitBtn.textContent;
-      submitBtn.textContent = "Placing Print Order...";
+      submitBtn.textContent = "Submitting Payment...";
       submitBtn.setAttribute("aria-busy", "true");
     });
   });

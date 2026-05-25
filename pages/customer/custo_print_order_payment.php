@@ -398,16 +398,18 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       border: 2px solid var(--printing-accent);
       border-radius: 14px;
       display: flex;
-      height: 190px;
+      min-height: 190px;
       justify-content: center;
       overflow: hidden;
-      width: 190px;
+      padding: 0.75rem;
+      width: 220px;
     }
 
     .print-payment-qr-box img {
       display: block;
-      height: 100%;
-      object-fit: cover;
+      height: auto;
+      max-width: 220px;
+      object-fit: contain;
       width: 100%;
     }
 
@@ -547,8 +549,8 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       }
 
       .print-payment-qr-box {
-        height: 170px;
-        width: 170px;
+        min-height: 170px;
+        width: 200px;
       }
     }
 
@@ -572,8 +574,8 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       }
 
       .print-payment-qr-box {
-        height: 160px;
-        width: 160px;
+        min-height: 160px;
+        width: 190px;
       }
 
       .printing-page .form-actions {
@@ -601,7 +603,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
   <div class="form-page-shell">
     <div class="form-page-intro">
       <h2 class="page-title">PAYMENT</h2>
-      <p class="page-subtitle">Review the same print order details from the previous page, then place the order.</p>
+      <p class="page-subtitle">Review the same print order details from the previous page, then submit your payment details for verification.</p>
     </div>
 
     <form id="printOrderPaymentForm" class="print-payment-form" method="post" action="/api/print_order_create.php" novalidate>
@@ -682,15 +684,15 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
           <div class="print-payment-payment-box">
             <?php if ($paymentMethod === "gcash"): ?>
-              <p class="print-payment-qr-heading">JC SHOP GCASH QR:</p>
+              <p class="print-payment-qr-heading">Scan GCash QR:</p>
               <div class="print-payment-qr">
                 <div class="print-payment-qr-box">
-                  <img src="/assets/img/qr-placeholder.png" alt="Temporary GCash QR code" onerror="this.style.display='none'; var fallback = this.parentNode.querySelector('.print-payment-qr-fallback'); if (fallback) { fallback.style.display = 'flex'; }">
-                  <div class="print-payment-qr-fallback">QR Placeholder</div>
+                  <img src="/assets/images/gcash-qr.jpg" alt="JC Shop GCash QR code" onerror="this.style.display='none'; var fallback = this.parentNode.querySelector('.print-payment-qr-fallback'); if (fallback) { fallback.style.display = 'flex'; }">
+                  <div class="print-payment-qr-fallback">GCash QR unavailable</div>
                 </div>
                 <div class="print-payment-reference">
                   <label for="referenceNumberInput">Reference Number<span class="required">*</span></label>
-                  <input type="text" class="form-input" id="referenceNumberInput" name="reference_number" value="<?= esc_print_order($referenceNumber) ?>" placeholder="Enter the transaction number" autocomplete="off">
+                  <input type="text" class="form-input" id="referenceNumberInput" name="reference_number" value="<?= esc_print_order($referenceNumber) ?>" placeholder="Enter the transaction number" autocomplete="off" required>
                   <p class="print-payment-input-note">This is to be verified by employees of the shop.</p>
                 </div>
               </div>
@@ -704,7 +706,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
         <div class="form-actions form-actions--compact">
           <a href="/pages/customer/custo2_docu_printing.php" class="btn-back">Back</a>
-          <button type="submit" class="btn-next" id="placePrintOrderBtn">Place Print Order</button>
+          <button type="submit" class="btn-next" id="placePrintOrderBtn">Submit Payment &amp; Join Queue</button>
         </div>
       </form>
     </div>
