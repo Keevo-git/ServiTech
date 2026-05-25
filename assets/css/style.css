@@ -1045,7 +1045,8 @@ html:has(body.modal-open) {
 }
 
 .contact-item a:hover {
-  text-decoration: underline;
+  color: #ffd79d;
+  text-decoration: none;
 }
 
 /* FOOTER LOGO */
@@ -1196,10 +1197,15 @@ html:has(body.modal-open) {
   display: block;
   margin-bottom: 20px;
   color: #4A0505;
-  text-decoration: underline;
+  text-decoration: none;
   font-size: 12px;
   text-align: right;
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.auth-container .forgot:hover {
+  color: #7c130d;
 }
 
 /* BACK TO LOGIN LINK */
@@ -1209,12 +1215,13 @@ html:has(body.modal-open) {
   text-align: center;
   font-size: 13px;
   color: #4A0505;
-  text-decoration: underline;
+  text-decoration: none;
   opacity: 0.9;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .auth-container .back-login:hover {
+  color: #7c130d;
   opacity: 1;
   transform: translateY(-2px);
 }
@@ -1480,13 +1487,13 @@ body.auth-page {
   font: inherit;
   font-weight: 700;
   text-decoration: none;
-  text-underline-offset: 3px;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .text-link:hover {
   color: #c26a0a;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .auth-submit {
@@ -1558,7 +1565,8 @@ body.auth-page {
 }
 
 .forgot-link:hover {
-  text-decoration: underline;
+  color: #c26a0a;
+  text-decoration: none;
 }
 
 .password-input-wrap {
@@ -1752,14 +1760,13 @@ body.auth-page {
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
-  text-underline-offset: 3px;
   transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .auth-card .back-login:hover {
   color: #a11d16;
   opacity: 1;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .auth-page--login .auth-divider span {
@@ -1823,7 +1830,7 @@ body.auth-page {
   padding: 0;
   border: 1px solid rgba(74, 5, 5, 0.08);
   border-radius: 24px;
-  background: #fffdf8;
+  background: linear-gradient(180deg, #fffdf8 0%, #fff8ef 100%);
   box-shadow: 0 28px 70px rgba(35, 22, 18, 0.34), 0 8px 22px rgba(74, 5, 5, 0.12);
   z-index: 1;
   display: flex;
@@ -1878,18 +1885,30 @@ body.auth-page {
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 38px 40px 28px;
+  padding: 34px 40px 28px;
   padding-right: 104px;
   border-bottom: 1px solid rgba(74, 5, 5, 0.08);
-  background: #fffdf8;
+  background:
+    linear-gradient(90deg, rgba(255, 139, 44, 0.09), rgba(255, 253, 248, 0) 54%),
+    rgba(255, 253, 248, 0.96);
 }
 
 .policy-modal__brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 16px;
   min-width: 0;
+}
+
+.policy-modal__logo {
+  display: block;
+  width: 22px;
+  max-width: 22px;
+  height: 22px;
+  max-height: 22px;
+  flex: 0 0 22px;
+  object-fit: contain;
 }
 
 .policy-modal__eyebrow {
@@ -1900,6 +1919,14 @@ body.auth-page {
   letter-spacing: 0.08em;
   line-height: 1.2;
   text-transform: uppercase;
+}
+
+.policy-modal__system {
+  margin: 3px 0 0;
+  color: #6f635b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .policy-modal__dialog h2 {
@@ -1943,7 +1970,7 @@ body.auth-page {
 .policy-modal__content a:hover,
 .policy-modal__content a:focus-visible {
   color: #a11d16;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .policy-section {
@@ -2051,6 +2078,14 @@ body.auth-page {
     margin-bottom: 12px;
   }
 
+  .policy-modal__logo {
+    width: 21px;
+    max-width: 21px;
+    height: 21px;
+    max-height: 21px;
+    flex-basis: 21px;
+  }
+
   .policy-modal__dialog h2 {
     font-size: 28px;
   }
@@ -2116,6 +2151,14 @@ body.auth-page {
 
   .policy-modal__brand {
     margin-bottom: 10px;
+  }
+
+  .policy-modal__logo {
+    width: 20px;
+    max-width: 20px;
+    height: 20px;
+    max-height: 20px;
+    flex-basis: 20px;
   }
 
   .policy-modal__dialog h2 {
