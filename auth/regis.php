@@ -114,7 +114,11 @@ require_once __DIR__ . "/_shared.php";
   <div class="policy-modal" id="policyModal" hidden>
     <div class="policy-modal__backdrop" data-close-modal></div>
     <div class="policy-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle" aria-describedby="policyModalContent" tabindex="-1">
-      <button type="button" class="policy-modal__close" data-close-modal aria-label="Close modal">&times;</button>
+      <button type="button" class="policy-modal__close" data-close-modal aria-label="Close modal">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6.75 6.75l10.5 10.5m0-10.5-10.5 10.5"></path>
+        </svg>
+      </button>
       <div class="policy-modal__header">
         <p class="policy-modal__eyebrow">Account Policies</p>
         <h2 id="policyModalTitle">Data Privacy Policy</h2>
