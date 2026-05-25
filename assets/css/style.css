@@ -1844,8 +1844,8 @@ body.auth-page {
   position: absolute;
   top: 24px;
   right: 24px;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 999px;
   background: rgba(74, 5, 5, 0.07);
@@ -1860,8 +1860,8 @@ body.auth-page {
 }
 
 .policy-modal__close svg {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
   display: block;
   stroke: currentColor;
   stroke-width: 2.2;
@@ -1885,7 +1885,7 @@ body.auth-page {
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 34px 40px 28px;
+  padding: 36px 40px 28px;
   padding-right: 104px;
   border-bottom: 1px solid rgba(74, 5, 5, 0.08);
   background:
@@ -1894,20 +1894,23 @@ body.auth-page {
 }
 
 .policy-modal__brand {
+  width: fit-content;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 15px;
   min-width: 0;
+  padding: 4px 0;
 }
 
 .policy-modal__logo {
   display: block;
-  width: 22px;
+  width: 21px;
   max-width: 22px;
-  height: 22px;
+  height: 21px;
   max-height: 22px;
-  flex: 0 0 22px;
+  flex: 0 0 auto;
+  flex-shrink: 0;
   object-fit: contain;
 }
 
@@ -1921,19 +1924,11 @@ body.auth-page {
   text-transform: uppercase;
 }
 
-.policy-modal__system {
-  margin: 3px 0 0;
-  color: #6f635b;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
 .policy-modal__dialog h2 {
   margin: 0;
   color: #4A0505;
   font-size: 32px;
-  line-height: 1.18;
+  line-height: 1.16;
   font-weight: 800;
   max-width: 720px;
   letter-spacing: 0;
@@ -2075,15 +2070,12 @@ body.auth-page {
   }
 
   .policy-modal__brand {
-    margin-bottom: 12px;
+    margin-bottom: 13px;
   }
 
   .policy-modal__logo {
-    width: 21px;
-    max-width: 21px;
-    height: 21px;
-    max-height: 21px;
-    flex-basis: 21px;
+    width: 20px;
+    height: 20px;
   }
 
   .policy-modal__dialog h2 {
@@ -2131,8 +2123,8 @@ body.auth-page {
   .policy-modal__close {
     top: 16px;
     right: 16px;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
   }
 
   .policy-modal__close svg {
@@ -2150,15 +2142,14 @@ body.auth-page {
   }
 
   .policy-modal__brand {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
 
   .policy-modal__logo {
-    width: 20px;
+    width: 19px;
     max-width: 20px;
-    height: 20px;
+    height: 19px;
     max-height: 20px;
-    flex-basis: 20px;
   }
 
   .policy-modal__dialog h2 {
