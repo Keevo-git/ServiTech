@@ -74,7 +74,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 14px;
-  min-width: 900px;
+  min-width: 1100px;
 }
 
 .table-scroll-wrapper {
@@ -84,7 +84,7 @@ table {
 }
 
 .table-content {
-  min-width: 900px;
+  min-width: 1100px;
 }
 
 th,

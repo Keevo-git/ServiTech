@@ -107,6 +107,8 @@ $rows = $stmt->fetchAll();
                 <th>Order ID</th>
                 <th>Customer Name</th>
                 <th>Service Details</th>
+                <th>Date Submitted</th>
+                <th>Time Submitted</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -114,7 +116,7 @@ $rows = $stmt->fetchAll();
             <tbody>
             <?php if (!$rows): ?>
               <tr>
-                <td colspan="5" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
+                <td colspan="7" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
               </tr>
             <?php else: ?>
               <?php foreach ($rows as $r): ?>
@@ -122,6 +124,8 @@ $rows = $stmt->fetchAll();
                   <td><?= esc($r["queue_code"]) ?></td>
                   <td><?= esc($r["fullname"]) ?></td>
                   <td><?= esc(service_label($r["category"])) ?></td>
+                  <td><?= esc(admin_queue_submitted_date($r["created_at"])) ?></td>
+                  <td><?= esc(admin_queue_submitted_time($r["created_at"])) ?></td>
                   <td>
                     <span class="status-badge <?= esc(status_class($r["status"])) ?>">
                       <?= esc($r["status"]) ?>
