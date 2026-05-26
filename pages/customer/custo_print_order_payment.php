@@ -388,7 +388,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     .print-payment-qr {
       display: grid;
       gap: 1.1rem;
-      grid-template-columns: 210px minmax(0, 1fr);
+      grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
       align-items: center;
     }
 
@@ -402,7 +402,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       justify-content: center;
       overflow: hidden;
       padding: 0.75rem;
-      width: 220px;
+      width: min(100%, 220px);
     }
 
     .print-payment-qr-box img {
@@ -485,6 +485,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       min-height: 48px;
       padding: 13px 22px;
       text-align: center;
+      height: auto !important;
       width: 100%;
     }
 
@@ -535,6 +536,20 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       padding: 12px 18px;
     }
 
+    @media (max-width: 1024px) {
+      .printing-page .form-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+
+      .printing-page .form-actions .btn-next,
+      .printing-page .form-actions .btn-back {
+        flex: 0 0 auto !important;
+        min-height: 48px !important;
+        width: 100% !important;
+      }
+    }
+
     @media (max-width: 960px) {
       .printing-page .form-card {
         padding: 1.25rem;
@@ -545,12 +560,41 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       }
 
       .print-payment-qr {
-        grid-template-columns: 180px minmax(0, 1fr);
+        gap: 0.9rem;
+        grid-template-columns: minmax(170px, 200px) minmax(0, 1fr);
       }
 
       .print-payment-qr-box {
         min-height: 170px;
-        width: 200px;
+        width: min(100%, 200px);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .print-payment-qr {
+        align-items: start;
+        grid-template-columns: 1fr;
+      }
+
+      .print-payment-qr-box {
+        justify-self: center;
+        width: min(100%, 220px);
+      }
+
+      .print-payment-reference {
+        max-width: none;
+      }
+
+      .printing-page .form-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+
+      .printing-page .form-actions .btn-next,
+      .printing-page .form-actions .btn-back {
+        flex: 0 0 auto !important;
+        min-height: 48px !important;
+        width: 100% !important;
       }
     }
 
@@ -574,8 +618,9 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       }
 
       .print-payment-qr-box {
+        justify-self: center;
         min-height: 160px;
-        width: 190px;
+        width: min(100%, 190px);
       }
 
       .printing-page .form-actions {
@@ -584,9 +629,9 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
       .printing-page .form-actions .btn-next,
       .printing-page .form-actions .btn-back {
-        flex: 0 0 auto;
-        min-height: 48px;
-        width: 100%;
+        flex: 0 0 auto !important;
+        min-height: 48px !important;
+        width: 100% !important;
       }
 
       .printing-page .queue-success-modal__actions {
