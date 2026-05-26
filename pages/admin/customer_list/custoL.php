@@ -60,7 +60,7 @@ function customer_code_from_id(int $id): string {
     </button>
     <nav id="admin-customer-header-menu" data-collapsible-menu>
       <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
-      <a href="<?= admin_url('/index.php') ?>">View Landing</a>
+      <a href="<?= admin_url('/index.php') ?>">Services</a>
       <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
     </nav>
   </header>

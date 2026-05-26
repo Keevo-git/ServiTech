@@ -350,7 +350,7 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
     </button>
     <nav id="admin-announcement-menu" data-collapsible-menu>
       <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
-      <a href="<?= admin_url('/index.php') ?>">View Landing</a>
+      <a href="<?= admin_url('/index.php') ?>">Services</a>
       <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
     </nav>
   </header>

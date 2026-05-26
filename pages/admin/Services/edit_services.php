@@ -141,7 +141,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   </button>
   <nav id="admin-services-header-menu" data-collapsible-menu>
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Dashboard</a>
-    <a href="<?= admin_url('/index.php') ?>">View Landing</a>
+    <a href="<?= admin_url('/index.php') ?>">Services</a>
     <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
   </nav>
 </header>

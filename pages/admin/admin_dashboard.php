@@ -48,7 +48,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     <span class="nav-toggle__bar"></span>
   </button>
   <nav id="admin-header-menu" data-collapsible-menu>
-    <a href="<?= project_url('/index.php') ?>">Home</a>
+    <a href="<?= project_url('/index.php') ?>">Services</a>
     <a href="<?= project_url('/pages/admin/logout.php') ?>">Logout</a>
   </nav>
 </header>
