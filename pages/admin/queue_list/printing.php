@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/../_includes/queue_files.php";
 
 function esc($value): string {
   return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
@@ -35,9 +36,17 @@ $cats = ["printing", "online_printorder", "xerox", "rush-id", "laminating"];
 $in = implode(",", array_fill(0, count($cats), "?"));
 
 $stmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.category, q.status, q.created_at, u.fullname
+  SELECT q.id, q.queue_code, q.category, q.status, q.details, q.created_at, u.fullname,
+    p.payment_method, p.reference_number, p.status AS payment_status
   FROM queues q
   JOIN users u ON u.id = q.user_id
+  LEFT JOIN LATERAL (
+    SELECT payment_method, reference_number, status
+    FROM payments
+    WHERE queue_id = q.id
+    ORDER BY id DESC
+    LIMIT 1
+  ) p ON TRUE
   WHERE q.category IN ($in)
     AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) != 'CANCELLED'
     AND q.created_at > (NOW() - INTERVAL '15 minutes')
@@ -45,6 +54,7 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute($cats);
 $rows = $stmt->fetchAll();
+$adminNotificationCount = admin_queue_notification_count($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,6 +86,13 @@ $rows = $stmt->fetchAll();
     <span class="nav-toggle__bar"></span>
   </button>
   <nav id="admin-header-menu" data-collapsible-menu>
+    <a href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>" class="admin-notification-link" aria-label="Queue notifications: <?= (int)$adminNotificationCount ?>">
+      <span class="admin-notification-icon" aria-hidden="true"></span>
+      <span>Alerts</span>
+      <?php if ($adminNotificationCount > 0): ?>
+        <strong class="admin-notification-badge"><?= (int)$adminNotificationCount ?></strong>
+      <?php endif; ?>
+    </a>
     <a href="<?= admin_url('/index.php') ?>">Services</a>
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
     <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
@@ -107,6 +124,7 @@ $rows = $stmt->fetchAll();
                 <th>Order ID</th>
                 <th>Customer Name</th>
                 <th>Service Details</th>
+                <th>Attached File</th>
                 <th>Submitted</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -115,7 +133,7 @@ $rows = $stmt->fetchAll();
             <tbody>
             <?php if (!$rows): ?>
               <tr>
-                <td colspan="6" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
+                <td colspan="7" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
               </tr>
             <?php else: ?>
               <?php foreach ($rows as $r): ?>
@@ -123,6 +141,22 @@ $rows = $stmt->fetchAll();
                   <td><?= esc($r["queue_code"]) ?></td>
                   <td><?= esc($r["fullname"]) ?></td>
                   <td><?= esc(service_label($r["category"])) ?></td>
+                  <td>
+                    <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
+                    <?php if (!$fileItems): ?>
+                      <span class="admin-file-empty">No file</span>
+                    <?php else: ?>
+                      <div class="admin-file-list">
+                        <?php foreach ($fileItems as $fileItem): ?>
+                          <?php if (!empty($fileItem["url"])): ?>
+                            <a class="admin-file-link" href="<?= esc($fileItem["url"]) ?>" target="_blank" rel="noopener noreferrer"><?= esc($fileItem["label"]) ?></a>
+                          <?php else: ?>
+                            <span class="admin-file-empty"><?= esc($fileItem["label"]) ?> unavailable</span>
+                          <?php endif; ?>
+                        <?php endforeach; ?>
+                      </div>
+                    <?php endif; ?>
+                  </td>
                   <td>
                     <span class="submitted-stack">
                       <strong><?= esc(admin_queue_submitted_date($r["created_at"])) ?></strong>

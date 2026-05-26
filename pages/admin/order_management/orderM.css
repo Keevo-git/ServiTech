@@ -81,7 +81,7 @@ body.admin-dashboard .page-frame {
 }
 
 .orders-content {
-  min-width: 1080px;
+  min-width: 1200px;
 }
 
 .order-tabs {
@@ -142,7 +142,7 @@ body.admin-dashboard .page-frame {
 table.orders {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1080px;
+  min-width: 1200px;
 }
 
 .table-scroll-wrapper {
@@ -196,14 +196,19 @@ table.orders td:nth-child(3) {
 }
 
 table.orders th:nth-child(4),
-table.orders td:nth-child(4),
+table.orders td:nth-child(4) {
+  width: 180px;
+}
+
 table.orders th:nth-child(5),
-table.orders td:nth-child(5) {
+table.orders td:nth-child(5),
+table.orders th:nth-child(6),
+table.orders td:nth-child(6) {
   width: 135px;
 }
 
-table.orders th:nth-child(6),
-table.orders td:nth-child(6) {
+table.orders th:nth-child(7),
+table.orders td:nth-child(7) {
   width: 180px;
 }
 

@@ -84,7 +84,7 @@ table {
 }
 
 .table-content {
-  min-width: 1040px;
+  min-width: 1160px;
 }
 
 th,
@@ -129,6 +129,11 @@ th {
 
 .table-content th:nth-child(6),
 .table-content td:nth-child(6) {
+  width: 110px;
+}
+
+.table-content th:nth-child(7),
+.table-content td:nth-child(7) {
   width: 370px;
 }
 

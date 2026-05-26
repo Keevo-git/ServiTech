@@ -108,13 +108,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       border-radius: 22px !important;
       box-shadow: 0 28px 70px rgba(74, 5, 5, 0.22) !important;
       color: #24120f;
-      display: grid;
-      gap: 1rem;
+      display: flex;
+      flex-direction: column;
       margin: auto !important;
-      max-height: min(88vh, 820px) !important;
+      max-height: 85vh !important;
       max-width: 760px !important;
-      overflow: auto;
-      padding: clamp(18px, 3vw, 26px) !important;
+      overflow: hidden;
+      padding: 0 !important;
       position: relative;
       width: min(100%, 760px) !important;
     }
@@ -124,7 +124,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       display: grid;
       gap: 0.4rem;
       grid-template-columns: minmax(0, 1fr) auto;
-      padding-right: 0.2rem;
+      padding: clamp(18px, 3vw, 26px) clamp(64px, 7vw, 78px) clamp(14px, 2vw, 18px) clamp(18px, 3vw, 26px);
+      border-bottom: 1px solid rgba(95, 14, 15, 0.1);
+      background: rgba(255, 253, 249, 0.92);
+      flex: 0 0 auto;
     }
 
     body.customer-layout.customer-page--status .status-modal__eyebrow {
@@ -142,7 +145,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       line-height: 1.15;
       margin: 0 !important;
       overflow-wrap: anywhere;
-      padding-right: 2.4rem;
+      padding-right: 0;
     }
 
     body.customer-layout.customer-page--status .status-modal .modal-close {
@@ -159,7 +162,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       height: 40px !important;
       justify-content: center !important;
       line-height: 1 !important;
-      padding: 0 0 2px !important;
+      padding: 0 !important;
       position: absolute !important;
       right: clamp(16px, 3vw, 24px) !important;
       top: clamp(16px, 3vw, 24px) !important;
@@ -180,6 +183,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     body.customer-layout.customer-page--status .status-modal__grid {
       display: grid;
       gap: 0.85rem;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: clamp(16px, 3vw, 24px);
+      scrollbar-gutter: stable;
     }
 
     body.customer-layout.customer-page--status .status-modal__section {
@@ -322,7 +330,39 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     body.customer-layout.customer-page--status .status-modal__footer {
       display: flex;
       justify-content: center;
-      padding-top: 0.1rem;
+      flex: 0 0 auto;
+      padding: clamp(14px, 2.4vw, 18px) clamp(18px, 3vw, 26px);
+      border-top: 1px solid rgba(95, 14, 15, 0.1);
+      background: rgba(255, 253, 249, 0.94);
+    }
+
+    body.customer-layout.customer-page--status .status-current-card {
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      background: #fffaf4;
+      border: 1px solid rgba(95, 14, 15, 0.1);
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+    }
+
+    body.customer-layout.customer-page--status .status-current-card__label {
+      color: #7c625b;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .file-entry--unavailable::after {
+      content: none;
+    }
+
+    body.customer-layout.customer-page--status .file-entry--unavailable {
+      color: #8a5f34 !important;
+      justify-content: flex-start;
+      opacity: 0.78;
     }
 
     body.customer-layout.customer-page--status .status-modal .modal-back {
@@ -497,6 +537,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         max-height: calc(100vh - 28px) !important;
       }
 
+      body.customer-layout.customer-page--status .status-modal__header {
+        padding-right: 62px;
+      }
+
       body.customer-layout.customer-page--status .status-detail-row,
       body.customer-layout.customer-page--status #modalExtra .status-detail-row {
         grid-template-columns: 1fr;
@@ -511,6 +555,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
       body.customer-layout.customer-page--status .status-modal .modal-back {
         width: 100%;
+      }
+
+      body.customer-layout.customer-page--status .status-current-card {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
 
@@ -596,8 +645,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
           <section class="status-modal__section" aria-labelledby="currentStatusTitle">
             <h4 id="currentStatusTitle" class="status-modal__section-title">Current Status</h4>
-            <div class="status-detail-row modal-status">
-              <span class="status-detail-label">Status</span>
+            <div class="status-current-card modal-status">
+              <span class="status-current-card__label">Current Status</span>
               <span id="modalStatus"></span>
             </div>
           </section>
@@ -654,7 +703,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const raw = (path || "").toString().trim();
     if (!raw) return "";
     if (/^https?:\/\//i.test(raw)) return raw;
-    if (raw.startsWith("/")) return servitechUrl(raw);
+    if (raw.startsWith("/uploads/printing/")) return servitechUrl(raw);
+    if (raw.startsWith(servitechBasePath() + "/uploads/printing/")) return raw;
     return "";
   }
 
@@ -967,14 +1017,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       }
 
       const textNode = document.createElement("span");
-      textNode.textContent = label;
-      textNode.className = "file-entry";
+      textNode.textContent = label ? `${label} - File unavailable` : "File unavailable";
+      textNode.className = "file-entry file-entry--unavailable";
       fileEl.appendChild(textNode);
     }
 
     if (uploadedFiles.length) {
       uploadedFiles.forEach((file, index) => {
-        const href = resolveFileHref(file.saved_path || file.file_path || "");
+        const href = file.available === false ? "" : (file.href || resolveFileHref(file.saved_path || file.file_path || ""));
         const label = file.original_name || fileNames[index] || derivedNames[index] || file.saved_path || `File ${index + 1}`;
         appendEntry(label, href);
       });
@@ -1002,7 +1052,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     if (fileLabelEl) fileLabelEl.textContent = "Attached File";
-    fileEl.textContent = "-";
+    fileEl.innerHTML = '<span class="file-entry file-entry--unavailable">File unavailable</span>';
   }
 
   function buildDetailRow(label, value){

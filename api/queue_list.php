@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/app.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -9,6 +10,58 @@ if ($user_id <= 0) {
   http_response_code(401);
   echo json_encode(["ok" => false, "error" => "Not logged in"]);
   exit();
+}
+
+function queue_list_upload_path(string $path): string {
+  $path = trim($path);
+  if ($path === "") return "";
+
+  $pathOnly = parse_url($path, PHP_URL_PATH);
+  if (!is_string($pathOnly) || $pathOnly === "") return "";
+
+  $pathOnly = "/" . ltrim($pathOnly, "/");
+  $base = servitech_base_path();
+  if ($base !== "" && strpos($pathOnly, $base . "/") === 0) {
+    $pathOnly = substr($pathOnly, strlen($base));
+  }
+
+  if (strpos($pathOnly, "/uploads/printing/") !== 0) return "";
+  return "/uploads/printing/" . basename($pathOnly);
+}
+
+function queue_list_upload_url(string $path): string {
+  $safePath = queue_list_upload_path($path);
+  if ($safePath === "") return "";
+
+  $fullPath = dirname(__DIR__) . str_replace("/", DIRECTORY_SEPARATOR, $safePath);
+  if (!is_file($fullPath)) return "";
+
+  return servitech_url($safePath);
+}
+
+function queue_list_normalize_uploaded_files(array $details): array {
+  $uploaded = isset($details["uploaded_files"]) && is_array($details["uploaded_files"])
+    ? $details["uploaded_files"]
+    : [];
+  $out = [];
+
+  foreach ($uploaded as $index => $file) {
+    if (!is_array($file)) continue;
+
+    $path = (string)($file["saved_path"] ?? $file["file_path"] ?? "");
+    $href = queue_list_upload_url($path);
+    $label = trim((string)($file["original_name"] ?? ""));
+    if ($label === "") {
+      $label = "File " . ((int)$index + 1);
+    }
+
+    $file["original_name"] = $label;
+    $file["href"] = $href;
+    $file["available"] = $href !== "";
+    $out[] = $file;
+  }
+
+  return $out;
 }
 
 try {
@@ -76,7 +129,7 @@ try {
       "price_per_page" => $details["price_per_page"] ?? null,
       "estimated_total" => $details["estimated_total"] ?? null,
       "file_analysis" => $details["file_analysis"] ?? null,
-      "uploaded_files" => $details["uploaded_files"] ?? null,
+      "uploaded_files" => queue_list_normalize_uploaded_files($details),
       "details" => $details,
     ];
   }

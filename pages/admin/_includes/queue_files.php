@@ -1,0 +1,140 @@
+<?php
+
+function admin_queue_details_array($details): array
+{
+    if (is_array($details)) {
+        return $details;
+    }
+
+    if (is_string($details) && $details !== "") {
+        $decoded = json_decode($details, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+    }
+
+    return [];
+}
+
+function admin_queue_upload_file_path(string $path): string
+{
+    $path = trim($path);
+    if ($path === "") {
+        return "";
+    }
+
+    $pathOnly = parse_url($path, PHP_URL_PATH);
+    if (!is_string($pathOnly) || $pathOnly === "") {
+        return "";
+    }
+
+    $pathOnly = "/" . ltrim($pathOnly, "/");
+    $base = function_exists("servitech_base_path") ? servitech_base_path() : "";
+    if ($base !== "" && strpos($pathOnly, $base . "/") === 0) {
+        $pathOnly = substr($pathOnly, strlen($base));
+    }
+
+    if (strpos($pathOnly, "/uploads/printing/") !== 0) {
+        return "";
+    }
+
+    return "/uploads/printing/" . basename($pathOnly);
+}
+
+function admin_queue_upload_file_exists(string $path): bool
+{
+    $safePath = admin_queue_upload_file_path($path);
+    if ($safePath === "") {
+        return false;
+    }
+
+    $fullPath = dirname(__DIR__, 3) . str_replace("/", DIRECTORY_SEPARATOR, $safePath);
+    return is_file($fullPath);
+}
+
+function admin_queue_upload_file_url(string $path): string
+{
+    $safePath = admin_queue_upload_file_path($path);
+    if ($safePath === "" || !admin_queue_upload_file_exists($safePath)) {
+        return "";
+    }
+
+    return function_exists("admin_url_raw") ? admin_url_raw($safePath) : $safePath;
+}
+
+function admin_queue_file_items($details): array
+{
+    $details = admin_queue_details_array($details);
+    $items = [];
+
+    $uploadedFiles = $details["uploaded_files"] ?? [];
+    if (is_array($uploadedFiles)) {
+        foreach ($uploadedFiles as $index => $file) {
+            if (!is_array($file)) {
+                continue;
+            }
+
+            $path = (string)($file["saved_path"] ?? $file["file_path"] ?? "");
+            $label = trim((string)($file["original_name"] ?? ""));
+            if ($label === "") {
+                $label = "File " . ((int)$index + 1);
+            }
+
+            $items[] = [
+                "label" => $label,
+                "url" => admin_queue_upload_file_url($path),
+            ];
+        }
+    }
+
+    if ($items) {
+        return $items;
+    }
+
+    $fileName = trim((string)($details["file_name"] ?? ""));
+    if ($fileName !== "") {
+        $items[] = [
+            "label" => basename($fileName),
+            "url" => admin_queue_upload_file_url($fileName),
+        ];
+    }
+
+    return $items;
+}
+
+function admin_queue_notification_count(PDO $pdo): int
+{
+    try {
+        $stmt = $pdo->query("
+            SELECT COUNT(*)
+            FROM queues q
+            LEFT JOIN LATERAL (
+                SELECT payment_method, reference_number, status
+                FROM payments
+                WHERE queue_id = q.id
+                ORDER BY id DESC
+                LIMIT 1
+            ) p ON TRUE
+            WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) NOT IN ('DONE', 'CANCELLED', 'CANCELED')
+              AND (
+                jsonb_typeof(q.details::jsonb->'uploaded_files') = 'array'
+                OR NULLIF(TRIM(COALESCE(q.details->>'file_name', '')), '') IS NOT NULL
+                OR (
+                    LOWER(TRIM(COALESCE(p.payment_method, q.details->>'payment_method', ''))) = 'gcash'
+                    AND NULLIF(TRIM(COALESCE(p.reference_number, q.details->>'reference_number', '')), '') IS NOT NULL
+                    AND UPPER(TRIM(COALESCE(p.status, q.details->>'payment_status', 'PENDING'))) IN ('PENDING', 'SUBMITTED')
+                )
+                OR q.created_at >= (NOW() - INTERVAL '1 day')
+              )
+        ");
+        return max(0, (int)$stmt->fetchColumn());
+    } catch (Throwable $exception) {
+        error_log("admin_queue_notification_count error: " . $exception->getMessage());
+        return 0;
+    }
+}
+
+function admin_queue_notification_link(): string
+{
+    return function_exists("admin_url") ? admin_url("/pages/admin/queue_list/printing.php") : "/pages/admin/queue_list/printing.php";
+}

@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/../_includes/queue_files.php";
 
 function status_class(string $s): string
 {
@@ -26,7 +27,7 @@ function status_label(string $s): string
 }
 
 $walkinStmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.created_at, q.completed_at, u.fullname
+  SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE (
@@ -47,9 +48,17 @@ $walkinStmt->execute();
 $walkin = $walkinStmt->fetchAll();
 
 $onlineStmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.created_at, q.completed_at, u.fullname
+  SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname,
+    p.payment_method, p.reference_number, p.status AS payment_status
   FROM queues q
   JOIN users u ON u.id = q.user_id
+  LEFT JOIN LATERAL (
+    SELECT payment_method, reference_number, status
+    FROM payments
+    WHERE queue_id = q.id
+    ORDER BY id DESC
+    LIMIT 1
+  ) p ON TRUE
   WHERE (
       q.created_at <= (NOW() - INTERVAL '15 minutes')
       OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
@@ -66,6 +75,7 @@ $onlineStmt = $pdo->prepare("
 ");
 $onlineStmt->execute();
 $online = $onlineStmt->fetchAll();
+$adminNotificationCount = admin_queue_notification_count($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -98,6 +108,13 @@ $online = $onlineStmt->fetchAll();
     <span class="nav-toggle__bar"></span>
   </button>
   <nav id="admin-header-menu" data-collapsible-menu>
+    <a href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>" class="admin-notification-link" aria-label="Queue notifications: <?= (int)$adminNotificationCount ?>">
+      <span class="admin-notification-icon" aria-hidden="true"></span>
+      <span>Alerts</span>
+      <?php if ($adminNotificationCount > 0): ?>
+        <strong class="admin-notification-badge"><?= (int)$adminNotificationCount ?></strong>
+      <?php endif; ?>
+    </a>
     <a href="<?= admin_url('/index.php') ?>">Services</a>
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
     <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
@@ -134,11 +151,11 @@ $online = $onlineStmt->fetchAll();
               <div class="walkin-title">Walk-in Queue - Manage and update order statuses</div>
               <table class="orders table-content">
                 <thead>
-                  <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                  <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                   <?php if (!$walkin): ?>
-                    <tr><td colspan="6" style="color:#777;padding:14px;">No walk-in queues older than 15 minutes yet.</td></tr>
+                    <tr><td colspan="7" style="color:#777;padding:14px;">No walk-in queues older than 15 minutes yet.</td></tr>
                   <?php else: ?>
                     <?php foreach ($walkin as $r): ?>
                       <?php $cls = status_class($r["status"]); ?>
@@ -146,6 +163,22 @@ $online = $onlineStmt->fetchAll();
                         <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                         <td><?= htmlspecialchars($r["fullname"]) ?></td>
                         <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                        <td>
+                          <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
+                          <?php if (!$fileItems): ?>
+                            <span class="admin-file-empty">No file</span>
+                          <?php else: ?>
+                            <div class="admin-file-list">
+                              <?php foreach ($fileItems as $fileItem): ?>
+                                <?php if (!empty($fileItem["url"])): ?>
+                                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></a>
+                                <?php else: ?>
+                                  <span class="admin-file-empty"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?> unavailable</span>
+                                <?php endif; ?>
+                              <?php endforeach; ?>
+                            </div>
+                          <?php endif; ?>
+                        </td>
                         <td>
                           <span class="datetime-stack">
                             <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
@@ -180,11 +213,11 @@ $online = $onlineStmt->fetchAll();
               <div class="section-title-small" style="margin-top:18px;">Online Orders - Pre-ordered printing requests</div>
               <table class="orders table-content">
                 <thead>
-                  <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                  <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                   <?php if (!$online): ?>
-                    <tr><td colspan="6" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
+                    <tr><td colspan="7" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
                   <?php else: ?>
                     <?php foreach ($online as $r): ?>
                       <?php $cls = status_class($r["status"]); ?>
@@ -192,6 +225,22 @@ $online = $onlineStmt->fetchAll();
                         <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                         <td><?= htmlspecialchars($r["fullname"]) ?></td>
                         <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                        <td>
+                          <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
+                          <?php if (!$fileItems): ?>
+                            <span class="admin-file-empty">No file</span>
+                          <?php else: ?>
+                            <div class="admin-file-list">
+                              <?php foreach ($fileItems as $fileItem): ?>
+                                <?php if (!empty($fileItem["url"])): ?>
+                                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></a>
+                                <?php else: ?>
+                                  <span class="admin-file-empty"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?> unavailable</span>
+                                <?php endif; ?>
+                              <?php endforeach; ?>
+                            </div>
+                          <?php endif; ?>
+                        </td>
                         <td>
                           <span class="datetime-stack">
                             <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>

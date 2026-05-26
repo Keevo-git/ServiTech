@@ -3,6 +3,7 @@ require_once __DIR__ . "/_includes/admin_auth.php";
 require_once __DIR__ . "/../../config/app.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/_includes/dashboard_stats.php";
+require_once __DIR__ . "/_includes/queue_files.php";
 
 function project_url(string $path): string
 {
@@ -18,6 +19,25 @@ $mostRequested = is_array($dashboardAnalytics["mostRequested"] ?? null) ? $dashb
 $serviceMix = is_array($dashboardAnalytics["serviceMix"] ?? null) ? $dashboardAnalytics["serviceMix"] : [];
 $todayAnalytics = is_array($dashboardAnalytics["today"] ?? null) ? $dashboardAnalytics["today"] : [];
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
+$adminNotificationCount = admin_queue_notification_count($pdo);
+$dashboardFileRows = [];
+try {
+    $fileStmt = $pdo->query("
+        SELECT q.id, q.queue_code, q.details, q.created_at, u.fullname
+        FROM queues q
+        JOIN users u ON u.id = q.user_id
+        WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) NOT IN ('DONE', 'CANCELLED', 'CANCELED')
+          AND (
+            jsonb_typeof(q.details::jsonb->'uploaded_files') = 'array'
+            OR NULLIF(TRIM(COALESCE(q.details->>'file_name', '')), '') IS NOT NULL
+          )
+        ORDER BY q.created_at DESC
+        LIMIT 5
+    ");
+    $dashboardFileRows = $fileStmt->fetchAll();
+} catch (Throwable $exception) {
+    error_log("admin dashboard file rows error: " . $exception->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,6 +68,13 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     <span class="nav-toggle__bar"></span>
   </button>
   <nav id="admin-header-menu" data-collapsible-menu>
+    <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="admin-notification-link" aria-label="Queue notifications: <?= (int)$adminNotificationCount ?>">
+      <span class="admin-notification-icon" aria-hidden="true"></span>
+      <span>Alerts</span>
+      <?php if ($adminNotificationCount > 0): ?>
+        <strong class="admin-notification-badge"><?= (int)$adminNotificationCount ?></strong>
+      <?php endif; ?>
+    </a>
     <a href="<?= project_url('/index.php') ?>">Services</a>
     <a href="<?= project_url('/pages/admin/logout.php') ?>">Logout</a>
   </nav>
@@ -209,6 +236,35 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
         </div>
       </div>
     </article>
+  </section>
+
+  <h3 class="section-title">Files Needing Attention</h3>
+
+  <section class="analytics-card admin-files-panel">
+    <?php if (!$dashboardFileRows): ?>
+      <p class="analytics-empty">No active print files waiting right now.</p>
+    <?php else: ?>
+      <div class="admin-dashboard-files">
+        <?php foreach ($dashboardFileRows as $fileRow): ?>
+          <?php $fileItems = admin_queue_file_items($fileRow["details"] ?? null); ?>
+          <article class="admin-dashboard-file-row">
+            <div>
+              <strong><?= htmlspecialchars((string)$fileRow["queue_code"], ENT_QUOTES, "UTF-8") ?></strong>
+              <span><?= htmlspecialchars((string)$fileRow["fullname"], ENT_QUOTES, "UTF-8") ?></span>
+            </div>
+            <div class="admin-file-list">
+              <?php foreach ($fileItems as $fileItem): ?>
+                <?php if (!empty($fileItem["url"])): ?>
+                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></a>
+                <?php else: ?>
+                  <span class="admin-file-empty"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?> unavailable</span>
+                <?php endif; ?>
+              <?php endforeach; ?>
+            </div>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
   </section>
 
   <h3 class="section-title">Quick Access</h3>
