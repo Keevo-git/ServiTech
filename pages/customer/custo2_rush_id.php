@@ -254,7 +254,7 @@ function rush_price(array $pricing, string $key): string {
 
             <div id="referenceNumberWrap" style="display:none;">
               <label for="referenceNumberInput">GCash Reference Number<span class="required">*</span></label>
-              <input type="text" id="referenceNumberInput" class="form-input" placeholder="Enter the transaction number" autocomplete="off">
+              <input type="text" id="referenceNumberInput" class="form-input" placeholder="Enter the 13-digit transaction number" autocomplete="off" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13">
               <p class="rush-payment-note">This payment will be verified by shop employees/admin.</p>
             </div>
           </div>

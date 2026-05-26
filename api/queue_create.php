@@ -50,6 +50,11 @@ if ($payment_method === "gcash" && $reference_number === "") {
   exit();
 }
 
+if ($payment_method === "gcash" && !preg_match('/^\d{13}$/', $reference_number)) {
+  echo json_encode(["ok" => false, "error" => "GCash reference number must be exactly 13 digits."]);
+  exit();
+}
+
 $prefix = servitech_get_queue_prefix_for_category($category);
 
 // Printing queues must always respect the selected order type:

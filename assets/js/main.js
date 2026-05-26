@@ -1158,9 +1158,15 @@ document.addEventListener("DOMContentLoaded", () => {
       setFieldInvalid(refs.paymentMethodSelect, true);
     }
 
-    if (refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash" && refs.referenceNumberInput && !refs.referenceNumberInput.value.trim()) {
-      errors.push("Enter your GCash reference number.");
-      setFieldInvalid(refs.referenceNumberInput, true);
+    if (refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash" && refs.referenceNumberInput) {
+      const referenceNumber = refs.referenceNumberInput.value.trim();
+      if (!referenceNumber) {
+        errors.push("Enter your GCash reference number.");
+        setFieldInvalid(refs.referenceNumberInput, true);
+      } else if (!/^\d{13}$/.test(referenceNumber)) {
+        errors.push("GCash reference number must be exactly 13 digits.");
+        setFieldInvalid(refs.referenceNumberInput, true);
+      }
     }
 
     const hasColorOptions = document.querySelectorAll('input[name="color"]').length > 0;

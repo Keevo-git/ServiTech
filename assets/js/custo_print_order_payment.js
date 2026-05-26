@@ -68,6 +68,12 @@
           setFeedback("Reference number is required for GCash payments.", "error");
           return;
         }
+        if (!/^\d{13}$/.test(referenceNumber)) {
+          event.preventDefault();
+          setFieldInvalid(referenceInput, true);
+          setFeedback("GCash reference number must be exactly 13 digits.", "error");
+          return;
+        }
       }
 
       submitBtn.disabled = true;

@@ -60,6 +60,9 @@ if (!in_array($payment_method, ["cash", "gcash"], true)) {
 if ($payment_method === "gcash" && $reference_number === "") {
   $errors[] = "Reference number is required for GCash payments.";
 }
+if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d{13}$/', $reference_number)) {
+  $errors[] = "GCash reference number must be exactly 13 digits.";
+}
 
 if ($errors) {
   print_order_redirect(implode(" ", $errors));
