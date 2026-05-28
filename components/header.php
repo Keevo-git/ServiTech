@@ -314,7 +314,7 @@ $notificationRoutes = [
   </div>
 
   <nav id="customer-header-menu" data-collapsible-menu>
-    <a href="/pages/customer/customer_dash.php">Dashboard</a>
+    <a href="/pages/customer/customer_dash.php">Home</a>
     <a href="/index.php">Services</a>
   </nav>
 </header>

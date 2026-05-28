@@ -53,7 +53,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       </div>
 
       <div class="form-actions queue-join-actions">
-        <a href="/pages/customer/customer_dash.php" class="btn-back">Back to Dashboard</a>
+        <a href="/pages/customer/customer_dash.php" class="btn-back">Back to Home</a>
         <button type="submit" class="btn-next queue-join-submit" id="queueJoinSubmit" disabled>Continue to Queue</button>
       </div>
     </form>
