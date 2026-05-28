@@ -1157,6 +1157,297 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       position: relative;
       z-index: 2;
     }
+
+    html,
+    body.customer-page--profile {
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body.customer-page--profile *,
+    body.customer-page--profile *::before,
+    body.customer-page--profile *::after {
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    body.customer-page--profile .navbar.has-nav-menu.navbar--notifications,
+    body.customer-page--profile .profile-edit-page,
+    body.customer-page--profile .profile-shell,
+    body.customer-page--profile .profile-summary,
+    body.customer-page--profile .profile-panel,
+    body.customer-page--profile .profile-form,
+    body.customer-page--profile .form-section,
+    body.customer-page--profile .field-grid,
+    body.customer-page--profile .field,
+    body.customer-page--profile .password-field,
+    body.customer-page--profile .form-actions,
+    body.customer-page--profile .action-buttons {
+      max-width: 100%;
+    }
+
+    body.customer-page--profile .profile-edit-page {
+      width: 100%;
+      overflow-x: hidden;
+      overflow-x: clip;
+    }
+
+    body.customer-page--profile .profile-shell {
+      width: min(100%, 1080px);
+    }
+
+    body.customer-page--profile .profile-summary,
+    body.customer-page--profile .profile-panel {
+      width: 100%;
+    }
+
+    body.customer-page--profile .profile-summary h1,
+    body.customer-page--profile .profile-summary p,
+    body.customer-page--profile .profile-meta-item strong,
+    body.customer-page--profile .panel-topbar p,
+    body.customer-page--profile .action-copy {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    body.customer-page--profile .field input {
+      width: 100%;
+      min-width: 0;
+      font-size: 1rem;
+    }
+
+    body.customer-page--profile .password-field input {
+      padding-right: 4.6rem;
+    }
+
+    body.customer-page--profile .password-toggle {
+      max-width: 4rem;
+      min-height: 38px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 1100px) {
+      body.customer-page--profile .profile-edit-page {
+        padding-inline: clamp(1rem, 3vw, 1.5rem);
+      }
+
+      body.customer-page--profile .profile-shell {
+        grid-template-columns: minmax(250px, 0.42fr) minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 900px) {
+      body.customer-page--profile .profile-shell {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+      }
+
+      body.customer-page--profile .profile-summary {
+        position: static;
+      }
+
+      body.customer-page--profile .field-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications {
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        column-gap: 8px !important;
+        padding: 16px 14px !important;
+        overflow-x: hidden;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .logo {
+        width: auto !important;
+        min-width: 0 !important;
+        gap: 6px !important;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .logo h1 {
+        font-size: clamp(1rem, 5vw, 1.35rem) !important;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .servitech-logo {
+        width: 34px !important;
+        height: 34px !important;
+        flex: 0 0 auto;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .header-utility {
+        gap: 5px !important;
+        max-width: 100%;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .notification-btn,
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .header-utility .nav-toggle {
+        width: 40px !important;
+        height: 40px !important;
+        flex: 0 0 40px;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .header-utility__link,
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .header-utility__link:visited {
+        min-height: 40px !important;
+        padding: 8px 12px !important;
+        font-size: 0.88rem !important;
+      }
+
+      body.customer-page--profile .profile-edit-page {
+        padding: 1rem 0.85rem 2.25rem;
+      }
+
+      body.customer-page--profile .profile-summary {
+        padding: 1.35rem;
+        border-radius: 20px;
+      }
+
+      body.customer-page--profile .profile-avatar {
+        width: 76px;
+        height: 76px;
+        border-radius: 22px;
+        font-size: 1.45rem;
+      }
+
+      body.customer-page--profile .profile-summary h1 {
+        font-size: clamp(1.65rem, 8vw, 2rem);
+        line-height: 1.15;
+      }
+
+      body.customer-page--profile .profile-summary p {
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      body.customer-page--profile .profile-meta-item {
+        padding: 0.9rem;
+      }
+
+      body.customer-page--profile .profile-panel {
+        padding: 0;
+        border-radius: 20px;
+      }
+
+      body.customer-page--profile .panel-topbar {
+        padding: 1.25rem 1rem 0;
+        gap: 1rem;
+      }
+
+      body.customer-page--profile .panel-topbar h2 {
+        font-size: clamp(1.8rem, 9vw, 2.2rem);
+        line-height: 1.1;
+      }
+
+      body.customer-page--profile .panel-topbar p {
+        font-size: 1rem;
+        line-height: 1.55;
+      }
+
+      body.customer-page--profile .back-link {
+        width: 100%;
+        justify-content: center;
+        min-height: 46px;
+        white-space: normal;
+        text-align: center;
+      }
+
+      body.customer-page--profile .profile-form {
+        padding: 0 1rem 1.2rem;
+        gap: 1.1rem;
+      }
+
+      body.customer-page--profile .status-banner {
+        margin: 0 1rem 1rem;
+      }
+
+      body.customer-page--profile .form-section {
+        padding: 1rem;
+        border-radius: 16px;
+      }
+
+      body.customer-page--profile .section-head,
+      body.customer-page--profile .form-actions {
+        gap: 0.8rem;
+      }
+
+      body.customer-page--profile .section-tag {
+        white-space: normal;
+      }
+
+      body.customer-page--profile .field input {
+        min-height: 52px;
+        padding: 0.85rem 0.9rem;
+      }
+
+      body.customer-page--profile .password-field input {
+        padding-right: 4.45rem;
+      }
+
+      body.customer-page--profile .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      body.customer-page--profile .action-buttons .btn-secondary,
+      body.customer-page--profile .action-buttons .btn-primary {
+        width: 100%;
+        min-height: 48px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications {
+        padding-inline: 10px !important;
+        column-gap: 6px !important;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .servitech-logo {
+        width: 30px !important;
+        height: 30px !important;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .logo h1 {
+        font-size: 1rem !important;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .header-utility {
+        gap: 4px !important;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .notification-btn,
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .header-utility .nav-toggle {
+        width: 36px !important;
+        height: 36px !important;
+        flex-basis: 36px;
+      }
+
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .header-utility__link,
+      body.customer-page--profile .navbar.has-nav-menu.navbar--notifications .header-utility__link:visited {
+        min-height: 36px !important;
+        padding: 7px 9px !important;
+        font-size: 0.82rem !important;
+      }
+
+      body.customer-page--profile .profile-edit-page {
+        padding-inline: 0.65rem;
+      }
+
+      body.customer-page--profile .profile-summary,
+      body.customer-page--profile .form-section {
+        padding-inline: 0.9rem;
+      }
+
+      body.customer-page--profile .profile-form,
+      body.customer-page--profile .panel-topbar {
+        padding-left: 0.9rem;
+        padding-right: 0.9rem;
+      }
+    }
   </style>
 </head>
 <body class="customer-layout customer-page--profile<?php echo $flashMessage !== "" ? " modal-open" : ""; ?>">
