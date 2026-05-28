@@ -4179,3 +4179,192 @@ body.customer-layout.customer-page--status .status-modal .modal-back {
   }
 }
 
+/* Registration responsive hardening */
+body.auth-page--register,
+body.auth-page--register * {
+  min-width: 0;
+}
+
+body.auth-page--register .auth-shell {
+  width: min(100%, 64rem);
+}
+
+body.auth-page--register .register-form,
+body.auth-page--register .form-section,
+body.auth-page--register .form-grid,
+body.auth-page--register .form-field,
+body.auth-page--register .social-auth,
+body.auth-page--register .google-container {
+  max-width: 100%;
+}
+
+body.auth-page--register .auth-card--register input[type="text"],
+body.auth-page--register .auth-card--register input[type="email"],
+body.auth-page--register .auth-card--register input[type="password"],
+body.auth-page--register .auth-card--register input[type="tel"] {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  body.auth-page--register .auth-shell {
+    padding: 24px 14px 42px;
+  }
+
+  body.auth-page--register .auth-card--register {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+
+  body.auth-page--register .auth-card__header {
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  body.auth-page--register .auth-card__eyebrow {
+    min-height: 28px;
+    padding: 6px 11px;
+    font-size: 11px;
+  }
+
+  body.auth-page--register .auth-card__header h1 {
+    font-size: clamp(2rem, 8vw, 2.6rem);
+    line-height: 1.1;
+  }
+
+  body.auth-page--register .auth-card__subtitle {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  body.auth-page--register .register-form {
+    gap: 18px;
+  }
+
+  body.auth-page--register .form-section,
+  body.auth-page--register .form-section--compact {
+    gap: 16px;
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  body.auth-page--register .form-section__header h2 {
+    font-size: clamp(1.25rem, 5vw, 1.5rem);
+    line-height: 1.2;
+  }
+
+  body.auth-page--register .form-section__header p,
+  body.auth-page--register .form-field label,
+  body.auth-page--register .consent-check {
+    font-size: 0.95rem;
+  }
+
+  body.auth-page--register .form-grid--two {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px;
+  }
+
+  body.auth-page--register .form-field {
+    gap: 8px;
+  }
+
+  body.auth-page--register .auth-card--register input[type="text"],
+  body.auth-page--register .auth-card--register input[type="email"],
+  body.auth-page--register .auth-card--register input[type="password"],
+  body.auth-page--register .auth-card--register input[type="tel"] {
+    min-height: 52px;
+    padding: 13px 14px;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  body.auth-page--register .field-error {
+    min-height: 16px;
+  }
+
+  body.auth-page--register .consent-card {
+    padding: 15px;
+  }
+
+  body.auth-page--register .auth-submit,
+  body.auth-page--register .google-btn,
+  body.auth-page--register .google-button {
+    min-height: 52px;
+    padding: 13px 16px;
+    font-size: 0.98rem;
+  }
+}
+
+@media (max-width: 520px) {
+  body.auth-page--register .navbar.has-nav-menu {
+    padding: 18px 16px;
+    column-gap: 10px;
+  }
+
+  body.auth-page--register .navbar.has-nav-menu .logo {
+    width: auto;
+  }
+
+  body.auth-page--register .navbar.has-nav-menu .logo h1 {
+    font-size: 20px;
+  }
+
+  body.auth-page--register .navbar.has-nav-menu .servitech-logo {
+    width: 44px;
+  }
+
+  body.auth-page--register .navbar.has-nav-menu .nav-toggle {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  body.auth-page--register .navbar.has-nav-menu .nav-toggle__bar {
+    width: 21px;
+  }
+
+  body.auth-page--register .auth-shell {
+    padding: 20px 12px 36px;
+  }
+
+  body.auth-page--register .auth-card--register {
+    padding: 20px 14px;
+    border-radius: 20px;
+  }
+
+  body.auth-page--register .form-section,
+  body.auth-page--register .form-section--compact {
+    padding: 16px 14px;
+  }
+
+  body.auth-page--register .auth-card__header h1 {
+    font-size: clamp(2rem, 10vw, 2.35rem);
+  }
+
+  body.auth-page--register .auth-card--register input[type="text"],
+  body.auth-page--register .auth-card--register input[type="email"],
+  body.auth-page--register .auth-card--register input[type="password"],
+  body.auth-page--register .auth-card--register input[type="tel"] {
+    padding-inline: 13px;
+  }
+
+  body.auth-page--register .consent-check {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  body.auth-page--register .auth-shell {
+    padding-inline: 10px;
+  }
+
+  body.auth-page--register .auth-card--register {
+    padding-inline: 12px;
+  }
+
+  body.auth-page--register .form-section,
+  body.auth-page--register .form-section--compact {
+    padding-inline: 12px;
+  }
+}
+
