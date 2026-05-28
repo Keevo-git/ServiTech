@@ -1158,6 +1158,89 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       z-index: 2;
     }
 
+    body.customer-page--profile {
+      width: 100%;
+      max-width: 100vw;
+      position: relative;
+      overflow-x: hidden !important;
+    }
+
+    body.customer-page--profile header,
+    body.customer-page--profile main,
+    body.customer-page--profile footer {
+      width: 100%;
+      max-width: 100vw;
+    }
+
+    body.customer-page--profile main,
+    body.customer-page--profile footer {
+      overflow-x: hidden;
+    }
+
+    body.customer-page--profile .panel-topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+    }
+
+    body.customer-page--profile .back-link {
+      justify-self: end;
+      max-width: 100%;
+      min-height: 46px;
+      padding-inline: 1rem;
+      overflow-wrap: anywhere;
+    }
+
+    body.customer-page--profile .profile-form .form-section:nth-of-type(2) .field-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    body.customer-page--profile .profile-form .form-section:nth-of-type(2) .field {
+      width: 100%;
+    }
+
+    body.customer-page--profile .password-field input::placeholder {
+      font-size: 0.95rem;
+    }
+
+    body.customer-page--profile .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(132px, 1fr));
+      width: min(100%, 304px);
+    }
+
+    body.customer-page--profile .action-buttons .btn-secondary,
+    body.customer-page--profile .action-buttons .btn-primary {
+      width: 100%;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    body.customer-page--profile .btn-primary {
+      background: #ff8b2c;
+      color: #ffffff;
+      box-shadow: 0 12px 22px rgba(122, 47, 0, 0.18);
+    }
+
+    body.customer-page--profile .btn-primary:hover,
+    body.customer-page--profile .btn-primary:focus-visible {
+      background: linear-gradient(135deg, #ffb347, #ff8a2d 58%, #d45a0a 100%);
+      box-shadow: 0 14px 24px rgba(122, 47, 0, 0.22);
+    }
+
+    @media (max-width: 1180px) {
+      body.customer-page--profile .panel-topbar {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.customer-page--profile .back-link {
+        justify-self: start;
+      }
+    }
+
     html,
     body.customer-page--profile {
       max-width: 100%;
@@ -1391,6 +1474,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         display: grid;
         grid-template-columns: 1fr;
         gap: 0.75rem;
+        width: 100%;
       }
 
       body.customer-page--profile .action-buttons .btn-secondary,
@@ -1502,7 +1586,6 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
           <p>Update only what has changed. Password fields can be left blank if you do not want to change them.</p>
         </div>
         <a href="/pages/customer/customer_dash.php" class="back-link" aria-label="Back to dashboard">
-          <span aria-hidden="true">&larr;</span>
           <span>Back to dashboard</span>
         </a>
       </div>
