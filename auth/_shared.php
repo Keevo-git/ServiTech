@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../config/app.php";
+require_once __DIR__ . "/../config/mail.php";
 
 const AUTH_UI_VERSION = "20260528auth5";
 
@@ -21,6 +22,33 @@ if (!function_exists("auth_json_url")) {
     function auth_json_url(string $path = "/"): string
     {
         return json_encode(auth_url_raw($path), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    }
+}
+
+if (!function_exists("auth_contact_email")) {
+    function auth_contact_email(): string
+    {
+        return servitech_smtp_public_from_email();
+    }
+}
+
+if (!function_exists("auth_contact_email_html")) {
+    function auth_contact_email_html(): string
+    {
+        return htmlspecialchars(auth_contact_email(), ENT_QUOTES, "UTF-8");
+    }
+}
+
+if (!function_exists("auth_contact_link_html")) {
+    function auth_contact_link_html(): string
+    {
+        $email = auth_contact_email();
+        if ($email === "") {
+            return "Contact email unavailable";
+        }
+
+        $safeEmail = htmlspecialchars($email, ENT_QUOTES, "UTF-8");
+        return '<a href="mailto:' . $safeEmail . '">' . $safeEmail . '</a>';
     }
 }
 
@@ -69,12 +97,10 @@ if (!function_exists("render_auth_footer")) {
           </a>
         </div>
 
-        <div class="contact-item">
-          <img src="<?= auth_url("/assets/images/FOOTER_EMAIL.png") ?>" alt="Email">
-          <a href="mailto:theservitech.store@gmail.com">
-            theservitech.store@gmail.com
-          </a>
-        </div>
+      <div class="contact-item">
+        <img src="<?= auth_url("/assets/images/FOOTER_EMAIL.png") ?>" alt="Email">
+          <?= auth_contact_link_html() ?>
+      </div>
 
         <div class="contact-item">
           <img src="<?= auth_url("/assets/images/FOOTER_PHONE.png") ?>" alt="Phone">

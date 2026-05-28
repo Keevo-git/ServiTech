@@ -241,7 +241,7 @@ require_once __DIR__ . "/_shared.php";
           </section>
           <section class="policy-section">
             <h3>Contact Information</h3>
-            <p>For concerns or inquiries regarding privacy and data usage, users may contact:<br><a href="mailto:theservitech.store@gmail.com">theservitech.store@gmail.com</a></p>
+            <p>For concerns or inquiries regarding privacy and data usage, users may contact:<br><?= auth_contact_link_html() ?></p>
           </section>
         `
       },

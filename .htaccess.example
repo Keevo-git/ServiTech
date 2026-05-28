@@ -1,8 +1,20 @@
 DirectoryIndex index.php index.html
 Options -Indexes
 
+# Hostinger/Apache environment variable example. Keep real credentials out of git.
+# Prefer a private .env file or config/mail.local.php for secrets.
+# SetEnv SMTP_HOST "smtp.gmail.com"
+# SetEnv SMTP_PORT "587"
+# SetEnv SMTP_SECURE "tls"
+# SetEnv SMTP_USERNAME "REPLACE_WITH_NEW_GOOGLE_ACCOUNT@gmail.com"
+# SetEnv SMTP_PASSWORD "paste-gmail-app-password-on-server-only"
+# SetEnv SMTP_FROM_EMAIL "REPLACE_WITH_NEW_GOOGLE_ACCOUNT@gmail.com"
+# SetEnv SMTP_FROM_NAME "ServiTech"
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  RewriteRule ^logs(?:/|$) - [F,L]
 
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
@@ -10,6 +22,10 @@ Options -Indexes
 </IfModule>
 
 <FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+<FilesMatch "\.log$">
   Require all denied
 </FilesMatch>
 

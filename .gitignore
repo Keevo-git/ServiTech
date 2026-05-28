@@ -1,11 +1,16 @@
 /.htaccess
 /.htpasswd
+/.env
+/.env.*
+!/.env.example
 /node_modules/
 /uploads/*
 !/uploads/.gitignore
 !/uploads/printing/
 /uploads/printing/*
 !/uploads/printing/.gitignore
+/config/.env
 /config/google.local.php
 /config/mail.local.php
 /logs/*.log
+/mail_error.log

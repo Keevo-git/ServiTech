@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . "/../config/mail.php";
+$footerEmail = servitech_smtp_public_from_email();
+?>
 <footer class="footer">
   <div class="footer-container">
     <div class="footer-left">
@@ -10,7 +14,11 @@
 
       <div class="contact-item">
         <img src="/assets/images/FOOTER_EMAIL.png" alt="Email">
-        <a href="mailto:theservitech.store@gmail.com">theservitech.store@gmail.com</a>
+        <?php if ($footerEmail !== ""): ?>
+          <a href="mailto:<?= htmlspecialchars($footerEmail, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($footerEmail, ENT_QUOTES, "UTF-8") ?></a>
+        <?php else: ?>
+          <span>Contact email unavailable</span>
+        <?php endif; ?>
       </div>
 
       <div class="contact-item">

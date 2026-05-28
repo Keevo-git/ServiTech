@@ -7,6 +7,9 @@ $messageType = "";
 $messageText = "";
 $submittedEmail = "";
 $requestMethod = (string)($_SERVER["REQUEST_METHOD"] ?? "GET");
+const FORGOT_PASSWORD_PUBLIC_MESSAGE = "If the email exists, a reset link will be sent shortly.";
+const FORGOT_PASSWORD_RATE_LIMIT_WINDOW = 900;
+const FORGOT_PASSWORD_RATE_LIMIT_MAX_ATTEMPTS = 3;
 
 function forgot_password_ensure_columns(PDO $pdo): void
 {
@@ -35,6 +38,94 @@ function forgot_password_reset_url(string $token): string
     return "https://servitech.store/auth/reset_password.php?token=" . urlencode($token);
 }
 
+function forgot_password_rate_limit_path(): string
+{
+    return __DIR__ . "/../logs/forgot_password_rate_limit.json";
+}
+
+function forgot_password_client_ip(): string
+{
+    foreach (["HTTP_CF_CONNECTING_IP", "HTTP_X_FORWARDED_FOR", "REMOTE_ADDR"] as $key) {
+        $value = trim((string)($_SERVER[$key] ?? ""));
+        if ($value === "") {
+            continue;
+        }
+
+        $firstValue = trim(explode(",", $value)[0]);
+        if (filter_var($firstValue, FILTER_VALIDATE_IP)) {
+            return $firstValue;
+        }
+    }
+
+    return "unknown";
+}
+
+function forgot_password_rate_limit_key(string $email): string
+{
+    return hash("sha256", strtolower($email) . "|" . forgot_password_client_ip());
+}
+
+function forgot_password_rate_limit_allows(string $email): bool
+{
+    $path = forgot_password_rate_limit_path();
+    $directory = dirname($path);
+    if (!is_dir($directory)) {
+        @mkdir($directory, 0775, true);
+    }
+
+    $handle = @fopen($path, "c+");
+    if (!$handle) {
+        servitech_forgot_password_mail_log("Forgot password rate limit skipped: could not open rate limit file.");
+        return true;
+    }
+
+    $allowed = true;
+    $now = time();
+    $key = forgot_password_rate_limit_key($email);
+
+    if (flock($handle, LOCK_EX)) {
+        $contents = stream_get_contents($handle);
+        $data = json_decode(is_string($contents) ? $contents : "", true);
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        foreach ($data as $storedKey => $timestamps) {
+            if (!is_array($timestamps)) {
+                unset($data[$storedKey]);
+                continue;
+            }
+
+            $data[$storedKey] = array_values(array_filter($timestamps, static function ($timestamp) use ($now): bool {
+                return is_int($timestamp) && $timestamp >= ($now - FORGOT_PASSWORD_RATE_LIMIT_WINDOW);
+            }));
+
+            if (!$data[$storedKey]) {
+                unset($data[$storedKey]);
+            }
+        }
+
+        $attempts = $data[$key] ?? [];
+        $allowed = count($attempts) < FORGOT_PASSWORD_RATE_LIMIT_MAX_ATTEMPTS;
+        $attempts[] = $now;
+        $data[$key] = $attempts;
+
+        ftruncate($handle, 0);
+        rewind($handle);
+        fwrite($handle, json_encode($data));
+        fflush($handle);
+        flock($handle, LOCK_UN);
+    }
+
+    fclose($handle);
+
+    if (!$allowed) {
+        servitech_forgot_password_mail_log("Forgot password rate limit hit for hash={$key}; ip=" . forgot_password_client_ip());
+    }
+
+    return $allowed;
+}
+
 if ($requestMethod === "POST") {
     servitech_enforce_same_origin(false);
     servitech_enforce_csrf_token(false);
@@ -48,60 +139,61 @@ if ($requestMethod === "POST") {
         servitech_forgot_password_mail_log("Forgot password validation failed: invalid email.");
     } else {
         try {
-            require_once __DIR__ . "/../config/db.php";
-            servitech_forgot_password_mail_log("Database connection loaded.");
+            if (forgot_password_rate_limit_allows($submittedEmail)) {
+                require_once __DIR__ . "/../config/db.php";
+                servitech_forgot_password_mail_log("Database connection loaded.");
 
-            $stmt = $pdo->prepare("SELECT id, email FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1");
-            $stmt->execute([":email" => $submittedEmail]);
-            $user = $stmt->fetch();
-            servitech_forgot_password_mail_log("Users table lookup result for {$submittedEmail}: " . ($user ? "email exists" : "email does not exist"));
+                $stmt = $pdo->prepare("SELECT id, email FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1");
+                $stmt->execute([":email" => $submittedEmail]);
+                $user = $stmt->fetch();
+                servitech_forgot_password_mail_log("Users table lookup result for {$submittedEmail}: " . ($user ? "email exists" : "email does not exist"));
 
-            if ($user) {
-                forgot_password_ensure_columns($pdo);
+                if ($user) {
+                    forgot_password_ensure_columns($pdo);
 
-                $token = bin2hex(random_bytes(32));
-                $tokenHash = hash("sha256", $token);
-                $email = (string)$user["email"];
-                $resetUrl = forgot_password_reset_url($token);
-                servitech_forgot_password_mail_log("Reset link generated for {$email}: {$resetUrl}");
+                    $token = bin2hex(random_bytes(32));
+                    $tokenHash = hash("sha256", $token);
+                    $email = (string)$user["email"];
+                    $resetUrl = forgot_password_reset_url($token);
+                    servitech_forgot_password_mail_log("Reset token generated for {$email}.");
 
-                $update = $pdo->prepare("
-                    UPDATE users
-                    SET reset_token = :reset_token,
-                        reset_token_expires = NOW() + INTERVAL '1 hour',
-                        updated_at = NOW()
-                    WHERE id = :user_id
-                ");
-                $update->execute([
-                    ":user_id" => (int)$user["id"],
-                    ":reset_token" => $tokenHash,
-                ]);
-                servitech_forgot_password_mail_log("Token save result for user id " . (int)$user["id"] . ": affected rows=" . $update->rowCount());
+                    $update = $pdo->prepare("
+                        UPDATE users
+                        SET reset_token = :reset_token,
+                            reset_token_expires = NOW() + INTERVAL '1 hour',
+                            updated_at = NOW()
+                        WHERE id = :user_id
+                    ");
+                    $update->execute([
+                        ":user_id" => (int)$user["id"],
+                        ":reset_token" => $tokenHash,
+                    ]);
+                    servitech_forgot_password_mail_log("Token save result for user id " . (int)$user["id"] . ": affected rows=" . $update->rowCount());
 
-                $mailResult = servitech_send_password_reset_mail($email, $resetUrl);
-                if (!$mailResult["ok"]) {
-                    $clear = $pdo->prepare("UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = :user_id");
-                    $clear->execute([":user_id" => (int)$user["id"]]);
-                    servitech_mail_log("forgot password mail error for {$email}: " . (string)$mailResult["error"]);
+                    $mailResult = servitech_send_password_reset_mail($email, $resetUrl);
+                    if (!$mailResult["ok"]) {
+                        $clear = $pdo->prepare("UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = :user_id");
+                        $clear->execute([":user_id" => (int)$user["id"]]);
+                        servitech_mail_log("forgot password mail error for {$email}: " . (string)$mailResult["error"]);
 
-                    if (servitech_mail_debug_enabled()) {
-                        throw new RuntimeException("Email sending failed: " . (string)$mailResult["error"]);
+                        throw new RuntimeException("Password reset email could not be sent.");
                     }
-
-                    throw new RuntimeException("Email sending failed: " . (string)$mailResult["error"]);
+                } else {
+                    servitech_forgot_password_mail_log("No email sent because {$submittedEmail} is not registered.");
                 }
             } else {
-                servitech_forgot_password_mail_log("No email sent because {$submittedEmail} is not registered.");
+                servitech_forgot_password_mail_log("Forgot password request accepted without SMTP attempt because rate limit is active.");
             }
 
             $messageType = "success";
-            $messageText = "If that email is registered, a password reset link has been sent.";
+            $messageText = FORGOT_PASSWORD_PUBLIC_MESSAGE;
             $submittedEmail = "";
         } catch (Throwable $e) {
             servitech_mail_log("forgot password error: " . $e->getMessage());
             servitech_forgot_password_mail_log("Forgot password exception: " . $e->getMessage());
-            $messageType = "error";
-            $messageText = "Mailer Error: " . $e->getMessage();
+            $messageType = "success";
+            $messageText = FORGOT_PASSWORD_PUBLIC_MESSAGE;
+            $submittedEmail = "";
         }
     }
 }

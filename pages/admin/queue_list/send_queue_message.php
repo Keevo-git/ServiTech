@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../../../config/csrf.php";
+require_once __DIR__ . "/../../../config/mail.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -65,15 +66,19 @@ $body = "Good day {$safeName},\n\n"
     . $message
     . "\n\nServiTech: JC Repair Shop";
 
-$fromEmail = "noreply@servitech.store";
+$fromEmail = servitech_smtp_public_from_email();
 $fromName = "ServiTech JC Repair Shop";
+
+if ($fromEmail === "" || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+    respond(["ok" => false, "error" => "Email sender is not configured."], 500);
+}
 
 $headers = [
     "MIME-Version: 1.0",
     "Content-Type: text/plain; charset=UTF-8",
     "Content-Transfer-Encoding: 8bit",
     "From: {$fromName} <{$fromEmail}>",
-    "Reply-To: theservitech.store@gmail.com",
+    "Reply-To: {$fromEmail}",
     "Return-Path: {$fromEmail}",
     "X-Mailer: PHP/" . PHP_VERSION,
 ];

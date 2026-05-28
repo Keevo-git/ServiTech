@@ -2,6 +2,8 @@
 if (!function_exists("admin_url")) {
     require_once __DIR__ . "/url.php";
 }
+require_once __DIR__ . "/../../../config/mail.php";
+$adminFooterEmail = servitech_smtp_public_from_email();
 ?>
 <style>
   .admin-shared-footer {
@@ -35,7 +37,11 @@ if (!function_exists("admin_url")) {
 
       <div class="contact-item">
         <img src="<?= admin_url('/assets/images/FOOTER_EMAIL.png') ?>" alt="Email">
-        <a href="mailto:theservitech.store@gmail.com">theservitech.store@gmail.com</a>
+        <?php if ($adminFooterEmail !== ""): ?>
+          <a href="mailto:<?= htmlspecialchars($adminFooterEmail, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($adminFooterEmail, ENT_QUOTES, "UTF-8") ?></a>
+        <?php else: ?>
+          <span>Contact email unavailable</span>
+        <?php endif; ?>
       </div>
 
       <div class="contact-item">

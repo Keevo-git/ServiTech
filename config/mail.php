@@ -6,7 +6,7 @@ use PHPMailer\PHPMailer\SMTP;
 
 function servitech_mail_error_log_path(): string
 {
-    return __DIR__ . "/../mail_error.log";
+    return __DIR__ . "/../logs/mail_error.log";
 }
 
 function servitech_forgot_password_mail_log_path(): string
@@ -37,7 +37,7 @@ function servitech_forgot_password_mail_log(string $message): void
     error_log($message);
 }
 
-function servitech_mail_env_value(string $key): string
+function servitech_mail_raw_env_value(string $key): string
 {
     $candidates = [
         getenv($key),
@@ -57,6 +57,99 @@ function servitech_mail_env_value(string $key): string
     }
 
     return "";
+}
+
+function servitech_mail_dotenv_paths(): array
+{
+    return [
+        dirname(__DIR__) . "/.env",
+        __DIR__ . "/.env",
+    ];
+}
+
+function servitech_mail_parse_dotenv_value(string $value): string
+{
+    $value = trim($value);
+    if ($value === "") {
+        return "";
+    }
+
+    $quote = $value[0];
+    if (($quote === '"' || $quote === "'") && substr($value, -1) === $quote) {
+        $value = substr($value, 1, -1);
+        return $quote === '"' ? stripcslashes($value) : $value;
+    }
+
+    return trim((string)preg_replace('/\s+#.*$/', '', $value));
+}
+
+function servitech_mail_load_dotenv(): void
+{
+    static $loaded = false;
+    if ($loaded) {
+        return;
+    }
+    $loaded = true;
+
+    $GLOBALS["servitech_mail_dotenv_files"] = [];
+    $GLOBALS["servitech_mail_dotenv_keys"] = [];
+
+    foreach (servitech_mail_dotenv_paths() as $path) {
+        if (!is_file($path) || !is_readable($path)) {
+            continue;
+        }
+
+        $lines = @file($path, FILE_IGNORE_NEW_LINES);
+        if (!is_array($lines)) {
+            continue;
+        }
+
+        $GLOBALS["servitech_mail_dotenv_files"][] = $path;
+
+        foreach ($lines as $line) {
+            $line = trim((string)$line);
+            if ($line === "" || $line[0] === "#" || $line[0] === ";") {
+                continue;
+            }
+
+            if (strpos($line, "export ") === 0) {
+                $line = trim(substr($line, 7));
+            }
+
+            $separator = strpos($line, "=");
+            if ($separator === false) {
+                continue;
+            }
+
+            $key = trim(substr($line, 0, $separator));
+            if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $key)) {
+                continue;
+            }
+
+            if (servitech_mail_raw_env_value($key) !== "") {
+                continue;
+            }
+
+            $value = servitech_mail_parse_dotenv_value(substr($line, $separator + 1));
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+            @putenv($key . "=" . $value);
+            $GLOBALS["servitech_mail_dotenv_keys"][$key] = $path;
+        }
+    }
+}
+
+function servitech_mail_dotenv_files(): array
+{
+    servitech_mail_load_dotenv();
+    $files = $GLOBALS["servitech_mail_dotenv_files"] ?? [];
+    return is_array($files) ? $files : [];
+}
+
+function servitech_mail_env_value(string $key): string
+{
+    servitech_mail_load_dotenv();
+    return servitech_mail_raw_env_value($key);
 }
 
 function servitech_mail_local_config(): array
@@ -94,6 +187,191 @@ function servitech_mail_config_value(string $envKey, string $localKey, string $d
     }
 
     return $default;
+}
+
+function servitech_mail_config_value_any(array $envKeys, array $localKeys, string $default = ""): string
+{
+    foreach ($envKeys as $envKey) {
+        $envValue = servitech_mail_env_value((string)$envKey);
+        if ($envValue !== "") {
+            return $envValue;
+        }
+    }
+
+    $localConfig = servitech_mail_local_config();
+    foreach ($localKeys as $localKey) {
+        $localValue = $localConfig[(string)$localKey] ?? "";
+        if (is_string($localValue) || is_numeric($localValue)) {
+            $localValue = trim((string)$localValue);
+            if ($localValue !== "") {
+                return $localValue;
+            }
+        }
+    }
+
+    return $default;
+}
+
+function servitech_mail_config_source(string $envKey, string $localKey, string $default = ""): string
+{
+    servitech_mail_load_dotenv();
+
+    $dotenvKeys = $GLOBALS["servitech_mail_dotenv_keys"] ?? [];
+    if (is_array($dotenvKeys) && isset($dotenvKeys[$envKey])) {
+        return ".env";
+    }
+
+    if (servitech_mail_raw_env_value($envKey) !== "") {
+        return "environment";
+    }
+
+    $localConfig = servitech_mail_local_config();
+    $localValue = $localConfig[$localKey] ?? "";
+    if ((is_string($localValue) || is_numeric($localValue)) && trim((string)$localValue) !== "") {
+        return "config/mail.local.php";
+    }
+
+    return $default !== "" ? "default" : "missing";
+}
+
+function servitech_mail_config_source_any(array $envKeys, array $localKeys, string $default = ""): string
+{
+    servitech_mail_load_dotenv();
+
+    $dotenvKeys = $GLOBALS["servitech_mail_dotenv_keys"] ?? [];
+    foreach ($envKeys as $envKey) {
+        $envKey = (string)$envKey;
+        if (is_array($dotenvKeys) && isset($dotenvKeys[$envKey])) {
+            return ".env";
+        }
+
+        if (servitech_mail_raw_env_value($envKey) !== "") {
+            return "environment";
+        }
+    }
+
+    $localConfig = servitech_mail_local_config();
+    foreach ($localKeys as $localKey) {
+        $localValue = $localConfig[(string)$localKey] ?? "";
+        if ((is_string($localValue) || is_numeric($localValue)) && trim((string)$localValue) !== "") {
+            return "config/mail.local.php";
+        }
+    }
+
+    return $default !== "" ? "default" : "missing";
+}
+
+function servitech_smtp_config(): array
+{
+    $username = servitech_mail_config_value("SMTP_USERNAME", "username");
+    $fromEmail = servitech_mail_config_value("SMTP_FROM_EMAIL", "from_email", $username);
+    $replyTo = servitech_mail_config_value("SMTP_REPLY_TO", "reply_to", $fromEmail !== "" ? $fromEmail : $username);
+
+    return [
+        "host" => servitech_mail_config_value("SMTP_HOST", "host", "smtp.gmail.com"),
+        "port" => servitech_mail_config_value("SMTP_PORT", "port", "587"),
+        "username" => $username,
+        "password" => servitech_mail_config_value("SMTP_PASSWORD", "password"),
+        "encryption" => strtolower(servitech_mail_config_value_any(["SMTP_SECURE", "SMTP_ENCRYPTION"], ["secure", "encryption"], "tls")),
+        "from_email" => $fromEmail,
+        "from_name" => servitech_mail_config_value("SMTP_FROM_NAME", "from_name", "ServiTech"),
+        "reply_to" => $replyTo,
+    ];
+}
+
+function servitech_smtp_public_from_email(): string
+{
+    $config = servitech_smtp_config();
+    $fromEmail = trim((string)$config["from_email"]);
+    if ($fromEmail !== "") {
+        return $fromEmail;
+    }
+
+    return trim((string)$config["username"]);
+}
+
+function servitech_smtp_config_status(): array
+{
+    return [
+        "SMTP_HOST" => [
+            "present" => servitech_mail_config_value("SMTP_HOST", "host", "smtp.gmail.com") !== "",
+            "source" => servitech_mail_config_source("SMTP_HOST", "host", "smtp.gmail.com"),
+        ],
+        "SMTP_PORT" => [
+            "present" => servitech_mail_config_value("SMTP_PORT", "port", "587") !== "",
+            "source" => servitech_mail_config_source("SMTP_PORT", "port", "587"),
+        ],
+        "SMTP_USERNAME" => [
+            "present" => servitech_mail_config_value("SMTP_USERNAME", "username") !== "",
+            "source" => servitech_mail_config_source("SMTP_USERNAME", "username"),
+        ],
+        "SMTP_PASSWORD" => [
+            "present" => servitech_mail_config_value("SMTP_PASSWORD", "password") !== "",
+            "source" => servitech_mail_config_source("SMTP_PASSWORD", "password"),
+        ],
+        "SMTP_SECURE" => [
+            "present" => servitech_mail_config_value_any(["SMTP_SECURE", "SMTP_ENCRYPTION"], ["secure", "encryption"], "tls") !== "",
+            "source" => servitech_mail_config_source_any(["SMTP_SECURE", "SMTP_ENCRYPTION"], ["secure", "encryption"], "tls"),
+        ],
+        "SMTP_FROM_EMAIL" => [
+            "present" => servitech_smtp_public_from_email() !== "",
+            "source" => servitech_mail_config_source("SMTP_FROM_EMAIL", "from_email", servitech_mail_config_value("SMTP_USERNAME", "username")),
+        ],
+    ];
+}
+
+function servitech_check_smtp_config(): array
+{
+    $config = servitech_smtp_config();
+    $missing = [];
+
+    foreach ([
+        "SMTP_HOST" => "host",
+        "SMTP_PORT" => "port",
+        "SMTP_USERNAME" => "username",
+        "SMTP_PASSWORD" => "password",
+        "SMTP_FROM_EMAIL" => "from_email",
+    ] as $envKey => $configKey) {
+        if (trim((string)$config[$configKey]) === "") {
+            $missing[] = $envKey;
+        }
+    }
+
+    $port = (int)$config["port"];
+    if ($port <= 0 || $port > 65535) {
+        $missing[] = "SMTP_PORT";
+    }
+
+    if ((string)$config["from_email"] !== "" && !filter_var((string)$config["from_email"], FILTER_VALIDATE_EMAIL)) {
+        $missing[] = "SMTP_FROM_EMAIL";
+    }
+
+    if ((string)$config["username"] !== "" && !filter_var((string)$config["username"], FILTER_VALIDATE_EMAIL)) {
+        $missing[] = "SMTP_USERNAME";
+    }
+
+    if (!in_array((string)$config["encryption"], ["tls", "ssl"], true)) {
+        $missing[] = "SMTP_SECURE";
+    }
+
+    $missing = array_values(array_unique($missing));
+
+    return [
+        "ok" => count($missing) === 0,
+        "missing" => $missing,
+        "config" => $config,
+        "status" => servitech_smtp_config_status(),
+    ];
+}
+
+function servitech_log_smtp_config_status(array $check): void
+{
+    $parts = [];
+    foreach (($check["status"] ?? []) as $key => $status) {
+        $parts[] = $key . "=" . (!empty($status["present"]) ? "present" : "missing") . " source=" . (string)($status["source"] ?? "unknown");
+    }
+
+    servitech_forgot_password_mail_log("SMTP configuration check: " . implode("; ", $parts));
 }
 
 function servitech_mail_debug_enabled(): bool
@@ -164,21 +442,24 @@ function servitech_mail_format_address(string $email, string $name = ""): string
 
 function servitech_send_smtp_mail(string $toEmail, string $subject, string $textBody, string $htmlBody = ""): array
 {
-    $defaultSender = "theservitech.store@gmail.com";
-    $host = servitech_mail_config_value("SMTP_HOST", "host", "smtp.gmail.com");
-    $port = (int)servitech_mail_config_value("SMTP_PORT", "port", "587");
-    $username = servitech_mail_config_value("SMTP_USERNAME", "username", $defaultSender);
-    $password = servitech_mail_config_value("SMTP_PASSWORD", "password");
-    $encryption = strtolower(servitech_mail_config_value("SMTP_ENCRYPTION", "encryption", "tls"));
-    $fromEmail = servitech_mail_config_value("SMTP_FROM_EMAIL", "from_email", $defaultSender);
-    $fromName = servitech_mail_config_value("SMTP_FROM_NAME", "from_name", "ServiTech");
-    $replyTo = servitech_mail_config_value("SMTP_REPLY_TO", "reply_to", $defaultSender);
+    $check = servitech_check_smtp_config();
+    $config = $check["config"];
+
+    $host = (string)$config["host"];
+    $port = (int)$config["port"];
+    $username = (string)$config["username"];
+    $password = (string)$config["password"];
+    $encryption = (string)$config["encryption"];
+    $fromEmail = (string)$config["from_email"];
+    $fromName = (string)$config["from_name"];
+    $replyTo = (string)$config["reply_to"];
 
     servitech_forgot_password_mail_log("SMTP config: host={$host}; port={$port}; encryption={$encryption}; username={$username}; from={$fromEmail}; reply_to={$replyTo}");
+    servitech_log_smtp_config_status($check);
 
-    if ($host === "" || $fromEmail === "" || $username === "" || $password === "") {
-        servitech_forgot_password_mail_log("SMTP configuration failed: missing host/from/username/password. Password configured: " . ($password !== "" ? "yes" : "no"));
-        return ["ok" => false, "error" => "SMTP is not configured. Set SMTP_PASSWORD to the Gmail App Password for theservitech.store@gmail.com."];
+    if (!$check["ok"]) {
+        servitech_forgot_password_mail_log("SMTP configuration failed: missing/invalid " . implode(", ", $check["missing"]));
+        return ["ok" => false, "error" => "SMTP configuration is incomplete: " . implode(", ", $check["missing"])];
     }
 
     $phpMailerResult = servitech_send_phpmailer_mail(
