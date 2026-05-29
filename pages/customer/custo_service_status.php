@@ -161,35 +161,51 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       cursor: pointer;
       display: flex !important;
       font-family: Arial, Helvetica, sans-serif;
-      flex: 0 0 56px !important;
+      flex: 0 0 48px !important;
       flex-grow: 0 !important;
       flex-shrink: 0 !important;
-      font-size: 1.55rem !important;
+      font-size: 0 !important;
       font-weight: 700;
-      height: 56px !important;
+      height: 48px !important;
       justify-content: center !important;
       line-height: 1 !important;
-      max-height: 56px !important;
-      max-width: 56px !important;
-      min-height: 56px !important;
-      min-width: 56px !important;
+      max-height: 48px !important;
+      max-width: 48px !important;
+      min-height: 48px !important;
+      min-width: 48px !important;
       padding: 0 !important;
       position: absolute !important;
       right: clamp(16px, 3vw, 24px) !important;
       top: clamp(16px, 3vw, 24px) !important;
       text-align: center;
       transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-      width: 56px !important;
+      width: 48px !important;
     }
 
     body.customer-layout.customer-page--status .status-modal .modal-close span {
-      align-items: center;
-      display: flex;
-      height: 1em;
-      justify-content: center;
-      line-height: 1;
+      display: none;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close::before,
+    body.customer-layout.customer-page--status .status-modal .modal-close::after {
+      background: currentColor;
+      border-radius: 999px;
+      content: "";
+      height: 3px;
+      left: 50%;
       pointer-events: none;
-      width: 1em;
+      position: absolute;
+      top: 50%;
+      transform-origin: center;
+      width: 17px;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close::before {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close::after {
+      transform: translate(-50%, -50%) rotate(-45deg);
     }
 
     body.customer-layout.customer-page--status .status-modal .modal-close:hover,
@@ -560,7 +576,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       }
 
       body.customer-layout.customer-page--status .status-modal__header {
-        padding-right: 88px;
+        padding-right: 78px;
       }
 
       body.customer-layout.customer-page--status .status-detail-row,
