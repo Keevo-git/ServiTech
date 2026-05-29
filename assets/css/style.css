@@ -3696,20 +3696,33 @@ body {
 .status-modal .modal-close {
   top: 14px;
   right: 14px;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 44px;
+  max-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  color: #5b3310;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  padding: 0;
+  box-sizing: border-box;
+  flex: 0 0 44px;
+  border-radius: 50%;
+  border: 1px solid #ead2c5;
+  background: #fff8f5;
+  box-shadow: 0 8px 18px rgba(74, 5, 5, 0.08);
+  color: #8b1e1e;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .status-modal .modal-close:hover {
-  background: rgba(154, 79, 8, 0.08);
-  color: #7c3f06;
-  transform: rotate(90deg);
+  background: #8b1e1e;
+  border-color: #8b1e1e;
+  box-shadow: 0 12px 24px rgba(139, 30, 30, 0.2);
+  color: #ffffff;
+  transform: translateY(-1px) scale(1.03);
 }
 
 .modal-back {

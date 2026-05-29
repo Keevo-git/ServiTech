@@ -124,7 +124,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       display: grid;
       gap: 0.4rem;
       grid-template-columns: minmax(0, 1fr) auto;
-      padding: clamp(18px, 3vw, 26px) clamp(64px, 7vw, 78px) clamp(14px, 2vw, 18px) clamp(18px, 3vw, 26px);
+      padding: clamp(18px, 3vw, 26px) clamp(88px, 9vw, 96px) clamp(14px, 2vw, 18px) clamp(18px, 3vw, 26px);
       border-bottom: 1px solid rgba(95, 14, 15, 0.1);
       background: rgba(255, 253, 249, 0.92);
       flex: 0 0 auto;
@@ -150,36 +150,56 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status .status-modal .modal-close {
       align-items: center !important;
-      background: #fff7ed !important;
-      border: 1px solid rgba(95, 14, 15, 0.12) !important;
-      border-radius: 999px !important;
-      box-shadow: 0 8px 18px rgba(74, 5, 5, 0.08);
-      color: #7f1d1d !important;
+      appearance: none;
+      aspect-ratio: 1 / 1;
+      background: #fff8f5 !important;
+      border: 1px solid #ead2c5 !important;
+      border-radius: 50% !important;
+      box-shadow: 0 10px 22px rgba(74, 5, 5, 0.08);
+      box-sizing: border-box;
+      color: #8b1e1e !important;
       cursor: pointer;
       display: flex !important;
       font-family: Arial, Helvetica, sans-serif;
-      font-size: 1.28rem !important;
+      flex: 0 0 56px !important;
+      flex-grow: 0 !important;
+      flex-shrink: 0 !important;
+      font-size: 1.55rem !important;
       font-weight: 700;
-      height: 40px !important;
+      height: 56px !important;
       justify-content: center !important;
       line-height: 1 !important;
+      max-height: 56px !important;
+      max-width: 56px !important;
+      min-height: 56px !important;
+      min-width: 56px !important;
       padding: 0 !important;
       position: absolute !important;
       right: clamp(16px, 3vw, 24px) !important;
       top: clamp(16px, 3vw, 24px) !important;
       text-align: center;
       transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-      width: 40px !important;
+      width: 56px !important;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close span {
+      align-items: center;
+      display: flex;
+      height: 1em;
+      justify-content: center;
+      line-height: 1;
+      pointer-events: none;
+      width: 1em;
     }
 
     body.customer-layout.customer-page--status .status-modal .modal-close:hover,
     body.customer-layout.customer-page--status .status-modal .modal-close:focus-visible {
-      background: linear-gradient(135deg, #fff7ed 0%, #fee2e2 100%) !important;
-      border-color: rgba(185, 28, 28, 0.26) !important;
-      box-shadow: 0 14px 28px rgba(185, 28, 28, 0.18);
-      color: #9f1239 !important;
+      background: #8b1e1e !important;
+      border-color: #8b1e1e !important;
+      box-shadow: 0 16px 30px rgba(139, 30, 30, 0.22);
+      color: #ffffff !important;
       outline: none;
-      transform: translateY(-1px);
+      transform: translateY(-1px) scale(1.03);
     }
 
     body.customer-layout.customer-page--status .status-modal__grid {
@@ -540,7 +560,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       }
 
       body.customer-layout.customer-page--status .status-modal__header {
-        padding-right: 62px;
+        padding-right: 88px;
       }
 
       body.customer-layout.customer-page--status .status-detail-row,
