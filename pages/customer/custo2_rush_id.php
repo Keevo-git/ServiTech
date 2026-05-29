@@ -182,7 +182,7 @@ function rush_price(array $pricing, string $key): string {
     }
 
     body.customer-page--custo2 .form-actions {
-      align-items: stretch;
+      align-items: center;
       display: flex;
       flex-wrap: wrap;
       gap: 0.75rem;
@@ -195,15 +195,17 @@ function rush_price(array $pricing, string $key): string {
       align-items: center;
       border-radius: 10px;
       display: inline-flex;
-      flex: 1 1 240px;
+      flex: 1 1 0;
       font-size: 16px;
       font-weight: 600;
+      height: 52px !important;
       justify-content: center;
       line-height: 1.2;
-      min-height: 48px;
-      padding: 13px 22px;
+      max-height: 56px;
+      min-height: 0 !important;
+      padding: 0 24px !important;
       text-align: center;
-      width: 100%;
+      width: auto;
     }
 
     @media (max-width: 720px) {
@@ -212,7 +214,14 @@ function rush_price(array $pricing, string $key): string {
       }
 
       body.customer-page--custo2 .form-actions {
+        align-items: stretch;
         flex-direction: column;
+      }
+
+      body.customer-page--custo2 .form-actions .btn-back,
+      body.customer-page--custo2 .form-actions .btn-next {
+        flex: 0 0 auto;
+        width: 100%;
       }
     }
   </style>

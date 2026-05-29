@@ -1158,8 +1158,8 @@ document.addEventListener("DOMContentLoaded", () => {
       setFieldInvalid(refs.paymentMethodSelect, true);
     }
 
-    const rushIdGcashDraft = payload.service_label === "Rush ID" && refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash";
-    if (!rushIdGcashDraft && refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash" && refs.referenceNumberInput) {
+    const deferredGcashDraft = shouldUseServicePaymentPage(payload);
+    if (!deferredGcashDraft && refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash" && refs.referenceNumberInput) {
       const referenceNumber = refs.referenceNumberInput.value.trim();
       if (!referenceNumber) {
         errors.push("Enter your GCash reference number.");
@@ -1202,16 +1202,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function syncPaymentUi() {
     const method = refs.paymentMethodSelect ? refs.paymentMethodSelect.value : "";
     const referenceWrap = document.getElementById("referenceNumberWrap");
-    const gcashCard = document.getElementById("rushGcashCard");
-    const cashNote = document.getElementById("rushCashNote");
+    const gcashCard = document.getElementById("rushGcashCard") || document.getElementById("serviceGcashCard");
+    const cashNote = document.getElementById("rushCashNote") || document.getElementById("serviceCashNote");
     const isGcash = method === "gcash";
-    const isRushIdPage = document.title.toLowerCase().includes("rush id");
+    const usesPaymentPage = ["rush id", "laminating", "xerox"].some((name) => document.title.toLowerCase().includes(name));
 
-    if (referenceWrap) referenceWrap.style.display = isGcash && !isRushIdPage ? "block" : "none";
+    if (referenceWrap) referenceWrap.style.display = isGcash && !usesPaymentPage ? "block" : "none";
     if (gcashCard) gcashCard.classList.toggle("is-visible", isGcash);
     if (cashNote) cashNote.hidden = method !== "cash";
-    if (refs.referenceNumberInput) refs.referenceNumberInput.required = isGcash && !isRushIdPage;
-    if (joinBtn && isRushIdPage) {
+    if (refs.referenceNumberInput) refs.referenceNumberInput.required = isGcash && !usesPaymentPage;
+    if (joinBtn && usesPaymentPage) {
       joinBtn.textContent = isGcash ? "Continue to GCash Payment" : "Join Queue";
     }
   }
@@ -1268,9 +1268,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function saveRushIdDraft(payload) {
+  function shouldUseServicePaymentPage(payload) {
+    return !!payload
+      && payload.payment_method === "gcash"
+      && ["Rush ID", "Laminating", "Xerox"].includes(payload.service_label);
+  }
+
+  async function saveServicePaymentDraft(payload) {
     const csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
-    const res = await fetch(servitechUrl("/api/rush_id_draft.php"), {
+    const res = await fetch(servitechUrl("/api/service_payment_draft.php"), {
       method: "POST",
       credentials: "same-origin",
       headers: {
@@ -1326,15 +1332,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      if (payload.service_label === "Rush ID" && payload.payment_method === "gcash") {
-        const draftResult = await saveRushIdDraft(payload);
+      if (shouldUseServicePaymentPage(payload)) {
+        const draftResult = await saveServicePaymentDraft(payload);
         if (!draftResult.ok) {
           await cleanupUploadedFiles(payload.uploaded_files);
           setFeedback(draftResult.error || "Unable to continue to payment.", "error");
           return;
         }
 
-        window.location.href = servitechUrl("/pages/customer/custo_rush_id_payment.php");
+        window.location.href = servitechUrl("/pages/customer/custo_service_payment.php");
         return;
       }
 

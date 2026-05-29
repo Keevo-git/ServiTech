@@ -48,6 +48,103 @@ try {
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260410d1">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
+  <style>
+    .service-payment-card {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .service-payment-grid {
+      align-items: start;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+    }
+
+    .service-gcash-card {
+      background: #fffaf4;
+      border: 1px solid rgba(95, 14, 15, 0.14);
+      border-radius: 16px;
+      display: none;
+      gap: 0.75rem;
+      justify-items: center;
+      padding: 0.9rem;
+      text-align: center;
+    }
+
+    .service-gcash-card.is-visible {
+      display: grid;
+    }
+
+    .service-gcash-card strong {
+      color: #5f0e0f;
+      font-size: 0.88rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .service-gcash-card img {
+      border-radius: 10px;
+      display: block;
+      height: auto;
+      max-width: 190px;
+      object-fit: contain;
+      width: 100%;
+    }
+
+    .service-payment-note {
+      background: #fff;
+      border: 1px solid rgba(95, 14, 15, 0.12);
+      border-radius: 14px;
+      color: #9a3412;
+      margin: 0.75rem 0 0;
+      padding: 0.85rem 1rem;
+    }
+
+    body.customer-page--custo2 .form-actions {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0;
+      width: 100%;
+    }
+
+    body.customer-page--custo2 .form-actions .btn-back,
+    body.customer-page--custo2 .form-actions .btn-next {
+      align-items: center;
+      border-radius: 10px;
+      display: inline-flex;
+      flex: 1 1 0;
+      font-size: 16px;
+      font-weight: 600;
+      height: 52px !important;
+      justify-content: center;
+      line-height: 1.2;
+      max-height: 56px;
+      min-height: 0 !important;
+      padding: 0 24px !important;
+      text-align: center;
+      width: auto;
+    }
+
+    @media (max-width: 720px) {
+      .service-payment-grid {
+        grid-template-columns: 1fr;
+      }
+
+      body.customer-page--custo2 .form-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      body.customer-page--custo2 .form-actions .btn-back,
+      body.customer-page--custo2 .form-actions .btn-next {
+        flex: 0 0 auto;
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing" data-price-per-page="20">
 
@@ -84,6 +181,26 @@ try {
             <label for="qtyInput">Quantity / Copies<span class="required">*</span></label>
             <input type="number" min="1" value="1" class="form-input" id="qtyInput">
             <p class="form-note">Note: Laminating price shown is an estimate per item.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card form-card--secondary service-payment-card">
+        <h3 class="step-title">3. PAYMENT</h3>
+        <div class="service-payment-grid">
+          <div>
+            <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
+            <select id="paymentMethodSelect" class="form-select">
+              <option value="" selected disabled>Select payment method</option>
+              <option value="cash">Cash / Pay at Store</option>
+              <option value="gcash">GCash</option>
+            </select>
+            <p id="serviceCashNote" class="service-payment-note" hidden>Please go to the store to complete payment before processing.</p>
+          </div>
+
+          <div id="serviceGcashCard" class="service-gcash-card" aria-live="polite">
+            <strong>Scan GCash QR</strong>
+            <img src="/assets/images/gcash-qr.jpg" alt="JC Shop GCash QR code">
           </div>
         </div>
       </div>

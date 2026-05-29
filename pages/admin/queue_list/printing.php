@@ -20,7 +20,16 @@ function status_class($status): string {
   };
 }
 
-function service_label($category): string {
+function service_label($category, $details = null): string {
+  if (is_string($details) && $details !== "") {
+    $decoded = json_decode($details, true);
+    if (is_array($decoded) && trim((string)($decoded["service_label"] ?? "")) !== "") {
+      return trim((string)$decoded["service_label"]);
+    }
+  } elseif (is_array($details) && trim((string)($details["service_label"] ?? "")) !== "") {
+    return trim((string)$details["service_label"]);
+  }
+
   $map = [
     "printing" => "Document Printing",
     "online_printorder" => "Online Print Order",
@@ -148,7 +157,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                 <tr>
                   <td><?= esc($r["queue_code"]) ?></td>
                   <td><?= esc($r["fullname"]) ?></td>
-                  <td><?= esc(service_label($r["category"])) ?></td>
+                  <td><?= esc(service_label($r["category"], $r["details"] ?? null)) ?></td>
                   <td>
                     <span class="submitted-stack">
                       <strong><?= esc(payment_label($r["payment_method"])) ?></strong>
@@ -193,7 +202,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                       data-id="<?= (int)$r["id"] ?>"
                       data-queue-code="<?= esc($r["queue_code"]) ?>"
                       data-customer="<?= esc($r["fullname"]) ?>"
-                      data-service="<?= esc(service_label($r["category"])) ?>"
+                      data-service="<?= esc(service_label($r["category"], $r["details"] ?? null)) ?>"
                     >Message</button>
                     <button class="btn-delete" data-id="<?= (int)$r["id"] ?>" title="Delete">x</button>
                   </td>
