@@ -271,7 +271,9 @@ header("Expires: 0");
     }
 
     .service-payment-page .form-actions {
-      display: flex;
+      align-items: stretch !important;
+      display: flex !important;
+      flex-direction: row !important;
       flex-wrap: wrap;
       gap: 0.75rem;
       margin-top: 0;
@@ -283,15 +285,17 @@ header("Expires: 0");
       align-items: center;
       border-radius: 10px;
       display: inline-flex;
-      flex: 1 1 240px;
+      flex: 1 1 0 !important;
       font-size: 16px;
       font-weight: 600;
       justify-content: center;
       line-height: 1.2;
+      height: auto !important;
+      max-height: 56px !important;
       min-height: 52px !important;
       padding: 14px 22px !important;
       text-align: center;
-      width: 100%;
+      width: auto !important;
     }
 
     @media (max-width: 860px) {
@@ -331,6 +335,8 @@ header("Expires: 0");
       .service-payment-page .form-actions .btn-back,
       .service-payment-page .form-actions .btn-next {
         flex: 0 0 auto !important;
+        height: auto !important;
+        max-height: none !important;
         min-height: 52px !important;
         padding: 14px 18px !important;
         width: 100% !important;
