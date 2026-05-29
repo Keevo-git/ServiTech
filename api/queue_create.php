@@ -79,6 +79,7 @@ $details = [
   "color_option" => $data["color_option"] ?? null,
   "payment_method" => $payment_method !== "" ? $payment_method : null,
   "reference_number" => $payment_method === "gcash" ? $reference_number : null,
+  "payment_status" => $payment_method === "gcash" ? "Pending Verification" : ($payment_method === "cash" ? "Pay at Store" : null),
   "package_label" => $data["package_label"] ?? null,
   "lamination_type" => $data["lamination_type"] ?? null,
   "device_type" => $data["device_type"] ?? null,
@@ -116,6 +117,7 @@ try {
   $ins = $pdo->prepare("
     INSERT INTO queues (user_id, queue_code, category, details)
     VALUES (:user_id, :queue_code, :category, :details::jsonb)
+    RETURNING id
   ");
   $ins->execute([
     ":user_id" => $user_id,
@@ -123,10 +125,36 @@ try {
     ":category" => $category,
     ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
   ]);
+  $queueRow = $ins->fetch(PDO::FETCH_ASSOC);
+  $queue_id = (int)($queueRow["id"] ?? 0);
+  if ($queue_id <= 0) {
+    throw new RuntimeException("Queue was not created.");
+  }
+
+  if ($payment_method !== "") {
+    $paymentStmt = $pdo->prepare("
+      INSERT INTO payments (queue_id, user_id, amount, payment_method, reference_number, status)
+      VALUES (:queue_id, :user_id, :amount, :payment_method, :reference_number, :status)
+    ");
+    $paymentStmt->execute([
+      ":queue_id" => $queue_id,
+      ":user_id" => $user_id,
+      ":amount" => isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : 0,
+      ":payment_method" => $payment_method,
+      ":reference_number" => $payment_method === "gcash" ? $reference_number : null,
+      ":status" => "PENDING",
+    ]);
+  }
+
+  $paymentLabel = $payment_method === "gcash" ? "GCash payment details submitted for verification" : ($payment_method === "cash" ? "Cash payment selected" : "Queue submitted");
+  servitech_add_notification($pdo, $user_id, $category, $queue_id, "Queue {$queue_code}: {$paymentLabel}.");
+  if ($payment_method === "gcash") {
+    servitech_notify_admins($pdo, $category, $queue_id, "Queue {$queue_code}: New GCash payment reference needs checking.");
+  }
 
   $pdo->commit();
 
-  echo json_encode(["ok" => true, "queue_code" => $queue_code]);
+  echo json_encode(["ok" => true, "queue_code" => $queue_code, "queue_id" => $queue_id]);
   exit();
 } catch (Throwable $e) {
   if ($pdo->inTransaction()) {

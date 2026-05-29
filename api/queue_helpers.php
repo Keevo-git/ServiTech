@@ -138,3 +138,51 @@ function servitech_cleanup_uploaded_print_files(array $uploadedFiles): void {
     }
   }
 }
+
+function servitech_ensure_notifications_table(PDO $pdo): void {
+  $pdo->exec("
+    CREATE TABLE IF NOT EXISTS notifications (
+      id BIGSERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      type TEXT NOT NULL DEFAULT 'queue',
+      reference_id INTEGER NULL,
+      message TEXT NOT NULL,
+      is_read BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  ");
+}
+
+function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $referenceId, string $message): void {
+  if ($userId <= 0 || trim($message) === "") {
+    return;
+  }
+
+  servitech_ensure_notifications_table($pdo);
+  $stmt = $pdo->prepare("
+    INSERT INTO notifications (user_id, type, reference_id, message, is_read, created_at)
+    VALUES (:user_id, :type, :reference_id, :message, FALSE, NOW())
+  ");
+  $stmt->execute([
+    ":user_id" => $userId,
+    ":type" => trim($type) !== "" ? trim($type) : "queue",
+    ":reference_id" => $referenceId,
+    ":message" => $message,
+  ]);
+}
+
+function servitech_notify_admins(PDO $pdo, string $type, ?int $referenceId, string $message): void {
+  if (trim($message) === "") {
+    return;
+  }
+
+  $stmt = $pdo->query("
+    SELECT id
+    FROM users
+    WHERE LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'admin'
+  ");
+
+  foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $adminId) {
+    servitech_add_notification($pdo, (int)$adminId, $type, $referenceId, $message);
+  }
+}

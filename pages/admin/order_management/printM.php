@@ -26,6 +26,14 @@ function status_label(string $s): string
     };
 }
 
+function payment_label($value): string
+{
+    $key = strtolower(trim((string)$value));
+    if ($key === "gcash") return "GCash";
+    if ($key === "cash") return "Cash";
+    return "-";
+}
+
 $walkinStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname
   FROM queues q
@@ -213,11 +221,11 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
               <div class="section-title-small" style="margin-top:18px;">Online Orders - Pre-ordered printing requests</div>
               <table class="orders table-content">
                 <thead>
-                  <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                  <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                   <?php if (!$online): ?>
-                    <tr><td colspan="7" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
+                    <tr><td colspan="8" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
                   <?php else: ?>
                     <?php foreach ($online as $r): ?>
                       <?php $cls = status_class($r["status"]); ?>
@@ -225,6 +233,13 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                         <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                         <td><?= htmlspecialchars($r["fullname"]) ?></td>
                         <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                        <td>
+                          <span class="datetime-stack">
+                            <strong><?= htmlspecialchars(payment_label($r["payment_method"])) ?></strong>
+                            <small>Ref: <?= htmlspecialchars($r["reference_number"] ?: "-") ?></small>
+                            <small>Status: <?= htmlspecialchars($r["payment_status"] ?: "-") ?></small>
+                          </span>
+                        </td>
                         <td>
                           <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
                           <?php if (!$fileItems): ?>

@@ -172,9 +172,47 @@ function rush_price(array $pricing, string $key): string {
       margin: 0;
     }
 
+    .rush-cash-note {
+      background: #fff;
+      border: 1px solid rgba(95, 14, 15, 0.12);
+      border-radius: 14px;
+      color: #9a3412;
+      margin: 0.75rem 0 0;
+      padding: 0.85rem 1rem;
+    }
+
+    body.customer-page--custo2 .form-actions {
+      align-items: stretch;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0;
+      width: 100%;
+    }
+
+    body.customer-page--custo2 .form-actions .btn-back,
+    body.customer-page--custo2 .form-actions .btn-next {
+      align-items: center;
+      border-radius: 10px;
+      display: inline-flex;
+      flex: 1 1 240px;
+      font-size: 16px;
+      font-weight: 600;
+      justify-content: center;
+      line-height: 1.2;
+      min-height: 48px;
+      padding: 13px 22px;
+      text-align: center;
+      width: 100%;
+    }
+
     @media (max-width: 720px) {
       .rush-payment-grid {
         grid-template-columns: 1fr;
+      }
+
+      body.customer-page--custo2 .form-actions {
+        flex-direction: column;
       }
     }
   </style>
@@ -257,6 +295,7 @@ function rush_price(array $pricing, string $key): string {
               <input type="text" id="referenceNumberInput" class="form-input" placeholder="Enter the 13-digit transaction number" autocomplete="off" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13">
               <p class="rush-payment-note">This payment will be verified by shop employees/admin.</p>
             </div>
+            <p id="rushCashNote" class="rush-cash-note" hidden>Please go to the store to complete payment before processing.</p>
           </div>
 
           <div id="rushGcashCard" class="rush-gcash-card" aria-live="polite">

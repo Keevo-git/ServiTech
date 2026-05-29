@@ -1158,7 +1158,8 @@ document.addEventListener("DOMContentLoaded", () => {
       setFieldInvalid(refs.paymentMethodSelect, true);
     }
 
-    if (refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash" && refs.referenceNumberInput) {
+    const rushIdGcashDraft = payload.service_label === "Rush ID" && refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash";
+    if (!rushIdGcashDraft && refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash" && refs.referenceNumberInput) {
       const referenceNumber = refs.referenceNumberInput.value.trim();
       if (!referenceNumber) {
         errors.push("Enter your GCash reference number.");
@@ -1202,11 +1203,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const method = refs.paymentMethodSelect ? refs.paymentMethodSelect.value : "";
     const referenceWrap = document.getElementById("referenceNumberWrap");
     const gcashCard = document.getElementById("rushGcashCard");
+    const cashNote = document.getElementById("rushCashNote");
     const isGcash = method === "gcash";
+    const isRushIdPage = document.title.toLowerCase().includes("rush id");
 
-    if (referenceWrap) referenceWrap.style.display = isGcash ? "block" : "none";
+    if (referenceWrap) referenceWrap.style.display = isGcash && !isRushIdPage ? "block" : "none";
     if (gcashCard) gcashCard.classList.toggle("is-visible", isGcash);
-    if (refs.referenceNumberInput) refs.referenceNumberInput.required = isGcash;
+    if (cashNote) cashNote.hidden = method !== "cash";
+    if (refs.referenceNumberInput) refs.referenceNumberInput.required = isGcash && !isRushIdPage;
+    if (joinBtn && isRushIdPage) {
+      joinBtn.textContent = isGcash ? "Continue to GCash Payment" : "Join Queue";
+    }
   }
 
   async function createQueue(payload) {
@@ -1261,6 +1268,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function saveRushIdDraft(payload) {
+    const csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
+    const res = await fetch(servitechUrl("/api/rush_id_draft.php"), {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRF-Token": csrf,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const raw = await res.text();
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return { ok: false, error: "Server returned invalid response." };
+    }
+  }
+
   if (refs.paymentMethodSelect) {
     refs.paymentMethodSelect.addEventListener("change", syncPaymentUi);
     syncPaymentUi();
@@ -1295,6 +1324,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (preSubmit.payload && typeof preSubmit.payload === "object") {
           Object.assign(payload, preSubmit.payload);
         }
+      }
+
+      if (payload.service_label === "Rush ID" && payload.payment_method === "gcash") {
+        const draftResult = await saveRushIdDraft(payload);
+        if (!draftResult.ok) {
+          await cleanupUploadedFiles(payload.uploaded_files);
+          setFeedback(draftResult.error || "Unable to continue to payment.", "error");
+          return;
+        }
+
+        window.location.href = servitechUrl("/pages/customer/custo_rush_id_payment.php");
+        return;
       }
 
       const result = await createQueue(payload);

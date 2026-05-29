@@ -156,8 +156,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       box-shadow: 0 8px 18px rgba(74, 5, 5, 0.08);
       color: #7f1d1d !important;
       cursor: pointer;
-      display: inline-flex !important;
-      font-size: 1.35rem !important;
+      display: flex !important;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.28rem !important;
       font-weight: 700;
       height: 40px !important;
       justify-content: center !important;
@@ -166,16 +167,17 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       position: absolute !important;
       right: clamp(16px, 3vw, 24px) !important;
       top: clamp(16px, 3vw, 24px) !important;
+      text-align: center;
       transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
       width: 40px !important;
     }
 
     body.customer-layout.customer-page--status .status-modal .modal-close:hover,
     body.customer-layout.customer-page--status .status-modal .modal-close:focus-visible {
-      background: #fee2e2 !important;
-      border-color: rgba(185, 28, 28, 0.22) !important;
-      box-shadow: 0 10px 22px rgba(185, 28, 28, 0.14);
-      color: #b91c1c !important;
+      background: linear-gradient(135deg, #fff7ed 0%, #fee2e2 100%) !important;
+      border-color: rgba(185, 28, 28, 0.26) !important;
+      box-shadow: 0 14px 28px rgba(185, 28, 28, 0.18);
+      color: #9f1239 !important;
       outline: none;
       transform: translateY(-1px);
     }
@@ -593,7 +595,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     <div id="detailModal" class="modal-overlay" style="display:none;">
       <div class="modal status-modal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle" tabindex="-1">
-        <button id="closeDetail" class="modal-close" type="button" aria-label="Close details">&times;</button>
+        <button id="closeDetail" class="modal-close" type="button" aria-label="Close details"><span aria-hidden="true">&times;</span></button>
 
         <div class="status-modal__header">
           <div>

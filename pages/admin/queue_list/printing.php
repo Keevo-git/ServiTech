@@ -32,6 +32,13 @@ function service_label($category): string {
   return $map[$key] ?? ucfirst($key);
 }
 
+function payment_label($value): string {
+  $key = strtolower(trim((string)$value));
+  if ($key === "gcash") return "GCash";
+  if ($key === "cash") return "Cash";
+  return "-";
+}
+
 $cats = ["printing", "online_printorder", "xerox", "rush-id", "laminating"];
 $in = implode(",", array_fill(0, count($cats), "?"));
 
@@ -124,6 +131,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                 <th>Order ID</th>
                 <th>Customer Name</th>
                 <th>Service Details</th>
+                <th>Payment</th>
                 <th>Attached File</th>
                 <th>Submitted</th>
                 <th>Status</th>
@@ -133,7 +141,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
             <tbody>
             <?php if (!$rows): ?>
               <tr>
-                <td colspan="7" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
+                <td colspan="8" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
               </tr>
             <?php else: ?>
               <?php foreach ($rows as $r): ?>
@@ -141,6 +149,13 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                   <td><?= esc($r["queue_code"]) ?></td>
                   <td><?= esc($r["fullname"]) ?></td>
                   <td><?= esc(service_label($r["category"])) ?></td>
+                  <td>
+                    <span class="submitted-stack">
+                      <strong><?= esc(payment_label($r["payment_method"])) ?></strong>
+                      <small>Ref: <?= esc($r["reference_number"] ?: "-") ?></small>
+                      <small>Status: <?= esc($r["payment_status"] ?: "-") ?></small>
+                    </span>
+                  </td>
                   <td>
                     <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
                     <?php if (!$fileItems): ?>
