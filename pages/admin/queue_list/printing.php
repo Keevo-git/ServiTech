@@ -79,9 +79,9 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Printing</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260526submitted-layout') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260530admin-ui') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -104,7 +104,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <nav id="admin-header-menu" data-collapsible-menu>
     <a href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>" class="admin-notification-link" aria-label="Queue notifications: <?= (int)$adminNotificationCount ?>">
       <span class="admin-notification-icon" aria-hidden="true"></span>
-      <span>Alerts</span>
+      <span>Notifications</span>
       <?php if ($adminNotificationCount > 0): ?>
         <strong class="admin-notification-badge"><?= (int)$adminNotificationCount ?></strong>
       <?php endif; ?>
@@ -134,7 +134,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
         </div>
 
         <div class="table-scroll-wrapper">
-          <table class="table-content">
+          <table class="table-content queue-table queue-table--files">
             <thead>
               <tr>
                 <th>Order ID</th>
@@ -173,9 +173,15 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                       <div class="admin-file-list">
                         <?php foreach ($fileItems as $fileItem): ?>
                           <?php if (!empty($fileItem["url"])): ?>
-                            <a class="admin-file-link" href="<?= esc($fileItem["url"]) ?>" target="_blank" rel="noopener noreferrer"><?= esc($fileItem["label"]) ?></a>
+                            <a class="admin-file-link" href="<?= esc($fileItem["url"]) ?>" target="_blank" rel="noopener noreferrer">
+                              <span class="admin-file-name"><?= esc($fileItem["label"]) ?></span>
+                              <span class="admin-file-action">Open</span>
+                            </a>
                           <?php else: ?>
-                            <span class="admin-file-empty"><?= esc($fileItem["label"]) ?> unavailable</span>
+                            <span class="admin-file-empty">
+                              <span class="admin-file-name"><?= esc($fileItem["label"]) ?></span>
+                              <span class="admin-file-action">Unavailable</span>
+                            </span>
                           <?php endif; ?>
                         <?php endforeach; ?>
                       </div>

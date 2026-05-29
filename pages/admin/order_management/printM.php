@@ -84,6 +84,10 @@ $onlineStmt = $pdo->prepare("
 $onlineStmt->execute();
 $online = $onlineStmt->fetchAll();
 $adminNotificationCount = admin_queue_notification_count($pdo);
+$printView = strtolower(trim((string)($_GET["view"] ?? "online")));
+if (!in_array($printView, ["online", "walkin"], true)) {
+    $printView = "online";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -92,9 +96,9 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Order Management - Printing</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260526submitted-completed') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530admin-ui') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
 <body class="admin-dashboard">
@@ -118,7 +122,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <nav id="admin-header-menu" data-collapsible-menu>
     <a href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>" class="admin-notification-link" aria-label="Queue notifications: <?= (int)$adminNotificationCount ?>">
       <span class="admin-notification-icon" aria-hidden="true"></span>
-      <span>Alerts</span>
+      <span>Notifications</span>
       <?php if ($adminNotificationCount > 0): ?>
         <strong class="admin-notification-badge"><?= (int)$adminNotificationCount ?></strong>
       <?php endif; ?>
@@ -150,14 +154,16 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
         <div class="orders-scroll-wrapper">
           <div class="orders-content">
             <div class="order-tabs">
-              <a class="tab active" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
+              <a class="tab <?= $printView === "online" ? "active" : "" ?>" href="<?= admin_url('/pages/admin/order_management/printM.php?view=online') ?>">Online Printing</a>
+              <a class="tab <?= $printView === "walkin" ? "active" : "" ?>" href="<?= admin_url('/pages/admin/order_management/printM.php?view=walkin') ?>">Walk-in Printing</a>
               <a class="tab" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
               <a class="tab" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
             </div>
 
             <div class="table-section">
-              <div class="walkin-title">Walk-in Queue - Manage and update order statuses</div>
-              <table class="orders table-content">
+              <?php if ($printView === "walkin"): ?>
+              <div class="walkin-title">Walk-in Printing - Manage and update order statuses</div>
+              <table class="orders table-content order-table order-table--walkin">
                 <thead>
                   <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
                 </thead>
@@ -179,9 +185,15 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                             <div class="admin-file-list">
                               <?php foreach ($fileItems as $fileItem): ?>
                                 <?php if (!empty($fileItem["url"])): ?>
-                                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></a>
+                                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
+                                    <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
+                                    <span class="admin-file-action">Open</span>
+                                  </a>
                                 <?php else: ?>
-                                  <span class="admin-file-empty"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?> unavailable</span>
+                                  <span class="admin-file-empty">
+                                    <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
+                                    <span class="admin-file-action">Unavailable</span>
+                                  </span>
                                 <?php endif; ?>
                               <?php endforeach; ?>
                             </div>
@@ -217,9 +229,10 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                   <?php endif; ?>
                 </tbody>
               </table>
+              <?php else: ?>
 
-              <div class="section-title-small" style="margin-top:18px;">Online Orders - Pre-ordered printing requests</div>
-              <table class="orders table-content">
+              <div class="section-title-small">Online Printing - Pre-ordered printing requests</div>
+              <table class="orders table-content order-table order-table--online">
                 <thead>
                   <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
                 </thead>
@@ -248,9 +261,15 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                             <div class="admin-file-list">
                               <?php foreach ($fileItems as $fileItem): ?>
                                 <?php if (!empty($fileItem["url"])): ?>
-                                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></a>
+                                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
+                                    <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
+                                    <span class="admin-file-action">Open</span>
+                                  </a>
                                 <?php else: ?>
-                                  <span class="admin-file-empty"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?> unavailable</span>
+                                  <span class="admin-file-empty">
+                                    <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
+                                    <span class="admin-file-action">Unavailable</span>
+                                  </span>
                                 <?php endif; ?>
                               <?php endforeach; ?>
                             </div>
@@ -286,6 +305,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                   <?php endif; ?>
                 </tbody>
               </table>
+              <?php endif; ?>
             </div>
           </div>
         </div>

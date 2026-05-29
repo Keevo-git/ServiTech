@@ -81,10 +81,11 @@ table {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
 }
 
 .table-content {
-  min-width: 1160px;
+  min-width: 1040px;
 }
 
 th,
@@ -94,6 +95,7 @@ td {
   border-bottom: 1px solid #e5ebf3;
   font-size: 14px;
   vertical-align: middle;
+  overflow-wrap: anywhere;
 }
 
 th {
@@ -135,6 +137,84 @@ th {
 .table-content th:nth-child(7),
 .table-content td:nth-child(7) {
   width: 370px;
+}
+
+.queue-table--files {
+  min-width: 1320px;
+}
+
+.queue-table--files th:nth-child(1),
+.queue-table--files td:nth-child(1) {
+  width: 90px;
+}
+
+.queue-table--files th:nth-child(2),
+.queue-table--files td:nth-child(2) {
+  width: 170px;
+}
+
+.queue-table--files th:nth-child(3),
+.queue-table--files td:nth-child(3) {
+  width: 150px;
+}
+
+.queue-table--files th:nth-child(4),
+.queue-table--files td:nth-child(4) {
+  width: 160px;
+}
+
+.queue-table--files th:nth-child(5),
+.queue-table--files td:nth-child(5) {
+  width: 300px;
+}
+
+.queue-table--files th:nth-child(6),
+.queue-table--files td:nth-child(6) {
+  width: 140px;
+}
+
+.queue-table--files th:nth-child(7),
+.queue-table--files td:nth-child(7) {
+  width: 120px;
+}
+
+.queue-table--files th:nth-child(8),
+.queue-table--files td:nth-child(8) {
+  width: 390px;
+}
+
+.queue-table--simple {
+  min-width: 980px;
+}
+
+.queue-table--simple th:nth-child(1),
+.queue-table--simple td:nth-child(1) {
+  width: 90px;
+}
+
+.queue-table--simple th:nth-child(2),
+.queue-table--simple td:nth-child(2) {
+  width: 190px;
+}
+
+.queue-table--simple th:nth-child(3),
+.queue-table--simple td:nth-child(3) {
+  width: 190px;
+}
+
+.queue-table--simple th:nth-child(4),
+.queue-table--simple td:nth-child(4) {
+  width: 150px;
+}
+
+.queue-table--simple th:nth-child(5),
+.queue-table--simple td:nth-child(5) {
+  width: 120px;
+}
+
+.queue-table--simple th:nth-child(6),
+.queue-table--simple td:nth-child(6) {
+  width: 390px;
 }
 
 .submitted-stack {
@@ -206,7 +286,8 @@ td.actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  min-width: 360px;
 }
 
 .actions button {
@@ -218,6 +299,8 @@ td.actions {
   color: #fff;
   font-weight: 700;
   font-size: 12px;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .btn-start {

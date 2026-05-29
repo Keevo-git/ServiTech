@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/../_includes/queue_files.php";
 
 function esc($value): string {
   return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
@@ -30,6 +31,7 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute();
 $rows = $stmt->fetchAll();
+$adminNotificationCount = admin_queue_notification_count($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,9 +40,9 @@ $rows = $stmt->fetchAll();
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Queue Management - Repair</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260526submitted-layout') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260530admin-ui') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -61,6 +63,13 @@ $rows = $stmt->fetchAll();
     <span class="nav-toggle__bar"></span>
   </button>
   <nav id="admin-header-menu" data-collapsible-menu>
+    <a href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>" class="admin-notification-link" aria-label="Queue notifications: <?= (int)$adminNotificationCount ?>">
+      <span class="admin-notification-icon" aria-hidden="true"></span>
+      <span>Notifications</span>
+      <?php if ($adminNotificationCount > 0): ?>
+        <strong class="admin-notification-badge"><?= (int)$adminNotificationCount ?></strong>
+      <?php endif; ?>
+    </a>
     <a href="<?= admin_url('/index.php') ?>">Services</a>
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
     <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
@@ -86,7 +95,7 @@ $rows = $stmt->fetchAll();
         </div>
 
         <div class="table-scroll-wrapper">
-          <table class="table-content">
+          <table class="table-content queue-table queue-table--simple">
           <thead>
             <tr>
               <th>Order ID</th>

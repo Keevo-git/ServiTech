@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/../_includes/queue_files.php";
 
 function status_class(string $s): string
 {
@@ -36,6 +37,7 @@ $rows = $pdo->query("
     )
   ORDER BY q.created_at DESC
 ")->fetchAll();
+$adminNotificationCount = admin_queue_notification_count($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,9 +46,9 @@ $rows = $pdo->query("
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Order Management - Installation</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260521responsive') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260526submitted-completed') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530admin-ui') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
 <body class="admin-dashboard">
@@ -68,6 +70,13 @@ $rows = $pdo->query("
     <span class="nav-toggle__bar"></span>
   </button>
   <nav id="admin-header-menu" data-collapsible-menu>
+    <a href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>" class="admin-notification-link" aria-label="Queue notifications: <?= (int)$adminNotificationCount ?>">
+      <span class="admin-notification-icon" aria-hidden="true"></span>
+      <span>Notifications</span>
+      <?php if ($adminNotificationCount > 0): ?>
+        <strong class="admin-notification-badge"><?= (int)$adminNotificationCount ?></strong>
+      <?php endif; ?>
+    </a>
     <a href="<?= admin_url('/index.php') ?>">Services</a>
     <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
     <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
@@ -95,14 +104,15 @@ $rows = $pdo->query("
         <div class="orders-scroll-wrapper">
           <div class="orders-content">
             <div class="order-tabs">
-              <a class="tab" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
+              <a class="tab" href="<?= admin_url('/pages/admin/order_management/printM.php?view=online') ?>">Online Printing</a>
+              <a class="tab" href="<?= admin_url('/pages/admin/order_management/printM.php?view=walkin') ?>">Walk-in Printing</a>
               <a class="tab" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
               <a class="tab active" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
             </div>
 
             <div class="table-section">
               <div class="walkin-title">Installation Queue - Manage and update order statuses</div>
-              <table class="orders table-content">
+              <table class="orders table-content order-table order-table--simple">
                 <thead>
                   <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
                 </thead>
