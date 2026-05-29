@@ -76,9 +76,7 @@ body.admin-dashboard .page-frame {
 
 .orders-scroll-wrapper {
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-inline: contain;
+  overflow: visible;
 }
 
 .orders-content {
@@ -149,10 +147,14 @@ table.orders {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+  border: 1px solid #e2eaf4;
+  border-radius: 12px;
+  background: #fff;
 }
 
 .table-content {
-  min-width: 1040px;
+  min-width: 960px;
 }
 
 .table-section {
@@ -163,12 +165,12 @@ table.orders {
 
 .table-section table {
   width: 100%;
-  min-width: 1040px;
+  min-width: 960px;
 }
 
 table.orders th,
 table.orders td {
-  padding: 14px 12px;
+  padding: 14px 10px;
   border-bottom: 1px solid #e4ebf4;
   text-align: left;
   font-size: 14px;
@@ -214,39 +216,39 @@ table.orders td:nth-child(7) {
 }
 
 table.orders.order-table--online {
-  min-width: 1220px;
+  min-width: 1080px;
 }
 
 table.orders.order-table--online th:nth-child(1),
 table.orders.order-table--online td:nth-child(1) {
-  width: 110px;
+  width: 86px;
 }
 
 table.orders.order-table--online th:nth-child(2),
 table.orders.order-table--online td:nth-child(2) {
-  width: 190px;
+  width: 155px;
 }
 
 table.orders.order-table--online th:nth-child(3),
 table.orders.order-table--online td:nth-child(3) {
-  width: 140px;
+  width: 110px;
 }
 
 table.orders.order-table--online th:nth-child(4),
 table.orders.order-table--online td:nth-child(4) {
-  width: 170px;
+  width: 130px;
 }
 
 table.orders.order-table--online th:nth-child(5),
 table.orders.order-table--online td:nth-child(5) {
-  width: 300px;
+  width: 260px;
 }
 
 table.orders.order-table--online th:nth-child(6),
 table.orders.order-table--online td:nth-child(6),
 table.orders.order-table--online th:nth-child(7),
 table.orders.order-table--online td:nth-child(7) {
-  width: 140px;
+  width: 125px;
 }
 
 table.orders.order-table--online th:nth-child(8),
@@ -256,7 +258,7 @@ table.orders.order-table--online td:nth-child(8) {
 
 table.orders.order-table--walkin th:nth-child(4),
 table.orders.order-table--walkin td:nth-child(4) {
-  width: 300px;
+  width: 260px;
 }
 
 table.orders.order-table--walkin th:nth-child(5),
@@ -353,6 +355,7 @@ table.orders.order-table--simple td:last-child {
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+  min-width: 128px;
 }
 
 .update-btn:hover {

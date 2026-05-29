@@ -112,50 +112,52 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 
             <div class="table-section">
               <div class="walkin-title">Installation Queue - Manage and update order statuses</div>
-              <table class="orders table-content order-table order-table--simple">
-                <thead>
-                  <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
-                </thead>
-                <tbody>
-                  <?php if (!$rows): ?>
-                    <tr><td colspan="6" style="color:#777;padding:14px;">No installation queues yet.</td></tr>
-                  <?php else: ?>
-                    <?php foreach ($rows as $r): ?>
-                      <?php $cls = status_class($r["status"]); ?>
-                      <tr>
-                        <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                        <td><?= htmlspecialchars($r["fullname"]) ?></td>
-                        <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                        <td>
-                          <span class="datetime-stack">
-                            <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
-                            <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
-                          </span>
-                        </td>
-                        <td>
-                          <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
-                            <span class="datetime-stack datetime-stack--muted">
-                              <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
-                              <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
+              <div class="table-scroll-wrapper">
+                <table class="orders table-content order-table order-table--simple">
+                  <thead>
+                    <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                  </thead>
+                  <tbody>
+                    <?php if (!$rows): ?>
+                      <tr><td colspan="6" style="color:#777;padding:14px;">No installation queues yet.</td></tr>
+                    <?php else: ?>
+                      <?php foreach ($rows as $r): ?>
+                        <?php $cls = status_class($r["status"]); ?>
+                        <tr>
+                          <td><?= htmlspecialchars($r["queue_code"]) ?></td>
+                          <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                          <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                          <td>
+                            <span class="datetime-stack">
+                              <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
+                              <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
                             </span>
-                          <?php else: ?>
-                            <span class="datetime-empty">-</span>
-                          <?php endif; ?>
-                        </td>
-                        <td>
-                          <button
-                            class="update-btn"
-                            data-id="<?= (int)$r["id"] ?>"
-                            data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                            data-status="<?= htmlspecialchars($r["status"]) ?>"
-                            data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
-                          >Update Status</button>
-                        </td>
-                      </tr>
-                    <?php endforeach; ?>
-                  <?php endif; ?>
-                </tbody>
-              </table>
+                          </td>
+                          <td>
+                            <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
+                              <span class="datetime-stack datetime-stack--muted">
+                                <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
+                                <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
+                              </span>
+                            <?php else: ?>
+                              <span class="datetime-empty">-</span>
+                            <?php endif; ?>
+                          </td>
+                          <td>
+                            <button
+                              class="update-btn"
+                              data-id="<?= (int)$r["id"] ?>"
+                              data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
+                              data-status="<?= htmlspecialchars($r["status"]) ?>"
+                              data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
+                            >Update Status</button>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

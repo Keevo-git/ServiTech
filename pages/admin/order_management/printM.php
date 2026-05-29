@@ -163,148 +163,152 @@ if (!in_array($printView, ["online", "walkin"], true)) {
             <div class="table-section">
               <?php if ($printView === "walkin"): ?>
               <div class="walkin-title">Walk-in Printing - Manage and update order statuses</div>
-              <table class="orders table-content order-table order-table--walkin">
-                <thead>
-                  <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
-                </thead>
-                <tbody>
-                  <?php if (!$walkin): ?>
-                    <tr><td colspan="7" style="color:#777;padding:14px;">No walk-in queues older than 15 minutes yet.</td></tr>
-                  <?php else: ?>
-                    <?php foreach ($walkin as $r): ?>
-                      <?php $cls = status_class($r["status"]); ?>
-                      <tr>
-                        <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                        <td><?= htmlspecialchars($r["fullname"]) ?></td>
-                        <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                        <td>
-                          <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
-                          <?php if (!$fileItems): ?>
-                            <span class="admin-file-empty">No file</span>
-                          <?php else: ?>
-                            <div class="admin-file-list">
-                              <?php foreach ($fileItems as $fileItem): ?>
-                                <?php if (!empty($fileItem["url"])): ?>
-                                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
-                                    <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
-                                    <span class="admin-file-action">Open</span>
-                                  </a>
-                                <?php else: ?>
-                                  <span class="admin-file-empty">
-                                    <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
-                                    <span class="admin-file-action">Unavailable</span>
-                                  </span>
-                                <?php endif; ?>
-                              <?php endforeach; ?>
-                            </div>
-                          <?php endif; ?>
-                        </td>
-                        <td>
-                          <span class="datetime-stack">
-                            <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
-                            <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
-                          </span>
-                        </td>
-                        <td>
-                          <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
-                            <span class="datetime-stack datetime-stack--muted">
-                              <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
-                              <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
+              <div class="table-scroll-wrapper">
+                <table class="orders table-content order-table order-table--walkin">
+                  <thead>
+                    <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                  </thead>
+                  <tbody>
+                    <?php if (!$walkin): ?>
+                      <tr><td colspan="7" style="color:#777;padding:14px;">No walk-in queues older than 15 minutes yet.</td></tr>
+                    <?php else: ?>
+                      <?php foreach ($walkin as $r): ?>
+                        <?php $cls = status_class($r["status"]); ?>
+                        <tr>
+                          <td><?= htmlspecialchars($r["queue_code"]) ?></td>
+                          <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                          <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                          <td>
+                            <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
+                            <?php if (!$fileItems): ?>
+                              <span class="admin-file-empty">No file</span>
+                            <?php else: ?>
+                              <div class="admin-file-list">
+                                <?php foreach ($fileItems as $fileItem): ?>
+                                  <?php if (!empty($fileItem["url"])): ?>
+                                    <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
+                                      <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
+                                      <span class="admin-file-action">Open</span>
+                                    </a>
+                                  <?php else: ?>
+                                    <span class="admin-file-empty">
+                                      <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
+                                      <span class="admin-file-action">Unavailable</span>
+                                    </span>
+                                  <?php endif; ?>
+                                <?php endforeach; ?>
+                              </div>
+                            <?php endif; ?>
+                          </td>
+                          <td>
+                            <span class="datetime-stack">
+                              <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
+                              <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
                             </span>
-                          <?php else: ?>
-                            <span class="datetime-empty">-</span>
-                          <?php endif; ?>
-                        </td>
-                        <td>
-                          <button
-                            class="update-btn"
-                            data-id="<?= (int)$r["id"] ?>"
-                            data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                            data-status="<?= htmlspecialchars($r["status"]) ?>"
-                            data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
-                          >Update Status</button>
-                        </td>
-                      </tr>
-                    <?php endforeach; ?>
-                  <?php endif; ?>
-                </tbody>
-              </table>
+                          </td>
+                          <td>
+                            <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
+                              <span class="datetime-stack datetime-stack--muted">
+                                <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
+                                <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
+                              </span>
+                            <?php else: ?>
+                              <span class="datetime-empty">-</span>
+                            <?php endif; ?>
+                          </td>
+                          <td>
+                            <button
+                              class="update-btn"
+                              data-id="<?= (int)$r["id"] ?>"
+                              data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
+                              data-status="<?= htmlspecialchars($r["status"]) ?>"
+                              data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
+                            >Update Status</button>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
+              </div>
               <?php else: ?>
 
               <div class="section-title-small">Online Printing - Pre-ordered printing requests</div>
-              <table class="orders table-content order-table order-table--online">
-                <thead>
-                  <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
-                </thead>
-                <tbody>
-                  <?php if (!$online): ?>
-                    <tr><td colspan="8" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
-                  <?php else: ?>
-                    <?php foreach ($online as $r): ?>
-                      <?php $cls = status_class($r["status"]); ?>
-                      <tr>
-                        <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                        <td><?= htmlspecialchars($r["fullname"]) ?></td>
-                        <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                        <td>
-                          <span class="datetime-stack">
-                            <strong><?= htmlspecialchars(payment_label($r["payment_method"])) ?></strong>
-                            <small>Ref: <?= htmlspecialchars($r["reference_number"] ?: "-") ?></small>
-                            <small>Status: <?= htmlspecialchars($r["payment_status"] ?: "-") ?></small>
-                          </span>
-                        </td>
-                        <td>
-                          <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
-                          <?php if (!$fileItems): ?>
-                            <span class="admin-file-empty">No file</span>
-                          <?php else: ?>
-                            <div class="admin-file-list">
-                              <?php foreach ($fileItems as $fileItem): ?>
-                                <?php if (!empty($fileItem["url"])): ?>
-                                  <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
-                                    <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
-                                    <span class="admin-file-action">Open</span>
-                                  </a>
-                                <?php else: ?>
-                                  <span class="admin-file-empty">
-                                    <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
-                                    <span class="admin-file-action">Unavailable</span>
-                                  </span>
-                                <?php endif; ?>
-                              <?php endforeach; ?>
-                            </div>
-                          <?php endif; ?>
-                        </td>
-                        <td>
-                          <span class="datetime-stack">
-                            <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
-                            <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
-                          </span>
-                        </td>
-                        <td>
-                          <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
-                            <span class="datetime-stack datetime-stack--muted">
-                              <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
-                              <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
+              <div class="table-scroll-wrapper">
+                <table class="orders table-content order-table order-table--online">
+                  <thead>
+                    <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                  </thead>
+                  <tbody>
+                    <?php if (!$online): ?>
+                      <tr><td colspan="8" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
+                    <?php else: ?>
+                      <?php foreach ($online as $r): ?>
+                        <?php $cls = status_class($r["status"]); ?>
+                        <tr>
+                          <td><?= htmlspecialchars($r["queue_code"]) ?></td>
+                          <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                          <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                          <td>
+                            <span class="datetime-stack">
+                              <strong><?= htmlspecialchars(payment_label($r["payment_method"])) ?></strong>
+                              <small>Ref: <?= htmlspecialchars($r["reference_number"] ?: "-") ?></small>
+                              <small>Status: <?= htmlspecialchars($r["payment_status"] ?: "-") ?></small>
                             </span>
-                          <?php else: ?>
-                            <span class="datetime-empty">-</span>
-                          <?php endif; ?>
-                        </td>
-                        <td>
-                          <button
-                            class="update-btn"
-                            data-id="<?= (int)$r["id"] ?>"
-                            data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                            data-status="<?= htmlspecialchars($r["status"]) ?>"
-                            data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
-                          >Update Status</button>
-                        </td>
-                      </tr>
-                    <?php endforeach; ?>
-                  <?php endif; ?>
-                </tbody>
-              </table>
+                          </td>
+                          <td>
+                            <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
+                            <?php if (!$fileItems): ?>
+                              <span class="admin-file-empty">No file</span>
+                            <?php else: ?>
+                              <div class="admin-file-list">
+                                <?php foreach ($fileItems as $fileItem): ?>
+                                  <?php if (!empty($fileItem["url"])): ?>
+                                    <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
+                                      <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
+                                      <span class="admin-file-action">Open</span>
+                                    </a>
+                                  <?php else: ?>
+                                    <span class="admin-file-empty">
+                                      <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
+                                      <span class="admin-file-action">Unavailable</span>
+                                    </span>
+                                  <?php endif; ?>
+                                <?php endforeach; ?>
+                              </div>
+                            <?php endif; ?>
+                          </td>
+                          <td>
+                            <span class="datetime-stack">
+                              <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
+                              <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
+                            </span>
+                          </td>
+                          <td>
+                            <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
+                              <span class="datetime-stack datetime-stack--muted">
+                                <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
+                                <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
+                              </span>
+                            <?php else: ?>
+                              <span class="datetime-empty">-</span>
+                            <?php endif; ?>
+                          </td>
+                          <td>
+                            <button
+                              class="update-btn"
+                              data-id="<?= (int)$r["id"] ?>"
+                              data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
+                              data-status="<?= htmlspecialchars($r["status"]) ?>"
+                              data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
+                            >Update Status</button>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
+              </div>
               <?php endif; ?>
             </div>
           </div>
