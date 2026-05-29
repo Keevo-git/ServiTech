@@ -96,6 +96,7 @@ header("Expires: 0");
       gap: 1rem;
       margin: 0 auto;
       max-width: var(--payment-content-width);
+      padding-inline: clamp(0px, 2vw, 10px);
       width: 100%;
     }
 
@@ -192,6 +193,11 @@ header("Expires: 0");
       min-width: 0;
     }
 
+    .service-payment-file-main > span:first-child {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
     .service-payment-file-meta {
       color: #8b6a64;
       font-size: 0.82rem;
@@ -220,8 +226,8 @@ header("Expires: 0");
     .service-payment-qr {
       align-items: center;
       display: grid;
-      gap: 1.1rem;
-      grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+      gap: clamp(1rem, 3vw, 1.5rem);
+      grid-template-columns: minmax(180px, 240px) minmax(280px, 1fr);
     }
 
     .service-payment-qr-box {
@@ -234,7 +240,7 @@ header("Expires: 0");
       min-height: 190px;
       overflow: hidden;
       padding: 0.75rem;
-      width: min(100%, 220px);
+      width: min(100%, 240px);
     }
 
     .service-payment-qr-box img {
@@ -246,16 +252,22 @@ header("Expires: 0");
     }
 
     .service-payment-reference {
+      align-self: center;
       display: grid;
-      gap: 0.45rem;
+      gap: 0.55rem;
+      justify-self: stretch;
       max-width: 680px;
+      min-width: 0;
       width: 100%;
     }
 
     .service-payment-page .form-input {
+      box-sizing: border-box;
       border-radius: 14px;
       min-height: 52px;
-      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      width: min(100%, 520px) !important;
     }
 
     .service-payment-page .form-actions {
@@ -276,13 +288,22 @@ header("Expires: 0");
       font-weight: 600;
       justify-content: center;
       line-height: 1.2;
-      min-height: 48px;
-      padding: 13px 22px;
+      min-height: 52px !important;
+      padding: 14px 22px !important;
       text-align: center;
       width: 100%;
     }
 
     @media (max-width: 860px) {
+      .service-payment-page .form-page {
+        padding-inline: clamp(10px, 3vw, 18px);
+      }
+
+      .service-payment-page .form-page-shell,
+      .service-payment-form {
+        padding-inline: 0;
+      }
+
       .service-payment-qr {
         align-items: start;
         grid-template-columns: 1fr;
@@ -290,10 +311,55 @@ header("Expires: 0");
 
       .service-payment-qr-box {
         justify-self: center;
+        width: min(100%, 230px);
+      }
+
+      .service-payment-reference {
+        align-self: stretch;
+        justify-self: stretch;
+        max-width: none;
+      }
+
+      .service-payment-page .form-input {
+        width: 100% !important;
       }
 
       .service-payment-page .form-actions {
+        flex-direction: column !important;
+      }
+
+      .service-payment-page .form-actions .btn-back,
+      .service-payment-page .form-actions .btn-next {
+        flex: 0 0 auto !important;
+        min-height: 52px !important;
+        padding: 14px 18px !important;
+        width: 100% !important;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .service-payment-page .form-card {
+        border-radius: 18px;
+        padding: 1rem;
+      }
+
+      .service-payment-block,
+      .service-payment-box {
+        border-radius: 16px;
+        padding: 0.9rem;
+      }
+
+      .service-payment-files li {
+        align-items: stretch;
         flex-direction: column;
+      }
+
+      .service-payment-file-link {
+        align-self: flex-start;
+      }
+
+      .service-payment-qr-box {
+        width: min(100%, 216px);
       }
     }
   </style>
