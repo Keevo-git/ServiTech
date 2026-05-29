@@ -1018,6 +1018,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function buildServiceLabel() {
     let serviceLabel = "Service";
+    const explicitLabel = (document.body?.dataset?.serviceLabel || "").trim();
+    if (explicitLabel) return explicitLabel;
+
     const title = (document.title || "").toLowerCase();
 
     if (title.includes("document printing")) serviceLabel = "Document Printing";
@@ -1205,10 +1208,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const gcashCard = document.getElementById("rushGcashCard") || document.getElementById("serviceGcashCard");
     const cashNote = document.getElementById("rushCashNote") || document.getElementById("serviceCashNote");
     const isGcash = method === "gcash";
-    const usesPaymentPage = ["rush id", "laminating", "xerox"].some((name) => document.title.toLowerCase().includes(name));
+    const usesPaymentPage = document.body?.dataset?.gcashPaymentPage === "service"
+      || ["rush id", "laminating", "xerox"].some((name) => document.title.toLowerCase().includes(name));
 
     if (referenceWrap) referenceWrap.style.display = isGcash && !usesPaymentPage ? "block" : "none";
-    if (gcashCard) gcashCard.classList.toggle("is-visible", isGcash);
+    if (gcashCard) gcashCard.classList.toggle("is-visible", isGcash && !usesPaymentPage);
     if (cashNote) cashNote.hidden = method !== "cash";
     if (refs.referenceNumberInput) refs.referenceNumberInput.required = isGcash && !usesPaymentPage;
     if (joinBtn && usesPaymentPage) {
@@ -1271,7 +1275,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function shouldUseServicePaymentPage(payload) {
     return !!payload
       && payload.payment_method === "gcash"
-      && ["Rush ID", "Laminating", "Xerox"].includes(payload.service_label);
+      && (
+        document.body?.dataset?.gcashPaymentPage === "service"
+        || ["Rush ID", "Laminating", "Xerox"].includes(payload.service_label)
+      );
   }
 
   async function saveServicePaymentDraft(payload) {

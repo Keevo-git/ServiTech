@@ -102,40 +102,55 @@ try {
     }
 
     body.customer-page--custo2 .form-actions {
-      align-items: center;
-      display: flex;
+      align-items: stretch !important;
+      display: flex !important;
+      flex-direction: column !important;
       flex-wrap: wrap;
       gap: 0.75rem;
-      margin-top: 0;
+      margin: 8px auto 0;
+      max-width: 860px;
       width: 100%;
     }
 
     body.customer-page--custo2 .form-actions .btn-back,
     body.customer-page--custo2 .form-actions .btn-next {
-      align-items: center;
-      border-radius: 10px;
-      display: inline-flex;
-      flex: 1 1 0;
+      align-items: center !important;
+      border-radius: 10px !important;
+      box-sizing: border-box;
+      display: inline-flex !important;
+      flex: 0 0 auto !important;
       font-size: 16px;
       font-weight: 600;
-      height: 52px !important;
-      justify-content: center;
+      height: auto !important;
+      justify-content: center !important;
       line-height: 1.2;
-      max-height: 56px;
-      min-height: 0 !important;
-      padding: 0 24px !important;
-      text-align: center;
-      width: auto;
+      min-height: 52px !important;
+      padding: 14px 24px !important;
+      text-align: center !important;
+      text-decoration: none !important;
+      width: 100% !important;
+    }
+
+    body.customer-page--custo2 .form-actions .btn-back {
+      background: #000 !important;
+      border: 1px solid #000 !important;
+      color: #fff !important;
+    }
+
+    body.customer-page--custo2 .form-actions .btn-next {
+      background: #fbbf24 !important;
+      border: 1px solid #000 !important;
+      color: #000 !important;
+    }
+
+    body.customer-page--custo2 .form-actions .btn-back:hover,
+    body.customer-page--custo2 .form-actions .btn-next:hover {
+      transform: translateY(-2px);
     }
 
     @media (max-width: 720px) {
       .service-payment-grid {
         grid-template-columns: 1fr;
-      }
-
-      body.customer-page--custo2 .form-actions {
-        align-items: stretch;
-        flex-direction: column;
       }
 
       body.customer-page--custo2 .form-actions .btn-back,
@@ -146,7 +161,7 @@ try {
     }
   </style>
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing" data-price-per-page="20">
+<body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing" data-price-per-page="20" data-service-label="Laminating" data-gcash-payment-page="service">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -240,7 +255,7 @@ try {
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260524-queue-fix"></script>
+<script src="/assets/js/main.js?v=20260530-service-gcash"></script>
 
 </body>
 </html>

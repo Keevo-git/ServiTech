@@ -17,6 +17,38 @@ function service_payment_back_url(array $draft): string {
   return "/pages/customer/custo1_printing_option.php";
 }
 
+function build_service_payment_file_items(array $draft): array {
+  $uploadedFiles = isset($draft["uploaded_files"]) && is_array($draft["uploaded_files"]) ? array_values($draft["uploaded_files"]) : [];
+  $fileNames = isset($draft["file_names"]) && is_array($draft["file_names"]) ? array_values($draft["file_names"]) : [];
+  $fileAnalysis = isset($draft["file_analysis"]) && is_array($draft["file_analysis"]) ? array_values($draft["file_analysis"]) : [];
+
+  if (empty($fileNames) && !empty($draft["file_name"])) {
+    $fileNames = [(string)$draft["file_name"]];
+  }
+
+  $items = [];
+  $totalItems = max(count($uploadedFiles), count($fileNames), count($fileAnalysis));
+  for ($index = 0; $index < $totalItems; $index++) {
+    $uploaded = isset($uploadedFiles[$index]) && is_array($uploadedFiles[$index]) ? $uploadedFiles[$index] : [];
+    $analysis = isset($fileAnalysis[$index]) && is_array($fileAnalysis[$index]) ? $fileAnalysis[$index] : [];
+    $name = trim((string)($analysis["file_name"] ?? ($uploaded["original_name"] ?? ($fileNames[$index] ?? ""))));
+    $path = trim((string)($uploaded["saved_path"] ?? ""));
+    $type = strtoupper(trim((string)($analysis["file_type"] ?? ($uploaded["file_type"] ?? pathinfo($name, PATHINFO_EXTENSION)))));
+
+    if ($name === "" && $path === "") {
+      continue;
+    }
+
+    $items[] = [
+      "name" => $name !== "" ? $name : basename($path),
+      "path" => $path,
+      "meta" => $type,
+    ];
+  }
+
+  return $items;
+}
+
 $queue = trim((string)($_GET["queue"] ?? ""));
 $confirmation = $_SESSION["service_payment_confirmation"] ?? null;
 $flashError = trim((string)($_SESSION["service_payment_flash_error"] ?? ""));
@@ -33,10 +65,7 @@ if (!$isConfirmed && !is_array($draft)) {
 $draft = is_array($draft) ? $draft : [];
 $serviceLabel = trim((string)($draft["service_label"] ?? "Service"));
 $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
-$fileNames = isset($draft["file_names"]) && is_array($draft["file_names"]) ? $draft["file_names"] : [];
-if (empty($fileNames) && !empty($draft["file_name"])) {
-  $fileNames = [(string)$draft["file_name"]];
-}
+$fileItems = build_service_payment_file_items($draft);
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
@@ -143,14 +172,42 @@ header("Expires: 0");
     }
 
     .service-payment-files li {
+      align-items: center;
       background: #fffdfb;
       border: 1px solid rgba(95, 14, 15, 0.14);
       border-left: 4px solid #c98f75;
       border-radius: 13px;
       color: #4f1717;
+      display: flex;
+      gap: 0.75rem;
       font-weight: 700;
+      justify-content: space-between;
       padding: 0.7rem 0.85rem;
       overflow-wrap: anywhere;
+    }
+
+    .service-payment-file-main {
+      display: grid;
+      gap: 0.15rem;
+      min-width: 0;
+    }
+
+    .service-payment-file-meta {
+      color: #8b6a64;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .service-payment-file-link {
+      background: #f6e4dd;
+      border: 1px solid rgba(95, 14, 15, 0.14);
+      border-radius: 999px;
+      color: var(--printing-accent);
+      flex: 0 0 auto;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.45rem 0.7rem;
+      text-decoration: none;
     }
 
     .service-payment-qr-heading {
@@ -280,10 +337,20 @@ header("Expires: 0");
             <p class="service-payment-detail-line"><strong>Notes:</strong> <?= esc_service_payment(($draft["notes"] ?? "") !== "" ? $draft["notes"] : "None") ?></p>
             <p class="service-payment-detail-line"><strong>Payment:</strong> GCash</p>
           </div>
-          <?php if (!empty($fileNames)): ?>
+          <?php if (!empty($fileItems)): ?>
             <ul class="service-payment-files">
-              <?php foreach ($fileNames as $fileName): ?>
-                <li><?= esc_service_payment($fileName) ?></li>
+              <?php foreach ($fileItems as $fileItem): ?>
+                <li>
+                  <span class="service-payment-file-main">
+                    <span><?= esc_service_payment($fileItem["name"] ?? "-") ?></span>
+                    <?php if (!empty($fileItem["meta"])): ?>
+                      <span class="service-payment-file-meta"><?= esc_service_payment($fileItem["meta"]) ?></span>
+                    <?php endif; ?>
+                  </span>
+                  <?php if (!empty($fileItem["path"])): ?>
+                    <a class="service-payment-file-link" href="<?= esc_service_payment($fileItem["path"]) ?>" target="_blank" rel="noopener">Open file</a>
+                  <?php endif; ?>
+                </li>
               <?php endforeach; ?>
             </ul>
           <?php endif; ?>
