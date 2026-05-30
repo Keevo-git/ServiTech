@@ -37,6 +37,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <option value="openline" data-min="3500" data-max="6000">Openline Samsung & iPhone &mdash; &#8369;3500 - &#8369;6000</option>
             <option value="bypass_google" data-min="500" data-max="2000">Bypass Google Account &mdash; &#8369;500 - &#8369;2000</option>
             <option value="bypass_password" data-min="1000" data-max="3000">Bypass Password &mdash; &#8369;1000 - &#8369;3000</option>
+            <option value="other_installation_request">Other Installation Request &mdash; Price to be assessed</option>
           </select>
 
           <label for="installationNotes">Additional Information/Other Request:</label>

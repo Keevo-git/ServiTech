@@ -26,8 +26,22 @@ function status_label(string $s): string
     };
 }
 
+function service_label($details = null): string
+{
+    if (is_string($details) && $details !== "") {
+        $decoded = json_decode($details, true);
+        if (is_array($decoded) && trim((string)($decoded["service_label"] ?? "")) !== "") {
+            return trim((string)$decoded["service_label"]);
+        }
+    } elseif (is_array($details) && trim((string)($details["service_label"] ?? "")) !== "") {
+        return trim((string)$details["service_label"]);
+    }
+
+    return "Installation Service";
+}
+
 $rows = $pdo->query("
-  SELECT q.id, q.queue_code, q.status, q.created_at, q.completed_at, u.fullname
+  SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'installation'
@@ -115,17 +129,19 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
               <div class="table-scroll-wrapper">
                 <table class="orders table-content order-table order-table--simple">
                   <thead>
-                    <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                    <tr><th>Queue ID</th><th>Customer Name</th><th>Service Details</th><th>Status</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
                   </thead>
                   <tbody>
                     <?php if (!$rows): ?>
-                      <tr><td colspan="6" style="color:#777;padding:14px;">No installation queues yet.</td></tr>
+                      <tr><td colspan="7" style="color:#777;padding:14px;">No installation queues yet.</td></tr>
                     <?php else: ?>
                       <?php foreach ($rows as $r): ?>
                         <?php $cls = status_class($r["status"]); ?>
+                        <?php $serviceLabel = service_label($r["details"] ?? null); ?>
                         <tr>
                           <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                           <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                          <td><?= htmlspecialchars($serviceLabel) ?></td>
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                           <td>
                             <span class="datetime-stack">

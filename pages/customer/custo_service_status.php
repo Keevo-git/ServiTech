@@ -780,7 +780,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rushid: "Rush ID",
       openlinesamsungiphone: "Openline Samsung & iPhone",
       bypassgoogleaccount: "Bypass Google Account",
-      bypasspassword: "Bypass Password"
+      bypasspassword: "Bypass Password",
+      otherinstallationrequestpricetobeassessed: "Other Installation Request - Price to be assessed"
     };
 
     if (knownLabels[compact]) {
@@ -912,6 +913,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       ["bypass google account", [500, 2000]],
       ["bypass password", [1000, 3000]],
     ];
+
+    if (normalized.includes("other installation request")) {
+      return "Price to be assessed";
+    }
 
     const match = ranges.find(([label]) => normalized.includes(label));
     if (!match) return "";

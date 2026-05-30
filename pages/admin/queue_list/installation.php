@@ -20,8 +20,21 @@ function status_class($status): string {
   };
 }
 
+function service_label($details = null): string {
+  if (is_string($details) && $details !== "") {
+    $decoded = json_decode($details, true);
+    if (is_array($decoded) && trim((string)($decoded["service_label"] ?? "")) !== "") {
+      return trim((string)$decoded["service_label"]);
+    }
+  } elseif (is_array($details) && trim((string)($details["service_label"] ?? "")) !== "") {
+    return trim((string)$details["service_label"]);
+  }
+
+  return "Installation Service";
+}
+
 $stmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
+  SELECT q.id, q.queue_code, q.status, q.details, q.created_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'installation'
@@ -113,10 +126,11 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
             </tr>
           <?php else: ?>
             <?php foreach ($rows as $r): ?>
+              <?php $serviceLabel = service_label($r["details"] ?? null); ?>
               <tr>
                 <td><?= esc($r["queue_code"]) ?></td>
                 <td><?= esc($r["fullname"]) ?></td>
-                <td>Installation Service</td>
+                <td><?= esc($serviceLabel) ?></td>
                 <td>
                   <span class="submitted-stack">
                     <strong><?= esc(admin_queue_submitted_date($r["created_at"])) ?></strong>
@@ -138,7 +152,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                     data-id="<?= (int)$r["id"] ?>"
                     data-queue-code="<?= esc($r["queue_code"]) ?>"
                     data-customer="<?= esc($r["fullname"]) ?>"
-                    data-service="Installation Service"
+                    data-service="<?= esc($serviceLabel) ?>"
                   >Message</button>
                   <button class="btn-delete" data-id="<?= (int)$r["id"] ?>" title="Delete">x</button>
                 </td>
