@@ -211,8 +211,14 @@ table.orders td:nth-child(5) {
 
 table.orders th:nth-child(6),
 table.orders td:nth-child(6) {
-  width: 140px;
-  text-align: right;
+  width: 120px;
+  text-align: center;
+}
+
+table.orders th:last-child,
+table.orders td:last-child {
+  width: 120px;
+  text-align: center;
 }
 
 table.orders tbody tr {
@@ -322,9 +328,14 @@ table.orders tbody tr {
 
 .order-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   min-width: 0;
+}
+
+.order-actions .btn-primary,
+table.orders td:last-child .btn-primary {
+  display: inline-block;
 }
 
 .order-actions .view-order-btn,
