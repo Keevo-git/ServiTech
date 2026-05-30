@@ -137,7 +137,7 @@ body.admin-dashboard .page-frame {
   font-size: 14px;
 }
 
-table.orders {
+.order-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
@@ -164,69 +164,74 @@ table.orders {
   padding-right: 0;
 }
 
-.table-section table {
+.table-section .order-table {
   width: 100%;
   min-width: 920px;
 }
 
-table.orders th,
-table.orders td {
-  padding: 12px 16px;
+.order-table th,
+.order-table td {
+  padding: 14px 16px;
   border-bottom: 1px solid #eeeeee;
   text-align: left;
   vertical-align: middle;
   overflow-wrap: anywhere;
 }
 
-table.orders th {
+.order-table th {
   color: #5d728c;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-table.orders td {
-  font-size: 15px;
+.order-table td {
+  font-size: 14px;
 }
 
-table.orders th:nth-child(1),
-table.orders td:nth-child(1) {
+.order-table th:nth-child(1),
+.order-table td:nth-child(1) {
   width: 90px;
 }
 
-table.orders th:nth-child(2),
-table.orders td:nth-child(2) {
+.order-table th:nth-child(2),
+.order-table td:nth-child(2) {
   width: 220px;
 }
 
-table.orders th:nth-child(3),
-table.orders td:nth-child(3) {
+.order-table th:nth-child(3),
+.order-table td:nth-child(3) {
   width: 150px;
   text-align: left;
 }
 
-table.orders th:nth-child(4),
-table.orders td:nth-child(4) {
+.order-table th:nth-child(4),
+.order-table td:nth-child(4) {
   width: 200px;
 }
 
-table.orders th:nth-child(5),
-table.orders td:nth-child(5) {
+.order-table th:nth-child(5),
+.order-table td:nth-child(5) {
   width: 170px;
 }
 
-table.orders th:nth-child(6),
-table.orders td:nth-child(6) {
+.order-table th:nth-child(6),
+.order-table td:nth-child(6) {
   width: 120px;
   text-align: left;
 }
 
-table.orders th:last-child,
-table.orders td:last-child {
+.order-table th:last-child,
+.order-table td:last-child {
   width: 120px;
   text-align: left;
 }
 
-table.orders tbody tr {
+.order-table tr {
+  height: 56px;
+}
+
+.order-table tbody tr {
   border-bottom: 1px solid #eeeeee;
 }
 
@@ -277,7 +282,7 @@ table.orders tbody tr {
 .btn-primary,
 .table button,
 .order-modal button,
-table.orders button {
+.order-table button {
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
@@ -347,7 +352,7 @@ table.orders button {
   transform: translateY(-1px);
 }
 
-table.orders td.order-actions {
+.order-table td.order-actions {
   display: table-cell;
   width: 120px;
   min-width: 0;
@@ -356,7 +361,7 @@ table.orders td.order-actions {
 }
 
 .order-actions .btn-primary,
-table.orders td:last-child .btn-primary {
+.order-table td:last-child .btn-primary {
   display: inline-block;
   margin: 0;
 }
