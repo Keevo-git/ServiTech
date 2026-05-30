@@ -39,7 +39,7 @@
 
     <div class="qmsg-actions">
       <button class="qmsg-btn qmsg-btn--light" type="button" id="queueMessageCancel">Cancel</button>
-      <button class="qmsg-btn qmsg-btn--primary" type="button" id="queueMessageSend">Send Email</button>
+      <button class="qmsg-btn qmsg-btn--primary" type="button" id="queueMessageSend">Send Message</button>
     </div>
   </div>
 </div>

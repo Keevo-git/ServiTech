@@ -34,11 +34,24 @@ function admin_queue_upload_file_path(string $path): string
         $pathOnly = substr($pathOnly, strlen($base));
     }
 
-    if (strpos($pathOnly, "/uploads/printing/") !== 0) {
-        return "";
+    $allowedPrefixes = [
+        "/uploads/printing/",
+        "/uploads/print_orders/",
+    ];
+    $matchedPrefix = "";
+    foreach ($allowedPrefixes as $prefix) {
+        if (strpos($pathOnly, $prefix) === 0) {
+            $matchedPrefix = $prefix;
+            break;
+        }
     }
 
-    return "/uploads/printing/" . basename($pathOnly);
+    if ($matchedPrefix === "") {
+        $basename = basename(rawurldecode($pathOnly));
+        return $basename !== "" ? "/uploads/printing/" . $basename : "";
+    }
+
+    return $matchedPrefix . basename(rawurldecode($pathOnly));
 }
 
 function admin_queue_upload_file_exists(string $path): bool
@@ -83,6 +96,7 @@ function admin_queue_file_items($details): array
             $items[] = [
                 "label" => $label,
                 "url" => admin_queue_upload_file_url($path),
+                "path" => admin_queue_upload_file_path($path),
             ];
         }
     }
@@ -96,10 +110,44 @@ function admin_queue_file_items($details): array
         $items[] = [
             "label" => basename($fileName),
             "url" => admin_queue_upload_file_url($fileName),
+            "path" => admin_queue_upload_file_path($fileName),
         ];
     }
 
     return $items;
+}
+
+function admin_queue_render_file_items($details): void
+{
+    $fileItems = admin_queue_file_items($details);
+    if (!$fileItems) {
+        echo '<span class="admin-file-empty">No file</span>';
+        return;
+    }
+
+    echo '<div class="admin-file-list">';
+    foreach ($fileItems as $fileItem) {
+        $label = htmlspecialchars((string)($fileItem["label"] ?? "File"), ENT_QUOTES, "UTF-8");
+        $url = (string)($fileItem["url"] ?? "");
+
+        if ($url !== "") {
+            $safeUrl = htmlspecialchars($url, ENT_QUOTES, "UTF-8");
+            echo '<div class="admin-file-chip">';
+            echo '<span class="admin-file-name">' . $label . '</span>';
+            echo '<span class="admin-file-actions">';
+            echo '<a class="admin-file-action" href="' . $safeUrl . '" target="_blank" rel="noopener noreferrer">Open</a>';
+            echo '<a class="admin-file-action" href="' . $safeUrl . '" download>Download</a>';
+            echo '</span>';
+            echo '</div>';
+            continue;
+        }
+
+        echo '<span class="admin-file-empty">';
+        echo '<span class="admin-file-name">' . $label . '</span>';
+        echo '<span class="admin-file-action">File unavailable</span>';
+        echo '</span>';
+    }
+    echo '</div>';
 }
 
 function admin_queue_notification_count(PDO $pdo): int

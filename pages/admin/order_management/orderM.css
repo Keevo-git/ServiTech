@@ -253,7 +253,7 @@ table.orders.order-table--online td:nth-child(7) {
 
 table.orders.order-table--online th:nth-child(8),
 table.orders.order-table--online td:nth-child(8) {
-  width: 150px;
+  width: 165px;
 }
 
 table.orders.order-table--walkin th:nth-child(4),
@@ -272,7 +272,7 @@ table.orders.order-table--walkin th:nth-child(7),
 table.orders.order-table--walkin td:nth-child(7),
 table.orders.order-table--simple th:last-child,
 table.orders.order-table--simple td:last-child {
-  width: 150px;
+  width: 165px;
 }
 
 .datetime-stack {
@@ -361,6 +361,33 @@ table.orders.order-table--simple td:last-child {
 .update-btn:hover {
   border-color: #9fb4cf;
   background: #f5f9ff;
+}
+
+.order-actions {
+  min-width: 150px;
+}
+
+.order-actions .update-btn,
+.order-actions .btn-message {
+  width: 100%;
+  min-width: 128px;
+}
+
+.order-actions .btn-message {
+  margin-top: 8px;
+  background: #214f91;
+  border: 1px solid #214f91;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.order-actions .btn-message:hover {
+  background: #183e76;
+  border-color: #183e76;
 }
 
 /* Modal */

@@ -3,6 +3,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../../../config/mail.php";
+require_once __DIR__ . "/../../../api/queue_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -52,79 +53,57 @@ if (!$queue) {
     respond(["ok" => false, "error" => "Queue entry was not found."], 404);
 }
 
-$email = trim((string)($queue["email"] ?? ""));
-if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    respond(["ok" => false, "error" => "Customer email is missing or invalid."], 422);
-}
-
 $queueCode = trim((string)($queue["queue_code"] ?? ""));
 $customerName = trim((string)($queue["fullname"] ?? ""));
 $safeName = $customerName !== "" ? $customerName : "Customer";
+$email = trim((string)($queue["email"] ?? ""));
 
 $body = "Good day {$safeName},\n\n"
     . "Queue Number: {$queueCode}\n\n"
     . $message
     . "\n\nServiTech: JC Repair Shop";
 
-$fromEmail = servitech_smtp_public_from_email();
-$fromName = "ServiTech JC Repair Shop";
-
-if ($fromEmail === "" || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
-    respond(["ok" => false, "error" => "Email sender is not configured."], 500);
-}
-
-$headers = [
-    "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=UTF-8",
-    "Content-Transfer-Encoding: 8bit",
-    "From: {$fromName} <{$fromEmail}>",
-    "Reply-To: {$fromEmail}",
-    "Return-Path: {$fromEmail}",
-    "X-Mailer: PHP/" . PHP_VERSION,
-];
-
-$sent = @mail($email, $subject, $body, implode("\r\n", $headers), "-f{$fromEmail}");
-
-if (!$sent) {
-    respond([
-        "ok" => false,
-        "error" => "The server could not send the email. Please check Hostinger mail/PHP mail settings.",
-    ], 500);
-}
-
 $notificationMessage = "Queue {$queueCode}: " . $message;
 $warning = "";
 
 try {
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS notifications (
-            id BIGSERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            type TEXT NOT NULL DEFAULT 'admin_message',
-            reference_id INTEGER NULL,
-            message TEXT NOT NULL,
-            is_read BOOLEAN NOT NULL DEFAULT FALSE,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
-    ");
-
-    $notificationStmt = $pdo->prepare("
-        INSERT INTO notifications (user_id, type, reference_id, message, is_read, created_at)
-        VALUES (:user_id, :type, :reference_id, :message, FALSE, NOW())
-    ");
-    $notificationStmt->execute([
-        ":user_id" => (int)$queue["user_id"],
-        ":type" => trim((string)($queue["category"] ?? "admin_message")),
-        ":reference_id" => $queueId,
-        ":message" => $notificationMessage,
-    ]);
+    servitech_add_notification($pdo, (int)$queue["user_id"], "admin_message", $queueId, $notificationMessage);
 } catch (Throwable $exception) {
     error_log("queue message notification insert failed: " . $exception->getMessage());
-    $warning = "Email sent, but the account notification could not be created.";
+    respond(["ok" => false, "error" => "The customer notification could not be created."], 500);
+}
+
+$emailSent = false;
+if ($email !== "" && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $fromEmail = servitech_smtp_public_from_email();
+    $fromName = "ServiTech JC Repair Shop";
+
+    if ($fromEmail !== "" && filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        $headers = [
+            "MIME-Version: 1.0",
+            "Content-Type: text/plain; charset=UTF-8",
+            "Content-Transfer-Encoding: 8bit",
+            "From: {$fromName} <{$fromEmail}>",
+            "Reply-To: {$fromEmail}",
+            "Return-Path: {$fromEmail}",
+            "X-Mailer: PHP/" . PHP_VERSION,
+        ];
+
+        $emailSent = @mail($email, $subject, $body, implode("\r\n", $headers), "-f{$fromEmail}");
+        if (!$emailSent) {
+            $warning = "Notification was saved, but email sending failed. Please check mail settings.";
+        }
+    } else {
+        $warning = "Notification was saved, but email sender is not configured.";
+    }
+} else {
+    $warning = "Notification was saved, but customer email is missing or invalid.";
 }
 
 respond([
     "ok" => true,
-    "message" => "Queue message sent to {$email} and added to the customer notifications.",
+    "message" => $emailSent
+        ? "Message sent to {$email} and added to the customer notifications."
+        : "Message added to the customer notifications.",
     "warning" => $warning,
 ]);

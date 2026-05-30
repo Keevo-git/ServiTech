@@ -51,51 +51,9 @@ if ($uploadDirReal === false) {
   ], 500);
 }
 
-$deleted = [];
-$errors = [];
-$seen = [];
-
-foreach ($uploadedFiles as $file) {
-  if (!is_array($file)) continue;
-
-  $savedPath = trim((string)($file["saved_path"] ?? ""));
-  if ($savedPath === "" || strpos($savedPath, "/uploads/printing/") !== 0) {
-    $errors[] = "Invalid saved path.";
-    continue;
-  }
-
-  $basename = basename($savedPath);
-  if ($basename === "" || isset($seen[$basename])) {
-    continue;
-  }
-  $seen[$basename] = true;
-
-  $targetPath = $uploadDirReal . DIRECTORY_SEPARATOR . $basename;
-  $targetReal = realpath($targetPath);
-
-  if ($targetReal === false) {
-    continue;
-  }
-
-  if (strpos($targetReal, $uploadDirReal . DIRECTORY_SEPARATOR) !== 0) {
-    $errors[] = "Refused to delete file outside upload directory.";
-    continue;
-  }
-
-  if (!is_file($targetReal)) {
-    continue;
-  }
-
-  if (!unlink($targetReal)) {
-    $errors[] = "Unable to delete " . $basename . ".";
-    continue;
-  }
-
-  $deleted[] = $savedPath;
-}
-
 cleanup_json_exit([
-  "success" => empty($errors),
-  "deleted_paths" => $deleted,
-  "errors" => $errors,
+  "success" => true,
+  "deleted_paths" => [],
+  "errors" => [],
+  "message" => "Uploaded order files are kept permanently for admin access.",
 ]);

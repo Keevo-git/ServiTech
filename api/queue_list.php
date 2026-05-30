@@ -25,8 +25,18 @@ function queue_list_upload_path(string $path): string {
     $pathOnly = substr($pathOnly, strlen($base));
   }
 
-  if (strpos($pathOnly, "/uploads/printing/") !== 0) return "";
-  return "/uploads/printing/" . basename($pathOnly);
+  $allowedPrefixes = [
+    "/uploads/printing/",
+    "/uploads/print_orders/",
+  ];
+  foreach ($allowedPrefixes as $prefix) {
+    if (strpos($pathOnly, $prefix) === 0) {
+      return $prefix . basename(rawurldecode($pathOnly));
+    }
+  }
+
+  $basename = basename(rawurldecode($pathOnly));
+  return $basename !== "" ? "/uploads/printing/" . $basename : "";
 }
 
 function queue_list_upload_url(string $path): string {

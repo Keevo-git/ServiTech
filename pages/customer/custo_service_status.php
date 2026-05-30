@@ -742,7 +742,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (!raw) return "";
     if (/^https?:\/\//i.test(raw)) return raw;
     if (raw.startsWith("/uploads/printing/")) return servitechUrl(raw);
+    if (raw.startsWith("/uploads/print_orders/")) return servitechUrl(raw);
     if (raw.startsWith(servitechBasePath() + "/uploads/printing/")) return raw;
+    if (raw.startsWith(servitechBasePath() + "/uploads/print_orders/")) return raw;
     return "";
   }
 

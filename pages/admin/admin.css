@@ -151,6 +151,7 @@ main{ flex:1; }
   max-width: 100%;
 }
 
+.admin-file-chip,
 .admin-file-link,
 .admin-file-empty {
   display: grid;
@@ -164,6 +165,12 @@ main{ flex:1; }
   font-size: 12px;
   font-weight: 800;
   line-height: 1.25;
+}
+
+.admin-file-chip {
+  background: #eef6ff;
+  border: 1px solid #bad7ff;
+  color: #1d4ed8;
 }
 
 .admin-file-link {
@@ -189,6 +196,13 @@ main{ flex:1; }
   word-break: break-word;
 }
 
+.admin-file-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
 .admin-file-action {
   display: inline-flex;
   align-items: center;
@@ -202,6 +216,7 @@ main{ flex:1; }
   font-size: 11px;
   line-height: 1;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .admin-file-empty .admin-file-action {

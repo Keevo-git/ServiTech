@@ -94,49 +94,9 @@ function servitech_generate_queue_code(PDO $pdo, string $prefix): string {
 }
 
 function servitech_cleanup_uploaded_print_files(array $uploadedFiles): void {
-  if (empty($uploadedFiles)) {
-    return;
-  }
-
-  $projectRoot = dirname(__DIR__);
-  $uploadDir = $projectRoot . DIRECTORY_SEPARATOR . "uploads" . DIRECTORY_SEPARATOR . "printing";
-  $uploadDirReal = realpath($uploadDir);
-  if ($uploadDirReal === false) {
-    return;
-  }
-
-  $seen = [];
-
-  foreach ($uploadedFiles as $file) {
-    if (!is_array($file)) {
-      continue;
-    }
-
-    $savedPath = trim((string)($file["saved_path"] ?? ""));
-    if ($savedPath === "" || strpos($savedPath, "/uploads/printing/") !== 0) {
-      continue;
-    }
-
-    $basename = basename($savedPath);
-    if ($basename === "" || isset($seen[$basename])) {
-      continue;
-    }
-    $seen[$basename] = true;
-
-    $targetPath = $uploadDirReal . DIRECTORY_SEPARATOR . $basename;
-    $targetReal = realpath($targetPath);
-    if ($targetReal === false) {
-      continue;
-    }
-
-    if (strpos($targetReal, $uploadDirReal . DIRECTORY_SEPARATOR) !== 0) {
-      continue;
-    }
-
-    if (is_file($targetReal)) {
-      @unlink($targetReal);
-    }
-  }
+  // Uploaded print files are order assets, not session temp files. Keep them
+  // available for admin printing unless someone manually removes them.
+  return;
 }
 
 function servitech_ensure_notifications_table(PDO $pdo): void {

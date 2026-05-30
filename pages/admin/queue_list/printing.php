@@ -166,26 +166,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                     </span>
                   </td>
                   <td>
-                    <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
-                    <?php if (!$fileItems): ?>
-                      <span class="admin-file-empty">No file</span>
-                    <?php else: ?>
-                      <div class="admin-file-list">
-                        <?php foreach ($fileItems as $fileItem): ?>
-                          <?php if (!empty($fileItem["url"])): ?>
-                            <a class="admin-file-link" href="<?= esc($fileItem["url"]) ?>" target="_blank" rel="noopener noreferrer">
-                              <span class="admin-file-name"><?= esc($fileItem["label"]) ?></span>
-                              <span class="admin-file-action">Open</span>
-                            </a>
-                          <?php else: ?>
-                            <span class="admin-file-empty">
-                              <span class="admin-file-name"><?= esc($fileItem["label"]) ?></span>
-                              <span class="admin-file-action">Unavailable</span>
-                            </span>
-                          <?php endif; ?>
-                        <?php endforeach; ?>
-                      </div>
-                    <?php endif; ?>
+                    <?php admin_queue_render_file_items($r["details"] ?? null); ?>
                   </td>
                   <td>
                     <span class="submitted-stack">

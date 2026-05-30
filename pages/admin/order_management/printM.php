@@ -98,6 +98,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530admin-ui') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
@@ -179,26 +180,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                           <td><?= htmlspecialchars($r["fullname"]) ?></td>
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                           <td>
-                            <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
-                            <?php if (!$fileItems): ?>
-                              <span class="admin-file-empty">No file</span>
-                            <?php else: ?>
-                              <div class="admin-file-list">
-                                <?php foreach ($fileItems as $fileItem): ?>
-                                  <?php if (!empty($fileItem["url"])): ?>
-                                    <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
-                                      <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
-                                      <span class="admin-file-action">Open</span>
-                                    </a>
-                                  <?php else: ?>
-                                    <span class="admin-file-empty">
-                                      <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
-                                      <span class="admin-file-action">Unavailable</span>
-                                    </span>
-                                  <?php endif; ?>
-                                <?php endforeach; ?>
-                              </div>
-                            <?php endif; ?>
+                            <?php admin_queue_render_file_items($r["details"] ?? null); ?>
                           </td>
                           <td>
                             <span class="datetime-stack">
@@ -216,7 +198,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                               <span class="datetime-empty">-</span>
                             <?php endif; ?>
                           </td>
-                          <td>
+                          <td class="order-actions">
                             <button
                               class="update-btn"
                               data-id="<?= (int)$r["id"] ?>"
@@ -224,6 +206,14 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                               data-status="<?= htmlspecialchars($r["status"]) ?>"
                               data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
                             >Update Status</button>
+                            <button
+                              class="btn-message"
+                              type="button"
+                              data-id="<?= (int)$r["id"] ?>"
+                              data-queue-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>"
+                              data-customer="<?= htmlspecialchars($r["fullname"], ENT_QUOTES, "UTF-8") ?>"
+                              data-service="Walk-in Printing"
+                            >Message</button>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -257,26 +247,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                             </span>
                           </td>
                           <td>
-                            <?php $fileItems = admin_queue_file_items($r["details"] ?? null); ?>
-                            <?php if (!$fileItems): ?>
-                              <span class="admin-file-empty">No file</span>
-                            <?php else: ?>
-                              <div class="admin-file-list">
-                                <?php foreach ($fileItems as $fileItem): ?>
-                                  <?php if (!empty($fileItem["url"])): ?>
-                                    <a class="admin-file-link" href="<?= htmlspecialchars($fileItem["url"], ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
-                                      <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
-                                      <span class="admin-file-action">Open</span>
-                                    </a>
-                                  <?php else: ?>
-                                    <span class="admin-file-empty">
-                                      <span class="admin-file-name"><?= htmlspecialchars($fileItem["label"], ENT_QUOTES, "UTF-8") ?></span>
-                                      <span class="admin-file-action">Unavailable</span>
-                                    </span>
-                                  <?php endif; ?>
-                                <?php endforeach; ?>
-                              </div>
-                            <?php endif; ?>
+                            <?php admin_queue_render_file_items($r["details"] ?? null); ?>
                           </td>
                           <td>
                             <span class="datetime-stack">
@@ -294,7 +265,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                               <span class="datetime-empty">-</span>
                             <?php endif; ?>
                           </td>
-                          <td>
+                          <td class="order-actions">
                             <button
                               class="update-btn"
                               data-id="<?= (int)$r["id"] ?>"
@@ -302,6 +273,14 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                               data-status="<?= htmlspecialchars($r["status"]) ?>"
                               data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
                             >Update Status</button>
+                            <button
+                              class="btn-message"
+                              type="button"
+                              data-id="<?= (int)$r["id"] ?>"
+                              data-queue-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>"
+                              data-customer="<?= htmlspecialchars($r["fullname"], ENT_QUOTES, "UTF-8") ?>"
+                              data-service="Online Print Order"
+                            >Message</button>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -362,6 +341,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
 </div>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
+<?php require_once __DIR__ . "/../queue_list/_queue_message_modal.php"; ?>
 <script>
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   const modal = document.getElementById("statusModal");

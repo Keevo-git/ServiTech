@@ -21,7 +21,7 @@ function status_class($status): string {
 }
 
 $stmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.created_at, u.fullname
+  SELECT q.id, q.queue_code, q.status, q.details, q.created_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'walkin'
@@ -101,6 +101,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
               <th>Order ID</th>
               <th>Customer Name</th>
               <th>Service Details</th>
+              <th>Attached File</th>
               <th>Submitted</th>
               <th>Status</th>
               <th>Actions</th>
@@ -109,7 +110,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
           <tbody>
           <?php if (!$rows): ?>
             <tr>
-              <td colspan="6" style="text-align:center;padding:18px;color:#666;">No walk-in queues yet.</td>
+              <td colspan="7" style="text-align:center;padding:18px;color:#666;">No walk-in queues yet.</td>
             </tr>
           <?php else: ?>
             <?php foreach ($rows as $r): ?>
@@ -117,6 +118,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                 <td><?= esc($r["queue_code"]) ?></td>
                 <td><?= esc($r["fullname"]) ?></td>
                 <td>Walk-in Printing</td>
+                <td><?php admin_queue_render_file_items($r["details"] ?? null); ?></td>
                 <td>
                   <span class="submitted-stack">
                     <strong><?= esc(admin_queue_submitted_date($r["created_at"])) ?></strong>
