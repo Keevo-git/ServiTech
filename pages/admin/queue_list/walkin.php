@@ -24,7 +24,13 @@ $stmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.created_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
-  WHERE q.category = 'walkin'
+  WHERE (
+    LOWER(TRIM(q.category)) IN ('walkin', 'printing_walkin')
+    OR (
+      LOWER(TRIM(q.category)) = 'printing'
+      AND COALESCE(NULLIF(LOWER(TRIM(COALESCE(q.details->>'order_type', ''))), ''), 'walkin') = 'walkin'
+    )
+  )
     AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) != 'CANCELLED'
     AND q.created_at > (NOW() - INTERVAL '15 minutes')
   ORDER BY q.created_at ASC
