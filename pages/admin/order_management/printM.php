@@ -10,6 +10,7 @@ function status_class(string $s): string
     $key = strtolower(trim($s));
     $key = preg_replace('/[\s_]+/', '-', $key);
     return match ($key) {
+        "approved" => "status-approved",
         "ongoing" => "status-ongoing",
         "for-pick-up", "for-pickup" => "status-pickup",
         "done" => "status-done",
@@ -23,6 +24,7 @@ function status_label(string $s): string
     $s = strtoupper(trim($s));
     return match ($s) {
         "FOR PICK-UP" => "For Pick-up",
+        "APPROVED" => "Approved",
         default => ucfirst(strtolower($s)),
     };
 }
@@ -159,9 +161,9 @@ if (!in_array($printView, ["online", "walkin"], true)) {
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530-modal-button-text') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530-approved-payment-cleanup') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260530-modal-status-card') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260530-approved-payment-cleanup') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>">
 
@@ -282,7 +284,6 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                           <td>
                             <span class="datetime-stack">
                               <strong><?= htmlspecialchars(om_payment_summary($r)) ?></strong>
-                              <small><?= htmlspecialchars(om_payment_status_label($r["payment_method"], $r["payment_status"], $r["details_payment_status"])) ?></small>
                             </span>
                           </td>
                           <td>
@@ -296,7 +297,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                               class="btn-primary view-order-btn"
                               type="button"
                               data-id="<?= (int)$r["id"] ?>"
-                              data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true]), "Online Print Order", "Document Printing") ?>"
+                              data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true, "allowApproved" => true]), "Online Print Order", "Document Printing") ?>"
                             >View</button>
                           </td>
                         </tr>

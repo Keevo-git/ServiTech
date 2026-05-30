@@ -10,6 +10,7 @@ function status_class(string $s): string
     $key = strtolower(trim($s));
     $key = preg_replace('/[\s_]+/', '-', $key);
     return match ($key) {
+        "approved" => "status-approved",
         "ongoing" => "status-ongoing",
         "for-pick-up", "for-pickup" => "status-pickup",
         "done" => "status-done",
@@ -23,6 +24,7 @@ function status_label(string $s): string
     $s = strtoupper(trim($s));
     return match ($s) {
         "FOR PICK-UP" => "For Pick-up",
+        "APPROVED" => "Approved",
         default => ucfirst(strtolower($s)),
     };
 }
@@ -73,8 +75,8 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530-modal-button-text') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260530-modal-status-card') ?>" defer></script>
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530-approved-payment-cleanup') ?>">
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260530-approved-payment-cleanup') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>">
 

@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   const actionMap = {
     PENDING: "pending",
+    APPROVED: "approved",
     ONGOING: "ongoing",
     "FOR PICK-UP": "pickup",
     DONE: "done",
@@ -74,6 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function statusClass(status) {
     const key = String(status || "PENDING").trim().toLowerCase().replace(/[\s_]+/g, "-");
+    if (key === "approved") return "status-approved";
     if (key === "ongoing" || key === "inprogress") return "status-ongoing";
     if (key === "for-pick-up" || key === "for-pickup") return "status-pickup";
     if (key === "done" || key === "complete") return "status-done";
@@ -144,6 +146,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (commentsEl) {
       commentsEl.value = String(order.comments || "").trim() || "No additional comments.";
     }
+
+    const allowedStatuses = [
+      ["PENDING", "Pending"],
+      ...(order.allowApproved ? [["APPROVED", "Approved"]] : []),
+      ["ONGOING", "Ongoing"],
+      ["FOR PICK-UP", "For Pick-up"],
+      ["DONE", "Done"],
+      ["CANCELLED", "Cancelled"],
+    ];
+    statusEl.innerHTML = allowedStatuses
+      .map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`)
+      .join("");
 
     const currentStatus = String(order.status || "PENDING").trim().toUpperCase();
     const exists = Array.from(statusEl.options).some((option) => option.value === currentStatus);

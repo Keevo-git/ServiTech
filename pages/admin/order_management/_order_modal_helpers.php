@@ -30,7 +30,7 @@ function om_payment_method_label($value): string
     if ($key === "cash") {
         return "Cash";
     }
-    return "-";
+    return "";
 }
 
 function om_payment_status_label($method, $paymentStatus = null, $detailsStatus = null): string
@@ -89,11 +89,11 @@ function om_payment_summary(array $row): string
     $methodLabel = om_payment_method_label($method);
     $amountLabel = om_payment_amount_label($row["amount"] ?? null, $row["details_total"] ?? ($details["estimated_total"] ?? null));
 
-    if ($methodLabel === "-" && $amountLabel === "") {
-        return "-";
+    if ($methodLabel !== "" && $amountLabel !== "") {
+        return $methodLabel . ": " . $amountLabel;
     }
 
-    return trim($methodLabel . " " . $amountLabel);
+    return $methodLabel !== "" ? $methodLabel : $amountLabel;
 }
 
 function om_service_label(array $details, string $fallback): string
@@ -166,6 +166,7 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
         "details" => om_extra_detail_rows($details),
         "comments" => om_additional_comments($details),
         "canMessage" => !empty($row["canMessage"]),
+        "allowApproved" => !empty($row["allowApproved"]),
     ];
 }
 
