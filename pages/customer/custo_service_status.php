@@ -742,9 +742,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (!raw) return "";
     if (/^https?:\/\//i.test(raw)) return raw;
     if (raw.startsWith("/uploads/printing/")) return servitechUrl(raw);
-    if (raw.startsWith("/uploads/print_orders/")) return servitechUrl(raw);
     if (raw.startsWith(servitechBasePath() + "/uploads/printing/")) return raw;
-    if (raw.startsWith(servitechBasePath() + "/uploads/print_orders/")) return raw;
     return "";
   }
 
@@ -782,8 +780,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rushid: "Rush ID",
       openlinesamsungiphone: "Openline Samsung & iPhone",
       bypassgoogleaccount: "Bypass Google Account",
-      bypasspassword: "Bypass Password",
-      otherinstallationrequestpricetobeassessed: "Other Installation Request - Price to be assessed"
+      bypasspassword: "Bypass Password"
     };
 
     if (knownLabels[compact]) {
@@ -915,10 +912,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       ["bypass google account", [500, 2000]],
       ["bypass password", [1000, 3000]],
     ];
-
-    if (normalized.includes("other installation request")) {
-      return "Price to be assessed";
-    }
 
     const match = ranges.find(([label]) => normalized.includes(label));
     if (!match) return "";

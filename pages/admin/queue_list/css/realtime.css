@@ -1,0 +1,103 @@
+/* Universal Admin Action Buttons - Real-time UI */
+
+.actions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 140px;
+}
+
+.actions-group button,
+.actions-group a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  flex: 0 1 auto;
+}
+
+.btn-update-status {
+  background: #fff;
+  border: 1px solid #ccd8e8;
+  color: #1d457c;
+}
+
+.btn-update-status:hover {
+  border-color: #9fb4cf;
+  background: #f5f9ff;
+}
+
+.btn-payment-update {
+  background: #fff;
+  border: 1px solid #d4a574;
+  color: #8b5a2b;
+}
+
+.btn-payment-update:hover {
+  background: #fff9f0;
+  border-color: #c0915f;
+}
+
+.btn-message {
+  background: #214f91;
+  border: 1px solid #214f91;
+  color: #fff;
+}
+
+.btn-message:hover {
+  background: #183e76;
+  border-color: #183e76;
+}
+
+.btn-delete {
+  background: transparent;
+  border: 1px solid #e9bcc2;
+  color: #c12940;
+  padding: 6px 8px;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.btn-delete:hover {
+  background: #fde7ea;
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
+/* Status update buttons (queue list page) */
+.btn-start,
+.btn-pickup,
+.btn-done,
+.btn-cancel {
+  display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .actions-group {
+    min-width: 120px;
+  }
+
+  .actions-group button,
+  .actions-group a {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}

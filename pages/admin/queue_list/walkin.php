@@ -49,6 +49,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -120,7 +121,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
             </tr>
           <?php else: ?>
             <?php foreach ($rows as $r): ?>
-              <tr>
+              <tr data-queue-id="<?= esc($r["queue_code"]) ?>">
                 <td><?= esc($r["queue_code"]) ?></td>
                 <td><?= esc($r["fullname"]) ?></td>
                 <td>Walk-in Printing</td>
@@ -137,18 +138,20 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                   </span>
                 </td>
                 <td class="actions">
-                  <button class="btn-start" data-id="<?= (int)$r["id"] ?>">Start</button>
-                  <button class="btn-pickup" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
-                  <button class="btn-done" data-id="<?= (int)$r["id"] ?>">Done</button>
-                  <button class="btn-cancel" data-id="<?= (int)$r["id"] ?>">Cancel</button>
-                  <button
-                    class="btn-message"
-                    data-id="<?= (int)$r["id"] ?>"
-                    data-queue-code="<?= esc($r["queue_code"]) ?>"
-                    data-customer="<?= esc($r["fullname"]) ?>"
-                    data-service="Walk-in Printing"
-                  >Message</button>
-                  <button class="btn-delete" data-id="<?= (int)$r["id"] ?>" title="Delete">x</button>
+                  <div class="actions-group">
+                    <button class="btn-start admin-file-action" data-id="<?= (int)$r["id"] ?>">Start</button>
+                    <button class="btn-pickup admin-file-action" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
+                    <button class="btn-done admin-file-action" data-id="<?= (int)$r["id"] ?>">Done</button>
+                    <button class="btn-cancel admin-file-action" data-id="<?= (int)$r["id"] ?>">Cancel</button>
+                    <button
+                      class="btn-message admin-file-action"
+                      data-id="<?= (int)$r["id"] ?>"
+                      data-queue-code="<?= esc($r["queue_code"]) ?>"
+                      data-customer="<?= esc($r["fullname"]) ?>"
+                      data-service="Walk-in Printing"
+                    >Message</button>
+                    <button class="btn-delete admin-file-action" data-id="<?= (int)$r["id"] ?>" title="Delete">Delete</button>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -193,6 +196,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 })();
 </script>
 
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>
