@@ -551,8 +551,8 @@ $notificationRoutes = [
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 22px;
-    height: 3px;
+    width: 17px;
+    height: 2.5px;
     border-radius: 999px;
     background: currentColor;
     transform-origin: center;
@@ -568,9 +568,9 @@ $notificationRoutes = [
 
   .notification-close-btn:hover {
     border-color: #dfbda9;
-    background: #f3e5dc;
+    background: #f4e6dc;
     box-shadow: 0 8px 18px rgba(74, 5, 5, 0.1);
-    transform: scale(1.03);
+    transform: scale(1.02);
   }
 
   .notification-close-btn:active {
