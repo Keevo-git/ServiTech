@@ -281,11 +281,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                           <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                           <td><?= htmlspecialchars($r["fullname"]) ?></td>
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                          <td>
-                            <span class="datetime-stack">
-                              <strong><?= htmlspecialchars(om_payment_summary($r)) ?></strong>
-                            </span>
-                          </td>
+                          <td><?= htmlspecialchars(om_payment_summary($r)) ?></td>
                           <td>
                             <span class="datetime-stack">
                               <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
