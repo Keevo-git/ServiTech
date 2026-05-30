@@ -289,9 +289,7 @@ $notificationRoutes = [
               class="notification-close-btn"
               aria-label="Close notifications"
               data-notification-close
-            >
-              &times;
-            </button>
+            ></button>
           </div>
 
           <div class="notification-dropdown__actions">
@@ -530,24 +528,53 @@ $notificationRoutes = [
   .notification-close-btn {
     display: none;
     flex: 0 0 auto;
+    position: relative;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    border: 1px solid rgba(74, 5, 5, 0.14);
-    border-radius: 12px;
-    background: #fff7ed;
-    color: #4A0505;
-    font-size: 1.7rem;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    border: 1px solid #e7cdbd;
+    border-radius: 16px;
+    background: #f9efe7;
+    color: #6b0000;
+    font-size: 0;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.18s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .notification-close-btn::before,
+  .notification-close-btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 22px;
+    height: 3px;
+    border-radius: 999px;
+    background: currentColor;
+    transform-origin: center;
+  }
+
+  .notification-close-btn::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .notification-close-btn::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
   }
 
   .notification-close-btn:hover {
-    background: #ffecd9;
-    transform: translateY(-1px);
+    border-color: #dfbda9;
+    background: #f3e5dc;
+    box-shadow: 0 8px 18px rgba(74, 5, 5, 0.1);
+    transform: scale(1.03);
+  }
+
+  .notification-close-btn:active {
+    transform: scale(0.98);
   }
 
   .notification-close-btn:focus-visible {
