@@ -72,6 +72,15 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
   }
 
+  function statusClass(status) {
+    const key = String(status || "PENDING").trim().toLowerCase().replace(/[\s_]+/g, "-");
+    if (key === "ongoing" || key === "inprogress") return "status-ongoing";
+    if (key === "for-pick-up" || key === "for-pickup") return "status-pickup";
+    if (key === "done" || key === "complete") return "status-done";
+    if (key === "cancelled" || key === "canceled" || key === "onhold") return "status-cancelled";
+    return "status-pending";
+  }
+
   function fileRows(files) {
     if (!Array.isArray(files) || files.length === 0) {
       return detailRow("Attached File", "No file");
@@ -128,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
       <div>
         <span>Status</span>
-        <strong>${esc(order.status || "PENDING")}</strong>
+        <strong><span class="status-badge ${statusClass(order.status)}">${esc(order.status || "PENDING")}</span></strong>
       </div>
     `;
     detailsEl.innerHTML = baseRows;

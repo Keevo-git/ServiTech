@@ -722,6 +722,11 @@ table.orders td:last-child .btn-primary {
   line-height: 1.5;
 }
 
+.order-modal-summary .status-badge {
+  display: inline-flex;
+  margin-top: 2px;
+}
+
 .order-modal-details {
   display: grid;
   gap: 12px;
