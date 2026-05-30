@@ -531,11 +531,11 @@ $notificationRoutes = [
     position: relative;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 1px solid #e7cdbd;
-    border-radius: 16px;
+    border-radius: 14px;
     background: #f9efe7;
     color: #6b0000;
     font-size: 0;
