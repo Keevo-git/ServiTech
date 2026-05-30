@@ -326,16 +326,18 @@ table.orders tbody tr {
   transform: translateY(-1px);
 }
 
-.order-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+table.orders td.order-actions {
+  display: table-cell;
+  width: 120px;
   min-width: 0;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .order-actions .btn-primary,
 table.orders td:last-child .btn-primary {
   display: inline-block;
+  margin: 0 auto;
 }
 
 .order-actions .view-order-btn,
