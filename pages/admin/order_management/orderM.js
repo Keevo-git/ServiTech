@@ -135,9 +135,9 @@ document.addEventListener("DOMContentLoaded", function () {
         <span>Customer</span>
         <strong>${esc(order.customer || "-")}</strong>
       </div>
-      <div>
+      <div class="order-modal-summary-status ${statusClass(order.status)}">
         <span>Status</span>
-        <strong><span class="status-badge ${statusClass(order.status)}">${esc(order.status || "PENDING")}</span></strong>
+        <strong>${esc(order.status || "PENDING")}</strong>
       </div>
     `;
     detailsEl.innerHTML = baseRows;

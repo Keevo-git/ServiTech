@@ -727,6 +727,51 @@ table.orders td:last-child .btn-primary {
   margin-top: 2px;
 }
 
+.order-modal-summary .order-modal-summary-status.status-pending {
+  background: #fef3c7;
+}
+
+.order-modal-summary .order-modal-summary-status.status-pending span,
+.order-modal-summary .order-modal-summary-status.status-pending strong {
+  color: #b45309;
+}
+
+.order-modal-summary .order-modal-summary-status.status-ongoing {
+  background: #dbeafe;
+}
+
+.order-modal-summary .order-modal-summary-status.status-ongoing span,
+.order-modal-summary .order-modal-summary-status.status-ongoing strong {
+  color: #1d4ed8;
+}
+
+.order-modal-summary .order-modal-summary-status.status-pickup {
+  background: #ede9fe;
+}
+
+.order-modal-summary .order-modal-summary-status.status-pickup span,
+.order-modal-summary .order-modal-summary-status.status-pickup strong {
+  color: #7c3aed;
+}
+
+.order-modal-summary .order-modal-summary-status.status-done {
+  background: #dcfce7;
+}
+
+.order-modal-summary .order-modal-summary-status.status-done span,
+.order-modal-summary .order-modal-summary-status.status-done strong {
+  color: #15803d;
+}
+
+.order-modal-summary .order-modal-summary-status.status-cancelled {
+  background: #fee2e2;
+}
+
+.order-modal-summary .order-modal-summary-status.status-cancelled span,
+.order-modal-summary .order-modal-summary-status.status-cancelled strong {
+  color: #b91c1c;
+}
+
 .order-modal-details {
   display: grid;
   gap: 12px;
