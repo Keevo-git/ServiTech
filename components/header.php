@@ -260,7 +260,7 @@ $notificationRoutes = [
           type="button"
           aria-label="Notifications"
           aria-expanded="false"
-          aria-controls="header-notification-dropdown"
+          aria-controls="notificationPanel"
           data-notification-toggle
         >
           <span class="notification-btn__icon-wrap">
@@ -270,16 +270,28 @@ $notificationRoutes = [
         </button>
 
         <div
-          id="header-notification-dropdown"
+          id="notificationPanel"
           class="notification-dropdown"
           data-notification-dropdown
+          role="dialog"
+          aria-label="Notifications"
+          aria-modal="false"
           aria-hidden="true"
+          tabindex="-1"
         >
           <div class="notification-dropdown__header">
             <div>
               <h2>Notifications</h2>
               <p>Real-time queue updates</p>
             </div>
+            <button
+              type="button"
+              class="notification-close-btn"
+              aria-label="Close notifications"
+              data-notification-close
+            >
+              &times;
+            </button>
           </div>
 
           <div class="notification-dropdown__actions">
@@ -292,7 +304,10 @@ $notificationRoutes = [
           </div>
 
           <div class="notification-list" data-notification-list>
-            <div class="notification-empty" data-notification-empty>No notifications</div>
+            <div class="notification-empty" data-notification-empty>
+              <strong>No notifications yet.</strong>
+              <span>Queue updates will appear here.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -464,8 +479,11 @@ $notificationRoutes = [
     position: absolute;
     top: calc(100% + 12px);
     right: 0;
-    width: min(380px, calc(100vw - 24px));
-    max-height: min(70vh, 540px);
+    z-index: 2100;
+    display: flex;
+    flex-direction: column;
+    width: min(420px, 92vw);
+    max-height: 70vh;
     padding: 14px;
     border: 1px solid rgba(74, 5, 5, 0.14);
     border-radius: 18px;
@@ -488,6 +506,7 @@ $notificationRoutes = [
   }
 
   .notification-dropdown__header {
+    flex: 0 0 auto;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -508,7 +527,36 @@ $notificationRoutes = [
     font-size: 0.82rem;
   }
 
+  .notification-close-btn {
+    display: none;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(74, 5, 5, 0.14);
+    border-radius: 12px;
+    background: #fff7ed;
+    color: #4A0505;
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.18s ease;
+  }
+
+  .notification-close-btn:hover {
+    background: #ffecd9;
+    transform: translateY(-1px);
+  }
+
+  .notification-close-btn:focus-visible {
+    outline: 2px solid #ff8b2c;
+    outline-offset: 2px;
+  }
+
   .notification-dropdown__actions {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -518,7 +566,7 @@ $notificationRoutes = [
 
   .notification-action-btn {
     flex: 1 1 0;
-    min-height: 38px;
+    min-height: 44px;
     padding: 8px 12px;
     border: 1px solid rgba(74, 5, 5, 0.14);
     border-radius: 12px;
@@ -550,22 +598,37 @@ $notificationRoutes = [
   }
 
   .notification-list {
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    max-height: min(52vh, 420px);
+    gap: 10px;
     overflow-y: auto;
-    padding-right: 4px;
+    overscroll-behavior: contain;
+    padding: 2px 4px 4px 0;
   }
 
   .notification-empty {
-    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 22px 14px;
     border: 1px dashed rgba(122, 91, 68, 0.28);
     border-radius: 14px;
     background: #fffaf5;
     color: #7a5b44;
     text-align: center;
     font-size: 0.95rem;
+  }
+
+  .notification-empty strong {
+    color: #4A0505;
+    font-size: 0.98rem;
+  }
+
+  .notification-empty span {
+    color: #7a5b44;
+    font-size: 0.84rem;
   }
 
   .notification-item {
@@ -666,7 +729,12 @@ $notificationRoutes = [
     }
   }
 
-  @media (max-width: 520px) {
+  @media (max-width: 768px) {
+    body.notifications-open {
+      overflow: hidden;
+      touch-action: none;
+    }
+
     .navbar.has-nav-menu.navbar--notifications {
       grid-template-columns: minmax(112px, 1fr) auto;
       column-gap: 8px;
@@ -710,31 +778,65 @@ $notificationRoutes = [
 
     .notification-dropdown {
       position: fixed;
-      top: 76px;
-      left: 10px;
-      right: 10px;
-      width: auto;
-      max-height: calc(100vh - 96px);
-      border-radius: 16px;
+      inset: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      max-height: none;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+      border: 0;
+      border-radius: 0;
+      background: #fffaf5;
+      box-shadow: none;
       transform-origin: top center;
-      z-index: 2000;
+      z-index: 5000;
+    }
+
+    .notification-dropdown.is-open {
+      transform: none;
+    }
+
+    .notification-dropdown__header {
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(74, 5, 5, 0.12);
+    }
+
+    .notification-dropdown__header h2 {
+      font-size: 1.2rem;
+    }
+
+    .notification-dropdown__header p {
+      font-size: 0.88rem;
+    }
+
+    .notification-close-btn {
+      display: inline-flex;
     }
 
     .notification-dropdown__actions {
-      flex-direction: column;
+      flex-direction: row;
+      gap: 8px;
+      margin-bottom: 14px;
     }
 
     .notification-action-btn {
       width: 100%;
+      min-height: 44px;
+      border-radius: 13px;
     }
 
     .notification-list {
-      max-height: calc(100vh - 250px);
+      flex: 1 1 auto;
+      max-height: none;
+      padding: 2px 2px 24px;
     }
 
     .notification-item {
-      padding: 11px 12px;
+      padding: 13px 14px;
       gap: 10px;
+      border-radius: 14px;
     }
 
     .notification-item__message {
@@ -744,6 +846,12 @@ $notificationRoutes = [
 
     .notification-item__time {
       font-size: 0.76rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .notification-dropdown__actions {
+      flex-direction: column;
     }
   }
 </style>
@@ -778,11 +886,23 @@ $notificationRoutes = [
       var emptyState = root.querySelector("[data-notification-empty]");
       var markAllButton = root.querySelector("[data-notification-mark-all]");
       var clearAllButton = root.querySelector("[data-notification-clear]");
+      var closeButton = root.querySelector("[data-notification-close]");
       var unreadCount = 0;
       var notificationPollTimer = null;
       var notificationRefreshInFlight = false;
       var realtimeConnected = false;
       var notificationPollMs = 4000;
+      var mobileMediaQuery = window.matchMedia("(max-width: 768px)");
+
+      function isMobileDrawer() {
+        return mobileMediaQuery.matches;
+      }
+
+      function syncPanelMode() {
+        var isOpen = dropdown.classList.contains("is-open");
+        dropdown.setAttribute("aria-modal", isOpen && isMobileDrawer() ? "true" : "false");
+        document.body.classList.toggle("notifications-open", isOpen && isMobileDrawer());
+      }
 
       function formatDate(value) {
         if (!value) {
@@ -938,12 +1058,27 @@ $notificationRoutes = [
         dropdown.classList.add("is-open");
         dropdown.setAttribute("aria-hidden", "false");
         toggleButton.setAttribute("aria-expanded", "true");
+        syncPanelMode();
+        window.setTimeout(function () {
+          dropdown.focus({ preventScroll: true });
+        }, 0);
       }
 
-      function closeDropdown() {
+      function closeDropdown(options) {
+        if (!dropdown.classList.contains("is-open")) {
+          syncPanelMode();
+          return;
+        }
+
+        var shouldRestoreFocus = !options || options.restoreFocus !== false;
         dropdown.classList.remove("is-open");
         dropdown.setAttribute("aria-hidden", "true");
         toggleButton.setAttribute("aria-expanded", "false");
+        syncPanelMode();
+
+        if (shouldRestoreFocus) {
+          toggleButton.focus({ preventScroll: true });
+        }
       }
 
       function toggleDropdown() {
@@ -1146,7 +1281,7 @@ $notificationRoutes = [
 
       document.addEventListener("click", function (event) {
         if (!root.contains(event.target)) {
-          closeDropdown();
+          closeDropdown({ restoreFocus: false });
         }
       });
 
@@ -1155,6 +1290,18 @@ $notificationRoutes = [
           closeDropdown();
         }
       });
+
+      if (closeButton) {
+        closeButton.addEventListener("click", function () {
+          closeDropdown();
+        });
+      }
+
+      if (typeof mobileMediaQuery.addEventListener === "function") {
+        mobileMediaQuery.addEventListener("change", syncPanelMode);
+      } else if (typeof mobileMediaQuery.addListener === "function") {
+        mobileMediaQuery.addListener(syncPanelMode);
+      }
 
       document.addEventListener("visibilitychange", function () {
         if (!document.hidden) {
