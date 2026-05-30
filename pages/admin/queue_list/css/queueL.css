@@ -279,10 +279,7 @@ th {
 }
 
 td.actions {
-  display: table-cell;
-  vertical-align: middle;
-  white-space: normal;
-  min-width: 360px;
+  white-space: nowrap;
 }
 
 .actions {
@@ -304,11 +301,6 @@ td.actions {
   font-size: 12px;
   white-space: nowrap;
   flex: 0 0 auto;
-}
-
-td.actions button {
-  margin: 4px 8px 4px 0;
-  vertical-align: middle;
 }
 
 .btn-start {
