@@ -200,7 +200,7 @@ main{ flex:1; }
   display: inline-flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 5px;
+  gap: 8px;
 }
 
 .admin-file-action {
@@ -216,7 +216,7 @@ main{ flex:1; }
   font-size: 11px;
   line-height: 1;
   white-space: nowrap;
-  text-decoration: none;
+  text-decoration: none !important;
 }
 
 .admin-file-empty .admin-file-action {

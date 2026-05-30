@@ -34,6 +34,53 @@ function payment_label($value): string
     return "-";
 }
 
+function payment_status_label($method, $paymentStatus = null, $detailsStatus = null): string
+{
+    $method = strtolower(trim((string)$method));
+    $status = strtoupper(trim((string)($paymentStatus ?? $detailsStatus ?? "")));
+
+    if ($method === "gcash") {
+        if (in_array($status, ["PENDING", "SUBMITTED", "PENDING VERIFICATION"], true)) {
+            return "Payment Submitted";
+        }
+        if (in_array($status, ["VERIFIED", "PAID", "COMPLETE"], true)) {
+            return "Verified / Paid";
+        }
+        if (in_array($status, ["DECLINED", "REJECTED", "FAILED"], true)) {
+            return "Rejected";
+        }
+    }
+
+    if ($method === "cash") {
+        if ($status === "" || $status === "PAY AT STORE") {
+            return "Pay at Store";
+        }
+        if (in_array($status, ["PENDING", "UNPAID"], true)) {
+            return "Pending Payment";
+        }
+        if (in_array($status, ["PAID", "VERIFIED", "COMPLETE", "DONE"], true)) {
+            return "Paid";
+        }
+    }
+
+    if ($status === "") {
+        return "-";
+    }
+
+    return ucfirst(strtolower($status));
+}
+
+function payment_amount_label($amount, $detailsTotal = null): string
+{
+    if (is_numeric($amount) && (float)$amount > 0) {
+        return '₱' . number_format((float)$amount, 2);
+    }
+    if (is_string($detailsTotal) && trim($detailsTotal) !== '' && is_numeric(trim($detailsTotal))) {
+        return '₱' . number_format((float)trim($detailsTotal), 2);
+    }
+    return "";
+}
+
 $walkinStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname
   FROM queues q
@@ -57,11 +104,13 @@ $walkin = $walkinStmt->fetchAll();
 
 $onlineStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname,
-    p.payment_method, p.reference_number, p.status AS payment_status
+    p.payment_method, p.reference_number, p.status AS payment_status, p.amount,
+    q.details->>'estimated_total' AS details_total,
+    q.details->>'payment_status' AS details_payment_status
   FROM queues q
   JOIN users u ON u.id = q.user_id
   LEFT JOIN LATERAL (
-    SELECT payment_method, reference_number, status
+    SELECT payment_method, reference_number, status, amount
     FROM payments
     WHERE queue_id = q.id
     ORDER BY id DESC
@@ -241,9 +290,14 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                           <td>
                             <span class="datetime-stack">
-                              <strong><?= htmlspecialchars(payment_label($r["payment_method"])) ?></strong>
-                              <small>Ref: <?= htmlspecialchars($r["reference_number"] ?: "-") ?></small>
-                              <small>Status: <?= htmlspecialchars($r["payment_status"] ?: "-") ?></small>
+                              <strong>
+                                <?= htmlspecialchars(payment_label($r["payment_method"])) ?>
+                                <?= htmlspecialchars(payment_amount_label($r["amount"] ?? null, $r["details_total"] ?? null)) ?>
+                              </strong>
+                              <?php if (trim((string)($r["reference_number"] ?? "")) !== ""): ?>
+                                <small>Ref: <?= htmlspecialchars($r["reference_number"]) ?></small>
+                              <?php endif; ?>
+                              <small>Status: <?= htmlspecialchars(payment_status_label($r["payment_method"], $r["payment_status"], $r["details_payment_status"])) ?></small>
                             </span>
                           </td>
                           <td>

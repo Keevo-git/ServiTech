@@ -364,17 +364,18 @@ table.orders.order-table--simple td:last-child {
 }
 
 .order-actions {
+  display: grid;
+  gap: 8px;
   min-width: 150px;
 }
 
 .order-actions .update-btn,
 .order-actions .btn-message {
   width: 100%;
-  min-width: 128px;
+  min-width: 0;
 }
 
 .order-actions .btn-message {
-  margin-top: 8px;
   background: #214f91;
   border: 1px solid #214f91;
   color: #fff;
