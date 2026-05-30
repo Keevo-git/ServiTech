@@ -140,7 +140,8 @@ body.admin-dashboard .page-frame {
 table.orders {
   width: 100%;
   border-collapse: collapse;
-  min-width: 860px;
+  table-layout: fixed;
+  min-width: 920px;
 }
 
 .table-scroll-wrapper {
@@ -154,7 +155,7 @@ table.orders {
 }
 
 .table-content {
-  min-width: 860px;
+  min-width: 920px;
 }
 
 .table-section {
@@ -165,13 +166,13 @@ table.orders {
 
 .table-section table {
   width: 100%;
-  min-width: 860px;
+  min-width: 920px;
 }
 
 table.orders th,
 table.orders td {
-  padding: 14px 10px;
-  border-bottom: 1px solid #e4ebf4;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eeeeee;
   text-align: left;
   font-size: 14px;
   vertical-align: middle;
@@ -185,29 +186,37 @@ table.orders th {
 
 table.orders th:nth-child(1),
 table.orders td:nth-child(1) {
-  width: 120px;
+  width: 90px;
 }
 
 table.orders th:nth-child(2),
 table.orders td:nth-child(2) {
-  width: 260px;
+  width: 220px;
 }
 
 table.orders th:nth-child(3),
 table.orders td:nth-child(3) {
-  width: 160px;
+  width: 150px;
 }
 
 table.orders th:nth-child(4),
 table.orders td:nth-child(4) {
-  width: 180px;
+  width: 200px;
 }
 
 table.orders th:nth-child(5),
-table.orders td:nth-child(5),
+table.orders td:nth-child(5) {
+  width: 170px;
+}
+
 table.orders th:nth-child(6),
 table.orders td:nth-child(6) {
-  width: 135px;
+  width: 140px;
+  text-align: right;
+}
+
+table.orders tbody tr {
+  border-bottom: 1px solid #eeeeee;
 }
 
 .datetime-stack {
@@ -245,7 +254,8 @@ table.orders td:nth-child(6) {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  padding: 6px 12px;
+  min-width: 66px;
+  padding: 7px 12px;
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
@@ -281,36 +291,45 @@ table.orders td:nth-child(6) {
   color: #b91c1c;
 }
 
-.update-btn,
-.view-order-btn {
-  background: #fff;
-  border: 1px solid #ccd8e8;
-  color: #1d457c;
-  padding: 8px 12px;
-  border-radius: 18px;
-  font-weight: 700;
+.view-order-btn,
+.btn-primary.view-order-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 72px;
+  max-width: 100%;
+  background: #f5a623;
+  border: 1px solid #e39a18;
+  color: #111827;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  line-height: 1.2;
   cursor: pointer;
   white-space: nowrap;
-  min-width: 128px;
+  text-decoration: none;
+  box-shadow: 0 5px 12px rgba(245, 166, 35, 0.2);
 }
 
-.update-btn:hover,
-.view-order-btn:hover {
-  border-color: #9fb4cf;
-  background: #f5f9ff;
+.view-order-btn:hover,
+.btn-primary.view-order-btn:hover {
+  background: #e49718;
+  border-color: #d48a11;
+  color: #111827;
+  transform: translateY(-1px);
 }
 
 .order-actions {
-  display: grid;
-  gap: 8px;
-  min-width: 150px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
 }
 
-.order-actions .update-btn,
 .order-actions .view-order-btn,
 .order-actions .btn-message {
-  width: 100%;
-  min-width: 0;
+  width: auto;
 }
 
 .order-actions .btn-message {
@@ -322,6 +341,22 @@ table.orders td:nth-child(6) {
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.update-btn {
+  background: #fff;
+  border: 1px solid #ccd8e8;
+  color: #1d457c;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.update-btn:hover {
+  border-color: #9fb4cf;
+  background: #f5f9ff;
 }
 
 .order-actions .btn-message:hover {
@@ -550,11 +585,13 @@ table.orders td:nth-child(6) {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: none;
-  z-index: 999;
+  pointer-events: none;
+  z-index: 10000;
 }
 
 .order-modal-overlay.active {
   display: block;
+  pointer-events: auto;
 }
 
 .order-modal {
@@ -570,7 +607,7 @@ table.orders td:nth-child(6) {
   border-radius: 12px;
   box-shadow: 0 26px 70px rgba(10, 24, 44, 0.28);
   display: none;
-  z-index: 1000;
+  z-index: 10001;
   border: 1px solid #e1e7f0;
 }
 
@@ -761,10 +798,9 @@ table.orders td:nth-child(6) {
     padding: 15px;
   }
 
-  .update-btn,
-  .view-order-btn,
-  .modal-actions button,
-  .om-btn {
+.view-order-btn,
+.modal-actions button,
+.om-btn {
     width: 100%;
     margin-bottom: 8px;
   }

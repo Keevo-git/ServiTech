@@ -59,8 +59,8 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530admin-ui') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530-order-modal-fix') ?>">
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260530-order-modal-fix') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>">
 
@@ -151,7 +151,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                               type="button"
                               data-id="<?= (int)$r["id"] ?>"
                               data-order="<?= om_order_payload_attr($r, "Walk-in Queue: Repair", "Repair Service") ?>"
-                            >Manage</button>
+                            >View</button>
                           </td>
                         </tr>
                       <?php endforeach; ?>

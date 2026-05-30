@@ -159,9 +159,9 @@ if (!in_array($printView, ["online", "walkin"], true)) {
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530-order-modal-fix') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260530-order-modal-fix') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>">
 
@@ -253,7 +253,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                               type="button"
                               data-id="<?= (int)$r["id"] ?>"
                               data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true]), "Walk-in Queue: Print", "Walk-in Printing") ?>"
-                            >View Details</button>
+                            >View</button>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -297,7 +297,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                               type="button"
                               data-id="<?= (int)$r["id"] ?>"
                               data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true]), "Online Print Order", "Document Printing") ?>"
-                            >View Details</button>
+                            >View</button>
                           </td>
                         </tr>
                       <?php endforeach; ?>

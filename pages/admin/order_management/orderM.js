@@ -31,10 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const actionUrl = document.body?.dataset.orderActionUrl || "";
   let currentOrder = null;
 
-  if (!overlay || !modal || !summaryEl || !detailsEl || !statusEl) {
-    return;
-  }
-
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   const actionMap = {
     PENDING: "pending",
@@ -123,8 +119,8 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Completed Date", order.completed || "-"),
     ].join("");
 
-    serviceEl.textContent = order.serviceType || "Order Details";
-    titleEl.textContent = order.queueCode || "Order Details";
+    if (serviceEl) serviceEl.textContent = order.serviceType || "Order Details";
+    if (titleEl) titleEl.textContent = order.queueCode || "Order Details";
     summaryEl.innerHTML = `
       <div>
         <span>Customer</span>
@@ -136,7 +132,9 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
     `;
     detailsEl.innerHTML = baseRows;
-    commentsEl.value = String(order.comments || "").trim() || "No additional comments.";
+    if (commentsEl) {
+      commentsEl.value = String(order.comments || "").trim() || "No additional comments.";
+    }
 
     const currentStatus = String(order.status || "PENDING").trim().toUpperCase();
     const exists = Array.from(statusEl.options).some((option) => option.value === currentStatus);
@@ -153,6 +151,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function openModal(order) {
+    if (!overlay || !modal || !summaryEl || !detailsEl || !statusEl) {
+      return;
+    }
+
     currentOrder = order;
     clearError();
     renderOrder(order);
@@ -163,6 +165,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function closeModal() {
+    if (!overlay || !modal) return;
     overlay.classList.remove("active");
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");
@@ -189,24 +192,37 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function openFromButton(button) {
+    let order = {};
+    try {
+      order = JSON.parse(button.dataset.order || "{}");
+    } catch (error) {
+      order = {};
+    }
+
+    order.id = order.id || button.dataset.id || "";
+    order.queueCode = order.queueCode || button.dataset.id || "Order Details";
+    order.customer = order.customer || "-";
+    order.status = order.status || "PENDING";
+    order.serviceType = order.serviceType || "Order Details";
+    order.serviceLabel = order.serviceLabel || "Service";
+    openModal(order);
+  }
+
   document.querySelectorAll(".view-order-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      try {
-        const order = JSON.parse(button.dataset.order || "{}");
-        order.id = order.id || button.dataset.id || "";
-        openModal(order);
-      } catch (error) {
-        showError("Unable to open order details.");
-      }
+    button.disabled = false;
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      openFromButton(this);
     });
   });
 
   document.getElementById("orderModalClose")?.addEventListener("click", closeModal);
   document.getElementById("omCancel")?.addEventListener("click", closeModal);
-  overlay.addEventListener("click", closeModal);
+  overlay?.addEventListener("click", closeModal);
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && modal.classList.contains("active")) {
+    if (event.key === "Escape" && modal?.classList.contains("active")) {
       closeModal();
     }
   });
