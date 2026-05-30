@@ -3,6 +3,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
 require_once __DIR__ . "/../_includes/queue_files.php";
+require_once __DIR__ . "/_order_modal_helpers.php";
 
 function status_class(string $s): string
 {
@@ -82,9 +83,19 @@ function payment_amount_label($amount, $detailsTotal = null): string
 }
 
 $walkinStmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname
+  SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname,
+    p.payment_method, p.reference_number, p.status AS payment_status, p.amount,
+    q.details->>'estimated_total' AS details_total,
+    q.details->>'payment_status' AS details_payment_status
   FROM queues q
   JOIN users u ON u.id = q.user_id
+  LEFT JOIN LATERAL (
+    SELECT payment_method, reference_number, status, amount
+    FROM payments
+    WHERE queue_id = q.id
+    ORDER BY id DESC
+    LIMIT 1
+  ) p ON TRUE
   WHERE (
       q.created_at <= (NOW() - INTERVAL '15 minutes')
       OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
@@ -152,7 +163,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js') ?>" defer></script>
 </head>
-<body class="admin-dashboard">
+<body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>">
 
 <header class="navbar has-nav-menu">
   <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
@@ -217,11 +228,11 @@ if (!in_array($printView, ["online", "walkin"], true)) {
               <div class="table-scroll-wrapper">
                 <table class="orders table-content order-table order-table--walkin">
                   <thead>
-                    <tr><th>Queue ID</th><th>Customer Name</th><th>Status</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                    <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Submitted Date</th><th>Action</th></tr>
                   </thead>
                   <tbody>
                     <?php if (!$walkin): ?>
-                      <tr><td colspan="7" style="color:#777;padding:14px;">No walk-in queues older than 15 minutes yet.</td></tr>
+                      <tr><td colspan="6" style="color:#777;padding:14px;">No walk-in queues older than 15 minutes yet.</td></tr>
                     <?php else: ?>
                       <?php foreach ($walkin as $r): ?>
                         <?php $cls = status_class($r["status"]); ?>
@@ -229,41 +240,20 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                           <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                           <td><?= htmlspecialchars($r["fullname"]) ?></td>
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                          <td>
-                            <?php admin_queue_render_file_items($r["details"] ?? null); ?>
-                          </td>
+                          <td><?= htmlspecialchars(om_payment_summary($r)) ?></td>
                           <td>
                             <span class="datetime-stack">
                               <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
                               <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
                             </span>
                           </td>
-                          <td>
-                            <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
-                              <span class="datetime-stack datetime-stack--muted">
-                                <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
-                                <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
-                              </span>
-                            <?php else: ?>
-                              <span class="datetime-empty">-</span>
-                            <?php endif; ?>
-                          </td>
                           <td class="order-actions">
                             <button
-                              class="update-btn"
-                              data-id="<?= (int)$r["id"] ?>"
-                              data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                              data-status="<?= htmlspecialchars($r["status"]) ?>"
-                              data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
-                            >Update Status</button>
-                            <button
-                              class="btn-message"
+                              class="btn-primary view-order-btn"
                               type="button"
                               data-id="<?= (int)$r["id"] ?>"
-                              data-queue-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>"
-                              data-customer="<?= htmlspecialchars($r["fullname"], ENT_QUOTES, "UTF-8") ?>"
-                              data-service="Walk-in Printing"
-                            >Message</button>
+                              data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true]), "Walk-in Queue: Print", "Walk-in Printing") ?>"
+                            >View Details</button>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -277,11 +267,11 @@ if (!in_array($printView, ["online", "walkin"], true)) {
               <div class="table-scroll-wrapper">
                 <table class="orders table-content order-table order-table--online">
                   <thead>
-                    <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Attached File</th><th>Submitted</th><th>Completed</th><th>Action</th></tr>
+                    <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Submitted Date</th><th>Action</th></tr>
                   </thead>
                   <tbody>
                     <?php if (!$online): ?>
-                      <tr><td colspan="8" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
+                      <tr><td colspan="6" style="color:#777;padding:14px;">No online printing orders older than 15 minutes yet.</td></tr>
                     <?php else: ?>
                       <?php foreach ($online as $r): ?>
                         <?php $cls = status_class($r["status"]); ?>
@@ -291,18 +281,9 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                           <td>
                             <span class="datetime-stack">
-                              <strong>
-                                <?= htmlspecialchars(payment_label($r["payment_method"])) ?>
-                                <?= htmlspecialchars(payment_amount_label($r["amount"] ?? null, $r["details_total"] ?? null)) ?>
-                              </strong>
-                              <?php if (trim((string)($r["reference_number"] ?? "")) !== ""): ?>
-                                <small>Ref: <?= htmlspecialchars($r["reference_number"]) ?></small>
-                              <?php endif; ?>
-                              <small>Status: <?= htmlspecialchars(payment_status_label($r["payment_method"], $r["payment_status"], $r["details_payment_status"])) ?></small>
+                              <strong><?= htmlspecialchars(om_payment_summary($r)) ?></strong>
+                              <small><?= htmlspecialchars(om_payment_status_label($r["payment_method"], $r["payment_status"], $r["details_payment_status"])) ?></small>
                             </span>
-                          </td>
-                          <td>
-                            <?php admin_queue_render_file_items($r["details"] ?? null); ?>
                           </td>
                           <td>
                             <span class="datetime-stack">
@@ -310,32 +291,13 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                               <small><?= htmlspecialchars(admin_queue_submitted_time($r["created_at"])) ?></small>
                             </span>
                           </td>
-                          <td>
-                            <?php if (admin_queue_has_timestamp($r["completed_at"])): ?>
-                              <span class="datetime-stack datetime-stack--muted">
-                                <strong><?= htmlspecialchars(admin_queue_completed_date($r["completed_at"])) ?></strong>
-                                <small><?= htmlspecialchars(admin_queue_completed_time($r["completed_at"])) ?></small>
-                              </span>
-                            <?php else: ?>
-                              <span class="datetime-empty">-</span>
-                            <?php endif; ?>
-                          </td>
                           <td class="order-actions">
                             <button
-                              class="update-btn"
-                              data-id="<?= (int)$r["id"] ?>"
-                              data-code="<?= htmlspecialchars($r["queue_code"]) ?>"
-                              data-status="<?= htmlspecialchars($r["status"]) ?>"
-                              data-customer="<?= htmlspecialchars($r["fullname"]) ?>"
-                            >Update Status</button>
-                            <button
-                              class="btn-message"
+                              class="btn-primary view-order-btn"
                               type="button"
                               data-id="<?= (int)$r["id"] ?>"
-                              data-queue-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>"
-                              data-customer="<?= htmlspecialchars($r["fullname"], ENT_QUOTES, "UTF-8") ?>"
-                              data-service="Online Print Order"
-                            >Message</button>
+                              data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true]), "Online Print Order", "Document Printing") ?>"
+                            >View Details</button>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -355,143 +317,10 @@ if (!in_array($printView, ["online", "walkin"], true)) {
 
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
-<div class="om-modalOverlay" id="statusModal">
-  <div class="om-modalCard" role="dialog" aria-modal="true">
-    <div class="modal-header-custom om-modalHead">
-      <h2>Update Status</h2>
-      <button class="modal-close om-modalX" type="button" id="omClose">&times;</button>
-    </div>
-
-    <div class="modal-body om-modalBody">
-      <div class="modal-field om-row">
-        <label class="om-label">Order ID</label>
-        <p class="order-id" id="omQueueCode">-</p>
-      </div>
-
-      <div class="modal-field om-row">
-        <label class="om-label">Customer</label>
-        <p class="modal-value" id="omCustomer">-</p>
-      </div>
-
-      <div class="modal-field om-row">
-        <label class="om-label" for="omStatus">Select Status</label>
-        <select class="om-select" id="omStatus">
-          <option value="PENDING">Pending</option>
-          <option value="ONGOING">Ongoing</option>
-          <option value="FOR PICK-UP">For Pick-up</option>
-          <option value="DONE">Done</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
-      </div>
-
-      <div class="om-error" id="omError"></div>
-
-      <div class="modal-actions om-actions">
-        <button class="btn-delete om-btn om-btn--danger" type="button" id="omDelete">Delete</button>
-        <button class="btn-cancel om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
-        <button class="btn-save om-btn om-btn--maroon" type="button" id="omSave">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
+<?php require_once __DIR__ . "/_order_details_modal.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php require_once __DIR__ . "/../queue_list/_queue_message_modal.php"; ?>
-<script>
-  const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
-  const modal = document.getElementById("statusModal");
-  const omQueueCode = document.getElementById("omQueueCode");
-  const omCustomer = document.getElementById("omCustomer");
-  const omStatus = document.getElementById("omStatus");
-  const omError = document.getElementById("omError");
-
-  const omErrorShow = (msg) => {
-    omError.textContent = msg;
-    omError.style.display = "block";
-  };
-  const omErrorHide = () => {
-    omError.textContent = "";
-    omError.style.display = "none";
-  };
-
-  const omClose = () => {
-    modal.style.display = "none";
-    omErrorHide();
-  };
-
-  let currentId = null;
-
-  async function postAction(id, action) {
-    const fd = new FormData();
-    fd.append("id", id);
-    fd.append("action", action);
-
-    const res = await fetch(<?= json_encode(admin_url_raw("/pages/admin/_includes/admin_actions.php")) ?>, {
-      method: "POST",
-      body: fd,
-      credentials: "same-origin",
-      headers: { "X-CSRF-Token": csrf() }
-    });
-
-    const txt = await res.text();
-    try { return JSON.parse(txt); }
-    catch (e) { return { ok: false, error: "Server returned non-JSON: " + txt }; }
-  }
-
-  const actionMap = {
-    "PENDING": "pending",
-    "ONGOING": "ongoing",
-    "FOR PICK-UP": "pickup",
-    "DONE": "done",
-    "CANCELLED": "cancel"
-  };
-
-  document.querySelectorAll(".update-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      currentId = btn.dataset.id;
-      omQueueCode.textContent = btn.dataset.code || "-";
-      omCustomer.textContent = btn.dataset.customer || "-";
-
-      const curr = (btn.dataset.status || "PENDING").trim().toUpperCase();
-      const exists = Array.from(omStatus.options).some((o) => o.value === curr);
-      omStatus.value = exists ? curr : "PENDING";
-
-      omErrorHide();
-      modal.style.display = "flex";
-    });
-  });
-
-  document.getElementById("omClose")?.addEventListener("click", omClose);
-  document.getElementById("omCancel")?.addEventListener("click", omClose);
-  modal?.addEventListener("click", (e) => { if (e.target === modal) omClose(); });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modal.style.display === "flex") omClose();
-  });
-
-  document.getElementById("omSave")?.addEventListener("click", async () => {
-    if (!currentId) return;
-
-    const selected = omStatus.value;
-    const action = actionMap[selected];
-    if (!action) return omErrorShow("Invalid status selected.");
-
-    const out = await postAction(currentId, action);
-    if (!out.ok) return omErrorShow(out.error || "Failed to update status.");
-
-    location.reload();
-  });
-
-  document.getElementById("omDelete")?.addEventListener("click", async () => {
-    if (!currentId) return;
-    if (!confirm("Delete this queue/order?")) return;
-
-    const out = await postAction(currentId, "delete");
-    if (!out.ok) return omErrorShow(out.error || "Failed to delete.");
-
-    location.reload();
-  });
-</script>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
