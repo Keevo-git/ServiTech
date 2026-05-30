@@ -855,6 +855,11 @@ table.orders td:last-child .btn-primary {
   margin-top: 20px;
 }
 
+.order-modal .om-btn,
+.order-modal .order-modal-message {
+  font-size: 16px;
+}
+
 .om-btn--primary {
   background: #f5a623;
   color: #111827;
@@ -868,7 +873,6 @@ table.orders td:last-child .btn-primary {
   background: #214f91;
   color: #fff;
   padding: 12px 14px;
-  font-size: 15px;
   font-weight: 800;
   cursor: pointer;
 }
