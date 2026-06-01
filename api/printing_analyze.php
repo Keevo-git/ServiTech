@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/upload_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -313,6 +314,7 @@ if (!empty($uploadedFiles)) {
     $name = trim((string)($file["name"] ?? ""));
     $tmp = (string)($file["tmp_name"] ?? "");
     $error = (int)($file["error"] ?? UPLOAD_ERR_NO_FILE);
+    $size = (int)($file["size"] ?? 0);
 
     if ($name === "" || $error === UPLOAD_ERR_NO_FILE) {
       continue;
@@ -323,7 +325,19 @@ if (!empty($uploadedFiles)) {
       continue;
     }
 
-    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    if ($size <= 0 || $size > 20 * 1024 * 1024) {
+      $unsupported[] = $name;
+      continue;
+    }
+
+    try {
+      $type = servitech_upload_validate_type($tmp, $name);
+    } catch (Throwable $e) {
+      $unsupported[] = $name;
+      continue;
+    }
+
+    $ext = $type["extension"];
     $total_files++;
 
     if ($ext === "pdf") {

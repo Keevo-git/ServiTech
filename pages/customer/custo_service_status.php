@@ -1057,7 +1057,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     if (uploadedFiles.length) {
       uploadedFiles.forEach((file, index) => {
-        const href = file.available === false ? "" : (file.href || resolveFileHref(file.saved_path || file.file_path || ""));
+        const href = file.available === false ? "" : (file.href || file.download_url || resolveFileHref(file.saved_path || file.file_path || ""));
         const label = file.original_name || fileNames[index] || derivedNames[index] || file.saved_path || `File ${index + 1}`;
         appendEntry(label, href);
       });
@@ -1077,7 +1077,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return;
     }
 
-    const fallbackHref = resolveFileHref(queueData.saved_path || queueData.file_path || queueData.file_name || "");
+    const fallbackHref = queueData.file_href || resolveFileHref(queueData.saved_path || queueData.file_path || queueData.file_name || "");
     if (queueData.file_name) {
       appendEntry(queueData.file_name, fallbackHref || "");
       if (fileLabelEl) fileLabelEl.textContent = "Attached File";

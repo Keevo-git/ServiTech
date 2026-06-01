@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../../../api/upload_helpers.php";
 
 function admin_queue_details_array($details): array
 {
@@ -72,7 +73,8 @@ function admin_queue_upload_file_url(string $path): string
         return "";
     }
 
-    return function_exists("admin_url_raw") ? admin_url_raw($safePath) : $safePath;
+    $downloadPath = "/api/legacy_upload_download.php?path=" . rawurlencode($safePath) . "&disposition=inline";
+    return function_exists("admin_url_raw") ? admin_url_raw($downloadPath) : $downloadPath;
 }
 
 function admin_queue_file_items($details): array
@@ -87,12 +89,22 @@ function admin_queue_file_items($details): array
                 continue;
             }
 
-            $path = (string)($file["saved_path"] ?? $file["file_path"] ?? "");
             $label = trim((string)($file["original_name"] ?? ""));
             if ($label === "") {
                 $label = "File " . ((int)$index + 1);
             }
 
+            $token = strtolower(trim((string)($file["upload_token"] ?? "")));
+            if (preg_match('/^[a-f0-9]{64}$/', $token)) {
+                $items[] = [
+                    "label" => $label,
+                    "url" => admin_url_raw(servitech_upload_download_path($token, true)),
+                    "path" => "",
+                ];
+                continue;
+            }
+
+            $path = (string)($file["saved_path"] ?? $file["file_path"] ?? "");
             $items[] = [
                 "label" => $label,
                 "url" => admin_queue_upload_file_url($path),

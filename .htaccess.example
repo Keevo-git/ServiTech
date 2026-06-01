@@ -22,6 +22,9 @@ Options -Indexes
   RewriteEngine On
 
   RewriteRule ^logs(?:/|$) - [F,L]
+  RewriteRule ^storage(?:/|$) - [F,L]
+  RewriteRule ^uploads(?:/|$) - [F,L]
+  RewriteRule ^scripts(?:/|$) - [F,L]
 
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

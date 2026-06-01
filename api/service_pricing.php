@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/upload_helpers.php";
 
 function servitech_pricing_clean_service_label(string $label): string {
   $label = trim($label);
@@ -176,19 +177,28 @@ function servitech_pricing_estimate_ppt_slides(string $path): int {
   return max(1, (int)ceil((@filesize($path) ?: 1) / (150 * 1024)));
 }
 
-function servitech_pricing_saved_upload_path(array $file): string {
-  $savedPath = rawurldecode(trim((string)($file["saved_path"] ?? "")));
-  if (!preg_match('#^/uploads/printing/([a-zA-Z0-9_.-]+)$#', $savedPath, $matches)) {
-    throw new DomainException("An uploaded print file has an invalid path. Please upload it again.");
+function servitech_pricing_saved_upload_path(PDO $pdo, array $file): string {
+  $token = servitech_upload_token_from_metadata($file);
+  $stmt = $pdo->prepare("
+    SELECT storage_key
+    FROM uploads
+    WHERE upload_token = :upload_token
+      AND deleted_at IS NULL
+    LIMIT 1
+  ");
+  $stmt->execute([":upload_token" => $token]);
+  $storageKey = trim((string)($stmt->fetchColumn() ?: ""));
+  if ($storageKey === "") {
+    throw new DomainException("An uploaded print file is missing. Please upload it again.");
   }
-  $fullPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . "uploads" . DIRECTORY_SEPARATOR . "printing" . DIRECTORY_SEPARATOR . $matches[1];
+  $fullPath = servitech_upload_storage_path($storageKey);
   if (!is_file($fullPath)) {
     throw new DomainException("An uploaded print file is missing. Please upload it again.");
   }
   return $fullPath;
 }
 
-function servitech_pricing_analyze_saved_uploads(array $uploadedFiles): array {
+function servitech_pricing_analyze_saved_uploads(PDO $pdo, array $uploadedFiles): array {
   if (empty($uploadedFiles)) throw new DomainException("Upload at least one file before continuing.");
   $analysis = [];
   $names = [];
@@ -197,7 +207,7 @@ function servitech_pricing_analyze_saved_uploads(array $uploadedFiles): array {
 
   foreach ($uploadedFiles as $file) {
     if (!is_array($file)) throw new DomainException("An uploaded print file is invalid. Please upload it again.");
-    $path = servitech_pricing_saved_upload_path($file);
+    $path = servitech_pricing_saved_upload_path($pdo, $file);
     $name = basename(trim((string)($file["original_name"] ?? basename($path))));
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
     $names[] = $name;
@@ -263,7 +273,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
     $color = servitech_pricing_normalize_color((string)($details["color_option"] ?? ""));
     if ($paper === "") throw new DomainException("Select a valid paper size.");
     if ($color === "") throw new DomainException("Select a valid color option.");
-    $details = array_merge($details, servitech_pricing_analyze_saved_uploads((array)($details["uploaded_files"] ?? [])));
+    $details = array_merge($details, servitech_pricing_analyze_saved_uploads($pdo, (array)($details["uploaded_files"] ?? [])));
     $prices = servitech_pricing_document_prices($service);
     $suffix = $color === "full" ? "Full" : "Half";
     $unitPrice = $prices[$paper . $suffix];

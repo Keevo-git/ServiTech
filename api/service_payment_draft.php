@@ -3,6 +3,7 @@ require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/service_pricing.php";
+require_once __DIR__ . "/upload_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -56,6 +57,13 @@ if ($errors) {
   service_payment_draft_json(["ok" => false, "error" => implode(" ", $errors)], 422);
 }
 
+$uploadedFiles = isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [];
+try {
+  $uploadedFiles = servitech_upload_resolve_owned_metadata($pdo, $user_id, $uploadedFiles);
+} catch (DomainException $e) {
+  service_payment_draft_json(["ok" => false, "error" => $e->getMessage()], 422);
+}
+
 $draft = [
   "service_label" => $service_label,
   "category" => "printing",
@@ -74,9 +82,10 @@ $draft = [
   "price_per_page" => isset($data["price_per_page"]) ? max(0, (float)$data["price_per_page"]) : 0,
   "estimated_total" => isset($data["estimated_total"]) ? max(0, (float)$data["estimated_total"]) : 0,
   "file_analysis" => isset($data["file_analysis"]) && is_array($data["file_analysis"]) ? $data["file_analysis"] : [],
-  "uploaded_files" => isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [],
+  "uploaded_files" => $uploadedFiles,
   "created_at" => date(DATE_ATOM),
 ];
+$draft = servitech_upload_apply_metadata_to_details($draft, $uploadedFiles);
 
 try {
   $draft = servitech_pricing_apply($pdo, "printing", $draft);

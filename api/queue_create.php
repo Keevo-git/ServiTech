@@ -5,6 +5,7 @@ require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
+require_once __DIR__ . "/upload_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -110,6 +111,12 @@ foreach ($details as $key => $value) {
 
 try {
   $pdo->beginTransaction();
+  if (!empty($details["uploaded_files"]) && is_array($details["uploaded_files"])) {
+    $details = servitech_upload_apply_metadata_to_details(
+      $details,
+      servitech_upload_resolve_owned_metadata($pdo, $user_id, $details["uploaded_files"])
+    );
+  }
   $details = servitech_pricing_apply($pdo, $category, $details);
   if ($payment_method !== "" && !isset($details["estimated_total"])) {
     throw new DomainException("Online payment is not available for this service.");
@@ -140,6 +147,7 @@ try {
     throw new RuntimeException("Queue was not created.");
   }
   servitech_record_queue_initial_status($pdo, $queue_id, $category);
+  servitech_upload_link_to_queue($pdo, $user_id, $queue_id, (array)($details["uploaded_files"] ?? []));
 
   if ($payment_method !== "") {
     $paymentStmt = $pdo->prepare("

@@ -32,7 +32,7 @@ function build_service_payment_file_items(array $draft): array {
     $uploaded = isset($uploadedFiles[$index]) && is_array($uploadedFiles[$index]) ? $uploadedFiles[$index] : [];
     $analysis = isset($fileAnalysis[$index]) && is_array($fileAnalysis[$index]) ? $fileAnalysis[$index] : [];
     $name = trim((string)($analysis["file_name"] ?? ($uploaded["original_name"] ?? ($fileNames[$index] ?? ""))));
-    $path = trim((string)($uploaded["saved_path"] ?? ""));
+    $path = trim((string)($uploaded["download_url"] ?? ($uploaded["saved_path"] ?? "")));
     $type = strtoupper(trim((string)($analysis["file_type"] ?? ($uploaded["file_type"] ?? pathinfo($name, PATHINFO_EXTENSION)))));
 
     if ($name === "" && $path === "") {

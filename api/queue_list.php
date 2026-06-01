@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
+require_once __DIR__ . "/upload_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -46,7 +47,7 @@ function queue_list_upload_url(string $path): string {
   $fullPath = dirname(__DIR__) . str_replace("/", DIRECTORY_SEPARATOR, $safePath);
   if (!is_file($fullPath)) return "";
 
-  return servitech_url($safePath);
+  return servitech_url("/api/legacy_upload_download.php?path=" . rawurlencode($safePath));
 }
 
 function queue_list_normalize_uploaded_files(array $details): array {
@@ -57,6 +58,14 @@ function queue_list_normalize_uploaded_files(array $details): array {
 
   foreach ($uploaded as $index => $file) {
     if (!is_array($file)) continue;
+
+    $token = strtolower(trim((string)($file["upload_token"] ?? "")));
+    if (preg_match('/^[a-f0-9]{64}$/', $token)) {
+      $file["href"] = servitech_url(servitech_upload_download_path($token));
+      $file["available"] = true;
+      $out[] = $file;
+      continue;
+    }
 
     $path = (string)($file["saved_path"] ?? $file["file_path"] ?? "");
     $href = queue_list_upload_url($path);
@@ -132,6 +141,7 @@ try {
       "device_type" => $details["device_type"] ?? null,
       "notes" => $details["notes"] ?? null,
       "file_name" => $details["file_name"] ?? null,
+      "file_href" => queue_list_upload_url((string)($details["file_name"] ?? "")),
       "file_names" => $details["file_names"] ?? null,
       "total_files" => $details["total_files"] ?? null,
       "total_images" => $details["total_images"] ?? null,

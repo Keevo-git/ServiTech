@@ -6,6 +6,7 @@ require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
+require_once __DIR__ . "/upload_helpers.php";
 
 servitech_enforce_csrf_token(false);
 
@@ -73,6 +74,12 @@ foreach ($details as $key => $value) {
 
 try {
   $pdo->beginTransaction();
+  if (!empty($details["uploaded_files"]) && is_array($details["uploaded_files"])) {
+    $details = servitech_upload_apply_metadata_to_details(
+      $details,
+      servitech_upload_resolve_owned_metadata($pdo, $user_id, $details["uploaded_files"])
+    );
+  }
   $details = servitech_pricing_apply($pdo, "printing", $details);
 
   $queueIdentity = servitech_generate_queue_identity($pdo, "P");
@@ -95,6 +102,7 @@ try {
     throw new RuntimeException("Queue was not created.");
   }
   servitech_record_queue_initial_status($pdo, $queue_id, "printing");
+  servitech_upload_link_to_queue($pdo, $user_id, $queue_id, (array)($details["uploaded_files"] ?? []));
 
   $paymentStmt = $pdo->prepare("
     INSERT INTO payments (queue_id, user_id, amount, payment_method, reference_number, status)

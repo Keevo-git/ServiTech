@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
+require_once __DIR__ . "/upload_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -60,6 +61,12 @@ if ($errors) {
   print_order_draft_json(["ok" => false, "error" => implode(" ", $errors)], 422);
 }
 
+try {
+  $uploaded_files = servitech_upload_resolve_owned_metadata($pdo, $user_id, $uploaded_files);
+} catch (DomainException $e) {
+  print_order_draft_json(["ok" => false, "error" => $e->getMessage()], 422);
+}
+
 $existingDraft = $_SESSION["print_order_draft"] ?? null;
 if (is_array($existingDraft) && !empty($existingDraft["uploaded_files"]) && is_array($existingDraft["uploaded_files"])) {
   $incomingSavedPaths = [];
@@ -68,9 +75,9 @@ if (is_array($existingDraft) && !empty($existingDraft["uploaded_files"]) && is_a
       continue;
     }
 
-    $savedPath = trim((string)($file["saved_path"] ?? ""));
-    if ($savedPath !== "") {
-      $incomingSavedPaths[$savedPath] = true;
+    $uploadToken = trim((string)($file["upload_token"] ?? ""));
+    if ($uploadToken !== "") {
+      $incomingSavedPaths[$uploadToken] = true;
     }
   }
 
@@ -80,15 +87,15 @@ if (is_array($existingDraft) && !empty($existingDraft["uploaded_files"]) && is_a
       continue;
     }
 
-    $savedPath = trim((string)($file["saved_path"] ?? ""));
-    if ($savedPath === "" || isset($incomingSavedPaths[$savedPath])) {
+    $uploadToken = trim((string)($file["upload_token"] ?? ""));
+    if ($uploadToken === "" || isset($incomingSavedPaths[$uploadToken])) {
       continue;
     }
 
     $filesToCleanup[] = $file;
   }
 
-  servitech_cleanup_uploaded_print_files($filesToCleanup);
+  servitech_upload_delete_owned_orphans($pdo, $user_id, $filesToCleanup);
 }
 
 $draft = [
@@ -110,6 +117,7 @@ $draft = [
   "uploaded_files" => $uploaded_files,
   "created_at" => date(DATE_ATOM),
 ];
+$draft = servitech_upload_apply_metadata_to_details($draft, $uploaded_files);
 
 try {
   $draft = servitech_pricing_apply($pdo, "online_printorder", $draft);

@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../api/queue_helpers.php";
+require_once __DIR__ . "/../../api/upload_helpers.php";
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
@@ -11,7 +12,7 @@ $user_id = (int)($_SESSION["user_id"] ?? 0);
 
 $existingPrintDraft = $_SESSION["print_order_draft"] ?? null;
 if (is_array($existingPrintDraft) && !empty($existingPrintDraft["uploaded_files"]) && is_array($existingPrintDraft["uploaded_files"])) {
-  servitech_cleanup_uploaded_print_files($existingPrintDraft["uploaded_files"]);
+  servitech_upload_delete_owned_orphans($pdo, $user_id, $existingPrintDraft["uploaded_files"]);
 }
 unset($_SESSION["print_order_draft"], $_SESSION["print_order_flash_error"], $_SESSION["print_order_form"], $_SESSION["print_order_confirmation"]);
 

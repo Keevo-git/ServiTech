@@ -178,12 +178,6 @@ function servitech_generate_queue_code(PDO $pdo, string $prefix): string {
   return servitech_generate_queue_identity($pdo, $prefix)["queue_code"];
 }
 
-function servitech_cleanup_uploaded_print_files(array $uploadedFiles): void {
-  // Uploaded print files are order assets, not session temp files. Keep them
-  // available for admin printing unless someone manually removes them.
-  return;
-}
-
 function servitech_ensure_notifications_table(PDO $pdo): void {
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS notifications (
