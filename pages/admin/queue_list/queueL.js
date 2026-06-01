@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const titleEl = document.getElementById("queueDetailsTitle");
   const summaryEl = document.getElementById("queueDetailsSummary");
   const detailsEl = document.getElementById("queueDetailsList");
+  const commentsEl = document.getElementById("queueDetailsComments");
   const currentStatusEl = document.getElementById("queueDetailsCurrentStatus");
   const statusEl = document.getElementById("queueDetailsStatus");
   const statusHelpEl = document.getElementById("queueDetailsStatusHelp");
@@ -194,7 +195,11 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Payment Reference", queue.paymentReference),
       detailRow("Payment Status", queue.paymentStatus),
       detailRow("Submitted Date", queue.submitted),
+      detailRow("Completed Date", queue.completed || "-"),
     ].join("");
+    if (commentsEl) {
+      commentsEl.value = String(queue.comments || "").trim() || "No additional comments.";
+    }
     renderStatusSection(row, queue);
     renderActions(row);
 

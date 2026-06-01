@@ -96,7 +96,7 @@ function payment_amount_label($amount, $detailsTotal = null): string {
 }
 
 $stmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.category, q.status, q.details, q.created_at, u.fullname,
+  SELECT q.id, q.queue_code, q.category, q.status, q.details, q.created_at, q.completed_at, u.fullname,
     p.payment_method, p.reference_number, p.status AS payment_status, p.amount,
     q.details->>'estimated_total' AS details_total,
     q.details->>'payment_status' AS details_payment_status
@@ -134,7 +134,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260601-customer-style-notification-v2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260601-status-section') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260601-modal-layout-v2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
 <body class="admin-dashboard">
@@ -262,7 +262,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 </script>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260601-status-section') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260601-modal-layout-v2') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

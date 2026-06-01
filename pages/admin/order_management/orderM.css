@@ -1057,6 +1057,12 @@ body.admin-dashboard .page-frame {
   flex: 0 0 auto;
 }
 
+.order-status-divider {
+  height: 1px;
+  margin: 0 0 14px;
+  background: #dbe4f0;
+}
+
 .order-status-section .order-modal-field {
   margin-bottom: 0;
 }

@@ -70,7 +70,6 @@ function queue_ui_detail_rows(array $details): array
         "Package" => ["package_label", "package"],
         "Lamination Type" => ["lamination_type"],
         "Total Pages" => ["total_pages", "page_count"],
-        "Additional Notes" => ["notes", "additional_instructions", "comments"],
     ];
 
     $rows = [];
@@ -95,6 +94,10 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "service" => $serviceLabel,
         "status" => (string)($row["status"] ?? "PENDING"),
         "submitted" => trim(admin_queue_submitted_date($row["created_at"] ?? null) . " " . admin_queue_submitted_time($row["created_at"] ?? null)),
+        "completed" => admin_queue_has_timestamp($row["completed_at"] ?? null)
+            ? trim(admin_queue_completed_date($row["completed_at"]) . " " . admin_queue_completed_time($row["completed_at"]))
+            : "-",
+        "comments" => queue_ui_detail_value($details, ["notes", "additional_instructions", "comments"]),
         "payment" => $paymentSummary,
         "paymentReference" => trim((string)($row["reference_number"] ?? ($details["reference_number"] ?? ""))),
         "paymentStatus" => trim((string)($row["payment_status"] ?? ($details["payment_status"] ?? ""))),
