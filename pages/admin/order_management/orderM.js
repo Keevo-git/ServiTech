@@ -267,4 +267,113 @@ document.addEventListener("DOMContentLoaded", function () {
 
     location.reload();
   });
+
+  function debounce(callback, delay = 350) {
+    let timeoutId;
+    return function (...args) {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => callback.apply(this, args), delay);
+    };
+  }
+
+  function initOrderTableFilters(toolbar) {
+    const table = document.getElementById(toolbar.dataset.tableId || "");
+    const tbody = table?.querySelector("tbody");
+    if (!table || !tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll(".order-data-row"));
+    const searchInput = toolbar.querySelector("[data-order-filter-search]");
+    const dateInput = toolbar.querySelector("[data-order-filter-date]");
+    const statusInputs = Array.from(toolbar.querySelectorAll("[data-order-filter-status]"));
+    const statusLabel = toolbar.querySelector("[data-order-filter-status-label]");
+    const paymentInput = toolbar.querySelector("[data-order-filter-payment]");
+    const clearButton = toolbar.querySelector("[data-order-filter-clear]");
+    const resultsEl = toolbar.querySelector("[data-order-filter-results]");
+    const statusDetails = toolbar.querySelector(".order-status-filter");
+
+    Array.from(tbody.children).forEach((row) => {
+      if (!row.classList.contains("order-data-row")) {
+        row.hidden = true;
+      }
+    });
+
+    const noResultsRow = document.createElement("tr");
+    noResultsRow.className = "order-no-results-row";
+    noResultsRow.hidden = true;
+    noResultsRow.innerHTML = '<td colspan="6">No results found</td>';
+    tbody.appendChild(noResultsRow);
+
+    function sortLatestFirst() {
+      rows
+        .slice()
+        .sort((left, right) => {
+          const rightTime = Date.parse(right.dataset.submittedAt || "") || 0;
+          const leftTime = Date.parse(left.dataset.submittedAt || "") || 0;
+          return rightTime - leftTime;
+        })
+        .forEach((row) => tbody.insertBefore(row, noResultsRow));
+    }
+
+    function selectedStatuses() {
+      return statusInputs.filter((input) => input.checked).map((input) => input.value);
+    }
+
+    function updateStatusLabel(statuses) {
+      if (!statusLabel) return;
+      statusLabel.textContent = statuses.length ? `${statuses.length} selected` : "All statuses";
+    }
+
+    function updateResults() {
+      const query = String(searchInput?.value || "").trim().toLowerCase();
+      const submittedDate = String(dateInput?.value || "").trim();
+      const statuses = selectedStatuses();
+      const paymentMethod = String(paymentInput?.value || "").trim().toLowerCase();
+      let visibleCount = 0;
+
+      sortLatestFirst();
+
+      rows.forEach((row) => {
+        const orderId = String(row.dataset.orderId || "").toLowerCase();
+        const customer = String(row.dataset.customer || "").toLowerCase();
+        const rowStatus = String(row.dataset.status || "").toUpperCase();
+        const rowPaymentMethod = String(row.dataset.paymentMethod || "").toLowerCase();
+        const rowSubmittedDate = String(row.dataset.submittedDate || "");
+
+        const matchesSearch = !query || orderId.includes(query) || customer.includes(query);
+        const matchesDate = !submittedDate || rowSubmittedDate === submittedDate;
+        const matchesStatus = !statuses.length || statuses.includes(rowStatus);
+        const matchesPayment = !paymentMethod || rowPaymentMethod === paymentMethod;
+        const matches = matchesSearch && matchesDate && matchesStatus && matchesPayment;
+
+        row.hidden = !matches;
+        if (matches) visibleCount += 1;
+      });
+
+      noResultsRow.hidden = visibleCount !== 0;
+      if (resultsEl) {
+        resultsEl.textContent = `${visibleCount} ${visibleCount === 1 ? "result" : "results"} found`;
+      }
+      updateStatusLabel(statuses);
+    }
+
+    searchInput?.addEventListener("input", debounce(updateResults));
+    dateInput?.addEventListener("change", updateResults);
+    paymentInput?.addEventListener("change", updateResults);
+    statusInputs.forEach((input) => input.addEventListener("change", updateResults));
+
+    clearButton?.addEventListener("click", () => {
+      if (searchInput) searchInput.value = "";
+      if (dateInput) dateInput.value = "";
+      if (paymentInput) paymentInput.value = "";
+      statusInputs.forEach((input) => {
+        input.checked = false;
+      });
+      if (statusDetails) statusDetails.open = false;
+      updateResults();
+    });
+
+    updateResults();
+  }
+
+  document.querySelectorAll("[data-order-filter-toolbar]").forEach(initOrderTableFilters);
 });

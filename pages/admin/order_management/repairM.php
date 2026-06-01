@@ -61,8 +61,8 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260530-shared-table-spacing') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260530-approved-payment-cleanup') ?>" defer></script>
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260601-order-filters') ?>">
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260601-order-filters') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>">
 
@@ -125,8 +125,9 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 
             <div class="table-section">
               <div class="walkin-title">Repair Queue - Manage and update order statuses</div>
+              <?php om_render_filter_toolbar("repairOrdersTable"); ?>
               <div class="table-scroll-wrapper">
-                <table class="orders table-content order-table order-table--simple">
+                <table id="repairOrdersTable" class="orders table-content order-table order-table--simple">
                   <thead>
                     <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Submitted Date</th><th>Action</th></tr>
                   </thead>
@@ -136,7 +137,15 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                     <?php else: ?>
                       <?php foreach ($rows as $r): ?>
                         <?php $cls = status_class($r["status"]); ?>
-                        <tr>
+                        <tr
+                          class="order-data-row"
+                          data-order-id="<?= htmlspecialchars(strtolower((string)$r["queue_code"]), ENT_QUOTES, "UTF-8") ?>"
+                          data-customer="<?= htmlspecialchars(strtolower((string)$r["fullname"]), ENT_QUOTES, "UTF-8") ?>"
+                          data-status="<?= htmlspecialchars(strtoupper(trim((string)$r["status"])), ENT_QUOTES, "UTF-8") ?>"
+                          data-payment-method="<?= htmlspecialchars(om_payment_method_filter_value($r), ENT_QUOTES, "UTF-8") ?>"
+                          data-submitted-date="<?= htmlspecialchars(om_order_filter_date($r["created_at"]), ENT_QUOTES, "UTF-8") ?>"
+                          data-submitted-at="<?= htmlspecialchars((string)$r["created_at"], ENT_QUOTES, "UTF-8") ?>"
+                        >
                           <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                           <td><?= htmlspecialchars($r["fullname"]) ?></td>
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>

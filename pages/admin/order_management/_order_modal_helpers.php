@@ -183,3 +183,109 @@ function om_order_payload_attr(array $row, string $serviceType, string $fallback
         "UTF-8"
     );
 }
+
+function om_payment_method_filter_value(array $row): string
+{
+    $details = admin_queue_details_array($row["details"] ?? null);
+    return strtolower(trim((string)($row["payment_method"] ?? ($details["payment_method"] ?? ""))));
+}
+
+function om_order_filter_date($value): string
+{
+    $submittedAt = trim((string)$value);
+    if ($submittedAt === "") {
+        return "";
+    }
+
+    try {
+        return (new DateTimeImmutable($submittedAt))
+            ->setTimezone(new DateTimeZone("Asia/Manila"))
+            ->format("Y-m-d");
+    } catch (Throwable $exception) {
+        return "";
+    }
+}
+
+function om_render_filter_toolbar(string $tableId, bool $includePayment = false, array $rows = []): void
+{
+    $safeTableId = htmlspecialchars($tableId, ENT_QUOTES, "UTF-8");
+    $statuses = [
+        "PENDING" => "Pending",
+        "ONGOING" => "Ongoing",
+        "FOR PICK-UP" => "For Pick-up",
+        "DONE" => "Done",
+        "CANCELLED" => "Cancelled",
+    ];
+
+    if ($includePayment) {
+        $statuses = ["PENDING" => "Pending", "APPROVED" => "Approved"] + array_slice($statuses, 1, null, true);
+    }
+
+    $paymentOptions = [
+        "cash" => "Cash",
+        "gcash" => "GCash",
+        "maya" => "Maya",
+        "gotyme" => "GoTyme",
+        "unionbank" => "UnionBank",
+    ];
+
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $method = om_payment_method_filter_value($row);
+        if ($method !== "" && !isset($paymentOptions[$method])) {
+            $paymentOptions[$method] = ucwords(str_replace(["_", "-"], " ", $method));
+        }
+    }
+
+    ?>
+    <div class="order-filter-toolbar<?= $includePayment ? " order-filter-toolbar--payment" : "" ?>" data-order-filter-toolbar data-table-id="<?= $safeTableId ?>">
+      <div class="order-filter-grid">
+        <label class="order-filter-control order-filter-control--search">
+          <span>Search</span>
+          <input type="search" data-order-filter-search placeholder="Search by Customer Name or Order ID" autocomplete="off">
+        </label>
+
+        <label class="order-filter-control">
+          <span>Submitted Date</span>
+          <input type="date" data-order-filter-date>
+        </label>
+
+        <div class="order-filter-control">
+          <span>Status</span>
+          <details class="order-status-filter">
+            <summary>
+              <span data-order-filter-status-label>All statuses</span>
+            </summary>
+            <div class="order-status-filter__menu">
+              <?php foreach ($statuses as $value => $label): ?>
+                <label>
+                  <input type="checkbox" value="<?= htmlspecialchars($value, ENT_QUOTES, "UTF-8") ?>" data-order-filter-status>
+                  <span><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></span>
+                </label>
+              <?php endforeach; ?>
+            </div>
+          </details>
+        </div>
+
+        <?php if ($includePayment): ?>
+          <label class="order-filter-control">
+            <span>Mode of Payment</span>
+            <select data-order-filter-payment>
+              <option value="">All payment modes</option>
+              <?php foreach ($paymentOptions as $value => $label): ?>
+                <option value="<?= htmlspecialchars($value, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+        <?php endif; ?>
+
+        <button class="order-filter-clear" type="button" data-order-filter-clear>Clear Filters</button>
+      </div>
+
+      <p class="order-filter-results" data-order-filter-results aria-live="polite">0 results found</p>
+    </div>
+    <?php
+}
