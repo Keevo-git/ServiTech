@@ -164,7 +164,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                   </thead>
                   <tbody>
                     <?php if (!$walkin): ?>
-                      <tr><td colspan="6" style="color:#777;padding:14px;">No completed or cancelled walk-in orders yet.</td></tr>
+                      <tr><td colspan="6" style="color:#777;padding:14px;">No walk-in orders yet.</td></tr>
                     <?php else: ?>
                       <?php foreach ($walkin as $r): ?>
                         <?php $cls = status_class($r["status"]); ?>
@@ -212,7 +212,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
                   </thead>
                   <tbody>
                     <?php if (!$online): ?>
-                      <tr><td colspan="6" style="color:#777;padding:14px;">No completed or cancelled online printing orders yet.</td></tr>
+                      <tr><td colspan="6" style="color:#777;padding:14px;">No online printing orders yet.</td></tr>
                     <?php else: ?>
                       <?php foreach ($online as $r): ?>
                         <?php $cls = status_class($r["status"]); ?>

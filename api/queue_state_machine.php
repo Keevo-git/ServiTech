@@ -112,9 +112,19 @@ function servitech_record_queue_initial_status(PDO $pdo, int $queueId, string $c
   servitech_record_queue_status_history($pdo, $queueId, $category, null, "PENDING", null, "Queue created.");
 }
 
+function servitech_queue_lifecycle_stage_after_transition(string $currentLifecycleStage, string $newStatus): string {
+  $currentLifecycleStage = strtoupper(trim($currentLifecycleStage));
+  $newStatus = servitech_queue_normalize_status($newStatus);
+
+  if (in_array($newStatus, ["DONE", "CANCELLED"], true)) {
+    return "ORDER";
+  }
+
+  return $currentLifecycleStage === "ORDER" ? "ORDER" : "QUEUE";
+}
+
 function servitech_transition_queue_status(PDO $pdo, int $queueId, string $requestedStatus, int $adminId, string $notes = ""): array {
   $newStatus = servitech_queue_normalize_status($requestedStatus);
-  $lifecycleStage = servitech_queue_lifecycle_stage_for_status($newStatus);
   $notes = trim($notes);
   if ($queueId <= 0) throw new DomainException("Invalid queue/order ID.");
   if (!in_array($newStatus, ["APPROVED", "ONGOING", "FOR PICK-UP", "DONE", "CANCELLED"], true)) {
@@ -144,6 +154,10 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     if (!is_array($queue)) throw new DomainException("Queue/order not found.");
 
     $currentStatus = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
+    $lifecycleStage = servitech_queue_lifecycle_stage_after_transition(
+      (string)($queue["lifecycle_stage"] ?? "QUEUE"),
+      $newStatus
+    );
     if (!in_array($newStatus, servitech_queue_allowed_transitions($queue), true)) {
       throw new DomainException(servitech_queue_transition_error($queue, $newStatus));
     }

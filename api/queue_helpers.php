@@ -66,17 +66,19 @@ function servitech_queue_code_matches_category(string $queueCode, string $catego
   return $resolvedCategory !== "" && $resolvedCategory === strtolower(trim($category));
 }
 
-function servitech_queue_lifecycle_stage_for_status(string $status): string {
-  $status = strtoupper(trim($status));
-  $status = preg_replace('/[\s_-]+/', ' ', $status);
-
-  return in_array($status, ["DONE", "COMPLETED", "CANCELLED", "CANCELED"], true)
-    ? "ORDER"
-    : "QUEUE";
-}
-
 function servitech_queue_cycle_date(): string {
   return (new DateTimeImmutable("now", new DateTimeZone("Asia/Manila")))->format("Y-m-d");
+}
+
+function servitech_rollover_expired_queue_cycles(PDO $pdo): void {
+  // Moving a record into Order Management must never complete its workflow.
+  $stmt = $pdo->prepare("
+    UPDATE queues
+    SET lifecycle_stage = 'ORDER'
+    WHERE UPPER(TRIM(COALESCE(lifecycle_stage, 'QUEUE'))) = 'QUEUE'
+      AND queue_cycle_date < :cycle_date
+  ");
+  $stmt->execute([":cycle_date" => servitech_queue_cycle_date()]);
 }
 
 function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
@@ -91,6 +93,7 @@ function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
       AND column_name IN ('completed_at', 'lifecycle_stage', 'queue_cycle_date', 'daily_sequence')
   ");
   if ((int)$columns->fetchColumn() === 4) {
+    servitech_rollover_expired_queue_cycles($pdo);
     $ensured = true;
     return;
   }
@@ -100,23 +103,6 @@ function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS queue_cycle_date DATE");
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS daily_sequence INTEGER");
 
-  $pdo->exec("
-    UPDATE queues
-    SET lifecycle_stage = CASE
-      WHEN UPPER(TRIM(COALESCE(status, 'PENDING'))) IN ('DONE', 'COMPLETED', 'CANCELLED', 'CANCELED') THEN 'ORDER'
-      ELSE 'QUEUE'
-    END
-    WHERE lifecycle_stage IS NULL
-       OR UPPER(TRIM(lifecycle_stage)) NOT IN ('QUEUE', 'ORDER')
-       OR (
-         UPPER(TRIM(COALESCE(status, 'PENDING'))) IN ('DONE', 'COMPLETED', 'CANCELLED', 'CANCELED')
-         AND UPPER(TRIM(lifecycle_stage)) <> 'ORDER'
-       )
-       OR (
-         UPPER(TRIM(COALESCE(status, 'PENDING'))) NOT IN ('DONE', 'COMPLETED', 'CANCELLED', 'CANCELED')
-         AND UPPER(TRIM(lifecycle_stage)) <> 'QUEUE'
-       )
-  ");
   $pdo->exec("
     UPDATE queues
     SET queue_cycle_date = COALESCE(
@@ -133,6 +119,17 @@ function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
     )
     WHERE daily_sequence IS NULL
   ");
+  $pdo->exec("
+    UPDATE queues
+    SET lifecycle_stage = CASE
+      WHEN queue_cycle_date < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
+        OR UPPER(TRIM(COALESCE(status, 'PENDING'))) IN ('DONE', 'COMPLETED', 'CANCELLED', 'CANCELED')
+      THEN 'ORDER'
+      ELSE 'QUEUE'
+    END
+    WHERE lifecycle_stage IS NULL
+       OR UPPER(TRIM(lifecycle_stage)) NOT IN ('QUEUE', 'ORDER')
+  ");
 
   $pdo->exec("ALTER TABLE queues ALTER COLUMN lifecycle_stage SET DEFAULT 'QUEUE'");
   $pdo->exec("ALTER TABLE queues ALTER COLUMN lifecycle_stage SET NOT NULL");
@@ -143,6 +140,7 @@ function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queues_lifecycle_stage ON queues(lifecycle_stage)");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queues_cycle_date_code ON queues(queue_cycle_date, queue_code)");
 
+  servitech_rollover_expired_queue_cycles($pdo);
   $ensured = true;
 }
 
