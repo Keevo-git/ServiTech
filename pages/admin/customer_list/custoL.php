@@ -36,7 +36,7 @@ function customer_code_from_id(int $id): string {
   <title>Customer List</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260601-clean-notification') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260521responsive') ?>">
 </head>
 
