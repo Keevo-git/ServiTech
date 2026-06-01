@@ -43,8 +43,8 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
         src="<?= admin_url('/assets/images/white_notification.png?v=20260601-ringing-bell') ?>"
         alt=""
         class="admin-notification-icon"
-        width="24"
-        height="24"
+        width="28"
+        height="28"
       >
       <?php if ($adminNotificationCount > 0): ?>
         <span class="admin-notification-badge"><?= $adminNotificationCount ?></span>
