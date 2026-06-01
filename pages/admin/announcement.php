@@ -332,28 +332,11 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   </style>
 </head>
 <body>
-  <header class="navbar has-nav-menu">
-    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
-      <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
-      <h1>ServiTech Admin</h1>
-    </a>
-    <button
-      class="nav-toggle"
-      type="button"
-      aria-label="Toggle navigation menu"
-      aria-expanded="false"
-      aria-controls="admin-announcement-menu"
-    >
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-      <span class="nav-toggle__bar"></span>
-    </button>
-    <nav id="admin-announcement-menu" data-collapsible-menu>
-      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
-      <a href="<?= admin_url('/index.php') ?>">Services</a>
-      <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
-    </nav>
-  </header>
+  <?php
+  $adminHeaderVariant = "special";
+  $adminHeaderMenuId = "admin-announcement-menu";
+  require __DIR__ . "/_includes/admin_header.php";
+  ?>
 
   <main class="announcement-main">
     <section class="announcement-hero">

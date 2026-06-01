@@ -123,28 +123,11 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
 </head>
 <body>
 
-<header class="navbar has-nav-menu">
-  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
-    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
-    <h1>ServiTech Admin</h1>
-  </a>
-  <button
-    class="nav-toggle"
-    type="button"
-    aria-label="Toggle navigation menu"
-    aria-expanded="false"
-    aria-controls="admin-services-header-menu"
-  >
-    <span class="nav-toggle__bar"></span>
-    <span class="nav-toggle__bar"></span>
-    <span class="nav-toggle__bar"></span>
-  </button>
-  <nav id="admin-services-header-menu" data-collapsible-menu>
-    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
-    <a href="<?= admin_url('/index.php') ?>">Services</a>
-    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
-  </nav>
-</header>
+<?php
+$adminHeaderVariant = "special";
+$adminHeaderMenuId = "admin-services-header-menu";
+require __DIR__ . "/../_includes/admin_header.php";
+?>
 
 <div class="admin-wrapper">
   <section class="admin-hero">

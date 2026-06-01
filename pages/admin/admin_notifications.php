@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../_includes/admin_auth.php";
-require_once __DIR__ . "/../_includes/admin_db.php";
-require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/_includes/admin_auth.php";
+require_once __DIR__ . "/_includes/admin_db.php";
+require_once __DIR__ . "/_includes/url.php";
 
 function esc($value): string {
   return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
@@ -26,7 +26,6 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$perPage, $offset]);
 $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$adminNotificationCount = count($notifications);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -204,18 +203,7 @@ $adminNotificationCount = count($notifications);
 </head>
 <body class="admin-dashboard">
 
-<header class="navbar has-nav-menu">
-  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
-    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
-    <h1>ServiTech Admin</h1>
-  </a>
-  <nav id="admin-header-menu" data-collapsible-menu>
-    <a href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Queue Management</a>
-    <a href="<?= admin_url('/index.php') ?>">Services</a>
-    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
-    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
-  </nav>
-</header>
+<?php require __DIR__ . "/_includes/admin_header.php"; ?>
 
 <div class="admin-wrapper">
   <div class="notif-container">
@@ -343,6 +331,7 @@ function markAllAsRead() {
 }
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
+<script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>
 </html>

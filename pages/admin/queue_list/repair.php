@@ -48,36 +48,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 </head>
 <body class="admin-dashboard">
 
-<header class="navbar has-nav-menu">
-  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
-    <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
-    <h1>ServiTech Admin</h1>
-  </a>
-  <button
-    class="nav-toggle"
-    type="button"
-    aria-label="Toggle navigation menu"
-    aria-expanded="false"
-    aria-controls="admin-header-menu"
-  >
-    <span class="nav-toggle__bar"></span>
-    <span class="nav-toggle__bar"></span>
-    <span class="nav-toggle__bar"></span>
-  </button>
-  <nav id="admin-header-menu" data-collapsible-menu>
-    <a href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>" class="admin-notification-link" aria-label="Queue notifications: <?= (int)$adminNotificationCount ?>">
-      <span class="admin-notification-icon" aria-hidden="true"></span>
-      <span>Notifications</span>
-      <?php if ($adminNotificationCount > 0): ?>
-        <strong class="admin-notification-badge"><?= (int)$adminNotificationCount ?></strong>
-      <?php endif; ?>
-    </a>
-    <a href="<?= admin_url('/index.php') ?>">Services</a>
-    <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
-    <a href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Customer List</a>
-    <a href="<?= admin_url('/pages/admin/logout.php') ?>">Logout</a>
-  </nav>
-</header>
+<?php require __DIR__ . "/../_includes/admin_header.php"; ?>
 
 <div class="admin-wrapper">
   <section class="admin-hero">
