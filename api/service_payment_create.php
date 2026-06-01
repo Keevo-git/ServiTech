@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/queue_helpers.php";
+require_once __DIR__ . "/service_pricing.php";
 
 servitech_enforce_csrf_token(false);
 
@@ -71,6 +72,7 @@ foreach ($details as $key => $value) {
 
 try {
   $pdo->beginTransaction();
+  $details = servitech_pricing_apply($pdo, "printing", $details);
 
   $queue_code = servitech_generate_queue_code($pdo, "P");
   $queueStmt = $pdo->prepare("
@@ -96,7 +98,7 @@ try {
   $paymentStmt->execute([
     ":queue_id" => $queue_id,
     ":user_id" => $user_id,
-    ":amount" => isset($draft["estimated_total"]) ? max(0, (float)$draft["estimated_total"]) : 0,
+    ":amount" => isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : 0,
     ":reference_number" => $reference_number,
   ]);
 
@@ -113,6 +115,11 @@ try {
 
   header("Location: /pages/customer/custo_service_payment.php?queue=" . urlencode($queue_code));
   exit();
+} catch (DomainException $e) {
+  if ($pdo->inTransaction()) {
+    $pdo->rollBack();
+  }
+  service_payment_redirect($e->getMessage());
 } catch (Throwable $e) {
   if ($pdo->inTransaction()) {
     $pdo->rollBack();

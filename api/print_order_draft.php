@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
+require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/queue_helpers.php";
+require_once __DIR__ . "/service_pricing.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -89,7 +91,7 @@ if (is_array($existingDraft) && !empty($existingDraft["uploaded_files"]) && is_a
   servitech_cleanup_uploaded_print_files($filesToCleanup);
 }
 
-$_SESSION["print_order_draft"] = [
+$draft = [
   "service_label" => trim((string)($data["service_label"] ?? "Document Printing")),
   "order_type" => "online",
   "paper_size" => $paper_size,
@@ -108,6 +110,14 @@ $_SESSION["print_order_draft"] = [
   "uploaded_files" => $uploaded_files,
   "created_at" => date(DATE_ATOM),
 ];
+
+try {
+  $draft = servitech_pricing_apply($pdo, "online_printorder", $draft);
+} catch (DomainException $e) {
+  print_order_draft_json(["ok" => false, "error" => $e->getMessage()], 422);
+}
+
+$_SESSION["print_order_draft"] = $draft;
 
 unset($_SESSION["print_order_confirmation"], $_SESSION["print_order_flash_error"], $_SESSION["print_order_form"]);
 

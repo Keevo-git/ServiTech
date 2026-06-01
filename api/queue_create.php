@@ -3,6 +3,7 @@ require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/queue_helpers.php";
+require_once __DIR__ . "/service_pricing.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -108,6 +109,10 @@ foreach ($details as $key => $value) {
 
 try {
   $pdo->beginTransaction();
+  $details = servitech_pricing_apply($pdo, $category, $details);
+  if ($payment_method !== "" && !isset($details["estimated_total"])) {
+    throw new DomainException("Online payment is not available for this service.");
+  }
 
   $queue_code = servitech_generate_queue_code($pdo, $prefix);
   if (!servitech_queue_code_matches_category($queue_code, $category)) {
@@ -155,6 +160,13 @@ try {
   $pdo->commit();
 
   echo json_encode(["ok" => true, "queue_code" => $queue_code, "queue_id" => $queue_id]);
+  exit();
+} catch (DomainException $e) {
+  if ($pdo->inTransaction()) {
+    $pdo->rollBack();
+  }
+  http_response_code(422);
+  echo json_encode(["ok" => false, "error" => $e->getMessage()]);
   exit();
 } catch (Throwable $e) {
   if ($pdo->inTransaction()) {

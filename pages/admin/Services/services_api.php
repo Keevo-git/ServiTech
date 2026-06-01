@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
+require_once __DIR__ . "/../../../api/service_pricing.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -136,6 +137,7 @@ if ($action === "save") {
     $priceRange = trim((string)($_POST["price_range"] ?? ""));
     $pricingJsonRaw = trim((string)($_POST["pricing_json"] ?? ""));
     $pricingJson = null;
+    $decodedPricing = null;
     $active = isset($_POST["active"]) ? (int)($_POST["active"]) : 1;
     $sort_order = isset($_POST["sort_order"]) ? (int)($_POST["sort_order"]) : 0;
 
@@ -160,6 +162,12 @@ if ($action === "save") {
             respond(["ok" => false, "error" => "Invalid pricing data"]);
         }
         $pricingJson = json_encode($decodedPricing, JSON_UNESCAPED_UNICODE);
+    }
+
+    try {
+        servitech_pricing_validate_admin_catalog($category, $name, $price, $decodedPricing);
+    } catch (DomainException $e) {
+        respond(["ok" => false, "error" => $e->getMessage()]);
     }
 
     if ($id > 0) {

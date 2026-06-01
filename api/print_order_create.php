@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/queue_helpers.php";
+require_once __DIR__ . "/service_pricing.php";
 
 servitech_enforce_csrf_token(false);
 
@@ -103,6 +104,7 @@ try {
   $pdo->beginTransaction();
 
   $printMeta = servitech_get_print_order_queue_meta("online");
+  $details = servitech_pricing_apply($pdo, $printMeta["category"], $details);
   $queue_code = servitech_generate_queue_code($pdo, $printMeta["prefix"]);
   if (!servitech_queue_code_matches_category($queue_code, $printMeta["category"])) {
     throw new RuntimeException("Queue prefix/category mapping mismatch.");
@@ -133,7 +135,7 @@ try {
   $paymentStmt->execute([
     ":queue_id" => $queue_id,
     ":user_id" => $user_id,
-    ":amount" => isset($draft["estimated_total"]) ? max(0, (float)$draft["estimated_total"]) : 0,
+    ":amount" => isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : 0,
     ":payment_method" => $payment_method,
     ":reference_number" => $payment_method === "gcash" ? $reference_number : null,
     ":status" => "PENDING",
@@ -155,6 +157,11 @@ try {
 
   header("Location: /pages/customer/custo_print_order_payment.php?queue=" . urlencode($queue_code));
   exit();
+} catch (DomainException $e) {
+  if ($pdo->inTransaction()) {
+    $pdo->rollBack();
+  }
+  print_order_redirect($e->getMessage());
 } catch (Throwable $e) {
   if ($pdo->inTransaction()) {
     $pdo->rollBack();
