@@ -4,7 +4,7 @@ require_once __DIR__ . "/../../../config/db.php";
 require_once __DIR__ . "/../../../api/queue_state_machine.php";
 
 try {
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ NULL");
+  servitech_ensure_queue_lifecycle_schema($pdo);
   servitech_ensure_queue_status_history_table($pdo);
 } catch (Throwable $exception) {
   error_log("queue admin schema check failed: " . $exception->getMessage());

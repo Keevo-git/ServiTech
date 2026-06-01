@@ -39,8 +39,7 @@ $stmt = $pdo->prepare("
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'installation'
-    AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) != 'CANCELLED'
-    AND q.created_at > (NOW() - INTERVAL '15 minutes')
+    AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
   ORDER BY q.created_at DESC
 ");
 $stmt->execute();

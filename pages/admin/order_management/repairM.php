@@ -44,10 +44,7 @@ $rows = $pdo->query("
     LIMIT 1
   ) p ON TRUE
   WHERE q.category = 'repair'
-    AND (
-      q.created_at <= (NOW() - INTERVAL '15 minutes')
-      OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
-    )
+    AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
   ORDER BY q.created_at DESC
 ")->fetchAll();
 $adminNotificationCount = admin_queue_notification_count($pdo);

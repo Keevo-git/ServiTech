@@ -115,20 +115,23 @@ try {
     throw new DomainException("Online payment is not available for this service.");
   }
 
-  $queue_code = servitech_generate_queue_code($pdo, $prefix);
+  $queueIdentity = servitech_generate_queue_identity($pdo, $prefix);
+  $queue_code = $queueIdentity["queue_code"];
   if (!servitech_queue_code_matches_category($queue_code, $category)) {
     throw new RuntimeException("Queue prefix/category mapping mismatch.");
   }
 
   $ins = $pdo->prepare("
-    INSERT INTO queues (user_id, queue_code, category, details)
-    VALUES (:user_id, :queue_code, :category, :details::jsonb)
+    INSERT INTO queues (user_id, queue_code, category, lifecycle_stage, queue_cycle_date, daily_sequence, details)
+    VALUES (:user_id, :queue_code, :category, 'QUEUE', :queue_cycle_date, :daily_sequence, :details::jsonb)
     RETURNING id
   ");
   $ins->execute([
     ":user_id" => $user_id,
     ":queue_code" => $queue_code,
     ":category" => $category,
+    ":queue_cycle_date" => $queueIdentity["queue_cycle_date"],
+    ":daily_sequence" => $queueIdentity["daily_sequence"],
     ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
   ]);
   $queueRow = $ins->fetch(PDO::FETCH_ASSOC);

@@ -106,20 +106,23 @@ try {
 
   $printMeta = servitech_get_print_order_queue_meta("online");
   $details = servitech_pricing_apply($pdo, $printMeta["category"], $details);
-  $queue_code = servitech_generate_queue_code($pdo, $printMeta["prefix"]);
+  $queueIdentity = servitech_generate_queue_identity($pdo, $printMeta["prefix"]);
+  $queue_code = $queueIdentity["queue_code"];
   if (!servitech_queue_code_matches_category($queue_code, $printMeta["category"])) {
     throw new RuntimeException("Queue prefix/category mapping mismatch.");
   }
 
   $queueStmt = $pdo->prepare("
-    INSERT INTO queues (queue_code, user_id, category, details)
-    VALUES (:queue_code, :user_id, :category, :details::jsonb)
+    INSERT INTO queues (queue_code, user_id, category, lifecycle_stage, queue_cycle_date, daily_sequence, details)
+    VALUES (:queue_code, :user_id, :category, 'QUEUE', :queue_cycle_date, :daily_sequence, :details::jsonb)
     RETURNING id
   ");
   $queueStmt->execute([
     ":queue_code" => $queue_code,
     ":user_id" => $user_id,
     ":category" => $printMeta["category"],
+    ":queue_cycle_date" => $queueIdentity["queue_cycle_date"],
+    ":daily_sequence" => $queueIdentity["daily_sequence"],
     ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
   ]);
 

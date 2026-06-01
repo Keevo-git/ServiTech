@@ -32,8 +32,7 @@ $stmt = $pdo->prepare("
       AND COALESCE(NULLIF(LOWER(TRIM(COALESCE(q.details->>'order_type', ''))), ''), 'walkin') = 'walkin'
     )
   )
-    AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) != 'CANCELLED'
-    AND q.created_at > (NOW() - INTERVAL '15 minutes')
+    AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
   ORDER BY q.created_at DESC
 ");
 $stmt->execute();

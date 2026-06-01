@@ -114,6 +114,7 @@ function servitech_record_queue_initial_status(PDO $pdo, int $queueId, string $c
 
 function servitech_transition_queue_status(PDO $pdo, int $queueId, string $requestedStatus, int $adminId, string $notes = ""): array {
   $newStatus = servitech_queue_normalize_status($requestedStatus);
+  $lifecycleStage = servitech_queue_lifecycle_stage_for_status($newStatus);
   $notes = trim($notes);
   if ($queueId <= 0) throw new DomainException("Invalid queue/order ID.");
   if (!in_array($newStatus, ["APPROVED", "ONGOING", "FOR PICK-UP", "DONE", "CANCELLED"], true)) {
@@ -130,8 +131,9 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
   if ($ownsTransaction) $pdo->beginTransaction();
 
   try {
+    servitech_ensure_queue_lifecycle_schema($pdo);
     $stmt = $pdo->prepare("
-      SELECT id, user_id, queue_code, category, status, details
+      SELECT id, user_id, queue_code, category, status, lifecycle_stage, details
       FROM queues
       WHERE id = :id
       LIMIT 1
@@ -149,10 +151,16 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     $update = $pdo->prepare("
       UPDATE queues
       SET status = :status,
+          lifecycle_stage = :lifecycle_stage,
           completed_at = CASE WHEN :done_status = 'DONE' THEN COALESCE(completed_at, NOW()) ELSE completed_at END
       WHERE id = :id
     ");
-    $update->execute([":status" => $newStatus, ":done_status" => $newStatus, ":id" => $queueId]);
+    $update->execute([
+      ":status" => $newStatus,
+      ":lifecycle_stage" => $lifecycleStage,
+      ":done_status" => $newStatus,
+      ":id" => $queueId,
+    ]);
 
     servitech_record_queue_status_history(
       $pdo,
@@ -185,8 +193,10 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
 
     if ($ownsTransaction) $pdo->commit();
     $queue["status"] = $newStatus;
+    $queue["lifecycle_stage"] = $lifecycleStage;
     return [
       "status" => $newStatus,
+      "lifecycle_stage" => $lifecycleStage,
       "allowed_transitions" => servitech_queue_allowed_transitions($queue),
     ];
   } catch (Throwable $e) {

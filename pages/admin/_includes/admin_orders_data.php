@@ -47,10 +47,7 @@ try {
       SELECT q.id, q.queue_code, q.status, q.details, q.created_at, q.completed_at, u.fullname
       FROM queues q
       JOIN users u ON u.id = q.user_id
-      WHERE (
-          q.created_at <= (NOW() - INTERVAL '15 minutes')
-          OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
-        )
+      WHERE UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
         AND (
           LOWER(TRIM(COALESCE(q.category, ''))) IN ('walkin', 'printing_walkin')
           OR (
@@ -76,10 +73,7 @@ try {
         ORDER BY id DESC
         LIMIT 1
       ) p ON TRUE
-      WHERE (
-          q.created_at <= (NOW() - INTERVAL '15 minutes')
-          OR UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'CANCELLED'
-        )
+      WHERE UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
         AND (
           LOWER(TRIM(COALESCE(q.category, ''))) IN ('online_printorder', 'printing_online')
           OR (

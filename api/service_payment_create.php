@@ -75,15 +75,18 @@ try {
   $pdo->beginTransaction();
   $details = servitech_pricing_apply($pdo, "printing", $details);
 
-  $queue_code = servitech_generate_queue_code($pdo, "P");
+  $queueIdentity = servitech_generate_queue_identity($pdo, "P");
+  $queue_code = $queueIdentity["queue_code"];
   $queueStmt = $pdo->prepare("
-    INSERT INTO queues (queue_code, user_id, category, details)
-    VALUES (:queue_code, :user_id, 'printing', :details::jsonb)
+    INSERT INTO queues (queue_code, user_id, category, lifecycle_stage, queue_cycle_date, daily_sequence, details)
+    VALUES (:queue_code, :user_id, 'printing', 'QUEUE', :queue_cycle_date, :daily_sequence, :details::jsonb)
     RETURNING id
   ");
   $queueStmt->execute([
     ":queue_code" => $queue_code,
     ":user_id" => $user_id,
+    ":queue_cycle_date" => $queueIdentity["queue_cycle_date"],
+    ":daily_sequence" => $queueIdentity["daily_sequence"],
     ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
   ]);
 

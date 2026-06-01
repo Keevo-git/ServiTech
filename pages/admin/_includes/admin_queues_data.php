@@ -59,8 +59,7 @@ try {
       )
       OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
     )
-      AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) != 'CANCELLED'
-      AND q.created_at > (NOW() - INTERVAL '15 minutes')
+      AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
     ORDER BY q.created_at ASC
   ");
   $stmt->execute();
