@@ -224,21 +224,7 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
     $paymentOptions = [
         "cash" => "Cash",
         "gcash" => "GCash",
-        "maya" => "Maya",
-        "gotyme" => "GoTyme",
-        "unionbank" => "UnionBank",
     ];
-
-    foreach ($rows as $row) {
-        if (!is_array($row)) {
-            continue;
-        }
-
-        $method = om_payment_method_filter_value($row);
-        if ($method !== "" && !isset($paymentOptions[$method])) {
-            $paymentOptions[$method] = ucwords(str_replace(["_", "-"], " ", $method));
-        }
-    }
 
     ?>
     <div class="order-filter-toolbar<?= $includePayment ? " order-filter-toolbar--payment" : "" ?>" data-order-filter-toolbar data-table-id="<?= $safeTableId ?>">
