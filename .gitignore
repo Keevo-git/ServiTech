@@ -10,6 +10,7 @@
 /uploads/printing/*
 !/uploads/printing/.gitignore
 /config/.env
+/config/db.local.php
 /config/google.local.php
 /config/mail.local.php
 /logs/*.log

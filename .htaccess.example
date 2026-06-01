@@ -2,7 +2,14 @@ DirectoryIndex index.php index.html
 Options -Indexes
 
 # Hostinger/Apache environment variable example. Keep real credentials out of git.
-# Prefer a private .env file or config/mail.local.php for secrets.
+# Prefer a private .env file or ignored local config files for secrets.
+# SetEnv SUPABASE_DB_HOST "db.your-project-ref.supabase.co"
+# SetEnv SUPABASE_DB_PORT "5432"
+# SetEnv SUPABASE_DB_NAME "postgres"
+# SetEnv SUPABASE_DB_USER "postgres"
+# SetEnv SUPABASE_DB_PASS "paste-database-password-on-server-only"
+# SetEnv SUPABASE_DB_SSLMODE "require"
+# SetEnv APP_DEBUG "0"
 # SetEnv SMTP_HOST "smtp.gmail.com"
 # SetEnv SMTP_PORT "587"
 # SetEnv SMTP_SECURE "tls"

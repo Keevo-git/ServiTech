@@ -29,6 +29,7 @@
 - `SUPABASE_DB_NAME` (default: `postgres`)
 - `SUPABASE_DB_USER`
 - `SUPABASE_DB_PASS`
+- `SUPABASE_DB_SSLMODE` (default: `require`)
 - `SMTP_HOST` (default: `smtp.gmail.com`)
 - `SMTP_PORT` (default: `587`)
 - `SMTP_SECURE` (default: `tls`; `SMTP_ENCRYPTION` is still accepted as a legacy alias)
@@ -67,5 +68,6 @@
 - Keep `config/google.local.php` out of version control.
 
 ## Local Development
-- Create `config/db.local.php` from `config/db.local.example.php` if you prefer file-based local DB config.
+- Preferred: copy `.env.example` to `.env`, set the `SUPABASE_DB_*` values, and keep `.env` private.
+- Alternative: create `config/db.local.php` from `config/db.local.example.php` if you prefer file-based local DB config.
 - Keep real credentials out of version control.

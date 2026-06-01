@@ -1,16 +1,135 @@
 <?php
-// Clean Supabase connection
 
-ini_set("display_errors", 1);
+function servitech_db_raw_env_value(string $key): string
+{
+    $candidates = [
+        getenv($key),
+        $_ENV[$key] ?? null,
+        $_SERVER[$key] ?? null,
+    ];
+
+    if (function_exists("apache_getenv")) {
+        $candidates[] = apache_getenv($key, true);
+        $candidates[] = apache_getenv($key);
+    }
+
+    foreach ($candidates as $candidate) {
+        if (is_string($candidate) && trim($candidate) !== "") {
+            return trim($candidate);
+        }
+    }
+
+    return "";
+}
+
+function servitech_db_parse_dotenv_value(string $value): string
+{
+    $value = trim($value);
+    if ($value === "") {
+        return "";
+    }
+
+    $quote = $value[0];
+    if (($quote === '"' || $quote === "'") && substr($value, -1) === $quote) {
+        $value = substr($value, 1, -1);
+        return $quote === '"' ? stripcslashes($value) : $value;
+    }
+
+    return trim((string)preg_replace('/\s+#.*$/', '', $value));
+}
+
+function servitech_db_load_dotenv(): void
+{
+    static $loaded = false;
+    if ($loaded) {
+        return;
+    }
+    $loaded = true;
+
+    foreach ([dirname(__DIR__) . "/.env", __DIR__ . "/.env"] as $path) {
+        if (!is_file($path) || !is_readable($path)) {
+            continue;
+        }
+
+        $lines = @file($path, FILE_IGNORE_NEW_LINES);
+        if (!is_array($lines)) {
+            continue;
+        }
+
+        foreach ($lines as $line) {
+            $line = trim((string)$line);
+            if ($line === "" || $line[0] === "#" || $line[0] === ";") {
+                continue;
+            }
+
+            if (strpos($line, "export ") === 0) {
+                $line = trim(substr($line, 7));
+            }
+
+            $separator = strpos($line, "=");
+            if ($separator === false) {
+                continue;
+            }
+
+            $key = trim(substr($line, 0, $separator));
+            if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $key)) {
+                continue;
+            }
+
+            if (servitech_db_raw_env_value($key) !== "") {
+                continue;
+            }
+
+            $value = servitech_db_parse_dotenv_value(substr($line, $separator + 1));
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+            @putenv($key . "=" . $value);
+        }
+    }
+}
+
+function servitech_db_local_config(): array
+{
+    $path = __DIR__ . "/db.local.php";
+    if (!is_file($path)) {
+        return [];
+    }
+
+    $config = require $path;
+    return is_array($config) ? $config : [];
+}
+
+function servitech_db_config_value(string $envKey, string $localKey, string $default = ""): string
+{
+    $envValue = servitech_db_raw_env_value($envKey);
+    if ($envValue !== "") {
+        return $envValue;
+    }
+
+    $localConfig = servitech_db_local_config();
+    $localValue = trim((string)($localConfig[$localKey] ?? ""));
+    return $localValue !== "" ? $localValue : $default;
+}
+
+servitech_db_load_dotenv();
+
+$debug = servitech_db_raw_env_value("APP_DEBUG") === "1";
+ini_set("display_errors", $debug ? "1" : "0");
+ini_set("display_startup_errors", $debug ? "1" : "0");
 error_reporting(E_ALL);
 
-$host = "db.gxepuopnghgpqnldrjda.supabase.co";
-$port = "5432";
-$db   = "postgres";
-$user = "postgres";
-$pass = "REMOVED_DB_PASSWORD"; // your real password
+$host = servitech_db_config_value("SUPABASE_DB_HOST", "host");
+$port = servitech_db_config_value("SUPABASE_DB_PORT", "port", "5432");
+$db = servitech_db_config_value("SUPABASE_DB_NAME", "dbname", "postgres");
+$user = servitech_db_config_value("SUPABASE_DB_USER", "user");
+$pass = servitech_db_config_value("SUPABASE_DB_PASS", "pass");
+$sslmode = servitech_db_config_value("SUPABASE_DB_SSLMODE", "sslmode", "require");
 
-$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
+if ($host === "" || $user === "" || $pass === "") {
+    throw new RuntimeException("Database configuration is incomplete. Set the SUPABASE_DB_* environment variables.");
+}
+
+$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=$sslmode";
 
 try {
     $pdo = new PDO($dsn, $user, $pass, [
@@ -18,5 +137,6 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    throw new RuntimeException("DB connection failed: " . $e->getMessage(), 0, $e);
+    error_log("DB connection failed: " . $e->getMessage());
+    throw new RuntimeException("Database connection failed.");
 }
