@@ -558,7 +558,7 @@ td.actions button.btn-message:hover {
 }
 
 .queue-table--files {
-  min-width: 1040px;
+  min-width: 900px;
 }
 
 .queue-table--files th:nth-child(1),
@@ -566,18 +566,16 @@ td.actions button.btn-message:hover {
 .queue-table--files th:nth-child(2),
 .queue-table--files td:nth-child(2) { width: 190px; }
 .queue-table--files th:nth-child(3),
-.queue-table--files td:nth-child(3) { width: 180px; }
+.queue-table--files td:nth-child(3) { width: 190px; }
 .queue-table--files th:nth-child(4),
-.queue-table--files td:nth-child(4) { width: 170px; }
+.queue-table--files td:nth-child(4) { width: 160px; }
 .queue-table--files th:nth-child(5),
-.queue-table--files td:nth-child(5) { width: 150px; }
+.queue-table--files td:nth-child(5) { width: 130px; }
 .queue-table--files th:nth-child(6),
 .queue-table--files td:nth-child(6) { width: 120px; }
-.queue-table--files th:nth-child(7),
-.queue-table--files td:nth-child(7) { width: 120px; }
 
 .queue-table--simple {
-  min-width: 920px;
+  min-width: 780px;
 }
 
 .queue-table--simple th:last-child,
@@ -602,7 +600,7 @@ td.actions button.btn-message:hover {
 }
 
 .queue-table tr {
-  min-height: 56px;
+  height: 56px;
 }
 
 .queue-table .status-badge {
