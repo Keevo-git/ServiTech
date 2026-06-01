@@ -37,17 +37,6 @@
   background: #f5f9ff;
 }
 
-.btn-payment-update {
-  background: #fff;
-  border: 1px solid #d4a574;
-  color: #8b5a2b;
-}
-
-.btn-payment-update:hover {
-  background: #fff9f0;
-  border-color: #c0915f;
-}
-
 .btn-message {
   background: #214f91;
   border: 1px solid #214f91;

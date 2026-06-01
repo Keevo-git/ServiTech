@@ -336,7 +336,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       transform: translateY(-1px);
     }
 
-    body.customer-layout.customer-page--status .payment-verification-note {
+    body.customer-layout.customer-page--status .payment-note {
       color: #775d58;
       font-size: 0.88rem;
       margin: 0;
@@ -677,7 +677,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <div id="modalPaymentDetails"></div>
             <div id="modalPaymentQr" class="status-payment-qr">
               <img src="/assets/images/gcash-qr.jpg" alt="JC Shop GCash QR code">
-              <p class="payment-verification-note">Use this QR for GCash payments. Submitted references are subject to shop verification.</p>
+              <p class="payment-note">Use this QR for GCash payments, then submit your reference number.</p>
             </div>
           </section>
 
@@ -820,23 +820,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       : {};
     const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
     const reference = String(queueData.reference_number || details.reference_number || "").trim();
-    const rawStatus = String(queueData.payment_status || details.payment_status || "").trim();
-    const normalized = rawStatus.toLowerCase();
+    const status = String(queueData.status || "PENDING").trim().toUpperCase();
 
-    if (normalized === "paid" || normalized === "verified" || normalized === "completed") {
-      return { label: "Paid", tone: "done", note: "" };
-    }
-
-    if (normalized === "unpaid" || normalized === "failed" || normalized === "declined") {
-      return { label: "Unpaid", tone: "cancelled", note: "" };
-    }
-
-    if (rawStatus) {
-      return { label: formatLabel(rawStatus), tone: "pending", note: "Payment is subject to shop verification." };
+    if (status === "CANCELLED" || status === "CANCELED") {
+      return { label: "Cancelled", tone: "cancelled", note: "" };
     }
 
     if (method === "gcash" && reference) {
-      return { label: "Payment Submitted for Verification", tone: "pending", note: "Payment is subject to shop verification." };
+      return status === "PENDING"
+        ? { label: "Payment Submitted", tone: "pending", note: "" }
+        : { label: "Accepted", tone: "done", note: "" };
     }
 
     if (method === "gcash") {
@@ -844,7 +837,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     if (method === "cash") {
-      return { label: "Pay at Store", tone: "pending", note: "" };
+      return ["ONGOING", "FOR PICK-UP", "DONE"].includes(status)
+        ? { label: "Paid", tone: "done", note: "" }
+        : { label: "Pay at Store", tone: "pending", note: "" };
     }
 
     return { label: "Not specified", tone: "pending", note: "" };
@@ -1130,7 +1125,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <span class="status-badge status-${status.tone}">${esc(status.label)}</span>
         </span>
       </div>
-      ${status.note ? `<p class="payment-verification-note">${esc(status.note)}</p>` : ""}
+      ${status.note ? `<p class="payment-note">${esc(status.note)}</p>` : ""}
     `;
 
     if (paymentQr) {

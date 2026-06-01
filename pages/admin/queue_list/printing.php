@@ -50,41 +50,6 @@ function payment_label($value): string {
   return "-";
 }
 
-function payment_status_label($method, $paymentStatus = null, $detailsStatus = null): string {
-  $method = strtolower(trim((string)$method));
-  $status = strtoupper(trim((string)($paymentStatus ?? $detailsStatus ?? "")));
-
-  if ($method === "gcash") {
-    if (in_array($status, ["PENDING", "SUBMITTED", "PENDING VERIFICATION"], true)) {
-      return "Payment Submitted";
-    }
-    if (in_array($status, ["VERIFIED", "PAID", "COMPLETE"], true)) {
-      return "Verified / Paid";
-    }
-    if (in_array($status, ["DECLINED", "REJECTED", "FAILED"], true)) {
-      return "Rejected";
-    }
-  }
-
-  if ($method === "cash") {
-    if ($status === "" || $status === "PAY AT STORE") {
-      return "Pay at Store";
-    }
-    if (in_array($status, ["PENDING", "UNPAID"], true)) {
-      return "Pending Payment";
-    }
-    if (in_array($status, ["PAID", "VERIFIED", "COMPLETE", "DONE"], true)) {
-      return "Paid";
-    }
-  }
-
-  if ($status === "") {
-    return "-";
-  }
-
-  return ucfirst(strtolower($status));
-}
-
 function payment_amount_label($amount, $detailsTotal = null): string {
   if (is_numeric($amount) && (float)$amount > 0) {
     return '₱' . number_format((float)$amount, 2);

@@ -378,7 +378,7 @@ header("Expires: 0");
   <div class="form-page-shell">
     <div class="form-page-intro">
       <h2 class="page-title">PAYMENT</h2>
-      <p class="page-subtitle">Review your <?= esc_service_payment($serviceLabel) ?> order, then submit your payment details for verification.</p>
+      <p class="page-subtitle">Review your <?= esc_service_payment($serviceLabel) ?> order, then submit your payment details.</p>
     </div>
 
     <form id="servicePaymentForm" class="service-payment-form" method="post" action="/api/service_payment_create.php" novalidate>

@@ -5,35 +5,23 @@ require_once __DIR__ . "/url.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
-function payment_status_label($method, $paymentStatus = null, $detailsStatus = null): string {
+function payment_status_label($method, $queueStatus): string {
   $method = strtolower(trim((string)$method));
-  $status = strtoupper(trim((string)($paymentStatus ?? $detailsStatus ?? "")));
+  $status = strtoupper(trim((string)$queueStatus));
+
+  if (in_array($status, ["CANCELLED", "CANCELED"], true)) {
+    return "Cancelled";
+  }
 
   if ($method === "gcash") {
-    if (in_array($status, ["PENDING", "SUBMITTED", "PENDING VERIFICATION"], true)) {
-      return "Payment Submitted";
-    }
-    if (in_array($status, ["VERIFIED", "PAID", "COMPLETE"], true)) {
-      return "Verified / Paid";
-    }
-    if (in_array($status, ["DECLINED", "REJECTED", "FAILED"], true)) {
-      return "Rejected";
-    }
+    return $status === "PENDING" ? "Payment Submitted" : "Accepted";
   }
 
   if ($method === "cash") {
-    if ($status === "" || $status === "PAY AT STORE") {
-      return "Pay at Store";
-    }
-    if (in_array($status, ["PENDING", "UNPAID"], true)) {
-      return "Pending Payment";
-    }
-    if (in_array($status, ["PAID", "VERIFIED", "COMPLETE", "DONE"], true)) {
-      return "Paid";
-    }
+    return in_array($status, ["ONGOING", "FOR PICK-UP", "DONE"], true) ? "Paid" : "Pay at Store";
   }
 
-  return $status !== "" ? ucfirst(strtolower($status)) : "-";
+  return "-";
 }
 
 try {
@@ -75,7 +63,7 @@ try {
       "status" => (string)($row["status"] ?? "PENDING"),
       "payment_method" => (string)($row["payment_method"] ?? ""),
       "reference_number" => (string)($row["reference_number"] ?? ""),
-      "payment_status" => payment_status_label($row["payment_method"], $row["payment_status"], $row["details_payment_status"]),
+      "payment_status" => payment_status_label($row["payment_method"], $row["status"]),
       "amount" => (float)($row["amount"] ?? 0)
     ];
   }

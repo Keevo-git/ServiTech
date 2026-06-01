@@ -648,7 +648,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
   <div class="form-page-shell">
     <div class="form-page-intro">
       <h2 class="page-title">PAYMENT</h2>
-      <p class="page-subtitle">Review the same print order details from the previous page, then submit your payment details for verification.</p>
+      <p class="page-subtitle">Review the same print order details from the previous page, then submit your payment details.</p>
     </div>
 
     <form id="printOrderPaymentForm" class="print-payment-form" method="post" action="/api/print_order_create.php" novalidate>

@@ -33,36 +33,24 @@ function om_payment_method_label($value): string
     return "";
 }
 
-function om_payment_status_label($method, $paymentStatus = null, $detailsStatus = null): string
+function om_payment_status_label($method, $queueStatus): string
 {
     $method = strtolower(trim((string)$method));
-    $status = strtoupper(trim((string)($paymentStatus ?? $detailsStatus ?? "")));
+    $status = strtoupper(trim((string)$queueStatus));
+
+    if (in_array($status, ["CANCELLED", "CANCELED"], true)) {
+        return "Cancelled";
+    }
 
     if ($method === "gcash") {
-        if (in_array($status, ["PENDING", "SUBMITTED", "PENDING VERIFICATION"], true)) {
-            return "Payment Submitted";
-        }
-        if (in_array($status, ["VERIFIED", "PAID", "COMPLETE"], true)) {
-            return "Verified / Paid";
-        }
-        if (in_array($status, ["DECLINED", "REJECTED", "FAILED"], true)) {
-            return "Rejected";
-        }
+        return $status === "PENDING" ? "Payment Submitted" : "Accepted";
     }
 
     if ($method === "cash") {
-        if ($status === "" || $status === "PAY AT STORE") {
-            return "Pay at Store";
-        }
-        if (in_array($status, ["PENDING", "UNPAID"], true)) {
-            return "Pending Payment";
-        }
-        if (in_array($status, ["PAID", "VERIFIED", "COMPLETE", "DONE"], true)) {
-            return "Paid";
-        }
+        return in_array($status, ["ONGOING", "FOR PICK-UP", "DONE"], true) ? "Paid" : "Pay at Store";
     }
 
-    return $status !== "" ? ucfirst(strtolower($status)) : "-";
+    return "-";
 }
 
 function om_payment_amount_label($amount, $detailsTotal = null): string
@@ -142,8 +130,6 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
 {
     $details = admin_queue_details_array($row["details"] ?? null);
     $paymentMethod = $row["payment_method"] ?? ($details["payment_method"] ?? "");
-    $paymentStatus = $row["payment_status"] ?? ($details["payment_status"] ?? null);
-    $detailsPaymentStatus = $row["details_payment_status"] ?? ($details["payment_status"] ?? null);
     $referenceNumber = $row["reference_number"] ?? ($details["reference_number"] ?? "");
     $detailsTotal = $row["details_total"] ?? ($details["estimated_total"] ?? null);
 
@@ -160,7 +146,7 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
             : "-",
         "paymentMethod" => om_payment_method_label($paymentMethod),
         "paymentReference" => trim((string)$referenceNumber),
-        "paymentStatus" => om_payment_status_label($paymentMethod, $paymentStatus, $detailsPaymentStatus),
+        "paymentStatus" => om_payment_status_label($paymentMethod, $row["status"] ?? "PENDING"),
         "price" => om_payment_amount_label($row["amount"] ?? null, $detailsTotal),
         "files" => admin_queue_file_items($row["details"] ?? null),
         "details" => om_extra_detail_rows($details),

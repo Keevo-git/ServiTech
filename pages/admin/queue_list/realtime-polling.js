@@ -7,8 +7,6 @@
   "use strict";
 
   const POLL_INTERVAL = 5000; // 5 seconds
-  const CSRF_TOKEN_GETTER = () => window.servitechCsrfToken ? window.servitechCsrfToken() : "";
-
   let pollTimeout = null;
   let isPolling = false;
   let lastUpdateTime = null;
@@ -132,7 +130,7 @@
       html += '<small>Ref: ' + escapeHtml(data.reference_number) + '</small>';
     }
 
-    const statusLabel = getPaymentStatusLabel(data.payment_method, data.payment_status);
+    const statusLabel = getPaymentStatusLabel(data.payment_method, data.status);
     html += '<small>Status: ' + statusLabel + '</small>';
 
     html += '</span>';
@@ -142,35 +140,20 @@
   /**
    * Get human-readable payment status label
    */
-  function getPaymentStatusLabel(method, status) {
-    if (!status) status = "";
-    const normalizedStatus = status.toUpperCase();
+  function getPaymentStatusLabel(method, queueStatus) {
+    const normalizedMethod = String(method || "").trim().toLowerCase();
+    const normalizedStatus = String(queueStatus || "PENDING").trim().toUpperCase();
+    if (["CANCELLED", "CANCELED"].includes(normalizedStatus)) return "Cancelled";
 
-    if (method === "gcash" || method === "GCash") {
-      if (["PENDING", "SUBMITTED", "PENDING VERIFICATION"].includes(normalizedStatus)) {
-        return "Payment Submitted";
-      }
-      if (["VERIFIED", "PAID", "COMPLETE"].includes(normalizedStatus)) {
-        return "Verified / Paid";
-      }
-      if (["DECLINED", "REJECTED", "FAILED"].includes(normalizedStatus)) {
-        return "Rejected";
-      }
+    if (normalizedMethod === "gcash") {
+      return normalizedStatus === "PENDING" ? "Payment Submitted" : "Accepted";
     }
 
-    if (method === "cash" || method === "Cash") {
-      if (normalizedStatus === "" || normalizedStatus === "PAY AT STORE") {
-        return "Pay at Store";
-      }
-      if (["PENDING", "UNPAID"].includes(normalizedStatus)) {
-        return "Pending Payment";
-      }
-      if (["PAID", "VERIFIED", "COMPLETE", "DONE"].includes(normalizedStatus)) {
-        return "Paid";
-      }
+    if (normalizedMethod === "cash") {
+      return ["ONGOING", "FOR PICK-UP", "DONE"].includes(normalizedStatus) ? "Paid" : "Pay at Store";
     }
 
-    return normalizedStatus ? normalizedStatus.charAt(0) + normalizedStatus.slice(1).toLowerCase() : "-";
+    return "-";
   }
 
   /**
@@ -181,12 +164,6 @@
 
     // Update Status button
     html += `<button class="btn-update-status" data-id="${data.id}" data-code="${escapeHtml(data.queue_code || "")}">Update Status</button>`;
-
-    // Payment update button (if pending)
-    if (data.payment_method && data.payment_status !== "Paid" && data.payment_status !== "PAID") {
-      const btnLabel = data.payment_method === "gcash" ? "Verify Payment" : "Mark as Paid";
-      html += `<button class="btn-payment-update" data-id="${data.id}" data-method="${data.payment_method}">` + btnLabel + '</button>';
-    }
 
     // Message button
     html += `<button class="btn-message" data-id="${data.id}" data-queue-code="${escapeHtml(data.queue_code || "")}" data-customer="${escapeHtml(data.fullname || "")}">Message</button>`;
@@ -309,10 +286,6 @@
       btn.addEventListener("click", handleUpdateStatusClick);
     });
 
-    container.querySelectorAll(".btn-payment-update").forEach(btn => {
-      btn.addEventListener("click", handlePaymentUpdateClick);
-    });
-
     container.querySelectorAll(".btn-message").forEach(btn => {
       btn.addEventListener("click", handleMessageClick);
     });
@@ -328,39 +301,6 @@
     // Trigger existing modal/handler
     if (window.openStatusModal) {
       window.openStatusModal(id, code);
-    }
-  }
-
-  /**
-   * Handle Payment Update button click
-   */
-  async function handlePaymentUpdateClick(evt) {
-    const id = evt.currentTarget.dataset.id;
-    const method = evt.currentTarget.dataset.method;
-
-    if (confirm("Mark payment as verified/paid?")) {
-      try {
-        const res = await fetch(servitech_admin_url("/pages/admin/_includes/admin_payment_update.php"), {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRF-Token": CSRF_TOKEN_GETTER()
-          },
-          credentials: "same-origin",
-          body: "id=" + encodeURIComponent(id) + "&status=paid"
-        });
-
-        const result = await res.json();
-        if (result.ok) {
-          alert("Payment updated successfully");
-          updateAllData();
-        } else {
-          alert(result.error || "Failed to update payment");
-        }
-      } catch (err) {
-        console.error("Payment update error:", err);
-        alert("Error updating payment");
-      }
     }
   }
 

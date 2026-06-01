@@ -9,7 +9,7 @@ try {
     SELECT COUNT(*)
     FROM queues q
     LEFT JOIN LATERAL (
-      SELECT payment_method, reference_number, status
+      SELECT payment_method, reference_number
       FROM payments
       WHERE queue_id = q.id
       ORDER BY id DESC
@@ -22,7 +22,7 @@ try {
         OR (
             LOWER(TRIM(COALESCE(p.payment_method, q.details->>'payment_method', ''))) = 'gcash'
             AND NULLIF(TRIM(COALESCE(p.reference_number, q.details->>'reference_number', '')), '') IS NOT NULL
-            AND UPPER(TRIM(COALESCE(p.status, q.details->>'payment_status', 'PENDING'))) IN ('PENDING', 'SUBMITTED')
+            AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'PENDING'
         )
         OR q.created_at >= (NOW() - INTERVAL '1 day')
       )

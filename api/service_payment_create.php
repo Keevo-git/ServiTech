@@ -55,7 +55,7 @@ $details = [
   "file_names" => isset($draft["file_names"]) && is_array($draft["file_names"]) ? $draft["file_names"] : [],
   "payment_method" => "gcash",
   "reference_number" => $reference_number,
-  "payment_status" => "Pending Verification",
+  "payment_status" => "Submitted",
   "total_files" => isset($draft["total_files"]) ? max(0, (int)$draft["total_files"]) : 0,
   "total_images" => isset($draft["total_images"]) ? max(0, (int)$draft["total_images"]) : 0,
   "total_pages" => isset($draft["total_pages"]) ? max(0, (int)$draft["total_pages"]) : 0,
@@ -107,8 +107,8 @@ try {
     ":reference_number" => $reference_number,
   ]);
 
-  servitech_add_notification($pdo, $user_id, "printing", $queue_id, "Queue {$queue_code}: GCash payment details submitted for verification.");
-  servitech_notify_admins($pdo, "printing", $queue_id, "Queue {$queue_code}: New {$service_label} GCash payment needs checking.");
+  servitech_add_notification($pdo, $user_id, "printing", $queue_id, "Queue {$queue_code}: GCash payment details submitted.");
+  servitech_notify_admins($pdo, "printing", $queue_id, "Queue {$queue_code}: New {$service_label} GCash payment submitted. Review the order and update its status.");
 
   $pdo->commit();
 
