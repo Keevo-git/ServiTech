@@ -39,18 +39,16 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       aria-label="Queue notifications: <?= $adminNotificationCount ?>"
       title="Queue notifications"
     >
-      <span class="admin-notification-icon-wrap">
-        <img
-          src="<?= admin_url('/assets/images/white_notification.png') ?>"
-          alt=""
-          class="admin-notification-icon"
-          width="20"
-          height="20"
-        >
-        <?php if ($adminNotificationCount > 0): ?>
-          <strong class="admin-notification-badge"><?= $adminNotificationCount ?></strong>
-        <?php endif; ?>
-      </span>
+      <img
+        src="<?= admin_url('/assets/images/white_notification.png') ?>"
+        alt=""
+        class="admin-notification-icon"
+        width="20"
+        height="20"
+      >
+      <?php if ($adminNotificationCount > 0): ?>
+        <strong class="admin-notification-badge"><?= $adminNotificationCount ?></strong>
+      <?php endif; ?>
     </a>
     <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="admin-logout-link">Logout</a>
   </nav>
