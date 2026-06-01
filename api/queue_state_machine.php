@@ -1,0 +1,196 @@
+<?php
+require_once __DIR__ . "/queue_helpers.php";
+
+function servitech_queue_normalize_status(string $status): string {
+  $status = strtoupper(trim($status));
+  $status = preg_replace('/[\s_]+/', ' ', $status);
+
+  return match ($status) {
+    "", "PENDING PAYMENT" => "PENDING",
+    "FOR PICK UP", "FOR PICKUP" => "FOR PICK-UP",
+    "CANCELED" => "CANCELLED",
+    default => $status,
+  };
+}
+
+function servitech_queue_is_online_print_order(array $queue): bool {
+  $category = strtolower(trim((string)($queue["category"] ?? "")));
+  $queueCode = strtoupper(trim((string)($queue["queue_code"] ?? "")));
+
+  return in_array($category, ["online_printorder", "printing_online"], true)
+    || str_starts_with($queueCode, "OP");
+}
+
+function servitech_queue_allowed_transitions(array $queue): array {
+  $status = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
+
+  if (servitech_queue_is_online_print_order($queue)) {
+    return match ($status) {
+      "PENDING" => ["APPROVED", "CANCELLED"],
+      "APPROVED" => ["ONGOING"],
+      "ONGOING" => ["FOR PICK-UP"],
+      "FOR PICK-UP" => ["DONE"],
+      default => [],
+    };
+  }
+
+  return match ($status) {
+    "PENDING" => ["ONGOING", "CANCELLED"],
+    "ONGOING" => ["FOR PICK-UP", "DONE", "CANCELLED"],
+    "FOR PICK-UP" => ["DONE"],
+    default => [],
+  };
+}
+
+function servitech_queue_transition_error(array $queue, string $newStatus): string {
+  $current = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
+  if ($newStatus === "CANCELLED") {
+    return match ($current) {
+      "APPROVED" => "This order cannot be cancelled after it has been approved.",
+      "FOR PICK-UP" => "This order cannot be cancelled after it is ready for pick-up.",
+      "DONE" => "This order is already completed and can no longer be cancelled.",
+      "CANCELLED" => "This order has already been cancelled.",
+      default => "This order can no longer be cancelled at its current stage.",
+    };
+  }
+  if (in_array($current, ["DONE", "CANCELLED"], true)) {
+    return "This order is finalized and its status can no longer be changed.";
+  }
+  return "Invalid status transition from {$current} to {$newStatus}.";
+}
+
+function servitech_ensure_queue_status_history_table(PDO $pdo): void {
+  $pdo->exec("
+    CREATE TABLE IF NOT EXISTS queue_status_history (
+      id BIGSERIAL PRIMARY KEY,
+      queue_id BIGINT NOT NULL,
+      category TEXT NOT NULL DEFAULT '',
+      old_status TEXT NULL,
+      new_status TEXT NOT NULL,
+      admin_id INTEGER NULL,
+      admin_name VARCHAR(160) NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  ");
+  $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queue_status_history_queue_id ON queue_status_history(queue_id, created_at)");
+}
+
+function servitech_queue_actor_name(PDO $pdo, ?int $adminId): string {
+  if (!$adminId || $adminId <= 0) return "";
+  $stmt = $pdo->prepare("SELECT COALESCE(NULLIF(fullname, ''), email, '') FROM users WHERE id = :id LIMIT 1");
+  $stmt->execute([":id" => $adminId]);
+  return trim((string)($stmt->fetchColumn() ?: ""));
+}
+
+function servitech_record_queue_status_history(
+  PDO $pdo,
+  int $queueId,
+  string $category,
+  ?string $oldStatus,
+  string $newStatus,
+  ?int $adminId,
+  string $notes = ""
+): void {
+  servitech_ensure_queue_status_history_table($pdo);
+  $stmt = $pdo->prepare("
+    INSERT INTO queue_status_history (queue_id, category, old_status, new_status, admin_id, admin_name, notes)
+    VALUES (:queue_id, :category, :old_status, :new_status, :admin_id, :admin_name, :notes)
+  ");
+  $stmt->execute([
+    ":queue_id" => $queueId,
+    ":category" => trim($category),
+    ":old_status" => $oldStatus !== null ? servitech_queue_normalize_status($oldStatus) : null,
+    ":new_status" => servitech_queue_normalize_status($newStatus),
+    ":admin_id" => $adminId,
+    ":admin_name" => servitech_queue_actor_name($pdo, $adminId),
+    ":notes" => trim($notes),
+  ]);
+}
+
+function servitech_record_queue_initial_status(PDO $pdo, int $queueId, string $category): void {
+  servitech_record_queue_status_history($pdo, $queueId, $category, null, "PENDING", null, "Queue created.");
+}
+
+function servitech_transition_queue_status(PDO $pdo, int $queueId, string $requestedStatus, int $adminId, string $notes = ""): array {
+  $newStatus = servitech_queue_normalize_status($requestedStatus);
+  $notes = trim($notes);
+  if ($queueId <= 0) throw new DomainException("Invalid queue/order ID.");
+  if (!in_array($newStatus, ["APPROVED", "ONGOING", "FOR PICK-UP", "DONE", "CANCELLED"], true)) {
+    throw new DomainException("Invalid status requested.");
+  }
+  if ($newStatus === "CANCELLED" && $notes === "") {
+    throw new DomainException("Cancellation reason is required.");
+  }
+  if (strlen($notes) > 1000) {
+    throw new DomainException("Status notes cannot exceed 1000 characters.");
+  }
+
+  $ownsTransaction = !$pdo->inTransaction();
+  if ($ownsTransaction) $pdo->beginTransaction();
+
+  try {
+    $stmt = $pdo->prepare("
+      SELECT id, user_id, queue_code, category, status, details
+      FROM queues
+      WHERE id = :id
+      LIMIT 1
+      FOR UPDATE
+    ");
+    $stmt->execute([":id" => $queueId]);
+    $queue = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($queue)) throw new DomainException("Queue/order not found.");
+
+    $currentStatus = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
+    if (!in_array($newStatus, servitech_queue_allowed_transitions($queue), true)) {
+      throw new DomainException(servitech_queue_transition_error($queue, $newStatus));
+    }
+
+    $update = $pdo->prepare("
+      UPDATE queues
+      SET status = :status,
+          completed_at = CASE WHEN :done_status = 'DONE' THEN COALESCE(completed_at, NOW()) ELSE completed_at END
+      WHERE id = :id
+    ");
+    $update->execute([":status" => $newStatus, ":done_status" => $newStatus, ":id" => $queueId]);
+
+    servitech_record_queue_status_history(
+      $pdo,
+      $queueId,
+      (string)($queue["category"] ?? ""),
+      $currentStatus,
+      $newStatus,
+      $adminId,
+      $notes
+    );
+
+    $queueCode = trim((string)($queue["queue_code"] ?? ""));
+    if ($newStatus === "APPROVED") {
+      servitech_add_notification(
+        $pdo,
+        (int)$queue["user_id"],
+        "payment_update",
+        $queueId,
+        "Queue {$queueCode}: Your payment has been approved. Your order is now waiting to be processed."
+      );
+    } elseif ($newStatus === "CANCELLED") {
+      servitech_add_notification(
+        $pdo,
+        (int)$queue["user_id"],
+        "queue_cancelled",
+        $queueId,
+        "Queue {$queueCode}: Your order has been cancelled. Reason: {$notes}"
+      );
+    }
+
+    if ($ownsTransaction) $pdo->commit();
+    $queue["status"] = $newStatus;
+    return [
+      "status" => $newStatus,
+      "allowed_transitions" => servitech_queue_allowed_transitions($queue),
+    ];
+  } catch (Throwable $e) {
+    if ($ownsTransaction && $pdo->inTransaction()) $pdo->rollBack();
+    throw $e;
+  }
+}

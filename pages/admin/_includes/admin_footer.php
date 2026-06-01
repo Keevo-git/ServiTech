@@ -60,3 +60,37 @@ $adminFooterEmail = servitech_smtp_public_from_email();
 
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
 </footer>
+<style>
+  #queueCancellationOverlay {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.52);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 18px;
+    position: fixed;
+    z-index: 10000;
+  }
+  #queueCancellationOverlay[hidden] { display: none; }
+  .queue-cancellation-dialog {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+    max-width: 520px;
+    padding: 20px;
+    width: 100%;
+  }
+  .queue-cancellation-dialog h3 { margin-top: 0; }
+  .queue-cancellation-dialog textarea {
+    box-sizing: border-box;
+    min-height: 120px;
+    padding: 10px;
+    resize: vertical;
+    width: 100%;
+  }
+  .queue-cancellation-error { color: #991b1b; min-height: 1.2em; }
+  .queue-cancellation-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .queue-cancellation-actions button { cursor: pointer; padding: 9px 14px; }
+  .queue-cancellation-submit { background: #991b1b; border: 1px solid #991b1b; color: #fff; }
+</style>
+<script src="<?= admin_url('/pages/admin/queue_state_machine.js?v=20260601-status-machine') ?>"></script>

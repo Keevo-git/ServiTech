@@ -8,28 +8,20 @@ servitech_enforce_csrf_token(true);
 
 $id = (int)($_POST["id"] ?? 0);
 $status = strtoupper(trim($_POST["status"] ?? ""));
+$notes = trim((string)($_POST["notes"] ?? ""));
 
-$allowed = ["PENDING", "ONGOING", "FOR PICK-UP", "DONE", "CANCELLED"];
-if ($id <= 0 || !in_array($status, $allowed, true)) {
+if ($id <= 0) {
   echo json_encode(["ok" => false, "error" => "Invalid request"]);
   exit();
 }
 
 try {
-  $stmt = $pdo->prepare("
-    UPDATE queues
-    SET
-      status = :status,
-      completed_at = CASE
-        WHEN :status_done = 'DONE' THEN COALESCE(completed_at, NOW())
-        ELSE NULL
-      END
-    WHERE id = :id
-  ");
-  $stmt->execute([":status" => $status, ":status_done" => $status, ":id" => $id]);
-
-  echo json_encode(["ok" => true]);
-} catch (PDOException $e) {
+  $result = servitech_transition_queue_status($pdo, $id, $status, (int)($_SESSION["user_id"] ?? 0), $notes);
+  echo json_encode(["ok" => true] + $result);
+} catch (DomainException $e) {
+  http_response_code(422);
+  echo json_encode(["ok" => false, "error" => $e->getMessage()]);
+} catch (Throwable $e) {
   error_log("queue_update_status error: " . $e->getMessage());
   echo json_encode(["ok" => false, "error" => "DB error"]);
 }

@@ -5,6 +5,7 @@ require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
+require_once __DIR__ . "/queue_state_machine.php";
 
 servitech_enforce_csrf_token(false);
 
@@ -127,6 +128,7 @@ try {
   if ($queue_id <= 0) {
     throw new RuntimeException("Queue was not created.");
   }
+  servitech_record_queue_initial_status($pdo, $queue_id, $printMeta["category"]);
 
   $paymentStmt = $pdo->prepare("
     INSERT INTO payments (queue_id, user_id, amount, payment_method, reference_number, status)

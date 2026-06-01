@@ -130,6 +130,31 @@ function queue_ui_row_attrs(array $row): string
     return $html;
 }
 
+function queue_ui_render_transition_buttons(array $row): void
+{
+    $buttons = [
+        "APPROVED" => ["approved", "Approve", "btn-approved"],
+        "ONGOING" => ["ongoing", "Start", "btn-start"],
+        "FOR PICK-UP" => ["pickup", "For Pick-up", "btn-pickup"],
+        "DONE" => ["done", "Done", "btn-done"],
+        "CANCELLED" => ["cancel", "Cancel", "btn-cancel"],
+    ];
+
+    foreach (servitech_queue_allowed_transitions($row) as $status) {
+        if (!isset($buttons[$status])) {
+            continue;
+        }
+        [$action, $label, $class] = $buttons[$status];
+        ?>
+        <button
+          class="<?= htmlspecialchars($class, ENT_QUOTES, "UTF-8") ?> admin-file-action"
+          data-id="<?= (int)($row["id"] ?? 0) ?>"
+          data-action="<?= htmlspecialchars($action, ENT_QUOTES, "UTF-8") ?>"
+        ><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></button>
+        <?php
+    }
+}
+
 function queue_ui_render_filter_toolbar(string $tableId, bool $includePayment = false): void
 {
     $statuses = [

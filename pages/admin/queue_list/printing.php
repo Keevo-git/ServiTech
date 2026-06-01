@@ -13,6 +13,7 @@ function status_class($status): string {
   $key = strtolower(trim((string)$status));
   $key = preg_replace('/[\s_]+/', '-', $key);
   return match ($key) {
+    "approved" => "status-approved",
     "ongoing" => "status-ongoing",
     "for-pick-up", "for-pickup" => "status-pickup",
     "done" => "status-done",
@@ -201,10 +202,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                     >View</button>
                     <div class="queue-inline-actions">
                       <div class="actions-group">
-                        <button class="btn-start admin-file-action" data-id="<?= (int)$r["id"] ?>">Start</button>
-                        <button class="btn-pickup admin-file-action" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
-                        <button class="btn-done admin-file-action" data-id="<?= (int)$r["id"] ?>">Done</button>
-                        <button class="btn-cancel admin-file-action" data-id="<?= (int)$r["id"] ?>">Cancel</button>
+                        <?php queue_ui_render_transition_buttons($r); ?>
                         <button
                           class="btn-message admin-file-action"
                           data-id="<?= (int)$r["id"] ?>"
@@ -212,7 +210,6 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                           data-customer="<?= esc($r["fullname"]) ?>"
                           data-service="<?= esc(service_label($r["category"], $r["details"] ?? null)) ?>"
                         >Message</button>
-                        <button class="btn-delete admin-file-action" data-id="<?= (int)$r["id"] ?>" title="Delete">Delete</button>
                       </div>
                     </div>
                   </td>
@@ -236,27 +233,27 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 <script>
 (function(){
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
-  function sendAction(id, action){
+  function sendAction(id, action, notes = ""){
     return fetch(<?= json_encode(admin_url_raw("/pages/admin/_includes/admin_actions.php")) ?>, {
       method: "POST",
       headers: {"Content-Type": "application/x-www-form-urlencoded", "X-CSRF-Token": csrf()},
-      body: "id=" + encodeURIComponent(id) + "&action=" + encodeURIComponent(action)
+      body: "id=" + encodeURIComponent(id) + "&action=" + encodeURIComponent(action) + "&notes=" + encodeURIComponent(notes)
     }).then(r => r.json());
   }
 
-  async function doAction(btn, action, confirmMsg){
+  async function doAction(btn, action){
     const id = btn.dataset.id;
-    if (confirmMsg && !confirm(confirmMsg)) return;
-    const data = await sendAction(id, action);
+    let notes = "";
+    if (action === "cancel") {
+      notes = await window.servitechRequestCancellationReason?.();
+      if (!notes) return;
+    }
+    const data = await sendAction(id, action, notes);
     if (data.ok) location.reload();
     else alert(data.error || "Action failed");
   }
 
-  document.querySelectorAll(".btn-start").forEach(btn => btn.addEventListener("click", () => doAction(btn, "ongoing")));
-  document.querySelectorAll(".btn-pickup").forEach(btn => btn.addEventListener("click", () => doAction(btn, "pickup")));
-  document.querySelectorAll(".btn-done").forEach(btn => btn.addEventListener("click", () => doAction(btn, "done")));
-  document.querySelectorAll(".btn-cancel").forEach(btn => btn.addEventListener("click", () => doAction(btn, "cancel", "Cancel this queue?")));
-  document.querySelectorAll(".btn-delete").forEach(btn => btn.addEventListener("click", () => doAction(btn, "delete", "Delete this queue permanently?")));
+  document.querySelectorAll("[data-action]").forEach(btn => btn.addEventListener("click", () => doAction(btn, btn.dataset.action)));
 })();
 </script>
 

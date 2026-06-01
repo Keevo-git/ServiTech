@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
+require_once __DIR__ . "/queue_state_machine.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -135,6 +136,7 @@ try {
   if ($queue_id <= 0) {
     throw new RuntimeException("Queue was not created.");
   }
+  servitech_record_queue_initial_status($pdo, $queue_id, $category);
 
   if ($payment_method !== "") {
     $paymentStmt = $pdo->prepare("

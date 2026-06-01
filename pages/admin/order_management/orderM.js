@@ -147,21 +147,25 @@ document.addEventListener("DOMContentLoaded", function () {
       commentsEl.value = String(order.comments || "").trim() || "No additional comments.";
     }
 
-    const allowedStatuses = [
-      ["PENDING", "Pending"],
-      ...(order.allowApproved ? [["APPROVED", "Approved"]] : []),
-      ["ONGOING", "Ongoing"],
-      ["FOR PICK-UP", "For Pick-up"],
-      ["DONE", "Done"],
-      ["CANCELLED", "Cancelled"],
-    ];
+    const statusLabels = {
+      APPROVED: "Approved",
+      ONGOING: "Ongoing",
+      "FOR PICK-UP": "For Pick-up",
+      DONE: "Done",
+      CANCELLED: "Cancelled",
+    };
+    const allowedStatuses = Array.isArray(order.allowedStatuses)
+      ? order.allowedStatuses.filter((status) => statusLabels[status])
+      : [];
     statusEl.innerHTML = allowedStatuses
-      .map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`)
+      .map((value) => `<option value="${esc(value)}">${esc(statusLabels[value])}</option>`)
       .join("");
-
-    const currentStatus = String(order.status || "PENDING").trim().toUpperCase();
-    const exists = Array.from(statusEl.options).some((option) => option.value === currentStatus);
-    statusEl.value = exists ? currentStatus : "PENDING";
+    if (!allowedStatuses.length) {
+      statusEl.innerHTML = '<option value="">No further status updates</option>';
+    }
+    statusEl.disabled = allowedStatuses.length === 0;
+    const saveBtn = document.getElementById("omSave");
+    if (saveBtn) saveBtn.disabled = allowedStatuses.length === 0;
 
     if (messageBtn) {
       const canMessage = Boolean(order.canMessage);
@@ -195,10 +199,11 @@ document.addEventListener("DOMContentLoaded", function () {
     clearError();
   }
 
-  async function postAction(id, action) {
+  async function postAction(id, action, notes = "") {
     const fd = new FormData();
     fd.append("id", id);
     fd.append("action", action);
+    fd.append("notes", notes);
 
     const response = await fetch(actionUrl, {
       method: "POST",
@@ -259,7 +264,13 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const out = await postAction(currentOrder.id, action);
+    let notes = "";
+    if (action === "cancel") {
+      notes = await window.servitechRequestCancellationReason?.();
+      if (!notes) return;
+    }
+
+    const out = await postAction(currentOrder.id, action, notes);
     if (!out.ok) {
       showError(out.error || "Failed to update status.");
       return;

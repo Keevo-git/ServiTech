@@ -167,6 +167,7 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
         "comments" => om_additional_comments($details),
         "canMessage" => !empty($row["canMessage"]),
         "allowApproved" => !empty($row["allowApproved"]),
+        "allowedStatuses" => servitech_queue_allowed_transitions($row),
     ];
 }
 

@@ -16,11 +16,7 @@
     <label class="order-modal-field" for="omStatus">
       <span>Update Status</span>
       <select class="om-select" id="omStatus">
-        <option value="PENDING">Pending</option>
-        <option value="ONGOING">Ongoing</option>
-        <option value="FOR PICK-UP">For Pick-up</option>
-        <option value="DONE">Done</option>
-        <option value="CANCELLED">Cancelled</option>
+        <option value="">Loading allowed statuses...</option>
       </select>
     </label>
 
@@ -48,4 +44,3 @@
     >Message Customer</button>
   </div>
 </div>
-

@@ -85,6 +85,7 @@
     const statusKey = status.toLowerCase().replace(/[\s_]+/g, "-");
     const statusMap = {
       "pending": "PENDING",
+      "approved": "APPROVED",
       "ongoing": "ONGOING",
       "for-pick-up": "FOR PICK-UP",
       "done": "DONE",
@@ -94,6 +95,7 @@
     const displayStatus = statusMap[statusKey] || status;
     const classMap = {
       "pending": "status-pending",
+      "approved": "status-approved",
       "ongoing": "status-ongoing",
       "for-pick-up": "status-pickup",
       "done": "status-done",

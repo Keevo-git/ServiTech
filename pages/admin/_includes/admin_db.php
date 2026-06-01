@@ -1,11 +1,13 @@
 <?php
 // Reuse the same Supabase PDO connection used by customer-side runtime.
 require_once __DIR__ . "/../../../config/db.php";
+require_once __DIR__ . "/../../../api/queue_state_machine.php";
 
 try {
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ NULL");
+  servitech_ensure_queue_status_history_table($pdo);
 } catch (Throwable $exception) {
-  error_log("queue completed_at column check failed: " . $exception->getMessage());
+  error_log("queue admin schema check failed: " . $exception->getMessage());
 }
 
 function admin_format_queue_submitted_at($value, string $format): string {

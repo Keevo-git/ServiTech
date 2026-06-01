@@ -12,12 +12,5 @@ if ($id <= 0) {
   exit();
 }
 
-try {
-  $stmt = $pdo->prepare("DELETE FROM queues WHERE id = :id");
-  $stmt->execute([":id" => $id]);
-
-  echo json_encode(["ok" => true]);
-} catch (PDOException $e) {
-  error_log("queue_delete error: " . $e->getMessage());
-  echo json_encode(["ok" => false, "error" => "DB error"]);
-}
+http_response_code(405);
+echo json_encode(["ok" => false, "error" => "Queue records cannot be permanently deleted. Cancel the order instead."]);
