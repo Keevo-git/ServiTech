@@ -3,6 +3,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
 require_once __DIR__ . "/../_includes/queue_files.php";
+require_once __DIR__ . "/_queue_ui_helpers.php";
 
 function esc($value): string {
   return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
@@ -40,7 +41,7 @@ $stmt = $pdo->prepare("
   WHERE q.category = 'installation'
     AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) != 'CANCELLED'
     AND q.created_at > (NOW() - INTERVAL '15 minutes')
-  ORDER BY q.created_at ASC
+  ORDER BY q.created_at DESC
 ");
 $stmt->execute();
 $rows = $stmt->fetchAll();
@@ -55,7 +56,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260601-queue-ui-v2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
 <body class="admin-dashboard">
@@ -108,8 +109,9 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
           <a class="tab active" href="<?= admin_url('/pages/admin/queue_list/installation.php') ?>">Installation</a>
         </div>
 
+        <?php queue_ui_render_filter_toolbar("installationQueueTable"); ?>
         <div class="table-scroll-wrapper">
-          <table class="table-content queue-table queue-table--simple">
+          <table id="installationQueueTable" class="table-content queue-table queue-table--simple">
           <thead>
             <tr>
               <th>Order ID</th>
@@ -128,7 +130,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
           <?php else: ?>
             <?php foreach ($rows as $r): ?>
               <?php $serviceLabel = service_label($r["details"] ?? null); ?>
-              <tr data-queue-id="<?= esc($r["queue_code"]) ?>">
+              <tr<?= queue_ui_row_attrs($r) ?>>
                 <td><?= esc($r["queue_code"]) ?></td>
                 <td><?= esc($r["fullname"]) ?></td>
                 <td><?= esc($serviceLabel) ?></td>
@@ -144,19 +146,26 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
                   </span>
                 </td>
                 <td class="actions">
-                  <div class="actions-group">
-                    <button class="btn-start admin-file-action" data-id="<?= (int)$r["id"] ?>">Start</button>
-                    <button class="btn-pickup admin-file-action" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
-                    <button class="btn-done admin-file-action" data-id="<?= (int)$r["id"] ?>">Done</button>
-                    <button class="btn-cancel admin-file-action" data-id="<?= (int)$r["id"] ?>">Cancel</button>
-                    <button
-                      class="btn-message admin-file-action"
-                      data-id="<?= (int)$r["id"] ?>"
-                      data-queue-code="<?= esc($r["queue_code"]) ?>"
-                      data-customer="<?= esc($r["fullname"]) ?>"
-                      data-service="<?= esc($serviceLabel) ?>"
-                    >Message</button>
-                    <button class="btn-delete admin-file-action" data-id="<?= (int)$r["id"] ?>" title="Delete">Delete</button>
+                  <button
+                    class="queue-view-btn"
+                    type="button"
+                    data-queue="<?= queue_ui_payload_attr($r, $serviceLabel) ?>"
+                  >View</button>
+                  <div class="queue-inline-actions">
+                    <div class="actions-group">
+                      <button class="btn-start admin-file-action" data-id="<?= (int)$r["id"] ?>">Start</button>
+                      <button class="btn-pickup admin-file-action" data-id="<?= (int)$r["id"] ?>">For Pick-up</button>
+                      <button class="btn-done admin-file-action" data-id="<?= (int)$r["id"] ?>">Done</button>
+                      <button class="btn-cancel admin-file-action" data-id="<?= (int)$r["id"] ?>">Cancel</button>
+                      <button
+                        class="btn-message admin-file-action"
+                        data-id="<?= (int)$r["id"] ?>"
+                        data-queue-code="<?= esc($r["queue_code"]) ?>"
+                        data-customer="<?= esc($r["fullname"]) ?>"
+                        data-service="<?= esc($serviceLabel) ?>"
+                      >Message</button>
+                      <button class="btn-delete admin-file-action" data-id="<?= (int)$r["id"] ?>" title="Delete">Delete</button>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -172,6 +181,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 </div>
 
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
+<?php require_once __DIR__ . "/_queue_details_modal.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php require_once __DIR__ . "/_queue_message_modal.php"; ?>
@@ -203,6 +213,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 </script>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260601-queue-ui-v2') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>
