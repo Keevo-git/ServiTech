@@ -107,12 +107,32 @@ main{ flex:1; }
   border-color: rgba(255, 255, 255, 0.68);
 }
 
+.navbar nav a.admin-notification-link::before,
+.navbar nav a.admin-notification-link::after,
+.navbar.has-nav-menu nav[data-collapsible-menu] a.admin-notification-link::before,
+.navbar.has-nav-menu nav[data-collapsible-menu] a.admin-notification-link::after {
+  content: none !important;
+  display: none !important;
+}
+
 .admin-notification-icon {
   flex: 0 0 auto;
   display: block;
   width: 20px;
   height: 20px;
   object-fit: contain;
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.admin-notification-icon::before,
+.admin-notification-icon::after {
+  content: none !important;
+  display: none !important;
 }
 
 .admin-notification-badge {
