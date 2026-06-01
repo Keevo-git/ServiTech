@@ -40,7 +40,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       title="Queue notifications"
     >
       <img
-        src="<?= admin_url('/assets/images/white_notification.png?v=20260601-clean-bell-v2') ?>"
+        src="<?= admin_url('/assets/images/white_notification.png?v=20260601-ringing-bell') ?>"
         alt=""
         class="admin-notification-icon"
         width="20"
