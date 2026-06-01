@@ -928,6 +928,82 @@ td.actions button.btn-message:hover {
   border-bottom: 1px solid #eef2f7;
 }
 
+.queue-status-section {
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.queue-current-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.queue-current-status > span,
+.queue-details-field > span,
+.queue-status-help {
+  color: #555f70;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.queue-current-status .status-badge {
+  flex: 0 0 auto;
+}
+
+.queue-details-field {
+  display: grid;
+  gap: 8px;
+}
+
+.queue-details-select {
+  appearance: none;
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #5d728c 50%),
+    linear-gradient(135deg, #5d728c 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+  padding: 12px 42px 12px 14px;
+  color: #1f2d3d;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.queue-details-select:focus {
+  border-color: #8fb0da;
+  box-shadow: 0 0 0 3px rgba(33, 79, 145, 0.12);
+  outline: none;
+}
+
+.queue-details-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.queue-status-help {
+  margin: 9px 0 0;
+  font-size: 13px;
+}
+
+.queue-details-update {
+  margin-top: 14px;
+}
+
 .queue-detail-row {
   display: grid;
   grid-template-columns: minmax(150px, 0.42fr) minmax(0, 1fr);
@@ -991,6 +1067,11 @@ td.actions button.btn-message:hover {
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.3px;
+}
+
+.queue-details-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .queue-details-action--primary { background: #f5a623; color: #111827; }

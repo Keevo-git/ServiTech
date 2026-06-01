@@ -675,13 +675,34 @@ body.admin-dashboard .page-frame {
 }
 
 .om-select {
+  appearance: none;
   width: 100%;
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.15);
-  padding: 12px;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #5d728c 50%),
+    linear-gradient(135deg, #5d728c 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+  padding: 12px 42px 12px 14px;
   font-size: 15px;
   line-height: 1.5;
   font-weight: 700;
+}
+
+.om-select:focus {
+  border-color: #8fb0da;
+  box-shadow: 0 0 0 3px rgba(33, 79, 145, 0.12);
+  outline: none;
+}
+
+.om-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
 }
 
 .om-error {
@@ -1008,6 +1029,43 @@ body.admin-dashboard .page-frame {
   margin: 0 0 20px;
 }
 
+.order-status-section {
+  margin: 0 0 20px;
+  padding: 14px;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.order-current-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.order-current-status > span,
+.order-status-help {
+  color: #555f70;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.order-current-status .status-badge {
+  flex: 0 0 auto;
+}
+
+.order-status-section .order-modal-field {
+  margin-bottom: 0;
+}
+
+.order-status-help {
+  margin: 9px 0 0;
+  font-size: 13px;
+}
+
 .order-modal-field textarea {
   width: 100%;
   resize: vertical;
@@ -1031,6 +1089,11 @@ body.admin-dashboard .page-frame {
 .order-modal .om-btn,
 .order-modal .order-modal-message {
   font-size: 16px;
+}
+
+.order-modal .om-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .om-btn--primary {

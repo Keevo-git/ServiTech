@@ -4,7 +4,28 @@ document.addEventListener("DOMContentLoaded", function () {
   const titleEl = document.getElementById("queueDetailsTitle");
   const summaryEl = document.getElementById("queueDetailsSummary");
   const detailsEl = document.getElementById("queueDetailsList");
+  const currentStatusEl = document.getElementById("queueDetailsCurrentStatus");
+  const statusEl = document.getElementById("queueDetailsStatus");
+  const statusHelpEl = document.getElementById("queueDetailsStatusHelp");
+  const updateBtn = document.getElementById("queueDetailsUpdate");
   const actionsEl = document.getElementById("queueDetailsActions");
+  let currentStatus = "PENDING";
+  let transitionButtons = new Map();
+  const actionStatuses = {
+    approved: "APPROVED",
+    ongoing: "ONGOING",
+    pickup: "FOR PICK-UP",
+    done: "DONE",
+    cancel: "CANCELLED",
+  };
+  const statusLabels = {
+    PENDING: "Pending",
+    APPROVED: "Approved",
+    ONGOING: "Ongoing",
+    "FOR PICK-UP": "For Pick-up",
+    DONE: "Done",
+    CANCELLED: "Cancelled",
+  };
 
   function esc(value) {
     return String(value ?? "")
@@ -15,14 +36,26 @@ document.addEventListener("DOMContentLoaded", function () {
       .replaceAll("'", "&#039;");
   }
 
+  function normalizeStatus(status) {
+    const value = String(status || "PENDING").trim().toUpperCase().replace(/[\s_]+/g, " ");
+    if (value === "FOR PICK UP" || value === "FOR PICKUP") return "FOR PICK-UP";
+    if (value === "CANCELED") return "CANCELLED";
+    return value || "PENDING";
+  }
+
   function statusClass(status) {
-    const key = String(status || "PENDING").trim().toLowerCase().replace(/[\s_]+/g, "-");
+    const key = normalizeStatus(status).toLowerCase().replace(/[\s_]+/g, "-");
     if (key === "approved") return "status-approved";
     if (key === "ongoing") return "status-ongoing";
     if (key === "for-pick-up" || key === "for-pickup") return "status-pickup";
     if (key === "done") return "status-done";
     if (key === "cancelled" || key === "canceled") return "status-cancelled";
     return "status-pending";
+  }
+
+  function syncStatusUpdateButton() {
+    if (!statusEl || !updateBtn) return;
+    updateBtn.disabled = statusEl.disabled || statusEl.value === currentStatus;
   }
 
   function detailRow(label, value) {
@@ -79,6 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sourceButtons = row.querySelectorAll(".queue-inline-actions button");
 
     sourceButtons.forEach((sourceButton) => {
+      if (sourceButton.dataset.action) return;
       const button = document.createElement("button");
       button.type = "button";
       button.className = "queue-details-action queue-details-action--" + actionTone(sourceButton);
@@ -91,6 +125,40 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       actionsEl.appendChild(button);
     });
+  }
+
+  function renderStatusSection(row, queue) {
+    if (!statusEl) return;
+
+    currentStatus = normalizeStatus(queue.status);
+    transitionButtons = new Map();
+    row.querySelectorAll(".queue-inline-actions [data-action]").forEach((button) => {
+      const status = actionStatuses[button.dataset.action];
+      if (status) transitionButtons.set(status, button);
+    });
+
+    const allowedStatuses = Array.from(transitionButtons.keys());
+    const selectableStatuses = [currentStatus, ...allowedStatuses]
+      .filter((status, index, statuses) => statusLabels[status] && statuses.indexOf(status) === index);
+    statusEl.innerHTML = selectableStatuses
+      .map((status) => `<option value="${esc(status)}">${esc(statusLabels[status])}</option>`)
+      .join("");
+    if (!selectableStatuses.length) {
+      statusEl.innerHTML = '<option value="PENDING">Pending</option>';
+    }
+    statusEl.value = currentStatus;
+    statusEl.disabled = allowedStatuses.length === 0;
+
+    if (currentStatusEl) {
+      currentStatusEl.className = `status-badge ${statusClass(currentStatus)}`;
+      currentStatusEl.textContent = statusLabels[currentStatus] || currentStatus;
+    }
+    if (statusHelpEl) {
+      statusHelpEl.textContent = allowedStatuses.length
+        ? "Select the next valid status, then click Update Status."
+        : "This queue has no further status updates.";
+    }
+    syncStatusUpdateButton();
   }
 
   function openDetails(button) {
@@ -127,6 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Payment Status", queue.paymentStatus),
       detailRow("Submitted Date", queue.submitted),
     ].join("");
+    renderStatusSection(row, queue);
     renderActions(row);
 
     overlay.classList.add("active");
@@ -145,6 +214,20 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document.getElementById("queueDetailsClose")?.addEventListener("click", closeDetails);
   overlay?.addEventListener("click", closeDetails);
+  statusEl?.addEventListener("change", () => {
+    if (statusEl.value === "CANCELLED") {
+      const cancelButton = transitionButtons.get("CANCELLED");
+      statusEl.value = currentStatus;
+      syncStatusUpdateButton();
+      cancelButton?.click();
+      return;
+    }
+    syncStatusUpdateButton();
+  });
+  updateBtn?.addEventListener("click", () => {
+    const transitionButton = transitionButtons.get(statusEl?.value || "");
+    transitionButton?.click();
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && modal?.classList.contains("active")) closeDetails();
   });

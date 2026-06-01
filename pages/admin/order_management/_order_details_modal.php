@@ -13,12 +13,21 @@
     <div class="order-modal-summary" id="orderModalSummary"></div>
     <div class="order-modal-details" id="orderModalDetails"></div>
 
-    <label class="order-modal-field" for="omStatus">
-      <span>Update Status</span>
-      <select class="om-select" id="omStatus">
-        <option value="">Loading allowed statuses...</option>
-      </select>
-    </label>
+    <section class="order-status-section" aria-labelledby="omStatusSectionTitle">
+      <div class="order-current-status">
+        <span id="omStatusSectionTitle">Current Status</span>
+        <strong class="status-badge status-pending" id="omCurrentStatus">Pending</strong>
+      </div>
+
+      <label class="order-modal-field" for="omStatus">
+        <span>Update Status</span>
+        <select class="om-select" id="omStatus">
+          <option value="">Loading allowed statuses...</option>
+        </select>
+      </label>
+
+      <p class="order-status-help" id="omStatusHelp"></p>
+    </section>
 
     <label class="order-modal-field" for="omComments">
       <span>Additional Comments</span>

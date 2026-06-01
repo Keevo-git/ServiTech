@@ -24,10 +24,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const titleEl = document.getElementById("orderModalTitle");
   const summaryEl = document.getElementById("orderModalSummary");
   const detailsEl = document.getElementById("orderModalDetails");
+  const currentStatusEl = document.getElementById("omCurrentStatus");
   const statusEl = document.getElementById("omStatus");
+  const statusHelpEl = document.getElementById("omStatusHelp");
   const commentsEl = document.getElementById("omComments");
   const errorEl = document.getElementById("omError");
   const messageBtn = document.getElementById("orderModalMessage");
+  const saveBtn = document.getElementById("omSave");
   const actionUrl = document.body?.dataset.orderActionUrl || "";
   let currentOrder = null;
   let previousStatusSelection = "";
@@ -42,6 +45,21 @@ document.addEventListener("DOMContentLoaded", function () {
     DONE: "done",
     CANCELLED: "cancel",
   };
+  const statusLabels = {
+    PENDING: "Pending",
+    APPROVED: "Approved",
+    ONGOING: "Ongoing",
+    "FOR PICK-UP": "For Pick-up",
+    DONE: "Done",
+    CANCELLED: "Cancelled",
+  };
+
+  function normalizeStatus(status) {
+    const value = String(status || "PENDING").trim().toUpperCase().replace(/[\s_]+/g, " ");
+    if (value === "FOR PICK UP" || value === "FOR PICKUP") return "FOR PICK-UP";
+    if (value === "CANCELED") return "CANCELLED";
+    return value || "PENDING";
+  }
 
   function esc(value) {
     return String(value ?? "")
@@ -76,13 +94,19 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function statusClass(status) {
-    const key = String(status || "PENDING").trim().toLowerCase().replace(/[\s_]+/g, "-");
+    const key = normalizeStatus(status).toLowerCase().replace(/[\s_]+/g, "-");
     if (key === "approved") return "status-approved";
     if (key === "ongoing" || key === "inprogress") return "status-ongoing";
     if (key === "for-pick-up" || key === "for-pickup") return "status-pickup";
     if (key === "done" || key === "complete") return "status-done";
     if (key === "cancelled" || key === "canceled" || key === "onhold") return "status-cancelled";
     return "status-pending";
+  }
+
+  function updateSaveButton() {
+    if (!saveBtn || !statusEl) return;
+    const currentStatus = normalizeStatus(currentOrder?.status);
+    saveBtn.disabled = statusEl.disabled || statusEl.value === currentStatus;
   }
 
   function fileRows(files) {
@@ -149,26 +173,31 @@ document.addEventListener("DOMContentLoaded", function () {
       commentsEl.value = String(order.comments || "").trim() || "No additional comments.";
     }
 
-    const statusLabels = {
-      APPROVED: "Approved",
-      ONGOING: "Ongoing",
-      "FOR PICK-UP": "For Pick-up",
-      DONE: "Done",
-      CANCELLED: "Cancelled",
-    };
+    const currentStatus = normalizeStatus(order.status);
     const allowedStatuses = Array.isArray(order.allowedStatuses)
-      ? order.allowedStatuses.filter((status) => statusLabels[status])
+      ? order.allowedStatuses.map(normalizeStatus).filter((status) => statusLabels[status])
       : [];
-    statusEl.innerHTML = allowedStatuses
+    const selectableStatuses = [currentStatus, ...allowedStatuses]
+      .filter((status, index, statuses) => statusLabels[status] && statuses.indexOf(status) === index);
+    statusEl.innerHTML = selectableStatuses
       .map((value) => `<option value="${esc(value)}">${esc(statusLabels[value])}</option>`)
       .join("");
-    if (!allowedStatuses.length) {
-      statusEl.innerHTML = '<option value="">No further status updates</option>';
+    if (!selectableStatuses.length) {
+      statusEl.innerHTML = '<option value="PENDING">Pending</option>';
     }
+    statusEl.value = currentStatus;
     statusEl.disabled = allowedStatuses.length === 0;
-    previousStatusSelection = statusEl.value;
-    const saveBtn = document.getElementById("omSave");
-    if (saveBtn) saveBtn.disabled = allowedStatuses.length === 0;
+    previousStatusSelection = currentStatus;
+    if (currentStatusEl) {
+      currentStatusEl.className = `status-badge ${statusClass(currentStatus)}`;
+      currentStatusEl.textContent = statusLabels[currentStatus] || currentStatus;
+    }
+    if (statusHelpEl) {
+      statusHelpEl.textContent = allowedStatuses.length
+        ? "Select the next valid status, then click Update."
+        : "This order has no further status updates.";
+    }
+    updateSaveButton();
 
     if (messageBtn) {
       const canMessage = Boolean(order.canMessage);
@@ -243,6 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const notes = await window.servitechRequestCancellationReason();
     if (!notes) {
       statusEl.value = previousStatusSelection;
+      updateSaveButton();
       cancellationInProgress = false;
       return;
     }
@@ -250,6 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const out = await postAction(currentOrder.id, "cancel", notes);
     if (!out.ok) {
       statusEl.value = previousStatusSelection;
+      updateSaveButton();
       showError(out.error || "Failed to cancel order.");
       cancellationInProgress = false;
       return;
@@ -289,10 +320,12 @@ document.addEventListener("DOMContentLoaded", function () {
   statusEl?.addEventListener("change", () => {
     if (statusEl.value === "CANCELLED") {
       statusEl.value = previousStatusSelection;
+      updateSaveButton();
       cancelCurrentOrder();
       return;
     }
     previousStatusSelection = statusEl.value;
+    updateSaveButton();
   });
 
   document.addEventListener("keydown", (event) => {
@@ -313,6 +346,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let notes = "";
     if (action === "cancel") {
       statusEl.value = previousStatusSelection;
+      updateSaveButton();
       await cancelCurrentOrder();
       return;
     }

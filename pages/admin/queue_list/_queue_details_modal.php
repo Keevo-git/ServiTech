@@ -12,7 +12,24 @@
   <div class="queue-details-body">
     <div class="queue-details-summary" id="queueDetailsSummary"></div>
     <div class="queue-details-list" id="queueDetailsList"></div>
+
+    <section class="queue-status-section" aria-labelledby="queueDetailsStatusTitle">
+      <div class="queue-current-status">
+        <span id="queueDetailsStatusTitle">Current Status</span>
+        <strong class="status-badge status-pending" id="queueDetailsCurrentStatus">Pending</strong>
+      </div>
+
+      <label class="queue-details-field" for="queueDetailsStatus">
+        <span>Update Status</span>
+        <select class="queue-details-select" id="queueDetailsStatus">
+          <option value="">Loading allowed statuses...</option>
+        </select>
+      </label>
+
+      <p class="queue-status-help" id="queueDetailsStatusHelp"></p>
+      <button class="queue-details-action queue-details-action--primary queue-details-update" type="button" id="queueDetailsUpdate" disabled>Update Status</button>
+    </section>
+
     <div class="queue-details-actions" id="queueDetailsActions"></div>
   </div>
 </div>
-
