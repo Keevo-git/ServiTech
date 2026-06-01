@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function closeDetails() {
     if (!overlay || !modal) return;
+    window.servitechAdminModalStack?.close(overlay);
     overlay.classList.remove("active");
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");
@@ -131,6 +132,12 @@ document.addEventListener("DOMContentLoaded", function () {
     overlay.classList.add("active");
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
+    window.servitechAdminModalStack?.open({
+      overlay,
+      dialog: modal,
+      focus: document.getElementById("queueDetailsClose"),
+      onEscape: closeDetails,
+    });
   }
 
   document.querySelectorAll(".queue-view-btn").forEach((button) => {

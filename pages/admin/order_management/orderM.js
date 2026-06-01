@@ -191,11 +191,17 @@ document.addEventListener("DOMContentLoaded", function () {
     overlay.classList.add("active");
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
-    statusEl.focus();
+    window.servitechAdminModalStack?.open({
+      overlay,
+      dialog: modal,
+      focus: statusEl,
+      onEscape: closeModal,
+    });
   }
 
   function closeModal() {
     if (!overlay || !modal) return;
+    window.servitechAdminModalStack?.close(overlay);
     overlay.classList.remove("active");
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");

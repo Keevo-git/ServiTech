@@ -82,11 +82,17 @@
     setStatus("");
     modal.style.display = "flex";
     modal.setAttribute("aria-hidden", "false");
-    messageEl.focus();
+    window.servitechAdminModalStack?.open({
+      overlay: modal,
+      dialog: modal.querySelector(".qmsg-modal"),
+      focus: messageEl,
+      onEscape: closeModal,
+    });
   }
 
   function closeModal() {
     if (!modal) return;
+    window.servitechAdminModalStack?.close(modal);
     modal.style.display = "none";
     modal.setAttribute("aria-hidden", "true");
   }
