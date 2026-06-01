@@ -27,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const currentStatusEl = document.getElementById("omCurrentStatus");
   const statusEl = document.getElementById("omStatus");
   const statusHelpEl = document.getElementById("omStatusHelp");
-  const commentsEl = document.getElementById("omComments");
   const errorEl = document.getElementById("omError");
   const messageBtn = document.getElementById("orderModalMessage");
   const saveBtn = document.getElementById("omSave");
@@ -154,6 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Price", order.price || "-"),
       detailRow("Submitted Date", order.submitted),
       detailRow("Completed Date", order.completed || "-"),
+      detailRow("Additional Comments", String(order.comments || "").trim() || "No additional comments."),
     ].join("");
 
     if (serviceEl) serviceEl.textContent = order.serviceType || "Order Details";
@@ -169,10 +169,6 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
     `;
     detailsEl.innerHTML = baseRows;
-    if (commentsEl) {
-      commentsEl.value = String(order.comments || "").trim() || "No additional comments.";
-    }
-
     const currentStatus = normalizeStatus(order.status);
     const allowedStatuses = Array.isArray(order.allowedStatuses)
       ? order.allowedStatuses.map(normalizeStatus).filter((status) => statusLabels[status])

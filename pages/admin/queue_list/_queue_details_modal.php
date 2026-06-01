@@ -13,11 +13,6 @@
     <div class="queue-details-summary" id="queueDetailsSummary"></div>
     <div class="queue-details-list" id="queueDetailsList"></div>
 
-    <label class="queue-details-field queue-details-comments" for="queueDetailsComments">
-      <span>Additional Comments</span>
-      <textarea id="queueDetailsComments" rows="4" readonly></textarea>
-    </label>
-
     <section class="queue-status-section" aria-labelledby="queueDetailsStatusTitle">
       <div class="queue-current-status">
         <span id="queueDetailsStatusTitle">Current Status</span>

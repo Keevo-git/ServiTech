@@ -968,24 +968,6 @@ td.actions button.btn-message:hover {
   gap: 8px;
 }
 
-.queue-details-comments {
-  margin-top: 20px;
-}
-
-.queue-details-comments textarea {
-  width: 100%;
-  min-height: 102px;
-  resize: vertical;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 12px;
-  color: #1f2937;
-  background: #f8fafc;
-  font: inherit;
-  font-size: 15px;
-  line-height: 1.5;
-}
-
 .queue-details-select {
   appearance: none;
   width: 100%;
