@@ -64,6 +64,16 @@ document.addEventListener("DOMContentLoaded", function () {
     return `<div class="queue-detail-row"><span>${esc(label)}</span><strong>${esc(cleanValue)}</strong></div>`;
   }
 
+  function commentsRow(value) {
+    const comments = String(value || "").trim() || "No additional comments.";
+    return `
+      <label class="queue-detail-row queue-detail-row--comments">
+        <span>Additional Comments</span>
+        <textarea rows="4" readonly>${esc(comments)}</textarea>
+      </label>
+    `;
+  }
+
   function fileRows(files) {
     if (!Array.isArray(files) || files.length === 0) {
       return detailRow("Attached File", "No file");
@@ -195,7 +205,7 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Payment Status", queue.paymentStatus),
       detailRow("Submitted Date", queue.submitted),
       detailRow("Completed Date", queue.completed || "-"),
-      detailRow("Additional Comments", String(queue.comments || "").trim() || "No additional comments."),
+      commentsRow(queue.comments),
     ].join("");
     renderStatusSection(row, queue);
     renderActions(row);

@@ -92,6 +92,16 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
   }
 
+  function commentsRow(value) {
+    const comments = String(value || "").trim() || "No additional comments.";
+    return `
+      <label class="order-detail-row order-detail-row--comments">
+        <span>Additional Comments</span>
+        <textarea rows="4" readonly>${esc(comments)}</textarea>
+      </label>
+    `;
+  }
+
   function statusClass(status) {
     const key = normalizeStatus(status).toLowerCase().replace(/[\s_]+/g, "-");
     if (key === "approved") return "status-approved";
@@ -153,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Price", order.price || "-"),
       detailRow("Submitted Date", order.submitted),
       detailRow("Completed Date", order.completed || "-"),
-      detailRow("Additional Comments", String(order.comments || "").trim() || "No additional comments."),
+      commentsRow(order.comments),
     ].join("");
 
     if (serviceEl) serviceEl.textContent = order.serviceType || "Order Details";
