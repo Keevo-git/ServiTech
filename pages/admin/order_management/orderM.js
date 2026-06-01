@@ -30,6 +30,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const messageBtn = document.getElementById("orderModalMessage");
   const actionUrl = document.body?.dataset.orderActionUrl || "";
   let currentOrder = null;
+  let previousStatusSelection = "";
+  let cancellationInProgress = false;
 
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   const actionMap = {
@@ -164,6 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
       statusEl.innerHTML = '<option value="">No further status updates</option>';
     }
     statusEl.disabled = allowedStatuses.length === 0;
+    previousStatusSelection = statusEl.value;
     const saveBtn = document.getElementById("omSave");
     if (saveBtn) saveBtn.disabled = allowedStatuses.length === 0;
 
@@ -220,6 +223,35 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  async function cancelCurrentOrder() {
+    if (!currentOrder?.id || cancellationInProgress) return;
+    cancellationInProgress = true;
+    clearError();
+
+    if (typeof window.servitechRequestCancellationReason !== "function") {
+      showError("Cancellation dialog is unavailable. Refresh the page and try again.");
+      cancellationInProgress = false;
+      return;
+    }
+
+    const notes = await window.servitechRequestCancellationReason();
+    if (!notes) {
+      statusEl.value = previousStatusSelection;
+      cancellationInProgress = false;
+      return;
+    }
+
+    const out = await postAction(currentOrder.id, "cancel", notes);
+    if (!out.ok) {
+      statusEl.value = previousStatusSelection;
+      showError(out.error || "Failed to cancel order.");
+      cancellationInProgress = false;
+      return;
+    }
+
+    location.reload();
+  }
+
   function openFromButton(button) {
     let order = {};
     try {
@@ -248,6 +280,14 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("orderModalClose")?.addEventListener("click", closeModal);
   document.getElementById("omCancel")?.addEventListener("click", closeModal);
   overlay?.addEventListener("click", closeModal);
+  statusEl?.addEventListener("change", () => {
+    if (statusEl.value === "CANCELLED") {
+      statusEl.value = previousStatusSelection;
+      cancelCurrentOrder();
+      return;
+    }
+    previousStatusSelection = statusEl.value;
+  });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && modal?.classList.contains("active")) {
@@ -266,8 +306,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let notes = "";
     if (action === "cancel") {
-      notes = await window.servitechRequestCancellationReason?.();
-      if (!notes) return;
+      statusEl.value = previousStatusSelection;
+      await cancelCurrentOrder();
+      return;
     }
 
     const out = await postAction(currentOrder.id, action, notes);

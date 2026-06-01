@@ -245,7 +245,11 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
     const id = btn.dataset.id;
     let notes = "";
     if (action === "cancel") {
-      notes = await window.servitechRequestCancellationReason?.();
+      if (typeof window.servitechRequestCancellationReason !== "function") {
+        alert("Cancellation dialog is unavailable. Refresh the page and try again.");
+        return;
+      }
+      notes = await window.servitechRequestCancellationReason();
       if (!notes) return;
     }
     const data = await sendAction(id, action, notes);

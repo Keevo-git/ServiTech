@@ -93,4 +93,4 @@ $adminFooterEmail = servitech_smtp_public_from_email();
   .queue-cancellation-actions button { cursor: pointer; padding: 9px 14px; }
   .queue-cancellation-submit { background: #991b1b; border: 1px solid #991b1b; color: #fff; }
 </style>
-<script src="<?= admin_url('/pages/admin/queue_state_machine.js?v=20260601-status-machine') ?>"></script>
+<script src="<?= admin_url('/pages/admin/queue_state_machine.js?v=20260601-status-machine-v2') ?>"></script>
