@@ -376,7 +376,6 @@ body.modal-open,
 html.modal-open,
 html:has(body.modal-open) {
   overflow: hidden;
-  height: 100%;
 }
 
 .service-details h3 {
