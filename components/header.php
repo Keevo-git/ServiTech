@@ -923,6 +923,11 @@ $notificationRoutes = [
     font-size: 0.95rem;
   }
 
+  .notification-empty[hidden],
+  .notification-item[hidden] {
+    display: none;
+  }
+
   .notification-empty strong {
     color: #4A0505;
     font-size: 0.98rem;
