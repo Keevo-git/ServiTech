@@ -1358,6 +1358,13 @@ body.auth-page {
   width: 100%;
 }
 
+.form-grid--single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  width: 100%;
+}
+
 .form-row {
   display: flex;
   gap: 18px;
@@ -1473,10 +1480,43 @@ body.auth-page {
 
 .consent-check input[type="checkbox"] {
   margin-top: 3px;
-  width: 18px;
-  height: 18px;
-  accent-color: #4A0505;
+  display: grid;
+  place-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #a8734d;
+  border-radius: 5px;
+  background: #fffdf9;
+  cursor: pointer;
   flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.consent-check input[type="checkbox"]::before {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border-bottom: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  transform: rotate(-45deg) scale(0);
+  transform-origin: center;
+  transition: transform 0.15s ease;
+}
+
+.consent-check input[type="checkbox"]:checked {
+  border-color: #4A0505;
+  background: #4A0505;
+}
+
+.consent-check input[type="checkbox"]:checked::before {
+  transform: rotate(-45deg) scale(1);
+}
+
+.consent-check input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.2);
 }
 
 .text-link {
@@ -4338,6 +4378,10 @@ body.auth-page--register .auth-card--register input[type="password"],
 body.auth-page--register .auth-card--register input[type="tel"] {
   width: 100%;
   min-width: 0;
+}
+
+body.auth-page--register .password-input-wrap input {
+  padding-right: 58px;
 }
 
 @media (max-width: 768px) {

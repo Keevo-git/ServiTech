@@ -34,7 +34,7 @@ $csrfToken = servitech_csrf_token();
             <p>Provide your main contact details so we can identify your account.</p>
           </div>
 
-          <div class="form-grid form-grid--two">
+          <div class="form-grid form-grid--single">
             <div class="form-field">
               <label for="fullname">Full Name</label>
               <input id="fullname" name="fullname" type="text" placeholder="Enter your full name" autocomplete="name" required>
@@ -43,7 +43,7 @@ $csrfToken = servitech_csrf_token();
 
             <div class="form-field">
               <label for="contact">Contact Number</label>
-              <input id="contact" name="contact" type="tel" inputmode="tel" placeholder="Enter your contact number" autocomplete="tel" required>
+              <input id="contact" name="contact" type="tel" inputmode="tel" placeholder="09XXXXXXXXX" autocomplete="tel" maxlength="13" pattern="(?:09[0-9]{9}|\+639[0-9]{9})" title="Enter a Philippine mobile number, such as 09XXXXXXXXX or +639XXXXXXXXX." required>
               <p class="field-error" id="contactError" aria-live="polite"></p>
             </div>
           </div>
@@ -61,10 +61,13 @@ $csrfToken = servitech_csrf_token();
             <p>Create a secure password for your account.</p>
           </div>
 
-          <div class="form-grid form-grid--two">
+          <div class="form-grid form-grid--single">
             <div class="form-field">
               <label for="password">Password</label>
-              <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
+              <div class="password-input-wrap">
+                <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
+                <button type="button" class="password-toggle" id="registrationPasswordToggle" aria-label="Show password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
+              </div>
               <p class="field-error" id="passwordError" aria-live="polite"></p>
             </div>
 
@@ -154,6 +157,7 @@ $csrfToken = servitech_csrf_token();
     const policyModalTitle = document.getElementById("policyModalTitle");
     const policyModalContent = document.getElementById("policyModalContent");
     const authCard = document.querySelector(".auth-card--register");
+    const registrationPasswordToggle = document.getElementById("registrationPasswordToggle");
     let activePolicyTrigger = null;
 
     const fields = {
@@ -165,7 +169,17 @@ $csrfToken = servitech_csrf_token();
       contact: {
         input: document.getElementById("contact"),
         error: document.getElementById("contactError"),
-        validate: (value) => value.trim() ? "" : "Contact number is required."
+        validate: (value) => {
+          const trimmedValue = value.trim();
+          if (!trimmedValue) {
+            return "Contact number is required.";
+          }
+
+          const philippineMobilePattern = /^(?:09\d{9}|\+639\d{9})$/;
+          return philippineMobilePattern.test(trimmedValue)
+            ? ""
+            : "Enter a valid Philippine mobile number, such as 09XXXXXXXXX.";
+        }
       },
       email: {
         input: document.getElementById("email"),
@@ -344,6 +358,7 @@ $csrfToken = servitech_csrf_token();
       const errorMap = {
         required: "Please complete all required fields before creating your account.",
         invalid_email: "Please enter a valid email address.",
+        invalid_contact: "Please enter a valid Philippine mobile number, such as 09XXXXXXXXX.",
         mismatch: "Passwords do not match.",
         password: `Password must be ${passwordMinLength} to ${passwordMaxLength} characters.`,
         privacy: "You must agree to the Data Privacy Policy before creating an account.",
@@ -429,6 +444,27 @@ $csrfToken = servitech_csrf_token();
     function setRegisterError(message) {
       serverErrorMessage.textContent = message;
       serverErrorMessage.hidden = false;
+    }
+
+    function sanitizePhilippineMobileInput(value) {
+      const compactValue = value.replace(/\s+/g, "");
+      const hasAllowedPlusPrefix = compactValue.startsWith("+");
+      const digits = compactValue.replace(/\D/g, "");
+      return hasAllowedPlusPrefix ? `+${digits.slice(0, 12)}` : digits.slice(0, 11);
+    }
+
+    function updateRegistrationPasswordToggleVisibility() {
+      const hasPassword = Boolean(fields.password.input.value);
+      registrationPasswordToggle.classList.toggle("has-value", hasPassword);
+      registrationPasswordToggle.tabIndex = hasPassword ? 0 : -1;
+      registrationPasswordToggle.setAttribute("aria-hidden", hasPassword ? "false" : "true");
+
+      if (!hasPassword) {
+        fields.password.input.type = "password";
+        registrationPasswordToggle.classList.remove("is-visible");
+        registrationPasswordToggle.setAttribute("aria-label", "Show password");
+        registrationPasswordToggle.setAttribute("aria-pressed", "false");
+      }
     }
 
     async function handleRegisterGoogleCredential(response) {
@@ -536,10 +572,18 @@ $csrfToken = servitech_csrf_token();
       const eventName = field.input.type === "checkbox" ? "change" : "input";
 
       field.input.addEventListener(eventName, () => {
+        if (fieldName === "contact") {
+          field.input.value = sanitizePhilippineMobileInput(field.input.value);
+        }
+
         validateField(fieldName);
 
         if (fieldName === "password" && fields.confirmPassword.input.value) {
           validateField("confirmPassword");
+        }
+
+        if (fieldName === "password") {
+          updateRegistrationPasswordToggleVisibility();
         }
 
         validateForm(false);
@@ -555,6 +599,14 @@ $csrfToken = servitech_csrf_token();
       if (!validateForm()) {
         event.preventDefault();
       }
+    });
+
+    registrationPasswordToggle.addEventListener("click", () => {
+      const showPassword = fields.password.input.type === "password";
+      fields.password.input.type = showPassword ? "text" : "password";
+      registrationPasswordToggle.setAttribute("aria-label", showPassword ? "Hide password" : "Show password");
+      registrationPasswordToggle.setAttribute("aria-pressed", showPassword ? "true" : "false");
+      registrationPasswordToggle.classList.toggle("is-visible", showPassword);
     });
 
     document.querySelectorAll("[data-doc-trigger]").forEach((button) => {
@@ -576,6 +628,8 @@ $csrfToken = servitech_csrf_token();
 
     applyServerErrorFromQuery();
     validateForm(false);
+    window.addEventListener("pageshow", updateRegistrationPasswordToggleVisibility);
+    updateRegistrationPasswordToggleVisibility();
 
     let registerGoogleLoadAttempts = 0;
     const registerGoogleLoadTimer = setInterval(() => {
