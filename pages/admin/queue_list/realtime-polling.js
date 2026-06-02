@@ -7,7 +7,7 @@
   const POLL_INTERVAL = 5000;
   let pollTimer = null;
   let requestInFlight = false;
-  let lastSignature = "";
+  let lastRecordSignature = "";
 
   function adminUrl(path) {
     const adminLink = document.querySelector('a[href*="/pages/admin/"]');
@@ -56,9 +56,21 @@
     });
   }
 
+  function normalizeStatus(status) {
+    const value = String(status || "PENDING").trim().toUpperCase().replace(/[\s_]+/g, " ");
+    if (value === "FOR PICK UP" || value === "FOR PICKUP") return "FOR PICK-UP";
+    if (value === "CANCELED") return "CANCELLED";
+    return value || "PENDING";
+  }
+
   function recordSignature(records) {
     return JSON.stringify((records || []).slice().sort(function (left, right) {
       return Number(left.id || 0) - Number(right.id || 0);
+    }).map(function (record) {
+      return {
+        id: Number(record.id || 0),
+        status: normalizeStatus(record.status)
+      };
     }));
   }
 
@@ -80,18 +92,19 @@
       if (!response.ok) return;
 
       const data = await response.json();
-      if (!data.ok || !data.signature) return;
+      if (!data.ok || !Array.isArray(data.records)) return;
 
       syncNotificationBadge(data.notification_count);
-      if (!lastSignature && recordSignature(renderedRecords()) !== recordSignature(data.records)) {
+      const snapshotRecordSignature = recordSignature(data.records);
+      if (!lastRecordSignature && recordSignature(renderedRecords()) !== snapshotRecordSignature) {
         window.location.reload();
         return;
       }
-      if (lastSignature && lastSignature !== data.signature) {
+      if (lastRecordSignature && lastRecordSignature !== snapshotRecordSignature) {
         window.location.reload();
         return;
       }
-      lastSignature = data.signature;
+      lastRecordSignature = snapshotRecordSignature;
     } catch (error) {
       console.error("Admin realtime refresh failed:", error);
     } finally {

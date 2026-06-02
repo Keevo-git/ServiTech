@@ -44,7 +44,13 @@ try {
             AND UPPER(TRIM(COALESCE(q.queue_code, ''))) NOT LIKE 'OP%'
           )
         )
-      ORDER BY q.created_at DESC
+      ORDER BY
+        CASE
+          WHEN UPPER(TRIM(COALESCE(q.status, ''))) IN ('DONE', 'CANCEL', 'CANCELLED', 'CANCELED') THEN 1
+          ELSE 0
+        END,
+        q.created_at ASC,
+        q.id ASC
     ");
   } else {
     $stmt = $pdo->prepare("
@@ -70,7 +76,13 @@ try {
           )
           OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
         )
-      ORDER BY q.created_at DESC
+      ORDER BY
+        CASE
+          WHEN UPPER(TRIM(COALESCE(q.status, ''))) IN ('DONE', 'CANCEL', 'CANCELLED', 'CANCELED') THEN 1
+          ELSE 0
+        END,
+        q.created_at ASC,
+        q.id ASC
     ");
   }
 
