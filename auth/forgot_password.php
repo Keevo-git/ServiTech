@@ -11,28 +11,6 @@ const FORGOT_PASSWORD_PUBLIC_MESSAGE = "If the email exists, a reset link will b
 const FORGOT_PASSWORD_RATE_LIMIT_WINDOW = 900;
 const FORGOT_PASSWORD_RATE_LIMIT_MAX_ATTEMPTS = 3;
 
-function forgot_password_ensure_columns(PDO $pdo): void
-{
-    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-    servitech_forgot_password_mail_log("Database driver: {$driver}");
-
-    if ($driver === "pgsql") {
-        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)");
-        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ");
-        $pdo->exec("CREATE INDEX IF NOT EXISTS users_reset_token_idx ON users (reset_token) WHERE reset_token IS NOT NULL");
-        return;
-    }
-
-    if ($driver === "mysql") {
-        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255) NULL");
-        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires DATETIME NULL");
-        $pdo->exec("CREATE INDEX users_reset_token_idx ON users (reset_token)");
-        return;
-    }
-
-    throw new RuntimeException("Unsupported database driver for password reset columns: {$driver}");
-}
-
 function forgot_password_reset_url(string $token): string
 {
     return "https://servitech.store/auth/reset_password.php?token=" . urlencode($token);
@@ -149,8 +127,6 @@ if ($requestMethod === "POST") {
                 servitech_forgot_password_mail_log("Users table lookup result for {$submittedEmail}: " . ($user ? "email exists" : "email does not exist"));
 
                 if ($user) {
-                    forgot_password_ensure_columns($pdo);
-
                     $token = bin2hex(random_bytes(32));
                     $tokenHash = hash("sha256", $token);
                     $email = (string)$user["email"];

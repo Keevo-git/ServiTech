@@ -9,21 +9,6 @@ function ann_h($value): string
     return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
 }
 
-function ensure_announcements_table(PDO $pdo): void
-{
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS announcements (
-            id BIGSERIAL PRIMARY KEY,
-            title TEXT NOT NULL,
-            message TEXT NOT NULL,
-            active BOOLEAN NOT NULL DEFAULT TRUE,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
-    ");
-}
-
-ensure_announcements_table($pdo);
 $notice = "";
 $error = "";
 

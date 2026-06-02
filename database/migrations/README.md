@@ -1,0 +1,18 @@
+# Database Migrations
+
+Run migration files in filename order for a fresh PostgreSQL database.
+
+For an existing ServiTech database:
+
+1. Run `20260401_create_baseline_schema.sql`. Its `CREATE TABLE IF NOT EXISTS`
+   statements add tables that are completely missing without replacing data.
+2. Run the previously dated incremental migrations that have not yet been
+   applied.
+3. Run `20260602_complete_existing_schema.sql` to add missing columns, indexes,
+   foreign keys, and validation constraints.
+4. Run `20260602_seed_default_services.sql` to add catalog rows that do not
+   already exist.
+
+The application runtime must not create or alter database schema. Apply future
+schema changes as new migration files before deploying PHP code that depends on
+them.

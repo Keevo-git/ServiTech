@@ -85,61 +85,6 @@ function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
   static $ensured = false;
   if ($ensured) return;
 
-  $columns = $pdo->query("
-    SELECT COUNT(DISTINCT column_name)
-    FROM information_schema.columns
-    WHERE table_schema = ANY(current_schemas(FALSE))
-      AND table_name = 'queues'
-      AND column_name IN ('completed_at', 'lifecycle_stage', 'queue_cycle_date', 'daily_sequence')
-  ");
-  if ((int)$columns->fetchColumn() === 4) {
-    servitech_rollover_expired_queue_cycles($pdo);
-    $ensured = true;
-    return;
-  }
-
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ NULL");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS lifecycle_stage VARCHAR(16)");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS queue_cycle_date DATE");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS daily_sequence INTEGER");
-
-  $pdo->exec("
-    UPDATE queues
-    SET queue_cycle_date = COALESCE(
-      (created_at AT TIME ZONE 'Asia/Manila')::date,
-      (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
-    )
-    WHERE queue_cycle_date IS NULL
-  ");
-  $pdo->exec("
-    UPDATE queues
-    SET daily_sequence = COALESCE(
-      NULLIF(SUBSTRING(queue_code FROM '([0-9]+)$'), '')::INTEGER,
-      0
-    )
-    WHERE daily_sequence IS NULL
-  ");
-  $pdo->exec("
-    UPDATE queues
-    SET lifecycle_stage = CASE
-      WHEN queue_cycle_date < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
-        OR UPPER(TRIM(COALESCE(status, 'PENDING'))) IN ('DONE', 'COMPLETED', 'CANCELLED', 'CANCELED')
-      THEN 'ORDER'
-      ELSE 'QUEUE'
-    END
-    WHERE lifecycle_stage IS NULL
-       OR UPPER(TRIM(lifecycle_stage)) NOT IN ('QUEUE', 'ORDER')
-  ");
-
-  $pdo->exec("ALTER TABLE queues ALTER COLUMN lifecycle_stage SET DEFAULT 'QUEUE'");
-  $pdo->exec("ALTER TABLE queues ALTER COLUMN lifecycle_stage SET NOT NULL");
-  $pdo->exec("ALTER TABLE queues ALTER COLUMN queue_cycle_date SET DEFAULT ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date)");
-  $pdo->exec("ALTER TABLE queues ALTER COLUMN queue_cycle_date SET NOT NULL");
-  $pdo->exec("ALTER TABLE queues ALTER COLUMN daily_sequence SET DEFAULT 0");
-  $pdo->exec("ALTER TABLE queues ALTER COLUMN daily_sequence SET NOT NULL");
-  $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queues_lifecycle_stage ON queues(lifecycle_stage)");
-  $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queues_cycle_date_code ON queues(queue_cycle_date, queue_code)");
-
   servitech_rollover_expired_queue_cycles($pdo);
   $ensured = true;
 }
@@ -176,26 +121,11 @@ function servitech_generate_queue_code(PDO $pdo, string $prefix): string {
   return servitech_generate_queue_identity($pdo, $prefix)["queue_code"];
 }
 
-function servitech_ensure_notifications_table(PDO $pdo): void {
-  $pdo->exec("
-    CREATE TABLE IF NOT EXISTS notifications (
-      id BIGSERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL,
-      type TEXT NOT NULL DEFAULT 'queue',
-      reference_id INTEGER NULL,
-      message TEXT NOT NULL,
-      is_read BOOLEAN NOT NULL DEFAULT FALSE,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  ");
-}
-
 function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $referenceId, string $message): void {
   if ($userId <= 0 || trim($message) === "") {
     return;
   }
 
-  servitech_ensure_notifications_table($pdo);
   $stmt = $pdo->prepare("
     INSERT INTO notifications (user_id, type, reference_id, message, is_read, created_at)
     VALUES (:user_id, :type, :reference_id, :message, FALSE, NOW())

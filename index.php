@@ -16,16 +16,6 @@ $print_url = $is_admin
 
 $landingAnnouncement = null;
 try {
-  $pdo->exec("
-    CREATE TABLE IF NOT EXISTS announcements (
-      id BIGSERIAL PRIMARY KEY,
-      title TEXT NOT NULL,
-      message TEXT NOT NULL,
-      active BOOLEAN NOT NULL DEFAULT TRUE,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  ");
   $announcementStmt = $pdo->query("
     SELECT title, message
     FROM announcements

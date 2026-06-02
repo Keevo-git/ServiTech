@@ -20,13 +20,6 @@ function respond(array $arr): void
     exit();
 }
 
-try {
-    $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS price_range VARCHAR(255) NOT NULL DEFAULT ''");
-    $pdo->exec("ALTER TABLE services ADD COLUMN IF NOT EXISTS pricing_json JSONB NULL");
-} catch (Throwable $e) {
-    // Keep the public page resilient; admin migration will surface schema issues.
-}
-
 if ($action === "list" && $category) {
     // Fetch services by category
     if (!in_array($category, ["printing", "repair", "installation"], true)) {

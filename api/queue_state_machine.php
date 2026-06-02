@@ -59,23 +59,6 @@ function servitech_queue_transition_error(array $queue, string $newStatus): stri
   return "Invalid status transition from {$current} to {$newStatus}.";
 }
 
-function servitech_ensure_queue_status_history_table(PDO $pdo): void {
-  $pdo->exec("
-    CREATE TABLE IF NOT EXISTS queue_status_history (
-      id BIGSERIAL PRIMARY KEY,
-      queue_id BIGINT NOT NULL,
-      category TEXT NOT NULL DEFAULT '',
-      old_status TEXT NULL,
-      new_status TEXT NOT NULL,
-      admin_id INTEGER NULL,
-      admin_name VARCHAR(160) NOT NULL DEFAULT '',
-      notes TEXT NOT NULL DEFAULT '',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  ");
-  $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queue_status_history_queue_id ON queue_status_history(queue_id, created_at)");
-}
-
 function servitech_queue_actor_name(PDO $pdo, ?int $adminId): string {
   if (!$adminId || $adminId <= 0) return "";
   $stmt = $pdo->prepare("SELECT COALESCE(NULLIF(fullname, ''), email, '') FROM users WHERE id = :id LIMIT 1");
@@ -92,7 +75,6 @@ function servitech_record_queue_status_history(
   ?int $adminId,
   string $notes = ""
 ): void {
-  servitech_ensure_queue_status_history_table($pdo);
   $stmt = $pdo->prepare("
     INSERT INTO queue_status_history (queue_id, category, old_status, new_status, admin_id, admin_name, notes)
     VALUES (:queue_id, :category, :old_status, :new_status, :admin_id, :admin_name, :notes)

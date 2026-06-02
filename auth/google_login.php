@@ -9,32 +9,6 @@ servitech_enforce_csrf_token(true);
 
 header("Content-Type: application/json; charset=utf-8");
 
-function servitech_google_prepare_users_table(PDO $pdo): void
-{
-    $statements = [
-        "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255)",
-        "ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL",
-        "
-        DO $$
-        BEGIN
-            IF EXISTS (
-                SELECT 1
-                FROM information_schema.columns
-                WHERE table_name = 'users'
-                  AND column_name = 'password'
-            ) THEN
-                EXECUTE 'ALTER TABLE users ALTER COLUMN password DROP NOT NULL';
-            END IF;
-        END $$;
-        ",
-        "CREATE UNIQUE INDEX IF NOT EXISTS users_google_id_unique ON users (google_id) WHERE google_id IS NOT NULL",
-    ];
-
-    foreach ($statements as $sql) {
-        $pdo->exec($sql);
-    }
-}
-
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
     echo json_encode(["ok" => false, "error" => "Method not allowed."]);
@@ -74,8 +48,6 @@ if ($fullName === "") {
 }
 
 try {
-    servitech_google_prepare_users_table($pdo);
-
     $findUser = $pdo->prepare("
         SELECT id, email,
                COALESCE(NULLIF(to_jsonb(users)->>'fullname', ''), :full_name) AS fullname,
