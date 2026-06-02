@@ -86,7 +86,7 @@ function servitech_record_queue_status_history(
     ":category" => trim($category),
     ":old_status" => $oldStatus !== null ? servitech_queue_normalize_status($oldStatus) : null,
     ":new_status" => servitech_queue_normalize_status($newStatus),
-    ":admin_id" => $adminId,
+    ":admin_id" => $adminId !== null && $adminId > 0 ? $adminId : null,
     ":admin_name" => servitech_queue_actor_name($pdo, $adminId),
     ":notes" => trim($notes),
   ]);
@@ -139,7 +139,7 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
       ) p ON TRUE
       WHERE q.id = :id
       LIMIT 1
-      FOR UPDATE
+      FOR UPDATE OF q
     ");
     $stmt->execute([":id" => $queueId]);
     $queue = $stmt->fetch(PDO::FETCH_ASSOC);
