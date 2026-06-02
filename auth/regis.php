@@ -86,9 +86,10 @@ $csrfToken = servitech_csrf_token();
 
         <section class="form-section form-section--compact form-section--consent">
           <div class="consent-card">
-            <label class="consent-check agreement-checkbox" for="privacyConsent">
-              <input id="privacyConsent" class="agreement-checkbox__input" name="privacy_consent" type="checkbox" value="1" required>
-              <span>I agree to the <button type="button" class="text-link" data-doc-trigger="privacy">Data Privacy Policy</button> and <button type="button" class="text-link" data-doc-trigger="terms">Terms &amp; Conditions</button>.</span>
+            <label class="agreement-row" for="privacyConsent">
+              <input id="privacyConsent" class="agreement-row__native" name="privacy_consent" type="checkbox" value="1" required>
+              <span class="agreement-row__box" aria-hidden="true"></span>
+              <span class="agreement-row__text">I agree to the <button type="button" class="text-link" data-doc-trigger="privacy">Data Privacy Policy</button> and <button type="button" class="text-link" data-doc-trigger="terms">Terms &amp; Conditions</button>.</span>
             </label>
             <p class="field-error" id="privacyConsentError" aria-live="polite"></p>
           </div>
