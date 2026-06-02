@@ -39,6 +39,8 @@ ALTER TABLE queues ADD COLUMN IF NOT EXISTS queue_code VARCHAR(64);
 ALTER TABLE queues ADD COLUMN IF NOT EXISTS category VARCHAR(64);
 ALTER TABLE queues ADD COLUMN IF NOT EXISTS status VARCHAR(32) NOT NULL DEFAULT 'PENDING';
 ALTER TABLE queues ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE queues ADD COLUMN IF NOT EXISTS price NUMERIC(12, 2) NULL;
+ALTER TABLE queues ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(12, 2) NOT NULL DEFAULT 0;
 ALTER TABLE queues ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ NULL;
 ALTER TABLE queues ADD COLUMN IF NOT EXISTS lifecycle_stage VARCHAR(16);
 ALTER TABLE queues ADD COLUMN IF NOT EXISTS queue_cycle_date DATE;
@@ -317,6 +319,14 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'queues_lifecycle_stage_check') THEN
     ALTER TABLE queues ADD CONSTRAINT queues_lifecycle_stage_check
       CHECK (lifecycle_stage IN ('QUEUE', 'ORDER')) NOT VALID;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'queues_price_check') THEN
+    ALTER TABLE queues ADD CONSTRAINT queues_price_check
+      CHECK (price IS NULL OR price >= 0) NOT VALID;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'queues_paid_amount_check') THEN
+    ALTER TABLE queues ADD CONSTRAINT queues_paid_amount_check
+      CHECK (paid_amount >= 0 AND (price IS NULL OR paid_amount <= price)) NOT VALID;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'queues_daily_sequence_check') THEN
     ALTER TABLE queues ADD CONSTRAINT queues_daily_sequence_check

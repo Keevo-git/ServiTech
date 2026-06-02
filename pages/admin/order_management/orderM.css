@@ -1057,12 +1057,80 @@ body.admin-dashboard .page-frame {
   margin: 0 0 20px;
 }
 
+.order-payment-section,
 .order-status-section {
   margin: 0 0 20px;
   padding: 14px;
   border: 1px solid #dbe4f0;
   border-radius: 10px;
   background: #f8fbff;
+}
+
+.order-payment-section h4 {
+  margin: 0 0 14px;
+  color: #1f2d3d;
+  font-size: 15px;
+}
+
+.order-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.order-payment-grid .order-modal-field {
+  margin-bottom: 0;
+}
+
+.om-input {
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  background: #fff;
+  padding: 12px 14px;
+  color: #1f2d3d;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.om-input:focus {
+  border-color: #8fb0da;
+  box-shadow: 0 0 0 3px rgba(33, 79, 145, 0.12);
+  outline: none;
+}
+
+.om-input:disabled {
+  background: #eef2f7;
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.order-payment-pending {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #dbe4f0;
+}
+
+.order-payment-pending span,
+.order-payment-help {
+  color: #555f70;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.order-payment-pending strong {
+  color: #174b8f;
+}
+
+.order-payment-help {
+  margin: 9px 0 0;
 }
 
 .order-current-status {
@@ -1249,7 +1317,8 @@ body.admin-dashboard .page-frame {
 
   .order-modal-summary,
   .order-modal-actions,
-  .order-detail-row {
+  .order-detail-row,
+  .order-payment-grid {
     grid-template-columns: 1fr;
   }
 }

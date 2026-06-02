@@ -84,6 +84,8 @@ try {
             q.lifecycle_stage,
             q.completed_at,
             q.updated_at,
+            q.price,
+            q.paid_amount,
             q.details::text AS details,
             p.id AS payment_id,
             p.payment_method,

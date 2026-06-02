@@ -137,8 +137,8 @@ try {
   }
 
   $ins = $pdo->prepare("
-    INSERT INTO queues (user_id, queue_code, category, lifecycle_stage, queue_cycle_date, daily_sequence, details)
-    VALUES (:user_id, :queue_code, :category, 'QUEUE', :queue_cycle_date, :daily_sequence, :details::jsonb)
+    INSERT INTO queues (user_id, queue_code, category, lifecycle_stage, queue_cycle_date, daily_sequence, details, price)
+    VALUES (:user_id, :queue_code, :category, 'QUEUE', :queue_cycle_date, :daily_sequence, :details::jsonb, :price)
     RETURNING id
   ");
   $ins->execute([
@@ -148,6 +148,7 @@ try {
     ":queue_cycle_date" => $queueIdentity["queue_cycle_date"],
     ":daily_sequence" => $queueIdentity["daily_sequence"],
     ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
+    ":price" => isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : null,
   ]);
   $queueRow = $ins->fetch(PDO::FETCH_ASSOC);
   $queue_id = (int)($queueRow["id"] ?? 0);

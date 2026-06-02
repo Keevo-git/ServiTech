@@ -13,6 +13,31 @@
     <div class="queue-details-summary" id="queueDetailsSummary"></div>
     <div class="queue-details-list" id="queueDetailsList"></div>
 
+    <section
+      class="queue-payment-section"
+      aria-labelledby="queueDetailsPaymentTitle"
+      data-payment-update-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/payment_update.php'), ENT_QUOTES, 'UTF-8') ?>"
+    >
+      <h4 id="queueDetailsPaymentTitle">Payment</h4>
+      <div class="queue-payment-grid">
+        <label class="queue-details-field" for="queueDetailsPrice">
+          <span>Price</span>
+          <input class="queue-details-input" id="queueDetailsPrice" type="number" min="0" step="0.01" inputmode="decimal">
+        </label>
+        <label class="queue-details-field" for="queueDetailsPaidAmount">
+          <span>Paid Amount</span>
+          <input class="queue-details-input" id="queueDetailsPaidAmount" type="number" min="0" step="0.01" inputmode="decimal">
+        </label>
+      </div>
+      <div class="queue-payment-pending">
+        <span>Paid Pending</span>
+        <strong id="queueDetailsPaidPending">PHP 0.00</strong>
+      </div>
+      <p class="queue-payment-help" id="queueDetailsPaymentHelp"></p>
+      <p class="queue-payment-error" id="queueDetailsPaymentError" role="alert"></p>
+      <button class="queue-details-action queue-details-action--primary queue-payment-update" type="button" id="queueDetailsPaymentUpdate">Update Payment</button>
+    </section>
+
     <section class="queue-status-section" aria-labelledby="queueDetailsStatusTitle">
       <div class="queue-current-status">
         <span id="queueDetailsStatusTitle">Current Status</span>

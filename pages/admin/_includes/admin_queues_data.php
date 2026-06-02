@@ -26,7 +26,7 @@ function payment_status_label($method, $queueStatus): string {
 
 try {
   $stmt = $pdo->prepare("
-    SELECT q.id, q.queue_code, q.category, q.status, q.details, q.created_at, u.fullname,
+    SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount, q.created_at, u.fullname,
       p.payment_method, p.reference_number, p.status AS payment_status, p.amount,
       q.details->>'estimated_total' AS details_total,
       q.details->>'payment_status' AS details_payment_status
@@ -64,7 +64,9 @@ try {
       "payment_method" => (string)($row["payment_method"] ?? ""),
       "reference_number" => (string)($row["reference_number"] ?? ""),
       "payment_status" => payment_status_label($row["payment_method"], $row["status"]),
-      "amount" => (float)($row["amount"] ?? 0)
+      "amount" => (float)($row["amount"] ?? 0),
+      "price" => $row["price"] !== null ? (float)$row["price"] : null,
+      "paid_amount" => (float)($row["paid_amount"] ?? 0)
     ];
   }
 

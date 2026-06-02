@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS queues (
   category VARCHAR(64) NOT NULL,
   status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
   details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  price NUMERIC(12, 2) NULL,
+  paid_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
   lifecycle_stage VARCHAR(16) NOT NULL DEFAULT 'QUEUE',
   queue_cycle_date DATE NOT NULL DEFAULT ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date),
   daily_sequence INTEGER NOT NULL DEFAULT 0,
@@ -68,6 +70,8 @@ CREATE TABLE IF NOT EXISTS queues (
       'CANCELLED', 'CANCELED'
     )
   ),
+  CONSTRAINT queues_price_check CHECK (price IS NULL OR price >= 0),
+  CONSTRAINT queues_paid_amount_check CHECK (paid_amount >= 0 AND (price IS NULL OR paid_amount <= price)),
   CONSTRAINT queues_lifecycle_stage_check CHECK (lifecycle_stage IN ('QUEUE', 'ORDER')),
   CONSTRAINT queues_daily_sequence_check CHECK (daily_sequence >= 0)
 );

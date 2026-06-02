@@ -9,7 +9,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const statusHelpEl = document.getElementById("queueDetailsStatusHelp");
   const updateBtn = document.getElementById("queueDetailsUpdate");
   const actionsEl = document.getElementById("queueDetailsActions");
+  const paymentSection = document.querySelector(".queue-payment-section");
+  const priceEl = document.getElementById("queueDetailsPrice");
+  const paidAmountEl = document.getElementById("queueDetailsPaidAmount");
+  const paidPendingEl = document.getElementById("queueDetailsPaidPending");
+  const paymentHelpEl = document.getElementById("queueDetailsPaymentHelp");
+  const paymentErrorEl = document.getElementById("queueDetailsPaymentError");
+  const paymentUpdateBtn = document.getElementById("queueDetailsPaymentUpdate");
   let currentStatus = "PENDING";
+  let currentQueue = null;
   let transitionButtons = new Map();
   const actionStatuses = {
     approved: "APPROVED",
@@ -56,6 +64,92 @@ document.addEventListener("DOMContentLoaded", function () {
   function syncStatusUpdateButton() {
     if (!statusEl || !updateBtn) return;
     updateBtn.disabled = statusEl.disabled || statusEl.value === currentStatus;
+  }
+
+  function csrf() {
+    return window.servitechCsrfToken ? window.servitechCsrfToken() : "";
+  }
+
+  function amount(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 ? number : 0;
+  }
+
+  function money(value) {
+    return `PHP ${amount(value).toFixed(2)}`;
+  }
+
+  function showPaymentError(message = "") {
+    if (paymentErrorEl) paymentErrorEl.textContent = message;
+  }
+
+  function syncPaymentPreview(status = statusEl?.value || currentStatus) {
+    if (!priceEl || !paidAmountEl || !paidPendingEl) return true;
+    const normalizedStatus = normalizeStatus(status);
+    const price = amount(priceEl.value);
+    let paidAmount = amount(paidAmountEl.value);
+
+    paidAmountEl.disabled = normalizedStatus === "DONE" || normalizedStatus === "CANCELLED";
+    if (normalizedStatus === "DONE") {
+      paidAmount = price;
+      paidAmountEl.value = price.toFixed(2);
+      if (paymentHelpEl) paymentHelpEl.textContent = "Done queues are automatically treated as fully paid.";
+    } else if (normalizedStatus === "CANCELLED") {
+      paidAmount = 0;
+      paidAmountEl.value = "0.00";
+      if (paymentHelpEl) paymentHelpEl.textContent = "Cancelled queues automatically keep the paid amount at zero.";
+    } else if (paymentHelpEl) {
+      paymentHelpEl.textContent = "Paid Pending is calculated from Price minus Paid Amount.";
+    }
+
+    const isValid = paidAmount <= price;
+    showPaymentError(isValid ? "" : "Paid amount cannot exceed the price.");
+    paidPendingEl.textContent = money(normalizedStatus === "CANCELLED" ? 0 : Math.max(0, price - paidAmount));
+    if (paymentUpdateBtn) paymentUpdateBtn.disabled = !isValid;
+    return isValid;
+  }
+
+  function populatePayment(queue) {
+    if (!priceEl || !paidAmountEl) return;
+    priceEl.value = amount(queue.price).toFixed(2);
+    paidAmountEl.value = amount(queue.paidAmount).toFixed(2);
+    syncPaymentPreview(queue.status);
+  }
+
+  async function savePayment(reloadOnSuccess = false) {
+    if (!currentQueue?.id || !priceEl || !paidAmountEl || !paymentSection) return false;
+    if (!syncPaymentPreview()) return false;
+
+    const fd = new FormData();
+    fd.append("id", currentQueue.id);
+    fd.append("price", priceEl.value);
+    fd.append("paid_amount", paidAmountEl.value);
+
+    let out;
+    try {
+      const response = await fetch(paymentSection.dataset.paymentUpdateUrl || "", {
+        method: "POST",
+        body: fd,
+        credentials: "same-origin",
+        headers: { "X-CSRF-Token": csrf() },
+      });
+      out = await response.json();
+    } catch (error) {
+      showPaymentError("Unable to update payment details.");
+      return false;
+    }
+
+    if (!out.ok) {
+      showPaymentError(out.error || "Unable to update payment details.");
+      return false;
+    }
+
+    currentQueue.price = out.price;
+    currentQueue.paidAmount = out.paid_amount;
+    currentQueue.paidPending = out.paid_pending;
+    populatePayment(currentQueue);
+    if (reloadOnSuccess) location.reload();
+    return true;
   }
 
   function detailRow(label, value) {
@@ -182,6 +276,7 @@ document.addEventListener("DOMContentLoaded", function () {
     } catch (error) {
       queue = {};
     }
+    currentQueue = queue;
 
     titleEl.textContent = queue.queueCode || "Queue Details";
     summaryEl.innerHTML = `
@@ -208,6 +303,7 @@ document.addEventListener("DOMContentLoaded", function () {
       commentsRow(queue.comments),
     ].join("");
     renderStatusSection(row, queue);
+    populatePayment(queue);
     renderActions(row);
 
     overlay.classList.add("active");
@@ -234,9 +330,14 @@ document.addEventListener("DOMContentLoaded", function () {
       cancelButton?.click();
       return;
     }
+    syncPaymentPreview();
     syncStatusUpdateButton();
   });
-  updateBtn?.addEventListener("click", () => {
+  priceEl?.addEventListener("input", () => syncPaymentPreview());
+  paidAmountEl?.addEventListener("input", () => syncPaymentPreview());
+  paymentUpdateBtn?.addEventListener("click", () => savePayment(true));
+  updateBtn?.addEventListener("click", async () => {
+    if (!await savePayment()) return;
     const transitionButton = transitionButtons.get(statusEl?.value || "");
     transitionButton?.click();
   });

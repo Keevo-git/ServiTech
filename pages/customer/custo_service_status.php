@@ -923,6 +923,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       ? queueData.details
       : {};
 
+    const trackedPrice = toNumber(queueData.price);
+    if (queueData.price !== null && queueData.price !== undefined && trackedPrice !== null) {
+      return toPeso(trackedPrice);
+    }
+
     const directEstimate = toNumber(queueData.estimated_total ?? details.estimated_total);
     if (directEstimate !== null && directEstimate > 0) {
       return toPeso(directEstimate);
@@ -1111,8 +1116,25 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
     const reference = String(queueData.reference_number || details.reference_number || "").trim();
     const status = paymentStatusInfo(queueData);
+    const category = String(queueData.category || "").trim().toLowerCase();
+    const usesTrackedPayment = category === "installation" || category === "repair";
 
     if (!paymentEl) return;
+
+    if (usesTrackedPayment) {
+      paymentEl.innerHTML = `
+        <div class="status-detail-row">
+          <span class="status-detail-label">Paid Amount</span>
+          <span class="status-detail-value">${esc(toPeso(queueData.paid_amount))}</span>
+        </div>
+        <div class="status-detail-row">
+          <span class="status-detail-label">Paid Pending</span>
+          <span class="status-detail-value">${esc(toPeso(queueData.paid_pending))}</span>
+        </div>
+      `;
+      if (paymentQr) paymentQr.classList.remove("is-visible");
+      return;
+    }
 
     paymentEl.innerHTML = `
       <div class="status-detail-row">

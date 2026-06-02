@@ -16,6 +16,8 @@ For an existing ServiTech database:
    already exist.
 6. Run `20260602_add_notification_soft_delete.sql` on databases that were
    already completed before the customer notification-center update.
+7. Run `20260602_add_queue_payment_tracking.sql` on databases that were
+   already completed before editable queue price and paid-amount tracking.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on

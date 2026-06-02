@@ -31,7 +31,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const messageBtn = document.getElementById("orderModalMessage");
   const saveBtn = document.getElementById("omSave");
   const actionUrl = document.body?.dataset.orderActionUrl || "";
+  const paymentSection = document.querySelector(".order-payment-section");
+  const priceEl = document.getElementById("omPrice");
+  const paidAmountEl = document.getElementById("omPaidAmount");
+  const paidPendingEl = document.getElementById("omPaidPending");
+  const paymentHelpEl = document.getElementById("omPaymentHelp");
   let currentOrder = null;
+  let initialPayment = { price: "0.00", paidAmount: "0.00" };
   let previousStatusSelection = "";
   let cancellationInProgress = false;
 
@@ -81,6 +87,52 @@ document.addEventListener("DOMContentLoaded", function () {
     errorEl.style.display = "none";
   }
 
+  function amount(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 ? number : 0;
+  }
+
+  function money(value) {
+    return `PHP ${amount(value).toFixed(2)}`;
+  }
+
+  function paymentChanged() {
+    return priceEl?.value !== initialPayment.price || paidAmountEl?.value !== initialPayment.paidAmount;
+  }
+
+  function syncPaymentPreview(status = statusEl?.value || currentOrder?.status) {
+    if (!priceEl || !paidAmountEl || !paidPendingEl) return true;
+    const normalizedStatus = normalizeStatus(status);
+    const price = amount(priceEl.value);
+    let paidAmount = amount(paidAmountEl.value);
+
+    paidAmountEl.disabled = normalizedStatus === "DONE" || normalizedStatus === "CANCELLED";
+    if (normalizedStatus === "DONE") {
+      paidAmount = price;
+      paidAmountEl.value = price.toFixed(2);
+      if (paymentHelpEl) paymentHelpEl.textContent = "Done orders are automatically treated as fully paid.";
+    } else if (normalizedStatus === "CANCELLED") {
+      paidAmount = 0;
+      paidAmountEl.value = "0.00";
+      if (paymentHelpEl) paymentHelpEl.textContent = "Cancelled orders automatically keep the paid amount at zero.";
+    } else if (paymentHelpEl) {
+      paymentHelpEl.textContent = "Paid Pending is calculated from Price minus Paid Amount.";
+    }
+
+    const isValid = paidAmount <= price;
+    if (!isValid) showError("Paid amount cannot exceed the price.");
+    paidPendingEl.textContent = money(normalizedStatus === "CANCELLED" ? 0 : Math.max(0, price - paidAmount));
+    return isValid;
+  }
+
+  function populatePayment(order) {
+    if (!priceEl || !paidAmountEl) return;
+    priceEl.value = amount(order.price).toFixed(2);
+    paidAmountEl.value = amount(order.paidAmount).toFixed(2);
+    initialPayment = { price: priceEl.value, paidAmount: paidAmountEl.value };
+    syncPaymentPreview(order.status);
+  }
+
   function detailRow(label, value) {
     const cleanValue = String(value ?? "").trim();
     if (!cleanValue) return "";
@@ -115,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateSaveButton() {
     if (!saveBtn || !statusEl) return;
     const currentStatus = normalizeStatus(currentOrder?.status);
-    saveBtn.disabled = statusEl.disabled || statusEl.value === currentStatus;
+    saveBtn.disabled = statusEl.value === currentStatus && !paymentChanged();
   }
 
   function fileRows(files) {
@@ -160,7 +212,6 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Payment Method", order.paymentMethod),
       detailRow("Payment Reference", order.paymentReference || "-"),
       detailRow("Payment Status", order.paymentStatus),
-      detailRow("Price", order.price || "-"),
       detailRow("Submitted Date", order.submitted),
       detailRow("Completed Date", order.completed || "-"),
       commentsRow(order.comments),
@@ -203,6 +254,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ? "Select the next valid status, then click Update."
         : "This order has no further status updates.";
     }
+    populatePayment(order);
     updateSaveButton();
 
     if (messageBtn) {
@@ -262,6 +314,45 @@ document.addEventListener("DOMContentLoaded", function () {
     } catch (error) {
       return { ok: false, error: "Server returned non-JSON: " + text };
     }
+  }
+
+  async function savePayment() {
+    if (!currentOrder?.id || !priceEl || !paidAmountEl || !paymentSection) return false;
+    clearError();
+    if (!syncPaymentPreview()) return false;
+
+    const fd = new FormData();
+    fd.append("id", currentOrder.id);
+    fd.append("price", priceEl.value);
+    fd.append("paid_amount", paidAmountEl.value);
+
+    let out;
+    try {
+      const response = await fetch(paymentSection.dataset.paymentUpdateUrl || "", {
+        method: "POST",
+        body: fd,
+        credentials: "same-origin",
+        headers: { "X-CSRF-Token": csrf() },
+      });
+      out = await response.json();
+    } catch (error) {
+      showError("Unable to update payment details.");
+      return false;
+    }
+
+    if (!out.ok) {
+      showError(out.error || "Unable to update payment details.");
+      return false;
+    }
+
+    currentOrder.price = out.price;
+    currentOrder.paidAmount = out.paid_amount;
+    currentOrder.paidPending = out.paid_pending;
+    priceEl.value = amount(out.price).toFixed(2);
+    paidAmountEl.value = amount(out.paid_amount).toFixed(2);
+    initialPayment = { price: priceEl.value, paidAmount: paidAmountEl.value };
+    syncPaymentPreview();
+    return true;
   }
 
   async function cancelCurrentOrder() {
@@ -331,6 +422,18 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     previousStatusSelection = statusEl.value;
+    clearError();
+    syncPaymentPreview();
+    updateSaveButton();
+  });
+  priceEl?.addEventListener("input", () => {
+    clearError();
+    syncPaymentPreview();
+    updateSaveButton();
+  });
+  paidAmountEl?.addEventListener("input", () => {
+    clearError();
+    syncPaymentPreview();
     updateSaveButton();
   });
 
@@ -354,6 +457,15 @@ document.addEventListener("DOMContentLoaded", function () {
       statusEl.value = previousStatusSelection;
       updateSaveButton();
       await cancelCurrentOrder();
+      return;
+    }
+
+    if (!await savePayment()) {
+      return;
+    }
+
+    if (statusEl.value === normalizeStatus(currentOrder.status)) {
+      location.reload();
       return;
     }
 

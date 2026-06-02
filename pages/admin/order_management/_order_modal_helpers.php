@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../../../api/queue_payment.php";
 
 function om_detail_value(array $details, array $keys, string $fallback = ""): string
 {
@@ -132,6 +133,7 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
     $paymentMethod = $row["payment_method"] ?? ($details["payment_method"] ?? "");
     $referenceNumber = $row["reference_number"] ?? ($details["reference_number"] ?? "");
     $detailsTotal = $row["details_total"] ?? ($details["estimated_total"] ?? null);
+    $payment = servitech_queue_payment_values($row);
 
     return [
         "id" => (int)($row["id"] ?? 0),
@@ -147,7 +149,9 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
         "paymentMethod" => om_payment_method_label($paymentMethod),
         "paymentReference" => trim((string)$referenceNumber),
         "paymentStatus" => om_payment_status_label($paymentMethod, $row["status"] ?? "PENDING"),
-        "price" => om_payment_amount_label($row["amount"] ?? null, $detailsTotal),
+        "price" => $payment["price"],
+        "paidAmount" => $payment["paid_amount"],
+        "paidPending" => $payment["paid_pending"],
         "files" => admin_queue_file_items($row["details"] ?? null),
         "details" => om_extra_detail_rows($details),
         "comments" => om_additional_comments($details),

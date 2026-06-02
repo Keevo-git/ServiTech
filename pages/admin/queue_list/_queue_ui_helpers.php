@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../../../api/queue_payment.php";
 
 function queue_ui_details_array($details): array
 {
@@ -106,6 +107,7 @@ function queue_ui_detail_rows(array $details): array
 function queue_ui_payload(array $row, string $serviceLabel, string $paymentSummary = ""): array
 {
     $details = queue_ui_details_array($row["details"] ?? null);
+    $payment = servitech_queue_payment_values($row);
 
     return [
         "id" => (int)($row["id"] ?? 0),
@@ -121,6 +123,9 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "payment" => $paymentSummary,
         "paymentReference" => trim((string)($row["reference_number"] ?? ($details["reference_number"] ?? ""))),
         "paymentStatus" => queue_ui_payment_status_label($row),
+        "price" => $payment["price"],
+        "paidAmount" => $payment["paid_amount"],
+        "paidPending" => $payment["paid_pending"],
         "files" => admin_queue_file_items($row["details"] ?? null),
         "details" => queue_ui_detail_rows($details),
     ];

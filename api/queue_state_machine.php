@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/queue_helpers.php";
+require_once __DIR__ . "/queue_payment.php";
 
 function servitech_queue_normalize_status(string $status): string {
   $status = strtoupper(trim($status));
@@ -8,6 +9,7 @@ function servitech_queue_normalize_status(string $status): string {
   return match ($status) {
     "", "PENDING PAYMENT" => "PENDING",
     "FOR PICK UP", "FOR PICKUP" => "FOR PICK-UP",
+    "COMPLETED" => "DONE",
     "CANCELED" => "CANCELLED",
     default => $status,
   };
@@ -125,9 +127,17 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
   try {
     servitech_ensure_queue_lifecycle_schema($pdo);
     $stmt = $pdo->prepare("
-      SELECT id, user_id, queue_code, category, status, lifecycle_stage, details
-      FROM queues
-      WHERE id = :id
+      SELECT q.id, q.user_id, q.queue_code, q.category, q.status, q.lifecycle_stage,
+        q.details, q.price, q.paid_amount, p.amount AS payment_amount
+      FROM queues q
+      LEFT JOIN LATERAL (
+        SELECT amount
+        FROM payments
+        WHERE queue_id = q.id
+        ORDER BY id DESC
+        LIMIT 1
+      ) p ON TRUE
+      WHERE q.id = :id
       LIMIT 1
       FOR UPDATE
     ");
@@ -144,17 +154,33 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
       throw new DomainException(servitech_queue_transition_error($queue, $newStatus));
     }
 
+    $payment = servitech_queue_payment_values($queue);
     $update = $pdo->prepare("
       UPDATE queues
       SET status = :status,
           lifecycle_stage = :lifecycle_stage,
-          completed_at = CASE WHEN :done_status = 'DONE' THEN COALESCE(completed_at, NOW()) ELSE completed_at END
+          completed_at = CASE WHEN :completed_status = 'DONE' THEN COALESCE(completed_at, NOW()) ELSE completed_at END,
+          price = CASE
+            WHEN :sync_payment = 1 THEN COALESCE(price, :resolved_price_for_price)
+            ELSE price
+          END,
+          paid_amount = CASE
+            WHEN :paid_status = 'DONE' THEN COALESCE(price, :resolved_price_for_paid)
+            WHEN :cancelled_status = 'CANCELLED' THEN 0
+            ELSE paid_amount
+          END,
+          updated_at = NOW()
       WHERE id = :id
     ");
     $update->execute([
       ":status" => $newStatus,
       ":lifecycle_stage" => $lifecycleStage,
-      ":done_status" => $newStatus,
+      ":completed_status" => $newStatus,
+      ":sync_payment" => in_array($newStatus, ["DONE", "CANCELLED"], true) ? 1 : 0,
+      ":resolved_price_for_price" => $payment["price"],
+      ":paid_status" => $newStatus,
+      ":resolved_price_for_paid" => $payment["price"],
+      ":cancelled_status" => $newStatus,
       ":id" => $queueId,
     ]);
 
@@ -190,10 +216,13 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     if ($ownsTransaction) $pdo->commit();
     $queue["status"] = $newStatus;
     $queue["lifecycle_stage"] = $lifecycleStage;
+    $queue["price"] = $payment["price"];
+    $queue["paid_amount"] = $newStatus === "DONE" ? $payment["price"] : ($newStatus === "CANCELLED" ? 0 : $payment["paid_amount"]);
     return [
       "status" => $newStatus,
       "lifecycle_stage" => $lifecycleStage,
       "allowed_transitions" => servitech_queue_allowed_transitions($queue),
+      "payment" => servitech_queue_payment_values($queue),
     ];
   } catch (Throwable $e) {
     if ($ownsTransaction && $pdo->inTransaction()) $pdo->rollBack();

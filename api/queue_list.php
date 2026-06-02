@@ -3,6 +3,7 @@ require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/upload_helpers.php";
+require_once __DIR__ . "/queue_payment.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -93,12 +94,15 @@ try {
       q.details,
       q.created_at,
       q.updated_at,
+      q.price,
+      q.paid_amount,
       p.payment_method,
       p.reference_number AS payment_reference_number,
-      p.status AS payment_status
+      p.status AS payment_status,
+      p.amount AS payment_amount
     FROM queues q
     LEFT JOIN LATERAL (
-      SELECT payment_method, reference_number, status
+      SELECT payment_method, reference_number, status, amount
       FROM payments
       WHERE queue_id = q.id
       ORDER BY id DESC
@@ -122,6 +126,7 @@ try {
       }
     }
 
+    $payment = servitech_queue_payment_values($r + ["details" => $details]);
     $out[] = [
       "id" => (int)$r["id"],
       "queue_code" => $r["queue_code"],
@@ -132,6 +137,9 @@ try {
       "payment_method" => $r["payment_method"] ?? ($details["payment_method"] ?? null),
       "reference_number" => $r["payment_reference_number"] ?? ($details["reference_number"] ?? null),
       "payment_status" => $r["payment_status"] ?? ($details["payment_status"] ?? null),
+      "price" => $r["price"] !== null ? (float)$payment["price"] : null,
+      "paid_amount" => (float)$payment["paid_amount"],
+      "paid_pending" => (float)$payment["paid_pending"],
       "service_label" => $details["service_label"] ?? null,
       "paper_size" => $details["paper_size"] ?? null,
       "quantity" => $details["quantity"] ?? null,

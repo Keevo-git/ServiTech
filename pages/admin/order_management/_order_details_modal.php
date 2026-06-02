@@ -13,6 +13,29 @@
     <div class="order-modal-summary" id="orderModalSummary"></div>
     <div class="order-modal-details" id="orderModalDetails"></div>
 
+    <section
+      class="order-payment-section"
+      aria-labelledby="omPaymentSectionTitle"
+      data-payment-update-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/payment_update.php'), ENT_QUOTES, 'UTF-8') ?>"
+    >
+      <h4 id="omPaymentSectionTitle">Payment</h4>
+      <div class="order-payment-grid">
+        <label class="order-modal-field" for="omPrice">
+          <span>Price</span>
+          <input class="om-input" id="omPrice" type="number" min="0" step="0.01" inputmode="decimal">
+        </label>
+        <label class="order-modal-field" for="omPaidAmount">
+          <span>Paid Amount</span>
+          <input class="om-input" id="omPaidAmount" type="number" min="0" step="0.01" inputmode="decimal">
+        </label>
+      </div>
+      <div class="order-payment-pending">
+        <span>Paid Pending</span>
+        <strong id="omPaidPending">PHP 0.00</strong>
+      </div>
+      <p class="order-payment-help" id="omPaymentHelp"></p>
+    </section>
+
     <section class="order-status-section" aria-labelledby="omStatusSectionTitle">
       <div class="order-current-status">
         <span id="omStatusSectionTitle">Current Status</span>
