@@ -81,10 +81,83 @@ function servitech_rollover_expired_queue_cycles(PDO $pdo): void {
   $stmt->execute([":cycle_date" => servitech_queue_cycle_date()]);
 }
 
+function servitech_ensure_queue_write_schema(PDO $pdo): void {
+  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS price NUMERIC(12, 2) NULL");
+  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(12, 2) NOT NULL DEFAULT 0");
+  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ NULL");
+  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS lifecycle_stage VARCHAR(16)");
+  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS queue_cycle_date DATE");
+  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS daily_sequence INTEGER");
+  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()");
+
+  $pdo->exec("
+    UPDATE queues
+    SET queue_cycle_date = COALESCE(queue_cycle_date, (created_at AT TIME ZONE 'Asia/Manila')::date, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date),
+        lifecycle_stage = CASE
+          WHEN UPPER(TRIM(COALESCE(lifecycle_stage, ''))) IN ('QUEUE', 'ORDER') THEN UPPER(TRIM(lifecycle_stage))
+          WHEN COALESCE(queue_cycle_date, (created_at AT TIME ZONE 'Asia/Manila')::date, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date) < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date THEN 'ORDER'
+          ELSE 'QUEUE'
+        END,
+        daily_sequence = COALESCE(daily_sequence, 0),
+        paid_amount = COALESCE(paid_amount, 0)
+    WHERE queue_cycle_date IS NULL
+       OR lifecycle_stage IS NULL
+       OR UPPER(TRIM(lifecycle_stage)) NOT IN ('QUEUE', 'ORDER')
+       OR daily_sequence IS NULL
+       OR paid_amount IS NULL
+  ");
+
+  $stmt = $pdo->query("
+    SELECT pg_get_constraintdef(oid)
+    FROM pg_constraint
+    WHERE conrelid = 'queues'::regclass
+      AND conname = 'queues_status_check'
+    LIMIT 1
+  ");
+  $statusConstraint = strtoupper((string)($stmt->fetchColumn() ?: ""));
+  if ($statusConstraint === "" || strpos($statusConstraint, "APPROVED") === false) {
+    $pdo->exec("ALTER TABLE queues DROP CONSTRAINT IF EXISTS queues_status_check");
+    $pdo->exec("
+      ALTER TABLE queues ADD CONSTRAINT queues_status_check
+      CHECK (
+        UPPER(TRIM(status)) IN (
+          'PENDING', 'PENDING PAYMENT', 'APPROVED', 'ONGOING',
+          'FOR PICK-UP', 'FOR PICK UP', 'DONE', 'COMPLETED',
+          'CANCELLED', 'CANCELED'
+        )
+      ) NOT VALID
+    ");
+  }
+
+  $pdo->exec("
+    CREATE TABLE IF NOT EXISTS queue_status_history (
+      id BIGSERIAL PRIMARY KEY,
+      queue_id BIGINT NOT NULL,
+      category TEXT NOT NULL DEFAULT '',
+      old_status TEXT NULL,
+      new_status TEXT NOT NULL,
+      admin_id INTEGER NULL,
+      admin_name VARCHAR(160) NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  ");
+  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS queue_id BIGINT");
+  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT ''");
+  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS old_status TEXT NULL");
+  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS new_status TEXT");
+  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS admin_id INTEGER NULL");
+  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS admin_name VARCHAR(160) NOT NULL DEFAULT ''");
+  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT ''");
+  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()");
+  $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queue_status_history_queue_id ON queue_status_history (queue_id, created_at)");
+}
+
 function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
   static $ensured = false;
   if ($ensured) return;
 
+  servitech_ensure_queue_write_schema($pdo);
   servitech_rollover_expired_queue_cycles($pdo);
   $ensured = true;
 }

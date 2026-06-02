@@ -27,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const currentStatusEl = document.getElementById("omCurrentStatus");
   const statusEl = document.getElementById("omStatus");
   const statusHelpEl = document.getElementById("omStatusHelp");
-  const errorEl = document.getElementById("omError");
   const messageBtn = document.getElementById("orderModalMessage");
   const saveBtn = document.getElementById("omSave");
   const actionUrl = document.body?.dataset.orderActionUrl || "";
@@ -40,6 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let initialPayment = { price: "0.00", paidAmount: "0.00" };
   let previousStatusSelection = "";
   let cancellationInProgress = false;
+  let updateInProgress = false;
 
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   const actionMap = {
@@ -83,17 +83,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function showError(message, notify = true) {
-    if (errorEl) {
-      errorEl.textContent = message;
-      errorEl.style.display = "block";
-    }
     if (notify) window.servitechAdminToast?.error(message);
   }
 
   function clearError() {
-    if (!errorEl) return;
-    errorEl.textContent = "";
-    errorEl.style.display = "none";
   }
 
   function amount(value) {
@@ -176,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateSaveButton() {
     if (!saveBtn || !statusEl) return;
     const currentStatus = normalizeStatus(currentOrder?.status);
-    saveBtn.disabled = statusEl.value === currentStatus && !paymentChanged();
+    saveBtn.disabled = updateInProgress || (statusEl.value === currentStatus && !paymentChanged());
   }
 
   function fileRows(files) {
@@ -332,6 +325,7 @@ document.addEventListener("DOMContentLoaded", function () {
       window.servitechAdminToast?.warning("Paid amount cannot exceed the price.");
       return false;
     }
+    if (!paymentChanged()) return true;
 
     const fd = new FormData();
     fd.append("id", currentOrder.id);
@@ -466,7 +460,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.getElementById("omSave")?.addEventListener("click", async () => {
-    if (!currentOrder?.id) return;
+    if (!currentOrder?.id || updateInProgress) return;
 
     const action = actionMap[statusEl.value];
     if (!action) {
@@ -482,7 +476,13 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    updateInProgress = true;
+    updateSaveButton();
+    clearError();
+
     if (!await savePayment()) {
+      updateInProgress = false;
+      updateSaveButton();
       return;
     }
 
@@ -497,10 +497,14 @@ document.addEventListener("DOMContentLoaded", function () {
       out = await postAction(currentOrder.id, action, notes);
     } catch (error) {
       showError("Unable to update the order status.");
+      updateInProgress = false;
+      updateSaveButton();
       return;
     }
     if (!out.ok) {
       showError(out.error || "Failed to update status.");
+      updateInProgress = false;
+      updateSaveButton();
       return;
     }
 

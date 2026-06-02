@@ -54,8 +54,6 @@
       <p class="order-status-help" id="omStatusHelp"></p>
     </section>
 
-    <div class="om-error" id="omError" role="alert"></div>
-
     <div class="order-modal-actions">
       <button class="om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
       <button class="om-btn om-btn--primary" type="button" id="omSave">Update</button>

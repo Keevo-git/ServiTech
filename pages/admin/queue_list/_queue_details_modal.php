@@ -1,6 +1,14 @@
 <div class="queue-details-overlay" id="queueDetailsOverlay"></div>
 
-<div class="queue-details-modal" id="queueDetailsModal" role="dialog" aria-modal="true" aria-labelledby="queueDetailsTitle" aria-hidden="true">
+<div
+  class="queue-details-modal"
+  id="queueDetailsModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="queueDetailsTitle"
+  aria-hidden="true"
+  data-action-update-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>"
+>
   <div class="queue-details-head">
     <div>
       <p>Queue Details</p>
@@ -34,7 +42,6 @@
         <strong id="queueDetailsPaidPending">PHP 0.00</strong>
       </div>
       <p class="queue-payment-help" id="queueDetailsPaymentHelp"></p>
-      <p class="queue-payment-error" id="queueDetailsPaymentError" role="alert"></p>
     </section>
 
     <section class="queue-status-section" aria-labelledby="queueDetailsStatusTitle">

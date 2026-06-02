@@ -1048,8 +1048,7 @@ td.actions button.btn-message:hover {
 }
 
 .queue-payment-pending span,
-.queue-payment-help,
-.queue-payment-error {
+.queue-payment-help {
   color: #555f70;
   font-size: 13px;
   font-weight: 600;
@@ -1060,17 +1059,8 @@ td.actions button.btn-message:hover {
   color: #174b8f;
 }
 
-.queue-payment-help,
-.queue-payment-error {
+.queue-payment-help {
   margin: 9px 0 0;
-}
-
-.queue-payment-error {
-  color: #b91c1c;
-}
-
-.queue-payment-error:empty {
-  display: none;
 }
 
 .queue-details-select:focus {
