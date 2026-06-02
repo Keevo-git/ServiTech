@@ -172,6 +172,43 @@ document.addEventListener("DOMContentLoaded", function () {
     saveBtn.disabled = updateInProgress || (statusEl.value === currentStatus && !paymentChanged());
   }
 
+  function renderOrderStatusState(status, allowedStatuses = []) {
+    if (!statusEl) return;
+    const normalizedStatus = normalizeStatus(status);
+    const allowed = Array.isArray(allowedStatuses)
+      ? allowedStatuses.map(normalizeStatus).filter((item) => statusLabels[item])
+      : [];
+    const selectableStatuses = [normalizedStatus, ...allowed]
+      .filter((item, index, statuses) => statusLabels[item] && statuses.indexOf(item) === index);
+
+    statusEl.innerHTML = selectableStatuses
+      .map((value) => `<option value="${esc(value)}">${esc(statusLabels[value])}</option>`)
+      .join("");
+    if (!selectableStatuses.length) {
+      statusEl.innerHTML = '<option value="PENDING">Pending</option>';
+    }
+    statusEl.value = normalizedStatus;
+    statusEl.disabled = allowed.length === 0;
+    previousStatusSelection = normalizedStatus;
+
+    if (currentStatusEl) {
+      currentStatusEl.className = `status-badge ${statusClass(normalizedStatus)}`;
+      currentStatusEl.textContent = statusLabels[normalizedStatus] || normalizedStatus;
+    }
+    if (statusHelpEl) {
+      statusHelpEl.textContent = allowed.length
+        ? "Select the next valid status, then click Update."
+        : "This order has no further status updates.";
+    }
+
+    const summaryStatus = summaryEl?.querySelector(".order-modal-summary-status");
+    if (summaryStatus) {
+      summaryStatus.className = `order-modal-summary-status ${statusClass(normalizedStatus)}`;
+      const valueEl = summaryStatus.querySelector("strong");
+      if (valueEl) valueEl.textContent = statusLabels[normalizedStatus] || normalizedStatus;
+    }
+  }
+
   function fileRows(files) {
     if (!Array.isArray(files) || files.length === 0) {
       return detailRow("Attached File", "No file");
@@ -232,30 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
       </div>
     `;
     detailsEl.innerHTML = baseRows;
-    const currentStatus = normalizeStatus(order.status);
-    const allowedStatuses = Array.isArray(order.allowedStatuses)
-      ? order.allowedStatuses.map(normalizeStatus).filter((status) => statusLabels[status])
-      : [];
-    const selectableStatuses = [currentStatus, ...allowedStatuses]
-      .filter((status, index, statuses) => statusLabels[status] && statuses.indexOf(status) === index);
-    statusEl.innerHTML = selectableStatuses
-      .map((value) => `<option value="${esc(value)}">${esc(statusLabels[value])}</option>`)
-      .join("");
-    if (!selectableStatuses.length) {
-      statusEl.innerHTML = '<option value="PENDING">Pending</option>';
-    }
-    statusEl.value = currentStatus;
-    statusEl.disabled = allowedStatuses.length === 0;
-    previousStatusSelection = currentStatus;
-    if (currentStatusEl) {
-      currentStatusEl.className = `status-badge ${statusClass(currentStatus)}`;
-      currentStatusEl.textContent = statusLabels[currentStatus] || currentStatus;
-    }
-    if (statusHelpEl) {
-      statusHelpEl.textContent = allowedStatuses.length
-        ? "Select the next valid status, then click Update."
-        : "This order has no further status updates.";
-    }
+    renderOrderStatusState(order.status, order.allowedStatuses);
     populatePayment(order);
     updateSaveButton();
 
@@ -318,14 +332,41 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function applyPaymentResult(out) {
+    currentOrder.price = out.price;
+    currentOrder.paidAmount = out.paid_amount;
+    currentOrder.paidPending = out.paid_pending;
+    priceEl.value = amount(out.price).toFixed(2);
+    paidAmountEl.value = amount(out.paid_amount).toFixed(2);
+    initialPayment = { price: priceEl.value, paidAmount: paidAmountEl.value };
+    syncPaymentPreview();
+  }
+
+  function applyStatusResult(out) {
+    const newStatus = normalizeStatus(out.status || currentOrder.status);
+    currentOrder.status = newStatus;
+    currentOrder.allowedStatuses = Array.isArray(out.allowed_transitions) ? out.allowed_transitions : [];
+    renderOrderStatusState(newStatus, currentOrder.allowedStatuses);
+    if (out.payment && typeof out.payment === "object") {
+      applyPaymentResult({
+        price: out.payment.price,
+        paid_amount: out.payment.paid_amount,
+        paid_pending: out.payment.paid_pending,
+      });
+    } else {
+      syncPaymentPreview(newStatus);
+    }
+  }
+
   async function savePayment() {
-    if (!currentOrder?.id || !priceEl || !paidAmountEl || !paymentSection) return false;
+    if (!currentOrder?.id || !priceEl || !paidAmountEl || !paymentSection) {
+      return { attempted: false, ok: true };
+    }
     clearError();
     if (!syncPaymentPreview()) {
-      window.servitechAdminToast?.warning("Paid amount cannot exceed the price.");
-      return false;
+      return { attempted: true, ok: false, error: "Paid amount cannot exceed the price." };
     }
-    if (!paymentChanged()) return true;
+    if (!paymentChanged()) return { attempted: false, ok: true };
 
     const fd = new FormData();
     fd.append("id", currentOrder.id);
@@ -342,23 +383,66 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       out = await response.json();
     } catch (error) {
-      showError("Unable to update payment details.");
-      return false;
+      return { attempted: true, ok: false, error: "Unable to update payment details." };
     }
 
     if (!out.ok) {
-      showError(out.error || "Unable to update payment details.");
+      return { attempted: true, ok: false, error: out.error || "Unable to update payment details." };
+    }
+
+    applyPaymentResult(out);
+    return { attempted: true, ok: true, message: "Payment details saved successfully.", data: out };
+  }
+
+  async function saveStatus(action, notes = "") {
+    if (!currentOrder?.id || statusEl.value === normalizeStatus(currentOrder.status)) {
+      return { attempted: false, ok: true };
+    }
+
+    let out;
+    try {
+      out = await postAction(currentOrder.id, action, notes);
+    } catch (error) {
+      return { attempted: true, ok: false, error: "Unable to update the order status." };
+    }
+    if (!out.ok) {
+      return { attempted: true, ok: false, error: out.error || "Failed to update status." };
+    }
+
+    applyStatusResult(out);
+    return { attempted: true, ok: true, message: actionMessages[action] || "Order status updated successfully.", data: out };
+  }
+
+  function showUpdateResultToasts(paymentResult, statusResult) {
+    const paymentTried = Boolean(paymentResult?.attempted);
+    const statusTried = Boolean(statusResult?.attempted);
+    const paymentOk = !paymentTried || paymentResult.ok;
+    const statusOk = !statusTried || statusResult.ok;
+
+    if (paymentTried && statusTried && paymentOk && statusOk) {
+      window.servitechAdminToast?.persist("Status and payment updated successfully.");
+      location.reload();
+      return true;
+    }
+
+    if (paymentTried && statusTried && !paymentOk && !statusOk) {
+      window.servitechAdminToast?.error("Unable to update status and payment.");
       return false;
     }
 
-    currentOrder.price = out.price;
-    currentOrder.paidAmount = out.paid_amount;
-    currentOrder.paidPending = out.paid_pending;
-    priceEl.value = amount(out.price).toFixed(2);
-    paidAmountEl.value = amount(out.paid_amount).toFixed(2);
-    initialPayment = { price: priceEl.value, paidAmount: paidAmountEl.value };
-    syncPaymentPreview();
-    return true;
+    if ((statusTried || paymentTried) && statusOk && paymentOk) {
+      const message = statusTried ? (statusResult.message || "Order status updated successfully.") : "Payment details saved successfully.";
+      window.servitechAdminToast?.persist(message);
+      location.reload();
+      return true;
+    }
+
+    if (statusTried && !statusOk) window.servitechAdminToast?.error(statusResult.error || "Unable to update the order status.");
+    if (statusTried && statusOk) window.servitechAdminToast?.success(statusResult.message || "Order status updated successfully.");
+    if (paymentTried && !paymentOk) window.servitechAdminToast?.error(paymentResult.error || "Unable to update payment details.");
+    if (paymentTried && paymentOk) window.servitechAdminToast?.success(paymentResult.message || "Payment details saved successfully.");
+
+    return false;
   }
 
   async function cancelCurrentOrder() {
@@ -480,36 +564,12 @@ document.addEventListener("DOMContentLoaded", function () {
     updateSaveButton();
     clearError();
 
-    if (!await savePayment()) {
-      updateInProgress = false;
-      updateSaveButton();
-      return;
-    }
+    const paymentResult = await savePayment();
+    const statusResult = await saveStatus(action, notes);
+    if (showUpdateResultToasts(paymentResult, statusResult)) return;
 
-    if (statusEl.value === normalizeStatus(currentOrder.status)) {
-      window.servitechAdminToast?.persist("Payment details saved successfully.");
-      location.reload();
-      return;
-    }
-
-    let out;
-    try {
-      out = await postAction(currentOrder.id, action, notes);
-    } catch (error) {
-      showError("Unable to update the order status.");
-      updateInProgress = false;
-      updateSaveButton();
-      return;
-    }
-    if (!out.ok) {
-      showError(out.error || "Failed to update status.");
-      updateInProgress = false;
-      updateSaveButton();
-      return;
-    }
-
-    window.servitechAdminToast?.persist(actionMessages[action] || "Order status updated successfully.");
-    location.reload();
+    updateInProgress = false;
+    updateSaveButton();
   });
 
   function debounce(callback, delay = 350) {

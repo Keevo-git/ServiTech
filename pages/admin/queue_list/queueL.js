@@ -80,6 +80,45 @@ document.addEventListener("DOMContentLoaded", function () {
     updateBtn.disabled = updateInProgress || (statusEl.value === currentStatus && !paymentChanged());
   }
 
+  function renderStatusState(status, allowedStatuses = []) {
+    if (!statusEl) return;
+
+    currentStatus = normalizeStatus(status);
+    const allowed = Array.isArray(allowedStatuses)
+      ? allowedStatuses.map(normalizeStatus).filter((item) => statusLabels[item])
+      : [];
+    const selectableStatuses = [currentStatus, ...allowed]
+      .filter((item, index, statuses) => statusLabels[item] && statuses.indexOf(item) === index);
+
+    statusEl.innerHTML = selectableStatuses
+      .map((item) => `<option value="${esc(item)}">${esc(statusLabels[item])}</option>`)
+      .join("");
+    if (!selectableStatuses.length) {
+      statusEl.innerHTML = '<option value="PENDING">Pending</option>';
+    }
+    statusEl.value = currentStatus;
+    statusEl.disabled = allowed.length === 0;
+
+    if (currentStatusEl) {
+      currentStatusEl.className = `status-badge ${statusClass(currentStatus)}`;
+      currentStatusEl.textContent = statusLabels[currentStatus] || currentStatus;
+    }
+    if (statusHelpEl) {
+      statusHelpEl.textContent = allowed.length
+        ? "Select the next valid status, then click Update."
+        : "This queue has no further status updates.";
+    }
+
+    const summaryStatus = summaryEl?.querySelector(".queue-details-status");
+    if (summaryStatus) {
+      summaryStatus.className = `queue-details-status ${statusClass(currentStatus)}`;
+      const valueEl = summaryStatus.querySelector("strong");
+      if (valueEl) valueEl.textContent = statusLabels[currentStatus] || currentStatus;
+    }
+
+    syncStatusUpdateButton();
+  }
+
   function csrf() {
     return window.servitechCsrfToken ? window.servitechCsrfToken() : "";
   }
@@ -143,13 +182,36 @@ document.addEventListener("DOMContentLoaded", function () {
     syncPaymentPreview(queue.status);
   }
 
-  async function savePayment() {
-    if (!currentQueue?.id || !priceEl || !paidAmountEl || !paymentSection) return false;
-    if (!syncPaymentPreview()) {
-      window.servitechAdminToast?.warning("Paid amount cannot exceed the price.");
-      return false;
+  function applyPaymentResult(out) {
+    currentQueue.price = out.price;
+    currentQueue.paidAmount = out.paid_amount;
+    currentQueue.paidPending = out.paid_pending;
+    populatePayment(currentQueue);
+  }
+
+  function applyStatusResult(out) {
+    const newStatus = normalizeStatus(out.status || currentStatus);
+    currentQueue.status = newStatus;
+    renderStatusState(newStatus, Array.isArray(out.allowed_transitions) ? out.allowed_transitions : []);
+    if (out.payment && typeof out.payment === "object") {
+      applyPaymentResult({
+        price: out.payment.price,
+        paid_amount: out.payment.paid_amount,
+        paid_pending: out.payment.paid_pending,
+      });
+    } else {
+      syncPaymentPreview(newStatus);
     }
-    if (!paymentChanged()) return true;
+  }
+
+  async function savePayment() {
+    if (!currentQueue?.id || !priceEl || !paidAmountEl || !paymentSection) {
+      return { attempted: false, ok: true };
+    }
+    if (!syncPaymentPreview()) {
+      return { attempted: true, ok: false, error: "Paid amount cannot exceed the price." };
+    }
+    if (!paymentChanged()) return { attempted: false, ok: true };
 
     const fd = new FormData();
     fd.append("id", currentQueue.id);
@@ -166,22 +228,15 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       out = await response.json();
     } catch (error) {
-      showPaymentError("Unable to update payment details.");
-      window.servitechAdminToast?.error("Unable to update payment details.");
-      return false;
+      return { attempted: true, ok: false, error: "Unable to update payment details." };
     }
 
     if (!out.ok) {
-      showPaymentError(out.error || "Unable to update payment details.");
-      window.servitechAdminToast?.error(out.error || "Unable to update payment details.");
-      return false;
+      return { attempted: true, ok: false, error: out.error || "Unable to update payment details." };
     }
 
-    currentQueue.price = out.price;
-    currentQueue.paidAmount = out.paid_amount;
-    currentQueue.paidPending = out.paid_pending;
-    populatePayment(currentQueue);
-    return true;
+    applyPaymentResult(out);
+    return { attempted: true, ok: true, message: "Payment details saved successfully.", data: out };
   }
 
   async function postAction(id, action, notes = "") {
@@ -239,6 +294,58 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.servitechAdminToast?.persist(actionMessages.cancel);
     location.reload();
+  }
+
+  async function saveStatus(action) {
+    if (!currentQueue?.id || normalizeStatus(statusEl?.value || currentStatus) === currentStatus) {
+      return { attempted: false, ok: true };
+    }
+
+    let out;
+    try {
+      out = await postAction(currentQueue.id, action);
+    } catch (error) {
+      return { attempted: true, ok: false, error: "Unable to update the order status." };
+    }
+
+    if (!out.ok) {
+      return { attempted: true, ok: false, error: out.error || "Unable to update the order status." };
+    }
+
+    applyStatusResult(out);
+    return { attempted: true, ok: true, message: actionMessages[action] || "Order status updated successfully.", data: out };
+  }
+
+  function showUpdateResultToasts(paymentResult, statusResult) {
+    const paymentTried = Boolean(paymentResult?.attempted);
+    const statusTried = Boolean(statusResult?.attempted);
+    const paymentOk = !paymentTried || paymentResult.ok;
+    const statusOk = !statusTried || statusResult.ok;
+
+    if (paymentTried && statusTried && paymentOk && statusOk) {
+      window.servitechAdminToast?.persist("Status and payment updated successfully.");
+      location.reload();
+      return true;
+    }
+
+    if (paymentTried && statusTried && !paymentOk && !statusOk) {
+      window.servitechAdminToast?.error("Unable to update status and payment.");
+      return false;
+    }
+
+    if ((statusTried || paymentTried) && statusOk && paymentOk) {
+      const message = statusTried ? (statusResult.message || "Order status updated successfully.") : "Payment details saved successfully.";
+      window.servitechAdminToast?.persist(message);
+      location.reload();
+      return true;
+    }
+
+    if (statusTried && !statusOk) window.servitechAdminToast?.error(statusResult.error || "Unable to update the order status.");
+    if (statusTried && statusOk) window.servitechAdminToast?.success(statusResult.message || "Order status updated successfully.");
+    if (paymentTried && !paymentOk) window.servitechAdminToast?.error(paymentResult.error || "Unable to update payment details.");
+    if (paymentTried && paymentOk) window.servitechAdminToast?.success(paymentResult.message || "Payment details saved successfully.");
+
+    return false;
   }
 
   function detailRow(label, value) {
@@ -310,28 +417,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (status) transitionButtons.set(status, button);
     });
 
-    const allowedStatuses = Array.from(transitionButtons.keys());
-    const selectableStatuses = [currentStatus, ...allowedStatuses]
-      .filter((status, index, statuses) => statusLabels[status] && statuses.indexOf(status) === index);
-    statusEl.innerHTML = selectableStatuses
-      .map((status) => `<option value="${esc(status)}">${esc(statusLabels[status])}</option>`)
-      .join("");
-    if (!selectableStatuses.length) {
-      statusEl.innerHTML = '<option value="PENDING">Pending</option>';
-    }
-    statusEl.value = currentStatus;
-    statusEl.disabled = allowedStatuses.length === 0;
-
-    if (currentStatusEl) {
-      currentStatusEl.className = `status-badge ${statusClass(currentStatus)}`;
-      currentStatusEl.textContent = statusLabels[currentStatus] || currentStatus;
-    }
-    if (statusHelpEl) {
-      statusHelpEl.textContent = allowedStatuses.length
-        ? "Select the next valid status, then click Update."
-        : "This queue has no further status updates.";
-    }
-    syncStatusUpdateButton();
+    renderStatusState(currentStatus, Array.from(transitionButtons.keys()));
   }
 
   function openDetails(button) {
@@ -420,46 +506,21 @@ document.addEventListener("DOMContentLoaded", function () {
     syncStatusUpdateButton();
     clearErrors();
 
-    if (!await savePayment()) {
-      updateInProgress = false;
-      syncStatusUpdateButton();
-      return;
-    }
-
     const selectedStatus = normalizeStatus(statusEl?.value || currentStatus);
-    if (selectedStatus === currentStatus) {
-      window.servitechAdminToast?.persist("Payment details saved successfully.");
-      location.reload();
-      return;
-    }
-
     const action = statusActions[selectedStatus];
-    if (!action) {
+    if (selectedStatus !== currentStatus && !action) {
       showStatusError("Invalid status selected.");
       updateInProgress = false;
       syncStatusUpdateButton();
       return;
     }
 
-    let out;
-    try {
-      out = await postAction(currentQueue.id, action);
-    } catch (error) {
-      showStatusError("Unable to update the order status.");
-      updateInProgress = false;
-      syncStatusUpdateButton();
-      return;
-    }
+    const paymentResult = await savePayment();
+    const statusResult = await saveStatus(action);
+    if (showUpdateResultToasts(paymentResult, statusResult)) return;
 
-    if (!out.ok) {
-      showStatusError(out.error || "Unable to update the order status.");
-      updateInProgress = false;
-      syncStatusUpdateButton();
-      return;
-    }
-
-    window.servitechAdminToast?.persist(actionMessages[action] || "Order status updated successfully.");
-    location.reload();
+    updateInProgress = false;
+    syncStatusUpdateButton();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && modal?.classList.contains("active")) closeDetails();
