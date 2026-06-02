@@ -59,7 +59,13 @@ $rows = $pdo->query("
   ) p ON TRUE
   WHERE q.category = 'installation'
     AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
-  ORDER BY q.created_at DESC
+  ORDER BY
+    CASE
+      WHEN UPPER(TRIM(COALESCE(q.status, ''))) IN ('DONE', 'CANCEL', 'CANCELLED', 'CANCELED') THEN 1
+      ELSE 0
+    END,
+    q.created_at ASC,
+    q.id ASC
 ")->fetchAll();
 $adminNotificationCount = admin_queue_notification_count($pdo);
 ?>

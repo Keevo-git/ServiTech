@@ -607,13 +607,22 @@ document.addEventListener("DOMContentLoaded", function () {
     noResultsRow.innerHTML = '<td colspan="6">No results found</td>';
     tbody.appendChild(noResultsRow);
 
-    function sortLatestFirst() {
+    function isTerminalStatus(status) {
+      const normalized = normalizeStatus(status);
+      return normalized === "DONE" || normalized === "CANCELLED" || normalized === "CANCEL";
+    }
+
+    function sortFifoWithTerminalLast() {
       rows
         .slice()
         .sort((left, right) => {
-          const rightTime = Date.parse(right.dataset.submittedAt || "") || 0;
           const leftTime = Date.parse(left.dataset.submittedAt || "") || 0;
-          return rightTime - leftTime;
+          const rightTime = Date.parse(right.dataset.submittedAt || "") || 0;
+          const leftTerminal = isTerminalStatus(left.dataset.status) ? 1 : 0;
+          const rightTerminal = isTerminalStatus(right.dataset.status) ? 1 : 0;
+          if (leftTerminal !== rightTerminal) return leftTerminal - rightTerminal;
+          if (leftTime !== rightTime) return leftTime - rightTime;
+          return String(left.dataset.orderId || "").localeCompare(String(right.dataset.orderId || ""));
         })
         .forEach((row) => tbody.insertBefore(row, noResultsRow));
     }
@@ -634,7 +643,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const paymentMethod = String(paymentInput?.value || "").trim().toLowerCase();
       let visibleCount = 0;
 
-      sortLatestFirst();
+      sortFifoWithTerminalLast();
 
       rows.forEach((row) => {
         const orderId = String(row.dataset.orderId || "").toLowerCase();
