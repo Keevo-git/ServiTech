@@ -31,7 +31,11 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit();
 }
 
-if (!preg_match('/^(?:09\d{9}|\+639\d{9})$/', $contact)) {
+if (preg_match('/^09\d{9}$/', $contact)) {
+    $contact = "+63" . substr($contact, 1);
+}
+
+if (!preg_match('/^\+639\d{9}$/', $contact)) {
     header("Location: " . servitech_url("/auth/regis.php?error=invalid_contact"));
     exit();
 }

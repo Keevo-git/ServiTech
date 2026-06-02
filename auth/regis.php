@@ -34,7 +34,7 @@ $csrfToken = servitech_csrf_token();
             <p>Provide your main contact details so we can identify your account.</p>
           </div>
 
-          <div class="form-grid form-grid--single">
+          <div class="registration-field-stack">
             <div class="form-field">
               <label for="fullname">Full Name</label>
               <input id="fullname" name="fullname" type="text" placeholder="Enter your full name" autocomplete="name" required>
@@ -42,16 +42,21 @@ $csrfToken = servitech_csrf_token();
             </div>
 
             <div class="form-field">
-              <label for="contact">Contact Number</label>
-              <input id="contact" name="contact" type="tel" inputmode="tel" placeholder="09XXXXXXXXX" autocomplete="tel" maxlength="13" pattern="(?:09[0-9]{9}|\+639[0-9]{9})" title="Enter a Philippine mobile number, such as 09XXXXXXXXX or +639XXXXXXXXX." required>
+              <label for="contactMobile">Contact Number</label>
+              <div class="contact-number-control">
+                <span class="contact-number-prefix" aria-label="Philippine country code">+63</span>
+                <input id="contactMobile" type="tel" inputmode="numeric" placeholder="9XXXXXXXXX" autocomplete="tel-national" maxlength="10" pattern="9[0-9]{9}" title="Enter the 10-digit Philippine mobile number after +63, starting with 9." aria-describedby="contactHint contactError" required>
+              </div>
+              <input id="contact" name="contact" type="hidden">
+              <p class="field-hint" id="contactHint">Enter the 10-digit mobile number after +63, starting with 9.</p>
               <p class="field-error" id="contactError" aria-live="polite"></p>
             </div>
-          </div>
 
-          <div class="form-field">
-            <label for="email">Email Address</label>
-            <input id="email" name="email" type="email" placeholder="Enter your email address" autocomplete="email" required>
-            <p class="field-error" id="emailError" aria-live="polite"></p>
+            <div class="form-field">
+              <label for="email">Email Address</label>
+              <input id="email" name="email" type="email" placeholder="Enter your email address" autocomplete="email" required>
+              <p class="field-error" id="emailError" aria-live="polite"></p>
+            </div>
           </div>
         </section>
 
@@ -61,7 +66,7 @@ $csrfToken = servitech_csrf_token();
             <p>Create a secure password for your account.</p>
           </div>
 
-          <div class="form-grid form-grid--single">
+          <div class="registration-field-stack">
             <div class="form-field">
               <label for="password">Password</label>
               <div class="password-input-wrap">
@@ -79,7 +84,7 @@ $csrfToken = servitech_csrf_token();
           </div>
         </section>
 
-        <section class="form-section form-section--compact">
+        <section class="form-section form-section--compact form-section--consent">
           <div class="consent-card">
             <label class="consent-check" for="privacyConsent">
               <input id="privacyConsent" name="privacy_consent" type="checkbox" value="1" required>
@@ -158,6 +163,7 @@ $csrfToken = servitech_csrf_token();
     const policyModalContent = document.getElementById("policyModalContent");
     const authCard = document.querySelector(".auth-card--register");
     const registrationPasswordToggle = document.getElementById("registrationPasswordToggle");
+    const contactInput = document.getElementById("contact");
     let activePolicyTrigger = null;
 
     const fields = {
@@ -167,7 +173,7 @@ $csrfToken = servitech_csrf_token();
         validate: (value) => value.trim() ? "" : "Full name is required."
       },
       contact: {
-        input: document.getElementById("contact"),
+        input: document.getElementById("contactMobile"),
         error: document.getElementById("contactError"),
         validate: (value) => {
           const trimmedValue = value.trim();
@@ -175,10 +181,10 @@ $csrfToken = servitech_csrf_token();
             return "Contact number is required.";
           }
 
-          const philippineMobilePattern = /^(?:09\d{9}|\+639\d{9})$/;
+          const philippineMobilePattern = /^9\d{9}$/;
           return philippineMobilePattern.test(trimmedValue)
             ? ""
-            : "Enter a valid Philippine mobile number, such as 09XXXXXXXXX.";
+            : "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.";
         }
       },
       email: {
@@ -322,7 +328,9 @@ $csrfToken = servitech_csrf_token();
 
     function setFieldState(fieldConfig, message) {
       const isCheckbox = fieldConfig.input.type === "checkbox";
-      const target = isCheckbox ? fieldConfig.input.closest(".consent-card") : fieldConfig.input;
+      const target = isCheckbox
+        ? fieldConfig.input.closest(".consent-card")
+        : fieldConfig.input.closest(".contact-number-control") || fieldConfig.input;
 
       fieldConfig.error.textContent = message;
       target.classList.toggle("is-invalid", Boolean(message));
@@ -358,7 +366,7 @@ $csrfToken = servitech_csrf_token();
       const errorMap = {
         required: "Please complete all required fields before creating your account.",
         invalid_email: "Please enter a valid email address.",
-        invalid_contact: "Please enter a valid Philippine mobile number, such as 09XXXXXXXXX.",
+        invalid_contact: "Please enter a valid Philippine mobile number after +63, starting with 9.",
         mismatch: "Passwords do not match.",
         password: `Password must be ${passwordMinLength} to ${passwordMaxLength} characters.`,
         privacy: "You must agree to the Data Privacy Policy before creating an account.",
@@ -447,10 +455,22 @@ $csrfToken = servitech_csrf_token();
     }
 
     function sanitizePhilippineMobileInput(value) {
-      const compactValue = value.replace(/\s+/g, "");
-      const hasAllowedPlusPrefix = compactValue.startsWith("+");
-      const digits = compactValue.replace(/\D/g, "");
-      return hasAllowedPlusPrefix ? `+${digits.slice(0, 12)}` : digits.slice(0, 11);
+      let digits = value.replace(/\D/g, "");
+
+      if (digits.startsWith("63")) {
+        digits = digits.slice(2);
+      }
+
+      if (digits.startsWith("0")) {
+        digits = digits.slice(1);
+      }
+
+      return digits.slice(0, 10);
+    }
+
+    function syncPhilippineMobileInput() {
+      fields.contact.input.value = sanitizePhilippineMobileInput(fields.contact.input.value);
+      contactInput.value = fields.contact.input.value ? `+63${fields.contact.input.value}` : "";
     }
 
     function updateRegistrationPasswordToggleVisibility() {
@@ -573,7 +593,7 @@ $csrfToken = servitech_csrf_token();
 
       field.input.addEventListener(eventName, () => {
         if (fieldName === "contact") {
-          field.input.value = sanitizePhilippineMobileInput(field.input.value);
+          syncPhilippineMobileInput();
         }
 
         validateField(fieldName);
@@ -596,6 +616,8 @@ $csrfToken = servitech_csrf_token();
     });
 
     registerForm.addEventListener("submit", (event) => {
+      syncPhilippineMobileInput();
+
       if (!validateForm()) {
         event.preventDefault();
       }
@@ -627,8 +649,13 @@ $csrfToken = servitech_csrf_token();
     });
 
     applyServerErrorFromQuery();
+    syncPhilippineMobileInput();
     validateForm(false);
-    window.addEventListener("pageshow", updateRegistrationPasswordToggleVisibility);
+    window.addEventListener("pageshow", () => {
+      syncPhilippineMobileInput();
+      updateRegistrationPasswordToggleVisibility();
+      validateForm(false);
+    });
     updateRegistrationPasswordToggleVisibility();
 
     let registerGoogleLoadAttempts = 0;
