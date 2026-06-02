@@ -91,7 +91,7 @@ $csrfToken = servitech_csrf_token();
               <span class="agreement-row__box" aria-hidden="true"></span>
               <span class="agreement-row__text">I agree to the <button type="button" class="text-link" data-doc-trigger="privacy">Data Privacy Policy</button> and <button type="button" class="text-link" data-doc-trigger="terms">Terms &amp; Conditions</button>.</span>
             </label>
-            <p class="field-error" id="privacyConsentError" aria-live="polite"></p>
+            <p class="field-error agreement-row__error" id="privacyConsentError" aria-live="polite"></p>
           </div>
         </section>
 
