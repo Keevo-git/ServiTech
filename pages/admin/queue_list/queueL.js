@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const statusEl = document.getElementById("queueDetailsStatus");
   const statusHelpEl = document.getElementById("queueDetailsStatusHelp");
   const updateBtn = document.getElementById("queueDetailsUpdate");
-  const actionsEl = document.getElementById("queueDetailsActions");
+  const messageBtn = document.getElementById("queueDetailsMessage");
   const paymentSection = document.querySelector(".queue-payment-section");
   const priceEl = document.getElementById("queueDetailsPrice");
   const paidAmountEl = document.getElementById("queueDetailsPaidAmount");
@@ -201,34 +201,14 @@ document.addEventListener("DOMContentLoaded", function () {
     modal.setAttribute("aria-hidden", "true");
   }
 
-  function actionTone(button) {
-    if (button.classList.contains("btn-delete")) return "danger";
-    if (button.classList.contains("btn-message")) return "message";
-    if (button.classList.contains("btn-cancel")) return "muted";
-    if (button.classList.contains("btn-pickup")) return "secondary";
-    if (button.classList.contains("btn-done")) return "success";
-    return "primary";
-  }
-
   function renderActions(row) {
-    if (!actionsEl) return;
-    actionsEl.innerHTML = "";
-    const sourceButtons = row.querySelectorAll(".queue-inline-actions button");
-
-    sourceButtons.forEach((sourceButton) => {
-      if (sourceButton.dataset.action) return;
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "queue-details-action queue-details-action--" + actionTone(sourceButton);
-      button.textContent = sourceButton.textContent.trim();
-      button.addEventListener("click", () => {
-        if (sourceButton.classList.contains("btn-message")) {
-          closeDetails();
-        }
-        sourceButton.click();
-      });
-      actionsEl.appendChild(button);
-    });
+    if (!messageBtn) return;
+    const sourceButton = row.querySelector(".queue-inline-actions .btn-message");
+    messageBtn.hidden = !sourceButton;
+    messageBtn.dataset.id = sourceButton?.dataset.id || "";
+    messageBtn.dataset.queueCode = sourceButton?.dataset.queueCode || "";
+    messageBtn.dataset.customer = sourceButton?.dataset.customer || "";
+    messageBtn.dataset.service = sourceButton?.dataset.service || "";
   }
 
   function renderStatusSection(row, queue) {
@@ -321,6 +301,8 @@ document.addEventListener("DOMContentLoaded", function () {
     button.addEventListener("click", () => openDetails(button));
   });
   document.getElementById("queueDetailsClose")?.addEventListener("click", closeDetails);
+  document.getElementById("queueDetailsCancel")?.addEventListener("click", closeDetails);
+  messageBtn?.addEventListener("click", closeDetails);
   overlay?.addEventListener("click", closeDetails);
   statusEl?.addEventListener("change", () => {
     if (statusEl.value === "CANCELLED") {
@@ -387,7 +369,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
       rows
         .slice()
-        .sort((left, right) => (Date.parse(right.dataset.queueSubmittedAt || "") || 0) - (Date.parse(left.dataset.queueSubmittedAt || "") || 0))
+        .sort((left, right) => {
+          const leftTime = Date.parse(left.dataset.queueSubmittedAt || "") || 0;
+          const rightTime = Date.parse(right.dataset.queueSubmittedAt || "") || 0;
+          if (leftTime !== rightTime) return leftTime - rightTime;
+          return Number(left.dataset.queueRecordId || 0) - Number(right.dataset.queueRecordId || 0);
+        })
         .forEach((row) => tbody.insertBefore(row, emptyRow));
 
       rows.forEach((row) => {

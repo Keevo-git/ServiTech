@@ -54,9 +54,22 @@
       </label>
 
       <p class="queue-status-help" id="queueDetailsStatusHelp"></p>
-      <button class="queue-details-action queue-details-action--primary queue-details-update" type="button" id="queueDetailsUpdate" disabled>Update Status</button>
     </section>
 
-    <div class="queue-details-actions" id="queueDetailsActions"></div>
+    <div class="queue-details-actions">
+      <button class="queue-details-action queue-details-action--light" type="button" id="queueDetailsCancel">Cancel</button>
+      <button class="queue-details-action queue-details-action--primary" type="button" id="queueDetailsUpdate" disabled>Update</button>
+    </div>
+
+    <button
+      class="btn-message queue-details-message"
+      type="button"
+      id="queueDetailsMessage"
+      data-id=""
+      data-queue-code=""
+      data-customer=""
+      data-service=""
+      hidden
+    >Message Customer</button>
   </div>
 </div>

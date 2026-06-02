@@ -1093,10 +1093,6 @@ td.actions button.btn-message:hover {
   font-size: 13px;
 }
 
-.queue-details-update {
-  margin-top: 14px;
-}
-
 .queue-detail-row {
   display: grid;
   grid-template-columns: minmax(150px, 0.42fr) minmax(0, 1fr);
@@ -1163,22 +1159,21 @@ td.actions button.btn-message:hover {
 }
 
 .queue-details-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   margin-top: 20px;
 }
 
 .queue-details-action {
   min-height: 40px;
-  padding: 9px 14px;
-  border: 1px solid transparent;
-  border-radius: 8px;
+  padding: 11px 10px;
+  border: 0;
+  border-radius: 10px;
   cursor: pointer;
   font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .queue-details-action:disabled {
@@ -1187,11 +1182,25 @@ td.actions button.btn-message:hover {
 }
 
 .queue-details-action--primary { background: #f5a623; color: #111827; }
-.queue-details-action--secondary { background: #dbeafe; color: #1d4ed8; }
-.queue-details-action--success { background: #dcfce7; color: #15803d; }
-.queue-details-action--muted { background: #f1f5f9; color: #475569; }
-.queue-details-action--message { background: #214f91; color: #fff; }
-.queue-details-action--danger { background: #fee2e2; color: #b91c1c; }
+.queue-details-action--light { background: #e8eef7; color: #243b59; }
+
+.queue-details-message {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid #214f91;
+  border-radius: 10px;
+  background: #214f91;
+  color: #fff;
+  padding: 12px 14px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.queue-details-message:hover {
+  background: #183e76;
+}
 
 @media (min-width: 1024px) {
   .queue-details-modal {
@@ -1228,7 +1237,8 @@ td.actions button.btn-message:hover {
   }
 
   .queue-filter-clear,
-  .queue-details-action {
+  .queue-details-action,
+  .queue-details-message {
     width: 100%;
   }
 
@@ -1247,5 +1257,9 @@ td.actions button.btn-message:hover {
 
   .queue-details-body {
     padding: 16px 18px 18px;
+  }
+
+  .queue-details-actions {
+    grid-template-columns: 1fr;
   }
 }

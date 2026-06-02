@@ -33,7 +33,7 @@ $stmt = $pdo->prepare("
     )
   )
     AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
-  ORDER BY q.created_at DESC
+  ORDER BY q.created_at ASC, q.id ASC
 ");
 $stmt->execute();
 $rows = $stmt->fetchAll();
