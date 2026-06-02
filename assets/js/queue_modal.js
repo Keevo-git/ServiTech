@@ -30,8 +30,9 @@
 
   function syncScrollLock() {
     var hasVisibleModal = visibleOverlays(null).length > 0;
-    document.body.classList.toggle("modal-open", hasVisibleModal);
-    document.documentElement.classList.toggle("modal-open", hasVisibleModal);
+    var shouldLockPage = hasVisibleModal && !document.body.classList.contains("customer-layout");
+    document.body.classList.toggle("modal-open", shouldLockPage);
+    document.documentElement.classList.toggle("modal-open", shouldLockPage);
   }
 
   function suspendLayer(layer) {
@@ -76,7 +77,7 @@
   function focusElement(element) {
     if (!element || typeof element.focus !== "function") return;
     window.requestAnimationFrame(function () {
-      element.focus();
+      element.focus({ preventScroll: true });
     });
   }
 
@@ -192,6 +193,9 @@
     var closeButton = document.getElementById("queueModalCloseBtn");
     if (closeButton) closeButton.addEventListener("click", closeQueueSuccessModal);
     if (overlay) {
+      if (overlay.parentElement !== document.body) {
+        document.body.appendChild(overlay);
+      }
       overlay.addEventListener("click", function (event) {
         if (event.target === overlay) closeQueueSuccessModal();
       });

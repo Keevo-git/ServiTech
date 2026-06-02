@@ -102,6 +102,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       backdrop-filter: blur(4px);
     }
 
+    body.customer-layout.customer-page--status #detailModal.is-open {
+      display: flex;
+    }
+
     body.customer-layout.customer-page--status .status-modal {
       background: linear-gradient(180deg, #fffdf9 0%, #fff8ef 100%) !important;
       border: 1px solid rgba(95, 14, 15, 0.14) !important;
@@ -628,8 +632,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       <h3 class="status-section-title">YOUR QUEUES</h3>
       <div id="queueList" class="queue-list"></div>
     </div>
+  </section>
+</main>
 
-    <div id="detailModal" class="modal-overlay" style="display:none;">
+<?php include __DIR__ . "/../../components/footer.php"; ?>
+
+    <div id="detailModal" class="modal-overlay" aria-hidden="true">
       <div class="modal status-modal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle" tabindex="-1">
         <button id="closeDetail" class="modal-close" type="button" aria-label="Close details"><span aria-hidden="true">&times;</span></button>
 
@@ -695,10 +703,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         </div>
       </div>
     </div>
-  </section>
-</main>
-
-<?php include __DIR__ . "/../../components/footer.php"; ?>
 
 <script>
 (async function(){
@@ -1002,11 +1006,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function closeDetailModal(){
     if (!detailModal) return;
-    detailModal.style.display = "none";
-    document.body.classList.remove("modal-open");
+    detailModal.classList.remove("is-open");
+    detailModal.setAttribute("aria-hidden", "true");
     document.removeEventListener("keydown", onModalKeydown);
     if (lastFocused && typeof lastFocused.focus === "function") {
-      lastFocused.focus();
+      lastFocused.focus({ preventScroll: true });
     }
   }
 
@@ -1160,10 +1164,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       buildDetailRow("Device", card.dataset.device)
     ].join("");
     lastFocused = document.activeElement;
-    detailModal.style.display = "flex";
-    document.body.classList.add("modal-open");
+    detailModal.classList.add("is-open");
+    detailModal.setAttribute("aria-hidden", "false");
     document.addEventListener("keydown", onModalKeydown);
-    closeDetail?.focus();
+    closeDetail?.focus({ preventScroll: true });
   }
 
   function getRequestedQueueId() {

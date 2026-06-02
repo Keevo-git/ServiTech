@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/assets/css/queue-modal.css?v=20260602-completion-overlay">
+<link rel="stylesheet" href="/assets/css/queue-modal.css?v=20260602-stable-overlay">
 <div id="queueModal" class="modal-overlay queue-modal-overlay" style="display:none;" aria-hidden="true">
   <div class="modal queue-success-modal" role="dialog" aria-modal="true" aria-labelledby="queueModalTitle" aria-describedby="queueModalMessage queueModalNote" tabindex="-1">
     <button id="queueModalCloseBtn" type="button" class="queue-success-modal__close" aria-label="Close joined queue confirmation">&times;</button>
@@ -26,4 +26,4 @@
     </div>
   </div>
 </div>
-<script src="/assets/js/queue_modal.js?v=20260602-completion-overlay"></script>
+<script src="/assets/js/queue_modal.js?v=20260602-stable-overlay"></script>

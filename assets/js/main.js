@@ -12,8 +12,9 @@ function anyModalVisible() {
 }
 
 function syncBodyScrollLock() {
-  if (anyModalVisible()) document.body.classList.add("modal-open");
-  else document.body.classList.remove("modal-open");
+  const shouldLockPage = anyModalVisible() && !document.body.classList.contains("customer-layout");
+  document.body.classList.toggle("modal-open", shouldLockPage);
+  document.documentElement.classList.toggle("modal-open", shouldLockPage);
 }
 
 function scrollToSection(id) {

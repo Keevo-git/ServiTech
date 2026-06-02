@@ -201,7 +201,7 @@ try {
 <script>
   window.servitechXeroxPricing = <?= json_encode($xeroxPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260602-toast-only"></script>
+<script src="/assets/js/main.js?v=20260602-stable-overlay"></script>
 
 </body>
 </html>

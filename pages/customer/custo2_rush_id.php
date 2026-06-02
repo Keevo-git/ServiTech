@@ -299,7 +299,7 @@ function rush_price(array $pricing, string $key): string {
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/rush_id_upload.js?v=20260602-toast-only"></script>
-<script src="/assets/js/main.js?v=20260602-toast-only"></script>
+<script src="/assets/js/main.js?v=20260602-stable-overlay"></script>
 
 </body>
 </html>

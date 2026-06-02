@@ -924,7 +924,6 @@
       }
       modalQueueNo.textContent = queueCode;
       queueModal.style.display = "flex";
-      document.body.classList.add("modal-open");
     }
 
     function restoreDraft() {
