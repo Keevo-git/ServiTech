@@ -1550,7 +1550,10 @@ body.auth-page {
 
 .forgot-password-container {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px 14px;
   width: 100%;
   margin-top: 5px;
 }
@@ -2265,6 +2268,12 @@ body.auth-page {
 
   .password-input-wrap input {
     padding-right: 3.75rem;
+  }
+
+  .forgot-password-container {
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .password-toggle {
