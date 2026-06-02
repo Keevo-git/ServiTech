@@ -426,20 +426,17 @@ $notificationRoutes = [
                 <button type="button" class="notification-filter is-active" data-notification-filter="all">
                   <span>All</span><strong data-notification-filter-count="all">0</strong>
                 </button>
-                <button type="button" class="notification-filter" data-notification-filter="unread">
-                  <span>Unread</span><strong data-notification-filter-count="unread">0</strong>
-                </button>
                 <button type="button" class="notification-filter" data-notification-filter="printing">
-                  <span>Printing</span><strong data-notification-filter-count="printing">0</strong>
+                  <span>Printing</span>
                 </button>
                 <button type="button" class="notification-filter" data-notification-filter="repair">
-                  <span>Repair</span><strong data-notification-filter-count="repair">0</strong>
+                  <span>Repair</span>
                 </button>
                 <button type="button" class="notification-filter" data-notification-filter="installation">
-                  <span>Installation</span><strong data-notification-filter-count="installation">0</strong>
+                  <span>Installation</span>
                 </button>
                 <button type="button" class="notification-filter" data-notification-filter="updates">
-                  <span>Other updates</span><strong data-notification-filter-count="updates">0</strong>
+                  <span>Other updates</span>
                 </button>
               </div>
             </aside>
@@ -1409,34 +1406,21 @@ $notificationRoutes = [
       }
 
       function syncFilterCounts() {
-        var counts = {
-          all: 0,
-          unread: 0,
-          printing: 0,
-          repair: 0,
-          installation: 0,
-          updates: 0
-        };
+        var unreadTotal = 0;
 
         list.querySelectorAll(".notification-item").forEach(function (item) {
-          var category = item.dataset.notificationCategory || "updates";
-          counts.all += 1;
-          counts[category] = (counts[category] || 0) + 1;
           if (item.dataset.notificationRead !== "true") {
-            counts.unread += 1;
+            unreadTotal += 1;
           }
         });
 
-        Object.keys(counts).forEach(function (filter) {
-          var count = root.querySelector('[data-notification-filter-count="' + filter + '"]');
-          if (count) count.textContent = String(counts[filter]);
-        });
+        var allCount = root.querySelector('[data-notification-filter-count="all"]');
+        if (allCount) allCount.textContent = String(unreadTotal);
       }
 
       function applyFilter() {
         list.querySelectorAll(".notification-item").forEach(function (item) {
           var isVisible = activeFilter === "all"
-            || (activeFilter === "unread" && item.dataset.notificationRead !== "true")
             || item.dataset.notificationCategory === activeFilter;
           item.hidden = !isVisible;
         });
