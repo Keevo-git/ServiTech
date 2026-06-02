@@ -760,3 +760,44 @@ function servitech_send_password_reset_mail(string $toEmail, string $resetUrl): 
 
     return servitech_send_smtp_mail($toEmail, $subject, $textBody, $htmlBody);
 }
+
+function servitech_send_email_verification_mail(string $toEmail, string $verificationUrl): array
+{
+    $subject = "Verify your ServiTech email address";
+    $textBody = "Welcome to ServiTech.\n\n"
+        . "Verify your email address before logging in:\n{$verificationUrl}\n\n"
+        . "This link expires in 24 hours. If you did not create this account, you can ignore this email.";
+    $safeVerificationUrl = htmlspecialchars($verificationUrl, ENT_QUOTES, "UTF-8");
+    $htmlBody = '<!doctype html>
+<html>
+<body style="margin:0;padding:0;background:#fff7ed;font-family:Arial,Helvetica,sans-serif;color:#24120f;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff7ed;padding:28px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #f0d6bd;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="padding:24px 28px;background:#4A0505;color:#ffffff;">
+              <h1 style="margin:0;font-size:22px;line-height:1.25;">ServiTech</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px;">
+              <h2 style="margin:0 0 12px;color:#4A0505;font-size:22px;line-height:1.3;">Verify your email address</h2>
+              <p style="margin:0 0 18px;font-size:15px;line-height:1.6;">Welcome to ServiTech. Confirm that this email address belongs to you before logging in.</p>
+              <p style="margin:0 0 24px;">
+                <a href="' . $safeVerificationUrl . '" style="display:inline-block;background:#4A0505;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 18px;border-radius:6px;">Verify Email</a>
+              </p>
+              <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:#65564d;">This link expires in 24 hours. If the button does not work, copy and paste this link into your browser:</p>
+              <p style="margin:0 0 22px;font-size:13px;line-height:1.6;word-break:break-all;"><a href="' . $safeVerificationUrl . '" style="color:#7c130d;">' . $safeVerificationUrl . '</a></p>
+              <p style="margin:0;font-size:13px;line-height:1.6;color:#65564d;">If you did not create this account, you can ignore this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>';
+
+    return servitech_send_smtp_mail($toEmail, $subject, $textBody, $htmlBody);
+}

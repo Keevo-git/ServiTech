@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/../config/session_check.php";
+require_once __DIR__ . "/../config/account.php";
 
 $token = (string)($_GET["token"] ?? $_POST["token"] ?? "");
 $tokenLooksValid = preg_match('/\A[a-f0-9]{64}\z/i', $token) === 1;
@@ -50,9 +51,9 @@ if ($requestMethod === "POST") {
     if (!$resetRequest) {
         $messageType = "error";
         $messageText = "This reset link is invalid or has expired. Request a new password reset link.";
-    } elseif (strlen($password) < 8) {
+    } elseif (($passwordError = servitech_password_validation_error($password)) !== "") {
         $messageType = "error";
-        $messageText = "Password must be at least 8 characters.";
+        $messageText = $passwordError;
         $tokenIsUsable = true;
     } elseif ($password !== $confirmPassword) {
         $messageType = "error";
@@ -125,13 +126,13 @@ $csrfToken = servitech_csrf_token();
 
           <div class="form-field">
             <label for="newPassword">New Password</label>
-            <input id="newPassword" name="password" type="password" placeholder="Create a new password" autocomplete="new-password" minlength="8" required>
+            <input id="newPassword" name="password" type="password" placeholder="Create a new password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
             <p class="field-error" id="newPasswordError" aria-live="polite"></p>
           </div>
 
           <div class="form-field">
             <label for="confirmPassword">Confirm Password</label>
-            <input id="confirmPassword" name="confirm_password" type="password" placeholder="Re-enter your new password" autocomplete="new-password" minlength="8" required>
+            <input id="confirmPassword" name="confirm_password" type="password" placeholder="Re-enter your new password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
             <p class="field-error" id="confirmPasswordError" aria-live="polite"></p>
           </div>
 
@@ -156,6 +157,8 @@ $csrfToken = servitech_csrf_token();
     const confirmPassword = document.getElementById("confirmPassword");
     const newPasswordError = document.getElementById("newPasswordError");
     const confirmPasswordError = document.getElementById("confirmPasswordError");
+    const passwordMinLength = <?= SERVITECH_PASSWORD_MIN_LENGTH ?>;
+    const passwordMaxLength = <?= SERVITECH_PASSWORD_MAX_BYTES ?>;
 
     function setFieldState(input, error, message) {
       error.textContent = message;
@@ -169,8 +172,10 @@ $csrfToken = servitech_csrf_token();
 
       if (!newPassword.value) {
         passwordMessage = "Password is required.";
-      } else if (newPassword.value.length < 8) {
-        passwordMessage = "Password must be at least 8 characters.";
+      } else if (newPassword.value.length < passwordMinLength) {
+        passwordMessage = `Password must be at least ${passwordMinLength} characters.`;
+      } else if (newPassword.value.length > passwordMaxLength) {
+        passwordMessage = `Password must not exceed ${passwordMaxLength} characters.`;
       }
 
       if (!confirmPassword.value) {

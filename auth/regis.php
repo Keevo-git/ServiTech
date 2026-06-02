@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . "/_shared.php";
+require_once __DIR__ . "/../config/session_check.php";
+require_once __DIR__ . "/../config/account.php";
+$csrfToken = servitech_csrf_token();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,6 +27,7 @@ require_once __DIR__ . "/_shared.php";
       <div id="serverErrorMessage" class="form-alert form-alert--error" role="alert" hidden></div>
 
       <form id="registerForm" action="<?= auth_url("/auth/register.php") ?>" method="POST" class="register-form" novalidate>
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
         <section class="form-section" aria-labelledby="personal-info-title">
           <div class="form-section__header">
             <h2 id="personal-info-title">Personal Info</h2>
@@ -60,13 +64,13 @@ require_once __DIR__ . "/_shared.php";
           <div class="form-grid form-grid--two">
             <div class="form-field">
               <label for="password">Password</label>
-              <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="8" required>
+              <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
               <p class="field-error" id="passwordError" aria-live="polite"></p>
             </div>
 
             <div class="form-field">
               <label for="confirmPassword">Confirm Password</label>
-              <input id="confirmPassword" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="8" required>
+              <input id="confirmPassword" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
               <p class="field-error" id="confirmPasswordError" aria-live="polite"></p>
             </div>
           </div>
@@ -139,6 +143,8 @@ require_once __DIR__ . "/_shared.php";
     const googleLoginUrl = <?= auth_json_url("/auth/google_login.php") ?>;
     const googleConfigUrl = <?= auth_json_url("/auth/google_config.php") ?>;
     const defaultCustomerRedirectUrl = <?= auth_json_url("/pages/customer/customer_dash.php") ?>;
+    const passwordMinLength = <?= SERVITECH_PASSWORD_MIN_LENGTH ?>;
+    const passwordMaxLength = <?= SERVITECH_PASSWORD_MAX_BYTES ?>;
 
     const registerForm = document.getElementById("registerForm");
     const submitButton = document.getElementById("registerSubmit");
@@ -182,8 +188,12 @@ require_once __DIR__ . "/_shared.php";
             return "Password is required.";
           }
 
-          if (value.length < 8) {
-            return "Password must be at least 8 characters.";
+          if (value.length < passwordMinLength) {
+            return `Password must be at least ${passwordMinLength} characters.`;
+          }
+
+          if (value.length > passwordMaxLength) {
+            return `Password must not exceed ${passwordMaxLength} characters.`;
           }
 
           return "";
@@ -335,6 +345,7 @@ require_once __DIR__ . "/_shared.php";
         required: "Please complete all required fields before creating your account.",
         invalid_email: "Please enter a valid email address.",
         mismatch: "Passwords do not match.",
+        password: `Password must be ${passwordMinLength} to ${passwordMaxLength} characters.`,
         privacy: "You must agree to the Data Privacy Policy before creating an account.",
         error: "We could not create your account right now. Please try again."
       };
@@ -426,6 +437,12 @@ require_once __DIR__ . "/_shared.php";
         return;
       }
 
+      if (!fields.privacyConsent.input.checked) {
+        validateField("privacyConsent");
+        setRegisterError("You must agree to the Data Privacy Policy before creating an account.");
+        return;
+      }
+
       setRegisterGoogleLoading(true);
 
       try {
@@ -436,7 +453,7 @@ require_once __DIR__ . "/_shared.php";
             "X-CSRF-Token": window.servitechCsrfToken ? window.servitechCsrfToken() : ""
           },
           credentials: "same-origin",
-          body: JSON.stringify({ credential: response.credential })
+          body: JSON.stringify({ credential: response.credential, privacy_consent: "1" })
         });
 
         const payload = await result.json();

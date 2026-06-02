@@ -3,6 +3,7 @@ require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/google_auth.php";
+require_once __DIR__ . "/../config/account.php";
 
 servitech_enforce_same_origin(true);
 servitech_enforce_csrf_token(true);
@@ -18,6 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 $rawInput = file_get_contents("php://input");
 $decodedInput = json_decode($rawInput ?: "{}", true);
 $credential = trim((string)($decodedInput["credential"] ?? $_POST["credential"] ?? ""));
+$privacyConsent = (string)($decodedInput["privacy_consent"] ?? $_POST["privacy_consent"] ?? "");
 
 if ($credential === "") {
     http_response_code(422);
@@ -36,10 +38,11 @@ $payload = (array)($verification["payload"] ?? []);
 $googleId = trim((string)($payload["sub"] ?? ""));
 $email = strtolower(trim((string)($payload["email"] ?? "")));
 $fullName = trim((string)($payload["name"] ?? ""));
+$emailVerified = filter_var($payload["email_verified"] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-if ($googleId === "" || $email === "") {
+if ($googleId === "" || $email === "" || !$emailVerified) {
     http_response_code(422);
-    echo json_encode(["ok" => false, "error" => "Google account details are incomplete."]);
+    echo json_encode(["ok" => false, "error" => "Google account details are incomplete or the email is not verified."]);
     exit();
 }
 
@@ -81,40 +84,66 @@ try {
             UPDATE users
             SET fullname = :fullname,
                 email = :email,
-                google_id = :google_id
+                google_id = :google_id,
+                email_verified_at = COALESCE(email_verified_at, NOW()),
+                consent_accepted_at = CASE
+                    WHEN consent_accepted_at IS NULL AND :privacy_consent = '1' THEN NOW()
+                    ELSE consent_accepted_at
+                END,
+                consent_version = CASE
+                    WHEN consent_version IS NULL AND :privacy_consent = '1' THEN :consent_version
+                    ELSE consent_version
+                END,
+                updated_at = NOW()
             WHERE id = :id
         ");
         $updateUser->execute([
             ":fullname" => $fullName,
             ":email" => $email,
             ":google_id" => $googleId,
+            ":privacy_consent" => $privacyConsent,
+            ":consent_version" => servitech_account_consent_version(),
             ":id" => (int)$user["id"],
         ]);
 
         $userId = (int)$user["id"];
         $role = strtolower((string)($user["role"] ?? "customer"));
     } else {
+        if ($privacyConsent !== "1") {
+            http_response_code(422);
+            echo json_encode(["ok" => false, "error" => "You must agree to the Data Privacy Policy before creating an account."]);
+            exit();
+        }
+
         try {
             $insertUser = $pdo->prepare("
-                INSERT INTO users (fullname, email, contact, password_hash, google_id)
-                VALUES (:fullname, :email, NULL, NULL, :google_id)
+                INSERT INTO users (
+                    fullname, email, contact, password_hash, google_id,
+                    consent_accepted_at, consent_version, email_verified_at
+                )
+                VALUES (:fullname, :email, NULL, NULL, :google_id, NOW(), :consent_version, NOW())
                 RETURNING id, COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer') AS role
             ");
             $insertUser->execute([
                 ":fullname" => $fullName,
                 ":email" => $email,
                 ":google_id" => $googleId,
+                ":consent_version" => servitech_account_consent_version(),
             ]);
         } catch (PDOException $e) {
             $insertUser = $pdo->prepare("
-                INSERT INTO users (fullname, email, contacts, password_hash, google_id)
-                VALUES (:fullname, :email, NULL, NULL, :google_id)
+                INSERT INTO users (
+                    fullname, email, contacts, password_hash, google_id,
+                    consent_accepted_at, consent_version, email_verified_at
+                )
+                VALUES (:fullname, :email, NULL, NULL, :google_id, NOW(), :consent_version, NOW())
                 RETURNING id, COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer') AS role
             ");
             $insertUser->execute([
                 ":fullname" => $fullName,
                 ":email" => $email,
                 ":google_id" => $googleId,
+                ":consent_version" => servitech_account_consent_version(),
             ]);
         }
 

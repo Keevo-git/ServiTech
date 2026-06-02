@@ -2,6 +2,7 @@
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/mail.php";
+require_once __DIR__ . "/../config/account.php";
 
 $messageType = "";
 $messageText = "";
@@ -13,7 +14,7 @@ const FORGOT_PASSWORD_RATE_LIMIT_MAX_ATTEMPTS = 3;
 
 function forgot_password_reset_url(string $token): string
 {
-    return "https://servitech.store/auth/reset_password.php?token=" . urlencode($token);
+    return servitech_account_public_url("/auth/reset_password.php?token=" . urlencode($token));
 }
 
 function forgot_password_rate_limit_path(): string

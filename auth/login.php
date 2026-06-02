@@ -3,8 +3,10 @@ require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
+require_once __DIR__ . "/../config/account.php";
 
 servitech_enforce_same_origin(false);
+servitech_enforce_csrf_token(false);
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header("Location: " . servitech_url("/auth/log_in.php"));
@@ -20,10 +22,16 @@ if ($email === "" || $password === "") {
 }
 
 try {
+    if (!servitech_login_throttle_allows($pdo, $email)) {
+        header("Location: " . servitech_url("/auth/log_in.php?login=throttled"));
+        exit();
+    }
+
     $stmt = $pdo->prepare("
         SELECT id, email,
                COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer') AS role,
                COALESCE(NULLIF(to_jsonb(users)->>'google_id', ''), '') AS google_id,
+               COALESCE(NULLIF(to_jsonb(users)->>'email_verified_at', ''), '') AS email_verified_at,
                COALESCE(
                    NULLIF(to_jsonb(users)->>'password_hash', ''),
                    NULLIF(to_jsonb(users)->>'password', '')
@@ -48,6 +56,18 @@ try {
         } else {
             $is_valid = hash_equals($storedHash, $password);
             $rehashNeeded = $is_valid;
+        }
+    }
+
+    if ($user && $is_valid) {
+        servitech_login_throttle_clear($pdo, $email);
+
+        if (
+            servitech_account_email_verification_required()
+            && trim((string)($user["email_verified_at"] ?? "")) === ""
+        ) {
+            header("Location: " . servitech_url("/auth/log_in.php?login=verify_email"));
+            exit();
         }
     }
 
@@ -77,6 +97,8 @@ try {
         exit();
     }
 
+    servitech_login_throttle_record_failure($pdo, $email);
+
     $googleId = trim((string)($user["google_id"] ?? ""));
     if ($user && $googleId !== "" && $storedHash === "") {
         header("Location: " . servitech_url("/auth/log_in.php?login=google_required"));
@@ -85,7 +107,7 @@ try {
 
     header("Location: " . servitech_url("/auth/log_in.php?login=fail"));
     exit();
-} catch (PDOException $e) {
+} catch (Throwable $e) {
     error_log("login error: " . $e->getMessage());
     header("Location: " . servitech_url("/auth/log_in.php?login=fail"));
     exit();

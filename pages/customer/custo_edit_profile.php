@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/../../config/account.php";
 
 function e(?string $value): string
 {
@@ -238,8 +239,8 @@ function validateProfileInput(array $formData): array
         }
         if ($formData["new_password"] === "") {
             $errors["new_password"] = "Enter a new password.";
-        } elseif (strlen($formData["new_password"]) < 8) {
-            $errors["new_password"] = "New password must be at least 8 characters.";
+        } elseif (($passwordError = servitech_password_validation_error($formData["new_password"])) !== "") {
+            $errors["new_password"] = $passwordError;
         }
         if ($formData["confirm_password"] === "") {
             $errors["confirm_password"] = "Confirm your new password.";
@@ -340,6 +341,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($formData["email"] !== $currentEmail) {
             $changes[$schema["emailColumn"]] = $formData["email"];
+            if ($schema["table"] === "users") {
+                $changes["email_verified_at"] = null;
+                $changes["email_verification_token"] = null;
+                $changes["email_verification_expires"] = null;
+                $changes["email_verification_sent_at"] = null;
+            }
         }
 
         $newPhoneValue = $formData["phone"];
@@ -1706,15 +1713,17 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                   name="new_password"
                   type="password"
                   value=""
-                  placeholder="Minimum 8 characters"
+                  placeholder="Minimum <?php echo SERVITECH_PASSWORD_MIN_LENGTH; ?> characters"
                   autocomplete="new-password"
+                  minlength="<?php echo SERVITECH_PASSWORD_MIN_LENGTH; ?>"
+                  maxlength="<?php echo SERVITECH_PASSWORD_MAX_BYTES; ?>"
                   aria-invalid="<?php echo $errors["new_password"] !== "" ? "true" : "false"; ?>"
                   aria-describedby="new-password-note new-password-error"
                   class="<?php echo $errors["new_password"] !== "" ? "is-invalid" : ""; ?>"
                 >
                 <button type="button" class="password-toggle" data-toggle-password="new_password" aria-controls="new_password" aria-label="Show new password">Show</button>
               </div>
-              <div id="new-password-note" class="field-note">Use at least 8 characters for stronger security.</div>
+              <div id="new-password-note" class="field-note">Use <?php echo SERVITECH_PASSWORD_MIN_LENGTH; ?> to <?php echo SERVITECH_PASSWORD_MAX_BYTES; ?> characters.</div>
               <div id="new-password-error" class="field-error"><?php echo e($errors["new_password"]); ?></div>
             </div>
 
@@ -1728,6 +1737,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                   value=""
                   placeholder="Re-enter your new password"
                   autocomplete="new-password"
+                  minlength="<?php echo SERVITECH_PASSWORD_MIN_LENGTH; ?>"
+                  maxlength="<?php echo SERVITECH_PASSWORD_MAX_BYTES; ?>"
                   aria-invalid="<?php echo $errors["confirm_password"] !== "" ? "true" : "false"; ?>"
                   aria-describedby="confirm-password-error"
                   class="<?php echo $errors["confirm_password"] !== "" ? "is-invalid" : ""; ?>"
@@ -1809,6 +1820,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       new_password: document.getElementById("new-password-error"),
       confirm_password: document.getElementById("confirm-password-error")
     };
+    const passwordMinLength = <?php echo SERVITECH_PASSWORD_MIN_LENGTH; ?>;
+    const passwordMaxLength = <?php echo SERVITECH_PASSWORD_MAX_BYTES; ?>;
 
     function clearError(key) {
       if (fields[key]) {
@@ -1889,8 +1902,11 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         if (newPassword === "") {
           setError("new_password", "Enter a new password.");
           hasErrors = true;
-        } else if (newPassword.length < 8) {
-          setError("new_password", "New password must be at least 8 characters.");
+        } else if (newPassword.length < passwordMinLength) {
+          setError("new_password", `New password must be at least ${passwordMinLength} characters.`);
+          hasErrors = true;
+        } else if (newPassword.length > passwordMaxLength) {
+          setError("new_password", `New password must not exceed ${passwordMaxLength} characters.`);
           hasErrors = true;
         }
         if (confirmPassword === "") {

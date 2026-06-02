@@ -10,7 +10,9 @@ For an existing ServiTech database:
    applied.
 3. Run `20260602_complete_existing_schema.sql` to add missing columns, indexes,
    foreign keys, and validation constraints.
-4. Run `20260602_seed_default_services.sql` to add catalog rows that do not
+4. Run `20260602_harden_accounts.sql` to add account-consent, optional email
+   verification, and failed-login throttle storage.
+5. Run `20260602_seed_default_services.sql` to add catalog rows that do not
    already exist.
 
 The application runtime must not create or alter database schema. Apply future

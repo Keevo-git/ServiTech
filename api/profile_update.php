@@ -3,6 +3,7 @@ require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
+require_once __DIR__ . "/../config/account.php";
 
 servitech_enforce_csrf_token(false);
 
@@ -25,7 +26,7 @@ $current_password = (string)($_POST["current_password"] ?? "");
 $new_password     = (string)($_POST["new_password"] ?? "");
 $confirm_password = (string)($_POST["confirm_password"] ?? "");
 
-if ($fullname === "" || $email === "") {
+if ($fullname === "" || $email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
   header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("Full name and email are required."));
   exit();
 }
@@ -46,8 +47,9 @@ try {
       header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("New password and confirm password do not match."));
       exit();
     }
-    if (strlen($new_password) < 6) {
-      header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("New password must be at least 6 characters."));
+    $passwordError = servitech_password_validation_error($new_password);
+    if ($passwordError !== "") {
+      header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode($passwordError));
       exit();
     }
 
@@ -73,14 +75,22 @@ try {
     try {
       $upd = $pdo->prepare("
         UPDATE users
-        SET fullname = :fullname, email = :email, contact = :contact, password_hash = :password_hash
+        SET fullname = :fullname, email = :email, contact = :contact, password_hash = :password_hash,
+            email_verified_at = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verified_at ELSE NULL END,
+            email_verification_token = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_token ELSE NULL END,
+            email_verification_expires = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_expires ELSE NULL END,
+            email_verification_sent_at = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_sent_at ELSE NULL END
         WHERE id = :id
       ");
       $upd->execute($params);
     } catch (PDOException $e) {
       $upd = $pdo->prepare("
         UPDATE users
-        SET fullname = :fullname, email = :email, contacts = :contact, password_hash = :password_hash
+        SET fullname = :fullname, email = :email, contacts = :contact, password_hash = :password_hash,
+            email_verified_at = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verified_at ELSE NULL END,
+            email_verification_token = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_token ELSE NULL END,
+            email_verification_expires = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_expires ELSE NULL END,
+            email_verification_sent_at = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_sent_at ELSE NULL END
         WHERE id = :id
       ");
       $upd->execute($params);
@@ -97,14 +107,22 @@ try {
     try {
       $upd = $pdo->prepare("
         UPDATE users
-        SET fullname = :fullname, email = :email, contact = :contact
+        SET fullname = :fullname, email = :email, contact = :contact,
+            email_verified_at = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verified_at ELSE NULL END,
+            email_verification_token = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_token ELSE NULL END,
+            email_verification_expires = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_expires ELSE NULL END,
+            email_verification_sent_at = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_sent_at ELSE NULL END
         WHERE id = :id
       ");
       $upd->execute($params);
     } catch (PDOException $e) {
       $upd = $pdo->prepare("
         UPDATE users
-        SET fullname = :fullname, email = :email, contacts = :contact
+        SET fullname = :fullname, email = :email, contacts = :contact,
+            email_verified_at = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verified_at ELSE NULL END,
+            email_verification_token = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_token ELSE NULL END,
+            email_verification_expires = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_expires ELSE NULL END,
+            email_verification_sent_at = CASE WHEN LOWER(email) = LOWER(:email) THEN email_verification_sent_at ELSE NULL END
         WHERE id = :id
       ");
       $upd->execute($params);

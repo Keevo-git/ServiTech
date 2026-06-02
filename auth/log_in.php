@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . "/_shared.php";
+require_once __DIR__ . "/../config/session_check.php";
+$csrfToken = servitech_csrf_token();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,6 +26,7 @@ require_once __DIR__ . "/_shared.php";
       <div id="loginMessage" class="form-alert" role="alert" hidden></div>
 
       <form id="loginForm" action="<?= auth_url("/auth/login.php") ?>" method="POST" class="register-form login-form" novalidate autocomplete="on">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
         <div class="form-field">
           <label for="loginEmail">Email Address</label>
           <input
@@ -52,6 +55,7 @@ require_once __DIR__ . "/_shared.php";
           </div>
           <div class="forgot-password-container">
             <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link">Forgot Password?</a>
+            <a href="<?= auth_url("/auth/resend_verification.php") ?>" class="forgot-link">Resend verification email</a>
           </div>
           <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
         </div>
@@ -356,6 +360,8 @@ require_once __DIR__ . "/_shared.php";
 
       if (registeredCode === "1") {
         setMessage("success", "Registration successful. You can now log in to your account.");
+      } else if (registeredCode === "verify") {
+        setMessage("success", "Registration successful. Check your email and verify your address before logging in.");
       } else if (registeredCode === "exists") {
         setMessage("error", "That email is already registered. Try logging in instead.");
       } else if (logoutCode === "1") {
@@ -366,13 +372,21 @@ require_once __DIR__ . "/_shared.php";
         setMessage("error", "This account uses Google account sign-in. Continue with Google Account to access it.");
       } else if (loginCode === "google_unavailable") {
         setMessage("error", "Google account sign-in is currently unavailable. Please use your email and password.");
+      } else if (loginCode === "verify_email") {
+        setMessage("error", "Verify your email address before logging in. Check your inbox for the verification link.");
+      } else if (loginCode === "throttled") {
+        setMessage("error", "Too many failed login attempts. Wait a few minutes before trying again.");
       } else if (loginCode === "fail") {
         setMessage("error", "Invalid email or password.");
+      } else if (params.get("verification") === "success") {
+        setMessage("success", "Email verified. You can now log in.");
+      } else if (params.get("verification") === "invalid") {
+        setMessage("error", "That verification link is invalid or has expired.");
       } else if (params.get("reset") === "success") {
         setMessage("success", "Your password has been updated. You can now log in with your new password.");
       }
 
-      if (loginCode || registeredCode || logoutCode || params.get("reset")) {
+      if (loginCode || registeredCode || logoutCode || params.get("reset") || params.get("verification")) {
         window.history.replaceState({}, document.title, loginPageUrl);
       }
     }
@@ -394,7 +408,7 @@ require_once __DIR__ . "/_shared.php";
             "X-CSRF-Token": window.servitechCsrfToken ? window.servitechCsrfToken() : ""
           },
           credentials: "same-origin",
-          body: JSON.stringify({ credential: response.credential })
+          body: JSON.stringify({ credential: response.credential, privacy_consent: "1" })
         });
 
         const payload = await result.json();

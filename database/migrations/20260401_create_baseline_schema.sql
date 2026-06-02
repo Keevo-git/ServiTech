@@ -10,6 +10,12 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR(32) NOT NULL DEFAULT 'customer',
   reset_token TEXT NULL,
   reset_token_expires TIMESTAMPTZ NULL,
+  consent_accepted_at TIMESTAMPTZ NULL,
+  consent_version VARCHAR(64) NULL,
+  email_verified_at TIMESTAMPTZ NULL,
+  email_verification_token CHAR(64) NULL,
+  email_verification_expires TIMESTAMPTZ NULL,
+  email_verification_sent_at TIMESTAMPTZ NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT users_role_check CHECK (LOWER(TRIM(role)) IN ('customer', 'admin'))
@@ -23,6 +29,24 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_google_id_unique
 CREATE INDEX IF NOT EXISTS users_reset_token_idx
   ON users (reset_token)
   WHERE reset_token IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_verification_token_unique
+  ON users (email_verification_token)
+  WHERE email_verification_token IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id BIGSERIAL PRIMARY KEY,
+  attempt_key CHAR(64) NOT NULL,
+  email_hash CHAR(64) NOT NULL,
+  ip_hash CHAR(64) NOT NULL,
+  attempted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_attempts_attempt_key_time
+  ON login_attempts (attempt_key, attempted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_login_attempts_email_hash_time
+  ON login_attempts (email_hash, attempted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_login_attempts_attempted_at
+  ON login_attempts (attempted_at);
 
 CREATE TABLE IF NOT EXISTS queues (
   id BIGSERIAL PRIMARY KEY,
