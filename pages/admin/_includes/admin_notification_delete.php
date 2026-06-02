@@ -15,8 +15,7 @@ if ($id <= 0) {
 
 try {
   $stmt = $pdo->prepare("
-    UPDATE notifications
-    SET deleted_at = NOW()
+    DELETE FROM notifications
     WHERE id = ? AND (user_id = ? OR user_id IN (SELECT id FROM users WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'))
   ");
   $stmt->execute([$id, $_SESSION["user_id"] ?? 0]);

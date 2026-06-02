@@ -25,8 +25,7 @@ if (empty($ids)) {
 try {
   $placeholders = implode(",", array_fill(0, count($ids), "?"));
   $stmt = $pdo->prepare("
-    UPDATE notifications
-    SET deleted_at = NOW()
+    DELETE FROM notifications
     WHERE id IN ({$placeholders})
       AND (user_id = ? OR user_id IN (SELECT id FROM users WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'))
   ");

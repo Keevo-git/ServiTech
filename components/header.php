@@ -1362,6 +1362,10 @@ $notificationRoutes = [
       window.markAllAsRead = markAllAsRead;
       window.clearAllNotifications = clearAllNotifications;
 
+      if (new URL(window.location.href).searchParams.get("notifications") === "open") {
+        openDropdown();
+      }
+
       refreshNotifications()
         .finally(function () {
           initRealtime();

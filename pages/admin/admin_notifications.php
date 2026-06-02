@@ -12,7 +12,11 @@ $perPage = 20;
 $offset = ($page - 1) * $perPage;
 
 // Get total count
-$countStmt = $pdo->query("SELECT COUNT(*) FROM notifications");
+$countStmt = $pdo->query("
+  SELECT COUNT(*)
+  FROM notifications
+  WHERE user_id IN (SELECT id FROM users WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin')
+");
 $totalCount = (int)$countStmt->fetchColumn();
 $totalPages = ceil($totalCount / $perPage);
 

@@ -45,7 +45,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260601-comments-textarea') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
-<body class="admin-dashboard">
+<body class="admin-dashboard" data-admin-realtime-scope="queue_repair">
 
 <?php require __DIR__ . "/../_includes/admin_header.php"; ?>
 
@@ -166,7 +166,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 })();
 </script>
 
-<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260602-snapshot') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260601-comments-textarea') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 

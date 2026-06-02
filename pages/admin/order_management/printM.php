@@ -123,7 +123,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260601-comments-textarea') ?>" defer></script>
 </head>
-<body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>">
+<body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_<?= htmlspecialchars($printView, ENT_QUOTES, 'UTF-8') ?>">
 
 <?php require __DIR__ . "/../_includes/admin_header.php"; ?>
 
@@ -266,6 +266,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php require_once __DIR__ . "/../queue_list/_queue_message_modal.php"; ?>
 
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260602-snapshot') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

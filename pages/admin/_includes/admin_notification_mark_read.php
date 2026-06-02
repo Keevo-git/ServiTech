@@ -7,8 +7,6 @@ header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
 
 try {
-  $user_id = $_SESSION["user_id"] ?? 0;
-
   if (empty($_POST["mark_all"])) {
     echo json_encode(["ok" => false, "error" => "Invalid request"]);
     exit();
@@ -17,9 +15,14 @@ try {
   $stmt = $pdo->prepare("
     UPDATE notifications
     SET is_read = TRUE
-    WHERE user_id = ? AND is_read = FALSE AND deleted_at IS NULL
+    WHERE user_id IN (
+      SELECT id
+      FROM users
+      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+    )
+      AND is_read = FALSE
   ");
-  $stmt->execute([$user_id]);
+  $stmt->execute();
 
   echo json_encode(["ok" => true, "marked" => $stmt->rowCount()]);
   exit();
