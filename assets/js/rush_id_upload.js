@@ -56,10 +56,22 @@
     }
 
     function setFeedback(message, tone) {
+      if (feedbackEl) {
+        feedbackEl.textContent = "";
+        feedbackEl.hidden = true;
+        feedbackEl.classList.remove("error", "success");
+      }
+      if (!message) return;
+
+      if (typeof window.servitechToast === "function") {
+        window.servitechToast(message, { tone: tone || "info" });
+        return;
+      }
+
       if (!feedbackEl) return;
-      feedbackEl.textContent = message || "";
-      feedbackEl.classList.remove("error", "success");
-      if (message) feedbackEl.classList.add(tone === "success" ? "success" : "error");
+      feedbackEl.hidden = false;
+      feedbackEl.textContent = message;
+      feedbackEl.classList.add(tone === "success" ? "success" : "error");
     }
 
     function syncFileInput() {

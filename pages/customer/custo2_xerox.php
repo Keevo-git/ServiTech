@@ -186,7 +186,7 @@ try {
       </div>
     </aside>
 
-    <p id="formFeedback" class="form-feedback" role="alert" aria-live="polite"></p>
+    <p id="formFeedback" class="form-feedback" role="alert" aria-live="polite" hidden></p>
 
     <div class="form-actions">
       <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>

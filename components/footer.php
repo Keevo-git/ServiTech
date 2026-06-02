@@ -37,3 +37,5 @@ $footerEmail = servitech_smtp_public_from_email();
 
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
 </footer>
+<link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260602-global-toast">
+<script src="/assets/js/customer_toast.js?v=20260602-global-toast"></script>

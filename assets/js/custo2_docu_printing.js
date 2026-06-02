@@ -189,12 +189,22 @@
     }
 
     function setFeedback(message, tone) {
-      if (!feedbackEl) return;
-      feedbackEl.textContent = message || "";
-      feedbackEl.classList.remove("error", "success");
-      if (message) {
-        feedbackEl.classList.add(tone === "success" ? "success" : "error");
+      if (feedbackEl) {
+        feedbackEl.textContent = "";
+        feedbackEl.hidden = true;
+        feedbackEl.classList.remove("error", "success");
       }
+      if (!message) return;
+
+      if (typeof window.servitechToast === "function") {
+        window.servitechToast(message, { tone: tone || "info" });
+        return;
+      }
+
+      if (!feedbackEl) return;
+      feedbackEl.hidden = false;
+      feedbackEl.textContent = message;
+      feedbackEl.classList.add(tone === "success" ? "success" : "error");
     }
 
     function setFieldInvalid(el, invalid) {
@@ -987,7 +997,7 @@
 
       var usesGcashPaymentPage = payload.order_type === "online" && payload.payment_method === "gcash";
       setProcessingState(true, usesGcashPaymentPage ? "Preparing Payment..." : "Joining Queue...");
-      setFeedback(usesGcashPaymentPage ? "Saving your print order draft..." : "Submitting your queue request...", "success");
+      setFeedback(usesGcashPaymentPage ? "Preparing payment..." : "Submitting your queue request...", "info");
 
       try {
         var uploadResult = await uploadSelectedFiles();
@@ -1014,6 +1024,11 @@
             return;
           }
 
+          if (typeof window.servitechToastForNavigation === "function") {
+            window.servitechToastForNavigation("Print order saved. Complete your GCash payment details.", {
+              tone: "success"
+            });
+          }
           window.location.href = servitechUrl("/pages/customer/custo_print_order_payment.php");
           return;
         }

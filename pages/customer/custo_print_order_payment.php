@@ -694,9 +694,9 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
           </div>
 
           <?php if ($flashError !== ""): ?>
-            <p id="printPaymentFeedback" class="form-feedback error" role="alert"><?= esc_print_order($flashError) ?></p>
+            <p id="printPaymentFeedback" class="form-feedback error" role="alert" hidden><?= esc_print_order($flashError) ?></p>
           <?php else: ?>
-            <p id="printPaymentFeedback" class="form-feedback" role="alert" aria-live="polite"></p>
+            <p id="printPaymentFeedback" class="form-feedback" role="alert" aria-live="polite" hidden></p>
           <?php endif; ?>
 
           <div class="print-payment-payment-box">

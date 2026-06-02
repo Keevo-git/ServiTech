@@ -1044,13 +1044,25 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setFeedback(message, tone) {
-    if (!feedbackEl) {
-      if (message) alert(message);
+    if (feedbackEl) {
+      feedbackEl.textContent = "";
+      feedbackEl.hidden = true;
+      feedbackEl.classList.remove("error", "success");
+    }
+    if (!message) return;
+
+    if (typeof window.servitechToast === "function") {
+      window.servitechToast(message, { tone: tone || "info" });
       return;
     }
-    feedbackEl.textContent = message || "";
-    feedbackEl.classList.remove("error", "success");
-    if (message) feedbackEl.classList.add(tone === "success" ? "success" : "error");
+
+    if (!feedbackEl) {
+      alert(message);
+      return;
+    }
+    feedbackEl.hidden = false;
+    feedbackEl.textContent = message;
+    feedbackEl.classList.add(tone === "success" ? "success" : "error");
   }
 
   function clearValidationState() {
@@ -1313,7 +1325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     joinBtn.disabled = true;
     joinBtn.textContent = "Joining Queue...";
     joinBtn.setAttribute("aria-busy", "true");
-    setFeedback("Submitting your queue request...", "success");
+    setFeedback("Submitting your queue request...", "info");
 
     try {
       if (typeof window.servitechBeforeQueueSubmit === "function") {

@@ -1,0 +1,110 @@
+.customer-toast-container {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 30000;
+  display: grid;
+  gap: 12px;
+  width: min(390px, calc(100vw - 36px));
+  pointer-events: none;
+}
+
+.customer-toast {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 15px 14px 15px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-left: 4px solid #2563eb;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #172033;
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.2);
+  opacity: 0;
+  pointer-events: auto;
+  transform: translateY(-10px);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.customer-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.customer-toast.is-leaving {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.customer-toast--success {
+  border-left-color: #15803d;
+}
+
+.customer-toast--warning {
+  border-left-color: #d97706;
+}
+
+.customer-toast--error {
+  border-left-color: #dc2626;
+}
+
+.customer-toast__icon {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.customer-toast--success .customer-toast__icon {
+  background: #15803d;
+}
+
+.customer-toast--warning .customer-toast__icon {
+  background: #d97706;
+}
+
+.customer-toast--error .customer-toast__icon {
+  background: #dc2626;
+}
+
+.customer-toast__message {
+  margin: 0;
+  color: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.customer-toast__close {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  margin: -5px -4px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  place-items: center;
+}
+
+.customer-toast__close:hover,
+.customer-toast__close:focus-visible {
+  background: #f1f5f9;
+  color: #0f172a;
+  outline: none;
+}
+
+@media (max-width: 600px) {
+  .customer-toast-container {
+    top: 12px;
+    right: 12px;
+    width: calc(100vw - 24px);
+  }
+}
