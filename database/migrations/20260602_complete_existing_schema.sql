@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   reference_id BIGINT NULL,
   message TEXT NOT NULL,
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  deleted_at TIMESTAMPTZ NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -113,6 +114,7 @@ ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'q
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS reference_id BIGINT NULL;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS message TEXT;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ NULL;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
 CREATE TABLE IF NOT EXISTS services (
@@ -228,7 +230,27 @@ CREATE INDEX IF NOT EXISTS idx_queues_category_lifecycle_created ON queues (cate
 CREATE INDEX IF NOT EXISTS idx_payments_queue_id_id ON payments (queue_id, id DESC);
 CREATE INDEX IF NOT EXISTS idx_payments_user_created_at ON payments (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_created_at ON notifications (user_id, created_at DESC, id DESC);
-CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications (user_id, created_at DESC) WHERE is_read = FALSE;
+DROP INDEX IF EXISTS idx_notifications_user_unread;
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications (user_id, created_at DESC) WHERE is_read = FALSE AND deleted_at IS NULL;
+WITH duplicate_notifications AS (
+  SELECT id,
+         ROW_NUMBER() OVER (
+           PARTITION BY user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), MD5(TRIM(COALESCE(message, '')))
+           ORDER BY created_at DESC, id DESC
+         ) AS duplicate_rank
+  FROM notifications
+  WHERE deleted_at IS NULL
+)
+UPDATE notifications
+SET deleted_at = NOW()
+WHERE id IN (
+  SELECT id
+  FROM duplicate_notifications
+  WHERE duplicate_rank > 1
+);
+CREATE UNIQUE INDEX IF NOT EXISTS notifications_active_event_unique
+  ON notifications (user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), MD5(TRIM(COALESCE(message, ''))))
+  WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_services_category ON services (category);
 CREATE INDEX IF NOT EXISTS idx_services_active ON services (active);
 CREATE INDEX IF NOT EXISTS idx_services_catalog_order ON services (category, active, sort_order, id);

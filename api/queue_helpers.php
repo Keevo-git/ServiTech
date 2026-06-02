@@ -122,19 +122,35 @@ function servitech_generate_queue_code(PDO $pdo, string $prefix): string {
 }
 
 function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $referenceId, string $message): void {
-  if ($userId <= 0 || trim($message) === "") {
+  $type = trim($type) !== "" ? trim($type) : "queue";
+  $message = trim($message);
+  if ($userId <= 0 || $message === "") {
     return;
   }
 
   $stmt = $pdo->prepare("
     INSERT INTO notifications (user_id, type, reference_id, message, is_read, created_at)
-    VALUES (:user_id, :type, :reference_id, :message, FALSE, NOW())
+    SELECT :user_id, :type, :reference_id, :message, FALSE, NOW()
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM notifications
+      WHERE user_id = :existing_user_id
+        AND LOWER(TRIM(COALESCE(type, 'queue'))) = LOWER(TRIM(:existing_type))
+        AND COALESCE(reference_id, 0) = COALESCE(:existing_reference_id, 0)
+        AND TRIM(message) = :existing_message
+        AND deleted_at IS NULL
+    )
+    ON CONFLICT DO NOTHING
   ");
   $stmt->execute([
     ":user_id" => $userId,
-    ":type" => trim($type) !== "" ? trim($type) : "queue",
+    ":type" => $type,
     ":reference_id" => $referenceId,
     ":message" => $message,
+    ":existing_user_id" => $userId,
+    ":existing_type" => $type,
+    ":existing_reference_id" => $referenceId,
+    ":existing_message" => $message,
   ]);
 }
 

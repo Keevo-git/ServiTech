@@ -14,6 +14,8 @@ For an existing ServiTech database:
    verification, and failed-login throttle storage.
 5. Run `20260602_seed_default_services.sql` to add catalog rows that do not
    already exist.
+6. Run `20260602_add_notification_soft_delete.sql` on databases that were
+   already completed before the customer notification-center update.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on

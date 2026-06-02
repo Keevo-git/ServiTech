@@ -183,7 +183,7 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
         (int)$queue["user_id"],
         "queue_cancelled",
         $queueId,
-        "Queue {$queueCode}: Your order has been cancelled. Reason: {$notes}"
+        "Queue {$queueCode}: Status: CANCELLED. Reason: {$notes}"
       );
     }
 
