@@ -70,13 +70,15 @@ if (!function_exists("servitech_notification_fetch_all")) {
                     n.type,
                     n.reference_id,
                     n.message,
+                    n.event_key,
                     n.is_read,
                     n.created_at,
                     q.category AS notification_category,
                     q.queue_code,
                     q.status AS queue_status,
                     ROW_NUMBER() OVER (
-                        PARTITION BY n.user_id, LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0), TRIM(n.message)
+                        PARTITION BY n.user_id, LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
+                          COALESCE(NULLIF(TRIM(n.event_key), ''), MD5(TRIM(COALESCE(n.message, ''))))
                         ORDER BY n.created_at DESC, n.id DESC
                     ) AS duplicate_rank
                 FROM notifications n
@@ -109,8 +111,10 @@ if (!function_exists("servitech_notification_unread_count")) {
             WITH ranked_notifications AS (
                 SELECT
                     is_read,
+                    event_key,
                     ROW_NUMBER() OVER (
-                        PARTITION BY user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), TRIM(message)
+                        PARTITION BY user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0),
+                          COALESCE(NULLIF(TRIM(event_key), ''), MD5(TRIM(COALESCE(message, ''))))
                         ORDER BY created_at DESC, id DESC
                     ) AS duplicate_rank
                 FROM notifications
@@ -1477,7 +1481,25 @@ $notificationRoutes = [
 
         var message = document.createElement("span");
         message.className = "notification-item__message";
-        message.textContent = notification.message;
+        if (normalizeNotificationType(notification.type) === "price_update") {
+          var remainingMessage = String(notification.message || "");
+          var importantDetailPattern = /(Queue ID\s+[A-Z0-9-]+)|(New price:\s*)(PHP\s+[0-9,]+(?:\.[0-9]{2})?)/gi;
+          var match;
+          var previousIndex = 0;
+          while ((match = importantDetailPattern.exec(remainingMessage)) !== null) {
+            message.appendChild(document.createTextNode(remainingMessage.slice(previousIndex, match.index)));
+            if (match[2]) {
+              message.appendChild(document.createTextNode(match[2]));
+            }
+            var importantDetail = document.createElement("strong");
+            importantDetail.textContent = match[1] || match[3];
+            message.appendChild(importantDetail);
+            previousIndex = importantDetailPattern.lastIndex;
+          }
+          message.appendChild(document.createTextNode(remainingMessage.slice(previousIndex)));
+        } else {
+          message.textContent = notification.message;
+        }
 
         var details = document.createElement("span");
         details.className = "notification-item__details";

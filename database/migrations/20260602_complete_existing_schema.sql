@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   type TEXT NOT NULL DEFAULT 'queue',
   reference_id BIGINT NULL,
   message TEXT NOT NULL,
+  event_key TEXT NULL,
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
   deleted_at TIMESTAMPTZ NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -115,6 +116,7 @@ ALTER TABLE notifications ADD COLUMN IF NOT EXISTS user_id INTEGER;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'queue';
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS reference_id BIGINT NULL;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS message TEXT;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS event_key TEXT NULL;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ NULL;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
@@ -237,7 +239,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications (user_
 WITH duplicate_notifications AS (
   SELECT id,
          ROW_NUMBER() OVER (
-           PARTITION BY user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), MD5(TRIM(COALESCE(message, '')))
+           PARTITION BY user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), COALESCE(NULLIF(TRIM(event_key), ''), MD5(TRIM(COALESCE(message, ''))))
            ORDER BY created_at DESC, id DESC
          ) AS duplicate_rank
   FROM notifications
@@ -250,8 +252,9 @@ WHERE id IN (
   FROM duplicate_notifications
   WHERE duplicate_rank > 1
 );
+DROP INDEX IF EXISTS notifications_active_event_unique;
 CREATE UNIQUE INDEX IF NOT EXISTS notifications_active_event_unique
-  ON notifications (user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), MD5(TRIM(COALESCE(message, ''))))
+  ON notifications (user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), COALESCE(NULLIF(TRIM(event_key), ''), MD5(TRIM(COALESCE(message, '')))))
   WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_services_category ON services (category);
 CREATE INDEX IF NOT EXISTS idx_services_active ON services (active);

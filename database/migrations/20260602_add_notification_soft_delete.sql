@@ -1,4 +1,5 @@
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ NULL;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS event_key TEXT NULL;
 
 DROP INDEX IF EXISTS idx_notifications_user_unread;
 CREATE INDEX IF NOT EXISTS idx_notifications_user_unread
@@ -8,7 +9,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_unread
 WITH duplicate_notifications AS (
   SELECT id,
          ROW_NUMBER() OVER (
-           PARTITION BY user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), MD5(TRIM(COALESCE(message, '')))
+           PARTITION BY user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), COALESCE(NULLIF(TRIM(event_key), ''), MD5(TRIM(COALESCE(message, ''))))
            ORDER BY created_at DESC, id DESC
          ) AS duplicate_rank
   FROM notifications
@@ -22,6 +23,7 @@ WHERE id IN (
   WHERE duplicate_rank > 1
 );
 
+DROP INDEX IF EXISTS notifications_active_event_unique;
 CREATE UNIQUE INDEX IF NOT EXISTS notifications_active_event_unique
-  ON notifications (user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), MD5(TRIM(COALESCE(message, ''))))
+  ON notifications (user_id, LOWER(TRIM(COALESCE(type, 'queue'))), COALESCE(reference_id, 0), COALESCE(NULLIF(TRIM(event_key), ''), MD5(TRIM(COALESCE(message, '')))))
   WHERE deleted_at IS NULL;

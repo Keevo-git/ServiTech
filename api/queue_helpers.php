@@ -121,23 +121,25 @@ function servitech_generate_queue_code(PDO $pdo, string $prefix): string {
   return servitech_generate_queue_identity($pdo, $prefix)["queue_code"];
 }
 
-function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $referenceId, string $message): void {
+function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $referenceId, string $message, string $eventKey = ""): void {
   $type = trim($type) !== "" ? trim($type) : "queue";
   $message = trim($message);
+  $eventKey = trim($eventKey);
   if ($userId <= 0 || $message === "") {
     return;
   }
 
   $stmt = $pdo->prepare("
-    INSERT INTO notifications (user_id, type, reference_id, message, is_read, created_at)
-    SELECT :user_id, :type, :reference_id, :message, FALSE, NOW()
+    INSERT INTO notifications (user_id, type, reference_id, message, event_key, is_read, created_at)
+    SELECT :user_id, :type, :reference_id, :message, NULLIF(:event_key, ''), FALSE, NOW()
     WHERE NOT EXISTS (
       SELECT 1
       FROM notifications
       WHERE user_id = :existing_user_id
         AND LOWER(TRIM(COALESCE(type, 'queue'))) = LOWER(TRIM(:existing_type))
         AND COALESCE(reference_id, 0) = COALESCE(:existing_reference_id, 0)
-        AND TRIM(message) = :existing_message
+        AND COALESCE(NULLIF(TRIM(event_key), ''), MD5(TRIM(COALESCE(message, ''))))
+          = COALESCE(NULLIF(TRIM(:existing_event_key), ''), MD5(TRIM(:existing_message)))
         AND deleted_at IS NULL
     )
     ON CONFLICT DO NOTHING
@@ -147,10 +149,12 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
     ":type" => $type,
     ":reference_id" => $referenceId,
     ":message" => $message,
+    ":event_key" => $eventKey,
     ":existing_user_id" => $userId,
     ":existing_type" => $type,
     ":existing_reference_id" => $referenceId,
     ":existing_message" => $message,
+    ":existing_event_key" => $eventKey,
   ]);
 }
 

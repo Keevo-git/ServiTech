@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/queue_helpers.php";
 
 function servitech_queue_payment_status(string $status): string {
   $status = strtoupper(trim($status));
@@ -97,7 +98,7 @@ function servitech_update_queue_payment(PDO $pdo, int $queueId, $priceInput, $pa
 
   try {
     $stmt = $pdo->prepare("
-      SELECT id, status
+      SELECT id, user_id, queue_code, category, status, price
       FROM queues
       WHERE id = :id
       LIMIT 1
@@ -110,6 +111,8 @@ function servitech_update_queue_payment(PDO $pdo, int $queueId, $priceInput, $pa
     }
 
     $status = servitech_queue_payment_status((string)($queue["status"] ?? "PENDING"));
+    $previousPrice = servitech_queue_payment_candidate($queue["price"] ?? null);
+    $priceChanged = $previousPrice === null || abs($previousPrice - $price) >= 0.005;
     if ($status === "DONE") {
       $paidAmount = $price;
     } elseif ($status === "CANCELLED") {
@@ -122,14 +125,33 @@ function servitech_update_queue_payment(PDO $pdo, int $queueId, $priceInput, $pa
       UPDATE queues
       SET price = :price,
           paid_amount = :paid_amount,
-          updated_at = NOW()
+          updated_at = clock_timestamp()
       WHERE id = :id
+      RETURNING updated_at
     ");
     $update->execute([
       ":price" => $price,
       ":paid_amount" => $paidAmount,
       ":id" => $queueId,
     ]);
+    $updatedAt = trim((string)($update->fetchColumn() ?: ""));
+
+    if ($priceChanged) {
+      $queueCode = trim((string)($queue["queue_code"] ?? ""));
+      $formattedPrice = number_format($price, 2, ".", ",");
+      $formattedPreviousPrice = $previousPrice === null
+        ? "Not previously set"
+        : "PHP " . number_format($previousPrice, 2, ".", ",");
+      $eventKey = "price_update:{$queueId}:" . ($updatedAt !== "" ? $updatedAt : microtime(true));
+      servitech_add_notification(
+        $pdo,
+        (int)($queue["user_id"] ?? 0),
+        "price_update",
+        $queueId,
+        "Your request with Queue ID {$queueCode} has a price update. Previous price: {$formattedPreviousPrice}. New price: PHP {$formattedPrice}. Please review the new amount in your service status.",
+        $eventKey
+      );
+    }
 
     if ($ownsTransaction) {
       $pdo->commit();
