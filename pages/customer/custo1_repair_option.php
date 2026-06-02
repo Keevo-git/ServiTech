@@ -24,7 +24,35 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     </div>
 
     <div class="form-card">
-      <h3 class="step-title">1. SERVICE AND DETAILS</h3>
+      <h3 class="step-title">2. CHOOSE REPAIR SERVICE</h3>
+
+      <div class="form-grid">
+        <div>
+          <label for="repairServiceSelect">Select Service<span class="required">*</span></label>
+          <select class="form-select" id="repairServiceSelect">
+            <option value="" selected disabled>Select Repair Service</option>
+            <option value="LCD Replacement" data-min="1200" data-max="5500">LCD Replacement</option>
+            <option value="Battery Replacement" data-min="700" data-max="2500">Battery Replacement</option>
+            <option value="Charging Pin Replacement" data-min="800" data-max="4000">Charging Pin Replacement</option>
+            <option value="Speaker / Mouthpiece Replacement" data-min="700" data-max="1500">Speaker / Mouthpiece Replacement</option>
+            <option value="Power Button Repair" data-min="500" data-max="2000">Power Button Repair</option>
+            <option value="Volume Repair" data-min="1000" data-max="2000">Volume Repair</option>
+            <option value="Part(s) Upgrade" data-min="1500" data-max="5000">Part(s) Upgrade</option>
+            <option value="Other Repair Request" data-price-range="Price to be assessed">Other Repair Request</option>
+          </select>
+        </div>
+
+        <div>
+          <div class="service-form-price-card" aria-live="polite">
+            <span class="service-form-price-card__label">Selected Service Price Range</span>
+            <strong id="repairPriceRange">Choose a repair service</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3 class="step-title">3. ENTER SERVICE DETAILS</h3>
 
       <div class="form-grid">
         <div>
@@ -35,19 +63,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
             <option>Laptop</option>
             <option>Desktop</option>
             <option>Other</option>
-          </select>
-
-          <label for="repairServiceSelect">Select Service<span class="required">*</span></label>
-          <select class="form-select" id="repairServiceSelect">
-            <option value="" selected disabled>Select Repair Service</option>
-            <option data-min="1200" data-max="5500">LCD Replacement &mdash; (&#8369;1200 &ndash; &#8369;5500)</option>
-            <option data-min="700" data-max="2500">Battery Replacement &mdash; (&#8369;700 &ndash; &#8369;2500)</option>
-            <option data-min="800" data-max="4000">Charging Pin Replacement &mdash; (&#8369;800 &ndash; &#8369;4000)</option>
-            <option data-min="700" data-max="1500">Speaker / Mouthpiece Replacement &mdash; (&#8369;700 &ndash; &#8369;1500)</option>
-            <option data-min="500" data-max="2000">Power Button Repair &mdash; (&#8369;500 &ndash; &#8369;2000)</option>
-            <option data-min="1000" data-max="2000">Volume Repair &mdash; (&#8369;1000 &ndash; &#8369;2000)</option>
-            <option data-min="1500" data-max="5000">Part(s) Upgrade &mdash; (&#8369;1500 &ndash; &#8369;5000)</option>
-            <option>Other Repair Request &mdash; Price to be assessed</option>
           </select>
 
           <label for="repairNotes">Additional Information/Other Request:</label>

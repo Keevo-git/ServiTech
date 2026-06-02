@@ -897,13 +897,23 @@ body.customer-layout .queue-success-modal__actions {
   display: grid !important;
   gap: 12px !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  margin-top: 0 !important;
+  margin-top: 20px !important;
 }
 
 body.customer-layout .queue-success-modal__actions .btn-primary,
 body.customer-layout .queue-success-modal__actions .btn-secondary {
   min-height: 48px;
   width: 100% !important;
+}
+
+@media (max-width: 600px) {
+  body.customer-layout .queue-success-modal {
+    padding: 24px 18px !important;
+  }
+
+  body.customer-layout .queue-success-modal__actions {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 

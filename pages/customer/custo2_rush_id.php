@@ -123,64 +123,6 @@ function rush_price(array $pricing, string $key): string {
       padding: 0.3rem 0.75rem;
     }
 
-    .rush-payment-card {
-      display: grid;
-      gap: 0.9rem;
-    }
-
-    .rush-payment-grid {
-      align-items: start;
-      display: grid;
-      gap: 1rem;
-      grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
-    }
-
-    .rush-gcash-card {
-      background: #fffaf4;
-      border: 1px solid rgba(95, 14, 15, 0.14);
-      border-radius: 16px;
-      display: none;
-      gap: 0.75rem;
-      justify-items: center;
-      padding: 0.9rem;
-      text-align: center;
-    }
-
-    .rush-gcash-card.is-visible {
-      display: grid;
-    }
-
-    .rush-gcash-card strong {
-      color: #5f0e0f;
-      font-size: 0.88rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .rush-gcash-card img {
-      border-radius: 10px;
-      display: block;
-      height: auto;
-      max-width: 190px;
-      object-fit: contain;
-      width: 100%;
-    }
-
-    .rush-payment-note {
-      color: #775d58;
-      font-size: 0.9rem;
-      margin: 0;
-    }
-
-    .rush-cash-note {
-      background: #fff;
-      border: 1px solid rgba(95, 14, 15, 0.12);
-      border-radius: 14px;
-      color: #9a3412;
-      margin: 0.75rem 0 0;
-      padding: 0.85rem 1rem;
-    }
-
     body.customer-page--custo2 .form-actions {
       align-items: stretch !important;
       display: flex !important;
@@ -229,10 +171,6 @@ function rush_price(array $pricing, string $key): string {
     }
 
     @media (max-width: 720px) {
-      .rush-payment-grid {
-        grid-template-columns: 1fr;
-      }
-
       body.customer-page--custo2 .form-actions .btn-back,
       body.customer-page--custo2 .form-actions .btn-next {
         flex: 0 0 auto;
@@ -241,7 +179,7 @@ function rush_price(array $pricing, string $key): string {
     }
   </style>
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing" data-service-label="Rush ID" data-gcash-payment-page="service">
+<body class="customer-layout customer-page--forms customer-page--custo2" data-service="printing" data-service-label="Rush ID">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -303,34 +241,8 @@ function rush_price(array $pricing, string $key): string {
         </div>
       </div>
 
-      <div class="form-card form-card--secondary rush-payment-card">
-        <h3 class="step-title">4. PAYMENT</h3>
-        <div class="rush-payment-grid">
-          <div>
-            <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
-            <select id="paymentMethodSelect" class="form-select">
-              <option value="" selected disabled>Select payment method</option>
-              <option value="cash">Cash / Pay at Store</option>
-              <option value="gcash">GCash</option>
-            </select>
-
-            <div id="referenceNumberWrap" style="display:none;">
-              <label for="referenceNumberInput">GCash Reference Number<span class="required">*</span></label>
-              <input type="text" id="referenceNumberInput" class="form-input" placeholder="Enter the 13-digit transaction number" autocomplete="off" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13">
-              <p class="rush-payment-note">This payment will be verified by shop employees/admin.</p>
-            </div>
-            <p id="rushCashNote" class="rush-cash-note" hidden>Please go to the store to complete payment before processing.</p>
-          </div>
-
-          <div id="rushGcashCard" class="rush-gcash-card" aria-live="polite">
-            <strong>Scan GCash QR</strong>
-            <img src="/assets/images/gcash-qr.jpg" alt="JC Shop GCash QR code">
-          </div>
-        </div>
-      </div>
-
       <div class="form-card form-card--secondary printing-upload-card">
-        <h3 class="step-title">5. UPLOAD FILES</h3>
+        <h3 class="step-title">3. UPLOAD FILES</h3>
 
         <div class="printing-field">
           <label for="fileUpload">Upload your photo/document</label>
@@ -388,7 +300,7 @@ function rush_price(array $pricing, string $key): string {
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/rush_id_upload.js?v=20260524-queue-fix"></script>
-<script src="/assets/js/main.js?v=20260530-service-gcash"></script>
+<script src="/assets/js/main.js?v=20260602-online-print-payment-only"></script>
 
 </body>
 </html>

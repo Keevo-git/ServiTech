@@ -919,6 +919,12 @@
 
     function openSuccessModal(queueCode) {
       if (!queueModal || !modalQueueNo) return;
+      if (typeof window.openQueueSuccessModal === "function") {
+        window.openQueueSuccessModal(queueCode, {
+          service: getOrderType() === "online" ? "Online Document Printing" : "Walk-In Document Printing"
+        });
+        return;
+      }
       modalQueueNo.textContent = queueCode;
       queueModal.style.display = "flex";
       document.body.classList.add("modal-open");
@@ -979,8 +985,9 @@
         return;
       }
 
-      setProcessingState(true, payload.order_type === "online" ? "Preparing Order..." : "Joining Queue...");
-      setFeedback(payload.order_type === "online" ? "Saving your print order draft..." : "Submitting your queue request...", "success");
+      var usesGcashPaymentPage = payload.order_type === "online" && payload.payment_method === "gcash";
+      setProcessingState(true, usesGcashPaymentPage ? "Preparing Payment..." : "Joining Queue...");
+      setFeedback(usesGcashPaymentPage ? "Saving your print order draft..." : "Submitting your queue request...", "success");
 
       try {
         var uploadResult = await uploadSelectedFiles();
@@ -997,7 +1004,7 @@
           }
         }
 
-        if (payload.order_type === "online") {
+        if (usesGcashPaymentPage) {
           var draftResult = await saveOnlineDraft(payload);
           if (!draftResult.ok) {
             if (canCleanupUploads) {

@@ -3,6 +3,20 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
+$requestedOrderType = strtolower(trim((string)($_GET["order_type"] ?? "")));
+if (!in_array($requestedOrderType, ["online", "walkin"], true)) {
+  $requestedOrderType = is_array($sessionPrintDraft)
+    && strtolower(trim((string)($sessionPrintDraft["order_type"] ?? ""))) === "online"
+      ? "online"
+      : "";
+}
+if ($requestedOrderType === "") {
+  header("Location: /pages/customer/custo1_printing_option.php");
+  exit();
+}
+$documentPrintingLabel = $requestedOrderType === "online"
+  ? "Online Document Printing"
+  : "Walk-In Document Printing";
 $printDraft = [];
 $printPricing = [
   "long_full_price" => 10.0,
@@ -87,7 +101,7 @@ try {
   // Keep the order form usable if the service table is unavailable.
 }
 
-if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft["order_type"] ?? ""))) === "online") {
+if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft["order_type"] ?? ""))) === "online") {
   $printDraft = [
     "order_type" => "online",
     "paper_size" => trim((string)($sessionPrintDraft["paper_size"] ?? "")),
@@ -112,7 +126,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ServiTech: Document Printing</title>
+  <title>ServiTech: <?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260410d1">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
@@ -435,23 +449,6 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
       margin-top: 0;
     }
 
-    .queue-success-modal {
-      width: min(100%, 420px);
-    }
-
-    .queue-success-modal__actions {
-      align-items: stretch !important;
-      display: grid !important;
-      gap: 12px !important;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-
-    .queue-success-modal__actions > * {
-      flex: 0 0 auto !important;
-      min-height: 48px;
-      width: 100% !important;
-    }
-
     @media (max-width: 980px) {
       .printing-page .form-page-shell {
         grid-template-columns: 1fr;
@@ -506,17 +503,10 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
           <div>
             <div class="printing-field">
               <label>Service Type<span class="required">*</span></label>
-              <div class="static-text service-type-display"><span>Document Printing</span></div>
+              <div class="static-text service-type-display"><span><?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></span></div>
             </div>
 
-            <div class="printing-field">
-              <label for="orderTypeSelect">Order Type<span class="required">*</span></label>
-              <select class="form-select" id="orderTypeSelect">
-                <option value="" selected>Select order type</option>
-                <option value="walkin">Walk-in</option>
-                <option value="online">Online Print Order</option>
-              </select>
-            </div>
+            <input type="hidden" id="orderTypeSelect" value="<?= htmlspecialchars($requestedOrderType, ENT_QUOTES, "UTF-8") ?>">
 
             <div id="paymentSection" class="payment-section printing-field" hidden>
               <span class="payment-section__label">Online Order Payment</span>
@@ -586,7 +576,7 @@ if (is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft[
 
       <div class="summary-row">
         <span>SERVICE:</span>
-        <strong>DOCUMENT PRINTING</strong>
+        <strong><?= htmlspecialchars(strtoupper($documentPrintingLabel), ENT_QUOTES, "UTF-8") ?></strong>
       </div>
 
       <div class="summary-row">

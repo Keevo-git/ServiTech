@@ -74,6 +74,14 @@ if ($service_label === "Document Printing" || $category === "online_printorder")
   $prefix = $printMeta["prefix"];
 }
 
+$isOnlineDocumentPrinting = $category === "online_printorder"
+  && $order_type === "online"
+  && in_array($service_label, ["Document Printing", "Online Print Order"], true);
+if ($payment_method !== "" && !$isOnlineDocumentPrinting) {
+  echo json_encode(["ok" => false, "error" => "Payment options are only available for Online Document Printing."]);
+  exit();
+}
+
 $details = [
   "service_label" => $service_label,
   "order_type" => $order_type !== "" ? $order_type : null,

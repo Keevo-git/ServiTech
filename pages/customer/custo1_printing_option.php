@@ -23,7 +23,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     </div>
 
     <div class="form-card">
-      <h3 class="step-title">1. SERVICE</h3>
+      <h3 class="step-title">2. CHOOSE PRINTING SERVICE</h3>
 
       <label for="serviceType">
         Select Service Type<span class="required">*</span>
@@ -31,7 +31,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
       <select id="serviceType" class="form-select">
         <option value="" selected disabled>Select A Service</option>
-        <option value="printing">Document Printing</option>
+        <option value="online-document-printing">Online Document Printing</option>
+        <option value="walkin-document-printing">Walk-In Document Printing</option>
         <option value="xerox">Xerox</option>
         <option value="rush-id">Rush ID</option>
         <option value="laminating">Laminating</option>
@@ -64,7 +65,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     const routes = {
-      "printing": "custo2_docu_printing.php",
+      "online-document-printing": "custo2_docu_printing.php?order_type=online",
+      "walkin-document-printing": "custo2_docu_printing.php?order_type=walkin",
       "xerox": "custo2_xerox.php",
       "rush-id": "custo2_rush_id.php",
       "laminating": "custo2_laminating.php"

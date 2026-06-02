@@ -10,9 +10,16 @@
     var viewQueueBtn = document.getElementById("viewQueueBtn");
 
     if (confirmedQueue && queueModal && modalQueueNo) {
-      modalQueueNo.textContent = confirmedQueue;
-      queueModal.style.display = "flex";
-      document.body.classList.add("modal-open");
+      if (typeof window.openQueueSuccessModal === "function") {
+        window.openQueueSuccessModal(confirmedQueue, {
+          service: "Online Document Printing",
+          note: "Your payment details were submitted. You can check your queue status while the shop reviews your order."
+        });
+      } else {
+        modalQueueNo.textContent = confirmedQueue;
+        queueModal.style.display = "flex";
+        document.body.classList.add("modal-open");
+      }
 
       if (goHomeBtn) {
         goHomeBtn.addEventListener("click", function () {

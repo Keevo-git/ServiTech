@@ -24,22 +24,37 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     </div>
 
     <div class="form-card">
-      <h3 class="step-title">1. SERVICE AND DETAILS</h3>
+      <h3 class="step-title">2. CHOOSE INSTALLATION SERVICE</h3>
 
       <div class="form-grid">
         <div>
           <label for="installationTypeSelect">Select Installation Type<span class="required">*</span></label>
           <select id="installationTypeSelect" class="form-select">
             <option value="" selected disabled>Select Installation/Software Service</option>
-            <option value="reprogram" data-min="1000" data-max="4000">Reprogram Service &mdash; &#8369;1000 - &#8369;4000</option>
-            <option value="hang_logo_fix" data-min="1000" data-max="3500">Hang Logo Fix Service &mdash; &#8369;1000 - &#8369;3500</option>
-            <option value="boot_loop_fix" data-min="1000" data-max="5000">Boot Loop Fix Service &mdash; &#8369;1000 - &#8369;5000</option>
-            <option value="openline" data-min="3500" data-max="6000">Openline Samsung & iPhone &mdash; &#8369;3500 - &#8369;6000</option>
-            <option value="bypass_google" data-min="500" data-max="2000">Bypass Google Account &mdash; &#8369;500 - &#8369;2000</option>
-            <option value="bypass_password" data-min="1000" data-max="3000">Bypass Password &mdash; &#8369;1000 - &#8369;3000</option>
-            <option value="other_installation_request">Other Installation Request &mdash; Price to be assessed</option>
+            <option value="reprogram" data-min="1000" data-max="4000">Reprogram Service</option>
+            <option value="hang_logo_fix" data-min="1000" data-max="3500">Hang Logo Fix Service</option>
+            <option value="boot_loop_fix" data-min="1000" data-max="5000">Boot Loop Fix Service</option>
+            <option value="openline" data-min="3500" data-max="6000">Openline Samsung & iPhone</option>
+            <option value="bypass_google" data-min="500" data-max="2000">Bypass Google Account</option>
+            <option value="bypass_password" data-min="1000" data-max="3000">Bypass Password</option>
+            <option value="other_installation_request" data-price-range="Price to be assessed">Other Installation Request</option>
           </select>
+        </div>
 
+        <div>
+          <div class="service-form-price-card" aria-live="polite">
+            <span class="service-form-price-card__label">Selected Service Price Range</span>
+            <strong id="installationPriceRange">Choose an installation service</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3 class="step-title">3. ENTER SERVICE DETAILS</h3>
+
+      <div class="form-grid">
+        <div>
           <label for="installationNotes">Additional Information/Other Request:</label>
           <textarea id="installationNotes" class="form-textarea"></textarea>
         </div>

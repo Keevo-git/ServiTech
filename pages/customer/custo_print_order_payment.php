@@ -511,31 +511,6 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       max-width: 640px;
     }
 
-    .printing-page .queue-success-modal {
-      width: min(100%, 420px);
-    }
-
-    .printing-page .queue-success-modal__actions {
-      align-items: stretch !important;
-      display: grid !important;
-      gap: 12px !important;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      justify-content: stretch !important;
-      margin-top: 12px;
-    }
-
-    .printing-page .queue-success-modal__actions > * {
-      flex: 0 0 auto !important;
-      margin: 0 !important;
-      min-height: 48px !important;
-      width: 100% !important;
-    }
-
-    .printing-page .queue-success-modal .btn-primary,
-    .printing-page .queue-success-modal .btn-secondary {
-      padding: 12px 18px;
-    }
-
     @media (max-width: 1024px) {
       .printing-page .form-actions {
         flex-direction: column !important;
@@ -634,9 +609,6 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
         width: 100% !important;
       }
 
-      .printing-page .queue-success-modal__actions {
-        grid-template-columns: 1fr !important;
-      }
     }
   </style>
 </head>
@@ -750,7 +722,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
         </div>
 
         <div class="form-actions form-actions--compact">
-          <a href="/pages/customer/custo2_docu_printing.php" class="btn-back">Back</a>
+          <a href="/pages/customer/custo2_docu_printing.php?order_type=online" class="btn-back">Back</a>
           <button type="submit" class="btn-next" id="placePrintOrderBtn">Submit Payment &amp; Join Queue</button>
         </div>
       </form>
@@ -759,30 +731,6 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 
 <?php if ($isConfirmed): ?>
   <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
-  <script>
-    (function () {
-      var queueModal = document.getElementById("queueModal");
-      var modalQueueNo = document.getElementById("modalQueueNo");
-      var goHomeBtn = document.getElementById("goHomeBtn");
-      var viewQueueBtn = document.getElementById("viewQueueBtn");
-      if (!queueModal || !modalQueueNo) {
-        return;
-      }
-      modalQueueNo.textContent = <?= json_encode($queue ?: "") ?>;
-      queueModal.style.display = "flex";
-      document.body.classList.add("modal-open");
-      if (goHomeBtn) {
-        goHomeBtn.onclick = function () {
-          window.location.href = "/pages/customer/customer_dash.php";
-        };
-      }
-      if (viewQueueBtn) {
-        viewQueueBtn.onclick = function () {
-          window.location.href = "/pages/customer/custo_service_status.php";
-        };
-      }
-    })();
-  </script>
 <?php endif; ?>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>

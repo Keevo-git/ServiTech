@@ -74,6 +74,37 @@ function formatPesoPrice(value) {
   return `\u20B1${amount.toFixed(2)}`;
 }
 
+function initServiceFormPriceCard(selectId, targetId, emptyLabel) {
+  const select = document.getElementById(selectId);
+  const target = document.getElementById(targetId);
+  if (!select || !target) return;
+
+  function updatePriceCard() {
+    const option = select.options[select.selectedIndex];
+    if (!option || option.disabled || !select.value) {
+      target.textContent = emptyLabel;
+      return;
+    }
+
+    const min = Number(option.dataset.min);
+    const max = Number(option.dataset.max);
+    if (Number.isFinite(min) && Number.isFinite(max)) {
+      target.textContent = `${formatPesoPrice(min)} - ${formatPesoPrice(max)}`;
+      return;
+    }
+
+    target.textContent = option.dataset.priceRange || "Price to be assessed";
+  }
+
+  select.addEventListener("change", updatePriceCard);
+  updatePriceCard();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initServiceFormPriceCard("repairServiceSelect", "repairPriceRange", "Choose a repair service");
+  initServiceFormPriceCard("installationTypeSelect", "installationPriceRange", "Choose an installation service");
+});
+
 function getXeroxPriceMap() {
   return {
     "Long Bond (8.5 x 13)": Number(window.servitechXeroxPricing?.long) || 5,
@@ -206,6 +237,10 @@ function buildLaminatingCardLines(service) {
 function openModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
+  if (typeof window.servitechShowModalLayer === "function") {
+    window.servitechShowModalLayer(m);
+    return;
+  }
   m.style.display = "flex";
   syncBodyScrollLock();
 }
@@ -213,6 +248,10 @@ function openModal(id) {
 function closeModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
+  if (typeof window.servitechHideModalLayer === "function") {
+    window.servitechHideModalLayer(m);
+    return;
+  }
   m.style.display = "none";
   syncBodyScrollLock();
 }
@@ -769,7 +808,11 @@ async function openServiceModal(sectionId) {
   bodyEl.innerHTML = renderServiceModalBody(service);
   bindServiceDetailCards(bodyEl);
 
-  overlay.style.display = "flex";
+  if (typeof window.servitechShowModalLayer === "function") {
+    window.servitechShowModalLayer(overlay);
+  } else {
+    overlay.style.display = "flex";
+  }
   overlay.setAttribute("aria-hidden", "false");
   syncBodyScrollLock();
   document.addEventListener("keydown", escCloseServiceModal);
@@ -789,7 +832,11 @@ async function openServiceDetailModal(detailKey) {
   if (descriptionEl) descriptionEl.textContent = detail.description || "Review the available service details.";
   bodyEl.innerHTML = renderServiceDetailModalBody(detail);
 
-  overlay.style.display = "flex";
+  if (typeof window.servitechShowModalLayer === "function") {
+    window.servitechShowModalLayer(overlay);
+  } else {
+    overlay.style.display = "flex";
+  }
   overlay.setAttribute("aria-hidden", "false");
   syncBodyScrollLock();
   document.addEventListener("keydown", escCloseServiceDetailModal);
@@ -800,7 +847,11 @@ function closeServiceModal() {
   const bodyEl = document.getElementById("service-modal-body");
 
   if (overlay) {
-    overlay.style.display = "none";
+    if (typeof window.servitechHideModalLayer === "function") {
+      window.servitechHideModalLayer(overlay);
+    } else {
+      overlay.style.display = "none";
+    }
     overlay.setAttribute("aria-hidden", "true");
   }
   if (bodyEl) bodyEl.innerHTML = "";
@@ -815,7 +866,11 @@ function closeServiceDetailModal() {
   const bodyEl = document.getElementById("service-detail-modal-body");
 
   if (overlay) {
-    overlay.style.display = "none";
+    if (typeof window.servitechHideModalLayer === "function") {
+      window.servitechHideModalLayer(overlay);
+    } else {
+      overlay.style.display = "none";
+    }
     overlay.setAttribute("aria-hidden", "true");
   }
   if (bodyEl) bodyEl.innerHTML = "";
@@ -859,6 +914,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (modal.id === "service-detail-modal") {
         closeServiceDetailModal();
+        return;
+      }
+
+      if (modal.id === "queueModal" && typeof window.closeQueueSuccessModal === "function") {
+        window.closeQueueSuccessModal();
+        return;
+      }
+
+      if (typeof window.servitechHideModalLayer === "function") {
+        window.servitechHideModalLayer(modal);
         return;
       }
 
@@ -962,8 +1027,6 @@ document.addEventListener("DOMContentLoaded", () => {
     deviceTypeSelect: document.getElementById("deviceTypeSelect"),
     installationTypeSelect: document.getElementById("installationTypeSelect"),
     fileUpload: document.getElementById("fileUpload"),
-    paymentMethodSelect: document.getElementById("paymentMethodSelect"),
-    referenceNumberInput: document.getElementById("referenceNumberInput"),
   };
   const svc = (document.body?.dataset?.service || "").toLowerCase();
   const isXerox = svc === "xerox";
@@ -1000,8 +1063,6 @@ document.addEventListener("DOMContentLoaded", () => {
       refs.deviceTypeSelect,
       refs.installationTypeSelect,
       refs.fileUpload,
-      refs.paymentMethodSelect,
-      refs.referenceNumberInput,
     ].forEach((el) => setFieldInvalid(el, false));
     setRadioInvalid("color", false);
     setFeedback("", "error");
@@ -1091,8 +1152,6 @@ document.addEventListener("DOMContentLoaded", () => {
       uploaded_files: printState && Array.isArray(printState.uploaded_files)
         ? printState.uploaded_files
         : null,
-      payment_method: refs.paymentMethodSelect ? refs.paymentMethodSelect.value : null,
-      reference_number: refs.referenceNumberInput ? refs.referenceNumberInput.value.trim() : null,
     };
 
     if (isXerox && refs.paperSizeSelect) {
@@ -1156,23 +1215,6 @@ document.addEventListener("DOMContentLoaded", () => {
       setFieldInvalid(refs.installationTypeSelect, true);
     }
 
-    if (refs.paymentMethodSelect && (!refs.paymentMethodSelect.value || refs.paymentMethodSelect.selectedOptions[0]?.disabled)) {
-      errors.push("Select payment method.");
-      setFieldInvalid(refs.paymentMethodSelect, true);
-    }
-
-    const deferredGcashDraft = shouldUseServicePaymentPage(payload);
-    if (!deferredGcashDraft && refs.paymentMethodSelect && refs.paymentMethodSelect.value === "gcash" && refs.referenceNumberInput) {
-      const referenceNumber = refs.referenceNumberInput.value.trim();
-      if (!referenceNumber) {
-        errors.push("Enter your GCash reference number.");
-        setFieldInvalid(refs.referenceNumberInput, true);
-      } else if (!/^\d{13}$/.test(referenceNumber)) {
-        errors.push("GCash reference number must be exactly 13 digits.");
-        setFieldInvalid(refs.referenceNumberInput, true);
-      }
-    }
-
     const hasColorOptions = document.querySelectorAll('input[name="color"]').length > 0;
     if (hasColorOptions && !payload.color_option) {
       errors.push("Select a color option.");
@@ -1200,24 +1242,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     return errors;
-  }
-
-  function syncPaymentUi() {
-    const method = refs.paymentMethodSelect ? refs.paymentMethodSelect.value : "";
-    const referenceWrap = document.getElementById("referenceNumberWrap");
-    const gcashCard = document.getElementById("rushGcashCard") || document.getElementById("serviceGcashCard");
-    const cashNote = document.getElementById("rushCashNote") || document.getElementById("serviceCashNote");
-    const isGcash = method === "gcash";
-    const usesPaymentPage = document.body?.dataset?.gcashPaymentPage === "service"
-      || ["rush id", "laminating", "xerox"].some((name) => document.title.toLowerCase().includes(name));
-
-    if (referenceWrap) referenceWrap.style.display = isGcash && !usesPaymentPage ? "block" : "none";
-    if (gcashCard) gcashCard.classList.toggle("is-visible", isGcash && !usesPaymentPage);
-    if (cashNote) cashNote.hidden = method !== "cash";
-    if (refs.referenceNumberInput) refs.referenceNumberInput.required = isGcash && !usesPaymentPage;
-    if (joinBtn && usesPaymentPage) {
-      joinBtn.textContent = isGcash ? "Continue to GCash Payment" : "Join Queue";
-    }
   }
 
   async function createQueue(payload) {
@@ -1272,42 +1296,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function shouldUseServicePaymentPage(payload) {
-    return !!payload
-      && payload.payment_method === "gcash"
-      && (
-        document.body?.dataset?.gcashPaymentPage === "service"
-        || ["Rush ID", "Laminating", "Xerox"].includes(payload.service_label)
-      );
-  }
-
-  async function saveServicePaymentDraft(payload) {
-    const csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
-    const res = await fetch(servitechUrl("/api/service_payment_draft.php"), {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-        "X-CSRF-Token": csrf,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const raw = await res.text();
-    try {
-      return JSON.parse(raw);
-    } catch (e) {
-      return { ok: false, error: "Server returned invalid response." };
-    }
-  }
-
-  if (refs.paymentMethodSelect) {
-    refs.paymentMethodSelect.addEventListener("change", syncPaymentUi);
-    syncPaymentUi();
-  }
-
   joinBtn.addEventListener("click", async (e) => {
     e.preventDefault();
     if (joinBtn.disabled) return;
@@ -1339,18 +1327,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      if (shouldUseServicePaymentPage(payload)) {
-        const draftResult = await saveServicePaymentDraft(payload);
-        if (!draftResult.ok) {
-          await cleanupUploadedFiles(payload.uploaded_files);
-          setFeedback(draftResult.error || "Unable to continue to payment.", "error");
-          return;
-        }
-
-        window.location.href = servitechUrl("/pages/customer/custo_service_payment.php");
-        return;
-      }
-
       const result = await createQueue(payload);
       if (!result.ok) {
         await cleanupUploadedFiles(payload.uploaded_files);
@@ -1358,9 +1334,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      modalQueueNo.textContent = result.queue_code;
-      queueModal.style.display = "flex";
-      syncBodyScrollLock();
+      if (typeof window.openQueueSuccessModal === "function") {
+        window.openQueueSuccessModal(result.queue_code, { service: buildServiceLabel() });
+      } else {
+        modalQueueNo.textContent = result.queue_code;
+        queueModal.style.display = "flex";
+        syncBodyScrollLock();
+      }
       setFeedback("", "error");
     } catch (err) {
       console.error(err);
