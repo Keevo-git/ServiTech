@@ -2,7 +2,7 @@
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/mail.php";
 
-const AUTH_UI_VERSION = "20260602auth6";
+const AUTH_UI_VERSION = "20260602auth7";
 
 if (!function_exists("auth_url_raw")) {
     function auth_url_raw(string $path = "/"): string
