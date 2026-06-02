@@ -167,7 +167,6 @@ try {
       </div>
     </aside>
 
-    <p id="formFeedback" class="form-feedback" role="alert" aria-live="polite" hidden></p>
 
     <div class="form-actions">
       <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
@@ -180,7 +179,7 @@ try {
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260602-online-print-payment-only"></script>
+<script src="/assets/js/main.js?v=20260602-toast-only"></script>
 
 </body>
 </html>

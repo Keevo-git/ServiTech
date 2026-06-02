@@ -149,7 +149,6 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
     }
 
     .printing-page .form-page-intro,
-    .printing-page .form-feedback,
     .printing-page .form-actions {
       grid-column: 1 / -1;
     }
@@ -438,10 +437,6 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
       display: none;
     }
 
-    .printing-page .form-feedback {
-      margin: 0;
-    }
-
     .printing-page .form-actions {
       display: flex;
       flex-wrap: wrap;
@@ -607,7 +602,6 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
       </div>
     </aside>
 
-    <p id="formFeedback" class="form-feedback" role="alert" aria-live="polite" hidden></p>
 
     <div class="form-actions">
       <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
@@ -620,12 +614,12 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260326c4"></script>
+<script src="/assets/js/main.js?v=20260602-toast-only"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260521a3-a4-prices"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260602-toast-only"></script>
 </body>
 </html>
 

@@ -37,8 +37,7 @@
     var form = document.getElementById("printOrderPaymentForm");
     var submitBtn = document.getElementById("placePrintOrderBtn");
     var referenceInput = document.getElementById("referenceNumberInput");
-    var feedbackEl = document.getElementById("printPaymentFeedback");
-    var initialFeedback = feedbackEl ? feedbackEl.textContent.trim() : "";
+    var initialFeedback = ((body && body.dataset.flashError) || "").trim();
     var paymentMethod = ((body && body.dataset.paymentMethod) || "").toLowerCase();
 
     if (!form || !submitBtn) {
@@ -46,22 +45,13 @@
     }
 
     function setFeedback(message, tone) {
-      if (feedbackEl) {
-        feedbackEl.textContent = "";
-        feedbackEl.hidden = true;
-        feedbackEl.classList.remove("error", "success");
-      }
       if (!message) return;
 
       if (typeof window.servitechToast === "function") {
         window.servitechToast(message, { tone: tone || "info" });
         return;
       }
-
-      if (!feedbackEl) return;
-      feedbackEl.hidden = false;
-      feedbackEl.textContent = message;
-      feedbackEl.classList.add(tone === "success" ? "success" : "error");
+      console.warn(message);
     }
 
     function setFieldInvalid(el, invalid) {
@@ -99,8 +89,6 @@
       }
 
       submitBtn.disabled = true;
-      submitBtn.dataset.originalLabel = submitBtn.dataset.originalLabel || submitBtn.textContent;
-      submitBtn.textContent = "Submitting Payment...";
       submitBtn.setAttribute("aria-busy", "true");
       if (typeof window.servitechToastForNavigation === "function") {
         window.servitechToastForNavigation("Submitting your payment details...", { tone: "info" });

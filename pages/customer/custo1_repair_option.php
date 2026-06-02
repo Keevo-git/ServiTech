@@ -75,7 +75,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       </div>
     </div>
 
-    <p id="formFeedback" class="form-feedback" role="alert" aria-live="polite" hidden></p>
 
     <div class="form-actions">
       <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
@@ -88,7 +87,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260524-queue-fix"></script>
+<script src="/assets/js/main.js?v=20260602-toast-only"></script>
 
 </body>
 </html>

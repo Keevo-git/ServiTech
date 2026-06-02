@@ -23,7 +23,6 @@
     var fileListEl = document.getElementById("fileAnalysisList");
     var fileMetaEl = document.getElementById("fileAnalysisMeta");
     var fileUploadStatus = document.getElementById("fileUploadStatus");
-    var feedbackEl = document.getElementById("formFeedback");
 
     if (!fileUpload || !fileListEl || !fileMetaEl) return;
 
@@ -56,22 +55,13 @@
     }
 
     function setFeedback(message, tone) {
-      if (feedbackEl) {
-        feedbackEl.textContent = "";
-        feedbackEl.hidden = true;
-        feedbackEl.classList.remove("error", "success");
-      }
       if (!message) return;
 
       if (typeof window.servitechToast === "function") {
         window.servitechToast(message, { tone: tone || "info" });
         return;
       }
-
-      if (!feedbackEl) return;
-      feedbackEl.hidden = false;
-      feedbackEl.textContent = message;
-      feedbackEl.classList.add(tone === "success" ? "success" : "error");
+      console.warn(message);
     }
 
     function syncFileInput() {

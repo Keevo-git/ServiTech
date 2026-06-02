@@ -43,7 +43,6 @@
     var fileUpload = document.getElementById("fileUpload");
     var fileListEl = document.getElementById("fileAnalysisList");
     var fileMetaEl = document.getElementById("fileAnalysisMeta");
-    var feedbackEl = document.getElementById("formFeedback");
     var fileUploadStatus = document.getElementById("fileUploadStatus");
     var qtyInput = document.getElementById("qtyInput");
     var paperSizeSelect = document.getElementById("paperSizeSelect");
@@ -189,22 +188,13 @@
     }
 
     function setFeedback(message, tone) {
-      if (feedbackEl) {
-        feedbackEl.textContent = "";
-        feedbackEl.hidden = true;
-        feedbackEl.classList.remove("error", "success");
-      }
       if (!message) return;
 
       if (typeof window.servitechToast === "function") {
         window.servitechToast(message, { tone: tone || "info" });
         return;
       }
-
-      if (!feedbackEl) return;
-      feedbackEl.hidden = false;
-      feedbackEl.textContent = message;
-      feedbackEl.classList.add(tone === "success" ? "success" : "error");
+      console.warn(message);
     }
 
     function setFieldInvalid(el, invalid) {
@@ -228,17 +218,14 @@
       setFeedback("", "error");
     }
 
-    function setProcessingState(processing, label) {
+    function setProcessingState(processing) {
       isSubmitting = processing;
       joinQueueBtn.disabled = !!processing;
       if (processing) {
-        joinQueueBtn.dataset.originalLabel = joinQueueBtn.dataset.originalLabel || joinQueueBtn.textContent;
-        joinQueueBtn.textContent = label || "Processing...";
         joinQueueBtn.setAttribute("aria-busy", "true");
         return;
       }
 
-      joinQueueBtn.textContent = joinQueueBtn.dataset.originalLabel || "Join Queue";
       joinQueueBtn.removeAttribute("aria-busy");
     }
 
@@ -996,7 +983,7 @@
       }
 
       var usesGcashPaymentPage = payload.order_type === "online" && payload.payment_method === "gcash";
-      setProcessingState(true, usesGcashPaymentPage ? "Preparing Payment..." : "Joining Queue...");
+      setProcessingState(true);
       setFeedback(usesGcashPaymentPage ? "Preparing payment..." : "Submitting your queue request...", "info");
 
       try {

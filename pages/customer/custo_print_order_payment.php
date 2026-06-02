@@ -457,10 +457,6 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
       padding: 0.9rem 1rem;
     }
 
-    .printing-page .form-feedback {
-      margin: 0;
-    }
-
     .printing-page .form-actions {
       display: flex;
       flex-wrap: wrap;
@@ -612,7 +608,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     }
   </style>
 </head>
-<body class="customer-layout customer-page--print-order printing-page" data-payment-method="<?= esc_print_order($paymentMethod) ?>" data-confirmed-queue="<?= esc_print_order($isConfirmed ? ($queue ?: "") : "") ?>" data-queue-home-url="/pages/customer/customer_dash.php" data-queue-status-url="/pages/customer/custo_service_status.php">
+<body class="customer-layout customer-page--print-order printing-page" data-payment-method="<?= esc_print_order($paymentMethod) ?>" data-confirmed-queue="<?= esc_print_order($isConfirmed ? ($queue ?: "") : "") ?>" data-flash-error="<?= esc_print_order($flashError) ?>" data-queue-home-url="/pages/customer/customer_dash.php" data-queue-status-url="/pages/customer/custo_service_status.php">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -693,12 +689,6 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
             </div>
           </div>
 
-          <?php if ($flashError !== ""): ?>
-            <p id="printPaymentFeedback" class="form-feedback error" role="alert" hidden><?= esc_print_order($flashError) ?></p>
-          <?php else: ?>
-            <p id="printPaymentFeedback" class="form-feedback" role="alert" aria-live="polite" hidden></p>
-          <?php endif; ?>
-
           <div class="print-payment-payment-box">
             <?php if ($paymentMethod === "gcash"): ?>
               <p class="print-payment-qr-heading">Scan GCash QR:</p>
@@ -734,7 +724,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
 <?php endif; ?>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
-<script src="/assets/js/custo_print_order_payment.js?v=20260406b2"></script>
+<script src="/assets/js/custo_print_order_payment.js?v=20260602-toast-only"></script>
 </body>
 </html>
 

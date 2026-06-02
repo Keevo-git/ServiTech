@@ -1009,7 +1009,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalQueueNo = document.getElementById("modalQueueNo");
   const goHomeBtn = document.getElementById("goHomeBtn");
   const viewQueueBtn = document.getElementById("viewQueueBtn");
-  const feedbackEl = document.getElementById("formFeedback");
 
   if (!joinBtn || !queueModal || !modalQueueNo) return;
 
@@ -1044,25 +1043,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setFeedback(message, tone) {
-    if (feedbackEl) {
-      feedbackEl.textContent = "";
-      feedbackEl.hidden = true;
-      feedbackEl.classList.remove("error", "success");
-    }
     if (!message) return;
 
     if (typeof window.servitechToast === "function") {
       window.servitechToast(message, { tone: tone || "info" });
       return;
     }
-
-    if (!feedbackEl) {
-      alert(message);
-      return;
-    }
-    feedbackEl.hidden = false;
-    feedbackEl.textContent = message;
-    feedbackEl.classList.add(tone === "success" ? "success" : "error");
+    console.warn(message);
   }
 
   function clearValidationState() {
@@ -1321,9 +1308,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const originalLabel = joinBtn.textContent;
     joinBtn.disabled = true;
-    joinBtn.textContent = "Joining Queue...";
     joinBtn.setAttribute("aria-busy", "true");
     setFeedback("Submitting your queue request...", "info");
 
@@ -1359,7 +1344,6 @@ document.addEventListener("DOMContentLoaded", () => {
       setFeedback("Network/server error. Please try again.", "error");
     } finally {
       joinBtn.disabled = false;
-      joinBtn.textContent = originalLabel;
       joinBtn.removeAttribute("aria-busy");
     }
   });
