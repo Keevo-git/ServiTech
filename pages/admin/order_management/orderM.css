@@ -53,7 +53,11 @@ body.admin-dashboard .page-frame {
   margin-bottom: 18px;
   border: 1px solid #d7e0eb;
   box-shadow: 0 10px 24px rgba(19, 45, 75, 0.08);
-  overflow: hidden;
+  overflow: visible;
+}
+
+.admin-container > .page-frame {
+  overflow: visible;
 }
 
 .panel-heading {
@@ -138,6 +142,8 @@ body.admin-dashboard .page-frame {
 }
 
 .order-filter-toolbar {
+  position: relative;
+  z-index: 100;
   margin: 0 0 12px;
   padding: 14px;
   border: 1px solid #dce5f0;
@@ -226,10 +232,13 @@ body.admin-dashboard .page-frame {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  z-index: 30;
+  z-index: 1000;
   display: grid;
   width: max-content;
   min-width: 100%;
+  max-width: calc(100vw - 32px);
+  max-height: min(320px, 60vh);
+  overflow-y: auto;
   gap: 2px;
   padding: 8px;
   border: 1px solid #cbd8e8;
