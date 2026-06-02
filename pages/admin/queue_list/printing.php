@@ -205,7 +205,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
     cancel: "Order cancelled successfully."
   };
   function sendAction(id, action, notes = ""){
-    return fetch(<?= json_encode(admin_url_raw("/pages/admin/_includes/admin_actions.php")) ?>, {
+    return fetch(<?= json_encode(admin_url_raw("/pages/admin/queue_update_status.php")) ?>, {
       method: "POST",
       headers: {"Content-Type": "application/x-www-form-urlencoded", "X-CSRF-Token": csrf()},
       body: "id=" + encodeURIComponent(id) + "&action=" + encodeURIComponent(action) + "&notes=" + encodeURIComponent(notes)

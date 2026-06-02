@@ -7,7 +7,7 @@
   aria-modal="true"
   aria-labelledby="queueDetailsTitle"
   aria-hidden="true"
-  data-action-update-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/_includes/admin_actions.php'), ENT_QUOTES, 'UTF-8') ?>"
+  data-action-update-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>"
 >
   <div class="queue-details-head">
     <div>
