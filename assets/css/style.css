@@ -4434,6 +4434,42 @@ body.auth-page--register .form-section--consent .consent-card {
   border-radius: 14px;
 }
 
+body.auth-page--register .agreement-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+body.auth-page--register .agreement-checkbox__input[type="checkbox"] {
+  display: inline-block !important;
+  position: static !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  margin: 3px 0 0 !important;
+  padding: 0 !important;
+  border: initial !important;
+  border-radius: initial !important;
+  background: initial !important;
+  box-shadow: none;
+  opacity: 1 !important;
+  visibility: visible !important;
+  flex: 0 0 20px !important;
+  appearance: auto !important;
+  -webkit-appearance: checkbox !important;
+  accent-color: #4A0505;
+  cursor: pointer;
+}
+
+body.auth-page--register .agreement-checkbox__input[type="checkbox"]:focus-visible {
+  outline: 2px solid #ff8b2c;
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
 @media (max-width: 768px) {
   body.auth-page--register .auth-shell {
     padding: 24px 14px 42px;
