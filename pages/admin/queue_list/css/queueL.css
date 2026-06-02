@@ -1073,10 +1073,6 @@ td.actions button.btn-message:hover {
   display: none;
 }
 
-.queue-payment-update {
-  margin-top: 14px;
-}
-
 .queue-details-select:focus {
   border-color: #8fb0da;
   box-shadow: 0 0 0 3px rgba(33, 79, 145, 0.12);

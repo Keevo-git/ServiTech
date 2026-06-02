@@ -15,9 +15,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const paidPendingEl = document.getElementById("queueDetailsPaidPending");
   const paymentHelpEl = document.getElementById("queueDetailsPaymentHelp");
   const paymentErrorEl = document.getElementById("queueDetailsPaymentError");
-  const paymentUpdateBtn = document.getElementById("queueDetailsPaymentUpdate");
   let currentStatus = "PENDING";
   let currentQueue = null;
+  let initialPayment = { price: "0.00", paidAmount: "0.00" };
   let transitionButtons = new Map();
   const actionStatuses = {
     approved: "APPROVED",
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function syncStatusUpdateButton() {
     if (!statusEl || !updateBtn) return;
-    updateBtn.disabled = statusEl.disabled || statusEl.value === currentStatus;
+    updateBtn.disabled = statusEl.value === currentStatus && !paymentChanged();
   }
 
   function csrf() {
@@ -77,6 +77,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function money(value) {
     return `PHP ${amount(value).toFixed(2)}`;
+  }
+
+  function paymentChanged() {
+    return priceEl?.value !== initialPayment.price || paidAmountEl?.value !== initialPayment.paidAmount;
   }
 
   function showPaymentError(message = "") {
@@ -105,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const isValid = paidAmount <= price;
     showPaymentError(isValid ? "" : "Paid amount cannot exceed the price.");
     paidPendingEl.textContent = money(normalizedStatus === "CANCELLED" ? 0 : Math.max(0, price - paidAmount));
-    if (paymentUpdateBtn) paymentUpdateBtn.disabled = !isValid;
+    syncStatusUpdateButton();
     return isValid;
   }
 
@@ -113,10 +117,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!priceEl || !paidAmountEl) return;
     priceEl.value = amount(queue.price).toFixed(2);
     paidAmountEl.value = amount(queue.paidAmount).toFixed(2);
+    initialPayment = { price: priceEl.value, paidAmount: paidAmountEl.value };
     syncPaymentPreview(queue.status);
   }
 
-  async function savePayment(reloadOnSuccess = false) {
+  async function savePayment() {
     if (!currentQueue?.id || !priceEl || !paidAmountEl || !paymentSection) return false;
     if (!syncPaymentPreview()) return false;
 
@@ -148,7 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
     currentQueue.paidAmount = out.paid_amount;
     currentQueue.paidPending = out.paid_pending;
     populatePayment(currentQueue);
-    if (reloadOnSuccess) location.reload();
     return true;
   }
 
@@ -239,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (statusHelpEl) {
       statusHelpEl.textContent = allowedStatuses.length
-        ? "Select the next valid status, then click Update Status."
+        ? "Select the next valid status, then click Update."
         : "This queue has no further status updates.";
     }
     syncStatusUpdateButton();
@@ -317,11 +321,14 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   priceEl?.addEventListener("input", () => syncPaymentPreview());
   paidAmountEl?.addEventListener("input", () => syncPaymentPreview());
-  paymentUpdateBtn?.addEventListener("click", () => savePayment(true));
   updateBtn?.addEventListener("click", async () => {
     if (!await savePayment()) return;
     const transitionButton = transitionButtons.get(statusEl?.value || "");
-    transitionButton?.click();
+    if (transitionButton) {
+      transitionButton.click();
+      return;
+    }
+    location.reload();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && modal?.classList.contains("active")) closeDetails();

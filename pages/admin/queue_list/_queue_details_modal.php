@@ -35,7 +35,6 @@
       </div>
       <p class="queue-payment-help" id="queueDetailsPaymentHelp"></p>
       <p class="queue-payment-error" id="queueDetailsPaymentError" role="alert"></p>
-      <button class="queue-details-action queue-details-action--primary queue-payment-update" type="button" id="queueDetailsPaymentUpdate">Update Payment</button>
     </section>
 
     <section class="queue-status-section" aria-labelledby="queueDetailsStatusTitle">
