@@ -719,12 +719,10 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
     </div>
 </section>
 
-<?php if ($isConfirmed): ?>
-  <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
-<?php endif; ?>
+<?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
-<script src="/assets/js/custo_print_order_payment.js?v=20260602-toast-only"></script>
+<script src="/assets/js/custo_print_order_payment.js?v=20260602-modal-overlay"></script>
 </body>
 </html>
 

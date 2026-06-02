@@ -9,29 +9,35 @@
     var goHomeBtn = document.getElementById("goHomeBtn");
     var viewQueueBtn = document.getElementById("viewQueueBtn");
 
-    if (confirmedQueue && queueModal && modalQueueNo) {
+    function openCompletionModal(queueCode) {
+      if (!queueCode || !queueModal || !modalQueueNo) return;
+
       if (typeof window.openQueueSuccessModal === "function") {
-        window.openQueueSuccessModal(confirmedQueue, {
+        window.openQueueSuccessModal(queueCode, {
           service: "Online Document Printing",
           note: "Your payment details were submitted. You can check your queue status while the shop reviews your order."
         });
       } else {
-        modalQueueNo.textContent = confirmedQueue;
+        modalQueueNo.textContent = queueCode;
         queueModal.style.display = "flex";
         document.body.classList.add("modal-open");
       }
+    }
 
-      if (goHomeBtn) {
-        goHomeBtn.addEventListener("click", function () {
-          window.location.href = queueHomeUrl;
-        });
-      }
+    if (confirmedQueue) {
+      openCompletionModal(confirmedQueue);
+    }
 
-      if (viewQueueBtn) {
-        viewQueueBtn.addEventListener("click", function () {
-          window.location.href = queueStatusUrl;
-        });
-      }
+    if (goHomeBtn) {
+      goHomeBtn.addEventListener("click", function () {
+        window.location.href = queueHomeUrl;
+      });
+    }
+
+    if (viewQueueBtn) {
+      viewQueueBtn.addEventListener("click", function () {
+        window.location.href = queueStatusUrl;
+      });
     }
 
     var form = document.getElementById("printOrderPaymentForm");
@@ -63,9 +69,9 @@
       setFeedback(initialFeedback, "error");
     }
 
-    form.addEventListener("submit", function (event) {
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
       if (submitBtn.disabled) {
-        event.preventDefault();
         return;
       }
 
@@ -75,13 +81,11 @@
       if (paymentMethod === "gcash") {
         var referenceNumber = referenceInput ? referenceInput.value.trim() : "";
         if (referenceNumber === "") {
-          event.preventDefault();
           setFieldInvalid(referenceInput, true);
           setFeedback("Reference number is required for GCash payments.", "error");
           return;
         }
         if (!/^\d{13}$/.test(referenceNumber)) {
-          event.preventDefault();
           setFieldInvalid(referenceInput, true);
           setFeedback("GCash reference number must be exactly 13 digits.", "error");
           return;
@@ -90,10 +94,45 @@
 
       submitBtn.disabled = true;
       submitBtn.setAttribute("aria-busy", "true");
-      if (typeof window.servitechToastForNavigation === "function") {
-        window.servitechToastForNavigation("Submitting your payment details...", { tone: "info" });
-      } else {
-        setFeedback("Submitting your payment details...", "info");
+      var submittingToastId = null;
+      if (typeof window.servitechToast === "function") {
+        submittingToastId = window.servitechToast("Submitting your payment details...", { tone: "info" });
+      }
+
+      try {
+        var response = await fetch(form.action, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          body: new FormData(form)
+        });
+        var raw = await response.text();
+        var data;
+        try {
+          data = JSON.parse(raw);
+        } catch (error) {
+          data = { ok: false, error: "Server returned an invalid response." };
+        }
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || "Unable to submit your payment details.");
+        }
+
+        if (submittingToastId && typeof window.servitechDismissToast === "function") {
+          window.servitechDismissToast(submittingToastId);
+          submittingToastId = null;
+        }
+        openCompletionModal(data.queue_code);
+      } catch (error) {
+        if (submittingToastId && typeof window.servitechDismissToast === "function") {
+          window.servitechDismissToast(submittingToastId);
+        }
+        submitBtn.disabled = false;
+        submitBtn.removeAttribute("aria-busy");
+        setFeedback(error.message || "Unable to submit your payment details.", "error");
       }
     });
   });

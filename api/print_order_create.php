@@ -8,9 +8,27 @@ require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
 require_once __DIR__ . "/upload_helpers.php";
 
-servitech_enforce_csrf_token(false);
+function print_order_wants_json(): bool {
+  $accept = strtolower((string)($_SERVER["HTTP_ACCEPT"] ?? ""));
+  $requestedWith = strtolower((string)($_SERVER["HTTP_X_REQUESTED_WITH"] ?? ""));
+  return strpos($accept, "application/json") !== false || $requestedWith === "xmlhttprequest";
+}
 
-function print_order_redirect(string $message = ""): void {
+function print_order_json_response(array $payload, int $status = 200): void {
+  http_response_code($status);
+  header("Content-Type: application/json; charset=utf-8");
+  echo json_encode($payload);
+  exit();
+}
+
+function print_order_fail(string $message = "", int $status = 422): void {
+  if (print_order_wants_json()) {
+    print_order_json_response([
+      "ok" => false,
+      "error" => $message !== "" ? $message : "Unable to place your print order.",
+    ], $status);
+  }
+
   if ($message !== "") {
     $_SESSION["print_order_flash_error"] = $message;
   }
@@ -18,19 +36,24 @@ function print_order_redirect(string $message = ""): void {
   exit();
 }
 
+servitech_enforce_csrf_token(print_order_wants_json());
+
 $user_id = (int)($_SESSION["user_id"] ?? 0);
 if ($user_id <= 0) {
+  if (print_order_wants_json()) {
+    print_order_json_response(["ok" => false, "error" => "Not logged in"], 401);
+  }
   header("Location: " . servitech_url("/auth/log_in.php"));
   exit();
 }
 
 if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
-  print_order_redirect();
+  print_order_fail("Invalid request method.", 405);
 }
 
 $draft = $_SESSION["print_order_draft"] ?? null;
 if (!is_array($draft) || empty($draft)) {
-  print_order_redirect("Your print order draft has expired. Please start again.");
+  print_order_fail("Your print order draft has expired. Please start again.");
 }
 
 $paper_size = trim((string)($draft["paper_size"] ?? ""));
@@ -68,7 +91,7 @@ if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d
 }
 
 if ($errors) {
-  print_order_redirect(implode(" ", $errors));
+  print_order_fail(implode(" ", $errors));
 }
 
 $details = [
@@ -166,17 +189,25 @@ try {
   ];
   unset($_SESSION["print_order_draft"], $_SESSION["print_order_flash_error"], $_SESSION["print_order_form"]);
 
+  if (print_order_wants_json()) {
+    print_order_json_response([
+      "ok" => true,
+      "queue_code" => $queue_code,
+      "queue_id" => $queue_id,
+    ]);
+  }
+
   header("Location: /pages/customer/custo_print_order_payment.php?queue=" . urlencode($queue_code));
   exit();
 } catch (DomainException $e) {
   if ($pdo->inTransaction()) {
     $pdo->rollBack();
   }
-  print_order_redirect($e->getMessage());
+  print_order_fail($e->getMessage());
 } catch (Throwable $e) {
   if ($pdo->inTransaction()) {
     $pdo->rollBack();
   }
   error_log("print_order_create error: " . $e->getMessage());
-  print_order_redirect("Unable to place your print order right now. Please try again.");
+  print_order_fail("Unable to place your print order right now. Please try again.", 500);
 }
