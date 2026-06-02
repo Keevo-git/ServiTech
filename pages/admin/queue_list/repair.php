@@ -138,6 +138,13 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 <script>
 (function(){
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
+  const actionMessages = {
+    approved: "Status updated to Approved.",
+    ongoing: "Status updated to Ongoing.",
+    pickup: "Status updated to For Pick-up.",
+    done: "Status updated to Done.",
+    cancel: "Order cancelled successfully."
+  };
   function sendAction(id, action, notes = ""){
     return fetch(<?= json_encode(admin_url_raw("/pages/admin/_includes/admin_actions.php")) ?>, {
       method: "POST",
@@ -151,15 +158,23 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
     let notes = "";
     if (action === "cancel") {
       if (typeof window.servitechRequestCancellationReason !== "function") {
-        alert("Cancellation dialog is unavailable. Refresh the page and try again.");
+        window.servitechAdminToast?.error("Cancellation dialog is unavailable. Refresh the page and try again.");
         return;
       }
       notes = await window.servitechRequestCancellationReason();
       if (!notes) return;
     }
-    const data = await sendAction(id, action, notes);
-    if (data.ok) location.reload();
-    else alert(data.error || "Action failed");
+    try {
+      const data = await sendAction(id, action, notes);
+      if (!data.ok) {
+        window.servitechAdminToast?.error(data.error || "Action failed.");
+        return;
+      }
+      window.servitechAdminToast?.persist(actionMessages[action] || "Order status updated successfully.");
+      location.reload();
+    } catch (error) {
+      window.servitechAdminToast?.error("Unable to update the order status.");
+    }
   }
 
   document.querySelectorAll("[data-action]").forEach(btn => btn.addEventListener("click", () => doAction(btn, btn.dataset.action)));

@@ -21,6 +21,7 @@ try {
       WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
     )
       AND is_read = FALSE
+      AND deleted_at IS NULL
   ");
   $stmt->execute();
 

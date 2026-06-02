@@ -10,6 +10,8 @@ $adminNotificationCount = isset($adminNotificationCount)
 $adminHeaderShowHome = $adminHeaderVariant !== "dashboard";
 $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"], true);
 ?>
+<link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260602-admin-toast') ?>">
+<script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
 <header class="navbar has-nav-menu">
   <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
     <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">

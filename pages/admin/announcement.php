@@ -330,11 +330,15 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
       <span>Publish a short message customers will see at the top of the landing page.</span>
     </section>
 
-    <?php if ($notice !== ""): ?>
-      <div class="announcement-alert announcement-alert--success"><?= ann_h($notice) ?></div>
-    <?php endif; ?>
-    <?php if ($error !== ""): ?>
-      <div class="announcement-alert announcement-alert--error"><?= ann_h($error) ?></div>
+    <?php if ($notice !== "" || $error !== ""): ?>
+      <script>
+        <?php if ($notice !== ""): ?>
+          window.servitechAdminToast?.success(<?= json_encode($notice) ?>);
+        <?php endif; ?>
+        <?php if ($error !== ""): ?>
+          window.servitechAdminToast?.error(<?= json_encode($error) ?>);
+        <?php endif; ?>
+      </script>
     <?php endif; ?>
 
     <section class="announcement-grid">

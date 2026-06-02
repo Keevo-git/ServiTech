@@ -22,7 +22,11 @@
   const fPriceHint = qs("#ms_price_hint");
   const fDescriptionHint = qs("#ms_description_hint");
 
-  function showErr(msg){ errBox.textContent = msg; errBox.style.display="block"; }
+  function showErr(msg){
+    errBox.textContent = msg;
+    errBox.style.display="block";
+    window.servitechAdminToast?.error(msg);
+  }
   function hideErr(){ errBox.textContent=""; errBox.style.display="none"; }
 
   function isDocumentPrintingService(category, name) {
@@ -594,15 +598,22 @@
       fd.append("action","delete");
       fd.append("id", id);
 
-      const res = await fetch(msApiUrl, {
-        method:"POST",
-        body:fd,
-        credentials:"same-origin",
-        headers: {"X-CSRF-Token": csrf()}
-      });
-      const txt = await res.text();
-      let out; try{ out = JSON.parse(txt); }catch(e){ alert("Non-JSON: "+txt); return; }
-      if(!out.ok){ alert(out.error || "Delete failed"); return; }
+      let txt;
+      try {
+        const res = await fetch(msApiUrl, {
+          method:"POST",
+          body:fd,
+          credentials:"same-origin",
+          headers: {"X-CSRF-Token": csrf()}
+        });
+        txt = await res.text();
+      } catch (e) {
+        window.servitechAdminToast?.error("Unable to delete the service.");
+        return;
+      }
+      let out; try{ out = JSON.parse(txt); }catch(e){ window.servitechAdminToast?.error("Server returned an invalid response."); return; }
+      if(!out.ok){ window.servitechAdminToast?.error(out.error || "Delete failed"); return; }
+      window.servitechAdminToast?.persist("Service deleted successfully.");
       location.reload();
     });
   });
@@ -754,15 +765,22 @@
     fd.append("active", fActive.value);
     fd.append("sort_order", fSort.value);
 
-    const res = await fetch(msApiUrl, {
-      method:"POST",
-      body:fd,
-      credentials:"same-origin",
-      headers: {"X-CSRF-Token": csrf()}
-    });
-    const txt = await res.text();
+    let txt;
+    try {
+      const res = await fetch(msApiUrl, {
+        method:"POST",
+        body:fd,
+        credentials:"same-origin",
+        headers: {"X-CSRF-Token": csrf()}
+      });
+      txt = await res.text();
+    } catch (e) {
+      showErr("Unable to save the service.");
+      return;
+    }
     let out; try{ out = JSON.parse(txt); }catch(e){ showErr("Server returned non-JSON: "+txt); return; }
     if(!out.ok){ showErr(out.error || "Save failed"); return; }
+    window.servitechAdminToast?.persist(fId.value ? "Service updated successfully." : "Service added successfully.");
     location.reload();
   });
 })();

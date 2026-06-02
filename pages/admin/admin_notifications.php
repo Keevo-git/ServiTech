@@ -16,6 +16,7 @@ $countStmt = $pdo->query("
   SELECT COUNT(*)
   FROM notifications
   WHERE user_id IN (SELECT id FROM users WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin')
+    AND deleted_at IS NULL
 ");
 $totalCount = (int)$countStmt->fetchColumn();
 $totalPages = ceil($totalCount / $perPage);
@@ -25,6 +26,7 @@ $stmt = $pdo->prepare("
   SELECT id, type, reference_id, message, is_read, created_at
   FROM notifications
   WHERE user_id IN (SELECT id FROM users WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin')
+    AND deleted_at IS NULL
   ORDER BY is_read ASC, created_at DESC
   LIMIT ? OFFSET ?
 ");
@@ -283,6 +285,11 @@ function toggleSelectAll(checkbox) {
   });
 }
 
+function reloadWithToast(message) {
+  window.servitechAdminToast?.persist(message);
+  location.reload();
+}
+
 function deleteNotification(id) {
   if (confirm('Delete this notification?')) {
     fetch('<?= admin_url('/pages/admin/_includes/admin_notification_delete.php') ?>', {
@@ -293,16 +300,16 @@ function deleteNotification(id) {
       },
       body: 'id=' + encodeURIComponent(id)
     }).then(r => r.json()).then(data => {
-      if (data.ok) location.reload();
-      else alert(data.error || 'Failed to delete');
-    });
+      if (data.ok) reloadWithToast('Notification deleted successfully.');
+      else window.servitechAdminToast?.error(data.error || 'Failed to delete the notification.');
+    }).catch(() => window.servitechAdminToast?.error('Unable to delete the notification.'));
   }
 }
 
 function deleteSelected() {
   const selected = Array.from(document.querySelectorAll('.notif-select:checked')).map(cb => cb.dataset.id);
   if (selected.length === 0) {
-    alert('Please select notifications to delete');
+    window.servitechAdminToast?.warning('Please select notifications to delete.');
     return;
   }
   if (confirm('Delete ' + selected.length + ' notification(s)?')) {
@@ -314,9 +321,9 @@ function deleteSelected() {
       },
       body: 'ids=' + encodeURIComponent(JSON.stringify(selected))
     }).then(r => r.json()).then(data => {
-      if (data.ok) location.reload();
-      else alert(data.error || 'Failed to delete');
-    });
+      if (data.ok) reloadWithToast('Selected notifications deleted successfully.');
+      else window.servitechAdminToast?.error(data.error || 'Failed to delete the selected notifications.');
+    }).catch(() => window.servitechAdminToast?.error('Unable to delete the selected notifications.'));
   }
 }
 
@@ -329,9 +336,9 @@ function markAllAsRead() {
     },
     body: 'mark_all=1'
   }).then(r => r.json()).then(data => {
-    if (data.ok) location.reload();
-    else alert(data.error || 'Failed to mark as read');
-  });
+    if (data.ok) reloadWithToast('Notifications marked as read.');
+    else window.servitechAdminToast?.error(data.error || 'Failed to mark notifications as read.');
+  }).catch(() => window.servitechAdminToast?.error('Unable to mark notifications as read.'));
 }
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>

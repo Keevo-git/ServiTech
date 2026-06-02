@@ -50,6 +50,13 @@ document.addEventListener("DOMContentLoaded", function () {
     DONE: "done",
     CANCELLED: "cancel",
   };
+  const actionMessages = {
+    approved: "Status updated to Approved.",
+    ongoing: "Status updated to Ongoing.",
+    pickup: "Status updated to For Pick-up.",
+    done: "Status updated to Done.",
+    cancel: "Order cancelled successfully.",
+  };
   const statusLabels = {
     PENDING: "Pending",
     APPROVED: "Approved",
@@ -75,10 +82,12 @@ document.addEventListener("DOMContentLoaded", function () {
       .replaceAll("'", "&#039;");
   }
 
-  function showError(message) {
-    if (!errorEl) return;
-    errorEl.textContent = message;
-    errorEl.style.display = "block";
+  function showError(message, notify = true) {
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = "block";
+    }
+    if (notify) window.servitechAdminToast?.error(message);
   }
 
   function clearError() {
@@ -120,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const isValid = paidAmount <= price;
-    if (!isValid) showError("Paid amount cannot exceed the price.");
+    if (!isValid) showError("Paid amount cannot exceed the price.", false);
     paidPendingEl.textContent = money(normalizedStatus === "CANCELLED" ? 0 : Math.max(0, price - paidAmount));
     return isValid;
   }
@@ -319,7 +328,10 @@ document.addEventListener("DOMContentLoaded", function () {
   async function savePayment() {
     if (!currentOrder?.id || !priceEl || !paidAmountEl || !paymentSection) return false;
     clearError();
-    if (!syncPaymentPreview()) return false;
+    if (!syncPaymentPreview()) {
+      window.servitechAdminToast?.warning("Paid amount cannot exceed the price.");
+      return false;
+    }
 
     const fd = new FormData();
     fd.append("id", currentOrder.id);
@@ -374,7 +386,16 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const out = await postAction(currentOrder.id, "cancel", notes);
+    let out;
+    try {
+      out = await postAction(currentOrder.id, "cancel", notes);
+    } catch (error) {
+      statusEl.value = previousStatusSelection;
+      updateSaveButton();
+      showError("Unable to cancel the order.");
+      cancellationInProgress = false;
+      return;
+    }
     if (!out.ok) {
       statusEl.value = previousStatusSelection;
       updateSaveButton();
@@ -383,6 +404,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    window.servitechAdminToast?.persist(actionMessages.cancel);
     location.reload();
   }
 
@@ -465,16 +487,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (statusEl.value === normalizeStatus(currentOrder.status)) {
+      window.servitechAdminToast?.persist("Payment details saved successfully.");
       location.reload();
       return;
     }
 
-    const out = await postAction(currentOrder.id, action, notes);
+    let out;
+    try {
+      out = await postAction(currentOrder.id, action, notes);
+    } catch (error) {
+      showError("Unable to update the order status.");
+      return;
+    }
     if (!out.ok) {
       showError(out.error || "Failed to update status.");
       return;
     }
 
+    window.servitechAdminToast?.persist(actionMessages[action] || "Order status updated successfully.");
     location.reload();
   });
 

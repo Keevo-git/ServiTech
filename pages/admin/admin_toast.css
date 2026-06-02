@@ -1,0 +1,138 @@
+.admin-toast-stack {
+  display: grid;
+  gap: 12px;
+  max-width: min(390px, calc(100vw - 32px));
+  pointer-events: none;
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: 100%;
+  z-index: 20000;
+}
+
+.admin-toast {
+  align-items: flex-start;
+  animation: admin-toast-in 0.24s ease-out both;
+  background: #ffffff;
+  border: 1px solid #d8e3f0;
+  border-left: 5px solid #2f79c5;
+  border-radius: 12px;
+  box-shadow: 0 16px 34px rgba(15, 39, 70, 0.2);
+  color: #112338;
+  display: grid;
+  gap: 11px;
+  grid-template-columns: 30px minmax(0, 1fr) 30px;
+  overflow: hidden;
+  padding: 14px 12px 14px 14px;
+  pointer-events: auto;
+}
+
+.admin-toast.is-leaving {
+  animation: admin-toast-out 0.22s ease-in both;
+}
+
+.admin-toast--success { border-left-color: #12806a; }
+.admin-toast--error { border-left-color: #b42335; }
+.admin-toast--warning { border-left-color: #d98218; }
+.admin-toast--info { border-left-color: #2f79c5; }
+
+.admin-toast__icon {
+  align-items: center;
+  background: #eaf2fc;
+  border-radius: 50%;
+  color: #1b4f91;
+  display: inline-flex;
+  font-size: 16px;
+  font-weight: 900;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  width: 28px;
+}
+
+.admin-toast--success .admin-toast__icon {
+  background: #e1f5ef;
+  color: #0f766e;
+}
+
+.admin-toast--error .admin-toast__icon {
+  background: #fee7e7;
+  color: #a61b2b;
+}
+
+.admin-toast--warning .admin-toast__icon {
+  background: #fff1d6;
+  color: #a85d08;
+}
+
+.admin-toast__message {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  padding-top: 3px;
+}
+
+.admin-toast__close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: #58708c;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 23px;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  padding: 0 0 2px;
+  transition: background 0.18s ease, color 0.18s ease;
+  width: 28px;
+}
+
+.admin-toast__close:hover,
+.admin-toast__close:focus-visible {
+  background: #edf3fb;
+  color: #17365f;
+  outline: none;
+}
+
+@keyframes admin-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes admin-toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-toast-stack {
+    left: 16px;
+    max-width: none;
+    right: 16px;
+    top: 16px;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-toast,
+  .admin-toast.is-leaving {
+    animation-duration: 0.01ms;
+  }
+}

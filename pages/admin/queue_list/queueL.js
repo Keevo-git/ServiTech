@@ -123,7 +123,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function savePayment() {
     if (!currentQueue?.id || !priceEl || !paidAmountEl || !paymentSection) return false;
-    if (!syncPaymentPreview()) return false;
+    if (!syncPaymentPreview()) {
+      window.servitechAdminToast?.warning("Paid amount cannot exceed the price.");
+      return false;
+    }
 
     const fd = new FormData();
     fd.append("id", currentQueue.id);
@@ -141,11 +144,13 @@ document.addEventListener("DOMContentLoaded", function () {
       out = await response.json();
     } catch (error) {
       showPaymentError("Unable to update payment details.");
+      window.servitechAdminToast?.error("Unable to update payment details.");
       return false;
     }
 
     if (!out.ok) {
       showPaymentError(out.error || "Unable to update payment details.");
+      window.servitechAdminToast?.error(out.error || "Unable to update payment details.");
       return false;
     }
 
@@ -328,6 +333,7 @@ document.addEventListener("DOMContentLoaded", function () {
       transitionButton.click();
       return;
     }
+    window.servitechAdminToast?.persist("Payment details saved successfully.");
     location.reload();
   });
   document.addEventListener("keydown", (event) => {

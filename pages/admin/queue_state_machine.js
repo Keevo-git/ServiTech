@@ -127,6 +127,7 @@
       const error = document.getElementById("queueCancellationError");
       if (!reason) {
         if (error) error.textContent = "Cancellation reason is required.";
+        window.servitechAdminToast?.warning("Cancellation reason is required.");
         return;
       }
       resolveDialog(reason);

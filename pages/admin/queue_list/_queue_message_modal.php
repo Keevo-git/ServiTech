@@ -117,10 +117,12 @@
 
     if (!queueId) {
       setStatus("Queue entry is missing.", "error");
+      window.servitechAdminToast?.error("Queue entry is missing.");
       return;
     }
     if (!message) {
       setStatus("Please enter a message before sending.", "error");
+      window.servitechAdminToast?.warning("Please enter a message before sending.");
       return;
     }
 
@@ -148,8 +150,13 @@
       }
 
       setStatus(data.warning || data.message || "Queue message sent.", data.warning ? "error" : "success");
+      window.servitechAdminToast?.show(
+        data.warning || data.message || "Queue message sent.",
+        data.warning ? "warning" : "success"
+      );
     } catch (error) {
       setStatus(error.message || "Queue message failed.", "error");
+      window.servitechAdminToast?.error(error.message || "Queue message failed.");
     } finally {
       sendBtn.disabled = false;
       sendBtn.textContent = originalText;
