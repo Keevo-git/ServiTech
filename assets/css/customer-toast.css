@@ -11,7 +11,7 @@
 
 .customer-toast {
   display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) auto;
+  grid-template-columns: 12px minmax(0, 1fr) 34px;
   align-items: start;
   gap: 12px;
   padding: 15px 14px 15px 16px;
@@ -79,25 +79,28 @@
 
 .customer-toast__close {
   display: grid;
-  width: 24px;
-  height: 24px;
-  margin: -5px -4px 0 0;
+  width: 34px;
+  height: 34px;
+  margin: -6px -5px 0 0;
   padding: 0;
   border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: #64748b;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
   cursor: pointer;
   font: inherit;
-  font-size: 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
   line-height: 1;
   place-items: center;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
 .customer-toast__close:hover,
 .customer-toast__close:focus-visible {
-  background: #f1f5f9;
+  background: #e2e8f0;
   color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
   outline: none;
 }
 
