@@ -824,8 +824,8 @@ body.admin-dashboard .page-frame {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 500px;
-  max-width: 90%;
+  width: min(1060px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
   max-height: min(88vh, 820px);
   overflow: hidden;
   background: #fff;
@@ -879,9 +879,28 @@ body.admin-dashboard .page-frame {
 }
 
 .order-modal .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: 70vh;
   padding: 20px 24px 24px;
   overflow-y: auto;
+}
+
+.order-modal-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.order-modal-info,
+.order-modal-admin-panel {
+  min-width: 0;
+}
+
+.order-modal-admin-panel {
+  display: grid;
+  gap: 16px;
 }
 
 .order-modal-summary {
@@ -1066,6 +1085,11 @@ body.admin-dashboard .page-frame {
   background: #f8fbff;
 }
 
+.order-modal-admin-panel > .order-payment-section,
+.order-modal-admin-panel > .order-status-section {
+  margin-bottom: 0;
+}
+
 .order-payment-section h4 {
   margin: 0 0 14px;
   color: #1f2d3d;
@@ -1185,7 +1209,7 @@ body.admin-dashboard .page-frame {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 4px;
 }
 
 .order-modal .om-btn,
@@ -1217,7 +1241,18 @@ body.admin-dashboard .page-frame {
 
 @media (min-width: 1024px) {
   .order-modal {
-    width: 600px;
+    width: min(1060px, calc(100vw - 48px));
+  }
+}
+
+@media (min-width: 860px) {
+  .order-modal-columns {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+    gap: 24px;
+  }
+
+  .order-modal-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1281,8 +1316,8 @@ body.admin-dashboard .page-frame {
 
 @media (max-width: 520px) {
   .order-modal {
-    width: 95%;
-    max-width: 95%;
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
     max-height: 90vh;
   }
 
