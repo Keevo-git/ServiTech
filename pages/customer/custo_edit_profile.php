@@ -1949,6 +1949,175 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         padding-right: 0.9rem;
       }
     }
+
+    @media (max-width: 1024px) {
+      body.customer-page--profile .profile-shell {
+        width: min(100%, 920px);
+        grid-template-columns: minmax(230px, 0.36fr) minmax(0, 1fr);
+      }
+
+      body.customer-page--profile .profile-summary {
+        padding: 1.45rem;
+      }
+    }
+
+    @media (max-width: 880px) {
+      body.customer-page--profile .profile-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.customer-page--profile .profile-summary {
+        position: static;
+      }
+
+      body.customer-page--profile .profile-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      body.customer-page--profile .field-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 760px) {
+      body.customer-page--profile .profile-edit-page {
+        padding-inline: 1rem;
+      }
+
+      body.customer-page--profile .panel-topbar {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.customer-page--profile .back-link {
+        justify-self: stretch;
+        justify-content: center;
+      }
+
+      body.customer-page--profile .password-mini-card {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.customer-page--profile .password-mini-card .btn-secondary {
+        width: 100%;
+      }
+
+      body.customer-page--profile .confirm-modal {
+        width: min(calc(100vw - 1.5rem), 460px);
+        max-height: calc(100dvh - 1.5rem);
+        overflow-y: auto;
+      }
+
+      body.customer-page--profile .confirm-modal__actions,
+      body.customer-page--profile .password-modal__actions {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 560px) {
+      body.customer-page--profile .profile-edit-page {
+        padding: 0.8rem 0.7rem 1.8rem;
+      }
+
+      body.customer-page--profile .profile-summary,
+      body.customer-page--profile .profile-panel {
+        border-radius: 16px;
+      }
+
+      body.customer-page--profile .profile-summary {
+        padding: 1.05rem;
+      }
+
+      body.customer-page--profile .profile-meta {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.customer-page--profile .panel-topbar,
+      body.customer-page--profile .profile-form {
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
+      }
+
+      body.customer-page--profile .panel-topbar h2 {
+        font-size: 1.7rem;
+      }
+
+      body.customer-page--profile .form-section {
+        padding: 0.9rem;
+        border-radius: 14px;
+      }
+
+      body.customer-page--profile .field-heading {
+        gap: 0.55rem;
+      }
+
+      body.customer-page--profile .field-heading label {
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+
+      body.customer-page--profile .field-edit-btn {
+        min-width: 54px;
+        min-height: 36px;
+        padding-inline: 0.65rem;
+      }
+
+      body.customer-page--profile .contact-number-prefix {
+        padding-inline: 0.75rem;
+      }
+
+      body.customer-page--profile .field .contact-number-control input[type="tel"] {
+        padding-inline: 0.75rem;
+      }
+
+      body.customer-page--profile .password-mini-card {
+        padding: 0.9rem;
+      }
+
+      body.customer-page--profile .form-actions {
+        gap: 0.85rem;
+      }
+    }
+
+    @media (max-width: 360px) {
+      body.customer-page--profile .profile-edit-page {
+        padding-inline: 0.55rem;
+      }
+
+      body.customer-page--profile .panel-topbar,
+      body.customer-page--profile .profile-form {
+        padding-left: 0.7rem;
+        padding-right: 0.7rem;
+      }
+
+      body.customer-page--profile .form-section {
+        padding-inline: 0.72rem;
+      }
+
+      body.customer-page--profile .field-heading {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      body.customer-page--profile .contact-number-prefix {
+        padding-inline: 0.62rem;
+        font-size: 0.9rem;
+      }
+
+      body.customer-page--profile .field input,
+      body.customer-page--profile .field .contact-number-control input[type="tel"] {
+        font-size: 0.95rem;
+      }
+
+      body.customer-page--profile .confirm-modal {
+        width: calc(100vw - 1rem);
+        padding: 1rem;
+        border-radius: 16px;
+      }
+
+      body.customer-page--profile .confirm-modal__header {
+        padding-right: 2.35rem;
+      }
+    }
   </style>
 </head>
 <body class="customer-layout customer-page--profile<?php echo ($openConfirmModal || $openPasswordModal) ? " modal-open" : ""; ?>">
