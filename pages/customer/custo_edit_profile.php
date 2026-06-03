@@ -990,30 +990,37 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       min-height: 38px;
       padding: 0.45rem 0.7rem;
       border-radius: 10px;
-      border: 1px solid rgba(74, 5, 5, 0.18);
-      background: #ffffff;
-      color: #4A0505;
+      border: 1px solid rgba(74, 5, 5, 0.22);
+      background: #4A0505;
+      color: #ffffff;
       font-size: 0.8rem;
       font-weight: 800;
       line-height: 1;
       cursor: pointer;
-      box-shadow: 0 6px 14px rgba(74, 5, 5, 0.08);
+      box-shadow: 0 8px 18px rgba(74, 5, 5, 0.18);
       transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
     }
 
     .field-edit-btn:hover,
     .field-edit-btn:focus-visible {
-      border-color: rgba(255, 139, 44, 0.72);
-      background: #fff8ef;
-      box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14), 0 8px 18px rgba(74, 5, 5, 0.1);
+      border-color: #6b1414;
+      background: #6b1414;
+      box-shadow: 0 0 0 4px rgba(74, 5, 5, 0.14), 0 10px 20px rgba(74, 5, 5, 0.18);
       outline: none;
     }
 
     .field-edit-btn.is-active {
-      border-color: rgba(74, 5, 5, 0.22);
-      background: #4A0505;
-      color: #ffffff;
-      box-shadow: 0 8px 18px rgba(74, 5, 5, 0.18);
+      border-color: rgba(74, 5, 5, 0.18);
+      background: #ffffff;
+      color: #4A0505;
+      box-shadow: 0 6px 14px rgba(74, 5, 5, 0.08);
+    }
+
+    .field-edit-btn.is-active:hover,
+    .field-edit-btn.is-active:focus-visible {
+      border-color: rgba(255, 139, 44, 0.72);
+      background: #fff8ef;
+      box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14), 0 8px 18px rgba(74, 5, 5, 0.1);
     }
 
     .contact-number-control {
