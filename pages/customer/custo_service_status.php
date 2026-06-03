@@ -422,10 +422,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       background: transparent;
     }
 
-    body.customer-layout.customer-page--status .status-modal__actions-section {
-      background: rgba(255, 250, 244, 0.72);
-    }
-
     body.customer-layout.customer-page--status .status-current-card {
       align-items: center;
       display: flex;
@@ -790,11 +786,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
               </div>
             </section>
 
-            <section class="status-modal__section status-modal__actions-section" aria-label="Queue detail actions">
-              <div class="status-modal__footer">
-                <button id="modalCloseBtn" class="modal-back" type="button">Close</button>
-              </div>
-            </section>
           </div>
         </div>
       </div>
@@ -841,14 +832,17 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const raw = String(value || "").trim();
     if (!raw) return "Not available";
 
-    const normalized = raw.includes("T") ? raw : raw.replace(" ", "T");
+    const normalized = raw
+      .replace(" ", "T")
+      .replace(/(\.\d{3})\d+/, "$1")
+      .replace(/([+-]\d{2})$/, "$1:00");
     const date = new Date(normalized);
     if (Number.isNaN(date.getTime())) return raw;
 
     return new Intl.DateTimeFormat("en-PH", {
       year: "numeric",
       month: "short",
-      day: "2-digit",
+      day: "numeric",
       hour: "numeric",
       minute: "2-digit"
     }).format(date);
