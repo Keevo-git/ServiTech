@@ -986,24 +986,54 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 34px;
-      padding: 0.45rem 0.8rem;
-      border-radius: 999px;
-      border: 1px solid rgba(122, 47, 0, 0.16);
-      background: #fff3e6;
-      color: #7a2f00;
-      font-size: 0.82rem;
+      min-width: 42px;
+      min-height: 38px;
+      padding: 0.45rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid rgba(74, 5, 5, 0.18);
+      background: #ffffff;
+      color: #4A0505;
+      font-size: 0.8rem;
       font-weight: 800;
+      line-height: 1;
       cursor: pointer;
-      transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 6px 14px rgba(74, 5, 5, 0.08);
+      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .field-edit-btn::before {
+      content: "";
+      display: inline-block;
+      width: 0.58rem;
+      height: 0.58rem;
+      margin-right: 0.35rem;
+      border: 2px solid currentColor;
+      border-radius: 2px;
+      transform: rotate(-12deg);
     }
 
     .field-edit-btn:hover,
-    .field-edit-btn:focus-visible,
-    .field-edit-btn.is-active {
-      background: #ffe5c2;
-      box-shadow: 0 0 0 3px rgba(255, 139, 44, 0.14);
+    .field-edit-btn:focus-visible {
+      border-color: rgba(255, 139, 44, 0.72);
+      background: #fff8ef;
+      box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14), 0 8px 18px rgba(74, 5, 5, 0.1);
       outline: none;
+    }
+
+    .field-edit-btn.is-active {
+      border-color: #ff8b2c;
+      background: #ff8b2c;
+      color: #ffffff;
+      box-shadow: 0 10px 20px rgba(122, 47, 0, 0.18);
+    }
+
+    .field-edit-btn.is-active::before {
+      width: 0.64rem;
+      height: 0.36rem;
+      border-top: 0;
+      border-left: 0;
+      border-radius: 0;
+      transform: translateY(-1px) rotate(45deg);
     }
 
     .contact-number-control {
@@ -2287,6 +2317,11 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     function setActiveEditableField(activeKey) {
+      if (updateScopeInput) {
+        updateScopeInput.value = "profile";
+      }
+      confirmationAccepted = false;
+
       profileFieldKeys.forEach(function (key) {
         const input = fields[key];
         const isActive = key === activeKey;
@@ -2537,11 +2572,23 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
 
       confirmationAccepted = false;
+      if (updateScopeInput) {
+        updateScopeInput.value = "profile";
+      }
       confirmModal.classList.remove("active");
       confirmOverlay.classList.remove("active");
       confirmModal.hidden = true;
       confirmOverlay.hidden = true;
       document.body.classList.remove("modal-open");
+      if (confirmSubmit) {
+        confirmSubmit.disabled = false;
+        confirmSubmit.textContent = "Confirm Update";
+      }
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Save Changes";
+        submitButton.removeAttribute("aria-busy");
+      }
       if (fields.current_password) {
         fields.current_password.value = "";
         clearError("current_password");
