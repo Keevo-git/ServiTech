@@ -547,11 +547,54 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status .status-modal__footer {
       display: flex;
+      align-items: center;
+      gap: 0.75rem;
       justify-content: flex-end;
       flex: 0 0 auto;
-      padding: 0;
-      border-top: 0;
-      background: transparent;
+      padding: clamp(14px, 2.4vw, 18px) clamp(16px, 3vw, 24px);
+      border-top: 1px solid rgba(95, 14, 15, 0.1);
+      background: rgba(255, 253, 249, 0.92);
+    }
+
+    body.customer-layout.customer-page--status .status-cancel-message {
+      color: #7c625b;
+      flex: 1 1 auto;
+      font-size: 0.88rem;
+      font-weight: 700;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    body.customer-layout.customer-page--status .status-cancel-message[hidden],
+    body.customer-layout.customer-page--status .status-cancel-btn[hidden] {
+      display: none !important;
+    }
+
+    body.customer-layout.customer-page--status .status-cancel-btn {
+      appearance: none;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 12px;
+      color: #be123c;
+      cursor: pointer;
+      flex: 0 0 auto;
+      font-weight: 850;
+      min-height: 44px;
+      padding: 0.72rem 1rem;
+      transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+    }
+
+    body.customer-layout.customer-page--status .status-cancel-btn:hover:not(:disabled),
+    body.customer-layout.customer-page--status .status-cancel-btn:focus-visible:not(:disabled) {
+      background: #be123c;
+      border-color: #be123c;
+      color: #ffffff;
+      outline: none;
+    }
+
+    body.customer-layout.customer-page--status .status-cancel-btn:disabled {
+      cursor: wait;
+      opacity: 0.68;
     }
 
     body.customer-layout.customer-page--status .status-current-card {
@@ -816,7 +859,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       }
 
       body.customer-layout.customer-page--status .status-modal__footer {
+        align-items: stretch;
+        flex-direction: column;
         justify-content: stretch;
+      }
+
+      body.customer-layout.customer-page--status .status-cancel-message,
+      body.customer-layout.customer-page--status .status-cancel-btn {
+        width: 100%;
       }
 
       body.customer-layout.customer-page--status .status-current-card {
@@ -1000,9 +1050,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
           </div>
         </div>
+        <div class="status-modal__footer">
+          <p id="modalCancelMessage" class="status-cancel-message" role="status" hidden></p>
+          <button id="cancelPendingQueueBtn" class="status-cancel-btn" type="button" hidden>Cancel Request</button>
+        </div>
       </div>
     </div>
 
+<script src="/assets/js/csrf.js"></script>
 <script>
 (async function(){
   const listEl = document.getElementById("queueList");
@@ -1022,10 +1077,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   const statusModal = detailModal?.querySelector(".status-modal");
   const closeDetail = document.getElementById("closeDetail");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
+  const cancelPendingQueueBtn = document.getElementById("cancelPendingQueueBtn");
+  const modalCancelMessage = document.getElementById("modalCancelMessage");
 
   let lastFocused = null;
   let allQueues = [];
   let selectedStatusTab = "active";
+  let currentDetailQueue = null;
+  let cancellationInProgress = false;
 
   function servitechBasePath(){
     const pathname = window.location.pathname || "";
@@ -1183,6 +1242,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   function isArchivedStatus(status){
     const normalized = normalizeStatus(status);
     return normalized === "DONE" || normalized === "CANCELLED";
+  }
+
+  function canCustomerCancel(status){
+    return normalizeStatus(status) === "PENDING";
   }
 
   function formatPaymentMethod(value){
@@ -1701,9 +1764,84 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
   }
 
+  function renderCancellationAction(queueData, status){
+    if (!cancelPendingQueueBtn) return;
+
+    const allowed = queueData && queueData.id && canCustomerCancel(status);
+    cancelPendingQueueBtn.hidden = !allowed;
+    cancelPendingQueueBtn.disabled = false;
+    cancelPendingQueueBtn.textContent = "Cancel Request";
+
+    if (modalCancelMessage) {
+      modalCancelMessage.hidden = !allowed;
+      modalCancelMessage.textContent = allowed
+        ? "You can cancel this request while it is still pending."
+        : "";
+    }
+  }
+
+  async function cancelCurrentPendingQueue(){
+    if (!currentDetailQueue?.id || cancellationInProgress) return;
+    if (!canCustomerCancel(currentDetailQueue.status)) {
+      if (modalCancelMessage) {
+        modalCancelMessage.hidden = false;
+        modalCancelMessage.textContent = "Only pending requests can be cancelled.";
+      }
+      return;
+    }
+
+    if (!window.confirm("Cancel this pending request?")) {
+      return;
+    }
+
+    cancellationInProgress = true;
+    if (cancelPendingQueueBtn) {
+      cancelPendingQueueBtn.disabled = true;
+      cancelPendingQueueBtn.textContent = "Cancelling...";
+    }
+    if (modalCancelMessage) {
+      modalCancelMessage.hidden = false;
+      modalCancelMessage.textContent = "Cancelling request...";
+    }
+
+    try {
+      const res = await fetch(servitechUrl("/api/queue_cancel_request.php"), {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRF-Token": window.servitechCsrfToken ? window.servitechCsrfToken() : ""
+        },
+        body: JSON.stringify({ queue_id: currentDetailQueue.id })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Unable to cancel this request.");
+      }
+
+      closeDetailModal();
+      switchStatusTab("completed");
+      await loadQueues();
+    } catch (error) {
+      if (modalCancelMessage) {
+        modalCancelMessage.hidden = false;
+        modalCancelMessage.textContent = error.message || "Unable to cancel this request.";
+      }
+      if (cancelPendingQueueBtn) {
+        cancelPendingQueueBtn.disabled = false;
+        cancelPendingQueueBtn.textContent = "Cancel Request";
+      }
+    } finally {
+      cancellationInProgress = false;
+    }
+  }
+
   function openDetail(card){
     const queueData = card.queueData || {};
     const status = (card.dataset.status || "PENDING").toUpperCase();
+    currentDetailQueue = queueData;
 
     document.getElementById("modalQueue").textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
     document.getElementById("modalQueueRef").textContent = card.dataset.queue || "Not available";
@@ -1722,6 +1860,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     document.getElementById("modalPrice").textContent = getQueuePriceLabel(queueData);
     renderAttachedFiles(queueData);
     renderPaymentDetails(queueData);
+    renderCancellationAction(queueData, status);
 
     const statusEl = document.getElementById("modalStatus");
     const tone = badgeTone(status);
@@ -1833,6 +1972,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   [closeDetail, modalCloseBtn].forEach(btn => {
     if (btn) btn.addEventListener("click", closeDetailModal);
   });
+  cancelPendingQueueBtn?.addEventListener("click", cancelCurrentPendingQueue);
 
   if (detailModal) {
     detailModal.addEventListener("click", (e) => {
