@@ -1615,7 +1615,14 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       gap: 0.7rem;
-      width: min(100%, 292px);
+      width: 100%;
+    }
+
+    body.customer-page--profile .form-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      width: 100%;
     }
 
     body.customer-page--profile .action-buttons .btn-secondary,
