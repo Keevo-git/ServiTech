@@ -225,6 +225,14 @@ if (!function_exists("servitech_notification_supabase_anon_key")) {
     }
 }
 
+if (!function_exists("servitech_notification_realtime_enabled")) {
+    function servitech_notification_realtime_enabled(): bool
+    {
+        $value = strtolower(trim((string)getenv("SERVITECH_ENABLE_SUPABASE_REALTIME")));
+        return in_array($value, ["1", "true", "yes", "on"], true);
+    }
+}
+
 $notificationAction = strtolower(trim((string)($_REQUEST["notifications_action"] ?? "")));
 if ($notificationAction !== "") {
     $notificationUserId = servitech_notification_user_id();
@@ -365,8 +373,13 @@ $notificationCsrfToken = (string)($_SESSION["csrf_token"] ?? "");
 if ($notificationCsrfToken === "" && !headers_sent()) {
     $notificationCsrfToken = servitech_csrf_token();
 }
-$notificationSupabaseUrl = servitech_notification_supabase_url((string)($host ?? ""));
-$notificationSupabaseAnonKey = servitech_notification_supabase_anon_key();
+$notificationRealtimeEnabled = servitech_notification_realtime_enabled();
+$notificationSupabaseUrl = $notificationRealtimeEnabled
+    ? servitech_notification_supabase_url((string)($host ?? ""))
+    : "";
+$notificationSupabaseAnonKey = $notificationRealtimeEnabled
+    ? servitech_notification_supabase_anon_key()
+    : "";
 $notificationRoutes = [
     "printing" => servitech_url("/pages/customer/custo_service_status.php"),
     "online_printorder" => servitech_url("/pages/customer/custo_service_status.php"),
@@ -1223,7 +1236,9 @@ $notificationRoutes = [
 </style>
 
 <?php if ($notificationUserId > 0): ?>
+  <?php if ($notificationRealtimeEnabled): ?>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <?php endif; ?>
   <script>
     (function () {
       if (window.__servitechNotificationHeaderInit) {

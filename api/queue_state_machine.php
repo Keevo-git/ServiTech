@@ -211,6 +211,22 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
         $queueId,
         "Queue {$queueCode}: Status: CANCELLED. Reason: {$notes}"
       );
+    } else {
+      $statusMessage = match ($newStatus) {
+        "ONGOING" => "Queue {$queueCode}: Status: ONGOING. Your request is now being processed.",
+        "FOR PICK-UP" => "Queue {$queueCode}: Status: FOR PICK-UP. Your request is ready for pick-up.",
+        "DONE" => "Queue {$queueCode}: Status: DONE. Your service request has been completed.",
+        default => "",
+      };
+      if ($statusMessage !== "") {
+        servitech_add_notification(
+          $pdo,
+          (int)$queue["user_id"],
+          "status_update",
+          $queueId,
+          $statusMessage
+        );
+      }
     }
 
     if ($ownsTransaction) $pdo->commit();

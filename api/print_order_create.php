@@ -46,6 +46,13 @@ if ($user_id <= 0) {
   header("Location: " . servitech_url("/auth/log_in.php"));
   exit();
 }
+if (!servitech_is_customer()) {
+  if (print_order_wants_json()) {
+    print_order_json_response(["ok" => false, "error" => "Customer access required"], 403);
+  }
+  http_response_code(403);
+  exit("Customer access required.");
+}
 
 if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
   print_order_fail("Invalid request method.", 405);
@@ -178,6 +185,7 @@ try {
 
   $paymentLabel = $payment_method === "gcash" ? "GCash payment details submitted" : "Cash payment selected";
   servitech_add_notification($pdo, $user_id, $printMeta["category"], $queue_id, "Queue {$queue_code}: {$paymentLabel}.");
+  servitech_notify_admins($pdo, $printMeta["category"], $queue_id, "Queue {$queue_code}: New customer print order submitted.");
   if ($payment_method === "gcash") {
     servitech_notify_admins($pdo, $printMeta["category"], $queue_id, "Queue {$queue_code}: New GCash print order submitted. Review the order and update its status.");
   }

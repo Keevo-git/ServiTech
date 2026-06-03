@@ -13,6 +13,11 @@ if ($userId <= 0) {
   echo json_encode(["success" => false, "message" => "Not logged in"]);
   exit();
 }
+if (!servitech_is_customer()) {
+  http_response_code(403);
+  echo json_encode(["success" => false, "message" => "Customer access required"]);
+  exit();
+}
 
 if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
   http_response_code(405);

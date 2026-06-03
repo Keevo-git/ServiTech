@@ -89,7 +89,7 @@ function normalize_service_label(string $serviceLabel, string $fallbackLabel): s
   return $serviceLabel;
 }
 
-function build_short_details(array $details): string {
+function build_short_details(array $details, bool $includeNotes = true): string {
   $parts = [];
 
   if (!empty($details["paper_size"])) {
@@ -117,7 +117,7 @@ function build_short_details(array $details): string {
     $parts[] = ucfirst(strtolower(trim((string)$details["lamination_type"]))) . " Lamination";
   }
 
-  if (!count($parts) && !empty($details["notes"])) {
+  if ($includeNotes && !count($parts) && !empty($details["notes"])) {
     $parts[] = trim((string)$details["notes"]);
   }
 
@@ -198,7 +198,7 @@ function fetch_latest_queue_items(PDO $pdo, string $categoryKey, int $limit): ar
       "status_tone" => queue_status_tone($status),
       "category_label" => $meta["label"],
       "service_label" => $serviceLabel,
-      "details_label" => build_short_details($details),
+      "details_label" => build_short_details($details, false),
       "created_at" => $createdAt,
       "created_at_label" => $createdAt !== "" ? date("M d, Y h:i A", strtotime($createdAt)) : "",
     ];

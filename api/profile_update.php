@@ -12,6 +12,10 @@ if ($user_id <= 0) {
   header("Location: " . servitech_url("/auth/log_in.php"));
   exit();
 }
+if (!servitech_is_customer()) {
+  header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+  exit();
+}
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
   header("Location: /pages/customer/custo_edit_profile.php");

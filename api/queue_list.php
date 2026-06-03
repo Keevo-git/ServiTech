@@ -13,6 +13,11 @@ if ($user_id <= 0) {
   echo json_encode(["ok" => false, "error" => "Not logged in"]);
   exit();
 }
+if (!servitech_is_customer()) {
+  http_response_code(403);
+  echo json_encode(["ok" => false, "error" => "Customer access required"]);
+  exit();
+}
 
 function queue_list_upload_path(string $path): string {
   $path = trim($path);

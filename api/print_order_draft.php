@@ -19,6 +19,9 @@ $user_id = (int)($_SESSION["user_id"] ?? 0);
 if ($user_id <= 0) {
   print_order_draft_json(["ok" => false, "error" => "Not logged in"], 401);
 }
+if (!servitech_is_customer()) {
+  print_order_draft_json(["ok" => false, "error" => "Customer access required"], 403);
+}
 
 if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
   print_order_draft_json(["ok" => false, "error" => "Method not allowed"], 405);
