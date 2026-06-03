@@ -390,11 +390,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $formData["current_password"] = (string)($_POST["current_password"] ?? "");
     $formData["new_password"] = (string)($_POST["new_password"] ?? "");
     $formData["confirm_password"] = (string)($_POST["confirm_password"] ?? "");
+    $passwordOnlyUpdate = (string)($_POST["update_scope"] ?? "") === "password";
 
     $changedFields = [
-        "name" => $nameWasSubmitted && $formData["name"] !== $currentName,
-        "email" => $emailWasSubmitted && $formData["email"] !== $currentEmail,
-        "phone" => $phoneWasSubmitted
+        "name" => !$passwordOnlyUpdate && $nameWasSubmitted && $formData["name"] !== $currentName,
+        "email" => !$passwordOnlyUpdate && $emailWasSubmitted && $formData["email"] !== $currentEmail,
+        "phone" => !$passwordOnlyUpdate
+            && $phoneWasSubmitted
             && comparablePhilippineMobileNumber($formData["phone"]) !== $currentPhone
             && !($formData["phone"] === "" && philippineMobileNationalPart($currentPhone) === ""),
     ];
@@ -1957,6 +1959,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
       <form id="editProfileForm" class="profile-form" action="/pages/customer/custo_edit_profile.php" method="post" novalidate>
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+        <input id="profileUpdateScope" type="hidden" name="update_scope" value="profile">
 
         <div class="form-section">
           <div class="section-head">
@@ -2181,7 +2184,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
           </div>
           <div class="password-modal__actions">
             <button id="passwordModalCancel" type="button" class="btn-secondary">Cancel</button>
-            <button id="passwordModalDone" type="button" class="btn-primary">Done</button>
+            <button id="passwordModalDone" type="button" class="btn-primary">Save</button>
           </div>
         </div>
       </form>
@@ -2222,6 +2225,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     let confirmationAccepted = false;
     const phoneHiddenInput = document.getElementById("phoneFull");
     const phoneControl = document.getElementById("phoneControl");
+    const updateScopeInput = document.getElementById("profileUpdateScope");
 
     const fields = {
       name: document.getElementById("name"),
@@ -2477,7 +2481,16 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       passwordDone.addEventListener("click", function () {
         const hasPasswordInput = Boolean((fields.new_password && fields.new_password.value) || (fields.confirm_password && fields.confirm_password.value));
 
-        if (hasPasswordInput && !validatePasswordChangeFields()) {
+        if (!hasPasswordInput) {
+          setError("new_password", "Enter a new password.");
+          showToast("Enter a new password before saving.", "warning");
+          if (fields.new_password) {
+            fields.new_password.focus();
+          }
+          return;
+        }
+
+        if (!validatePasswordChangeFields()) {
           showToast("Please fix the password fields before continuing.", "warning");
           const firstInvalid = passwordModal ? passwordModal.querySelector(".is-invalid") : null;
           if (firstInvalid) {
@@ -2487,9 +2500,10 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         }
 
         closePasswordChangeModal();
-        if (hasPasswordInput) {
-          showToast("Password change ready. Save changes to apply it.", "info");
+        if (updateScopeInput) {
+          updateScopeInput.value = "password";
         }
+        openConfirmModal();
       });
     }
 
@@ -2600,6 +2614,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     });
 
     form.addEventListener("submit", function (event) {
+      if (!confirmationAccepted && updateScopeInput) {
+        updateScopeInput.value = "profile";
+      }
       syncPhilippineMobileInput();
       Object.keys(fields).forEach(clearError);
 
