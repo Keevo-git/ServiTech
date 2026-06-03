@@ -115,12 +115,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       display: flex;
       flex-direction: column;
       margin: auto !important;
-      max-height: 85vh !important;
-      max-width: 760px !important;
+      max-height: 88vh !important;
+      max-width: 1120px !important;
       overflow: hidden;
       padding: 0 !important;
       position: relative;
-      width: min(100%, 760px) !important;
+      width: min(100%, 1120px) !important;
     }
 
     body.customer-layout.customer-page--status .status-modal__header {
@@ -224,12 +224,24 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status .status-modal__grid {
       display: grid;
-      gap: 0.85rem;
+      gap: clamp(0.9rem, 2vw, 1.25rem);
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+      align-items: start;
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
       padding: clamp(16px, 3vw, 24px);
       scrollbar-gutter: stable;
+    }
+
+    body.customer-layout.customer-page--status .status-modal__column {
+      display: grid;
+      gap: 0.85rem;
+      min-width: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-modal__column--secondary {
+      align-content: start;
     }
 
     body.customer-layout.customer-page--status .status-modal__section {
@@ -403,11 +415,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     body.customer-layout.customer-page--status .status-modal__footer {
       display: flex;
-      justify-content: center;
+      justify-content: flex-end;
       flex: 0 0 auto;
-      padding: clamp(14px, 2.4vw, 18px) clamp(18px, 3vw, 26px);
-      border-top: 1px solid rgba(95, 14, 15, 0.1);
-      background: rgba(255, 253, 249, 0.94);
+      padding: 0;
+      border-top: 0;
+      background: transparent;
+    }
+
+    body.customer-layout.customer-page--status .status-modal__actions-section {
+      background: rgba(255, 250, 244, 0.72);
     }
 
     body.customer-layout.customer-page--status .status-current-card {
@@ -611,6 +627,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         max-height: calc(100vh - 28px) !important;
       }
 
+      body.customer-layout.customer-page--status .status-modal__grid {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+      }
+
       body.customer-layout.customer-page--status .status-modal__header {
         padding-right: 78px;
       }
@@ -641,9 +662,24 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         width: 100%;
       }
 
+      body.customer-layout.customer-page--status .status-modal__footer {
+        justify-content: stretch;
+      }
+
       body.customer-layout.customer-page--status .status-current-card {
         align-items: flex-start;
         flex-direction: column;
+      }
+    }
+
+    @media (min-width: 641px) and (max-width: 940px) {
+      body.customer-layout.customer-page--status .status-modal {
+        max-width: 860px !important;
+        width: min(100%, 860px) !important;
+      }
+
+      body.customer-layout.customer-page--status .status-modal__grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -693,55 +729,73 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         </div>
 
         <div class="status-modal__grid modal-body">
-          <section class="status-modal__section" aria-labelledby="serviceDetailsTitle">
-            <h4 id="serviceDetailsTitle" class="status-modal__section-title">Service Details</h4>
-            <div class="status-detail-row">
-              <span class="status-detail-label">Category</span>
-              <span id="modalType" class="status-detail-value"></span>
-            </div>
-            <div class="status-detail-row">
-              <span class="status-detail-label">Service</span>
-              <span id="modalService" class="status-detail-value"></span>
-            </div>
-            <div id="modalExtra"></div>
-            <div class="status-detail-row modal-price" hidden>
-              <span class="status-detail-label">Price</span>
-              <span id="modalPrice" class="status-detail-value">To be assessed</span>
-            </div>
-            <div id="modalNotesWrap" class="status-notes">
-              <label class="status-detail-label" for="modalNotes">Notes</label>
-              <textarea id="modalNotes" readonly></textarea>
-            </div>
-          </section>
+          <div class="status-modal__column status-modal__column--primary">
+            <section class="status-modal__section" aria-labelledby="serviceDetailsTitle">
+              <h4 id="serviceDetailsTitle" class="status-modal__section-title">Service Details</h4>
+              <div class="status-detail-row">
+                <span class="status-detail-label">Queue Reference</span>
+                <span id="modalQueueRef" class="status-detail-value"></span>
+              </div>
+              <div class="status-detail-row">
+                <span class="status-detail-label">Category</span>
+                <span id="modalType" class="status-detail-value"></span>
+              </div>
+              <div class="status-detail-row">
+                <span class="status-detail-label">Service</span>
+                <span id="modalService" class="status-detail-value"></span>
+              </div>
+              <div class="status-detail-row">
+                <span class="status-detail-label">Submitted</span>
+                <span id="modalSubmittedAt" class="status-detail-value"></span>
+              </div>
+              <div id="modalCompletedAtRow" class="status-detail-row" hidden>
+                <span class="status-detail-label">Completed</span>
+                <span id="modalCompletedAt" class="status-detail-value"></span>
+              </div>
+              <div id="modalExtra"></div>
+              <div class="status-detail-row modal-price" hidden>
+                <span class="status-detail-label">Price</span>
+                <span id="modalPrice" class="status-detail-value">To be assessed</span>
+              </div>
+              <div id="modalNotesWrap" class="status-notes">
+                <label class="status-detail-label" for="modalNotes">Notes</label>
+                <textarea id="modalNotes" readonly></textarea>
+              </div>
+            </section>
 
-          <section id="attachedFilesSection" class="status-modal__section" aria-labelledby="attachedFilesTitle">
-            <h4 id="attachedFilesTitle" class="status-modal__section-title">Attached Files</h4>
-            <div class="status-detail-row status-detail-row--files">
-              <span id="modalFileLabel" class="status-detail-label">Attached File</span>
-              <div id="modalFile" class="status-detail-value file-list"></div>
-            </div>
-          </section>
+            <section class="status-modal__section" aria-labelledby="currentStatusTitle">
+              <h4 id="currentStatusTitle" class="status-modal__section-title">Current Status</h4>
+              <div class="status-current-card modal-status">
+                <span class="status-current-card__label">Current Status</span>
+                <span id="modalStatus"></span>
+              </div>
+            </section>
+          </div>
 
-          <section class="status-modal__section" aria-labelledby="paymentDetailsTitle">
-            <h4 id="paymentDetailsTitle" class="status-modal__section-title">Payment Details</h4>
-            <div id="modalPaymentDetails"></div>
-            <div id="modalPaymentQr" class="status-payment-qr">
-              <img src="/assets/images/gcash-qr.jpg" alt="JC Shop GCash QR code">
-              <p class="payment-note">Use this QR for GCash payments, then submit your reference number.</p>
-            </div>
-          </section>
+          <div class="status-modal__column status-modal__column--secondary">
+            <section id="attachedFilesSection" class="status-modal__section" aria-labelledby="attachedFilesTitle">
+              <h4 id="attachedFilesTitle" class="status-modal__section-title">Attached Files</h4>
+              <div class="status-detail-row status-detail-row--files">
+                <span id="modalFileLabel" class="status-detail-label">Attached File</span>
+                <div id="modalFile" class="status-detail-value file-list"></div>
+              </div>
+            </section>
 
-          <section class="status-modal__section" aria-labelledby="currentStatusTitle">
-            <h4 id="currentStatusTitle" class="status-modal__section-title">Current Status</h4>
-            <div class="status-current-card modal-status">
-              <span class="status-current-card__label">Current Status</span>
-              <span id="modalStatus"></span>
-            </div>
-          </section>
-        </div>
+            <section class="status-modal__section" aria-labelledby="paymentDetailsTitle">
+              <h4 id="paymentDetailsTitle" class="status-modal__section-title">Payment Details</h4>
+              <div id="modalPaymentDetails"></div>
+              <div id="modalPaymentQr" class="status-payment-qr">
+                <img src="/assets/images/gcash-qr.jpg" alt="JC Shop GCash QR code">
+                <p class="payment-note">Use this QR for GCash payments, then submit your reference number.</p>
+              </div>
+            </section>
 
-        <div class="status-modal__footer">
-          <button id="modalCloseBtn" class="modal-back" type="button">Close</button>
+            <section class="status-modal__section status-modal__actions-section" aria-label="Queue detail actions">
+              <div class="status-modal__footer">
+                <button id="modalCloseBtn" class="modal-back" type="button">Close</button>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>
@@ -781,6 +835,23 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   function toPeso(value){
     const n = toNumber(value);
     return `\u20B1${(n ?? 0).toFixed(2)}`;
+  }
+
+  function formatDateTime(value){
+    const raw = String(value || "").trim();
+    if (!raw) return "Not available";
+
+    const normalized = raw.includes("T") ? raw : raw.replace(" ", "T");
+    const date = new Date(normalized);
+    if (Number.isNaN(date.getTime())) return raw;
+
+    return new Intl.DateTimeFormat("en-PH", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(date);
   }
 
   function resolveFileHref(path){
@@ -1280,10 +1351,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function openDetail(card){
     const queueData = card.queueData || {};
+    const status = (card.dataset.status || "PENDING").toUpperCase();
 
     document.getElementById("modalQueue").textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
+    document.getElementById("modalQueueRef").textContent = card.dataset.queue || "Not available";
     document.getElementById("modalType").textContent = formatLabel(card.dataset.type || "");
     document.getElementById("modalService").textContent = card.dataset.service || "";
+    document.getElementById("modalSubmittedAt").textContent = formatDateTime(queueData.created_at);
+    const completedRow = document.getElementById("modalCompletedAtRow");
+    const completedAt = document.getElementById("modalCompletedAt");
+    const showCompletedAt = status === "DONE" && !!queueData.updated_at;
+    if (completedAt) completedAt.textContent = showCompletedAt ? formatDateTime(queueData.updated_at) : "";
+    if (completedRow) completedRow.hidden = !showCompletedAt;
     const notesValue = card.dataset.notes || "";
     const notesWrap = document.getElementById("modalNotesWrap");
     document.getElementById("modalNotes").value = notesValue;
@@ -1293,7 +1372,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     renderPaymentDetails(queueData);
 
     const statusEl = document.getElementById("modalStatus");
-    const status = (card.dataset.status || "PENDING").toUpperCase();
     const tone = badgeTone(status);
     statusEl.textContent = status;
     statusEl.className = "status-badge modal-status-pill status-" + tone + " modal-status-pill--" + tone;
