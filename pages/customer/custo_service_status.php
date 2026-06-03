@@ -242,6 +242,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     body.customer-layout.customer-page--status .status-modal__section[hidden],
+    body.customer-layout.customer-page--status .status-detail-row[hidden],
     body.customer-layout.customer-page--status #modalNotesWrap[hidden] {
       display: none !important;
     }
@@ -667,7 +668,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
               <span id="modalService" class="status-detail-value"></span>
             </div>
             <div id="modalExtra"></div>
-            <div class="status-detail-row modal-price">
+            <div class="status-detail-row modal-price" hidden>
               <span class="status-detail-label">Price</span>
               <span id="modalPrice" class="status-detail-value">To be assessed</span>
             </div>
@@ -1199,11 +1200,26 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const paymentQr = document.getElementById("modalPaymentQr");
     const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
     const reference = String(queueData.reference_number || details.reference_number || "").trim();
+    const baseRows = `
+      <div class="status-detail-row">
+        <span class="status-detail-label">Price</span>
+        <span class="status-detail-value">${esc(getQueuePriceLabel(queueData))}</span>
+      </div>
+      <div class="status-detail-row">
+        <span class="status-detail-label">Paid Amount</span>
+        <span class="status-detail-value">${esc(toPeso(queueData.paid_amount))}</span>
+      </div>
+      <div class="status-detail-row">
+        <span class="status-detail-label">Paid Pending</span>
+        <span class="status-detail-value">${esc(toPeso(queueData.paid_pending))}</span>
+      </div>
+    `;
 
     if (!paymentEl) return;
 
     if (isOnlineDocumentPrinting(queueData)) {
       paymentEl.innerHTML = `
+        ${baseRows}
         <div class="status-detail-row">
           <span class="status-detail-label">Payment Method</span>
           <span class="status-detail-value">${esc(formatPaymentMethod(method))}</span>
@@ -1219,16 +1235,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return;
     }
 
-    paymentEl.innerHTML = `
-      <div class="status-detail-row">
-        <span class="status-detail-label">Paid Amount</span>
-        <span class="status-detail-value">${esc(toPeso(queueData.paid_amount))}</span>
-      </div>
-      <div class="status-detail-row">
-        <span class="status-detail-label">Paid Pending</span>
-        <span class="status-detail-value">${esc(toPeso(queueData.paid_pending))}</span>
-      </div>
-    `;
+    paymentEl.innerHTML = baseRows;
 
     if (paymentQr) {
       paymentQr.classList.remove("is-visible");
