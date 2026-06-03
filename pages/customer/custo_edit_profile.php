@@ -1614,30 +1614,31 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     body.customer-page--profile .action-buttons {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      width: min(100%, 360px);
+      gap: 0.7rem;
+      width: min(100%, 292px);
     }
 
     body.customer-page--profile .action-buttons .btn-secondary,
     body.customer-page--profile .action-buttons .btn-primary {
       width: 100%;
-      min-height: 56px;
+      min-height: 48px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      font-size: 1rem;
+      font-size: 0.94rem;
     }
 
     body.customer-page--profile .btn-primary {
-      background: #ff8b2c;
+      background: #4A0505;
       color: #ffffff;
-      box-shadow: 0 12px 22px rgba(122, 47, 0, 0.18);
+      box-shadow: 0 12px 22px rgba(74, 5, 5, 0.18);
     }
 
     body.customer-page--profile .btn-primary:hover,
     body.customer-page--profile .btn-primary:focus-visible {
-      background: linear-gradient(135deg, #ffb347, #ff8a2d 58%, #d45a0a 100%);
-      box-shadow: 0 14px 24px rgba(122, 47, 0, 0.22);
+      background: #6b1414;
+      box-shadow: 0 0 0 4px rgba(74, 5, 5, 0.14), 0 14px 24px rgba(74, 5, 5, 0.2);
     }
 
     @media (max-width: 1180px) {
