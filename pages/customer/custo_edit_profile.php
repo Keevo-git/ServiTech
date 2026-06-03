@@ -20,6 +20,37 @@ function normalizeEmail(string $email): string
     return strtolower(trim($email));
 }
 
+function normalizePhilippineMobileNumber(string $phone): string
+{
+    $phone = sanitizeInput($phone);
+
+    if (preg_match("/^09\d{9}$/", $phone)) {
+        return "+63" . substr($phone, 1);
+    }
+
+    return $phone;
+}
+
+function isValidPhilippineMobileNumber(string $phone): bool
+{
+    return (bool)preg_match("/^\+639\d{9}$/", $phone);
+}
+
+function philippineMobileNationalPart(string $phone): string
+{
+    $phone = normalizePhilippineMobileNumber($phone);
+
+    if (preg_match("/^\+63(9\d{9})$/", $phone, $matches)) {
+        return $matches[1];
+    }
+
+    if (preg_match("/^(9\d{9})$/", $phone, $matches)) {
+        return $matches[1];
+    }
+
+    return "";
+}
+
 function getInitials(string $name): string
 {
     $parts = preg_split("/\s+/", trim($name)) ?: [];
@@ -256,10 +287,8 @@ function validateProfileInput(array $formData): array
 
     if ($formData["phone"] === "") {
         $errors["phone"] = "Phone number is required.";
-    } elseif (!ctype_digit($formData["phone"])) {
-        $errors["phone"] = "Phone must contain numbers only.";
-    } elseif (strlen($formData["phone"]) > 20) {
-        $errors["phone"] = "Phone must be 20 digits or fewer.";
+    } elseif (!isValidPhilippineMobileNumber($formData["phone"])) {
+        $errors["phone"] = "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.";
     }
 
     if ($formData["current_password"] === "") {
@@ -318,7 +347,7 @@ try {
     } else {
         $formData["name"] = sanitizeInput($profile["profile_name"] ?? "");
         $formData["email"] = normalizeEmail((string)($profile["profile_email"] ?? ""));
-        $formData["phone"] = sanitizeInput($profile["profile_phone"] ?? "");
+        $formData["phone"] = normalizePhilippineMobileNumber((string)($profile["profile_phone"] ?? ""));
     }
 } catch (Throwable $exception) {
     error_log("profile page load error: " . $exception->getMessage());
@@ -331,7 +360,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $formData["name"] = sanitizeInput($_POST["name"] ?? $_POST["fullname"] ?? "");
     $formData["email"] = normalizeEmail(sanitizeInput($_POST["email"] ?? ""));
-    $formData["phone"] = sanitizeInput($_POST["phone"] ?? $_POST["contact"] ?? $_POST["contacts"] ?? "");
+    $formData["phone"] = normalizePhilippineMobileNumber((string)($_POST["phone"] ?? $_POST["contact"] ?? $_POST["contacts"] ?? ""));
     $formData["current_password"] = (string)($_POST["current_password"] ?? "");
     $formData["new_password"] = (string)($_POST["new_password"] ?? "");
     $formData["confirm_password"] = (string)($_POST["confirm_password"] ?? "");
@@ -363,7 +392,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $currentName = sanitizeInput($profile["profile_name"] ?? "");
         $currentEmail = normalizeEmail((string)($profile["profile_email"] ?? ""));
-        $currentPhone = sanitizeInput($profile["profile_phone"] ?? "");
+        $currentPhone = normalizePhilippineMobileNumber((string)($profile["profile_phone"] ?? ""));
 
         if ($formData["name"] !== $currentName) {
             $changes[$schema["nameColumn"]] = $formData["name"];
@@ -448,6 +477,7 @@ $flashMessage = is_array($flash) ? (string)($flash["message"] ?? "") : "";
 $openConfirmModal = $_SERVER["REQUEST_METHOD"] === "POST" && $errors["current_password"] !== "";
 $toastType = $flashType;
 $toastMessage = $flashMessage;
+$phoneNationalValue = philippineMobileNationalPart($formData["phone"]);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $toastMessage === "" && (bool)array_filter($errors)) {
     if ($errors["current_password"] !== "") {
@@ -891,6 +921,57 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       border-color: #dc2626;
       background: #fff7f7;
       box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.08);
+    }
+
+    .contact-number-control {
+      display: flex;
+      align-items: stretch;
+      width: 100%;
+      min-height: 52px;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      background: #ffffff;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .contact-number-control:focus-within {
+      border-color: #ff8b2c;
+      box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.16);
+      background: #ffffff;
+    }
+
+    .contact-number-control.is-invalid {
+      border-color: #dc2626;
+      background: #fff7f7;
+      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.08);
+    }
+
+    .contact-number-prefix {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 1rem;
+      border-right: 1px solid #dbc6ae;
+      background: #fff3e3;
+      color: #4A0505;
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .field .contact-number-control input[type="tel"],
+    body.customer-page--profile .field .contact-number-control input[type="tel"] {
+      min-height: 50px;
+      padding: 0.85rem 0.9rem;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .field .contact-number-control input[type="tel"]:focus,
+    body.customer-page--profile .field .contact-number-control input[type="tel"]:focus {
+      background: transparent;
+      box-shadow: none;
     }
 
     .field-note {
@@ -1784,21 +1865,26 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
             <div class="field">
               <label for="phone">Phone Number <span class="required">*</span></label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                value="<?php echo e($formData["phone"]); ?>"
-                placeholder="Enter digits only"
-                autocomplete="tel"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                maxlength="20"
-                aria-invalid="<?php echo $errors["phone"] !== "" ? "true" : "false"; ?>"
-                aria-describedby="phone-note phone-error"
-                class="<?php echo $errors["phone"] !== "" ? "is-invalid" : ""; ?>"
-              >
-              <div id="phone-note" class="field-note">Required. Use digits only with no spaces or symbols.</div>
+              <div id="phoneControl" class="contact-number-control <?php echo $errors["phone"] !== "" ? "is-invalid" : ""; ?>">
+                <span class="contact-number-prefix" aria-label="Philippine country code">+63</span>
+                <input
+                  id="phone"
+                  type="tel"
+                  value="<?php echo e($phoneNationalValue); ?>"
+                  placeholder="9XXXXXXXXX"
+                  autocomplete="tel-national"
+                  inputmode="numeric"
+                  pattern="9[0-9]{9}"
+                  maxlength="10"
+                  title="Enter the 10-digit Philippine mobile number after +63, starting with 9."
+                  required
+                  aria-invalid="<?php echo $errors["phone"] !== "" ? "true" : "false"; ?>"
+                  aria-describedby="phone-note phone-error"
+                  class="<?php echo $errors["phone"] !== "" ? "is-invalid" : ""; ?>"
+                >
+              </div>
+              <input id="phoneFull" name="phone" type="hidden" value="<?php echo e($formData["phone"]); ?>">
+              <div id="phone-note" class="field-note">Enter the 10-digit mobile number after +63, starting with 9.</div>
               <div id="phone-error" class="field-error"><?php echo e($errors["phone"]); ?></div>
             </div>
           </div>
@@ -1942,6 +2028,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     let confirmationAccepted = false;
+    const phoneHiddenInput = document.getElementById("phoneFull");
+    const phoneControl = document.getElementById("phoneControl");
 
     const fields = {
       name: document.getElementById("name"),
@@ -1974,6 +2062,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         fields[key].classList.remove("is-invalid");
         fields[key].setAttribute("aria-invalid", "false");
       }
+      if (key === "phone" && phoneControl) {
+        phoneControl.classList.remove("is-invalid");
+      }
       if (errorTargets[key]) {
         errorTargets[key].textContent = "";
       }
@@ -1984,9 +2075,63 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         fields[key].classList.add("is-invalid");
         fields[key].setAttribute("aria-invalid", "true");
       }
+      if (key === "phone" && phoneControl) {
+        phoneControl.classList.add("is-invalid");
+      }
       if (errorTargets[key]) {
         errorTargets[key].textContent = message;
       }
+    }
+
+    function sanitizePhilippineMobileInput(value) {
+      let digits = value.replace(/\D/g, "");
+
+      if (digits.startsWith("63")) {
+        digits = digits.slice(2);
+      }
+
+      if (digits.startsWith("0")) {
+        digits = digits.slice(1);
+      }
+
+      return digits.slice(0, 10);
+    }
+
+    function syncPhilippineMobileInput() {
+      if (!fields.phone || !phoneHiddenInput) {
+        return;
+      }
+
+      fields.phone.value = sanitizePhilippineMobileInput(fields.phone.value);
+      phoneHiddenInput.value = fields.phone.value ? `+63${fields.phone.value}` : "";
+    }
+
+    if (fields.phone) {
+      fields.phone.addEventListener("input", function () {
+        syncPhilippineMobileInput();
+        const message = fields.phone.value && /^9\d{9}$/.test(fields.phone.value)
+          ? ""
+          : "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.";
+
+        if (fields.phone.value === "") {
+          clearError("phone");
+        } else if (message) {
+          setError("phone", message);
+        } else {
+          clearError("phone");
+        }
+      });
+
+      fields.phone.addEventListener("blur", function () {
+        syncPhilippineMobileInput();
+        if (fields.phone.value === "") {
+          setError("phone", "Phone number is required.");
+        } else if (!/^9\d{9}$/.test(fields.phone.value)) {
+          setError("phone", "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.");
+        } else {
+          clearError("phone");
+        }
+      });
     }
 
     function openConfirmModal() {
@@ -2090,6 +2235,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     });
 
     form.addEventListener("submit", function (event) {
+      syncPhilippineMobileInput();
       Object.keys(fields).forEach(clearError);
 
       const name = (fields.name.value || "").trim();
@@ -2119,8 +2265,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       if (phone === "") {
         setError("phone", "Phone number is required.");
         hasErrors = true;
-      } else if (!/^\d+$/.test(phone)) {
-        setError("phone", "Phone must contain numbers only.");
+      } else if (!/^9\d{9}$/.test(phone)) {
+        setError("phone", "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.");
         hasErrors = true;
       }
 
@@ -2189,6 +2335,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       submitButton.textContent = "Saving...";
       submitButton.setAttribute("aria-busy", "true");
     });
+
+    syncPhilippineMobileInput();
   })();
 </script>
 
