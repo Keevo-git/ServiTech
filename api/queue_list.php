@@ -103,11 +103,10 @@ try {
       q.paid_amount,
       p.payment_method,
       p.reference_number AS payment_reference_number,
-      p.status AS payment_status,
       p.amount AS payment_amount
     FROM queues q
     LEFT JOIN LATERAL (
-      SELECT payment_method, reference_number, status, amount
+      SELECT payment_method, reference_number, amount
       FROM payments
       WHERE queue_id = q.id
       ORDER BY id DESC
@@ -141,7 +140,6 @@ try {
       "updated_at" => $r["updated_at"],
       "payment_method" => $r["payment_method"] ?? ($details["payment_method"] ?? null),
       "reference_number" => $r["payment_reference_number"] ?? ($details["reference_number"] ?? null),
-      "payment_status" => $r["payment_status"] ?? ($details["payment_status"] ?? null),
       "price" => $r["price"] !== null ? (float)$payment["price"] : null,
       "paid_amount" => (float)$payment["paid_amount"],
       "paid_pending" => (float)$payment["paid_pending"],

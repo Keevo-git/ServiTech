@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/queue_helpers.php";
 
-function servitech_queue_payment_status(string $status): string {
+function servitech_queue_payment_queue_status(string $status): string {
   $status = strtoupper(trim($status));
   $status = preg_replace('/[\s_]+/', ' ', $status);
 
@@ -52,7 +52,7 @@ function servitech_queue_payment_price(array $queue): float {
 }
 
 function servitech_queue_payment_values(array $queue): array {
-  $status = servitech_queue_payment_status((string)($queue["status"] ?? "PENDING"));
+  $status = servitech_queue_payment_queue_status((string)($queue["status"] ?? "PENDING"));
   $price = servitech_queue_payment_price($queue);
   $paidAmount = servitech_queue_payment_candidate($queue["paid_amount"] ?? null) ?? 0.0;
   $paidAmount = min($price, $paidAmount);
@@ -110,7 +110,7 @@ function servitech_update_queue_payment(PDO $pdo, int $queueId, $priceInput, $pa
       throw new DomainException("Queue/order not found.");
     }
 
-    $status = servitech_queue_payment_status((string)($queue["status"] ?? "PENDING"));
+    $status = servitech_queue_payment_queue_status((string)($queue["status"] ?? "PENDING"));
     $previousPrice = servitech_queue_payment_candidate($queue["price"] ?? null);
     $priceChanged = $previousPrice === null || abs($previousPrice - $price) >= 0.005;
     if ($status === "DONE") {

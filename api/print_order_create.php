@@ -112,7 +112,6 @@ $details = [
   "file_names" => isset($draft["file_names"]) && is_array($draft["file_names"]) ? $draft["file_names"] : [],
   "payment_method" => $payment_method,
   "reference_number" => $payment_method === "gcash" ? $reference_number : null,
-  "payment_status" => $payment_method === "gcash" ? "Submitted" : "Pay at Store",
   "total_files" => isset($draft["total_files"]) ? max(0, (int)$draft["total_files"]) : 0,
   "total_images" => isset($draft["total_images"]) ? max(0, (int)$draft["total_images"]) : 0,
   "total_pages" => isset($draft["total_pages"]) ? max(0, (int)$draft["total_pages"]) : 0,
@@ -171,8 +170,8 @@ try {
   servitech_upload_link_to_queue($pdo, $user_id, $queue_id, (array)($details["uploaded_files"] ?? []));
 
   $paymentStmt = $pdo->prepare("
-    INSERT INTO payments (queue_id, user_id, amount, payment_method, reference_number, status)
-    VALUES (:queue_id, :user_id, :amount, :payment_method, :reference_number, :status)
+    INSERT INTO payments (queue_id, user_id, amount, payment_method, reference_number)
+    VALUES (:queue_id, :user_id, :amount, :payment_method, :reference_number)
   ");
   $paymentStmt->execute([
     ":queue_id" => $queue_id,
@@ -180,7 +179,6 @@ try {
     ":amount" => isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : 0,
     ":payment_method" => $payment_method,
     ":reference_number" => $payment_method === "gcash" ? $reference_number : null,
-    ":status" => "PENDING",
   ]);
 
   $paymentLabel = $payment_method === "gcash" ? "GCash payment details submitted" : "Cash payment selected";

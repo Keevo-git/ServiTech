@@ -31,13 +31,12 @@ function status_label(string $s): string
 
 $rows = $pdo->query("
   SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount, q.created_at, q.completed_at, u.fullname,
-    p.payment_method, p.reference_number, p.status AS payment_status, p.amount,
-    q.details->>'estimated_total' AS details_total,
-    q.details->>'payment_status' AS details_payment_status
+    p.payment_method, p.reference_number, p.amount,
+    q.details->>'estimated_total' AS details_total
   FROM queues q
   JOIN users u ON u.id = q.user_id
   LEFT JOIN LATERAL (
-    SELECT payment_method, reference_number, status, amount
+    SELECT payment_method, reference_number, amount
     FROM payments
     WHERE queue_id = q.id
     ORDER BY id DESC

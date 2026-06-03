@@ -95,7 +95,6 @@ $details = [
   "color_option" => $data["color_option"] ?? null,
   "payment_method" => $payment_method !== "" ? $payment_method : null,
   "reference_number" => $payment_method === "gcash" ? $reference_number : null,
-  "payment_status" => $payment_method === "gcash" ? "Submitted" : ($payment_method === "cash" ? "Pay at Store" : null),
   "package_label" => $data["package_label"] ?? null,
   "lamination_type" => $data["lamination_type"] ?? null,
   "device_type" => $data["device_type"] ?? null,
@@ -165,8 +164,8 @@ try {
 
   if ($payment_method !== "") {
     $paymentStmt = $pdo->prepare("
-      INSERT INTO payments (queue_id, user_id, amount, payment_method, reference_number, status)
-      VALUES (:queue_id, :user_id, :amount, :payment_method, :reference_number, :status)
+      INSERT INTO payments (queue_id, user_id, amount, payment_method, reference_number)
+      VALUES (:queue_id, :user_id, :amount, :payment_method, :reference_number)
     ");
     $paymentStmt->execute([
       ":queue_id" => $queue_id,
@@ -174,7 +173,6 @@ try {
       ":amount" => isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : 0,
       ":payment_method" => $payment_method,
       ":reference_number" => $payment_method === "gcash" ? $reference_number : null,
-      ":status" => "PENDING",
     ]);
   }
 

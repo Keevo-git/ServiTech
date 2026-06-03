@@ -250,7 +250,6 @@ document.addEventListener("DOMContentLoaded", function () {
       fileRows(order.files),
       detailRow("Payment Method", order.paymentMethod),
       detailRow("Payment Reference", order.paymentReference || "-"),
-      detailRow("Payment Status", order.paymentStatus),
       detailRow("Submitted Date", order.submitted),
       detailRow("Completed Date", order.completed || "-"),
       commentsRow(order.comments),

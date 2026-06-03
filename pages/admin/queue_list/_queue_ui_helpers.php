@@ -61,26 +61,6 @@ function queue_ui_payment_summary(array $row): string
     return $methodLabel !== "" ? $methodLabel : $amountLabel;
 }
 
-function queue_ui_payment_status_label(array $row): string
-{
-    $method = queue_ui_payment_method($row);
-    $status = strtoupper(trim((string)($row["status"] ?? "PENDING")));
-
-    if (in_array($status, ["CANCELLED", "CANCELED"], true)) {
-        return "Cancelled";
-    }
-
-    if ($method === "gcash") {
-        return $status === "PENDING" ? "Payment Submitted" : "Accepted";
-    }
-
-    if ($method === "cash") {
-        return in_array($status, ["ONGOING", "FOR PICK-UP", "DONE"], true) ? "Paid" : "Pay at Store";
-    }
-
-    return "-";
-}
-
 function queue_ui_detail_rows(array $details): array
 {
     $map = [
@@ -122,7 +102,6 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "comments" => queue_ui_detail_value($details, ["notes", "additional_instructions", "comments"]),
         "payment" => $paymentSummary,
         "paymentReference" => trim((string)($row["reference_number"] ?? ($details["reference_number"] ?? ""))),
-        "paymentStatus" => queue_ui_payment_status_label($row),
         "price" => $payment["price"],
         "paidAmount" => $payment["paid_amount"],
         "paidPending" => $payment["paid_pending"],

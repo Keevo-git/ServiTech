@@ -700,7 +700,7 @@ $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
                 <div class="print-payment-reference">
                   <label for="referenceNumberInput">Reference Number<span class="required">*</span></label>
                   <input type="text" class="form-input" id="referenceNumberInput" name="reference_number" value="<?= esc_print_order($referenceNumber) ?>" placeholder="Enter the 13-digit transaction number" autocomplete="off" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13" required>
-                  <p class="print-payment-input-note">This is to be verified by employees of the shop.</p>
+                  <p class="print-payment-input-note">Employees will use this reference when approving the order.</p>
                 </div>
               </div>
             <?php elseif ($paymentMethod === "cash"): ?>

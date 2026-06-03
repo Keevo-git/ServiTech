@@ -90,11 +90,10 @@ try {
             p.id AS payment_id,
             p.payment_method,
             p.reference_number,
-            p.status AS payment_status,
             p.amount
         FROM queues q
         LEFT JOIN LATERAL (
-            SELECT id, payment_method, reference_number, status, amount
+            SELECT id, payment_method, reference_number, amount
             FROM payments
             WHERE queue_id = q.id
             ORDER BY id DESC

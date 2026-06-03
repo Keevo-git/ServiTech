@@ -34,26 +34,6 @@ function om_payment_method_label($value): string
     return "";
 }
 
-function om_payment_status_label($method, $queueStatus): string
-{
-    $method = strtolower(trim((string)$method));
-    $status = strtoupper(trim((string)$queueStatus));
-
-    if (in_array($status, ["CANCELLED", "CANCELED"], true)) {
-        return "Cancelled";
-    }
-
-    if ($method === "gcash") {
-        return $status === "PENDING" ? "Payment Submitted" : "Accepted";
-    }
-
-    if ($method === "cash") {
-        return in_array($status, ["ONGOING", "FOR PICK-UP", "DONE"], true) ? "Paid" : "Pay at Store";
-    }
-
-    return "-";
-}
-
 function om_payment_amount_label($amount, $detailsTotal = null): string
 {
     if (is_numeric($amount) && (float)$amount > 0) {
@@ -148,7 +128,6 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
             : "-",
         "paymentMethod" => om_payment_method_label($paymentMethod),
         "paymentReference" => trim((string)$referenceNumber),
-        "paymentStatus" => om_payment_status_label($paymentMethod, $row["status"] ?? "PENDING"),
         "price" => $payment["price"],
         "paidAmount" => $payment["paid_amount"],
         "paidPending" => $payment["paid_pending"],

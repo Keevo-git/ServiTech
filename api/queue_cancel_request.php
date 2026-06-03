@@ -69,15 +69,6 @@ try {
   ");
   $update->execute([":id" => $queueId, ":user_id" => $userId]);
 
-  $paymentUpdate = $pdo->prepare("
-    UPDATE payments
-    SET status = 'CANCELLED',
-        updated_at = NOW()
-    WHERE queue_id = :queue_id
-      AND user_id = :user_id
-  ");
-  $paymentUpdate->execute([":queue_id" => $queueId, ":user_id" => $userId]);
-
   $queueCode = trim((string)($queue["queue_code"] ?? ""));
   $historyNote = "Cancelled by customer while request was pending.";
   servitech_record_queue_status_history(

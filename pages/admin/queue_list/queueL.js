@@ -453,7 +453,6 @@ document.addEventListener("DOMContentLoaded", function () {
       fileRows(queue.files),
       detailRow("Payment", queue.payment),
       detailRow("Payment Reference", queue.paymentReference),
-      detailRow("Payment Status", queue.paymentStatus),
       detailRow("Submitted Date", queue.submitted),
       detailRow("Completed Date", queue.completed || "-"),
       commentsRow(queue.comments),
