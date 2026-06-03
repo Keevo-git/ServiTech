@@ -178,9 +178,38 @@ function emailExists(PDO $pdo, array $schema, string $email, int $excludeId): bo
 
 function wantsPasswordChange(array $formData): bool
 {
-    return $formData["current_password"] !== ""
-        || $formData["new_password"] !== ""
+    return $formData["new_password"] !== ""
         || $formData["confirm_password"] !== "";
+}
+
+function describeProfileChanges(array $changedLabels): string
+{
+    $changedLabels = array_values(array_unique(array_filter($changedLabels)));
+    $count = count($changedLabels);
+
+    if ($count === 0) {
+        return "No changes were detected.";
+    }
+
+    if ($count === 1) {
+        return $changedLabels[0] . " updated successfully.";
+    }
+
+    if (in_array("Password", $changedLabels, true) && $count === 2) {
+        $otherLabel = $changedLabels[0] === "Password" ? $changedLabels[1] : $changedLabels[0];
+        return $otherLabel . " and password updated successfully.";
+    }
+
+    if ($count <= 3) {
+        $last = array_pop($changedLabels);
+        return implode(", ", $changedLabels) . " and " . strtolower($last) . " updated successfully.";
+    }
+
+    if (in_array("Password", $changedLabels, true)) {
+        return "Profile and password updated successfully.";
+    }
+
+    return "Profile updated successfully.";
 }
 
 function verifyStoredPassword(string $storedPassword, string $submittedPassword): bool
@@ -233,10 +262,11 @@ function validateProfileInput(array $formData): array
         $errors["phone"] = "Phone must be 20 digits or fewer.";
     }
 
+    if ($formData["current_password"] === "") {
+        $errors["current_password"] = "Enter your current password.";
+    }
+
     if (wantsPasswordChange($formData)) {
-        if ($formData["current_password"] === "") {
-            $errors["current_password"] = "Enter your current password.";
-        }
         if ($formData["new_password"] === "") {
             $errors["new_password"] = "Enter a new password.";
         } elseif (($passwordError = servitech_password_validation_error($formData["new_password"])) !== "") {
@@ -317,8 +347,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     if (
-        wantsPasswordChange($formData)
-        && $errors["current_password"] === ""
+        $errors["current_password"] === ""
         && $schema
         && $profile
         && !verifyStoredPassword((string)($profile["profile_password"] ?? ""), $formData["current_password"])
@@ -330,6 +359,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if (!$hasErrors && $schema && $profile) {
         $changes = [];
+        $changedLabels = [];
 
         $currentName = sanitizeInput($profile["profile_name"] ?? "");
         $currentEmail = normalizeEmail((string)($profile["profile_email"] ?? ""));
@@ -337,10 +367,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($formData["name"] !== $currentName) {
             $changes[$schema["nameColumn"]] = $formData["name"];
+            $changedLabels[] = "Full name";
         }
 
         if ($formData["email"] !== $currentEmail) {
             $changes[$schema["emailColumn"]] = $formData["email"];
+            $changedLabels[] = "Email";
             if ($schema["table"] === "users") {
                 $changes["email_verified_at"] = null;
                 $changes["email_verification_token"] = null;
@@ -353,10 +385,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $currentPhoneValue = $currentPhone === "" ? null : $currentPhone;
         if ($newPhoneValue !== $currentPhoneValue && $schema["phoneColumn"]) {
             $changes[$schema["phoneColumn"]] = $newPhoneValue;
+            $changedLabels[] = "Contact number";
         }
 
         if (wantsPasswordChange($formData)) {
             $changes[$schema["passwordColumn"]] = password_hash($formData["new_password"], PASSWORD_DEFAULT);
+            $changedLabels[] = "Password";
         }
 
         if ($changes) {
@@ -384,9 +418,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $_SESSION["profile_flash"] = [
                     "type" => "success",
-                    "message" => wantsPasswordChange($formData)
-                        ? "Your profile and password were updated successfully."
-                        : "Your profile was updated successfully.",
+                    "message" => describeProfileChanges($changedLabels),
                 ];
             } catch (PDOException $exception) {
                 error_log("profile update error: " . $exception->getMessage());
@@ -413,6 +445,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 $avatarInitials = getInitials($formData["name"]);
 $flashType = is_array($flash) ? (string)($flash["type"] ?? "") : "";
 $flashMessage = is_array($flash) ? (string)($flash["message"] ?? "") : "";
+$openConfirmModal = $_SERVER["REQUEST_METHOD"] === "POST" && $errors["current_password"] !== "";
+$toastType = $flashType;
+$toastMessage = $flashMessage;
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && $toastMessage === "" && (bool)array_filter($errors)) {
+    if ($errors["current_password"] !== "") {
+        $toastType = "error";
+        $toastMessage = $errors["current_password"];
+    } elseif ($errors["general"] !== "") {
+        $toastType = "error";
+        $toastMessage = $errors["general"];
+    } else {
+        $toastType = "warning";
+        $toastMessage = "Please fix the highlighted fields before confirming.";
+    }
+}
+
 $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service updates." : "Add a phone number for faster service updates.";
 ?>
 <!DOCTYPE html>
@@ -641,6 +690,95 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       display: block;
     }
 
+    .confirm-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: min(calc(100% - 2rem), 460px);
+      padding: 1.45rem;
+      z-index: 1000;
+      transform: translate(-50%, -50%);
+      background: #fffdf9;
+      border: 1px solid rgba(74, 5, 5, 0.12);
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(34, 18, 8, 0.32);
+    }
+
+    .confirm-modal.active {
+      display: grid;
+      gap: 1.15rem;
+    }
+
+    .confirm-modal__close {
+      position: absolute;
+      top: 0.9rem;
+      right: 0.9rem;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(122, 47, 0, 0.12);
+      border-radius: 12px;
+      background: #fff7ec;
+      color: #7a2f00;
+      cursor: pointer;
+      font-size: 1.25rem;
+      font-weight: 800;
+      line-height: 1;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .confirm-modal__close:hover,
+    .confirm-modal__close:focus-visible {
+      background: #ffe9d0;
+      box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .confirm-modal__header {
+      display: grid;
+      gap: 0.45rem;
+      padding-right: 2.8rem;
+    }
+
+    .confirm-modal__header h2 {
+      margin: 0;
+      color: #4A0505;
+      font-size: 1.35rem;
+      line-height: 1.2;
+    }
+
+    .confirm-modal__header p {
+      margin: 0;
+      color: #7d6658;
+      line-height: 1.6;
+    }
+
+    .confirm-modal__field {
+      padding: 1rem;
+      border: 1px solid rgba(74, 5, 5, 0.08);
+      border-radius: 16px;
+      background: #fff8ef;
+    }
+
+    .confirm-modal__actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0.8rem;
+    }
+
+    .confirm-modal__actions .btn-secondary,
+    .confirm-modal__actions .btn-primary {
+      width: 100%;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
     .alert-modal h2 {
       margin: 0 0 0.45rem;
       font-size: 1.35rem;
@@ -849,6 +987,15 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       .btn-primary {
         width: 100%;
         text-align: center;
+      }
+
+      .confirm-modal {
+        padding: 1.2rem;
+        border-radius: 18px;
+      }
+
+      .confirm-modal__actions {
+        grid-template-columns: 1fr;
       }
     }
     .summary-kicker,
@@ -1541,27 +1688,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
   </style>
 </head>
-<body class="customer-layout customer-page--profile<?php echo $flashMessage !== "" ? " modal-open" : ""; ?>">
+<body class="customer-layout customer-page--profile<?php echo $openConfirmModal ? " modal-open" : ""; ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
-
-<?php if ($flashMessage !== ""): ?>
-  <div id="profileAlertOverlay" class="modal-overlay active" aria-hidden="true"></div>
-  <div
-    id="profileAlertModal"
-    class="alert-modal active <?php echo $flashType === "success" ? "status-success" : "status-info"; ?>"
-    role="alertdialog"
-    aria-modal="true"
-    aria-labelledby="profileAlertTitle"
-    aria-describedby="profileAlertMessage"
-  >
-    <h2 id="profileAlertTitle"><?php echo $flashType === "success" ? "Success" : "Notice"; ?></h2>
-    <p id="profileAlertMessage"><?php echo e($flashMessage); ?></p>
-    <div class="alert-modal__actions">
-      <button id="profileAlertClose" type="button" class="btn-primary">OK</button>
-    </div>
-  </div>
-<?php endif; ?>
 
 <main class="profile-edit-page">
   <div class="profile-shell">
@@ -1683,28 +1812,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
             </div>
             <span class="section-tag">Optional</span>
           </div>
-          <p>Leave these fields empty if you want to keep your current password.</p>
+          <p>Leave these fields empty if you want to keep your current password. We will ask for your current password when you save.</p>
 
           <div class="field-grid">
-            <div class="field full-width">
-              <label for="current_password">Current Password</label>
-              <div class="password-field">
-                <input
-                  id="current_password"
-                  name="current_password"
-                  type="password"
-                  value=""
-                  placeholder="Enter your current password"
-                  autocomplete="current-password"
-                  aria-invalid="<?php echo $errors["current_password"] !== "" ? "true" : "false"; ?>"
-                  aria-describedby="current-password-error"
-                  class="<?php echo $errors["current_password"] !== "" ? "is-invalid" : ""; ?>"
-                >
-                <button type="button" class="password-toggle" data-toggle-password="current_password" aria-controls="current_password" aria-label="Show current password">Show</button>
-              </div>
-              <div id="current-password-error" class="field-error"><?php echo e($errors["current_password"]); ?></div>
-            </div>
-
             <div class="field">
               <label for="new_password">New Password</label>
               <div class="password-field">
@@ -1751,10 +1861,55 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         </div>
 
         <div class="form-actions">
-          <p class="action-copy">Your current password stays hidden and is only replaced when you submit a new one.</p>
+          <p class="action-copy">For security, saving changes requires a quick password confirmation.</p>
           <div class="action-buttons">
             <a href="/pages/customer/customer_dash.php" class="btn-secondary">Cancel</a>
             <button id="saveProfileBtn" type="submit" class="btn-primary">Save Changes</button>
+          </div>
+        </div>
+
+        <div
+          id="profileConfirmOverlay"
+          class="modal-overlay<?php echo $openConfirmModal ? " active" : ""; ?>"
+          aria-hidden="true"
+          <?php echo $openConfirmModal ? "" : "hidden"; ?>
+        ></div>
+        <div
+          id="profileConfirmModal"
+          class="confirm-modal<?php echo $openConfirmModal ? " active" : ""; ?>"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profileConfirmTitle"
+          aria-describedby="profileConfirmMessage"
+          <?php echo $openConfirmModal ? "" : "hidden"; ?>
+        >
+          <button id="profileConfirmClose" class="confirm-modal__close" type="button" aria-label="Close confirmation">&times;</button>
+          <div class="confirm-modal__header">
+            <span class="section-kicker">Secure Confirmation</span>
+            <h2 id="profileConfirmTitle">Confirm Profile Update</h2>
+            <p id="profileConfirmMessage">Please enter your current password to continue updating your profile.</p>
+          </div>
+          <div class="field confirm-modal__field">
+            <label for="current_password">Current Password</label>
+            <div class="password-field">
+              <input
+                id="current_password"
+                name="current_password"
+                type="password"
+                value=""
+                placeholder="Enter your current password"
+                autocomplete="current-password"
+                aria-invalid="<?php echo $errors["current_password"] !== "" ? "true" : "false"; ?>"
+                aria-describedby="current-password-error"
+                class="<?php echo $errors["current_password"] !== "" ? "is-invalid" : ""; ?>"
+              >
+              <button type="button" class="password-toggle" data-toggle-password="current_password" aria-controls="current_password" aria-label="Show current password">Show</button>
+            </div>
+            <div id="current-password-error" class="field-error"><?php echo e($errors["current_password"]); ?></div>
+          </div>
+          <div class="confirm-modal__actions">
+            <button id="profileConfirmCancel" type="button" class="btn-secondary">Cancel</button>
+            <button id="profileConfirmSubmit" type="button" class="btn-primary">Confirm Update</button>
           </div>
         </div>
       </form>
@@ -1768,40 +1923,25 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
   (function () {
     const form = document.getElementById("editProfileForm");
     const submitButton = document.getElementById("saveProfileBtn");
-    const alertModal = document.getElementById("profileAlertModal");
-    const alertOverlay = document.getElementById("profileAlertOverlay");
-    const alertClose = document.getElementById("profileAlertClose");
+    const confirmModal = document.getElementById("profileConfirmModal");
+    const confirmOverlay = document.getElementById("profileConfirmOverlay");
+    const confirmClose = document.getElementById("profileConfirmClose");
+    const confirmCancel = document.getElementById("profileConfirmCancel");
+    const confirmSubmit = document.getElementById("profileConfirmSubmit");
+    const serverToast = {
+      message: <?php echo json_encode($toastMessage); ?>,
+      tone: <?php echo json_encode($toastType !== "" ? $toastType : "info"); ?>
+    };
 
-    function closeAlertModal() {
-      if (alertModal) {
-        alertModal.classList.remove("active");
-        alertModal.setAttribute("hidden", "hidden");
-      }
-      if (alertOverlay) {
-        alertOverlay.classList.remove("active");
-        alertOverlay.setAttribute("hidden", "hidden");
-      }
-      document.body.classList.remove("modal-open");
-    }
-
-    if (alertModal && alertOverlay) {
-      if (alertClose) {
-        alertClose.focus();
-        alertClose.addEventListener("click", closeAlertModal);
-      }
-
-      alertOverlay.addEventListener("click", closeAlertModal);
-
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-          closeAlertModal();
-        }
-      });
+    if (serverToast.message && typeof window.servitechToast === "function") {
+      window.servitechToast(serverToast.message, { tone: serverToast.tone });
     }
 
     if (!form || !submitButton) {
       return;
     }
+
+    let confirmationAccepted = false;
 
     const fields = {
       name: document.getElementById("name"),
@@ -1823,6 +1963,12 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     const passwordMinLength = <?php echo SERVITECH_PASSWORD_MIN_LENGTH; ?>;
     const passwordMaxLength = <?php echo SERVITECH_PASSWORD_MAX_BYTES; ?>;
 
+    function showToast(message, tone) {
+      if (typeof window.servitechToast === "function") {
+        window.servitechToast(message, { tone: tone || "info" });
+      }
+    }
+
     function clearError(key) {
       if (fields[key]) {
         fields[key].classList.remove("is-invalid");
@@ -1841,6 +1987,90 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       if (errorTargets[key]) {
         errorTargets[key].textContent = message;
       }
+    }
+
+    function openConfirmModal() {
+      if (!confirmModal || !confirmOverlay) {
+        confirmationAccepted = true;
+        form.requestSubmit ? form.requestSubmit(submitButton) : form.submit();
+        return;
+      }
+
+      confirmationAccepted = false;
+      if (fields.current_password) {
+        fields.current_password.value = "";
+        clearError("current_password");
+      }
+      confirmOverlay.hidden = false;
+      confirmModal.hidden = false;
+      confirmOverlay.classList.add("active");
+      confirmModal.classList.add("active");
+      document.body.classList.add("modal-open");
+      window.setTimeout(function () {
+        if (fields.current_password) {
+          fields.current_password.focus();
+        }
+      }, 30);
+    }
+
+    function closeConfirmModal() {
+      if (!confirmModal || !confirmOverlay) {
+        return;
+      }
+
+      confirmationAccepted = false;
+      confirmModal.classList.remove("active");
+      confirmOverlay.classList.remove("active");
+      confirmModal.hidden = true;
+      confirmOverlay.hidden = true;
+      document.body.classList.remove("modal-open");
+      if (fields.current_password) {
+        fields.current_password.value = "";
+        clearError("current_password");
+      }
+      submitButton.focus();
+    }
+
+    [confirmClose, confirmCancel].forEach(function (button) {
+      if (button) {
+        button.addEventListener("click", closeConfirmModal);
+      }
+    });
+
+    if (confirmOverlay) {
+      confirmOverlay.addEventListener("click", closeConfirmModal);
+    }
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && confirmModal && confirmModal.classList.contains("active")) {
+        closeConfirmModal();
+      }
+    });
+
+    if (confirmModal && confirmModal.classList.contains("active") && fields.current_password) {
+      fields.current_password.focus();
+    }
+
+    if (confirmSubmit) {
+      confirmSubmit.addEventListener("click", function () {
+        const currentPassword = fields.current_password ? fields.current_password.value : "";
+
+        clearError("current_password");
+
+        if (currentPassword === "") {
+          setError("current_password", "Enter your current password.");
+          showToast("Enter your current password to continue.", "warning");
+          if (fields.current_password) {
+            fields.current_password.focus();
+          }
+          return;
+        }
+
+        confirmationAccepted = true;
+        confirmSubmit.disabled = true;
+        confirmSubmit.textContent = "Confirming...";
+        form.requestSubmit ? form.requestSubmit(submitButton) : form.submit();
+      });
     }
 
     document.querySelectorAll("[data-toggle-password]").forEach(function (toggleButton) {
@@ -1868,7 +2098,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       const currentPassword = fields.current_password.value || "";
       const newPassword = fields.new_password.value || "";
       const confirmPassword = fields.confirm_password.value || "";
-      const wantsPassword = currentPassword !== "" || newPassword !== "" || confirmPassword !== "";
+      const wantsPassword = newPassword !== "" || confirmPassword !== "";
 
       let hasErrors = false;
 
@@ -1895,10 +2125,6 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
 
       if (wantsPassword) {
-        if (currentPassword === "") {
-          setError("current_password", "Enter your current password.");
-          hasErrors = true;
-        }
         if (newPassword === "") {
           setError("new_password", "Enter a new password.");
           hasErrors = true;
@@ -1920,6 +2146,42 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
       if (hasErrors) {
         event.preventDefault();
+        confirmationAccepted = false;
+        if (confirmSubmit) {
+          confirmSubmit.disabled = false;
+          confirmSubmit.textContent = "Confirm Update";
+        }
+        if (confirmModal && confirmModal.classList.contains("active")) {
+          confirmModal.classList.remove("active");
+          confirmOverlay.classList.remove("active");
+          confirmModal.hidden = true;
+          confirmOverlay.hidden = true;
+          document.body.classList.remove("modal-open");
+        }
+        showToast("Please fix the highlighted fields before confirming.", "warning");
+        const firstInvalid = form.querySelector(".is-invalid");
+        if (firstInvalid) {
+          firstInvalid.focus();
+        }
+        return;
+      }
+
+      if (!confirmationAccepted) {
+        event.preventDefault();
+        openConfirmModal();
+        return;
+      }
+
+      if (currentPassword === "") {
+        event.preventDefault();
+        confirmationAccepted = false;
+        if (confirmSubmit) {
+          confirmSubmit.disabled = false;
+          confirmSubmit.textContent = "Confirm Update";
+        }
+        openConfirmModal();
+        setError("current_password", "Enter your current password.");
+        showToast("Enter your current password to continue.", "warning");
         return;
       }
 
