@@ -93,6 +93,115 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       padding: clamp(18px, 4vw, 30px);
     }
 
+    body.customer-layout.customer-page--status .status-panel__head,
+    body.customer-layout.customer-page--status .status-section-head {
+      align-items: center;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      min-width: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-section-head {
+      margin: clamp(20px, 3vw, 28px) 0 1rem;
+    }
+
+    body.customer-layout.customer-page--status .status-section-title {
+      margin: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-count-pill {
+      background: #fff7ed;
+      border: 1px solid rgba(240, 138, 0, 0.24);
+      border-radius: 999px;
+      color: #7a3810;
+      flex: 0 0 auto;
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 0.35rem 0.7rem;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .status-filter-bar {
+      align-items: end;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(95, 14, 15, 0.1);
+      border-radius: 16px;
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: repeat(3, minmax(150px, 1fr)) auto;
+      margin-bottom: clamp(16px, 2.5vw, 22px);
+      padding: clamp(12px, 2.2vw, 16px);
+    }
+
+    body.customer-layout.customer-page--status .status-filter-field {
+      display: grid;
+      gap: 0.4rem;
+      min-width: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-filter-label {
+      color: #7c625b;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .status-filter-control {
+      appearance: none;
+      background: #fffaf4;
+      border: 1px solid rgba(95, 14, 15, 0.14);
+      border-radius: 12px;
+      color: #24120f;
+      font: inherit;
+      font-size: 0.92rem;
+      font-weight: 700;
+      min-height: 44px;
+      min-width: 0;
+      padding: 0.68rem 0.8rem;
+      width: 100%;
+    }
+
+    body.customer-layout.customer-page--status select.status-filter-control {
+      background-image:
+        linear-gradient(45deg, transparent 50%, #8b1e1e 50%),
+        linear-gradient(135deg, #8b1e1e 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 13px) 50%;
+      background-repeat: no-repeat;
+      background-size: 5px 5px, 5px 5px;
+      padding-right: 2.2rem;
+    }
+
+    body.customer-layout.customer-page--status .status-filter-clear {
+      background: #fff8f5;
+      border: 1px solid #ead2c5;
+      border-radius: 12px;
+      color: #8b1e1e;
+      cursor: pointer;
+      font-weight: 800;
+      min-height: 44px;
+      padding: 0.68rem 0.95rem;
+      transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    body.customer-layout.customer-page--status .status-filter-clear:hover,
+    body.customer-layout.customer-page--status .status-filter-clear:focus-visible {
+      background: #8b1e1e;
+      border-color: #8b1e1e;
+      color: #ffffff;
+      outline: none;
+    }
+
+    body.customer-layout.customer-page--status .status-archive-section {
+      border-top: 1px solid rgba(95, 14, 15, 0.1);
+      margin-top: clamp(22px, 4vw, 34px);
+      padding-top: clamp(16px, 3vw, 24px);
+    }
+
     body.customer-layout.customer-page--status #detailModal {
       z-index: 5000 !important;
       align-items: center !important;
@@ -541,6 +650,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       color: #1d4ed8;
     }
 
+    body.customer-layout.customer-page--status #modalStatus.status-approved,
+    body.customer-layout.customer-page--status .status-approved {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
     body.customer-layout.customer-page--status #modalStatus.status-pickup,
     body.customer-layout.customer-page--status .status-pickup {
       background: #ede9fe;
@@ -604,6 +719,21 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         border-radius: 16px;
         min-height: 0;
         padding: 18px 16px;
+      }
+
+      body.customer-layout.customer-page--status .status-panel__head,
+      body.customer-layout.customer-page--status .status-section-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.55rem;
+      }
+
+      body.customer-layout.customer-page--status .status-filter-bar {
+        grid-template-columns: 1fr;
+      }
+
+      body.customer-layout.customer-page--status .status-filter-clear {
+        width: 100%;
       }
 
       body.customer-layout.customer-page--status .queue-card__head {
@@ -677,6 +807,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       body.customer-layout.customer-page--status .status-modal__grid {
         grid-template-columns: 1fr;
       }
+
+      body.customer-layout.customer-page--status .status-filter-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      body.customer-layout.customer-page--status .status-filter-clear {
+        grid-column: 1 / -1;
+      }
     }
 
     @media (min-width: 1025px) {
@@ -702,9 +840,53 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       <strong>Service Status</strong>
     </div>
 
-    <div class="status-panel">
-      <h3 class="status-section-title">YOUR QUEUES</h3>
+    <div id="serviceStatusPanel" class="status-panel">
+      <div class="status-panel__head">
+        <h3 class="status-section-title">YOUR QUEUES</h3>
+        <span id="activeQueueCount" class="status-count-pill">0 Active</span>
+      </div>
+
+      <div class="status-filter-bar" aria-label="Filter service status records">
+        <label class="status-filter-field" for="categoryFilter">
+          <span class="status-filter-label">Category</span>
+          <select id="categoryFilter" class="status-filter-control">
+            <option value="">All Categories</option>
+            <option value="printing">Printing</option>
+            <option value="repair">Repair</option>
+            <option value="installation">Installation</option>
+          </select>
+        </label>
+
+        <label class="status-filter-field" for="statusFilter">
+          <span class="status-filter-label">Status</span>
+          <select id="statusFilter" class="status-filter-control">
+            <option value="">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="APPROVED">Approved</option>
+            <option value="ONGOING">Ongoing</option>
+            <option value="FOR PICK-UP">For Pick-up</option>
+            <option value="DONE">Done</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </label>
+
+        <label class="status-filter-field" for="dateFilter">
+          <span class="status-filter-label">Submitted Date</span>
+          <input id="dateFilter" class="status-filter-control" type="date">
+        </label>
+
+        <button id="clearFiltersBtn" class="status-filter-clear" type="button">Clear</button>
+      </div>
+
       <div id="queueList" class="queue-list"></div>
+
+      <section class="status-archive-section" aria-labelledby="archiveStatusTitle">
+        <div class="status-section-head">
+          <h3 id="archiveStatusTitle" class="status-section-title">ARCHIVE</h3>
+          <span id="archiveQueueCount" class="status-count-pill">0 Archived</span>
+        </div>
+        <div id="archiveQueueList" class="queue-list"></div>
+      </section>
     </div>
   </section>
 </main>
@@ -794,12 +976,21 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <script>
 (async function(){
   const listEl = document.getElementById("queueList");
+  const panelEl = document.getElementById("serviceStatusPanel");
+  const archiveListEl = document.getElementById("archiveQueueList");
+  const activeQueueCount = document.getElementById("activeQueueCount");
+  const archiveQueueCount = document.getElementById("archiveQueueCount");
+  const categoryFilter = document.getElementById("categoryFilter");
+  const statusFilter = document.getElementById("statusFilter");
+  const dateFilter = document.getElementById("dateFilter");
+  const clearFiltersBtn = document.getElementById("clearFiltersBtn");
   const detailModal = document.getElementById("detailModal");
   const statusModal = detailModal?.querySelector(".status-modal");
   const closeDetail = document.getElementById("closeDetail");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
 
   let lastFocused = null;
+  let allQueues = [];
 
   function servitechBasePath(){
     const pathname = window.location.pathname || "";
@@ -828,16 +1019,24 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return `\u20B1${(n ?? 0).toFixed(2)}`;
   }
 
-  function formatDateTime(value){
+  function parseDateTime(value){
     const raw = String(value || "").trim();
-    if (!raw) return "Not available";
+    if (!raw) return null;
 
     const normalized = raw
       .replace(" ", "T")
       .replace(/(\.\d{3})\d+/, "$1")
       .replace(/([+-]\d{2})$/, "$1:00");
     const date = new Date(normalized);
-    if (Number.isNaN(date.getTime())) return raw;
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function formatDateTime(value){
+    const raw = String(value || "").trim();
+    if (!raw) return "Not available";
+
+    const date = parseDateTime(raw);
+    if (!date) return raw;
 
     return new Intl.DateTimeFormat("en-PH", {
       year: "numeric",
@@ -846,6 +1045,19 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       hour: "numeric",
       minute: "2-digit"
     }).format(date);
+  }
+
+  function dateInputValue(value){
+    const date = parseDateTime(value);
+    if (!date) {
+      const raw = String(value || "").trim();
+      return /^\d{4}-\d{2}-\d{2}/.test(raw) ? raw.slice(0, 10) : "";
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }
 
   function resolveFileHref(path){
@@ -914,10 +1126,28 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       .toLowerCase()
       .replace(/[\s_]+/g, "-");
     if (key === "ongoing") return "ongoing";
+    if (key === "approved") return "approved";
     if (key === "for-pick-up" || key === "for-pickup" || key === "ready") return "pickup";
     if (key === "done") return "done";
     if (key === "cancelled" || key === "canceled") return "cancelled";
     return "pending";
+  }
+
+  function normalizeStatus(value){
+    const status = String(value || "PENDING")
+      .trim()
+      .toUpperCase()
+      .replace(/[\s_]+/g, " ");
+    if (status === "" || status === "PENDING PAYMENT") return "PENDING";
+    if (status === "FOR PICK UP" || status === "FOR PICKUP") return "FOR PICK-UP";
+    if (status === "COMPLETED") return "DONE";
+    if (status === "CANCELED" || status === "CANCEL") return "CANCELLED";
+    return status;
+  }
+
+  function isArchivedStatus(status){
+    const normalized = normalizeStatus(status);
+    return normalized === "DONE" || normalized === "CANCELLED";
   }
 
   function formatPaymentMethod(value){
@@ -942,6 +1172,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function categoryKey(queueData){
     return String(queueData?.category || "").trim().toLowerCase();
+  }
+
+  function filterCategoryKey(queueData){
+    const category = categoryKey(queueData);
+    if (category === "printing" || category === "online_printorder" || category === "walkin") return "printing";
+    if (category === "repair") return "repair";
+    if (category === "installation") return "installation";
+    return category;
   }
 
   function serviceKey(queueData){
@@ -1026,8 +1264,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return rows;
   }
 
-  function renderState(message, actionHtml){
-    listEl.innerHTML = `
+  function renderListState(targetEl, message, actionHtml){
+    if (!targetEl) return;
+    targetEl.innerHTML = `
       <div class="status-empty-state">
         <p class="muted">${esc(message)}</p>
         ${actionHtml || ""}
@@ -1035,9 +1274,76 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     `;
   }
 
+  function renderState(message, actionHtml){
+    renderListState(listEl, message, actionHtml);
+  }
+
+  function updateCounts(activeCount, archiveCount){
+    if (activeQueueCount) activeQueueCount.textContent = `${activeCount} Active`;
+    if (archiveQueueCount) archiveQueueCount.textContent = `${archiveCount} Archived`;
+  }
+
+  function queueMatchesFilters(queueData){
+    const categoryValue = categoryFilter?.value || "";
+    const statusValue = statusFilter?.value || "";
+    const dateValue = dateFilter?.value || "";
+
+    if (categoryValue && filterCategoryKey(queueData) !== categoryValue) return false;
+    if (statusValue && normalizeStatus(queueData.status) !== statusValue) return false;
+    if (dateValue && dateInputValue(queueData.created_at) !== dateValue) return false;
+
+    return true;
+  }
+
+  function attachQueueCardEvents(card){
+    card.addEventListener("click", () => openDetail(card));
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openDetail(card);
+      }
+    });
+  }
+
+  function renderQueueList(targetEl, queues, emptyMessage){
+    if (!targetEl) return;
+    targetEl.innerHTML = "";
+
+    if (!queues.length) {
+      renderListState(targetEl, emptyMessage);
+      return;
+    }
+
+    queues.forEach((q) => {
+      const card = buildCard(q);
+      targetEl.appendChild(card);
+      attachQueueCardEvents(card);
+    });
+  }
+
+  function renderFilteredQueues(){
+    const filteredQueues = allQueues.filter(queueMatchesFilters);
+    const activeQueues = filteredQueues.filter((q) => !isArchivedStatus(q.status));
+    const archivedQueues = filteredQueues.filter((q) => isArchivedStatus(q.status));
+    const hasFilters = !!(categoryFilter?.value || statusFilter?.value || dateFilter?.value);
+
+    updateCounts(activeQueues.length, archivedQueues.length);
+    renderQueueList(
+      listEl,
+      activeQueues,
+      hasFilters ? "No active queues match your filters." : "No active queues right now."
+    );
+    renderQueueList(
+      archiveListEl,
+      archivedQueues,
+      hasFilters ? "No archived queues match your filters." : "No archived queues yet."
+    );
+  }
+
   function buildCard(q){
     const div = document.createElement("div");
-    const tone = badgeTone(q.status);
+    const status = normalizeStatus(q.status);
+    const tone = badgeTone(status);
     div.className = "card queue-card";
     div.tabIndex = 0;
     div.setAttribute("role", "button");
@@ -1055,7 +1361,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.dataset.device = q.device_type || "";
     div.dataset.notes = q.notes || "";
     div.dataset.file = q.file_name || "";
-    div.dataset.status = q.status || "";
+    div.dataset.status = status || "";
     div.dataset.paymentMethod = q.payment_method || q.details?.payment_method || "";
     div.dataset.referenceNumber = q.reference_number || q.details?.reference_number || "";
     div.queueData = q;
@@ -1063,7 +1369,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.innerHTML = `
       <div class="queue-card__head">
         <div class="queue-card__code">${esc(q.queue_code)}</div>
-        <div class="status-badge queue-card__badge status-${tone} queue-card__badge--${tone}">${esc(q.status || "PENDING")}</div>
+        <div class="status-badge queue-card__badge status-${tone} queue-card__badge--${tone}">${esc(status || "PENDING")}</div>
       </div>
       <hr class="queue-card__divider">
       <p class="queue-card__meta">
@@ -1400,7 +1706,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return;
     }
 
-    const targetCard = listEl.querySelector('[data-queue-id="' + String(requestedId) + '"]');
+    const targetCard = panelEl?.querySelector('[data-queue-id="' + String(requestedId) + '"]');
     if (!targetCard) {
       return;
     }
@@ -1418,6 +1724,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   async function loadQueues(){
     renderState("Loading queue list...");
+    renderListState(archiveListEl, "Loading archive...");
+    updateCounts(0, 0);
 
     let res;
     try {
@@ -1444,30 +1752,23 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     listEl.innerHTML = "";
+    if (archiveListEl) archiveListEl.innerHTML = "";
 
     if (!data.ok) {
       renderState(data.error || "Unable to load your queue list.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
+      renderListState(archiveListEl, "Archive could not be loaded.");
       return;
     }
 
     if (!data.queues || data.queues.length === 0) {
+      allQueues = [];
       renderState("No queues yet.", '<a href="/pages/customer/custo_place_queueing.php" class="btn-next">Join Queue</a>');
+      renderListState(archiveListEl, "No archived queues yet.");
       return;
     }
 
-    data.queues.forEach(q => {
-      const card = buildCard(q);
-      listEl.appendChild(card);
-
-      card.addEventListener("click", () => openDetail(card));
-      card.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openDetail(card);
-        }
-      });
-    });
-
+    allQueues = data.queues;
+    renderFilteredQueues();
     maybeOpenRequestedQueue();
   }
 
@@ -1481,7 +1782,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     });
   }
 
-  listEl?.addEventListener("click", (e) => {
+  [categoryFilter, statusFilter, dateFilter].forEach((control) => {
+    control?.addEventListener("change", renderFilteredQueues);
+  });
+
+  clearFiltersBtn?.addEventListener("click", () => {
+    if (categoryFilter) categoryFilter.value = "";
+    if (statusFilter) statusFilter.value = "";
+    if (dateFilter) dateFilter.value = "";
+    renderFilteredQueues();
+  });
+
+  panelEl?.addEventListener("click", (e) => {
     const t = e.target;
     if (t && t.id === "retryQueuesBtn") {
       loadQueues();
