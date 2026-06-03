@@ -241,6 +241,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       padding: clamp(14px, 2.2vw, 18px);
     }
 
+    body.customer-layout.customer-page--status .status-modal__section[hidden],
+    body.customer-layout.customer-page--status #modalNotesWrap[hidden] {
+      display: none !important;
+    }
+
     body.customer-layout.customer-page--status .status-modal__section-title {
       color: #5f0e0f;
       font-size: 0.78rem;
@@ -666,13 +671,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
               <span class="status-detail-label">Price</span>
               <span id="modalPrice" class="status-detail-value">To be assessed</span>
             </div>
-            <div class="status-notes">
+            <div id="modalNotesWrap" class="status-notes">
               <label class="status-detail-label" for="modalNotes">Notes</label>
               <textarea id="modalNotes" readonly></textarea>
             </div>
           </section>
 
-          <section class="status-modal__section" aria-labelledby="attachedFilesTitle">
+          <section id="attachedFilesSection" class="status-modal__section" aria-labelledby="attachedFilesTitle">
             <h4 id="attachedFilesTitle" class="status-modal__section-title">Attached Files</h4>
             <div class="status-detail-row status-detail-row--files">
               <span id="modalFileLabel" class="status-detail-label">Attached File</span>
@@ -746,7 +751,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (!raw) return "";
     if (/^https?:\/\//i.test(raw)) return raw;
     if (raw.startsWith("/uploads/printing/")) return servitechUrl(raw);
+    if (raw.startsWith("/uploads/print_orders/")) return servitechUrl(raw);
     if (raw.startsWith(servitechBasePath() + "/uploads/printing/")) return raw;
+    if (raw.startsWith(servitechBasePath() + "/uploads/print_orders/")) return raw;
     return "";
   }
 
@@ -818,35 +825,103 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return "Not specified";
   }
 
-  function paymentStatusInfo(queueData){
-    const details = queueData && typeof queueData.details === "object" && queueData.details
+  function queueDetails(queueData){
+    return queueData && typeof queueData.details === "object" && queueData.details
       ? queueData.details
       : {};
-    const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
-    const reference = String(queueData.reference_number || details.reference_number || "").trim();
-    const status = String(queueData.status || "PENDING").trim().toUpperCase();
+  }
 
-    if (status === "CANCELLED" || status === "CANCELED") {
-      return { label: "Cancelled", tone: "cancelled", note: "" };
+  function compactKey(value){
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "");
+  }
+
+  function categoryKey(queueData){
+    return String(queueData?.category || "").trim().toLowerCase();
+  }
+
+  function serviceKey(queueData){
+    const details = queueDetails(queueData);
+    return compactKey(queueData?.service_label || details.service_label || "");
+  }
+
+  function orderTypeKey(queueData){
+    const details = queueDetails(queueData);
+    return String(queueData?.order_type || details.order_type || "").trim().toLowerCase();
+  }
+
+  function isDocumentPrinting(queueData){
+    const service = serviceKey(queueData);
+    return service === "documentprinting" || service === "onlineprintorder" || categoryKey(queueData) === "online_printorder";
+  }
+
+  function isOnlineDocumentPrinting(queueData){
+    return isDocumentPrinting(queueData) && (categoryKey(queueData) === "online_printorder" || orderTypeKey(queueData) === "online");
+  }
+
+  function isWalkInDocumentPrinting(queueData){
+    return isDocumentPrinting(queueData) && !isOnlineDocumentPrinting(queueData);
+  }
+
+  function supportsFileUpload(queueData){
+    const service = serviceKey(queueData);
+    return service === "rushid" || isDocumentPrinting(queueData);
+  }
+
+  function serviceDetailRows(queueData){
+    const details = queueDetails(queueData);
+    const service = serviceKey(queueData);
+    const category = categoryKey(queueData);
+    const rows = [];
+    const add = (label, value) => {
+      const cleanValue = value === null || value === undefined ? "" : String(value).trim();
+      if (cleanValue !== "") rows.push([label, cleanValue]);
+    };
+
+    if (isDocumentPrinting(queueData)) {
+      add("Order Type", isOnlineDocumentPrinting(queueData) ? "Online" : "Walk-In");
+      add("Paper Size", queueData.paper_size ?? details.paper_size);
+      add("Quantity/Copies", queueData.quantity ?? details.quantity);
+      add("Color Option", queueData.color_option ?? details.color_option);
+      add("Total Pages", queueData.total_pages ?? details.total_pages);
+      add("Price Per Page", toNumber(queueData.price_per_page ?? details.price_per_page) !== null
+        ? toPeso(queueData.price_per_page ?? details.price_per_page)
+        : "");
+      return rows;
     }
 
-    if (method === "gcash" && reference) {
-      return status === "PENDING"
-        ? { label: "Payment Submitted", tone: "pending", note: "" }
-        : { label: "Accepted", tone: "done", note: "" };
+    if (service === "rushid") {
+      add("Package", queueData.package_label ?? details.package_label);
+      add("Quantity", queueData.quantity ?? details.quantity);
+      return rows;
     }
 
-    if (method === "gcash") {
-      return { label: "Pending GCash Reference", tone: "pending", note: "Submit or confirm your GCash reference with the shop." };
+    if (service === "xerox") {
+      add("Paper Size", queueData.paper_size ?? details.paper_size);
+      add("Quantity", queueData.quantity ?? details.quantity);
+      return rows;
     }
 
-    if (method === "cash") {
-      return ["ONGOING", "FOR PICK-UP", "DONE"].includes(status)
-        ? { label: "Paid", tone: "done", note: "" }
-        : { label: "Pay at Store", tone: "pending", note: "" };
+    if (service === "laminating") {
+      add("Lamination", queueData.lamination_type ?? details.lamination_type);
+      add("Quantity", queueData.quantity ?? details.quantity);
+      return rows;
     }
 
-    return { label: "Not specified", tone: "pending", note: "" };
+    if (category === "repair" || category === "installation") {
+      add("Device", queueData.device_type ?? details.device_type);
+      return rows;
+    }
+
+    add("Paper Size", queueData.paper_size ?? details.paper_size);
+    add("Quantity", queueData.quantity ?? details.quantity);
+    add("Color", queueData.color_option ?? details.color_option);
+    add("Package", queueData.package_label ?? details.package_label);
+    add("Lamination", queueData.lamination_type ?? details.lamination_type);
+    add("Device", queueData.device_type ?? details.device_type);
+    return rows;
   }
 
   function renderState(message, actionHtml){
@@ -881,7 +956,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     div.dataset.status = q.status || "";
     div.dataset.paymentMethod = q.payment_method || q.details?.payment_method || "";
     div.dataset.referenceNumber = q.reference_number || q.details?.reference_number || "";
-    div.dataset.paymentStatus = q.payment_status || q.details?.payment_status || "";
     div.queueData = q;
 
     div.innerHTML = `
@@ -1029,8 +1103,20 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   }
 
   function renderAttachedFiles(queueData){
+    const fileSection = document.getElementById("attachedFilesSection");
     const fileEl = document.getElementById("modalFile");
     const fileLabelEl = document.getElementById("modalFileLabel");
+    if (!fileEl) return;
+
+    if (!supportsFileUpload(queueData)) {
+      if (fileSection) fileSection.hidden = true;
+      fileEl.innerHTML = "";
+      if (fileLabelEl) fileLabelEl.textContent = "Attached File";
+      return;
+    }
+
+    if (fileSection) fileSection.hidden = false;
+
     const uploadedFiles = Array.isArray(queueData.uploaded_files) ? queueData.uploaded_files : [];
     const fileNames = Array.isArray(queueData.file_names)
       ? queueData.file_names
@@ -1098,7 +1184,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   }
 
   function buildDetailRow(label, value){
-    if (!value) return "";
+    if (value === null || value === undefined || String(value).trim() === "") return "";
     return `
       <div class="status-detail-row">
         <span class="status-detail-label">${esc(label)}</span>
@@ -1108,54 +1194,44 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   }
 
   function renderPaymentDetails(queueData){
-    const details = queueData && typeof queueData.details === "object" && queueData.details
-      ? queueData.details
-      : {};
+    const details = queueDetails(queueData);
     const paymentEl = document.getElementById("modalPaymentDetails");
     const paymentQr = document.getElementById("modalPaymentQr");
     const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
     const reference = String(queueData.reference_number || details.reference_number || "").trim();
-    const status = paymentStatusInfo(queueData);
-    const category = String(queueData.category || "").trim().toLowerCase();
-    const usesTrackedPayment = category === "installation" || category === "repair";
 
     if (!paymentEl) return;
 
-    if (usesTrackedPayment) {
+    if (isOnlineDocumentPrinting(queueData)) {
       paymentEl.innerHTML = `
         <div class="status-detail-row">
-          <span class="status-detail-label">Paid Amount</span>
-          <span class="status-detail-value">${esc(toPeso(queueData.paid_amount))}</span>
+          <span class="status-detail-label">Payment Method</span>
+          <span class="status-detail-value">${esc(formatPaymentMethod(method))}</span>
         </div>
-        <div class="status-detail-row">
-          <span class="status-detail-label">Paid Pending</span>
-          <span class="status-detail-value">${esc(toPeso(queueData.paid_pending))}</span>
-        </div>
+        ${method === "gcash" || reference ? `
+          <div class="status-detail-row">
+            <span class="status-detail-label">Reference Number</span>
+            <span class="status-detail-value">${esc(reference || "-")}</span>
+          </div>
+        ` : ""}
       `;
-      if (paymentQr) paymentQr.classList.remove("is-visible");
+      if (paymentQr) paymentQr.classList.toggle("is-visible", method === "gcash");
       return;
     }
 
     paymentEl.innerHTML = `
       <div class="status-detail-row">
-        <span class="status-detail-label">Payment Method</span>
-        <span class="status-detail-value">${esc(formatPaymentMethod(method))}</span>
+        <span class="status-detail-label">Paid Amount</span>
+        <span class="status-detail-value">${esc(toPeso(queueData.paid_amount))}</span>
       </div>
       <div class="status-detail-row">
-        <span class="status-detail-label">Reference Number</span>
-        <span class="status-detail-value">${esc(reference || "-")}</span>
+        <span class="status-detail-label">Paid Pending</span>
+        <span class="status-detail-value">${esc(toPeso(queueData.paid_pending))}</span>
       </div>
-      <div class="status-detail-row">
-        <span class="status-detail-label">Payment Status</span>
-        <span class="status-detail-value">
-          <span class="status-badge status-${status.tone}">${esc(status.label)}</span>
-        </span>
-      </div>
-      ${status.note ? `<p class="payment-note">${esc(status.note)}</p>` : ""}
     `;
 
     if (paymentQr) {
-      paymentQr.classList.toggle("is-visible", method === "gcash");
+      paymentQr.classList.remove("is-visible");
     }
   }
 
@@ -1165,7 +1241,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     document.getElementById("modalQueue").textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
     document.getElementById("modalType").textContent = formatLabel(card.dataset.type || "");
     document.getElementById("modalService").textContent = card.dataset.service || "";
-    document.getElementById("modalNotes").value = card.dataset.notes || "";
+    const notesValue = card.dataset.notes || "";
+    const notesWrap = document.getElementById("modalNotesWrap");
+    document.getElementById("modalNotes").value = notesValue;
+    if (notesWrap) notesWrap.hidden = notesValue.trim() === "";
     document.getElementById("modalPrice").textContent = getQueuePriceLabel(queueData);
     renderAttachedFiles(queueData);
     renderPaymentDetails(queueData);
@@ -1177,14 +1256,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     statusEl.className = "status-badge modal-status-pill status-" + tone + " modal-status-pill--" + tone;
 
     const extra = document.getElementById("modalExtra");
-    extra.innerHTML = [
-      buildDetailRow("Paper Size", card.dataset.paper),
-      buildDetailRow("Quantity", card.dataset.qty),
-      buildDetailRow("Color", card.dataset.color),
-      buildDetailRow("Package", card.dataset.pkg),
-      buildDetailRow("Lamination", card.dataset.lam),
-      buildDetailRow("Device", card.dataset.device)
-    ].join("");
+    extra.innerHTML = serviceDetailRows(queueData)
+      .map(([label, value]) => buildDetailRow(label, value))
+      .join("");
     lastFocused = document.activeElement;
     detailModal.classList.add("is-open");
     detailModal.setAttribute("aria-hidden", "false");
