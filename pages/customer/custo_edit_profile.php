@@ -31,6 +31,25 @@ function normalizePhilippineMobileNumber(string $phone): string
     return $phone;
 }
 
+function comparablePhilippineMobileNumber(string $phone): string
+{
+    $phone = sanitizeInput($phone);
+
+    if (preg_match("/^\+639\d{9}$/", $phone)) {
+        return $phone;
+    }
+
+    if (preg_match("/^09\d{9}$/", $phone)) {
+        return "+63" . substr($phone, 1);
+    }
+
+    if (preg_match("/^9\d{9}$/", $phone)) {
+        return "+63" . $phone;
+    }
+
+    return $phone;
+}
+
 function isValidPhilippineMobileNumber(string $phone): bool
 {
     return (bool)preg_match("/^\+639\d{9}$/", $phone);
@@ -38,7 +57,7 @@ function isValidPhilippineMobileNumber(string $phone): bool
 
 function philippineMobileNationalPart(string $phone): string
 {
-    $phone = normalizePhilippineMobileNumber($phone);
+    $phone = comparablePhilippineMobileNumber($phone);
 
     if (preg_match("/^\+63(9\d{9})$/", $phone, $matches)) {
         return $matches[1];
@@ -259,9 +278,9 @@ function verifyStoredPassword(string $storedPassword, string $submittedPassword)
     return hash_equals($storedPassword, $submittedPassword);
 }
 
-function validateProfileInput(array $formData): array
+function profileErrorDefaults(): array
 {
-    $errors = [
+    return [
         "name" => "",
         "email" => "",
         "phone" => "",
@@ -270,24 +289,29 @@ function validateProfileInput(array $formData): array
         "confirm_password" => "",
         "general" => "",
     ];
+}
 
-    if ($formData["name"] === "") {
+function validateProfileInput(array $formData, array $changedFields): array
+{
+    $errors = profileErrorDefaults();
+
+    if (!empty($changedFields["name"]) && $formData["name"] === "") {
         $errors["name"] = "Full name is required.";
-    } elseif (mb_strlen($formData["name"]) > 100) {
+    } elseif (!empty($changedFields["name"]) && mb_strlen($formData["name"]) > 100) {
         $errors["name"] = "Full name must be 100 characters or fewer.";
     }
 
-    if ($formData["email"] === "") {
+    if (!empty($changedFields["email"]) && $formData["email"] === "") {
         $errors["email"] = "Email is required.";
-    } elseif (!filter_var($formData["email"], FILTER_VALIDATE_EMAIL)) {
+    } elseif (!empty($changedFields["email"]) && !filter_var($formData["email"], FILTER_VALIDATE_EMAIL)) {
         $errors["email"] = "Enter a valid email address.";
-    } elseif (mb_strlen($formData["email"]) > 150) {
+    } elseif (!empty($changedFields["email"]) && mb_strlen($formData["email"]) > 150) {
         $errors["email"] = "Email must be 150 characters or fewer.";
     }
 
-    if ($formData["phone"] === "") {
+    if (!empty($changedFields["phone"]) && $formData["phone"] === "") {
         $errors["phone"] = "Phone number is required.";
-    } elseif (!isValidPhilippineMobileNumber($formData["phone"])) {
+    } elseif (!empty($changedFields["phone"]) && !isValidPhilippineMobileNumber($formData["phone"])) {
         $errors["phone"] = "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.";
     }
 
@@ -316,15 +340,7 @@ $csrfToken = servitech_csrf_token();
 $flash = $_SESSION["profile_flash"] ?? null;
 unset($_SESSION["profile_flash"]);
 
-$errors = [
-    "name" => "",
-    "email" => "",
-    "phone" => "",
-    "current_password" => "",
-    "new_password" => "",
-    "confirm_password" => "",
-    "general" => "",
-];
+$errors = profileErrorDefaults();
 
 $formData = [
     "name" => "",
@@ -347,7 +363,7 @@ try {
     } else {
         $formData["name"] = sanitizeInput($profile["profile_name"] ?? "");
         $formData["email"] = normalizeEmail((string)($profile["profile_email"] ?? ""));
-        $formData["phone"] = normalizePhilippineMobileNumber((string)($profile["profile_phone"] ?? ""));
+        $formData["phone"] = comparablePhilippineMobileNumber((string)($profile["profile_phone"] ?? ""));
     }
 } catch (Throwable $exception) {
     error_log("profile page load error: " . $exception->getMessage());
@@ -358,20 +374,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     servitech_enforce_same_origin(false);
     servitech_enforce_csrf_token(false);
 
-    $formData["name"] = sanitizeInput($_POST["name"] ?? $_POST["fullname"] ?? "");
-    $formData["email"] = normalizeEmail(sanitizeInput($_POST["email"] ?? ""));
-    $formData["phone"] = normalizePhilippineMobileNumber((string)($_POST["phone"] ?? $_POST["contact"] ?? $_POST["contacts"] ?? ""));
+    $currentName = $profile ? sanitizeInput($profile["profile_name"] ?? "") : "";
+    $currentEmail = $profile ? normalizeEmail((string)($profile["profile_email"] ?? "")) : "";
+    $currentPhone = $profile ? comparablePhilippineMobileNumber((string)($profile["profile_phone"] ?? "")) : "";
+
+    $nameWasSubmitted = array_key_exists("name", $_POST) || array_key_exists("fullname", $_POST);
+    $emailWasSubmitted = array_key_exists("email", $_POST);
+    $phoneWasSubmitted = array_key_exists("phone", $_POST) || array_key_exists("contact", $_POST) || array_key_exists("contacts", $_POST);
+
+    $formData["name"] = $nameWasSubmitted ? sanitizeInput($_POST["name"] ?? $_POST["fullname"] ?? "") : $currentName;
+    $formData["email"] = $emailWasSubmitted ? normalizeEmail(sanitizeInput($_POST["email"] ?? "")) : $currentEmail;
+    $formData["phone"] = $phoneWasSubmitted
+        ? normalizePhilippineMobileNumber((string)($_POST["phone"] ?? $_POST["contact"] ?? $_POST["contacts"] ?? ""))
+        : $currentPhone;
     $formData["current_password"] = (string)($_POST["current_password"] ?? "");
     $formData["new_password"] = (string)($_POST["new_password"] ?? "");
     $formData["confirm_password"] = (string)($_POST["confirm_password"] ?? "");
 
-    $errors = validateProfileInput($formData);
+    $changedFields = [
+        "name" => $nameWasSubmitted && $formData["name"] !== $currentName,
+        "email" => $emailWasSubmitted && $formData["email"] !== $currentEmail,
+        "phone" => $phoneWasSubmitted
+            && comparablePhilippineMobileNumber($formData["phone"]) !== $currentPhone
+            && !($formData["phone"] === "" && philippineMobileNationalPart($currentPhone) === ""),
+    ];
+
+    $errors = validateProfileInput($formData, $changedFields);
 
     if (!$schema || !$profile) {
         $errors["general"] = "We could not load your profile for updating.";
     }
 
-    if ($errors["email"] === "" && $schema && emailExists($pdo, $schema, $formData["email"], $userId)) {
+    if (!empty($changedFields["email"]) && $errors["email"] === "" && $schema && emailExists($pdo, $schema, $formData["email"], $userId)) {
         $errors["email"] = "That email address is already in use.";
     }
 
@@ -390,18 +424,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $changes = [];
         $changedLabels = [];
 
-        $currentName = sanitizeInput($profile["profile_name"] ?? "");
-        $currentEmail = normalizeEmail((string)($profile["profile_email"] ?? ""));
-        $currentPhone = normalizePhilippineMobileNumber((string)($profile["profile_phone"] ?? ""));
-
-        if ($formData["name"] !== $currentName) {
+        if (!empty($changedFields["name"])) {
             $changes[$schema["nameColumn"]] = $formData["name"];
             $changedLabels[] = "Full name";
         }
 
-        if ($formData["email"] !== $currentEmail) {
+        if (!empty($changedFields["email"])) {
             $changes[$schema["emailColumn"]] = $formData["email"];
-            $changedLabels[] = "Email";
+            $changedLabels[] = "Email address";
             if ($schema["table"] === "users") {
                 $changes["email_verified_at"] = null;
                 $changes["email_verification_token"] = null;
@@ -411,10 +441,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         $newPhoneValue = $formData["phone"];
-        $currentPhoneValue = $currentPhone === "" ? null : $currentPhone;
-        if ($newPhoneValue !== $currentPhoneValue && $schema["phoneColumn"]) {
+        if (!empty($changedFields["phone"]) && $schema["phoneColumn"]) {
             $changes[$schema["phoneColumn"]] = $newPhoneValue;
-            $changedLabels[] = "Contact number";
+            $changedLabels[] = "Phone number";
         }
 
         if (wantsPasswordChange($formData)) {
@@ -478,6 +507,10 @@ $openConfirmModal = $_SERVER["REQUEST_METHOD"] === "POST" && $errors["current_pa
 $toastType = $flashType;
 $toastMessage = $flashMessage;
 $phoneNationalValue = philippineMobileNationalPart($formData["phone"]);
+$storedNameValue = $profile ? sanitizeInput($profile["profile_name"] ?? "") : $formData["name"];
+$storedEmailValue = $profile ? normalizeEmail((string)($profile["profile_email"] ?? "")) : $formData["email"];
+$storedPhoneValue = $profile ? comparablePhilippineMobileNumber((string)($profile["profile_phone"] ?? "")) : comparablePhilippineMobileNumber($formData["phone"]);
+$storedPhoneNationalValue = philippineMobileNationalPart($storedPhoneValue);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $toastMessage === "" && (bool)array_filter($errors)) {
     if ($errors["current_password"] !== "") {
@@ -2050,6 +2083,11 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     };
     const passwordMinLength = <?php echo SERVITECH_PASSWORD_MIN_LENGTH; ?>;
     const passwordMaxLength = <?php echo SERVITECH_PASSWORD_MAX_BYTES; ?>;
+    const initialProfile = {
+      name: <?php echo json_encode($storedNameValue); ?>,
+      email: <?php echo json_encode($storedEmailValue); ?>,
+      phone: <?php echo json_encode($storedPhoneNationalValue); ?>
+    };
 
     function showToast(message, tone) {
       if (typeof window.servitechToast === "function") {
@@ -2245,27 +2283,32 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       const newPassword = fields.new_password.value || "";
       const confirmPassword = fields.confirm_password.value || "";
       const wantsPassword = newPassword !== "" || confirmPassword !== "";
+      const changedFields = {
+        name: name !== initialProfile.name,
+        email: email.toLowerCase() !== initialProfile.email,
+        phone: phone !== initialProfile.phone
+      };
 
       let hasErrors = false;
 
-      if (name === "") {
+      if (changedFields.name && name === "") {
         setError("name", "Full name is required.");
         hasErrors = true;
       }
 
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (email === "") {
+      if (changedFields.email && email === "") {
         setError("email", "Email is required.");
         hasErrors = true;
-      } else if (!emailPattern.test(email)) {
+      } else if (changedFields.email && !emailPattern.test(email)) {
         setError("email", "Enter a valid email address.");
         hasErrors = true;
       }
 
-      if (phone === "") {
+      if (changedFields.phone && phone === "") {
         setError("phone", "Phone number is required.");
         hasErrors = true;
-      } else if (!/^9\d{9}$/.test(phone)) {
+      } else if (changedFields.phone && !/^9\d{9}$/.test(phone)) {
         setError("phone", "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.");
         hasErrors = true;
       }
