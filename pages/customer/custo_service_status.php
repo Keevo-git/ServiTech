@@ -93,21 +93,46 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       padding: clamp(18px, 4vw, 30px);
     }
 
-    body.customer-layout.customer-page--status .status-panel__head,
-    body.customer-layout.customer-page--status .status-section-head {
+    body.customer-layout.customer-page--status .status-tabs {
       align-items: center;
       display: flex;
       gap: 0.75rem;
-      justify-content: space-between;
-      margin-bottom: 1rem;
+      margin-bottom: clamp(14px, 2.5vw, 20px);
       min-width: 0;
     }
 
-    body.customer-layout.customer-page--status .status-section-head {
-      margin: clamp(20px, 3vw, 28px) 0 1rem;
+    body.customer-layout.customer-page--status .status-tab {
+      align-items: center;
+      appearance: none;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      color: #7a3810;
+      cursor: pointer;
+      display: inline-flex;
+      gap: 0.6rem;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0.55rem 0;
+      text-transform: uppercase;
+      transition: border-color 0.18s ease, color 0.18s ease;
     }
 
-    body.customer-layout.customer-page--status .status-section-title {
+    body.customer-layout.customer-page--status .status-tab:hover,
+    body.customer-layout.customer-page--status .status-tab:focus-visible {
+      color: #5f0e0f;
+      outline: none;
+    }
+
+    body.customer-layout.customer-page--status .status-tab.is-active {
+      border-bottom-color: #f08a00;
+      color: #a33b00;
+    }
+
+    body.customer-layout.customer-page--status .status-tab__label {
+      font-size: clamp(0.95rem, 2vw, 1.08rem);
+      font-weight: 900;
+      letter-spacing: 0.02em;
       margin: 0;
     }
 
@@ -121,6 +146,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       font-weight: 800;
       padding: 0.35rem 0.7rem;
       text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .status-tab-panel[hidden] {
+      display: none !important;
     }
 
     body.customer-layout.customer-page--status .status-filter-bar {
@@ -194,12 +223,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       border-color: #8b1e1e;
       color: #ffffff;
       outline: none;
-    }
-
-    body.customer-layout.customer-page--status .status-archive-section {
-      border-top: 1px solid rgba(95, 14, 15, 0.1);
-      margin-top: clamp(22px, 4vw, 34px);
-      padding-top: clamp(16px, 3vw, 24px);
     }
 
     body.customer-layout.customer-page--status #detailModal {
@@ -721,11 +744,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         padding: 18px 16px;
       }
 
-      body.customer-layout.customer-page--status .status-panel__head,
-      body.customer-layout.customer-page--status .status-section-head {
+      body.customer-layout.customer-page--status .status-tabs {
         align-items: flex-start;
         flex-direction: column;
         gap: 0.55rem;
+      }
+
+      body.customer-layout.customer-page--status .status-tab {
+        justify-content: space-between;
+        width: 100%;
       }
 
       body.customer-layout.customer-page--status .status-filter-bar {
@@ -841,9 +868,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     </div>
 
     <div id="serviceStatusPanel" class="status-panel">
-      <div class="status-panel__head">
-        <h3 class="status-section-title">YOUR QUEUES</h3>
-        <span id="activeQueueCount" class="status-count-pill">0 Active</span>
+      <div class="status-tabs" role="tablist" aria-label="Service status sections">
+        <button id="activeQueuesTab" class="status-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="activeQueuePanel" data-status-tab="active">
+          <span class="status-tab__label">Your Queues</span>
+          <span id="activeQueueCount" class="status-count-pill">0 Active</span>
+        </button>
+        <button id="completedQueuesTab" class="status-tab" type="button" role="tab" aria-selected="false" aria-controls="completedQueuePanel" data-status-tab="completed">
+          <span class="status-tab__label">Queues Completed</span>
+          <span id="archiveQueueCount" class="status-count-pill">0 Completed</span>
+        </button>
       </div>
 
       <div class="status-filter-bar" aria-label="Filter service status records">
@@ -878,15 +911,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <button id="clearFiltersBtn" class="status-filter-clear" type="button">Clear</button>
       </div>
 
-      <div id="queueList" class="queue-list"></div>
-
-      <section class="status-archive-section" aria-labelledby="archiveStatusTitle">
-        <div class="status-section-head">
-          <h3 id="archiveStatusTitle" class="status-section-title">ARCHIVE</h3>
-          <span id="archiveQueueCount" class="status-count-pill">0 Archived</span>
-        </div>
+      <div id="activeQueuePanel" class="status-tab-panel" role="tabpanel" aria-labelledby="activeQueuesTab">
+        <div id="queueList" class="queue-list"></div>
+      </div>
+      <div id="completedQueuePanel" class="status-tab-panel" role="tabpanel" aria-labelledby="completedQueuesTab" hidden>
         <div id="archiveQueueList" class="queue-list"></div>
-      </section>
+      </div>
     </div>
   </section>
 </main>
@@ -978,6 +1008,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   const listEl = document.getElementById("queueList");
   const panelEl = document.getElementById("serviceStatusPanel");
   const archiveListEl = document.getElementById("archiveQueueList");
+  const activeQueuePanel = document.getElementById("activeQueuePanel");
+  const completedQueuePanel = document.getElementById("completedQueuePanel");
+  const activeQueuesTab = document.getElementById("activeQueuesTab");
+  const completedQueuesTab = document.getElementById("completedQueuesTab");
   const activeQueueCount = document.getElementById("activeQueueCount");
   const archiveQueueCount = document.getElementById("archiveQueueCount");
   const categoryFilter = document.getElementById("categoryFilter");
@@ -991,6 +1025,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   let lastFocused = null;
   let allQueues = [];
+  let selectedStatusTab = "active";
 
   function servitechBasePath(){
     const pathname = window.location.pathname || "";
@@ -1280,7 +1315,23 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function updateCounts(activeCount, archiveCount){
     if (activeQueueCount) activeQueueCount.textContent = `${activeCount} Active`;
-    if (archiveQueueCount) archiveQueueCount.textContent = `${archiveCount} Archived`;
+    if (archiveQueueCount) archiveQueueCount.textContent = `${archiveCount} Completed`;
+  }
+
+  function switchStatusTab(tab){
+    selectedStatusTab = tab === "completed" ? "completed" : "active";
+    const completed = selectedStatusTab === "completed";
+
+    if (activeQueuePanel) activeQueuePanel.hidden = completed;
+    if (completedQueuePanel) completedQueuePanel.hidden = !completed;
+    if (activeQueuesTab) {
+      activeQueuesTab.classList.toggle("is-active", !completed);
+      activeQueuesTab.setAttribute("aria-selected", completed ? "false" : "true");
+    }
+    if (completedQueuesTab) {
+      completedQueuesTab.classList.toggle("is-active", completed);
+      completedQueuesTab.setAttribute("aria-selected", completed ? "true" : "false");
+    }
   }
 
   function queueMatchesFilters(queueData){
@@ -1328,6 +1379,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const hasFilters = !!(categoryFilter?.value || statusFilter?.value || dateFilter?.value);
 
     updateCounts(activeQueues.length, archivedQueues.length);
+    switchStatusTab(selectedStatusTab);
     renderQueueList(
       listEl,
       activeQueues,
@@ -1336,7 +1388,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     renderQueueList(
       archiveListEl,
       archivedQueues,
-      hasFilters ? "No archived queues match your filters." : "No archived queues yet."
+      hasFilters ? "No completed queues match your filters." : "No completed queues yet."
     );
   }
 
@@ -1711,6 +1763,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return;
     }
 
+    if (targetCard.closest("#completedQueuePanel")) {
+      switchStatusTab("completed");
+    } else {
+      switchStatusTab("active");
+    }
+
     targetCard.scrollIntoView({
       behavior: "smooth",
       block: "center"
@@ -1724,7 +1782,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   async function loadQueues(){
     renderState("Loading queue list...");
-    renderListState(archiveListEl, "Loading archive...");
+    renderListState(archiveListEl, "Loading completed queues...");
     updateCounts(0, 0);
 
     let res;
@@ -1756,14 +1814,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     if (!data.ok) {
       renderState(data.error || "Unable to load your queue list.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
-      renderListState(archiveListEl, "Archive could not be loaded.");
+      renderListState(archiveListEl, "Completed queues could not be loaded.");
       return;
     }
 
     if (!data.queues || data.queues.length === 0) {
       allQueues = [];
       renderState("No queues yet.", '<a href="/pages/customer/custo_place_queueing.php" class="btn-next">Join Queue</a>');
-      renderListState(archiveListEl, "No archived queues yet.");
+      renderListState(archiveListEl, "No completed queues yet.");
       return;
     }
 
@@ -1783,13 +1841,22 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   }
 
   [categoryFilter, statusFilter, dateFilter].forEach((control) => {
-    control?.addEventListener("change", renderFilteredQueues);
+    control?.addEventListener("change", () => {
+      if (control === statusFilter && statusFilter?.value) {
+        switchStatusTab(isArchivedStatus(statusFilter.value) ? "completed" : "active");
+      }
+      renderFilteredQueues();
+    });
   });
+
+  activeQueuesTab?.addEventListener("click", () => switchStatusTab("active"));
+  completedQueuesTab?.addEventListener("click", () => switchStatusTab("completed"));
 
   clearFiltersBtn?.addEventListener("click", () => {
     if (categoryFilter) categoryFilter.value = "";
     if (statusFilter) statusFilter.value = "";
     if (dateFilter) dateFilter.value = "";
+    switchStatusTab("active");
     renderFilteredQueues();
   });
 
