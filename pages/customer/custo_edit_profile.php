@@ -1010,10 +1010,10 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     .field-edit-btn.is-active {
-      border-color: #ff8b2c;
-      background: #ff8b2c;
+      border-color: rgba(74, 5, 5, 0.22);
+      background: #4A0505;
       color: #ffffff;
-      box-shadow: 0 10px 20px rgba(122, 47, 0, 0.18);
+      box-shadow: 0 8px 18px rgba(74, 5, 5, 0.18);
     }
 
     .contact-number-control {
@@ -1096,6 +1096,18 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     .password-mini-card .btn-secondary {
       min-height: 46px;
       white-space: nowrap;
+      background: #4A0505;
+      border-color: #4A0505;
+      color: #ffffff;
+      box-shadow: 0 12px 22px rgba(74, 5, 5, 0.18);
+    }
+
+    .password-mini-card .btn-secondary:hover,
+    .password-mini-card .btn-secondary:focus-visible {
+      background: #6b1414;
+      border-color: #6b1414;
+      box-shadow: 0 0 0 4px rgba(74, 5, 5, 0.14), 0 14px 24px rgba(74, 5, 5, 0.2);
+      outline: none;
     }
 
     .password-modal__field-grid {
@@ -2317,7 +2329,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         const isActive = button.getAttribute("data-edit-field") === activeKey;
         button.classList.toggle("is-active", isActive);
         button.setAttribute("aria-pressed", isActive ? "true" : "false");
-        button.textContent = isActive ? "Editing" : "Edit";
+        button.textContent = isActive ? "Done" : "Edit";
       });
 
       if (activeKey && fields[activeKey]) {
