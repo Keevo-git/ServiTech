@@ -1613,18 +1613,19 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
     body.customer-page--profile .action-buttons {
       display: grid;
-      grid-template-columns: repeat(2, minmax(132px, 1fr));
-      width: min(100%, 304px);
+      grid-template-columns: minmax(0, 1fr);
+      width: min(100%, 360px);
     }
 
     body.customer-page--profile .action-buttons .btn-secondary,
     body.customer-page--profile .action-buttons .btn-primary {
       width: 100%;
-      min-height: 48px;
+      min-height: 56px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       text-align: center;
+      font-size: 1rem;
     }
 
     body.customer-page--profile .btn-primary {
@@ -2094,8 +2095,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         <div class="form-actions">
           <p class="action-copy">For security, saving changes requires a quick password confirmation.</p>
           <div class="action-buttons">
-            <a href="/pages/customer/customer_dash.php" class="btn-secondary">Cancel</a>
             <button id="saveProfileBtn" type="submit" class="btn-primary">Save Changes</button>
+            <a href="/pages/customer/customer_dash.php" class="btn-secondary">Cancel</a>
           </div>
         </div>
 
