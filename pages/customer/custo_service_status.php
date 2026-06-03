@@ -352,6 +352,32 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       margin: 0;
     }
 
+    body.customer-layout.customer-page--status .status-payment-price {
+      align-items: center;
+      background: linear-gradient(90deg, rgba(95, 14, 15, 0.94) 0%, rgba(139, 30, 30, 0.9) 100%);
+      border: 1px solid rgba(95, 14, 15, 0.16);
+      border-radius: 14px;
+      box-shadow: 0 10px 22px rgba(74, 5, 5, 0.12);
+      color: #ffffff;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+      min-height: 50px;
+      padding: 0.78rem 0.95rem;
+    }
+
+    body.customer-layout.customer-page--status .status-payment-price .status-detail-label {
+      color: rgba(255, 246, 235, 0.82) !important;
+      font-size: 0.72rem !important;
+    }
+
+    body.customer-layout.customer-page--status .status-payment-price .status-detail-value {
+      color: #ffffff !important;
+      font-size: 1.05rem;
+      font-weight: 850;
+      text-align: right;
+    }
+
     body.customer-layout.customer-page--status .status-payment-qr {
       align-items: center;
       background: #fffaf4;
@@ -599,6 +625,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         grid-template-columns: 1fr;
         justify-items: center;
         text-align: center;
+      }
+
+      body.customer-layout.customer-page--status .status-payment-price {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      body.customer-layout.customer-page--status .status-payment-price .status-detail-value {
+        text-align: left;
       }
 
       body.customer-layout.customer-page--status .status-modal .modal-back {
@@ -1201,7 +1237,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
     const reference = String(queueData.reference_number || details.reference_number || "").trim();
     const baseRows = `
-      <div class="status-detail-row">
+      <div class="status-payment-price">
         <span class="status-detail-label">Price</span>
         <span class="status-detail-value">${esc(getQueuePriceLabel(queueData))}</span>
       </div>
