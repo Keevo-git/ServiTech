@@ -1001,17 +1001,6 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
     }
 
-    .field-edit-btn::before {
-      content: "";
-      display: inline-block;
-      width: 0.58rem;
-      height: 0.58rem;
-      margin-right: 0.35rem;
-      border: 2px solid currentColor;
-      border-radius: 2px;
-      transform: rotate(-12deg);
-    }
-
     .field-edit-btn:hover,
     .field-edit-btn:focus-visible {
       border-color: rgba(255, 139, 44, 0.72);
@@ -1025,15 +1014,6 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       background: #ff8b2c;
       color: #ffffff;
       box-shadow: 0 10px 20px rgba(122, 47, 0, 0.18);
-    }
-
-    .field-edit-btn.is-active::before {
-      width: 0.64rem;
-      height: 0.36rem;
-      border-top: 0;
-      border-left: 0;
-      border-radius: 0;
-      transform: translateY(-1px) rotate(45deg);
     }
 
     .contact-number-control {
@@ -1997,7 +1977,6 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
               <span class="section-kicker">Basic Details</span>
               <h3>Personal Information</h3>
             </div>
-            <span class="section-tag">Required fields</span>
           </div>
           <p>Fields marked with an asterisk are required.</p>
 
@@ -2086,7 +2065,6 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
               <span class="section-kicker">Security</span>
               <h3>Change Password</h3>
             </div>
-            <span class="section-tag">Optional</span>
           </div>
           <div class="password-mini-card">
             <p>Keep your current password or open the secure password form when you need to change it.</p>
