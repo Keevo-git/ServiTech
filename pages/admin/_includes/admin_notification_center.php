@@ -475,55 +475,9 @@ if (!function_exists("admin_notification_render_styles")) {
     padding-bottom: 12px;
   }
 
-  .admin-notification-service-filters {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 12px;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-  }
-
-  .admin-notification-service-filter {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    min-height: 38px;
-    padding: 8px 11px;
-    border: 1px solid rgba(31, 74, 138, 0.14);
-    border-radius: 11px;
-    background: #f8fbff;
-    color: #315273;
-    font-size: 0.8rem;
-    font-weight: 800;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-    white-space: nowrap;
-  }
-
-  .admin-notification-service-filter:hover,
-  .admin-notification-service-filter.is-active {
-    border-color: rgba(31, 74, 138, 0.24);
-    background: #eaf2fb;
-    color: #173967;
-  }
-
-  .admin-notification-service-filter strong {
-    min-width: 22px;
-    padding: 2px 6px;
-    border-radius: 999px;
-    background: rgba(31, 74, 138, 0.1);
-    color: #1f4a8a;
-    font-size: 0.72rem;
-    text-align: center;
-  }
-
   .admin-notification-refine {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) minmax(150px, 190px) auto;
+    grid-template-columns: minmax(145px, 180px) minmax(220px, 1fr) minmax(145px, 190px) auto;
     gap: 9px;
     padding-bottom: 12px;
   }
@@ -540,7 +494,8 @@ if (!function_exists("admin_notification_render_styles")) {
     text-transform: uppercase;
   }
 
-  .admin-notification-field input {
+  .admin-notification-field input,
+  .admin-notification-field select {
     width: 100%;
     min-height: 40px;
     padding: 8px 11px;
@@ -552,6 +507,16 @@ if (!function_exists("admin_notification_render_styles")) {
     font-weight: 700;
     letter-spacing: 0;
     text-transform: none;
+  }
+
+  .admin-notification-field select {
+    appearance: none;
+    padding-right: 34px;
+    background-image: linear-gradient(45deg, transparent 50%, #1f4a8a 50%), linear-gradient(135deg, #1f4a8a 50%, transparent 50%);
+    background-position: calc(100% - 18px) 17px, calc(100% - 12px) 17px;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    cursor: pointer;
   }
 
   .admin-notification-clear-filter {
@@ -780,9 +745,9 @@ if (!function_exists("admin_notification_render_styles")) {
   }
 
   .admin-notification-filter:focus-visible,
-  .admin-notification-service-filter:focus-visible,
   .admin-notification-action-btn:focus-visible,
   .admin-notification-field input:focus-visible,
+  .admin-notification-field select:focus-visible,
   .admin-notification-clear-filter:focus-visible,
   .admin-notification-item__open:focus-visible,
   .admin-notification-link:focus-visible,
@@ -847,12 +812,8 @@ if (!function_exists("admin_notification_render_styles")) {
       white-space: nowrap;
     }
 
-    .admin-notification-service-filters {
-      padding-bottom: 10px;
-    }
-
     .admin-notification-refine {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
     }
 
     .admin-notification-clear-filter {
@@ -877,9 +838,8 @@ if (!function_exists("admin_notification_render_styles")) {
       flex-wrap: wrap;
     }
 
-    .admin-notification-service-filter {
-      min-height: 36px;
-      padding: 8px 10px;
+    .admin-notification-refine {
+      grid-template-columns: 1fr;
     }
 
     .admin-notification-select-all {
@@ -973,24 +933,23 @@ if (!function_exists("admin_notification_render_center")) {
         </aside>
 
         <main class="admin-notification-main">
-          <div class="admin-notification-service-filters" aria-label="Service filters">
-            <?php
-            $serviceFilters = [
-                "all" => "All Services",
-                "printing" => "Printing",
-                "repair" => "Repair",
-                "installation" => "Installation",
-            ];
-            foreach ($serviceFilters as $serviceKey => $serviceLabel):
-                $serviceCount = $serviceKey === "all" ? (int)($counts["all"] ?? 0) : (int)($counts[$serviceKey] ?? 0);
-            ?>
-              <button type="button" class="admin-notification-service-filter<?= $serviceKey === "all" ? " is-active" : "" ?>" data-admin-service-filter="<?= admin_notification_h($serviceKey) ?>">
-                <span><?= admin_notification_h($serviceLabel) ?></span><strong data-admin-service-count="<?= admin_notification_h($serviceKey) ?>"<?= $serviceCount > 0 ? "" : " hidden" ?>><?= $serviceCount ?></strong>
-              </button>
-            <?php endforeach; ?>
-          </div>
-
           <div class="admin-notification-refine" aria-label="Search and date filters">
+            <label class="admin-notification-field">
+              <span>Service</span>
+              <select data-admin-service-filter aria-label="Filter notifications by service">
+                <?php
+                $serviceFilters = [
+                    "all" => "All Services",
+                    "printing" => "Printing",
+                    "repair" => "Repair",
+                    "installation" => "Installation",
+                ];
+                foreach ($serviceFilters as $serviceKey => $serviceLabel):
+                ?>
+                  <option value="<?= admin_notification_h($serviceKey) ?>"><?= admin_notification_h($serviceLabel) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
             <label class="admin-notification-field">
               <span>Order ID</span>
               <input type="search" data-admin-notification-search placeholder="Search Queue or Order ID" autocomplete="off">
@@ -1155,7 +1114,7 @@ if (!function_exists("admin_notification_render_script")) {
     var markAllButton = root.querySelector("[data-admin-notification-mark-all]");
     var deleteSelectedButton = root.querySelector("[data-admin-notification-delete-selected]");
     var filterButtons = Array.from(root.querySelectorAll("[data-admin-notification-filter]"));
-    var serviceFilterButtons = Array.from(root.querySelectorAll("[data-admin-service-filter]"));
+    var serviceFilterControls = Array.from(root.querySelectorAll("[data-admin-service-filter]"));
     var searchInput = root.querySelector("[data-admin-notification-search]");
     var dateInput = root.querySelector("[data-admin-notification-date]");
     var clearFiltersButton = root.querySelector("[data-admin-notification-clear-filters]");
@@ -1202,16 +1161,8 @@ if (!function_exists("admin_notification_render_script")) {
         repair: 0,
         installation: 0
       };
-      var serviceCounts = {
-        all: 0,
-        printing: 0,
-        repair: 0,
-        installation: 0
-      };
-
       notificationItems().forEach(function (item) {
         var eventCategory = item.dataset.adminNotificationCategory || "admin-updates";
-        var serviceCategory = item.dataset.adminNotificationService || "";
         var isUnread = item.dataset.adminNotificationRead !== "true";
 
         if (!isUnread) return;
@@ -1219,14 +1170,6 @@ if (!function_exists("admin_notification_render_script")) {
         counts.all += 1;
         counts.unread += 1;
         if (Object.prototype.hasOwnProperty.call(counts, eventCategory)) counts[eventCategory] += 1;
-        if (Object.prototype.hasOwnProperty.call(counts, serviceCategory)) counts[serviceCategory] += 1;
-
-        if (itemMatchesCategory(item)) {
-          serviceCounts.all += 1;
-          if (Object.prototype.hasOwnProperty.call(serviceCounts, serviceCategory)) {
-            serviceCounts[serviceCategory] += 1;
-          }
-        }
       });
 
       Object.keys(counts).forEach(function (key) {
@@ -1234,14 +1177,6 @@ if (!function_exists("admin_notification_render_script")) {
         if (count) {
           count.textContent = String(counts[key]);
           count.hidden = counts[key] <= 0;
-        }
-      });
-
-      Object.keys(serviceCounts).forEach(function (key) {
-        var count = root.querySelector('[data-admin-service-count="' + key + '"]');
-        if (count) {
-          count.textContent = String(serviceCounts[key]);
-          count.hidden = serviceCounts[key] <= 0;
         }
       });
 
@@ -1298,10 +1233,15 @@ if (!function_exists("admin_notification_render_script")) {
         button.setAttribute("aria-pressed", isActive ? "true" : "false");
       });
 
-      serviceFilterButtons.forEach(function (button) {
-        var isActive = button.dataset.adminServiceFilter === activeServiceFilter;
-        button.classList.toggle("is-active", isActive);
-        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      serviceFilterControls.forEach(function (control) {
+        if (control.matches("select")) {
+          control.value = activeServiceFilter;
+          return;
+        }
+
+        var isActive = control.dataset.adminServiceFilter === activeServiceFilter;
+        control.classList.toggle("is-active", isActive);
+        control.setAttribute("aria-pressed", isActive ? "true" : "false");
       });
 
       syncCounts();
@@ -1392,9 +1332,12 @@ if (!function_exists("admin_notification_render_script")) {
       });
     });
 
-    serviceFilterButtons.forEach(function (button) {
-      button.addEventListener("click", function () {
-        activeServiceFilter = button.dataset.adminServiceFilter || "all";
+    serviceFilterControls.forEach(function (control) {
+      var eventName = control.matches("select") ? "change" : "click";
+      control.addEventListener(eventName, function () {
+        activeServiceFilter = control.matches("select")
+          ? (control.value || "all")
+          : (control.dataset.adminServiceFilter || "all");
         applyFilter();
       });
     });
@@ -1402,6 +1345,7 @@ if (!function_exists("admin_notification_render_script")) {
     searchInput?.addEventListener("input", applyFilter);
     dateInput?.addEventListener("change", applyFilter);
     clearFiltersButton?.addEventListener("click", function () {
+      activeServiceFilter = "all";
       if (searchInput) searchInput.value = "";
       if (dateInput) dateInput.value = "";
       applyFilter();
