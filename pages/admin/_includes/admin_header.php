@@ -1,17 +1,24 @@
 <?php
 require_once __DIR__ . "/url.php";
 require_once __DIR__ . "/queue_files.php";
+require_once __DIR__ . "/admin_notification_center.php";
 
 $adminHeaderVariant = $adminHeaderVariant ?? "default";
 $adminHeaderMenuId = $adminHeaderMenuId ?? "admin-header-menu";
+$adminHeaderShowNotificationOverlay = $adminHeaderShowNotificationOverlay ?? true;
+$adminHeaderNotificationData = $adminHeaderNotificationData ?? null;
+if (!is_array($adminHeaderNotificationData) && ($pdo ?? null) instanceof PDO && ($adminHeaderShowNotificationOverlay || !isset($adminNotificationCount))) {
+    $adminHeaderNotificationData = admin_notification_center_data($pdo);
+}
 $adminNotificationCount = isset($adminNotificationCount)
     ? max(0, (int)$adminNotificationCount)
-    : (($pdo ?? null) instanceof PDO ? admin_queue_notification_count($pdo) : 0);
+    : (int)($adminHeaderNotificationData["unread_count"] ?? 0);
 $adminHeaderShowHome = $adminHeaderVariant !== "dashboard";
 $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"], true);
 ?>
 <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260602-admin-toast') ?>">
 <script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
+<script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <header class="navbar has-nav-menu">
   <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
     <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
@@ -39,6 +46,8 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       href="<?= admin_queue_notification_link() ?>"
       class="admin-notification-btn"
       aria-label="Admin notifications: <?= $adminNotificationCount ?>"
+      aria-controls="adminNotificationPanel"
+      aria-expanded="false"
       title="Admin notifications"
     >
       <img
@@ -55,3 +64,12 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="admin-logout-link">Logout</a>
   </nav>
 </header>
+<?php
+if ($adminHeaderShowNotificationOverlay && is_array($adminHeaderNotificationData)) {
+    admin_notification_render_center($adminHeaderNotificationData, [
+        "mode" => "overlay",
+        "id" => "adminNotificationPanel",
+    ]);
+    admin_notification_render_script();
+}
+?>

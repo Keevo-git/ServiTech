@@ -191,7 +191,7 @@ function admin_notification_category_label(string $category): string
         "printing", "walkin", "printing_walkin" => "Printing",
         "repair" => "Repair",
         "installation" => "Installation",
-        default => $category !== "" ? ucwords(str_replace(["_", "-"], " ", $category)) : "General",
+        default => $category !== "" ? ucwords(str_replace(["_", "-"], " ", $category)) : "Admin Update",
     };
 }
 
