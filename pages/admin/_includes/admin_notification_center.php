@@ -84,7 +84,8 @@ if (!function_exists("admin_notification_target_url")) {
         $queueId = (int)($row["reference_id"] ?? 0);
         $category = strtolower(trim((string)($row["queue_category"] ?? "")));
         $lifecycleStage = strtoupper(trim((string)($row["lifecycle_stage"] ?? "QUEUE")));
-        $isOrder = $lifecycleStage === "ORDER";
+        $status = strtoupper(trim((string)($row["queue_status"] ?? "")));
+        $isOrder = $lifecycleStage === "ORDER" || in_array($status, ["DONE", "COMPLETED", "CANCELLED", "CANCELED"], true);
 
         if ($category === "repair") {
             $path = $isOrder ? "/pages/admin/order_management/repairM.php" : "/pages/admin/queue_list/repair.php";

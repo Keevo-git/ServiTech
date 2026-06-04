@@ -475,6 +475,26 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll(".queue-view-btn").forEach((button) => {
     button.addEventListener("click", () => openDetails(button));
   });
+
+  function openNotificationQueueDetails() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("open") !== "notification") return;
+
+    const queueId = params.get("queue_id") || "";
+    if (!queueId) return;
+
+    const button = Array.from(document.querySelectorAll(".queue-view-btn")).find((candidate) => {
+      const row = candidate.closest(".queue-data-row");
+      return String(row?.dataset.queueRecordId || candidate.dataset.id || "") === String(queueId);
+    });
+
+    if (button) {
+      window.setTimeout(() => openDetails(button), 80);
+    }
+  }
+
+  openNotificationQueueDetails();
+
   document.getElementById("queueDetailsClose")?.addEventListener("click", closeDetails);
   document.getElementById("queueDetailsCancel")?.addEventListener("click", closeDetails);
   messageBtn?.addEventListener("click", closeDetails);

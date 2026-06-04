@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . "/admin_auth.php";
-require_once __DIR__ . "/../../config/csrf.php";
+require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/admin_db.php";
 
 header("Content-Type: application/json; charset=utf-8");

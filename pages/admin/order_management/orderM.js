@@ -510,6 +510,24 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  function openNotificationOrderDetails() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("open") !== "notification") return;
+
+    const queueId = params.get("queue_id") || "";
+    if (!queueId) return;
+
+    const button = Array.from(document.querySelectorAll(".view-order-btn")).find((candidate) => {
+      return String(candidate.dataset.recordId || candidate.dataset.queueId || candidate.dataset.id || "") === String(queueId);
+    });
+
+    if (button) {
+      window.setTimeout(() => openFromButton(button), 80);
+    }
+  }
+
+  openNotificationOrderDetails();
+
   document.getElementById("orderModalClose")?.addEventListener("click", closeModal);
   document.getElementById("omCancel")?.addEventListener("click", closeModal);
   overlay?.addEventListener("click", closeModal);
