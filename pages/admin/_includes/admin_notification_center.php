@@ -965,7 +965,8 @@ if (!function_exists("admin_notification_render_center")) {
             foreach ($filters as $filterKey => $filterLabel):
             ?>
               <button type="button" class="admin-notification-filter<?= $filterKey === "all" ? " is-active" : "" ?>" data-admin-notification-filter="<?= admin_notification_h($filterKey) ?>">
-                <span><?= admin_notification_h($filterLabel) ?></span><strong data-admin-filter-count="<?= admin_notification_h($filterKey) ?>"><?= (int)($counts[$filterKey] ?? 0) ?></strong>
+                <?php $filterCount = (int)($counts[$filterKey] ?? 0); ?>
+                <span><?= admin_notification_h($filterLabel) ?></span><strong data-admin-filter-count="<?= admin_notification_h($filterKey) ?>"<?= $filterCount > 0 ? "" : " hidden" ?>><?= $filterCount ?></strong>
               </button>
             <?php endforeach; ?>
           </div>
@@ -984,7 +985,7 @@ if (!function_exists("admin_notification_render_center")) {
                 $serviceCount = $serviceKey === "all" ? (int)($counts["all"] ?? 0) : (int)($counts[$serviceKey] ?? 0);
             ?>
               <button type="button" class="admin-notification-service-filter<?= $serviceKey === "all" ? " is-active" : "" ?>" data-admin-service-filter="<?= admin_notification_h($serviceKey) ?>">
-                <span><?= admin_notification_h($serviceLabel) ?></span><strong data-admin-service-count="<?= admin_notification_h($serviceKey) ?>"><?= $serviceCount ?></strong>
+                <span><?= admin_notification_h($serviceLabel) ?></span><strong data-admin-service-count="<?= admin_notification_h($serviceKey) ?>"<?= $serviceCount > 0 ? "" : " hidden" ?>><?= $serviceCount ?></strong>
               </button>
             <?php endforeach; ?>
           </div>
@@ -1230,12 +1231,18 @@ if (!function_exists("admin_notification_render_script")) {
 
       Object.keys(counts).forEach(function (key) {
         var count = root.querySelector('[data-admin-filter-count="' + key + '"]');
-        if (count) count.textContent = String(counts[key]);
+        if (count) {
+          count.textContent = String(counts[key]);
+          count.hidden = counts[key] <= 0;
+        }
       });
 
       Object.keys(serviceCounts).forEach(function (key) {
         var count = root.querySelector('[data-admin-service-count="' + key + '"]');
-        if (count) count.textContent = String(serviceCounts[key]);
+        if (count) {
+          count.textContent = String(serviceCounts[key]);
+          count.hidden = serviceCounts[key] <= 0;
+        }
       });
 
       var summary = root.querySelector("[data-admin-notification-summary]");
