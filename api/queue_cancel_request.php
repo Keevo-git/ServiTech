@@ -89,9 +89,11 @@ try {
   );
   servitech_notify_admins(
     $pdo,
-    (string)($queue["category"] ?? "queue"),
+    "admin_cancelled",
     $queueId,
-    "Queue {$queueCode}: Customer cancelled this pending request."
+    "Queue {$queueCode}: Customer cancelled this pending request.",
+    "admin_cancelled:customer:{$queueId}:{$currentStatus}",
+    true
   );
 
   $pdo->commit();

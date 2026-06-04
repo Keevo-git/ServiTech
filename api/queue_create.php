@@ -178,9 +178,23 @@ try {
 
   $paymentLabel = $payment_method === "gcash" ? "GCash payment details submitted" : ($payment_method === "cash" ? "Cash payment selected" : "Queue submitted");
   servitech_add_notification($pdo, $user_id, $category, $queue_id, "Queue {$queue_code}: {$paymentLabel}.");
-  servitech_notify_admins($pdo, $category, $queue_id, "Queue {$queue_code}: New customer request submitted for {$service_label}.");
+  servitech_notify_admins(
+    $pdo,
+    "admin_new_order",
+    $queue_id,
+    "Queue {$queue_code}: New customer request submitted for {$service_label}.",
+    "admin_new_order:{$queue_id}",
+    true
+  );
   if ($payment_method === "gcash") {
-    servitech_notify_admins($pdo, $category, $queue_id, "Queue {$queue_code}: New GCash payment reference submitted. Review the order and update its status.");
+    servitech_notify_admins(
+      $pdo,
+      "admin_payment_review",
+      $queue_id,
+      "Queue {$queue_code}: New GCash payment reference submitted. Review the order and update its status.",
+      "admin_payment_review:{$queue_id}",
+      true
+    );
   }
 
   $pdo->commit();

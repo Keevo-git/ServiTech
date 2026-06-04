@@ -38,8 +38,8 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     <a
       href="<?= admin_queue_notification_link() ?>"
       class="admin-notification-btn"
-      aria-label="Queue notifications: <?= $adminNotificationCount ?>"
-      title="Queue notifications"
+      aria-label="Admin notifications: <?= $adminNotificationCount ?>"
+      title="Admin notifications"
     >
       <img
         src="<?= admin_url('/assets/images/white_notification.png?v=20260601-ringing-bell') ?>"

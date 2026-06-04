@@ -24,7 +24,7 @@
     const safeCount = Math.max(0, Number(count) || 0);
     let badge = link.querySelector(".admin-notification-badge");
 
-    link.setAttribute("aria-label", "Queue notifications: " + safeCount);
+    link.setAttribute("aria-label", "Admin notifications: " + safeCount);
     if (safeCount <= 0) {
       if (badge) badge.remove();
       return;

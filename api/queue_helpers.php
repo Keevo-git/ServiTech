@@ -194,7 +194,7 @@ function servitech_generate_queue_code(PDO $pdo, string $prefix): string {
   return servitech_generate_queue_identity($pdo, $prefix)["queue_code"];
 }
 
-function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $referenceId, string $message, string $eventKey = ""): void {
+function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $referenceId, string $message, string $eventKey = "", bool $dedupeDeleted = false): void {
   $type = trim($type) !== "" ? trim($type) : "queue";
   $message = trim($message);
   $eventKey = trim($eventKey);
@@ -213,7 +213,7 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
         AND COALESCE(reference_id, 0) = COALESCE(:existing_reference_id, 0)
         AND COALESCE(NULLIF(TRIM(event_key), ''), MD5(TRIM(COALESCE(message, ''))))
           = COALESCE(NULLIF(TRIM(:existing_event_key), ''), MD5(TRIM(:existing_message)))
-        AND deleted_at IS NULL
+        AND (CAST(:dedupe_deleted AS INTEGER) = 1 OR deleted_at IS NULL)
     )
     ON CONFLICT DO NOTHING
   ");
@@ -228,10 +228,11 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
     ":existing_reference_id" => $referenceId,
     ":existing_message" => $message,
     ":existing_event_key" => $eventKey,
+    ":dedupe_deleted" => $dedupeDeleted ? 1 : 0,
   ]);
 }
 
-function servitech_notify_admins(PDO $pdo, string $type, ?int $referenceId, string $message): void {
+function servitech_notify_admins(PDO $pdo, string $type, ?int $referenceId, string $message, string $eventKey = "", bool $dedupeDeleted = false): void {
   if (trim($message) === "") {
     return;
   }
@@ -243,6 +244,6 @@ function servitech_notify_admins(PDO $pdo, string $type, ?int $referenceId, stri
   ");
 
   foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $adminId) {
-    servitech_add_notification($pdo, (int)$adminId, $type, $referenceId, $message);
+    servitech_add_notification($pdo, (int)$adminId, $type, $referenceId, $message, $eventKey, $dedupeDeleted);
   }
 }

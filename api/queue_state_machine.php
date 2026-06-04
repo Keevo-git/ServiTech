@@ -211,6 +211,14 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
         $queueId,
         "Queue {$queueCode}: Status: CANCELLED. Reason: {$notes}"
       );
+      servitech_notify_admins(
+        $pdo,
+        "admin_cancelled",
+        $queueId,
+        "Queue {$queueCode}: Order/request cancelled. Reason: {$notes}",
+        "admin_cancelled:admin:{$queueId}:{$currentStatus}",
+        true
+      );
     } else {
       $statusMessage = match ($newStatus) {
         "ONGOING" => "Queue {$queueCode}: Status: ONGOING. Your request is now being processed.",

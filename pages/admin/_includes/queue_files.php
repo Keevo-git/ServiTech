@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../../../api/upload_helpers.php";
+require_once __DIR__ . "/../../../api/queue_helpers.php";
 
 function admin_queue_details_array($details): array
 {
@@ -162,32 +163,144 @@ function admin_queue_render_file_items($details): void
     echo '</div>';
 }
 
+function admin_notification_bool($value): bool
+{
+    if (is_bool($value)) {
+        return $value;
+    }
+
+    return in_array(strtolower(trim((string)$value)), ["1", "t", "true", "y", "yes", "on"], true);
+}
+
+function admin_notification_format_timestamp(?string $value): string
+{
+    $value = trim((string)$value);
+    if ($value === "") {
+        return "";
+    }
+
+    $timestamp = strtotime($value);
+    return $timestamp === false ? $value : date("M d, Y h:i A", $timestamp);
+}
+
+function admin_notification_category_label(string $category): string
+{
+    $category = strtolower(trim($category));
+    return match ($category) {
+        "online_printorder", "printing_online" => "Online Printing",
+        "printing", "walkin", "printing_walkin" => "Printing",
+        "repair" => "Repair",
+        "installation" => "Installation",
+        default => $category !== "" ? ucwords(str_replace(["_", "-"], " ", $category)) : "General",
+    };
+}
+
+function admin_notification_service_label(array $queue): string
+{
+    $details = admin_queue_details_array($queue["details"] ?? null);
+    $service = trim((string)($details["service_label"] ?? $details["package_label"] ?? ""));
+    if ($service !== "") {
+        return $service;
+    }
+
+    return admin_notification_category_label((string)($queue["category"] ?? $queue["queue_category"] ?? ""));
+}
+
+function admin_notifications_sync_stalled(PDO $pdo): void
+{
+    static $synced = false;
+    if ($synced) {
+        return;
+    }
+    $synced = true;
+
+    try {
+        servitech_ensure_queue_lifecycle_schema($pdo);
+
+        $stmt = $pdo->query("
+            SELECT
+                q.id,
+                q.queue_code,
+                q.category,
+                q.status,
+                q.details::text AS details,
+                GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)) AS last_action_at,
+                FLOOR(EXTRACT(EPOCH FROM (NOW() - GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)))) / 86400)::int AS waiting_days
+            FROM queues q
+            LEFT JOIN LATERAL (
+                SELECT MAX(h.created_at) AS last_action_at
+                FROM queue_status_history h
+                WHERE h.queue_id = q.id
+                  AND h.admin_id IS NOT NULL
+            ) last_admin_action ON TRUE
+            WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) IN ('PENDING', 'APPROVED', 'ONGOING', 'FOR PICK-UP', 'FOR PICK UP')
+              AND GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)) <= NOW() - INTERVAL '3 days'
+            ORDER BY GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)) ASC
+            LIMIT 100
+        ");
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $queue) {
+            $queueId = (int)($queue["id"] ?? 0);
+            $queueCode = trim((string)($queue["queue_code"] ?? ""));
+            $status = strtoupper(trim((string)($queue["status"] ?? "PENDING")));
+            $lastAction = trim((string)($queue["last_action_at"] ?? ""));
+            $waitingDays = max(3, (int)($queue["waiting_days"] ?? 3));
+            $service = admin_notification_service_label($queue);
+            $eventStamp = strtotime($lastAction);
+            $eventVersion = $eventStamp === false ? sha1($lastAction) : date("YmdHis", $eventStamp);
+
+            if ($queueId <= 0 || $queueCode === "") {
+                continue;
+            }
+
+            servitech_notify_admins(
+                $pdo,
+                "admin_stalled",
+                $queueId,
+                "Queue {$queueCode}: Order/request has been waiting {$waitingDays} days without admin action. Service: {$service}. Status: {$status}.",
+                "admin_stalled:{$queueId}:{$status}:{$eventVersion}",
+                true
+            );
+        }
+    } catch (Throwable $exception) {
+        error_log("admin_notifications_sync_stalled error: " . $exception->getMessage());
+    }
+}
+
+function admin_notification_unread_count(PDO $pdo): int
+{
+    admin_notifications_sync_stalled($pdo);
+
+    $stmt = $pdo->query("
+        WITH ranked_notifications AS (
+            SELECT
+                n.is_read,
+                ROW_NUMBER() OVER (
+                    PARTITION BY n.user_id, LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
+                      COALESCE(NULLIF(TRIM(n.event_key), ''), MD5(TRIM(COALESCE(n.message, ''))))
+                    ORDER BY n.created_at DESC, n.id DESC
+                ) AS duplicate_rank
+            FROM notifications n
+            WHERE n.user_id IN (
+                SELECT id
+                FROM users
+                WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+            )
+              AND n.deleted_at IS NULL
+        )
+        SELECT COUNT(*)
+        FROM ranked_notifications
+        WHERE duplicate_rank = 1
+          AND COALESCE(is_read, FALSE) = FALSE
+    ");
+
+    return max(0, (int)$stmt->fetchColumn());
+}
+
 function admin_queue_notification_count(PDO $pdo): int
 {
     try {
-        $stmt = $pdo->query("
-            SELECT COUNT(*)
-            FROM queues q
-            LEFT JOIN LATERAL (
-                SELECT payment_method, reference_number
-                FROM payments
-                WHERE queue_id = q.id
-                ORDER BY id DESC
-                LIMIT 1
-            ) p ON TRUE
-            WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) NOT IN ('DONE', 'CANCELLED', 'CANCELED')
-              AND (
-                jsonb_typeof(q.details::jsonb->'uploaded_files') = 'array'
-                OR NULLIF(TRIM(COALESCE(q.details->>'file_name', '')), '') IS NOT NULL
-                OR (
-                    LOWER(TRIM(COALESCE(p.payment_method, q.details->>'payment_method', ''))) = 'gcash'
-                    AND NULLIF(TRIM(COALESCE(p.reference_number, q.details->>'reference_number', '')), '') IS NOT NULL
-                    AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) = 'PENDING'
-                )
-                OR q.created_at >= (NOW() - INTERVAL '1 day')
-              )
-        ");
-        return max(0, (int)$stmt->fetchColumn());
+        return admin_notification_unread_count($pdo);
     } catch (Throwable $exception) {
         error_log("admin_queue_notification_count error: " . $exception->getMessage());
         return 0;
@@ -196,5 +309,5 @@ function admin_queue_notification_count(PDO $pdo): int
 
 function admin_queue_notification_link(): string
 {
-    return function_exists("admin_url") ? admin_url("/pages/admin/queue_list/printing.php") : "/pages/admin/queue_list/printing.php";
+    return function_exists("admin_url") ? admin_url("/pages/admin/admin_notifications.php") : "/pages/admin/admin_notifications.php";
 }
