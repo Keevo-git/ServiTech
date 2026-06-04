@@ -22,6 +22,7 @@ if (!function_exists("admin_notification_event_category")) {
     {
         $type = admin_notification_type_key((string)($row["type"] ?? ""));
         $message = strtolower((string)($row["message"] ?? ""));
+        $isTodaysNotification = admin_notification_is_today((string)($row["created_at"] ?? ""));
 
         if ($type === "admin_stalled" || str_contains($message, "without admin action")) {
             return "stalled-orders";
@@ -30,15 +31,54 @@ if (!function_exists("admin_notification_event_category")) {
             return "cancelled";
         }
         if (
-            in_array($type, ["admin_new_order", "admin_payment_review"], true)
-            || str_contains($message, "new customer")
-            || str_contains($message, "new gcash")
-            || str_contains($message, "new order")
+            $isTodaysNotification
+            && (
+                in_array($type, ["admin_new_order", "admin_payment_review"], true)
+                || str_contains($message, "new customer")
+                || str_contains($message, "new gcash")
+                || str_contains($message, "new order")
+            )
         ) {
             return "new-orders";
         }
 
         return "admin-updates";
+    }
+}
+
+if (!function_exists("admin_notification_is_today")) {
+    function admin_notification_is_today(string $value): bool
+    {
+        $value = trim($value);
+        if ($value === "") {
+            return false;
+        }
+
+        try {
+            $timezone = new DateTimeZone("Asia/Manila");
+            $created = new DateTimeImmutable($value);
+            return $created->setTimezone($timezone)->format("Y-m-d") === (new DateTimeImmutable("now", $timezone))->format("Y-m-d");
+        } catch (Throwable $exception) {
+            $timestamp = strtotime($value);
+            return $timestamp !== false && date("Y-m-d", $timestamp) === date("Y-m-d");
+        }
+    }
+}
+
+if (!function_exists("admin_notification_filter_date")) {
+    function admin_notification_filter_date(string $value): string
+    {
+        $value = trim($value);
+        if ($value === "") {
+            return "";
+        }
+
+        try {
+            return (new DateTimeImmutable($value))->setTimezone(new DateTimeZone("Asia/Manila"))->format("Y-m-d");
+        } catch (Throwable $exception) {
+            $timestamp = strtotime($value);
+            return $timestamp === false ? "" : date("Y-m-d", $timestamp);
+        }
     }
 }
 
@@ -69,8 +109,16 @@ if (!function_exists("admin_notification_service_category")) {
 if (!function_exists("admin_notification_type_label")) {
     function admin_notification_type_label(array $row): string
     {
+        $type = admin_notification_type_key((string)($row["type"] ?? ""));
+        if ($type === "admin_payment_review") {
+            return "Payment Review";
+        }
+        if ($type === "admin_new_order") {
+            return "New Order";
+        }
+
         return match (admin_notification_event_category($row)) {
-            "new-orders" => admin_notification_type_key((string)($row["type"] ?? "")) === "admin_payment_review" ? "Payment Review" : "New Order",
+            "new-orders" => "New Order",
             "cancelled" => "Cancelled",
             "stalled-orders" => "Stalled Order",
             default => "Admin Update",
@@ -160,7 +208,7 @@ if (!function_exists("admin_notification_center_data")) {
         $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $counts = [
-            "all" => count($notifications),
+            "all" => 0,
             "unread" => 0,
             "new-orders" => 0,
             "cancelled" => 0,
@@ -171,16 +219,21 @@ if (!function_exists("admin_notification_center_data")) {
         ];
 
         foreach ($notifications as $notification) {
-            if (!admin_notification_bool($notification["is_read"] ?? false)) {
-                $counts["unread"]++;
+            $isUnread = !admin_notification_bool($notification["is_read"] ?? false);
+            $eventCategory = admin_notification_event_category($notification);
+            $serviceCategory = admin_notification_service_category($notification);
+
+            if (!$isUnread) {
+                continue;
             }
 
-            $eventCategory = admin_notification_event_category($notification);
+            $counts["all"]++;
+            $counts["unread"]++;
+
             if (isset($counts[$eventCategory])) {
                 $counts[$eventCategory]++;
             }
 
-            $serviceCategory = admin_notification_service_category($notification);
             if (isset($counts[$serviceCategory])) {
                 $counts[$serviceCategory]++;
             }
@@ -468,6 +521,52 @@ if (!function_exists("admin_notification_render_styles")) {
     text-align: center;
   }
 
+  .admin-notification-refine {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(150px, 190px) auto;
+    gap: 9px;
+    padding-bottom: 12px;
+  }
+
+  .admin-notification-field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+    color: #496985;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .admin-notification-field input {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 11px;
+    border: 1px solid rgba(31, 74, 138, 0.16);
+    border-radius: 11px;
+    background: #ffffff;
+    color: #173967;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .admin-notification-clear-filter {
+    align-self: end;
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid rgba(31, 74, 138, 0.14);
+    border-radius: 11px;
+    background: #f4f8fd;
+    color: #1f4a8a;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
   .admin-notification-select-all {
     display: inline-flex;
     align-items: center;
@@ -683,6 +782,8 @@ if (!function_exists("admin_notification_render_styles")) {
   .admin-notification-filter:focus-visible,
   .admin-notification-service-filter:focus-visible,
   .admin-notification-action-btn:focus-visible,
+  .admin-notification-field input:focus-visible,
+  .admin-notification-clear-filter:focus-visible,
   .admin-notification-item__open:focus-visible,
   .admin-notification-link:focus-visible,
   .admin-notification-close:focus-visible {
@@ -748,6 +849,14 @@ if (!function_exists("admin_notification_render_styles")) {
 
     .admin-notification-service-filters {
       padding-bottom: 10px;
+    }
+
+    .admin-notification-refine {
+      grid-template-columns: 1fr;
+    }
+
+    .admin-notification-clear-filter {
+      width: 100%;
     }
 
     .admin-notification-actions {
@@ -880,6 +989,18 @@ if (!function_exists("admin_notification_render_center")) {
             <?php endforeach; ?>
           </div>
 
+          <div class="admin-notification-refine" aria-label="Search and date filters">
+            <label class="admin-notification-field">
+              <span>Order ID</span>
+              <input type="search" data-admin-notification-search placeholder="Search Queue or Order ID" autocomplete="off">
+            </label>
+            <label class="admin-notification-field">
+              <span>Date</span>
+              <input type="date" data-admin-notification-date>
+            </label>
+            <button type="button" class="admin-notification-clear-filter" data-admin-notification-clear-filters>Clear</button>
+          </div>
+
           <div class="admin-notification-actions">
             <label class="admin-notification-select-all">
               <input type="checkbox" data-admin-notification-select-all>
@@ -907,6 +1028,7 @@ if (!function_exists("admin_notification_render_center")) {
                 $status = strtoupper(trim((string)($notification["queue_status"] ?? "")));
                 $service = admin_notification_service_label($notification);
                 $createdLabel = admin_notification_format_timestamp((string)($notification["created_at"] ?? ""));
+                $createdDate = admin_notification_filter_date((string)($notification["created_at"] ?? ""));
                 $cancelNote = trim((string)($notification["cancel_note"] ?? ""));
                 $targetUrl = admin_notification_target_url($notification);
               ?>
@@ -916,6 +1038,8 @@ if (!function_exists("admin_notification_render_center")) {
                 data-admin-notification-read="<?= $isRead ? "true" : "false" ?>"
                 data-admin-notification-category="<?= admin_notification_h($eventCategory) ?>"
                 data-admin-notification-service="<?= admin_notification_h($serviceCategory) ?>"
+                data-admin-notification-queue="<?= admin_notification_h(strtolower($queueCode)) ?>"
+                data-admin-notification-date="<?= admin_notification_h($createdDate) ?>"
                 data-admin-notification-url="<?= admin_notification_h($targetUrl) ?>"
               >
                 <label class="admin-notification-item__select" aria-label="Select notification">
@@ -985,7 +1109,13 @@ if (!function_exists("admin_notification_render_script")) {
       },
       body: new URLSearchParams(params).toString()
     }).then(function (response) {
-      return response.json().then(function (data) {
+      return response.text().then(function (text) {
+        var data = {};
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (error) {
+          throw new Error(text ? "Invalid notification server response." : "Empty notification server response.");
+        }
         if (!response.ok || !data.ok) throw new Error(data.error || "Notification request failed.");
         return data;
       });
@@ -1025,6 +1155,9 @@ if (!function_exists("admin_notification_render_script")) {
     var deleteSelectedButton = root.querySelector("[data-admin-notification-delete-selected]");
     var filterButtons = Array.from(root.querySelectorAll("[data-admin-notification-filter]"));
     var serviceFilterButtons = Array.from(root.querySelectorAll("[data-admin-service-filter]"));
+    var searchInput = root.querySelector("[data-admin-notification-search]");
+    var dateInput = root.querySelector("[data-admin-notification-date]");
+    var clearFiltersButton = root.querySelector("[data-admin-notification-clear-filters]");
     if (!list || !emptyState) return;
 
     function notificationItems() {
@@ -1048,6 +1181,15 @@ if (!function_exists("admin_notification_render_script")) {
         || item.dataset.adminNotificationService === activeServiceFilter;
     }
 
+    function itemMatchesRefine(item) {
+      var query = String(searchInput?.value || "").trim().toLowerCase();
+      var selectedDate = String(dateInput?.value || "").trim();
+      var queueId = String(item.dataset.adminNotificationQueue || "").trim().toLowerCase();
+      var matchesSearch = !query || queueId.indexOf(query) !== -1;
+      var matchesDate = !selectedDate || item.dataset.adminNotificationDate === selectedDate;
+      return matchesSearch && matchesDate;
+    }
+
     function syncCounts() {
       var counts = {
         all: 0,
@@ -1069,8 +1211,12 @@ if (!function_exists("admin_notification_render_script")) {
       notificationItems().forEach(function (item) {
         var eventCategory = item.dataset.adminNotificationCategory || "admin-updates";
         var serviceCategory = item.dataset.adminNotificationService || "";
+        var isUnread = item.dataset.adminNotificationRead !== "true";
+
+        if (!isUnread) return;
+
         counts.all += 1;
-        if (item.dataset.adminNotificationRead !== "true") counts.unread += 1;
+        counts.unread += 1;
         if (Object.prototype.hasOwnProperty.call(counts, eventCategory)) counts[eventCategory] += 1;
         if (Object.prototype.hasOwnProperty.call(counts, serviceCategory)) counts[serviceCategory] += 1;
 
@@ -1135,7 +1281,7 @@ if (!function_exists("admin_notification_render_script")) {
 
     function applyFilter() {
       notificationItems().forEach(function (item) {
-        var isVisible = itemMatchesCategory(item) && itemMatchesService(item);
+        var isVisible = itemMatchesCategory(item) && itemMatchesService(item) && itemMatchesRefine(item);
         item.hidden = !isVisible;
       });
 
@@ -1244,6 +1390,14 @@ if (!function_exists("admin_notification_render_script")) {
         activeServiceFilter = button.dataset.adminServiceFilter || "all";
         applyFilter();
       });
+    });
+
+    searchInput?.addEventListener("input", applyFilter);
+    dateInput?.addEventListener("change", applyFilter);
+    clearFiltersButton?.addEventListener("click", function () {
+      if (searchInput) searchInput.value = "";
+      if (dateInput) dateInput.value = "";
+      applyFilter();
     });
 
     markSelectedButton.addEventListener("click", function () {
