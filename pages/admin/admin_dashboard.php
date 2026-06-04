@@ -28,7 +28,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech Admin Dashboard</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260601-customer-style-notification-v2') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
 </head>
 <body class="admin-dashboard">

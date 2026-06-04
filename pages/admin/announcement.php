@@ -175,8 +175,8 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Manage Announcement</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260601-customer-style-notification-v2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260521announcement1') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260604-admin-mobile-nav') ?>">
   <style>
     .announcement-item .announcement-actions {
       display: flex;

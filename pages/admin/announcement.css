@@ -3,8 +3,10 @@
   margin: 22px auto 36px;
 }
 
-body .navbar .nav-toggle {
-  display: none;
+@media (min-width: 901px) {
+  body .navbar .nav-toggle {
+    display: none;
+  }
 }
 
 .announcement-hero {
