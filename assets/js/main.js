@@ -957,9 +957,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const xeroxPriceMap = getXeroxPriceMap();
 
+  function readQuantityValue() {
+    const raw = String(qtyInput.value || "").trim();
+    if (raw === "") return NaN;
+    return parseInt(raw, 10);
+  }
+
   function updateSummary() {
-    const qty = parseInt(qtyInput.value, 10) || 1;
-    if (summaryQty) summaryQty.textContent = qty;
+    const enteredQty = readQuantityValue();
+    const qty = Number.isFinite(enteredQty) && enteredQty > 0 ? enteredQty : 0;
+    if (summaryQty) summaryQty.textContent = qtyInput.value.trim() === "" ? "0" : String(qty);
 
     if (paperSizeSelect && summaryPaperSize) {
       const size = paperSizeSelect.value;
@@ -1031,6 +1038,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const svc = (document.body?.dataset?.service || "").toLowerCase();
   const isXerox = svc === "xerox";
   const xeroxPriceMap = getXeroxPriceMap();
+
+  function readQuantityValue() {
+    if (!refs.qtyInput) return 1;
+    const raw = String(refs.qtyInput.value || "").trim();
+    if (raw === "") return NaN;
+    return parseInt(raw, 10);
+  }
 
   function setFieldInvalid(el, invalid) {
     if (!el) return;
@@ -1121,7 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
       category: (document.body?.dataset?.service || "general").toLowerCase(),
       service_label: buildServiceLabel(),
       paper_size: refs.paperSizeSelect ? refs.paperSizeSelect.value : null,
-      quantity: refs.qtyInput ? parseInt(refs.qtyInput.value, 10) || 1 : 1,
+      quantity: readQuantityValue(),
       color_option: getSelectedColor(),
       package_label: refs.packageSelect
         ? (refs.packageSelect.options[refs.packageSelect.selectedIndex]?.textContent || null)

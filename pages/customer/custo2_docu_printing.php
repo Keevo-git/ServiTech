@@ -614,12 +614,12 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260602-stable-overlay"></script>
+<script src="/assets/js/main.js?v=20260604-form-state"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260602-stable-overlay"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260604-form-state"></script>
 </body>
 </html>
 

@@ -78,6 +78,7 @@
 
     var selectedFiles = [];
     var uploadedSignature = "";
+    var analysisRequestSeq = 0;
     var isSubmitting = false;
 
     var state = {
@@ -146,6 +147,12 @@
       return qty;
     }
 
+    function getEnteredQuantity() {
+      var raw = (qtyInput.value || "").trim();
+      if (raw === "") return NaN;
+      return parseInt(raw, 10);
+    }
+
     function getOrderType() {
       return (orderTypeSelect.value || "").trim().toLowerCase();
     }
@@ -185,6 +192,15 @@
 
     function currentSignature() {
       return selectedFiles.map(fileKey).sort().join("::");
+    }
+
+    function currentAnalysisKey() {
+      return [
+        currentSignature(),
+        paperSizeSelect.value || "",
+        getSelectedColor(),
+        String(getQuantity())
+      ].join("::");
     }
 
     function setFeedback(message, tone) {
@@ -465,6 +481,12 @@
     }
 
     async function analyzeSelectedFiles() {
+      var requestSeq = ++analysisRequestSeq;
+      var requestPaperSize = paperSizeSelect.value || "";
+      var requestColor = getSelectedColor();
+      var requestQuantity = getQuantity();
+      var requestAnalysisKey = currentAnalysisKey();
+
       resetAnalysis(true);
 
       if (!selectedFiles.length && !hasSavedUploads()) {
@@ -474,9 +496,9 @@
       }
 
       var formData = new FormData();
-      formData.append("paper_size", paperSizeSelect.value || "");
-      formData.append("color_option", getSelectedColor());
-      formData.append("quantity", String(getQuantity()));
+      formData.append("paper_size", requestPaperSize);
+      formData.append("color_option", requestColor);
+      formData.append("quantity", String(requestQuantity));
 
       if (selectedFiles.length) {
         selectedFiles.forEach(function (file) {
@@ -510,6 +532,10 @@
           data = { ok: false, error: "Server returned invalid response." };
         }
 
+        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== currentAnalysisKey()) {
+          return;
+        }
+
         if (!data.ok) {
           state.error = data.error || "Unable to analyze files.";
           if (selectedFiles.length && Array.isArray(data.files) && data.files.length) {
@@ -526,6 +552,10 @@
           return;
         }
 
+        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== currentAnalysisKey()) {
+          return;
+        }
+
         state.error = "";
         if (selectedFiles.length && Array.isArray(data.files)) {
           state.files = data.files;
@@ -539,6 +569,9 @@
         renderSummary();
         setFeedback("", "error");
       } catch (err) {
+        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== currentAnalysisKey()) {
+          return;
+        }
         state.error = "Network/server error while analyzing files.";
         state.price_per_page = 0;
         state.estimated_total = 0;
@@ -589,6 +622,7 @@
       });
 
       uploadedSignature = "";
+      analysisRequestSeq++;
       state.uploaded_files = [];
       syncFileInput();
 
@@ -618,6 +652,7 @@
       }
 
       uploadedSignature = "";
+      analysisRequestSeq++;
       state.error = "";
       setFeedback("", "error");
 
@@ -641,6 +676,7 @@
         });
 
         uploadedSignature = "";
+        analysisRequestSeq++;
         state.uploaded_files = [];
         state.error = "";
         setFeedback("", "error");
@@ -808,7 +844,7 @@
         service_label: getServiceLabelFromOrderType(orderType),
         order_type: orderType,
         paper_size: paperSizeSelect.value || null,
-        quantity: getQuantity(),
+        quantity: getEnteredQuantity(),
         color_option: getSelectedColor(),
         payment_method: getPaymentMethod() || null,
         notes: notesInput ? notesInput.value.trim() : null,
@@ -1053,7 +1089,6 @@
 
     fileUpload.addEventListener("change", function (e) {
       addFiles(e.target.files);
-      fileUpload.value = "";
     });
 
     fileListEl.addEventListener("click", function (e) {

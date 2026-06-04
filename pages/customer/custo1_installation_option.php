@@ -95,7 +95,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 </script>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260602-stable-overlay"></script>
+<script src="/assets/js/main.js?v=20260604-form-state"></script>
 
 </body>
 </html>
