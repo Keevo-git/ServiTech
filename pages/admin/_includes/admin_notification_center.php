@@ -421,6 +421,52 @@ if (!function_exists("admin_notification_render_styles")) {
     padding-bottom: 12px;
   }
 
+  .admin-notification-service-filters {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .admin-notification-service-filter {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 8px 11px;
+    border: 1px solid rgba(31, 74, 138, 0.14);
+    border-radius: 11px;
+    background: #f8fbff;
+    color: #315273;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .admin-notification-service-filter:hover,
+  .admin-notification-service-filter.is-active {
+    border-color: rgba(31, 74, 138, 0.24);
+    background: #eaf2fb;
+    color: #173967;
+  }
+
+  .admin-notification-service-filter strong {
+    min-width: 22px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(31, 74, 138, 0.1);
+    color: #1f4a8a;
+    font-size: 0.72rem;
+    text-align: center;
+  }
+
   .admin-notification-select-all {
     display: inline-flex;
     align-items: center;
@@ -634,6 +680,7 @@ if (!function_exists("admin_notification_render_styles")) {
   }
 
   .admin-notification-filter:focus-visible,
+  .admin-notification-service-filter:focus-visible,
   .admin-notification-action-btn:focus-visible,
   .admin-notification-item__open:focus-visible,
   .admin-notification-link:focus-visible,
@@ -698,6 +745,18 @@ if (!function_exists("admin_notification_render_styles")) {
       white-space: nowrap;
     }
 
+    .admin-notification-service-filters {
+      padding-bottom: 10px;
+    }
+
+    .admin-notification-actions {
+      flex-wrap: wrap;
+    }
+
+    .admin-notification-selection-summary {
+      margin-right: 0;
+    }
+
     .admin-notification-list {
       padding: 2px 2px 24px;
     }
@@ -706,6 +765,11 @@ if (!function_exists("admin_notification_render_styles")) {
   @media (max-width: 460px) {
     .admin-notification-actions {
       flex-wrap: wrap;
+    }
+
+    .admin-notification-service-filter {
+      min-height: 36px;
+      padding: 8px 10px;
     }
 
     .admin-notification-select-all {
@@ -787,9 +851,6 @@ if (!function_exists("admin_notification_render_center")) {
                 "new-orders" => "New Orders",
                 "cancelled" => "Cancelled",
                 "stalled-orders" => "Stalled Orders",
-                "printing" => "Printing",
-                "repair" => "Repair",
-                "installation" => "Installation",
             ];
             foreach ($filters as $filterKey => $filterLabel):
             ?>
@@ -801,6 +862,23 @@ if (!function_exists("admin_notification_render_center")) {
         </aside>
 
         <main class="admin-notification-main">
+          <div class="admin-notification-service-filters" aria-label="Service filters">
+            <?php
+            $serviceFilters = [
+                "all" => "All Services",
+                "printing" => "Printing",
+                "repair" => "Repair",
+                "installation" => "Installation",
+            ];
+            foreach ($serviceFilters as $serviceKey => $serviceLabel):
+                $serviceCount = $serviceKey === "all" ? (int)($counts["all"] ?? 0) : (int)($counts[$serviceKey] ?? 0);
+            ?>
+              <button type="button" class="admin-notification-service-filter<?= $serviceKey === "all" ? " is-active" : "" ?>" data-admin-service-filter="<?= admin_notification_h($serviceKey) ?>">
+                <span><?= admin_notification_h($serviceLabel) ?></span><strong data-admin-service-count="<?= admin_notification_h($serviceKey) ?>"><?= $serviceCount ?></strong>
+              </button>
+            <?php endforeach; ?>
+          </div>
+
           <div class="admin-notification-actions">
             <label class="admin-notification-select-all">
               <input type="checkbox" data-admin-notification-select-all>
@@ -935,6 +1013,7 @@ if (!function_exists("admin_notification_render_script")) {
 
   function initCenter(root) {
     var activeFilter = "all";
+    var activeServiceFilter = "all";
     var selectedIds = new Set();
     var list = root.querySelector("[data-admin-notification-list]");
     var emptyState = root.querySelector("[data-admin-notification-empty]");
@@ -944,6 +1023,7 @@ if (!function_exists("admin_notification_render_script")) {
     var markAllButton = root.querySelector("[data-admin-notification-mark-all]");
     var deleteSelectedButton = root.querySelector("[data-admin-notification-delete-selected]");
     var filterButtons = Array.from(root.querySelectorAll("[data-admin-notification-filter]"));
+    var serviceFilterButtons = Array.from(root.querySelectorAll("[data-admin-service-filter]"));
     if (!list || !emptyState) return;
 
     function notificationItems() {
@@ -954,6 +1034,17 @@ if (!function_exists("admin_notification_render_script")) {
       return notificationItems().filter(function (item) {
         return !item.hidden;
       });
+    }
+
+    function itemMatchesCategory(item) {
+      return activeFilter === "all"
+        || (activeFilter === "unread" && item.dataset.adminNotificationRead !== "true")
+        || item.dataset.adminNotificationCategory === activeFilter;
+    }
+
+    function itemMatchesService(item) {
+      return activeServiceFilter === "all"
+        || item.dataset.adminNotificationService === activeServiceFilter;
     }
 
     function syncCounts() {
@@ -967,6 +1058,12 @@ if (!function_exists("admin_notification_render_script")) {
         repair: 0,
         installation: 0
       };
+      var serviceCounts = {
+        all: 0,
+        printing: 0,
+        repair: 0,
+        installation: 0
+      };
 
       notificationItems().forEach(function (item) {
         var eventCategory = item.dataset.adminNotificationCategory || "admin-updates";
@@ -975,11 +1072,23 @@ if (!function_exists("admin_notification_render_script")) {
         if (item.dataset.adminNotificationRead !== "true") counts.unread += 1;
         if (Object.prototype.hasOwnProperty.call(counts, eventCategory)) counts[eventCategory] += 1;
         if (Object.prototype.hasOwnProperty.call(counts, serviceCategory)) counts[serviceCategory] += 1;
+
+        if (itemMatchesCategory(item)) {
+          serviceCounts.all += 1;
+          if (Object.prototype.hasOwnProperty.call(serviceCounts, serviceCategory)) {
+            serviceCounts[serviceCategory] += 1;
+          }
+        }
       });
 
       Object.keys(counts).forEach(function (key) {
         var count = root.querySelector('[data-admin-filter-count="' + key + '"]');
         if (count) count.textContent = String(counts[key]);
+      });
+
+      Object.keys(serviceCounts).forEach(function (key) {
+        var count = root.querySelector('[data-admin-service-count="' + key + '"]');
+        if (count) count.textContent = String(serviceCounts[key]);
       });
 
       var summary = root.querySelector("[data-admin-notification-summary]");
@@ -993,9 +1102,11 @@ if (!function_exists("admin_notification_render_script")) {
       emptyState.querySelector("strong").textContent = activeFilter === "all"
         ? "No notifications yet."
         : "No notifications in this category.";
-      emptyState.querySelector("span").textContent = activeFilter === "all"
+      emptyState.querySelector("span").textContent = activeFilter === "all" && activeServiceFilter === "all"
         ? "New requests, cancellations, and stalled orders will appear here."
-        : "Try another filter to see more admin updates.";
+        : activeServiceFilter === "all"
+          ? "Try another category to see more admin updates."
+          : "Try another service filter to see more admin updates.";
     }
 
     function syncActions() {
@@ -1023,10 +1134,7 @@ if (!function_exists("admin_notification_render_script")) {
 
     function applyFilter() {
       notificationItems().forEach(function (item) {
-        var isVisible = activeFilter === "all"
-          || (activeFilter === "unread" && item.dataset.adminNotificationRead !== "true")
-          || item.dataset.adminNotificationCategory === activeFilter
-          || item.dataset.adminNotificationService === activeFilter;
+        var isVisible = itemMatchesCategory(item) && itemMatchesService(item);
         item.hidden = !isVisible;
       });
 
@@ -1036,6 +1144,13 @@ if (!function_exists("admin_notification_render_script")) {
         button.setAttribute("aria-pressed", isActive ? "true" : "false");
       });
 
+      serviceFilterButtons.forEach(function (button) {
+        var isActive = button.dataset.adminServiceFilter === activeServiceFilter;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+
+      syncCounts();
       syncEmptyState();
       syncActions();
     }
@@ -1119,6 +1234,13 @@ if (!function_exists("admin_notification_render_script")) {
     filterButtons.forEach(function (button) {
       button.addEventListener("click", function () {
         activeFilter = button.dataset.adminNotificationFilter || "all";
+        applyFilter();
+      });
+    });
+
+    serviceFilterButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        activeServiceFilter = button.dataset.adminServiceFilter || "all";
         applyFilter();
       });
     });
