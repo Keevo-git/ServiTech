@@ -819,6 +819,12 @@ body.admin-dashboard .page-frame {
   pointer-events: auto;
 }
 
+html.order-modal-scroll-locked,
+body.order-modal-scroll-locked {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .order-modal {
   position: fixed;
   top: 50%;
@@ -869,12 +875,15 @@ body.admin-dashboard .page-frame {
 }
 
 .order-modal .close-modal {
+  flex: 0 0 auto;
   border: none;
   background: transparent;
   color: #5d0f12;
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
+  width: 36px;
+  height: 36px;
   padding: 0;
 }
 
@@ -1316,17 +1325,31 @@ body.admin-dashboard .page-frame {
 
 @media (max-width: 520px) {
   .order-modal {
-    width: calc(100vw - 20px);
-    max-width: calc(100vw - 20px);
-    max-height: 90vh;
+    width: min(430px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    max-height: min(86dvh, 720px);
+    border-radius: 12px;
   }
 
   .order-modal .modal-header {
-    padding: 18px 18px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    align-items: flex-start;
+    padding: 18px 56px 12px 18px;
+    background: #fff;
   }
 
   .order-modal .modal-header h3 {
     font-size: 18px;
+  }
+
+  .order-modal .close-modal {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: inline-grid;
+    place-items: center;
   }
 
   .modal-eyebrow {
@@ -1334,7 +1357,10 @@ body.admin-dashboard .page-frame {
   }
 
   .order-modal .modal-body {
+    max-height: calc(min(86dvh, 720px) - 75px);
     padding: 16px 18px 18px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .order-modal-summary strong,

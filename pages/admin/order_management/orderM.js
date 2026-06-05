@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let previousStatusSelection = "";
   let cancellationInProgress = false;
   let updateInProgress = false;
+  let modalScrollY = 0;
 
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
   const actionMap = {
@@ -172,6 +173,30 @@ document.addEventListener("DOMContentLoaded", function () {
     saveBtn.disabled = updateInProgress || (statusEl.value === currentStatus && !paymentChanged());
   }
 
+  function lockPageScroll() {
+    if (document.body.classList.contains("order-modal-scroll-locked")) return;
+    modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.documentElement.classList.add("order-modal-scroll-locked");
+    document.body.classList.add("order-modal-scroll-locked");
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${modalScrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+  }
+
+  function unlockPageScroll() {
+    if (!document.body.classList.contains("order-modal-scroll-locked")) return;
+    document.documentElement.classList.remove("order-modal-scroll-locked");
+    document.body.classList.remove("order-modal-scroll-locked");
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+    window.scrollTo(0, modalScrollY);
+  }
+
   function renderOrderStatusState(status, allowedStatuses = []) {
     if (!statusEl) return;
     const normalizedStatus = normalizeStatus(status);
@@ -293,6 +318,7 @@ document.addEventListener("DOMContentLoaded", function () {
     overlay.classList.add("active");
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
+    lockPageScroll();
     window.servitechAdminModalStack?.open({
       overlay,
       dialog: modal,
@@ -307,6 +333,7 @@ document.addEventListener("DOMContentLoaded", function () {
     overlay.classList.remove("active");
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");
+    unlockPageScroll();
     clearError();
   }
 
