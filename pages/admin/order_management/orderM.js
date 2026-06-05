@@ -174,9 +174,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function lockPageScroll() {
-    if (document.body.classList.contains("order-modal-scroll-locked")) return;
+    if (document.body.classList.contains("modal-open")) return;
     modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.documentElement.classList.add("modal-open");
     document.documentElement.classList.add("order-modal-scroll-locked");
+    document.body.classList.add("modal-open");
     document.body.classList.add("order-modal-scroll-locked");
     document.body.style.position = "fixed";
     document.body.style.top = `-${modalScrollY}px`;
@@ -186,8 +188,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function unlockPageScroll() {
-    if (!document.body.classList.contains("order-modal-scroll-locked")) return;
+    if (!document.body.classList.contains("modal-open")) return;
+    document.documentElement.classList.remove("modal-open");
     document.documentElement.classList.remove("order-modal-scroll-locked");
+    document.body.classList.remove("modal-open");
     document.body.classList.remove("order-modal-scroll-locked");
     document.body.style.position = "";
     document.body.style.top = "";
@@ -447,6 +451,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (paymentTried && statusTried && paymentOk && statusOk) {
       window.servitechAdminToast?.persist("Status and payment updated successfully.");
+      unlockPageScroll();
       location.reload();
       return true;
     }
@@ -459,6 +464,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if ((statusTried || paymentTried) && statusOk && paymentOk) {
       const message = statusTried ? (statusResult.message || "Order status updated successfully.") : "Payment details saved successfully.";
       window.servitechAdminToast?.persist(message);
+      unlockPageScroll();
       location.reload();
       return true;
     }
@@ -509,6 +515,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     window.servitechAdminToast?.persist(actionMessages.cancel);
+    unlockPageScroll();
     location.reload();
   }
 
