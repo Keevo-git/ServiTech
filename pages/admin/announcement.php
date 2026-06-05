@@ -182,14 +182,27 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 0;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .announcement-item .announcement-actions form {
+      display: inline-flex;
+      flex: 0 0 auto;
       margin: 0;
     }
 
+    .announcement-item .announcement-actions button {
+      width: auto;
+      margin: 0;
+      white-space: nowrap;
+    }
+
     .status-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
       padding: 6px 14px;
       border-radius: 20px;
       border: none;
@@ -210,24 +223,34 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     .edit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
       background: #3b82f6;
       color: #fff;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 8px;
       border: none;
-      margin-left: 6px;
       cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
       transition: all 0.2s ease;
     }
 
     .delete-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
       background: #7f1d1d;
       color: #fff;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 8px;
       border: none;
-      margin-left: 6px;
       cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
       transition: all 0.2s ease;
     }
 
@@ -312,6 +335,12 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
       .announcement-item .announcement-actions {
         justify-content: flex-start;
         flex-wrap: wrap;
+      }
+
+      .announcement-item .announcement-actions form,
+      .announcement-item .announcement-actions .edit-btn,
+      .announcement-item .announcement-actions .delete-btn {
+        flex: 0 0 auto;
       }
     }
   </style>
