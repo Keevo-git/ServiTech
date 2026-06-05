@@ -44,6 +44,7 @@ function customer_code_from_id(int $id): string {
 
   <?php
   $adminHeaderMenuId = "admin-customer-header-menu";
+  $adminHeaderVariant = "special";
   require __DIR__ . "/../_includes/admin_header.php";
   ?>
 

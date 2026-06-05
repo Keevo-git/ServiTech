@@ -135,7 +135,10 @@ if (!in_array($printView, ["online", "walkin"], true)) {
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_<?= htmlspecialchars($printView, ENT_QUOTES, 'UTF-8') ?>">
 
-<?php require __DIR__ . "/../_includes/admin_header.php"; ?>
+<?php
+$adminHeaderVariant = "special";
+require __DIR__ . "/../_includes/admin_header.php";
+?>
 
 <div class="admin-wrapper">
   <section class="admin-hero order-header">

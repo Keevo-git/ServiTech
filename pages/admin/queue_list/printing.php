@@ -102,7 +102,10 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 </head>
 <body class="admin-dashboard" data-admin-realtime-scope="queue_online">
 
-<?php require __DIR__ . "/../_includes/admin_header.php"; ?>
+<?php
+$adminHeaderVariant = "special";
+require __DIR__ . "/../_includes/admin_header.php";
+?>
 
 <div class="admin-wrapper">
   <section class="admin-hero">
