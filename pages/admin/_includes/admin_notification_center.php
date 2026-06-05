@@ -257,14 +257,17 @@ if (!function_exists("admin_notification_render_styles")) {
         $rendered = true;
         ?>
 <style>
-  body.admin-notifications-open {
-    overflow: hidden;
+  body.admin-notifications-open,
+  body.notification-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
   }
 
   .admin-notification-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 4900;
+    z-index: 99998;
     background: rgba(10, 27, 49, 0.48);
     opacity: 0;
     visibility: hidden;
@@ -287,11 +290,14 @@ if (!function_exists("admin_notification_render_styles")) {
   .admin-notification-overlay-shell {
     position: fixed;
     inset: 0;
-    z-index: 5000;
+    z-index: 99999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
@@ -309,6 +315,8 @@ if (!function_exists("admin_notification_render_styles")) {
   .admin-notification-overlay-shell .admin-notification-center {
     width: min(1080px, calc(100vw - 48px));
     height: min(720px, calc(100dvh - 48px));
+    max-height: calc(100dvh - 48px);
+    overflow: hidden;
   }
 
   .admin-notification-center {
@@ -327,8 +335,10 @@ if (!function_exists("admin_notification_render_styles")) {
     align-items: center;
     justify-content: space-between;
     gap: 14px;
+    flex: 0 0 auto;
     padding-bottom: 16px;
     border-bottom: 1px solid rgba(31, 74, 138, 0.12);
+    background: rgba(255, 255, 255, 0.98);
   }
 
   .admin-notification-head h1 {
@@ -369,7 +379,10 @@ if (!function_exists("admin_notification_render_styles")) {
   .admin-notification-close {
     position: relative;
     width: 44px;
+    height: 44px;
     min-width: 44px;
+    max-width: 44px;
+    flex: 0 0 44px;
     padding: 0;
     font-size: 0;
   }
@@ -400,6 +413,7 @@ if (!function_exists("admin_notification_render_styles")) {
     flex: 1 1 auto;
     min-height: 0;
     gap: 18px;
+    overflow: hidden;
     padding-top: 16px;
   }
 
@@ -764,14 +778,25 @@ if (!function_exists("admin_notification_render_styles")) {
 
     .admin-notification-overlay-shell {
       align-items: stretch;
+      justify-content: center;
       padding: 0;
+      width: 100vw;
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+      transform: none;
     }
 
     .admin-notification-overlay-shell .admin-notification-center {
-      width: 100%;
+      width: 100vw;
+      max-width: 100vw;
       height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      padding: 0;
       border-radius: 0;
       border: 0;
+      overflow: hidden;
     }
 
     .admin-notification-center {
@@ -781,77 +806,190 @@ if (!function_exists("admin_notification_render_styles")) {
     }
 
     .admin-notification-head {
+      position: sticky;
+      top: 0;
+      z-index: 30;
       align-items: flex-start;
-      flex-direction: column;
+      flex-direction: row;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      border-bottom: 1px solid rgba(31, 74, 138, 0.12);
+    }
+
+    .admin-notification-head > div {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .admin-notification-head h1 {
+      font-size: 1.45rem;
+      line-height: 1.2;
+    }
+
+    .admin-notification-head p {
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .admin-notification-close {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      max-width: 40px;
+      flex-basis: 40px;
+      align-self: flex-start;
+      margin-left: auto;
+      border-radius: 12px;
+      position: relative;
     }
 
     .admin-notification-body {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr;
+      flex: 1 1 auto;
+      min-height: 0;
+      gap: 18px;
+      padding: 18px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .admin-notification-filters {
+      width: 100%;
       padding: 0 0 10px;
       border-right: 0;
       border-bottom: 1px solid rgba(31, 74, 138, 0.1);
+      overflow-x: hidden;
     }
 
     .admin-notification-filters__list {
       flex-direction: row;
-      gap: 6px;
+      gap: 10px;
       overflow-x: auto;
-      padding-bottom: 2px;
+      padding-bottom: 6px;
+      scroll-snap-type: x proximity;
     }
 
     .admin-notification-filter {
       flex: 0 0 auto;
       width: auto;
+      max-width: none;
       min-height: 38px;
+      min-width: max-content;
       white-space: nowrap;
     }
 
-    .admin-notification-refine {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .admin-notification-clear-filter {
-      width: 100%;
-    }
-
-    .admin-notification-actions {
-      flex-wrap: wrap;
-    }
-
-    .admin-notification-selection-summary {
-      margin-right: 0;
-    }
-
-    .admin-notification-list {
-      padding: 2px 2px 24px;
-    }
-  }
-
-  @media (max-width: 460px) {
-    .admin-notification-actions {
-      flex-wrap: wrap;
+    .admin-notification-main {
+      overflow: visible;
     }
 
     .admin-notification-refine {
       grid-template-columns: 1fr;
+      gap: 12px;
+      padding-bottom: 4px;
+    }
+
+    .admin-notification-field input,
+    .admin-notification-field select,
+    .admin-notification-clear-filter {
+      width: 100%;
+      min-height: 46px;
+      font-size: 0.92rem;
+    }
+
+    .admin-notification-clear-filter {
+      width: 100%;
+      align-self: stretch;
+    }
+
+    .admin-notification-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 0;
     }
 
     .admin-notification-select-all {
-      flex: 1 1 auto;
+      min-width: 0;
+      flex-wrap: wrap;
     }
 
+    .admin-notification-select-all,
     .admin-notification-selection-summary {
       margin-right: 0;
     }
 
     .admin-notification-action-btn {
-      flex: 1 1 calc(50% - 5px);
+      width: 100%;
+      min-height: 44px;
+      border-radius: 12px;
+      white-space: normal;
+    }
+
+    .admin-notification-list {
+      flex: 0 0 auto;
+      min-height: auto;
+      height: auto;
+      max-height: none;
+      overflow: visible;
+      gap: 14px;
+      padding: 0 0 24px;
+    }
+
+    .admin-notification-item {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      padding: 16px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .admin-notification-item__open {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .admin-notification-item__topline,
+    .admin-notification-item__details {
+      align-items: flex-start;
+      overflow-wrap: anywhere;
+    }
+
+    .admin-notification-item__message {
+      font-size: 0.94rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .admin-notification-item__details {
+      font-size: 0.8rem;
+    }
+  }
+
+  @media (max-width: 460px) {
+    .admin-notification-actions {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-notification-select-all,
+    .admin-notification-selection-summary {
+      grid-column: span 1;
+    }
+
+    .admin-notification-selection-summary {
+      align-self: center;
+    }
+
+    .admin-notification-action-btn[data-admin-notification-mark-selected] {
+      grid-column: span 2;
+    }
+
+    .admin-notification-action-btn {
+      min-width: 0;
     }
   }
 </style>
@@ -1411,6 +1549,20 @@ if (!function_exists("admin_notification_render_script")) {
     return document.querySelector("[data-admin-notification-backdrop]");
   }
 
+  var lockedScrollY = 0;
+
+  function lockPageScroll() {
+    lockedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.style.top = "-" + lockedScrollY + "px";
+    document.body.classList.add("admin-notifications-open", "notification-open");
+  }
+
+  function unlockPageScroll() {
+    document.body.classList.remove("admin-notifications-open", "notification-open");
+    document.body.style.top = "";
+    window.scrollTo(0, lockedScrollY);
+  }
+
   function openOverlay() {
     var overlay = overlayShell();
     var shade = backdrop();
@@ -1423,7 +1575,7 @@ if (!function_exists("admin_notification_render_script")) {
       shade.classList.add("is-open");
       shade.setAttribute("aria-hidden", "false");
     }
-    document.body.classList.add("admin-notifications-open");
+    lockPageScroll();
     document.querySelectorAll(".admin-notification-btn").forEach(function (trigger) {
       trigger.setAttribute("aria-expanded", "true");
     });
@@ -1437,6 +1589,7 @@ if (!function_exists("admin_notification_render_script")) {
     var overlay = overlayShell();
     var shade = backdrop();
     if (!overlay) return;
+    if (!overlay.classList.contains("is-open")) return;
 
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
@@ -1444,7 +1597,7 @@ if (!function_exists("admin_notification_render_script")) {
       shade.classList.remove("is-open");
       shade.setAttribute("aria-hidden", "true");
     }
-    document.body.classList.remove("admin-notifications-open");
+    unlockPageScroll();
     document.querySelectorAll(".admin-notification-btn").forEach(function (trigger) {
       trigger.setAttribute("aria-expanded", "false");
     });
@@ -1462,7 +1615,13 @@ if (!function_exists("admin_notification_render_script")) {
   });
 
   document.addEventListener("click", function (event) {
-    if (event.target.closest("[data-admin-notification-close]") || event.target.closest("[data-admin-notification-backdrop]")) {
+    var clickedOverlay = event.target.closest("[data-admin-notification-overlay]");
+    var clickedInsidePanel = event.target.closest("[data-admin-notification-center]");
+    if (
+      event.target.closest("[data-admin-notification-close]")
+      || event.target.closest("[data-admin-notification-backdrop]")
+      || (clickedOverlay && !clickedInsidePanel)
+    ) {
       closeOverlay();
     }
   });
