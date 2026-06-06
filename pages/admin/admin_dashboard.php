@@ -94,6 +94,57 @@ require __DIR__ . "/_includes/admin_header.php";
 
   </section>
 
+  <h3 class="section-title">Quick Access</h3>
+
+  <section class="quick-grid quick-access-section quick-access-grid">
+    <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon">&#x23F3;</div>
+        <h4>Queue List</h4>
+        <p>View and update queues</p>
+      </article>
+    </a>
+
+    <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon">&#x1F4E6;</div>
+        <h4>Order Management</h4>
+        <p>Manage customer orders</p>
+      </article>
+    </a>
+
+    <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon icon--customer-list" aria-hidden="true">
+          <img
+            src="<?= project_url('/pages/admin/IMAGES/LANDING_CUSTOMER_LIST.png?v=20260411h4') ?>"
+            alt=""
+            class="icon-image icon-image--customer-list"
+          >
+        </div>
+        <h4>Customer List</h4>
+        <p>View registered customers</p>
+      </article>
+    </a>
+
+    <a href="<?= project_url('/pages/admin/Services/edit_services.php') ?>" class="card-link">
+      <article class="card">
+        <div class="icon">&#x270F;&#xFE0F;</div>
+        <h4>Edit Services</h4>
+        <p>Edit the shown services on the landing page</p>
+      </article>
+    </a>
+
+    <a href="<?= project_url('/pages/admin/announcement.php') ?>" class="card-link">
+      <article class="card card--announcement">
+        <div class="icon" aria-hidden="true">&#x1F4E2;</div>
+        <h4>Announcement</h4>
+        <p>Post a notice on the landing page</p>
+      </article>
+    </a>
+
+  </section>
+
   <h3 class="section-title">Live Analytics</h3>
 
   <section class="analytics-grid analytics-grid--visual">
@@ -195,58 +246,6 @@ require __DIR__ . "/_includes/admin_header.php";
       </div>
     </article>
   </section>
-
-  <h3 class="section-title">Quick Access</h3>
-
-  <section class="quick-grid quick-access-section quick-access-grid">
-    <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link">
-      <article class="card">
-        <div class="icon">&#x23F3;</div>
-        <h4>Queue List</h4>
-        <p>View and update queues</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link">
-      <article class="card">
-        <div class="icon">&#x1F4E6;</div>
-        <h4>Order Management</h4>
-        <p>Manage customer orders</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>" class="card-link">
-      <article class="card">
-        <div class="icon icon--customer-list" aria-hidden="true">
-          <img
-            src="<?= project_url('/pages/admin/IMAGES/LANDING_CUSTOMER_LIST.png?v=20260411h4') ?>"
-            alt=""
-            class="icon-image icon-image--customer-list"
-          >
-        </div>
-        <h4>Customer List</h4>
-        <p>View registered customers</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/admin/Services/edit_services.php') ?>" class="card-link">
-      <article class="card">
-        <div class="icon">&#x270F;&#xFE0F;</div>
-        <h4>Edit Services</h4>
-        <p>Edit the shown services on the landing page</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/admin/announcement.php') ?>" class="card-link">
-      <article class="card card--announcement">
-        <div class="icon" aria-hidden="true">&#x1F4E2;</div>
-        <h4>Announcement</h4>
-        <p>Post a notice on the landing page</p>
-      </article>
-    </a>
-
-  </section>
-
 
 
 </main>
