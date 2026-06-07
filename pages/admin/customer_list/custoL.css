@@ -112,6 +112,13 @@
 }
 
 .cl-row:hover td{ background:#f8fbff; }
+.cl-row{
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.cl-row:hover{
+  transform: translateY(-1px);
+}
 .cl-idPill{
   display:inline-block;
   padding: 6px 10px;
@@ -120,6 +127,15 @@
   color:#1f4a8a;
   font-weight: 600;
   font-size: 12px;
+}
+.cl-nameLink{
+  color:#1f4a8a;
+  font-weight: 700;
+  text-decoration:none;
+}
+.cl-nameLink:hover{
+  color:#173a69;
+  text-decoration: underline;
 }
 
 /* buttons */
@@ -146,6 +162,16 @@
   background:#fff;
   color:#111;
   border:1px solid rgba(0,0,0,0.16);
+}
+.cl-btn--message{
+  background:#e8f1ff;
+  color:#1f4a8a;
+  border:1px solid #c8dcf6;
+  padding: 9px 14px;
+  box-shadow:none;
+}
+.cl-btn--message:hover{
+  background:#ddecff;
 }
 
 /* modal */
@@ -364,6 +390,240 @@
   margin-top: 18px;
 }
 
+.cl-msgStatus{
+  min-height: 20px;
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+.cl-msgStatus[data-tone="error"]{ color:#b42318; }
+.cl-msgStatus[data-tone="success"]{ color:#087443; }
+.cl-msgStatus[data-tone="pending"]{ color:#1f4a8a; }
+
+.cd-hero{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 18px;
+}
+.cd-kicker{
+  display:inline-flex;
+  margin-bottom: 8px;
+  color:#dcecff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.cd-backTop{
+  flex:0 0 auto;
+  color:#1f4a8a;
+}
+.cd-wrap{
+  display:grid;
+  gap: 18px;
+}
+.cd-profileGrid,
+.cd-summaryGrid{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.cd-summaryGrid{
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.cd-profileCard{
+  min-height: 132px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap: 8px;
+}
+.cd-cardLabel,
+.cd-summaryCard span{
+  color:#5e6f85;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing:.04em;
+}
+.cd-profileCard strong{
+  color:#112338;
+  font-size: clamp(18px, 2vw, 24px);
+  line-height:1.2;
+  overflow-wrap:anywhere;
+}
+.cd-profileCard small{
+  color:#5e6f85;
+  font-weight: 600;
+  overflow-wrap:anywhere;
+}
+.cd-summaryCard{
+  background:#fff;
+  border:1px solid #d7e1ec;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 12px 26px rgba(19,45,75,0.08);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height: 92px;
+}
+.cd-summaryCard strong{
+  font-size: 30px;
+  color:#1f4a8a;
+}
+.cd-summaryCard--pending{ border-left: 5px solid #f59e0b; }
+.cd-summaryCard--submitted{ border-left: 5px solid #24a8bc; }
+.cd-summaryCard--paid{ border-left: 5px solid #16a34a; }
+.cd-summaryCard--cancelled{ border-left: 5px solid #dc2626; }
+.cd-actionsCard{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 18px;
+}
+.cd-actionsCard h2,
+.cd-historyCard h2,
+.cd-emptyState h2{
+  margin:0;
+  color:#1f4a8a;
+}
+.cd-actionsCard p,
+.cd-sectionHead p,
+.cd-emptyState p{
+  margin: 6px 0 0;
+  color:#5e6f85;
+  font-weight: 600;
+}
+.cd-actionButtons{
+  display:flex;
+  gap: 12px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.cd-sectionHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+.cd-historyList{
+  display:grid;
+  gap: 14px;
+}
+.cd-historyItem{
+  border:1px solid #dbe5f1;
+  border-radius: 16px;
+  padding: 16px;
+  background:#f9fbfe;
+}
+.cd-historyTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.cd-historyTop h3{
+  margin: 10px 0 0;
+  color:#112338;
+  font-size: 18px;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+.cd-statusBadge,
+.cd-fileUnavailable{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  padding: 7px 10px;
+  background:#e8f1ff;
+  color:#1f4a8a;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.cd-historyMeta{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin:0;
+}
+.cd-historyMeta div{
+  background:#fff;
+  border:1px solid #e3ebf5;
+  border-radius: 12px;
+  padding: 12px;
+  min-width:0;
+}
+.cd-historyMeta dt{
+  color:#5e6f85;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+.cd-historyMeta dd{
+  margin:0;
+  color:#112338;
+  font-weight:700;
+  overflow-wrap:anywhere;
+}
+.cd-filesBlock{
+  margin-top: 14px;
+}
+.cd-filesBlock h4{
+  margin:0 0 10px;
+  color:#1d334f;
+}
+.cd-fileList{
+  display:grid;
+  gap: 10px;
+}
+.cd-fileItem{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  background:#fff;
+  border:1px solid #e3ebf5;
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-width:0;
+}
+.cd-fileItem > span:first-child{
+  min-width:0;
+  overflow-wrap:anywhere;
+  font-weight:700;
+}
+.cd-fileActions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.cd-fileActions a{
+  border:1px solid #c8dcf6;
+  border-radius:999px;
+  padding:7px 10px;
+  color:#1f4a8a;
+  background:#e8f1ff;
+  font-size:12px;
+  font-weight:800;
+  text-decoration:none;
+}
+.cd-fileActions a:hover{
+  background:#ddecff;
+}
+.cd-noHistory,
+.cd-emptyState{
+  text-align:center;
+  padding: 28px;
+}
+
 @media (max-width: 560px){
   .cl-modalOverlay{
     padding: 14px;
@@ -394,6 +654,28 @@
     padding:16px;
   }
 
+  .cd-hero,
+  .cd-actionsCard{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .cd-backTop,
+  .cd-actionButtons,
+  .cd-actionButtons .cl-btn{
+    width:100%;
+  }
+
+  .cd-profileGrid,
+  .cd-summaryGrid,
+  .cd-historyMeta{
+    grid-template-columns: 1fr;
+  }
+
+  .cd-summaryCard{
+    min-height: 78px;
+  }
+
 }
 
 @media (max-width: 560px){
@@ -410,6 +692,23 @@
   .cl-tplBtn{
     width:100%;
     margin-bottom:8px;
+  }
+
+  .cd-historyTop,
+  .cd-fileItem{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .cd-statusBadge,
+  .cd-fileActions,
+  .cd-fileActions a{
+    width:100%;
+  }
+
+  .cd-fileActions a{
+    justify-content:center;
+    display:inline-flex;
   }
 }
 
