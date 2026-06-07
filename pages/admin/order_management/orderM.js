@@ -375,6 +375,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (sendBackMessageEl) sendBackMessageEl.value = "";
     if (sendBackSubmitBtn) sendBackSubmitBtn.disabled = false;
     showSendBackError("");
+    sendBackOverlay.hidden = false;
+    sendBackModal.hidden = false;
     sendBackOverlay.classList.add("active");
     sendBackModal.classList.add("active");
     sendBackModal.setAttribute("aria-hidden", "false");
@@ -392,6 +394,8 @@ document.addEventListener("DOMContentLoaded", function () {
     sendBackOverlay.classList.remove("active");
     sendBackModal.classList.remove("active");
     sendBackModal.setAttribute("aria-hidden", "true");
+    sendBackOverlay.hidden = true;
+    sendBackModal.hidden = true;
     showSendBackError("");
   }
 

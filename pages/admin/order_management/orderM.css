@@ -1259,6 +1259,11 @@ body.modal-open {
   backdrop-filter: blur(3px);
 }
 
+.order-sendback-overlay[hidden],
+.order-sendback-modal[hidden] {
+  display: none !important;
+}
+
 .order-sendback-overlay.active {
   display: block;
 }
@@ -1409,6 +1414,10 @@ body.modal-open {
   }
 
   .order-modal-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .order-sendback-actions {
     grid-template-columns: 1fr;
   }
 }

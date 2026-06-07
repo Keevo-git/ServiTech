@@ -87,8 +87,8 @@
   </div>
 </div>
 
-<div class="order-sendback-overlay" id="orderSendBackOverlay"></div>
-<div class="order-sendback-modal" id="orderSendBackModal" role="dialog" aria-modal="true" aria-labelledby="orderSendBackTitle" aria-hidden="true">
+<div class="order-sendback-overlay" id="orderSendBackOverlay" hidden></div>
+<div class="order-sendback-modal" id="orderSendBackModal" role="dialog" aria-modal="true" aria-labelledby="orderSendBackTitle" aria-hidden="true" hidden>
   <div class="order-sendback-head">
     <div>
       <p class="modal-eyebrow">Customer Revision</p>

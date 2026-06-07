@@ -1204,6 +1204,11 @@ td.actions button.btn-message:hover {
   backdrop-filter: blur(3px);
 }
 
+.queue-sendback-overlay[hidden],
+.queue-sendback-modal[hidden] {
+  display: none !important;
+}
+
 .queue-sendback-overlay.active {
   display: block;
 }
@@ -1399,6 +1404,10 @@ td.actions button.btn-message:hover {
   }
 
   .queue-details-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .queue-sendback-actions {
     grid-template-columns: 1fr;
   }
 }

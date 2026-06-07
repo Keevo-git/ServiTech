@@ -88,8 +88,8 @@
   </div>
 </div>
 
-<div class="queue-sendback-overlay" id="queueSendBackOverlay"></div>
-<div class="queue-sendback-modal" id="queueSendBackModal" role="dialog" aria-modal="true" aria-labelledby="queueSendBackTitle" aria-hidden="true">
+<div class="queue-sendback-overlay" id="queueSendBackOverlay" hidden></div>
+<div class="queue-sendback-modal" id="queueSendBackModal" role="dialog" aria-modal="true" aria-labelledby="queueSendBackTitle" aria-hidden="true" hidden>
   <div class="queue-sendback-head">
     <div>
       <p>Customer Revision</p>
