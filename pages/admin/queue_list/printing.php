@@ -244,7 +244,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 </script>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260602-snapshot') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260607-send-back-modal-fix') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260607-send-back-hidden-toggle') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>
