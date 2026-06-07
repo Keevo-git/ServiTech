@@ -1170,7 +1170,7 @@ td.actions button.btn-message:hover {
 
 .queue-details-action-stack {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .queue-details-actions {
