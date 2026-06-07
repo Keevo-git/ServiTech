@@ -602,6 +602,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       border-color: rgba(240, 138, 0, 0.3);
     }
 
+    body.customer-layout.customer-page--status .status-modal.status-modal--editing {
+      border-color: rgba(240, 138, 0, 0.38) !important;
+      box-shadow: 0 30px 76px rgba(95, 14, 15, 0.28) !important;
+    }
+
+    body.customer-layout.customer-page--status .status-modal.status-modal--editing .status-modal__header {
+      background: linear-gradient(90deg, rgba(255, 247, 237, 0.98) 0%, rgba(255, 253, 249, 0.94) 100%);
+      border-bottom-color: rgba(240, 138, 0, 0.24);
+    }
+
     body.customer-layout.customer-page--status .status-admin-message[hidden],
     body.customer-layout.customer-page--status .status-edit-form[hidden],
     body.customer-layout.customer-page--status .status-edit-btn[hidden],
@@ -674,6 +684,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       font-weight: 700;
       line-height: 1.45;
       margin: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-mode-note {
+      background: #fff7ed;
+      border: 1px solid rgba(240, 138, 0, 0.28);
+      border-radius: 12px;
+      color: #5f0e0f;
+      font-size: 0.92rem;
+      font-weight: 750;
+      line-height: 1.45;
+      margin: 0;
+      padding: 0.75rem 0.85rem;
     }
 
     body.customer-layout.customer-page--status .status-edit-error {
@@ -1111,6 +1133,21 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
         <div class="status-modal__grid modal-body">
           <div class="status-modal__column status-modal__column--primary">
+            <section id="adminSendBackSection" class="status-modal__section status-admin-message" aria-labelledby="adminSendBackTitle" hidden>
+              <h4 id="adminSendBackTitle" class="status-modal__section-title">Message from Admin</h4>
+              <p id="adminSendBackMessage" class="status-admin-message__body"></p>
+            </section>
+
+            <section id="statusEditSection" class="status-modal__section status-edit-form" aria-labelledby="statusEditTitle" hidden>
+              <h4 id="statusEditTitle" class="status-modal__section-title">Editing Mode</h4>
+              <p class="status-edit-mode-note">You are editing this request based on admin feedback.</p>
+              <form id="statusEditForm" class="status-edit-form">
+                <div id="statusEditFields" class="status-edit-grid"></div>
+                <p id="statusEditHelp" class="status-edit-help"></p>
+                <p id="statusEditError" class="status-edit-error" role="alert"></p>
+              </form>
+            </section>
+
             <section class="status-modal__section" aria-labelledby="serviceDetailsTitle">
               <h4 id="serviceDetailsTitle" class="status-modal__section-title">Service Details</h4>
               <div class="status-detail-row">
@@ -1152,19 +1189,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
               </div>
             </section>
 
-            <section id="adminSendBackSection" class="status-modal__section status-admin-message" aria-labelledby="adminSendBackTitle" hidden>
-              <h4 id="adminSendBackTitle" class="status-modal__section-title">Message from Admin</h4>
-              <p id="adminSendBackMessage" class="status-admin-message__body"></p>
-            </section>
-
-            <section id="statusEditSection" class="status-modal__section status-edit-form" aria-labelledby="statusEditTitle" hidden>
-              <h4 id="statusEditTitle" class="status-modal__section-title">Edit Request</h4>
-              <form id="statusEditForm" class="status-edit-form">
-                <div id="statusEditFields" class="status-edit-grid"></div>
-                <p id="statusEditHelp" class="status-edit-help"></p>
-                <p id="statusEditError" class="status-edit-error" role="alert"></p>
-              </form>
-            </section>
           </div>
 
           <div class="status-modal__column status-modal__column--secondary">
@@ -1191,7 +1215,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <p id="modalCancelMessage" class="status-cancel-message" role="status" hidden></p>
           <button id="editQueueBtn" class="status-edit-btn" type="button" hidden>Edit</button>
           <button id="saveEditQueueBtn" class="status-save-edit-btn" type="button" hidden>Save Changes</button>
-          <button id="cancelEditQueueBtn" class="status-edit-cancel-btn" type="button" hidden>Cancel Edit</button>
+          <button id="cancelEditQueueBtn" class="status-edit-cancel-btn" type="button" hidden>Cancel</button>
           <button id="cancelPendingQueueBtn" class="status-cancel-btn" type="button" hidden>Cancel Request</button>
         </div>
       </div>
@@ -1215,6 +1239,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   const clearFiltersBtn = document.getElementById("clearFiltersBtn");
   const detailModal = document.getElementById("detailModal");
   const statusModal = detailModal?.querySelector(".status-modal");
+  const modalEyebrow = statusModal?.querySelector(".status-modal__eyebrow");
+  const modalTitleText = document.getElementById("modalQueue");
   const closeDetail = document.getElementById("closeDetail");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
   const cancelPendingQueueBtn = document.getElementById("cancelPendingQueueBtn");
@@ -1399,9 +1425,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return normalizeStatus(status) === "PENDING";
   }
 
-  function canCustomerEdit(status){
-    const normalized = normalizeStatus(status);
-    return normalized === "PENDING" || normalized === "APPROVED";
+  function hasActiveSendBack(queueData){
+    return Boolean(queueData?.customer_edit_required);
+  }
+
+  function canCustomerEdit(queueData){
+    const normalized = normalizeStatus(queueData?.status);
+    return hasActiveSendBack(queueData) && (normalized === "PENDING" || normalized === "APPROVED");
   }
 
   function formatPaymentMethod(value){
@@ -1582,20 +1612,35 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function renderAdminSendBack(queueData){
     const message = String(queueData?.send_back_message || "").trim();
-    if (adminSendBackSection) adminSendBackSection.hidden = message === "";
+    const visible = message !== "" && hasActiveSendBack(queueData);
+    if (adminSendBackSection) adminSendBackSection.hidden = !visible;
     if (adminSendBackMessage) adminSendBackMessage.textContent = message;
   }
 
+  function syncModalModeState(){
+    const queueCode = String(currentDetailQueue?.queue_code || "").trim();
+    statusModal?.classList.toggle("status-modal--editing", editMode);
+    if (modalEyebrow) {
+      modalEyebrow.textContent = editMode ? "Editing Mode" : "Queue Details";
+    }
+    if (modalTitleText) {
+      modalTitleText.textContent = editMode
+        ? (queueCode ? `Edit Request ${queueCode}` : "Edit Request")
+        : (queueCode ? `Queue ${queueCode}` : "Queue Details");
+    }
+  }
+
   function setEditMode(enabled){
-    editMode = Boolean(enabled);
+    editMode = Boolean(enabled) && canCustomerEdit(currentDetailQueue);
+    syncModalModeState();
     if (statusEditSection) statusEditSection.hidden = !editMode;
-    if (editQueueBtn) editQueueBtn.hidden = editMode || !canCustomerEdit(currentDetailQueue?.status);
+    if (editQueueBtn) editQueueBtn.hidden = editMode || !canCustomerEdit(currentDetailQueue);
     if (saveEditQueueBtn) saveEditQueueBtn.hidden = !editMode;
     if (cancelEditQueueBtn) cancelEditQueueBtn.hidden = !editMode;
     if (cancelPendingQueueBtn) cancelPendingQueueBtn.hidden = editMode || !canCustomerCancel(currentDetailQueue?.status);
     if (modalCancelMessage && editMode) {
       modalCancelMessage.hidden = false;
-      modalCancelMessage.textContent = "Update the details, then save changes to resubmit this request.";
+      modalCancelMessage.textContent = "You are editing this request based on admin feedback.";
     }
   }
 
@@ -1626,7 +1671,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   }
 
   async function saveCurrentEdit(){
-    if (!currentDetailQueue?.id || editInProgress || !canCustomerEdit(currentDetailQueue.status)) return;
+    if (!currentDetailQueue?.id || editInProgress || !canCustomerEdit(currentDetailQueue)) return;
     editInProgress = true;
     if (saveEditQueueBtn) {
       saveEditQueueBtn.disabled = true;
@@ -1982,6 +2027,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   function closeDetailModal(){
     if (!detailModal) return;
     editMode = false;
+    syncModalModeState();
     detailModal.classList.remove("is-open");
     detailModal.setAttribute("aria-hidden", "true");
     document.removeEventListener("keydown", onModalKeydown);
@@ -2155,7 +2201,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   }
 
   function renderEditAction(queueData, status){
-    const allowed = queueData && queueData.id && canCustomerEdit(status);
+    const allowed = queueData && queueData.id && canCustomerEdit(queueData);
     if (editQueueBtn) {
       editQueueBtn.hidden = !allowed;
       editQueueBtn.disabled = false;
@@ -2228,8 +2274,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const status = (card.dataset.status || "PENDING").toUpperCase();
     currentDetailQueue = queueData;
     editMode = false;
+    syncModalModeState();
 
-    document.getElementById("modalQueue").textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
+    if (modalTitleText) modalTitleText.textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
     document.getElementById("modalQueueRef").textContent = card.dataset.queue || "Not available";
     document.getElementById("modalType").textContent = formatLabel(card.dataset.type || "");
     document.getElementById("modalService").textContent = card.dataset.service || "";

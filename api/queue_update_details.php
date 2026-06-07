@@ -52,7 +52,7 @@ try {
   servitech_ensure_queue_lifecycle_schema($pdo);
 
   $stmt = $pdo->prepare("
-    SELECT id, user_id, queue_code, category, status, details
+    SELECT id, user_id, queue_code, category, status, details, customer_edit_required, send_back_message
     FROM queues
     WHERE id = :id AND user_id = :user_id
     LIMIT 1
@@ -67,6 +67,9 @@ try {
   $status = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
   if (!servitech_queue_is_customer_editable_status($status)) {
     throw new DomainException("Only Pending or Approved records can be edited.");
+  }
+  if (empty($queue["customer_edit_required"])) {
+    throw new DomainException("This request can only be edited after an admin sends it back for editing.");
   }
 
   $currentDetails = [];
