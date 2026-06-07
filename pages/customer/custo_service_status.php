@@ -810,8 +810,165 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       width: 100%;
     }
 
+    body.customer-layout.customer-page--status select.status-edit-control {
+      background-color: #fffaf4;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #8b1e1e 50%),
+        linear-gradient(135deg, #8b1e1e 50%, transparent 50%),
+        linear-gradient(to right, rgba(240, 138, 0, 0.16), rgba(240, 138, 0, 0.16));
+      background-position:
+        calc(100% - 20px) 50%,
+        calc(100% - 14px) 50%,
+        calc(100% - 42px) 50%;
+      background-repeat: no-repeat;
+      background-size: 7px 7px, 7px 7px, 1px 62%;
+      cursor: pointer;
+      padding-right: 3rem;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-control:focus-visible {
+      border-color: rgba(240, 138, 0, 0.82);
+      box-shadow: 0 0 0 3px rgba(240, 138, 0, 0.14);
+      outline: none;
+    }
+
     body.customer-layout.customer-page--status textarea.status-edit-control {
       min-height: 94px !important;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-existing-files {
+      background: #fffaf4;
+      border: 1px solid rgba(240, 138, 0, 0.24);
+      border-radius: 14px;
+      display: grid;
+      gap: 0.6rem;
+      padding: 0.75rem;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-existing-files__title {
+      color: #5f0e0f;
+      font-size: 0.84rem;
+      font-weight: 850;
+      margin: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-existing-file {
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid rgba(95, 14, 15, 0.12);
+      border-radius: 12px;
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: minmax(0, 1fr) auto;
+      min-width: 0;
+      padding: 0.65rem 0.75rem;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-existing-file__name {
+      color: #24120f;
+      font-size: 0.9rem;
+      font-weight: 800;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-existing-file__meta {
+      color: #7c625b;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-top: 0.15rem;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-file-remove {
+      appearance: none;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 999px;
+      color: #be123c;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 850;
+      min-height: 36px;
+      padding: 0.48rem 0.72rem;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-file-remove:hover,
+    body.customer-layout.customer-page--status .status-edit-file-remove:focus-visible {
+      background: #be123c;
+      border-color: #be123c;
+      color: #ffffff;
+      outline: none;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-existing-files__empty {
+      color: #7c625b;
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-price-card {
+      background: linear-gradient(180deg, #fffdf9 0%, #fff4e2 100%);
+      border: 1px solid rgba(240, 138, 0, 0.28);
+      border-radius: 16px;
+      display: grid;
+      gap: 0.7rem;
+      grid-column: 1 / -1;
+      padding: 0.9rem;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-price-card__head {
+      align-items: center;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-price-card__title {
+      color: #5f0e0f;
+      font-size: 0.84rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-price-card__total {
+      color: #ffffff;
+      background: #8b1e1e;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 900;
+      padding: 0.55rem 0.8rem;
+      white-space: nowrap;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-price-card__rows {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-price-row {
+      align-items: center;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+      color: #5f4a43;
+      font-size: 0.86rem;
+      font-weight: 750;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-price-row strong {
+      color: #24120f;
+      text-align: right;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-price-note {
+      color: #8a5f34;
+      font-size: 0.78rem;
+      font-weight: 750;
+      line-height: 1.4;
+      margin: 0;
     }
 
     body.customer-layout.customer-page--status .status-edit-help,
@@ -1158,6 +1315,27 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         grid-template-columns: 1fr;
       }
 
+      body.customer-layout.customer-page--status .status-edit-existing-file {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+      }
+
+      body.customer-layout.customer-page--status .status-edit-file-remove,
+      body.customer-layout.customer-page--status .status-edit-price-card__total {
+        width: 100%;
+      }
+
+      body.customer-layout.customer-page--status .status-edit-price-card__head,
+      body.customer-layout.customer-page--status .status-edit-price-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      body.customer-layout.customer-page--status .status-edit-price-row strong {
+        text-align: left;
+      }
+
       body.customer-layout.customer-page--status .status-cancel-message,
       body.customer-layout.customer-page--status .status-cancel-btn,
       body.customer-layout.customer-page--status .status-edit-btn,
@@ -1449,6 +1627,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   let cancellationInProgress = false;
   let editInProgress = false;
   let editMode = false;
+  let editRemovedFileTokens = new Set();
+  let editRemovedFileIndexes = new Set();
+  const serviceCatalogCache = {};
 
   function servitechBasePath(){
     const pathname = window.location.pathname || "";
@@ -1681,6 +1862,92 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return service === "rushid" || isDocumentPrinting(queueData);
   }
 
+  function serviceCatalogCategory(queueData){
+    const category = filterCategoryKey(queueData);
+    return ["printing", "repair", "installation"].includes(category) ? category : "";
+  }
+
+  function cleanServiceLabel(value){
+    return String(value || "")
+      .replace(/\s+[-\u2013\u2014]\s+.*$/u, "")
+      .trim();
+  }
+
+  async function ensureServiceCatalog(queueData){
+    const category = serviceCatalogCategory(queueData);
+    if (!category || serviceCatalogCache[category]) return serviceCatalogCache[category] || [];
+
+    serviceCatalogCache[category] = [];
+    try {
+      const response = await fetch(servitechUrl(`/api/services_public.php?action=list&category=${encodeURIComponent(category)}`), {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.ok && Array.isArray(data.services)) {
+        serviceCatalogCache[category] = data.services;
+      }
+    } catch (_error) {
+      serviceCatalogCache[category] = [];
+    }
+
+    return serviceCatalogCache[category];
+  }
+
+  function findCatalogService(queueData){
+    const category = serviceCatalogCategory(queueData);
+    const services = serviceCatalogCache[category] || [];
+    const service = serviceKey(queueData);
+    const label = cleanServiceLabel(queueData?.service_label || queueDetails(queueData).service_label || "").toLowerCase();
+
+    if (service === "documentprinting" || service === "onlineprintorder") {
+      return services.find((item) => /document.*printing/i.test(String(item?.name || ""))) || null;
+    }
+    if (service === "rushid") {
+      return services.find((item) => /rush.*id/i.test(String(item?.name || ""))) || null;
+    }
+    if (service === "xerox") {
+      return services.find((item) => /^xerox$/i.test(String(item?.name || "").trim())) || null;
+    }
+    if (service === "laminating") {
+      return services.find((item) => /laminat/i.test(String(item?.name || ""))) || null;
+    }
+
+    return services.find((item) => cleanServiceLabel(item?.name).toLowerCase() === label) || null;
+  }
+
+  function pricingMap(queueData, fallback){
+    const service = findCatalogService(queueData);
+    let stored = {};
+    try {
+      stored = JSON.parse(String(service?.pricing_json || "{}"));
+    } catch (_error) {
+      stored = {};
+    }
+    return Object.fromEntries(Object.entries(fallback).map(([key, value]) => {
+      const parsed = toNumber(stored[key]);
+      return [key, parsed !== null && parsed >= 0 ? parsed : value];
+    }));
+  }
+
+  function normalizePaperKey(value){
+    const text = String(value || "").trim().toLowerCase();
+    if (text.includes("short bond") || text.includes("8.5 x 11")) return "short";
+    if (text.includes("long bond") || text.includes("8.5 x 13")) return "long";
+    if (text === "a4") return "a4";
+    if (text === "a3") return "a3";
+    return "";
+  }
+
+  function normalizeColorKey(value){
+    const text = String(value || "").trim().toLowerCase();
+    if (["black & white", "black and white", "bw"].includes(text)) return "bw";
+    if (["colored full", "colored - full", "colored (full)"].includes(text)) return "full";
+    if (["colored half", "colored - half", "colored (half)"].includes(text)) return "half";
+    return "";
+  }
+
   function inputValue(name){
     return statusEditFields?.querySelector(`[name="${name}"]`)?.value || "";
   }
@@ -1723,11 +1990,225 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const rushId = serviceKey(queueData) === "rushid";
     const accept = rushId ? ".jpg,.jpeg,.png" : ".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png";
     return `
+      <div class="status-edit-field status-edit-field--full">
+        <span class="status-edit-label">Current Attachments</span>
+        <div id="statusEditExistingFiles" class="status-edit-existing-files"></div>
+      </div>
       <label class="status-edit-field status-edit-field--full" for="edit_files">
-        <span class="status-edit-label">${rushId ? "Replacement Photos" : "Replacement Files"}</span>
+        <span class="status-edit-label">${rushId ? "Add New Photos" : "Add New Files"}</span>
         <input id="edit_files" class="status-edit-control" name="files" type="file" multiple accept="${accept}">
       </label>
     `;
+  }
+
+  function fileToken(file){
+    return String(file?.upload_token || file?.token || "").trim();
+  }
+
+  function fileAnalysisCount(file){
+    return toNumber(file?.analysis?.page_count ?? file?.analysis?.slide_count) ?? 0;
+  }
+
+  function existingEditFiles(queueData){
+    const details = queueDetails(queueData);
+    const uploadedFiles = Array.isArray(queueData.uploaded_files)
+      ? queueData.uploaded_files
+      : (Array.isArray(details.uploaded_files) ? details.uploaded_files : []);
+    const fileNames = Array.isArray(queueData.file_names)
+      ? queueData.file_names
+      : (Array.isArray(details.file_names) ? details.file_names : []);
+    const fileAnalysis = Array.isArray(queueData.file_analysis)
+      ? queueData.file_analysis
+      : (Array.isArray(details.file_analysis) ? details.file_analysis : []);
+
+    if (uploadedFiles.length) {
+      return uploadedFiles.map((file, index) => {
+        const analysis = fileAnalysis[index] || {};
+        const label = file?.original_name || fileNames[index] || analysis.file_name || file?.saved_path || `File ${index + 1}`;
+        return {
+          index,
+          token: fileToken(file),
+          label,
+          href: file?.available === false ? "" : (file?.href || file?.download_url || resolveFileHref(file?.saved_path || file?.file_path || "")),
+          analysis
+        };
+      });
+    }
+
+    if (fileNames.length || fileAnalysis.length) {
+      const length = Math.max(fileNames.length, fileAnalysis.length);
+      return Array.from({ length }, (_item, index) => {
+        const analysis = fileAnalysis[index] || {};
+        const label = fileNames[index] || analysis.file_name || `File ${index + 1}`;
+        return {
+          index,
+          token: "",
+          label,
+          href: resolveFileHref(label),
+          analysis
+        };
+      });
+    }
+
+    const fallbackLabel = String(queueData.file_name || details.file_name || "").trim();
+    if (!fallbackLabel) return [];
+    return [{
+      index: 0,
+      token: "",
+      label: fallbackLabel,
+      href: queueData.file_href || resolveFileHref(fallbackLabel),
+      analysis: {}
+    }];
+  }
+
+  function keptEditFiles(queueData){
+    return existingEditFiles(queueData).filter((file) => {
+      if (file.token && editRemovedFileTokens.has(file.token)) return false;
+      return !editRemovedFileIndexes.has(file.index);
+    });
+  }
+
+  function renderExistingEditFiles(queueData){
+    const container = document.getElementById("statusEditExistingFiles");
+    if (!container) return;
+    const files = existingEditFiles(queueData);
+    const keptFiles = keptEditFiles(queueData);
+
+    if (!files.length) {
+      container.innerHTML = '<p class="status-edit-existing-files__empty">No submitted files are attached yet.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <p class="status-edit-existing-files__title">${esc(keptFiles.length)} of ${esc(files.length)} file${files.length === 1 ? "" : "s"} will be kept</p>
+      ${files.map((file) => {
+        const removed = (file.token && editRemovedFileTokens.has(file.token)) || editRemovedFileIndexes.has(file.index);
+        const count = fileAnalysisCount(file);
+        const meta = removed
+          ? "Marked for removal"
+          : (count > 0 ? `${count} page${count === 1 ? "" : "s"} counted` : "Kept unless removed");
+        return `
+          <div class="status-edit-existing-file">
+            <div>
+              <div class="status-edit-existing-file__name">
+                ${file.href && !removed ? `<a href="${esc(file.href)}" target="_blank" rel="noopener noreferrer">${esc(file.label)}</a>` : esc(file.label)}
+              </div>
+              <div class="status-edit-existing-file__meta">${esc(meta)}</div>
+            </div>
+            <button class="status-edit-file-remove" type="button" data-edit-remove-file="${esc(file.token || String(file.index))}" data-edit-remove-index="${esc(file.index)}" data-edit-remove-token="${esc(file.token)}">
+              ${removed ? "Undo" : "Remove"}
+            </button>
+          </div>
+        `;
+      }).join("")}
+    `;
+  }
+
+  function editPriceEstimate(queueData){
+    const details = queueDetails(queueData);
+    const service = serviceKey(queueData);
+    const quantity = Math.max(1, toNumber(inputValue("quantity") || queueData.quantity || details.quantity) ?? 1);
+    const fileInput = statusEditFields?.querySelector('[name="files"]');
+    const addedFiles = Array.from(fileInput?.files || []);
+    const keptFiles = keptEditFiles(queueData);
+    const paidAmount = toNumber(queueData.paid_amount) ?? 0;
+    const rows = [];
+    const notes = [];
+    let total = null;
+    let totalLabel = "To be assessed";
+
+    if (isDocumentPrinting(queueData)) {
+      const paperKey = normalizePaperKey(inputValue("paper_size") || queueData.paper_size || details.paper_size);
+      const colorKey = normalizeColorKey(inputValue("color_option") || queueData.color_option || details.color_option);
+      const prices = pricingMap(queueData, {
+        longFull: 10, longHalf: 5,
+        shortFull: 10, shortHalf: 5,
+        a4Full: 10, a4Half: 5,
+        a3Full: 10, a3Half: 5,
+      });
+      const unitKey = paperKey && colorKey ? `${paperKey}${colorKey === "full" ? "Full" : "Half"}` : "";
+      const unitPrice = toNumber(prices[unitKey]) ?? (toNumber(queueData.price_per_page ?? details.price_per_page) ?? 0);
+      let totalPages = keptFiles.reduce((sum, file) => sum + fileAnalysisCount(file), 0);
+      if (!totalPages && keptFiles.length === existingEditFiles(queueData).length && !editRemovedFileTokens.size && !editRemovedFileIndexes.size) {
+        totalPages = toNumber(queueData.total_pages ?? details.total_pages) ?? 0;
+      }
+      if (addedFiles.length) {
+        totalPages += addedFiles.length;
+        notes.push("New files are estimated as 1 page each here and will be recalculated after saving.");
+      }
+      total = unitPrice * quantity * Math.max(0, totalPages);
+      totalLabel = toPeso(total);
+      rows.push(["Price per page", toPeso(unitPrice)]);
+      rows.push(["Pages / files", `${totalPages} page${totalPages === 1 ? "" : "s"} from ${keptFiles.length + addedFiles.length} file${keptFiles.length + addedFiles.length === 1 ? "" : "s"}`]);
+      rows.push(["Copies", quantity]);
+    } else if (service === "xerox") {
+      const paperKey = normalizePaperKey(inputValue("paper_size") || queueData.paper_size || details.paper_size);
+      const prices = pricingMap(queueData, { long: 5, short: 3, a4: 3, a3: 5 });
+      const unitPrice = toNumber(prices[paperKey]) ?? 0;
+      total = unitPrice * quantity;
+      totalLabel = toPeso(total);
+      rows.push(["Price per copy", toPeso(unitPrice)]);
+      rows.push(["Copies", quantity]);
+    } else if (service === "rushid") {
+      const packageLabel = inputValue("package_label") || queueData.package_label || details.package_label || "";
+      const match = String(packageLabel).match(/package\s*([1-6])/i);
+      const prices = pricingMap(queueData, {
+        package1: 40, package2: 30, package3: 30,
+        package4: 50, package5: 30, package6: 50,
+      });
+      const unitPrice = match ? (toNumber(prices[`package${match[1]}`]) ?? 0) : 0;
+      total = unitPrice * quantity;
+      totalLabel = toPeso(total);
+      rows.push(["Package price", toPeso(unitPrice)]);
+      rows.push(["Quantity", quantity]);
+      rows.push(["Photos attached", `${keptFiles.length + addedFiles.length}`]);
+    } else if (service === "laminating") {
+      const type = String(inputValue("lamination_type") || queueData.lamination_type || details.lamination_type || "").toLowerCase();
+      const prices = pricingMap(queueData, { thin: 20, thick: 30 });
+      const unitPrice = toNumber(prices[type]) ?? 0;
+      total = unitPrice * quantity;
+      totalLabel = toPeso(total);
+      rows.push(["Price per item", toPeso(unitPrice)]);
+      rows.push(["Quantity", quantity]);
+    } else {
+      const catalog = findCatalogService(queueData);
+      const range = String(catalog?.price_range || details.price_range || "").trim();
+      totalLabel = range || getQueuePriceLabel(queueData);
+      rows.push(["Estimate", totalLabel]);
+    }
+
+    if (total !== null) {
+      rows.push(["Paid amount", toPeso(paidAmount)]);
+      rows.push(["Pending after edit", toPeso(Math.max(0, total - paidAmount))]);
+    }
+
+    return { totalLabel, rows, notes };
+  }
+
+  function renderEditPriceCard(queueData){
+    const container = document.getElementById("statusEditPriceCard");
+    if (!container) return;
+    const estimate = editPriceEstimate(queueData);
+    container.innerHTML = `
+      <div class="status-edit-price-card__head">
+        <p class="status-edit-price-card__title">Price Estimate</p>
+        <strong class="status-edit-price-card__total">${esc(estimate.totalLabel)}</strong>
+      </div>
+      <div class="status-edit-price-card__rows">
+        ${estimate.rows.map(([label, value]) => `
+          <div class="status-edit-price-row">
+            <span>${esc(label)}</span>
+            <strong>${esc(value)}</strong>
+          </div>
+        `).join("")}
+      </div>
+      ${estimate.notes.map((note) => `<p class="status-edit-price-note">${esc(note)}</p>`).join("")}
+    `;
+  }
+
+  function refreshEditComputedUI(queueData){
+    renderExistingEditFiles(queueData);
+    renderEditPriceCard(queueData);
   }
 
   function renderEditForm(queueData){
@@ -1788,10 +2269,17 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     rows.push(editFileField(queueData));
     rows.push(editTextarea("notes", "Notes", queueData.notes ?? details.notes ?? ""));
+    rows.push('<section id="statusEditPriceCard" class="status-edit-price-card" aria-live="polite"></section>');
     statusEditFields.innerHTML = rows.join("");
+    refreshEditComputedUI(queueData);
+    ensureServiceCatalog(queueData).then(() => {
+      if (currentDetailQueue && currentDetailQueue.id === queueData.id) {
+        renderEditPriceCard(currentDetailQueue);
+      }
+    });
     if (statusEditHelp) {
       statusEditHelp.textContent = supportsFileUpload(queueData)
-        ? "Existing files stay attached unless you choose replacement files."
+        ? "Existing files stay attached unless you remove them. New uploads are added to the kept files."
         : "";
     }
     if (statusEditError) statusEditError.textContent = "";
@@ -1834,6 +2322,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (editAdminMessage) {
       editAdminMessage.textContent = String(currentDetailQueue?.send_back_message || "").trim() || "No admin message was provided.";
     }
+    editRemovedFileTokens = new Set();
+    editRemovedFileIndexes = new Set();
     renderEditForm(currentDetailQueue || {});
     openEditRequestModal();
   }
@@ -1910,7 +2400,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         notes: inputValue("notes"),
         payment_method: inputValue("payment_method"),
         reference_number: inputValue("reference_number"),
-        uploaded_files: uploadedFiles
+        uploaded_files: uploadedFiles,
+        removed_file_tokens: Array.from(editRemovedFileTokens),
+        removed_file_indexes: Array.from(editRemovedFileIndexes)
       };
 
       const response = await fetch(servitechUrl("/api/queue_update_details.php"), {
@@ -2518,6 +3010,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const status = (card.dataset.status || "PENDING").toUpperCase();
     currentDetailQueue = queueData;
     editMode = false;
+    editRemovedFileTokens = new Set();
+    editRemovedFileIndexes = new Set();
     syncModalModeState();
 
     if (modalTitleText) modalTitleText.textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
@@ -2655,7 +3149,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   closeEditRequest?.addEventListener("click", () => setEditMode(false));
   cancelPendingQueueBtn?.addEventListener("click", cancelCurrentPendingQueue);
   editQueueBtn?.addEventListener("click", () => {
-    renderEditForm(currentDetailQueue || {});
     setEditMode(true);
   });
   cancelEditQueueBtn?.addEventListener("click", () => {
@@ -2663,6 +3156,35 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     renderCancellationAction(currentDetailQueue || {}, currentDetailQueue?.status || "PENDING");
   });
   saveEditQueueBtn?.addEventListener("click", saveCurrentEdit);
+
+  statusEditFields?.addEventListener("click", (event) => {
+    const button = event.target?.closest?.("[data-edit-remove-file]");
+    if (!button || !currentDetailQueue) return;
+    const token = String(button.dataset.editRemoveToken || "").trim();
+    const index = Number(button.dataset.editRemoveIndex);
+    if (token) {
+      if (editRemovedFileTokens.has(token)) {
+        editRemovedFileTokens.delete(token);
+      } else {
+        editRemovedFileTokens.add(token);
+      }
+    } else if (Number.isInteger(index)) {
+      if (editRemovedFileIndexes.has(index)) {
+        editRemovedFileIndexes.delete(index);
+      } else {
+        editRemovedFileIndexes.add(index);
+      }
+    }
+    refreshEditComputedUI(currentDetailQueue);
+  });
+
+  statusEditFields?.addEventListener("input", () => {
+    if (currentDetailQueue) renderEditPriceCard(currentDetailQueue);
+  });
+
+  statusEditFields?.addEventListener("change", () => {
+    if (currentDetailQueue) renderEditPriceCard(currentDetailQueue);
+  });
 
   if (detailModal) {
     detailModal.addEventListener("click", (e) => {

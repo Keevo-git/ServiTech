@@ -113,16 +113,65 @@ try {
   }
 
   $uploadedInput = isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [];
+  $removedFileTokens = [];
+  if (isset($data["removed_file_tokens"]) && is_array($data["removed_file_tokens"])) {
+    foreach ($data["removed_file_tokens"] as $token) {
+      $cleanToken = strtolower(trim((string)$token));
+      if ($cleanToken !== "" && preg_match('/^[a-f0-9]{64}$/', $cleanToken)) {
+        $removedFileTokens[$cleanToken] = true;
+      }
+    }
+  }
+  $removedFileIndexes = [];
+  if (isset($data["removed_file_indexes"]) && is_array($data["removed_file_indexes"])) {
+    foreach ($data["removed_file_indexes"] as $index) {
+      if (is_numeric($index) && (int)$index >= 0) {
+        $removedFileIndexes[(int)$index] = true;
+      }
+    }
+  }
+
+  $supportsUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
+  if (!$supportsUploads && (!empty($uploadedInput) || !empty($removedFileTokens) || !empty($removedFileIndexes))) {
+    throw new DomainException("This service does not support file attachments.");
+  }
+
+  $existingUploadedFiles = isset($currentDetails["uploaded_files"]) && is_array($currentDetails["uploaded_files"])
+    ? array_values(array_filter($currentDetails["uploaded_files"], "is_array"))
+    : [];
+  $keptUploadedFiles = [];
+  foreach ($existingUploadedFiles as $index => $file) {
+    $token = "";
+    try {
+      $token = servitech_upload_token_from_metadata($file);
+    } catch (DomainException $e) {
+      $token = "";
+    }
+    if ($token !== "" && isset($removedFileTokens[$token])) {
+      continue;
+    }
+    if (isset($removedFileIndexes[$index])) {
+      continue;
+    }
+    $keptUploadedFiles[] = $file;
+  }
+
+  $resolvedUploadedFiles = [];
   if (!empty($uploadedInput)) {
     $resolvedUploadedFiles = servitech_upload_resolve_owned_metadata($pdo, $userId, $uploadedInput, true);
-    if ($serviceKind === "rush_id") {
-      servitech_upload_assert_rush_id_uploaded_files($resolvedUploadedFiles);
+  }
+
+  if ($supportsUploads) {
+    $mergedUploadedFiles = array_values(array_merge($keptUploadedFiles, $resolvedUploadedFiles));
+    if (empty($mergedUploadedFiles)) {
+      throw new DomainException($serviceKind === "rush_id"
+        ? "Upload at least one JPG, JPEG, or PNG photo for Rush ID."
+        : "Upload at least one file before continuing.");
     }
-    $details = servitech_upload_apply_metadata_to_details($details, $resolvedUploadedFiles);
-  } elseif (in_array($serviceKind, ["document_printing", "rush_id"], true) && empty($details["uploaded_files"])) {
-    throw new DomainException($serviceKind === "rush_id"
-      ? "Upload at least one JPG, JPEG, or PNG photo for Rush ID."
-      : "Upload at least one file before continuing.");
+    if ($serviceKind === "rush_id") {
+      servitech_upload_assert_rush_id_uploaded_files($mergedUploadedFiles);
+    }
+    $details = servitech_upload_apply_metadata_to_details($details, $mergedUploadedFiles);
   }
 
   if ($category === "online_printorder") {
@@ -162,8 +211,8 @@ try {
     ":id" => $queueId,
   ]);
 
-  if (!empty($uploadedInput)) {
-    servitech_upload_link_to_queue($pdo, $userId, $queueId, (array)$details["uploaded_files"]);
+  if (!empty($resolvedUploadedFiles)) {
+    servitech_upload_link_to_queue($pdo, $userId, $queueId, $resolvedUploadedFiles);
   }
 
   if ($category === "online_printorder") {
