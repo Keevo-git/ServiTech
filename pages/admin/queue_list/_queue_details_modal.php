@@ -8,6 +8,7 @@
   aria-labelledby="queueDetailsTitle"
   aria-hidden="true"
   data-action-update-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>"
+  data-send-back-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_send_back.php'), ENT_QUOTES, 'UTF-8') ?>"
 >
   <div class="queue-details-head">
     <div>
@@ -68,6 +69,7 @@
 
         <div class="queue-details-actions">
           <button class="queue-details-action queue-details-action--light" type="button" id="queueDetailsCancel">Cancel</button>
+          <button class="queue-details-action queue-details-action--secondary" type="button" id="queueDetailsSendBack">Send Back</button>
           <button class="queue-details-action queue-details-action--primary" type="button" id="queueDetailsUpdate" disabled>Update</button>
         </div>
 
@@ -82,6 +84,29 @@
           hidden
         >Message Customer</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="queue-sendback-overlay" id="queueSendBackOverlay"></div>
+<div class="queue-sendback-modal" id="queueSendBackModal" role="dialog" aria-modal="true" aria-labelledby="queueSendBackTitle" aria-hidden="true">
+  <div class="queue-sendback-head">
+    <div>
+      <p>Customer Revision</p>
+      <h3 id="queueSendBackTitle">Send Back to Customer</h3>
+    </div>
+    <button class="queue-sendback-close" type="button" id="queueSendBackClose" aria-label="Close send back modal">&times;</button>
+  </div>
+  <div class="queue-sendback-body">
+    <p class="queue-sendback-copy">Add a message or comment to tell the customer what needs to be edited.</p>
+    <label class="queue-sendback-field" for="queueSendBackMessage">
+      <span>Message / Comments</span>
+      <textarea id="queueSendBackMessage" rows="5" maxlength="1000"></textarea>
+    </label>
+    <p class="queue-sendback-error" id="queueSendBackError" role="alert"></p>
+    <div class="queue-sendback-actions">
+      <button class="queue-details-action queue-details-action--light" type="button" id="queueSendBackCancel">Cancel</button>
+      <button class="queue-details-action queue-details-action--primary" type="button" id="queueSendBackSubmit">Send</button>
     </div>
   </div>
 </div>

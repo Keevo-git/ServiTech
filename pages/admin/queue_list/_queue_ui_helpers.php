@@ -105,6 +105,8 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "price" => $payment["price"],
         "paidAmount" => $payment["paid_amount"],
         "paidPending" => $payment["paid_pending"],
+        "customerEditRequired" => !empty($row["customer_edit_required"]),
+        "sendBackMessage" => trim((string)($row["send_back_message"] ?? "")),
         "files" => admin_queue_file_items($row["details"] ?? null),
         "details" => queue_ui_detail_rows($details),
     ];

@@ -49,7 +49,8 @@ function payment_amount_label($amount, $detailsTotal = null): string
 }
 
 $walkinStmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount, q.created_at, q.completed_at, u.fullname,
+  SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
+    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at, u.fullname,
     p.payment_method, p.reference_number, p.amount,
     q.details->>'estimated_total' AS details_total
   FROM queues q
@@ -82,7 +83,8 @@ $walkinStmt->execute();
 $walkin = $walkinStmt->fetchAll();
 
 $onlineStmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount, q.created_at, q.completed_at, u.fullname,
+  SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
+    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at, u.fullname,
     p.payment_method, p.reference_number, p.amount,
     q.details->>'estimated_total' AS details_total
   FROM queues q

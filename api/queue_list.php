@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/queue_payment.php";
+require_once __DIR__ . "/queue_state_machine.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -90,6 +91,7 @@ function queue_list_normalize_uploaded_files(array $details): array {
 }
 
 try {
+  servitech_ensure_queue_lifecycle_schema($pdo);
   $stmt = $pdo->prepare("
     SELECT
       q.id,
@@ -101,6 +103,9 @@ try {
       q.updated_at,
       q.price,
       q.paid_amount,
+      q.customer_edit_required,
+      q.send_back_message,
+      q.send_back_at,
       p.payment_method,
       p.reference_number AS payment_reference_number,
       p.amount AS payment_amount
@@ -143,6 +148,9 @@ try {
       "price" => $r["price"] !== null ? (float)$payment["price"] : null,
       "paid_amount" => (float)$payment["paid_amount"],
       "paid_pending" => (float)$payment["paid_pending"],
+      "customer_edit_required" => (bool)($r["customer_edit_required"] ?? false),
+      "send_back_message" => $r["send_back_message"] ?? null,
+      "send_back_at" => $r["send_back_at"] ?? null,
       "service_label" => $details["service_label"] ?? null,
       "paper_size" => $details["paper_size"] ?? null,
       "quantity" => $details["quantity"] ?? null,

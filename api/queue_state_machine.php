@@ -106,11 +106,12 @@ function servitech_record_queue_status_history(
   ?string $oldStatus,
   string $newStatus,
   ?int $adminId,
-  string $notes = ""
+  string $notes = "",
+  string $actionType = "status_change"
 ): void {
   $stmt = $pdo->prepare("
-    INSERT INTO queue_status_history (queue_id, category, old_status, new_status, admin_id, admin_name, notes)
-    VALUES (:queue_id, :category, :old_status, :new_status, :admin_id, :admin_name, :notes)
+    INSERT INTO queue_status_history (queue_id, category, old_status, new_status, admin_id, admin_name, notes, action_type)
+    VALUES (:queue_id, :category, :old_status, :new_status, :admin_id, :admin_name, :notes, :action_type)
   ");
   $stmt->execute([
     ":queue_id" => $queueId,
@@ -120,11 +121,98 @@ function servitech_record_queue_status_history(
     ":admin_id" => $adminId !== null && $adminId > 0 ? $adminId : null,
     ":admin_name" => servitech_queue_actor_name($pdo, $adminId),
     ":notes" => trim($notes),
+    ":action_type" => trim($actionType) !== "" ? trim($actionType) : "status_change",
   ]);
 }
 
 function servitech_record_queue_initial_status(PDO $pdo, int $queueId, string $category): void {
   servitech_record_queue_status_history($pdo, $queueId, $category, null, "PENDING", null, "Queue created.");
+}
+
+function servitech_queue_is_customer_editable_status(string $status): bool {
+  return in_array(servitech_queue_normalize_status($status), ["PENDING", "APPROVED"], true);
+}
+
+function servitech_send_queue_back_to_customer(PDO $pdo, int $queueId, int $adminId, string $message): array {
+  $message = trim($message);
+  if ($queueId <= 0) throw new DomainException("Invalid queue/order ID.");
+  if ($message === "") throw new DomainException("Send-back message is required.");
+  if (mb_strlen($message) > 1000) throw new DomainException("Send-back message cannot exceed 1000 characters.");
+
+  $ownsTransaction = !$pdo->inTransaction();
+  if ($ownsTransaction) $pdo->beginTransaction();
+
+  try {
+    servitech_ensure_queue_lifecycle_schema($pdo);
+    $stmt = $pdo->prepare("
+      SELECT id, user_id, queue_code, category, status, lifecycle_stage
+      FROM queues
+      WHERE id = :id
+      LIMIT 1
+      FOR UPDATE
+    ");
+    $stmt->execute([":id" => $queueId]);
+    $queue = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($queue)) throw new DomainException("Queue/order not found.");
+
+    $currentStatus = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
+    if (!servitech_queue_is_customer_editable_status($currentStatus)) {
+      throw new DomainException("Only Pending or Approved records can be sent back for customer editing.");
+    }
+
+    $update = $pdo->prepare("
+      UPDATE queues
+      SET customer_edit_required = TRUE,
+          send_back_message = :message,
+          send_back_at = NOW(),
+          send_back_by = :admin_id,
+          updated_at = NOW()
+      WHERE id = :id
+    ");
+    $update->execute([
+      ":message" => $message,
+      ":admin_id" => $adminId > 0 ? $adminId : null,
+      ":id" => $queueId,
+    ]);
+
+    $history = $pdo->prepare("
+      INSERT INTO queue_status_history (queue_id, category, old_status, new_status, admin_id, admin_name, notes, action_type)
+      VALUES (:queue_id, :category, :old_status, :new_status, :admin_id, :admin_name, :notes, 'send_back')
+      RETURNING id
+    ");
+    $history->execute([
+      ":queue_id" => $queueId,
+      ":category" => trim((string)($queue["category"] ?? "")),
+      ":old_status" => $currentStatus,
+      ":new_status" => $currentStatus,
+      ":admin_id" => $adminId > 0 ? $adminId : null,
+      ":admin_name" => servitech_queue_actor_name($pdo, $adminId),
+      ":notes" => $message,
+    ]);
+    $historyId = (int)($history->fetchColumn() ?: 0);
+
+    $queueCode = trim((string)($queue["queue_code"] ?? ""));
+    servitech_add_notification(
+      $pdo,
+      (int)$queue["user_id"],
+      "send_back",
+      $queueId,
+      "Your order/request has been sent back for editing. Message: {$message}",
+      "customer_send_back:{$queueId}:{$historyId}",
+      true
+    );
+
+    if ($ownsTransaction) $pdo->commit();
+    return [
+      "status" => $currentStatus,
+      "queue_code" => $queueCode,
+      "customer_edit_required" => true,
+      "send_back_message" => $message,
+    ];
+  } catch (Throwable $e) {
+    if ($ownsTransaction && $pdo->inTransaction()) $pdo->rollBack();
+    throw $e;
+  }
 }
 
 function servitech_queue_lifecycle_stage_after_transition(string $currentLifecycleStage, string $newStatus): string {

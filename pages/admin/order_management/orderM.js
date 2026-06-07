@@ -35,11 +35,18 @@ document.addEventListener("DOMContentLoaded", function () {
   const paidAmountEl = document.getElementById("omPaidAmount");
   const paidPendingEl = document.getElementById("omPaidPending");
   const paymentHelpEl = document.getElementById("omPaymentHelp");
+  const sendBackBtn = document.getElementById("omSendBack");
+  const sendBackOverlay = document.getElementById("orderSendBackOverlay");
+  const sendBackModal = document.getElementById("orderSendBackModal");
+  const sendBackMessageEl = document.getElementById("orderSendBackMessage");
+  const sendBackErrorEl = document.getElementById("orderSendBackError");
+  const sendBackSubmitBtn = document.getElementById("orderSendBackSubmit");
   let currentOrder = null;
   let initialPayment = { price: "0.00", paidAmount: "0.00" };
   let previousStatusSelection = "";
   let cancellationInProgress = false;
   let updateInProgress = false;
+  let sendBackInProgress = false;
   let modalScrollY = 0;
 
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
@@ -173,6 +180,18 @@ document.addEventListener("DOMContentLoaded", function () {
     saveBtn.disabled = updateInProgress || (statusEl.value === currentStatus && !paymentChanged());
   }
 
+  function canSendBack(order) {
+    const status = normalizeStatus(order?.status || "PENDING");
+    return Boolean(order?.id) && (status === "PENDING" || status === "APPROVED");
+  }
+
+  function syncSendBackButton() {
+    if (!sendBackBtn) return;
+    const allowed = canSendBack(currentOrder);
+    sendBackBtn.disabled = sendBackInProgress || !allowed;
+    sendBackBtn.title = allowed ? "" : "Only Pending or Approved records can be sent back for customer editing.";
+  }
+
   function lockPageScroll() {
     if (document.body.classList.contains("modal-open")) return;
     modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
@@ -300,6 +319,7 @@ document.addEventListener("DOMContentLoaded", function () {
     renderOrderStatusState(order.status, order.allowedStatuses);
     populatePayment(order);
     updateSaveButton();
+    syncSendBackButton();
 
     if (messageBtn) {
       const canMessage = Boolean(order.canMessage);
@@ -333,12 +353,90 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function closeModal() {
     if (!overlay || !modal) return;
+    closeSendBackModal();
     window.servitechAdminModalStack?.close(overlay);
     overlay.classList.remove("active");
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");
     unlockPageScroll();
     clearError();
+  }
+
+  function showSendBackError(message = "") {
+    if (sendBackErrorEl) sendBackErrorEl.textContent = message;
+  }
+
+  function openSendBackModal() {
+    if (!sendBackOverlay || !sendBackModal || !currentOrder?.id || !canSendBack(currentOrder)) {
+      showError("Only Pending or Approved records can be sent back for customer editing.");
+      return;
+    }
+    if (sendBackMessageEl) sendBackMessageEl.value = "";
+    if (sendBackSubmitBtn) sendBackSubmitBtn.disabled = false;
+    showSendBackError("");
+    sendBackOverlay.classList.add("active");
+    sendBackModal.classList.add("active");
+    sendBackModal.setAttribute("aria-hidden", "false");
+    window.servitechAdminModalStack?.open({
+      overlay: sendBackOverlay,
+      dialog: sendBackModal,
+      focus: sendBackMessageEl,
+      onEscape: closeSendBackModal,
+    });
+  }
+
+  function closeSendBackModal() {
+    if (!sendBackOverlay || !sendBackModal || !sendBackModal.classList.contains("active")) return;
+    window.servitechAdminModalStack?.close(sendBackOverlay);
+    sendBackOverlay.classList.remove("active");
+    sendBackModal.classList.remove("active");
+    sendBackModal.setAttribute("aria-hidden", "true");
+    showSendBackError("");
+  }
+
+  async function submitSendBack() {
+    if (!currentOrder?.id || sendBackInProgress) return;
+    const message = String(sendBackMessageEl?.value || "").trim();
+    if (!message) {
+      showSendBackError("Message is required before sending this back.");
+      sendBackMessageEl?.focus();
+      return;
+    }
+
+    sendBackInProgress = true;
+    syncSendBackButton();
+    if (sendBackSubmitBtn) sendBackSubmitBtn.disabled = true;
+    showSendBackError("");
+
+    const fd = new FormData();
+    fd.append("id", currentOrder.id);
+    fd.append("message", message);
+
+    let out;
+    try {
+      const response = await fetch(modal?.dataset.sendBackUrl || "", {
+        method: "POST",
+        body: fd,
+        credentials: "same-origin",
+        headers: { "X-CSRF-Token": csrf() },
+      });
+      out = await response.json();
+    } catch (error) {
+      out = { ok: false, error: "Unable to send this order back to the customer." };
+    }
+
+    if (!out.ok) {
+      showSendBackError(out.error || "Unable to send this order back to the customer.");
+      sendBackInProgress = false;
+      if (sendBackSubmitBtn) sendBackSubmitBtn.disabled = false;
+      syncSendBackButton();
+      return;
+    }
+
+    closeSendBackModal();
+    window.servitechAdminToast?.persist("Sent back to customer for editing.");
+    unlockPageScroll();
+    location.reload();
   }
 
   async function postAction(id, action, notes = "") {
@@ -377,6 +475,7 @@ document.addEventListener("DOMContentLoaded", function () {
     currentOrder.status = newStatus;
     currentOrder.allowedStatuses = Array.isArray(out.allowed_transitions) ? out.allowed_transitions : [];
     renderOrderStatusState(newStatus, currentOrder.allowedStatuses);
+    syncSendBackButton();
     if (out.payment && typeof out.payment === "object") {
       applyPaymentResult({
         price: out.payment.price,
@@ -564,6 +663,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("orderModalClose")?.addEventListener("click", closeModal);
   document.getElementById("omCancel")?.addEventListener("click", closeModal);
+  document.getElementById("omSendBack")?.addEventListener("click", openSendBackModal);
+  document.getElementById("orderSendBackClose")?.addEventListener("click", closeSendBackModal);
+  document.getElementById("orderSendBackCancel")?.addEventListener("click", closeSendBackModal);
+  sendBackOverlay?.addEventListener("click", closeSendBackModal);
+  sendBackSubmitBtn?.addEventListener("click", submitSendBack);
+  sendBackMessageEl?.addEventListener("input", () => showSendBackError(""));
   overlay?.addEventListener("click", closeModal);
   statusEl?.addEventListener("change", () => {
     if (statusEl.value === "CANCELLED") {

@@ -597,6 +597,122 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       opacity: 0.68;
     }
 
+    body.customer-layout.customer-page--status .status-admin-message {
+      background: #fff7ed;
+      border-color: rgba(240, 138, 0, 0.3);
+    }
+
+    body.customer-layout.customer-page--status .status-admin-message[hidden],
+    body.customer-layout.customer-page--status .status-edit-form[hidden],
+    body.customer-layout.customer-page--status .status-edit-btn[hidden],
+    body.customer-layout.customer-page--status .status-save-edit-btn[hidden],
+    body.customer-layout.customer-page--status .status-edit-cancel-btn[hidden] {
+      display: none !important;
+    }
+
+    body.customer-layout.customer-page--status .status-admin-message__body {
+      color: #5f0e0f;
+      font-size: 0.94rem;
+      font-weight: 700;
+      line-height: 1.5;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-form {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-grid {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.customer-layout.customer-page--status .status-edit-field {
+      display: grid;
+      gap: 0.4rem;
+      min-width: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-field--full {
+      grid-column: 1 / -1;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-label {
+      color: #7c625b;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-control {
+      appearance: none;
+      background: #fffaf4;
+      border: 1px solid rgba(95, 14, 15, 0.14);
+      border-radius: 12px;
+      color: #24120f;
+      font: inherit;
+      font-size: 0.94rem;
+      font-weight: 650;
+      min-height: 44px;
+      min-width: 0;
+      padding: 0.68rem 0.8rem;
+      width: 100%;
+    }
+
+    body.customer-layout.customer-page--status textarea.status-edit-control {
+      min-height: 94px !important;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-help,
+    body.customer-layout.customer-page--status .status-edit-error {
+      color: #7c625b;
+      font-size: 0.86rem;
+      font-weight: 700;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-error {
+      color: #be123c;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-btn,
+    body.customer-layout.customer-page--status .status-save-edit-btn,
+    body.customer-layout.customer-page--status .status-edit-cancel-btn {
+      appearance: none;
+      border-radius: 12px;
+      cursor: pointer;
+      flex: 0 0 auto;
+      font-weight: 850;
+      min-height: 44px;
+      padding: 0.72rem 1rem;
+      transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-btn,
+    body.customer-layout.customer-page--status .status-save-edit-btn {
+      background: #f08a00;
+      border: 1px solid #f08a00;
+      color: #ffffff;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-cancel-btn {
+      background: #fff8f5;
+      border: 1px solid #ead2c5;
+      color: #8b1e1e;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-btn:disabled,
+    body.customer-layout.customer-page--status .status-save-edit-btn:disabled,
+    body.customer-layout.customer-page--status .status-edit-cancel-btn:disabled {
+      cursor: wait;
+      opacity: 0.68;
+    }
+
     body.customer-layout.customer-page--status .status-current-card {
       align-items: center;
       display: flex;
@@ -864,8 +980,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         justify-content: stretch;
       }
 
+      body.customer-layout.customer-page--status .status-edit-grid {
+        grid-template-columns: 1fr;
+      }
+
       body.customer-layout.customer-page--status .status-cancel-message,
-      body.customer-layout.customer-page--status .status-cancel-btn {
+      body.customer-layout.customer-page--status .status-cancel-btn,
+      body.customer-layout.customer-page--status .status-edit-btn,
+      body.customer-layout.customer-page--status .status-save-edit-btn,
+      body.customer-layout.customer-page--status .status-edit-cancel-btn {
         width: 100%;
       }
 
@@ -1028,6 +1151,20 @@ require_once __DIR__ . "/../../components/auth_guard.php";
                 <span id="modalStatus"></span>
               </div>
             </section>
+
+            <section id="adminSendBackSection" class="status-modal__section status-admin-message" aria-labelledby="adminSendBackTitle" hidden>
+              <h4 id="adminSendBackTitle" class="status-modal__section-title">Message from Admin</h4>
+              <p id="adminSendBackMessage" class="status-admin-message__body"></p>
+            </section>
+
+            <section id="statusEditSection" class="status-modal__section status-edit-form" aria-labelledby="statusEditTitle" hidden>
+              <h4 id="statusEditTitle" class="status-modal__section-title">Edit Request</h4>
+              <form id="statusEditForm" class="status-edit-form">
+                <div id="statusEditFields" class="status-edit-grid"></div>
+                <p id="statusEditHelp" class="status-edit-help"></p>
+                <p id="statusEditError" class="status-edit-error" role="alert"></p>
+              </form>
+            </section>
           </div>
 
           <div class="status-modal__column status-modal__column--secondary">
@@ -1052,6 +1189,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         </div>
         <div class="status-modal__footer">
           <p id="modalCancelMessage" class="status-cancel-message" role="status" hidden></p>
+          <button id="editQueueBtn" class="status-edit-btn" type="button" hidden>Edit</button>
+          <button id="saveEditQueueBtn" class="status-save-edit-btn" type="button" hidden>Save Changes</button>
+          <button id="cancelEditQueueBtn" class="status-edit-cancel-btn" type="button" hidden>Cancel Edit</button>
           <button id="cancelPendingQueueBtn" class="status-cancel-btn" type="button" hidden>Cancel Request</button>
         </div>
       </div>
@@ -1079,12 +1219,23 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   const modalCloseBtn = document.getElementById("modalCloseBtn");
   const cancelPendingQueueBtn = document.getElementById("cancelPendingQueueBtn");
   const modalCancelMessage = document.getElementById("modalCancelMessage");
+  const adminSendBackSection = document.getElementById("adminSendBackSection");
+  const adminSendBackMessage = document.getElementById("adminSendBackMessage");
+  const statusEditSection = document.getElementById("statusEditSection");
+  const statusEditFields = document.getElementById("statusEditFields");
+  const statusEditHelp = document.getElementById("statusEditHelp");
+  const statusEditError = document.getElementById("statusEditError");
+  const editQueueBtn = document.getElementById("editQueueBtn");
+  const saveEditQueueBtn = document.getElementById("saveEditQueueBtn");
+  const cancelEditQueueBtn = document.getElementById("cancelEditQueueBtn");
 
   let lastFocused = null;
   let allQueues = [];
   let selectedStatusTab = "active";
   let currentDetailQueue = null;
   let cancellationInProgress = false;
+  let editInProgress = false;
+  let editMode = false;
 
   function servitechBasePath(){
     const pathname = window.location.pathname || "";
@@ -1248,6 +1399,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return normalizeStatus(status) === "PENDING";
   }
 
+  function canCustomerEdit(status){
+    const normalized = normalizeStatus(status);
+    return normalized === "PENDING" || normalized === "APPROVED";
+  }
+
   function formatPaymentMethod(value){
     const key = String(value || "").trim().toLowerCase();
     if (key === "gcash") return "GCash";
@@ -1306,6 +1462,223 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   function supportsFileUpload(queueData){
     const service = serviceKey(queueData);
     return service === "rushid" || isDocumentPrinting(queueData);
+  }
+
+  function inputValue(name){
+    return statusEditFields?.querySelector(`[name="${name}"]`)?.value || "";
+  }
+
+  function editField(name, label, value = "", type = "text", attrs = ""){
+    return `
+      <label class="status-edit-field" for="edit_${esc(name)}">
+        <span class="status-edit-label">${esc(label)}</span>
+        <input id="edit_${esc(name)}" class="status-edit-control" name="${esc(name)}" type="${esc(type)}" value="${esc(value)}" ${attrs}>
+      </label>
+    `;
+  }
+
+  function editSelect(name, label, value, options){
+    const selectedValue = String(value || "");
+    const opts = options.map((option) => {
+      const optionValue = Array.isArray(option) ? option[0] : option;
+      const optionLabel = Array.isArray(option) ? option[1] : option;
+      return `<option value="${esc(optionValue)}"${String(optionValue) === selectedValue ? " selected" : ""}>${esc(optionLabel)}</option>`;
+    }).join("");
+    return `
+      <label class="status-edit-field" for="edit_${esc(name)}">
+        <span class="status-edit-label">${esc(label)}</span>
+        <select id="edit_${esc(name)}" class="status-edit-control" name="${esc(name)}">${opts}</select>
+      </label>
+    `;
+  }
+
+  function editTextarea(name, label, value = ""){
+    return `
+      <label class="status-edit-field status-edit-field--full" for="edit_${esc(name)}">
+        <span class="status-edit-label">${esc(label)}</span>
+        <textarea id="edit_${esc(name)}" class="status-edit-control" name="${esc(name)}">${esc(value)}</textarea>
+      </label>
+    `;
+  }
+
+  function editFileField(queueData){
+    if (!supportsFileUpload(queueData)) return "";
+    const rushId = serviceKey(queueData) === "rushid";
+    const accept = rushId ? ".jpg,.jpeg,.png" : ".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png";
+    return `
+      <label class="status-edit-field status-edit-field--full" for="edit_files">
+        <span class="status-edit-label">${rushId ? "Replacement Photos" : "Replacement Files"}</span>
+        <input id="edit_files" class="status-edit-control" name="files" type="file" multiple accept="${accept}">
+      </label>
+    `;
+  }
+
+  function renderEditForm(queueData){
+    if (!statusEditFields) return;
+    const details = queueDetails(queueData);
+    const service = serviceKey(queueData);
+    const category = categoryKey(queueData);
+    const rows = [];
+
+    if (isDocumentPrinting(queueData)) {
+      rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, [
+        "Long Bond (8.5 x 13)",
+        "Short Bond (8.5 x 11)",
+        "A4",
+        "A3",
+      ]));
+      rows.push(editField("quantity", "Quantity / Copies", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
+      rows.push(editSelect("color_option", "Color Option", queueData.color_option ?? details.color_option, [
+        "Black & White",
+        "Colored Full",
+        "Colored Half",
+      ]));
+    } else if (service === "rushid") {
+      rows.push(editSelect("package_label", "Package", queueData.package_label ?? details.package_label, [
+        "Package 1 - PHP 40",
+        "Package 2 - PHP 30",
+        "Package 3 - PHP 30",
+        "Package 4 - PHP 50",
+        "Package 5 - PHP 30",
+        "Package 6 - PHP 50",
+      ]));
+      rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
+    } else if (service === "xerox") {
+      rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, [
+        "Long Bond (8.5 x 13)",
+        "Short Bond (8.5 x 11)",
+        "A4",
+        "A3",
+      ]));
+      rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
+    } else if (service === "laminating") {
+      rows.push(editSelect("lamination_type", "Lamination", queueData.lamination_type ?? details.lamination_type, [
+        ["thin", "Thin"],
+        ["thick", "Thick"],
+      ]));
+      rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
+    } else if (category === "repair" || category === "installation") {
+      rows.push(editField("device_type", "Device", queueData.device_type ?? details.device_type ?? ""));
+    }
+
+    if (isOnlineDocumentPrinting(queueData)) {
+      rows.push(editSelect("payment_method", "Payment Method", queueData.payment_method || details.payment_method || "cash", [
+        ["cash", "Cash / Pay at Store"],
+        ["gcash", "GCash"],
+      ]));
+      rows.push(editField("reference_number", "GCash Reference", queueData.reference_number || details.reference_number || "", "text", 'maxlength="13" inputmode="numeric"'));
+    }
+
+    rows.push(editFileField(queueData));
+    rows.push(editTextarea("notes", "Notes", queueData.notes ?? details.notes ?? ""));
+    statusEditFields.innerHTML = rows.join("");
+    if (statusEditHelp) {
+      statusEditHelp.textContent = supportsFileUpload(queueData)
+        ? "Existing files stay attached unless you choose replacement files."
+        : "";
+    }
+    if (statusEditError) statusEditError.textContent = "";
+  }
+
+  function renderAdminSendBack(queueData){
+    const message = String(queueData?.send_back_message || "").trim();
+    if (adminSendBackSection) adminSendBackSection.hidden = message === "";
+    if (adminSendBackMessage) adminSendBackMessage.textContent = message;
+  }
+
+  function setEditMode(enabled){
+    editMode = Boolean(enabled);
+    if (statusEditSection) statusEditSection.hidden = !editMode;
+    if (editQueueBtn) editQueueBtn.hidden = editMode || !canCustomerEdit(currentDetailQueue?.status);
+    if (saveEditQueueBtn) saveEditQueueBtn.hidden = !editMode;
+    if (cancelEditQueueBtn) cancelEditQueueBtn.hidden = !editMode;
+    if (cancelPendingQueueBtn) cancelPendingQueueBtn.hidden = editMode || !canCustomerCancel(currentDetailQueue?.status);
+    if (modalCancelMessage && editMode) {
+      modalCancelMessage.hidden = false;
+      modalCancelMessage.textContent = "Update the details, then save changes to resubmit this request.";
+    }
+  }
+
+  async function uploadEditFiles(fileInput, queueData){
+    const files = Array.from(fileInput?.files || []);
+    if (!files.length) return [];
+
+    const fd = new FormData();
+    files.forEach((file) => fd.append("files[]", file));
+    if (serviceKey(queueData) === "rushid") {
+      fd.append("upload_context", "rush_id");
+    }
+
+    const response = await fetch(servitechUrl("/api/upload_handler.php"), {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "X-CSRF-Token": window.servitechCsrfToken ? window.servitechCsrfToken() : ""
+      },
+      body: fd
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.success) {
+      const detail = Array.isArray(data.errors) && data.errors.length ? data.errors.join(" ") : "";
+      throw new Error(detail || data.message || "Unable to upload replacement files.");
+    }
+    return Array.isArray(data.uploaded_files) ? data.uploaded_files : [];
+  }
+
+  async function saveCurrentEdit(){
+    if (!currentDetailQueue?.id || editInProgress || !canCustomerEdit(currentDetailQueue.status)) return;
+    editInProgress = true;
+    if (saveEditQueueBtn) {
+      saveEditQueueBtn.disabled = true;
+      saveEditQueueBtn.textContent = "Saving...";
+    }
+    if (cancelEditQueueBtn) cancelEditQueueBtn.disabled = true;
+    if (statusEditError) statusEditError.textContent = "";
+
+    try {
+      const uploadedFiles = await uploadEditFiles(statusEditFields?.querySelector('[name="files"]'), currentDetailQueue);
+      const payload = {
+        queue_id: currentDetailQueue.id,
+        paper_size: inputValue("paper_size"),
+        quantity: inputValue("quantity"),
+        color_option: inputValue("color_option"),
+        package_label: inputValue("package_label"),
+        lamination_type: inputValue("lamination_type"),
+        device_type: inputValue("device_type"),
+        notes: inputValue("notes"),
+        payment_method: inputValue("payment_method"),
+        reference_number: inputValue("reference_number"),
+        uploaded_files: uploadedFiles
+      };
+
+      const response = await fetch(servitechUrl("/api/queue_update_details.php"), {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRF-Token": window.servitechCsrfToken ? window.servitechCsrfToken() : ""
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Unable to save changes.");
+      }
+
+      closeDetailModal();
+      await loadQueues();
+    } catch (error) {
+      if (statusEditError) statusEditError.textContent = error.message || "Unable to save changes.";
+    } finally {
+      editInProgress = false;
+      if (saveEditQueueBtn) {
+        saveEditQueueBtn.disabled = false;
+        saveEditQueueBtn.textContent = "Save Changes";
+      }
+      if (cancelEditQueueBtn) cancelEditQueueBtn.disabled = false;
+    }
   }
 
   function serviceDetailRows(queueData){
@@ -1608,6 +1981,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function closeDetailModal(){
     if (!detailModal) return;
+    editMode = false;
     detailModal.classList.remove("is-open");
     detailModal.setAttribute("aria-hidden", "true");
     document.removeEventListener("keydown", onModalKeydown);
@@ -1767,7 +2141,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   function renderCancellationAction(queueData, status){
     if (!cancelPendingQueueBtn) return;
 
-    const allowed = queueData && queueData.id && canCustomerCancel(status);
+    const allowed = queueData && queueData.id && canCustomerCancel(status) && !editMode;
     cancelPendingQueueBtn.hidden = !allowed;
     cancelPendingQueueBtn.disabled = false;
     cancelPendingQueueBtn.textContent = "Cancel Request";
@@ -1778,6 +2152,17 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         ? "You can cancel this request while it is still pending."
         : "";
     }
+  }
+
+  function renderEditAction(queueData, status){
+    const allowed = queueData && queueData.id && canCustomerEdit(status);
+    if (editQueueBtn) {
+      editQueueBtn.hidden = !allowed;
+      editQueueBtn.disabled = false;
+    }
+    if (saveEditQueueBtn) saveEditQueueBtn.hidden = true;
+    if (cancelEditQueueBtn) cancelEditQueueBtn.hidden = true;
+    if (statusEditSection) statusEditSection.hidden = true;
   }
 
   async function cancelCurrentPendingQueue(){
@@ -1842,6 +2227,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const queueData = card.queueData || {};
     const status = (card.dataset.status || "PENDING").toUpperCase();
     currentDetailQueue = queueData;
+    editMode = false;
 
     document.getElementById("modalQueue").textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
     document.getElementById("modalQueueRef").textContent = card.dataset.queue || "Not available";
@@ -1861,6 +2247,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     renderAttachedFiles(queueData);
     renderPaymentDetails(queueData);
     renderCancellationAction(queueData, status);
+    renderEditAction(queueData, status);
+    renderAdminSendBack(queueData);
+    renderEditForm(queueData);
 
     const statusEl = document.getElementById("modalStatus");
     const tone = badgeTone(status);
@@ -1973,6 +2362,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (btn) btn.addEventListener("click", closeDetailModal);
   });
   cancelPendingQueueBtn?.addEventListener("click", cancelCurrentPendingQueue);
+  editQueueBtn?.addEventListener("click", () => {
+    renderEditForm(currentDetailQueue || {});
+    setEditMode(true);
+  });
+  cancelEditQueueBtn?.addEventListener("click", () => {
+    setEditMode(false);
+    renderCancellationAction(currentDetailQueue || {}, currentDetailQueue?.status || "PENDING");
+  });
+  saveEditQueueBtn?.addEventListener("click", saveCurrentEdit);
 
   if (detailModal) {
     detailModal.addEventListener("click", (e) => {

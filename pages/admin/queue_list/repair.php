@@ -22,7 +22,8 @@ function status_class($status): string {
 }
 
 $stmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount, q.created_at, q.completed_at, u.fullname
+  SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
+    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at, u.fullname
   FROM queues q
   JOIN users u ON u.id = q.user_id
   WHERE q.category = 'repair'

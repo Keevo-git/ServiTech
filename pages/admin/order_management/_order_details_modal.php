@@ -1,6 +1,14 @@
 <div class="order-modal-overlay" id="orderModalOverlay"></div>
 
-<div class="order-modal" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle" aria-hidden="true">
+<div
+  class="order-modal"
+  id="orderModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="orderModalTitle"
+  aria-hidden="true"
+  data-send-back-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_send_back.php'), ENT_QUOTES, 'UTF-8') ?>"
+>
   <div class="modal-header">
     <div>
       <p class="modal-eyebrow" id="orderModalService">Order Details</p>
@@ -60,6 +68,7 @@
 
         <div class="order-modal-actions">
           <button class="om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
+          <button class="om-btn om-btn--secondary" type="button" id="omSendBack">Send Back</button>
           <button class="om-btn om-btn--primary" type="button" id="omSave">Update</button>
         </div>
 
@@ -74,6 +83,29 @@
           hidden
         >Message Customer</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="order-sendback-overlay" id="orderSendBackOverlay"></div>
+<div class="order-sendback-modal" id="orderSendBackModal" role="dialog" aria-modal="true" aria-labelledby="orderSendBackTitle" aria-hidden="true">
+  <div class="order-sendback-head">
+    <div>
+      <p class="modal-eyebrow">Customer Revision</p>
+      <h3 id="orderSendBackTitle">Send Back to Customer</h3>
+    </div>
+    <button class="close-modal" type="button" id="orderSendBackClose" aria-label="Close send back modal">&times;</button>
+  </div>
+  <div class="order-sendback-body">
+    <p class="order-sendback-copy">Add a message or comment to tell the customer what needs to be edited.</p>
+    <label class="order-modal-field" for="orderSendBackMessage">
+      <span>Message / Comments</span>
+      <textarea id="orderSendBackMessage" rows="5" maxlength="1000"></textarea>
+    </label>
+    <p class="order-sendback-error" id="orderSendBackError" role="alert"></p>
+    <div class="order-sendback-actions">
+      <button class="om-btn om-btn--light" type="button" id="orderSendBackCancel">Cancel</button>
+      <button class="om-btn om-btn--primary" type="button" id="orderSendBackSubmit">Send</button>
     </div>
   </div>
 </div>
