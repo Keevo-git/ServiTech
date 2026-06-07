@@ -149,8 +149,46 @@
     }
   }
 
+  function ensureLogoutModalStyles() {
+    if (document.getElementById("servitech-logout-confirm-styles")) return;
+
+    var style = document.createElement("style");
+    style.id = "servitech-logout-confirm-styles";
+    style.textContent = [
+      "body.logout-confirm-open{overflow:hidden!important;}",
+      ".logout-confirm-overlay{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(16px,4vw,32px)!important;background:rgba(45,21,15,.58)!important;}",
+      ".logout-confirm-overlay--admin{background:rgba(8,21,39,.64)!important;}",
+      ".logout-confirm-modal{box-sizing:border-box!important;width:min(100%,420px)!important;max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;padding:clamp(22px,4vw,30px)!important;border:1px solid rgba(74,5,5,.14)!important;border-radius:18px!important;background:#fff!important;color:#32211a!important;box-shadow:0 24px 70px rgba(28,15,10,.34)!important;text-align:left!important;font-family:inherit!important;}",
+      ".logout-confirm-overlay--admin .logout-confirm-modal{border-color:rgba(26,63,115,.18)!important;color:#112338!important;box-shadow:0 26px 74px rgba(10,27,49,.38)!important;}",
+      ".logout-confirm-modal__header{margin-bottom:10px!important;}",
+      ".logout-confirm-modal h2{margin:0!important;color:#4A0505!important;font-size:clamp(22px,5vw,26px)!important;line-height:1.2!important;letter-spacing:0!important;font-weight:800!important;}",
+      ".logout-confirm-overlay--admin .logout-confirm-modal h2{color:#112b4f!important;}",
+      ".logout-confirm-modal p{margin:0!important;color:#76513d!important;font-size:15px!important;line-height:1.55!important;}",
+      ".logout-confirm-overlay--admin .logout-confirm-modal p{color:#5d6f86!important;}",
+      ".logout-confirm-modal__actions{display:flex!important;justify-content:flex-end!important;gap:12px!important;margin-top:24px!important;}",
+      ".logout-confirm-modal__button{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:auto!important;min-width:112px!important;min-height:46px!important;margin:0!important;padding:11px 18px!important;border-radius:14px!important;font-size:15px!important;font-weight:800!important;line-height:1.2!important;cursor:pointer!important;text-decoration:none!important;transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .18s ease,box-shadow .2s ease!important;}",
+      ".logout-confirm-modal__button:hover{transform:translateY(-1px)!important;}",
+      ".logout-confirm-modal__button:active{transform:translateY(0)!important;}",
+      ".logout-confirm-modal__button:focus-visible{outline:2px solid #ff8b2c!important;outline-offset:2px!important;}",
+      ".logout-confirm-overlay--admin .logout-confirm-modal__button:focus-visible{outline-color:rgba(36,168,188,.9)!important;}",
+      ".logout-confirm-modal__button--cancel{border:1px solid #e7cdbd!important;background:#fff7ef!important;color:#5c2d1b!important;box-shadow:none!important;}",
+      ".logout-confirm-modal__button--cancel:hover{border-color:#dfbda9!important;background:#f4e6dc!important;}",
+      ".logout-confirm-overlay--admin .logout-confirm-modal__button--cancel{border-color:#cbd8e8!important;background:#f5f9ff!important;color:#17365f!important;}",
+      ".logout-confirm-overlay--admin .logout-confirm-modal__button--cancel:hover{border-color:#adc4df!important;background:#eaf3ff!important;}",
+      ".logout-confirm-modal__button--confirm{border:1px solid rgba(188,35,24,.72)!important;background:#b42318!important;color:#fff!important;box-shadow:0 9px 18px rgba(180,35,24,.22)!important;}",
+      ".logout-confirm-modal__button--confirm:hover{border-color:rgba(214,38,28,.92)!important;background:#d72638!important;}",
+      ".logout-confirm-overlay--admin .logout-confirm-modal__button--confirm{border-color:rgba(255,190,198,.72)!important;background:#b91c1c!important;color:#fff!important;box-shadow:0 9px 18px rgba(185,28,28,.22)!important;}",
+      ".logout-confirm-overlay--admin .logout-confirm-modal__button--confirm:hover{border-color:rgba(255,210,216,.9)!important;background:#dc2626!important;}",
+      "@media (max-width:520px){.logout-confirm-overlay{padding:14px!important;}.logout-confirm-modal{width:100%!important;padding:22px 18px!important;border-radius:16px!important;}.logout-confirm-modal__actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;}.logout-confirm-modal__button{width:100%!important;min-width:0!important;padding-right:12px!important;padding-left:12px!important;}}",
+      "@media (max-width:360px){.logout-confirm-modal__actions{grid-template-columns:1fr!important;}}"
+    ].join("");
+
+    document.head.appendChild(style);
+  }
+
   function openLogoutModal(link) {
     closeLogoutModal();
+    ensureLogoutModalStyles();
 
     previousFocus = link;
 
