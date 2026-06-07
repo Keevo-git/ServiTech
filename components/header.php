@@ -1946,4 +1946,4 @@ $notificationRoutes = [
   </script>
 <?php endif; ?>
 
-<script src="/assets/js/header-menu.js" defer></script>
+<script src="/assets/js/header-menu.js?v=20260607-logout-confirm" defer></script>

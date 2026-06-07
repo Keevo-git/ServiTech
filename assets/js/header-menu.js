@@ -1,4 +1,7 @@
 (function () {
+  if (window.ServiTechHeaderMenuInitialized) return;
+  window.ServiTechHeaderMenuInitialized = true;
+
   var MOBILE_BREAKPOINT = 900;
   var activeLogoutModal = null;
   var previousFocus = null;
@@ -62,10 +65,17 @@
     closeMenu();
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  initLogoutConfirmation();
+
+  function initHeaderMenus() {
     document.querySelectorAll(".has-nav-menu").forEach(initMenu);
-    initLogoutConfirmation();
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initHeaderMenus);
+  } else {
+    initHeaderMenus();
+  }
 
   function isLogoutLink(link) {
     if (!link || !link.href) return false;
