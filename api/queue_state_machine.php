@@ -68,6 +68,37 @@ function servitech_queue_actor_name(PDO $pdo, ?int $adminId): string {
   return trim((string)($stmt->fetchColumn() ?: ""));
 }
 
+function servitech_queue_customer_subject(array $queue): string {
+  $category = strtolower(trim((string)($queue["category"] ?? "")));
+
+  if (servitech_queue_is_online_print_order($queue)) {
+    return "print order";
+  }
+
+  return match ($category) {
+    "printing", "printing_online", "online_printorder" => "print request",
+    "repair" => "repair request",
+    "installation" => "installation request",
+    default => "service request",
+  };
+}
+
+function servitech_queue_customer_status_message(array $queue, string $newStatus, string $notes = ""): string {
+  $newStatus = servitech_queue_normalize_status($newStatus);
+  $queueCode = trim((string)($queue["queue_code"] ?? ""));
+  $subject = servitech_queue_customer_subject($queue);
+  $statusLead = "Your {$subject} (Queue ID: {$queueCode}) is now {$newStatus}.";
+
+  return match ($newStatus) {
+    "APPROVED" => "{$statusLead} Your payment has been approved and your order is waiting to be processed.",
+    "ONGOING" => "{$statusLead} Your request is now being processed.",
+    "FOR PICK-UP" => "{$statusLead} Your request is ready for pick-up.",
+    "DONE" => "{$statusLead} Your service request has been completed.",
+    "CANCELLED" => "{$statusLead} Reason: {$notes}",
+    default => $statusLead,
+  };
+}
+
 function servitech_record_queue_status_history(
   PDO $pdo,
   int $queueId,
@@ -195,22 +226,19 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     );
 
     $queueCode = trim((string)($queue["queue_code"] ?? ""));
-    if ($newStatus === "APPROVED") {
-      servitech_add_notification(
-        $pdo,
-        (int)$queue["user_id"],
-        "payment_update",
-        $queueId,
-        "Queue {$queueCode}: Your payment has been approved. Your order is now waiting to be processed."
-      );
-    } elseif ($newStatus === "CANCELLED") {
-      servitech_add_notification(
-        $pdo,
-        (int)$queue["user_id"],
-        "queue_cancelled",
-        $queueId,
-        "Queue {$queueCode}: Status: CANCELLED. Reason: {$notes}"
-      );
+    $customerNotificationMessage = servitech_queue_customer_status_message($queue, $newStatus, $notes);
+    $customerNotificationEventKey = "customer_status_change:{$queueId}:{$currentStatus}:{$newStatus}";
+    servitech_add_notification(
+      $pdo,
+      (int)$queue["user_id"],
+      $newStatus === "CANCELLED" ? "queue_cancelled" : "status_update",
+      $queueId,
+      $customerNotificationMessage,
+      $customerNotificationEventKey,
+      true
+    );
+
+    if ($newStatus === "CANCELLED") {
       servitech_notify_admins(
         $pdo,
         "admin_cancelled",
@@ -219,22 +247,6 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
         "admin_cancelled:admin:{$queueId}:{$currentStatus}",
         true
       );
-    } else {
-      $statusMessage = match ($newStatus) {
-        "ONGOING" => "Queue {$queueCode}: Status: ONGOING. Your request is now being processed.",
-        "FOR PICK-UP" => "Queue {$queueCode}: Status: FOR PICK-UP. Your request is ready for pick-up.",
-        "DONE" => "Queue {$queueCode}: Status: DONE. Your service request has been completed.",
-        default => "",
-      };
-      if ($statusMessage !== "") {
-        servitech_add_notification(
-          $pdo,
-          (int)$queue["user_id"],
-          "status_update",
-          $queueId,
-          $statusMessage
-        );
-      }
     }
 
     if ($ownsTransaction) $pdo->commit();

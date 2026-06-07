@@ -1031,6 +1031,11 @@ $notificationRoutes = [
     word-break: break-word;
   }
 
+  .notification-item__message strong {
+    color: #4A0505;
+    font-weight: 800;
+  }
+
   .notification-item__details {
     color: #6d4430;
     font-size: 0.78rem;
@@ -1373,6 +1378,42 @@ $notificationRoutes = [
         return "Update";
       }
 
+      function appendHighlightedNotificationMessage(target, text) {
+        var remainingMessage = String(text || "");
+        var importantDetailPattern = /(\(Queue ID:\s*[A-Z0-9-]+\))|(Queue ID:\s*)([A-Z0-9-]+)|(is now\s+)(APPROVED|ONGOING|FOR PICK-UP|DONE|CANCELLED)|(Status:\s*)(APPROVED|ONGOING|FOR PICK-UP|DONE|CANCELLED)/gi;
+        var match;
+        var previousIndex = 0;
+
+        while ((match = importantDetailPattern.exec(remainingMessage)) !== null) {
+          target.appendChild(document.createTextNode(remainingMessage.slice(previousIndex, match.index)));
+
+          if (match[1]) {
+            var queueText = document.createElement("strong");
+            queueText.textContent = match[1];
+            target.appendChild(queueText);
+          } else if (match[2]) {
+            target.appendChild(document.createTextNode(match[2]));
+            var queueValue = document.createElement("strong");
+            queueValue.textContent = match[3];
+            target.appendChild(queueValue);
+          } else if (match[4]) {
+            target.appendChild(document.createTextNode(match[4]));
+            var nowStatus = document.createElement("strong");
+            nowStatus.textContent = match[5];
+            target.appendChild(nowStatus);
+          } else if (match[6]) {
+            target.appendChild(document.createTextNode(match[6]));
+            var statusValue = document.createElement("strong");
+            statusValue.textContent = match[7];
+            target.appendChild(statusValue);
+          }
+
+          previousIndex = importantDetailPattern.lastIndex;
+        }
+
+        target.appendChild(document.createTextNode(remainingMessage.slice(previousIndex)));
+      }
+
       function setBadgeCount(count) {
         unreadCount = Math.max(0, Number(count) || 0);
         badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
@@ -1513,7 +1554,7 @@ $notificationRoutes = [
           }
           message.appendChild(document.createTextNode(remainingMessage.slice(previousIndex)));
         } else {
-          message.textContent = notification.message;
+          appendHighlightedNotificationMessage(message, notification.message);
         }
 
         var details = document.createElement("span");
