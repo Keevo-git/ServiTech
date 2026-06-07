@@ -1225,7 +1225,7 @@ body.modal-open {
 
 .order-modal-action-stack {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .order-modal-actions {
