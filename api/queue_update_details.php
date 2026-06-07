@@ -42,6 +42,78 @@ function queue_update_clean_details(array $details): array {
   return $details;
 }
 
+function queue_update_compare_value($value): string {
+  if (is_array($value)) {
+    ksort($value);
+    return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: "";
+  }
+  if (is_bool($value)) return $value ? "1" : "0";
+  if (is_numeric($value)) return (string)(float)$value;
+  return trim((string)($value ?? ""));
+}
+
+function queue_update_money_label($value): string {
+  return "PHP " . number_format(max(0, (float)$value), 2);
+}
+
+function queue_update_file_change_label(int $addedCount, int $removedCount): string {
+  $parts = [];
+  if ($addedCount > 0) {
+    $parts[] = $addedCount . " added";
+  }
+  if ($removedCount > 0) {
+    $parts[] = $removedCount . " removed";
+  }
+  return empty($parts) ? "" : "Attached Files (" . implode(", ", $parts) . ")";
+}
+
+function queue_update_change_summary(array $before, array $after, int $addedFileCount, int $removedFileCount): string {
+  $fieldLabels = [
+    "paper_size" => "Paper Size",
+    "color_option" => "Color Option",
+    "quantity" => "Quantity",
+    "package_label" => "Package",
+    "lamination_type" => "Lamination",
+    "device_type" => "Device",
+    "notes" => "Notes",
+    "payment_method" => "Payment Method",
+    "reference_number" => "GCash Reference",
+  ];
+
+  $changes = [];
+  foreach ($fieldLabels as $key => $label) {
+    if (queue_update_compare_value($before[$key] ?? null) !== queue_update_compare_value($after[$key] ?? null)) {
+      $changes[] = $label;
+    }
+  }
+
+  $fileChange = queue_update_file_change_label($addedFileCount, $removedFileCount);
+  if ($fileChange !== "") {
+    $changes[] = $fileChange;
+  }
+
+  $beforeEstimate = isset($before["estimated_total"]) && is_numeric($before["estimated_total"])
+    ? (float)$before["estimated_total"]
+    : null;
+  $afterEstimate = isset($after["estimated_total"]) && is_numeric($after["estimated_total"])
+    ? (float)$after["estimated_total"]
+    : null;
+  if ($afterEstimate !== null && ($beforeEstimate === null || abs($beforeEstimate - $afterEstimate) >= 0.01)) {
+    $changes[] = "Price Estimate (" . queue_update_money_label($afterEstimate) . ")";
+  }
+
+  if (empty($changes)) {
+    return "No field values changed; request was resubmitted.";
+  }
+
+  $visibleChanges = array_slice($changes, 0, 5);
+  $remaining = count($changes) - count($visibleChanges);
+  if ($remaining > 0) {
+    $visibleChanges[] = "+" . $remaining . " more";
+  }
+  return "Changed: " . implode(", ", $visibleChanges) . ".";
+}
+
 try {
   $queueId = (int)($data["queue_id"] ?? 0);
   if ($queueId <= 0) {
@@ -155,6 +227,7 @@ try {
     }
     $keptUploadedFiles[] = $file;
   }
+  $removedFileCount = max(0, count($existingUploadedFiles) - count($keptUploadedFiles));
 
   $resolvedUploadedFiles = [];
   if (!empty($uploadedInput)) {
@@ -193,6 +266,7 @@ try {
   $details = queue_update_clean_details($details);
   $details = servitech_pricing_apply($pdo, $category, $details);
   $price = isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : null;
+  $changeSummary = queue_update_change_summary($currentDetails, $details, count($resolvedUploadedFiles), $removedFileCount);
 
   $update = $pdo->prepare("
     UPDATE queues
@@ -255,7 +329,7 @@ try {
 
   $history = $pdo->prepare("
     INSERT INTO queue_status_history (queue_id, category, old_status, new_status, admin_id, admin_name, notes, action_type)
-    VALUES (:queue_id, :category, :old_status, :new_status, NULL, '', 'Customer edited and resubmitted the request.', 'customer_resubmitted')
+    VALUES (:queue_id, :category, :old_status, :new_status, NULL, '', :notes, 'customer_resubmitted')
     RETURNING id
   ");
   $history->execute([
@@ -263,21 +337,30 @@ try {
     ":category" => $category,
     ":old_status" => $status,
     ":new_status" => $status,
+    ":notes" => "Customer edited and resubmitted the request. {$changeSummary}",
   ]);
   $historyId = (int)($history->fetchColumn() ?: 0);
 
   $queueCode = trim((string)($queue["queue_code"] ?? ""));
+  $customerToastMessage = "Queue {$queueCode} updated successfully. {$changeSummary}";
+  $adminNotificationMessage = "Queue {$queueCode}: Customer edited and resubmitted the request. {$changeSummary}";
   servitech_notify_admins(
     $pdo,
     "admin_customer_resubmitted",
     $queueId,
-    "Queue {$queueCode}: Customer edited and resubmitted the request.",
+    $adminNotificationMessage,
     "admin_customer_resubmitted:{$queueId}:{$historyId}",
     true
   );
 
   $pdo->commit();
-  echo json_encode(["ok" => true, "queue_id" => $queueId, "queue_code" => $queueCode]);
+  echo json_encode([
+    "ok" => true,
+    "queue_id" => $queueId,
+    "queue_code" => $queueCode,
+    "change_summary" => $changeSummary,
+    "toast_message" => $customerToastMessage,
+  ]);
 } catch (DomainException $e) {
   if ($pdo->inTransaction()) $pdo->rollBack();
   http_response_code(422);

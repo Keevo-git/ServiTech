@@ -10,6 +10,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260526status-badges">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
+  <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260607-status-edit-toast">
   <style>
     body.customer-layout.customer-page--status {
       background:
@@ -1582,6 +1583,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     </div>
 
 <script src="/assets/js/csrf.js"></script>
+<script src="/assets/js/customer_toast.js?v=20260607-status-edit-toast"></script>
 <script>
 (async function(){
   const listEl = document.getElementById("queueList");
@@ -1656,6 +1658,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   function toPeso(value){
     const n = toNumber(value);
     return `\u20B1${(n ?? 0).toFixed(2)}`;
+  }
+
+  function showCustomerToast(message, tone = "info"){
+    const cleanMessage = String(message || "").trim();
+    if (!cleanMessage || typeof window.servitechToast !== "function") return;
+    window.servitechToast(cleanMessage, { tone });
   }
 
   function parseDateTime(value){
@@ -2421,10 +2429,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         throw new Error(data.error || "Unable to save changes.");
       }
 
+      showCustomerToast(
+        data.toast_message || `Queue ${data.queue_code || currentDetailQueue.queue_code || ""} updated successfully.`,
+        "success"
+      );
       closeDetailModal();
       await loadQueues();
     } catch (error) {
-      if (statusEditError) statusEditError.textContent = error.message || "Unable to save changes.";
+      const message = error.message || "Unable to save changes.";
+      if (statusEditError) statusEditError.textContent = message;
+      showCustomerToast(message, "error");
     } finally {
       editInProgress = false;
       if (saveEditQueueBtn) {
