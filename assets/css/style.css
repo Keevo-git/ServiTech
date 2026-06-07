@@ -4347,7 +4347,7 @@ body.customer-layout.customer-page--status .status-modal .modal-back {
 }
 
 body.logout-confirm-open {
-  overflow: hidden;
+  overflow-y: scroll;
 }
 
 .logout-confirm-overlay {

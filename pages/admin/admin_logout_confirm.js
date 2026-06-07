@@ -4,7 +4,6 @@
 
   var activeModal = null;
   var previousFocus = null;
-  var scrollLockState = null;
 
   function isAdminLogoutLink(link) {
     if (!link || !link.href) return false;
@@ -22,7 +21,7 @@
     var style = document.createElement("style");
     style.id = "servitech-admin-logout-confirm-styles";
     style.textContent = [
-      "body.admin-logout-confirm-open{overflow:hidden!important;}",
+      "body.admin-logout-confirm-open{overflow-y:scroll!important;}",
       ".admin-logout-confirm-overlay{position:fixed!important;inset:0!important;z-index:2147483200!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(16px,4vw,32px)!important;background:rgba(8,21,39,.66)!important;}",
       ".admin-logout-confirm-modal{box-sizing:border-box!important;width:min(100%,420px)!important;max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;padding:clamp(22px,4vw,30px)!important;border:1px solid rgba(26,63,115,.18)!important;border-radius:18px!important;background:#fff!important;color:#112338!important;box-shadow:0 26px 74px rgba(10,27,49,.42)!important;text-align:left!important;font-family:inherit!important;}",
       ".admin-logout-confirm-modal__header{margin-bottom:10px!important;}",
@@ -49,7 +48,6 @@
 
     document.removeEventListener("keydown", handleKeydown);
     document.body.classList.remove("admin-logout-confirm-open");
-    restoreScrollLock();
     activeModal.remove();
     activeModal = null;
 
@@ -57,29 +55,6 @@
       previousFocus.focus({ preventScroll: true });
     }
     previousFocus = null;
-  }
-
-  function applyScrollLock() {
-    if (scrollLockState) return;
-
-    var body = document.body;
-    var scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
-
-    scrollLockState = {
-      paddingRight: body.style.paddingRight
-    };
-
-    if (scrollbarWidth > 0) {
-      var currentPadding = parseFloat(window.getComputedStyle(body).paddingRight) || 0;
-      body.style.paddingRight = (currentPadding + scrollbarWidth) + "px";
-    }
-  }
-
-  function restoreScrollLock() {
-    if (!scrollLockState) return;
-
-    document.body.style.paddingRight = scrollLockState.paddingRight;
-    scrollLockState = null;
   }
 
   function handleKeydown(event) {
@@ -141,7 +116,6 @@
     });
 
     document.body.appendChild(overlay);
-    applyScrollLock();
     document.body.classList.add("admin-logout-confirm-open");
     activeModal = overlay;
     document.addEventListener("keydown", handleKeydown);

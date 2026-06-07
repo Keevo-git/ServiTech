@@ -839,7 +839,7 @@ main{ flex:1; }
 }
 
 body.logout-confirm-open {
-  overflow: hidden;
+  overflow-y: scroll;
 }
 
 .logout-confirm-overlay {

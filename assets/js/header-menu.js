@@ -5,7 +5,6 @@
   var MOBILE_BREAKPOINT = 900;
   var activeLogoutModal = null;
   var previousFocus = null;
-  var scrollLockState = null;
 
   function isCompactViewport() {
     return window.matchMedia("(max-width: " + MOBILE_BREAKPOINT + "px)").matches;
@@ -113,7 +112,6 @@
 
     document.removeEventListener("keydown", handleLogoutModalKeydown);
     document.body.classList.remove("logout-confirm-open");
-    restoreLogoutScrollLock();
     activeLogoutModal.remove();
     activeLogoutModal = null;
 
@@ -121,29 +119,6 @@
       previousFocus.focus({ preventScroll: true });
     }
     previousFocus = null;
-  }
-
-  function applyLogoutScrollLock() {
-    if (scrollLockState) return;
-
-    var body = document.body;
-    var scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
-
-    scrollLockState = {
-      paddingRight: body.style.paddingRight
-    };
-
-    if (scrollbarWidth > 0) {
-      var currentPadding = parseFloat(window.getComputedStyle(body).paddingRight) || 0;
-      body.style.paddingRight = (currentPadding + scrollbarWidth) + "px";
-    }
-  }
-
-  function restoreLogoutScrollLock() {
-    if (!scrollLockState) return;
-
-    document.body.style.paddingRight = scrollLockState.paddingRight;
-    scrollLockState = null;
   }
 
   function handleLogoutModalKeydown(event) {
@@ -180,7 +155,7 @@
     var style = document.createElement("style");
     style.id = "servitech-logout-confirm-styles";
     style.textContent = [
-      "body.logout-confirm-open{overflow:hidden!important;}",
+      "body.logout-confirm-open{overflow-y:scroll!important;}",
       ".logout-confirm-overlay{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(16px,4vw,32px)!important;background:rgba(45,21,15,.58)!important;}",
       ".logout-confirm-overlay--admin{background:rgba(8,21,39,.64)!important;}",
       ".logout-confirm-modal{box-sizing:border-box!important;width:min(100%,420px)!important;max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;padding:clamp(22px,4vw,30px)!important;border:1px solid rgba(74,5,5,.14)!important;border-radius:18px!important;background:#fff!important;color:#32211a!important;box-shadow:0 24px 70px rgba(28,15,10,.34)!important;text-align:left!important;font-family:inherit!important;}",
@@ -245,7 +220,6 @@
     });
 
     document.body.appendChild(overlay);
-    applyLogoutScrollLock();
     document.body.classList.add("logout-confirm-open");
     activeLogoutModal = overlay;
     document.addEventListener("keydown", handleLogoutModalKeydown);
