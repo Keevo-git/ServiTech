@@ -67,23 +67,25 @@
           <p class="queue-status-help" id="queueDetailsStatusHelp"></p>
         </section>
 
-        <div class="queue-details-actions">
-          <button class="queue-details-action queue-details-action--light" type="button" id="queueDetailsCancel">Cancel</button>
-          <button class="queue-details-action queue-details-action--secondary" type="button" id="queueDetailsSendBack">Send Back</button>
+        <div class="queue-details-action-stack">
+          <div class="queue-details-actions">
+            <button class="queue-details-action queue-details-action--light" type="button" id="queueDetailsCancel">Cancel</button>
+            <button class="queue-details-action queue-details-action--secondary" type="button" id="queueDetailsSendBack">Send Back</button>
+          </div>
+
+          <button class="queue-details-action queue-details-action--primary queue-details-update" type="button" id="queueDetailsUpdate" disabled>Update</button>
+
+          <button
+            class="btn-message queue-details-message"
+            type="button"
+            id="queueDetailsMessage"
+            data-id=""
+            data-queue-code=""
+            data-customer=""
+            data-service=""
+            hidden
+          >Message Customer</button>
         </div>
-
-        <button class="queue-details-action queue-details-action--primary queue-details-update" type="button" id="queueDetailsUpdate" disabled>Update</button>
-
-        <button
-          class="btn-message queue-details-message"
-          type="button"
-          id="queueDetailsMessage"
-          data-id=""
-          data-queue-code=""
-          data-customer=""
-          data-service=""
-          hidden
-        >Message Customer</button>
       </div>
     </div>
   </div>

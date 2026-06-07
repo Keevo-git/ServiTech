@@ -66,23 +66,25 @@
           <p class="order-status-help" id="omStatusHelp"></p>
         </section>
 
-        <div class="order-modal-actions">
-          <button class="om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
-          <button class="om-btn om-btn--secondary" type="button" id="omSendBack">Send Back</button>
+        <div class="order-modal-action-stack">
+          <div class="order-modal-actions">
+            <button class="om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
+            <button class="om-btn om-btn--secondary" type="button" id="omSendBack">Send Back</button>
+          </div>
+
+          <button class="om-btn om-btn--primary order-modal-update" type="button" id="omSave">Update</button>
+
+          <button
+            class="btn-message order-modal-message"
+            type="button"
+            id="orderModalMessage"
+            data-id=""
+            data-queue-code=""
+            data-customer=""
+            data-service=""
+            hidden
+          >Message Customer</button>
         </div>
-
-        <button class="om-btn om-btn--primary order-modal-update" type="button" id="omSave">Update</button>
-
-        <button
-          class="btn-message order-modal-message"
-          type="button"
-          id="orderModalMessage"
-          data-id=""
-          data-queue-code=""
-          data-customer=""
-          data-service=""
-          hidden
-        >Message Customer</button>
       </div>
     </div>
   </div>

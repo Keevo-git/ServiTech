@@ -1223,6 +1223,11 @@ body.modal-open {
   line-height: 1.5;
 }
 
+.order-modal-action-stack {
+  display: grid;
+  gap: 8px;
+}
+
 .order-modal-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1252,7 +1257,7 @@ body.modal-open {
 
 .order-modal-update {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .order-sendback-overlay {
@@ -1334,7 +1339,7 @@ body.modal-open {
 
 .order-modal-message {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 0;
   border: 1px solid #214f91;
   border-radius: 10px;
   background: #214f91;
