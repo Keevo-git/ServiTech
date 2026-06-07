@@ -176,7 +176,7 @@ if (!function_exists("admin_notification_center_data")) {
                     q.details::text AS details,
                     cancel_history.notes AS cancel_note,
                     ROW_NUMBER() OVER (
-                        PARTITION BY n.user_id, LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
+                        PARTITION BY LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
                           COALESCE(NULLIF(TRIM(n.event_key), ''), MD5(TRIM(COALESCE(n.message, ''))))
                         ORDER BY n.created_at DESC, n.id DESC
                     ) AS duplicate_rank

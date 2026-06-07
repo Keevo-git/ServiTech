@@ -203,16 +203,46 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
   }
 
   $stmt = $pdo->prepare("
+    WITH notification_input AS (
+      SELECT
+        :user_id::integer AS user_id,
+        :type::text AS type,
+        :reference_id::bigint AS reference_id,
+        :message::text AS message,
+        :event_key::text AS raw_event_key
+    ),
+    notification_event AS (
+      SELECT
+        user_id,
+        type,
+        reference_id,
+        message,
+        NULLIF(raw_event_key, '') AS event_key,
+        COALESCE(NULLIF(TRIM(raw_event_key), ''), MD5(TRIM(message))) AS event_identity
+      FROM notification_input
+    ),
+    notification_lock AS (
+      SELECT pg_advisory_xact_lock(hashtext(CONCAT_WS(
+        '|',
+        user_id::text,
+        LOWER(TRIM(COALESCE(type, 'queue'))),
+        COALESCE(reference_id, 0)::text,
+        event_identity
+      )))
+      FROM notification_event
+    )
     INSERT INTO notifications (user_id, type, reference_id, message, event_key, is_read, created_at)
-    SELECT :user_id, :type, :reference_id, :message, NULLIF(:event_key, ''), FALSE, NOW()
+    SELECT notification_event.user_id, notification_event.type, notification_event.reference_id,
+      notification_event.message, notification_event.event_key, FALSE, NOW()
+    FROM notification_event, notification_lock
     WHERE NOT EXISTS (
       SELECT 1
       FROM notifications
-      WHERE user_id = :existing_user_id
-        AND LOWER(TRIM(COALESCE(type, 'queue'))) = LOWER(TRIM(:existing_type))
-        AND COALESCE(reference_id, 0) = COALESCE(:existing_reference_id, 0)
+      WHERE user_id = notification_event.user_id
+        AND LOWER(TRIM(COALESCE(type, 'queue'))) = LOWER(TRIM(notification_event.type))
+        AND COALESCE(reference_id, 0) = COALESCE(notification_event.reference_id, 0)
         AND COALESCE(NULLIF(TRIM(event_key), ''), MD5(TRIM(COALESCE(message, ''))))
-          = COALESCE(NULLIF(TRIM(:existing_event_key), ''), MD5(TRIM(:existing_message)))
+          = notification_event.event_identity
         AND (CAST(:dedupe_deleted AS INTEGER) = 1 OR deleted_at IS NULL)
     )
     ON CONFLICT DO NOTHING
@@ -223,11 +253,6 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
     ":reference_id" => $referenceId,
     ":message" => $message,
     ":event_key" => $eventKey,
-    ":existing_user_id" => $userId,
-    ":existing_type" => $type,
-    ":existing_reference_id" => $referenceId,
-    ":existing_message" => $message,
-    ":existing_event_key" => $eventKey,
     ":dedupe_deleted" => $dedupeDeleted ? 1 : 0,
   ]);
 }
@@ -241,9 +266,12 @@ function servitech_notify_admins(PDO $pdo, string $type, ?int $referenceId, stri
     SELECT id
     FROM users
     WHERE LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'admin'
+    ORDER BY id ASC
+    LIMIT 1
   ");
 
-  foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $adminId) {
-    servitech_add_notification($pdo, (int)$adminId, $type, $referenceId, $message, $eventKey, $dedupeDeleted);
+  $adminId = (int)($stmt->fetchColumn() ?: 0);
+  if ($adminId > 0) {
+    servitech_add_notification($pdo, $adminId, $type, $referenceId, $message, $eventKey, $dedupeDeleted);
   }
 }

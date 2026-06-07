@@ -206,6 +206,67 @@ function admin_notification_service_label(array $queue): string
     return admin_notification_category_label((string)($queue["category"] ?? $queue["queue_category"] ?? ""));
 }
 
+function admin_notifications_cleanup_duplicates(PDO $pdo): void
+{
+    static $cleaned = false;
+    if ($cleaned) {
+        return;
+    }
+    $cleaned = true;
+
+    try {
+        $pdo->exec("
+            WITH ranked_admin_notifications AS (
+                SELECT
+                    n.id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
+                          COALESCE(NULLIF(TRIM(n.event_key), ''), MD5(TRIM(COALESCE(n.message, ''))))
+                        ORDER BY n.created_at ASC, n.id ASC
+                    ) AS duplicate_rank,
+                    COUNT(*) OVER (
+                        PARTITION BY LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
+                          COALESCE(NULLIF(TRIM(n.event_key), ''), MD5(TRIM(COALESCE(n.message, ''))))
+                    ) AS duplicate_count,
+                    FIRST_VALUE(n.id) OVER (
+                        PARTITION BY LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
+                          COALESCE(NULLIF(TRIM(n.event_key), ''), MD5(TRIM(COALESCE(n.message, ''))))
+                        ORDER BY n.created_at ASC, n.id ASC
+                    ) AS keep_id,
+                    BOOL_AND(COALESCE(n.is_read, FALSE)) OVER (
+                        PARTITION BY LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
+                          COALESCE(NULLIF(TRIM(n.event_key), ''), MD5(TRIM(COALESCE(n.message, ''))))
+                    ) AS all_copies_read
+                FROM notifications n
+                WHERE n.deleted_at IS NULL
+                  AND LOWER(TRIM(COALESCE(n.type, 'queue'))) LIKE 'admin\_%' ESCAPE '\'
+                  AND n.user_id IN (
+                      SELECT id
+                      FROM users
+                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                  )
+            ),
+            preserved_notifications AS (
+                UPDATE notifications n
+                SET is_read = r.all_copies_read
+                FROM ranked_admin_notifications r
+                WHERE n.id = r.keep_id
+                  AND r.duplicate_count > 1
+                  AND n.is_read IS DISTINCT FROM r.all_copies_read
+                RETURNING n.id
+            )
+            UPDATE notifications n
+            SET deleted_at = NOW()
+            FROM ranked_admin_notifications r
+            WHERE n.id = r.id
+              AND r.duplicate_rank > 1
+              AND n.deleted_at IS NULL
+        ");
+    } catch (Throwable $exception) {
+        error_log("admin_notifications_cleanup_duplicates error: " . $exception->getMessage());
+    }
+}
+
 function admin_notifications_sync_stalled(PDO $pdo): void
 {
     static $synced = false;
@@ -265,6 +326,8 @@ function admin_notifications_sync_stalled(PDO $pdo): void
     } catch (Throwable $exception) {
         error_log("admin_notifications_sync_stalled error: " . $exception->getMessage());
     }
+
+    admin_notifications_cleanup_duplicates($pdo);
 }
 
 function admin_notification_unread_count(PDO $pdo): int
@@ -276,7 +339,7 @@ function admin_notification_unread_count(PDO $pdo): int
             SELECT
                 n.is_read,
                 ROW_NUMBER() OVER (
-                    PARTITION BY n.user_id, LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
+                    PARTITION BY LOWER(TRIM(COALESCE(n.type, 'queue'))), COALESCE(n.reference_id, 0),
                       COALESCE(NULLIF(TRIM(n.event_key), ''), MD5(TRIM(COALESCE(n.message, ''))))
                     ORDER BY n.created_at DESC, n.id DESC
                 ) AS duplicate_rank
