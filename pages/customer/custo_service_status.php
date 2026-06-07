@@ -612,6 +612,143 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       border-bottom-color: rgba(240, 138, 0, 0.24);
     }
 
+    body.customer-layout.customer-page--status #editRequestModal {
+      z-index: 5400 !important;
+      align-items: center !important;
+      background: rgba(32, 18, 15, 0.56) !important;
+      justify-content: center !important;
+      padding: clamp(14px, 3vw, 28px) !important;
+      backdrop-filter: blur(5px);
+    }
+
+    body.customer-layout.customer-page--status #editRequestModal.is-open {
+      display: flex;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal {
+      background: linear-gradient(180deg, #fffdf9 0%, #fff8ef 100%) !important;
+      border: 1px solid rgba(240, 138, 0, 0.3) !important;
+      border-radius: 22px !important;
+      box-shadow: 0 30px 76px rgba(95, 14, 15, 0.28) !important;
+      color: #24120f;
+      display: flex;
+      flex-direction: column;
+      margin: auto !important;
+      max-height: 90vh !important;
+      max-width: 980px !important;
+      overflow: hidden;
+      padding: 0 !important;
+      position: relative;
+      width: min(100%, 980px) !important;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal__header {
+      align-items: start;
+      background: linear-gradient(90deg, rgba(255, 247, 237, 0.98) 0%, rgba(255, 253, 249, 0.94) 100%);
+      border-bottom: 1px solid rgba(240, 138, 0, 0.24);
+      display: grid;
+      gap: 0.4rem;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: clamp(18px, 3vw, 26px) clamp(88px, 9vw, 96px) clamp(14px, 2vw, 18px) clamp(18px, 3vw, 26px);
+      flex: 0 0 auto;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal__eyebrow {
+      color: #8a5f34;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal .modal-title {
+      color: #4a0505 !important;
+      font-size: clamp(1.35rem, 3vw, 1.85rem) !important;
+      line-height: 1.15;
+      margin: 0 !important;
+      overflow-wrap: anywhere;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close {
+      align-items: center !important;
+      appearance: none;
+      aspect-ratio: 1 / 1;
+      background: #fff8f5 !important;
+      border: 1px solid #ead2c5 !important;
+      border-radius: 50% !important;
+      box-shadow: 0 10px 22px rgba(74, 5, 5, 0.08);
+      color: #8b1e1e !important;
+      cursor: pointer;
+      display: flex !important;
+      font-size: 0 !important;
+      height: 48px !important;
+      justify-content: center !important;
+      min-height: 48px !important;
+      min-width: 48px !important;
+      padding: 0 !important;
+      position: absolute !important;
+      right: clamp(16px, 3vw, 24px) !important;
+      top: clamp(16px, 3vw, 24px) !important;
+      width: 48px !important;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close span {
+      display: none;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close::before,
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close::after {
+      background: currentColor;
+      border-radius: 999px;
+      content: "";
+      height: 3px;
+      left: 50%;
+      pointer-events: none;
+      position: absolute;
+      top: 50%;
+      transform-origin: center;
+      width: 17px;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close::before {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close::after {
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal__body {
+      display: grid;
+      gap: 1rem;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: clamp(16px, 3vw, 24px);
+      scrollbar-gutter: stable;
+    }
+
+    body.customer-layout.customer-page--status .status-edit-shell {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(95, 14, 15, 0.11);
+      border-radius: 18px;
+      display: grid;
+      gap: 1rem;
+      padding: clamp(14px, 2.4vw, 20px);
+    }
+
+    body.customer-layout.customer-page--status .status-edit-modal__footer {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      flex: 0 0 auto;
+      padding: clamp(14px, 2.4vw, 18px) clamp(16px, 3vw, 24px);
+      border-top: 1px solid rgba(95, 14, 15, 0.1);
+      background: rgba(255, 253, 249, 0.94);
+    }
+
     body.customer-layout.customer-page--status .status-admin-message[hidden],
     body.customer-layout.customer-page--status .status-edit-form[hidden],
     body.customer-layout.customer-page--status .status-edit-btn[hidden],
@@ -961,12 +1098,21 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         max-height: calc(100vh - 28px) !important;
       }
 
+      body.customer-layout.customer-page--status .status-edit-modal {
+        border-radius: 18px !important;
+        max-height: calc(100vh - 28px) !important;
+      }
+
       body.customer-layout.customer-page--status .status-modal__grid {
         grid-template-columns: 1fr;
         gap: 0.85rem;
       }
 
       body.customer-layout.customer-page--status .status-modal__header {
+        padding-right: 78px;
+      }
+
+      body.customer-layout.customer-page--status .status-edit-modal__header {
         padding-right: 78px;
       }
 
@@ -1002,6 +1148,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         justify-content: stretch;
       }
 
+      body.customer-layout.customer-page--status .status-edit-modal__footer {
+        align-items: stretch;
+        flex-direction: column-reverse;
+        justify-content: stretch;
+      }
+
       body.customer-layout.customer-page--status .status-edit-grid {
         grid-template-columns: 1fr;
       }
@@ -1022,6 +1174,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     @media (min-width: 641px) and (max-width: 940px) {
       body.customer-layout.customer-page--status .status-modal {
+        max-width: 860px !important;
+        width: min(100%, 860px) !important;
+      }
+
+      body.customer-layout.customer-page--status .status-edit-modal {
         max-width: 860px !important;
         width: min(100%, 860px) !important;
       }
@@ -1138,16 +1295,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
               <p id="adminSendBackMessage" class="status-admin-message__body"></p>
             </section>
 
-            <section id="statusEditSection" class="status-modal__section status-edit-form" aria-labelledby="statusEditTitle" hidden>
-              <h4 id="statusEditTitle" class="status-modal__section-title">Editing Mode</h4>
-              <p class="status-edit-mode-note">You are editing this request based on admin feedback.</p>
-              <form id="statusEditForm" class="status-edit-form">
-                <div id="statusEditFields" class="status-edit-grid"></div>
-                <p id="statusEditHelp" class="status-edit-help"></p>
-                <p id="statusEditError" class="status-edit-error" role="alert"></p>
-              </form>
-            </section>
-
             <section class="status-modal__section" aria-labelledby="serviceDetailsTitle">
               <h4 id="serviceDetailsTitle" class="status-modal__section-title">Service Details</h4>
               <div class="status-detail-row">
@@ -1214,9 +1361,44 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <div class="status-modal__footer">
           <p id="modalCancelMessage" class="status-cancel-message" role="status" hidden></p>
           <button id="editQueueBtn" class="status-edit-btn" type="button" hidden>Edit</button>
-          <button id="saveEditQueueBtn" class="status-save-edit-btn" type="button" hidden>Save Changes</button>
-          <button id="cancelEditQueueBtn" class="status-edit-cancel-btn" type="button" hidden>Cancel</button>
           <button id="cancelPendingQueueBtn" class="status-cancel-btn" type="button" hidden>Cancel Request</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="editRequestModal" class="modal-overlay" aria-hidden="true">
+      <div class="modal status-edit-modal" role="dialog" aria-modal="true" aria-labelledby="editRequestTitle" tabindex="-1">
+        <button id="closeEditRequest" class="modal-close" type="button" aria-label="Close edit request"><span aria-hidden="true">&times;</span></button>
+
+        <div class="status-edit-modal__header">
+          <div>
+            <p class="status-edit-modal__eyebrow">Editing Mode</p>
+            <h3 id="editRequestTitle" class="modal-title">
+              <span id="editRequestQueueTitle">Edit Request</span>
+            </h3>
+          </div>
+        </div>
+
+        <div class="status-edit-modal__body">
+          <section class="status-modal__section status-admin-message" aria-labelledby="editAdminMessageTitle">
+            <h4 id="editAdminMessageTitle" class="status-modal__section-title">Message from Admin</h4>
+            <p id="editAdminMessage" class="status-admin-message__body"></p>
+          </section>
+
+          <section id="statusEditSection" class="status-edit-shell" aria-labelledby="statusEditTitle">
+            <h4 id="statusEditTitle" class="status-modal__section-title">Edit Request Details</h4>
+            <p class="status-edit-mode-note">Update the fields below based on admin feedback. Existing uploaded files stay attached unless you choose replacements.</p>
+            <form id="statusEditForm" class="status-edit-form">
+              <div id="statusEditFields" class="status-edit-grid"></div>
+              <p id="statusEditHelp" class="status-edit-help"></p>
+              <p id="statusEditError" class="status-edit-error" role="alert"></p>
+            </form>
+          </section>
+        </div>
+
+        <div class="status-edit-modal__footer">
+          <button id="saveEditQueueBtn" class="status-save-edit-btn" type="button">Save Changes</button>
+          <button id="cancelEditQueueBtn" class="status-edit-cancel-btn" type="button">Cancel</button>
         </div>
       </div>
     </div>
@@ -1241,6 +1423,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   const statusModal = detailModal?.querySelector(".status-modal");
   const modalEyebrow = statusModal?.querySelector(".status-modal__eyebrow");
   const modalTitleText = document.getElementById("modalQueue");
+  const editRequestModal = document.getElementById("editRequestModal");
+  const editRequestDialog = editRequestModal?.querySelector(".status-edit-modal");
+  const editRequestQueueTitle = document.getElementById("editRequestQueueTitle");
+  const closeEditRequest = document.getElementById("closeEditRequest");
+  const editAdminMessage = document.getElementById("editAdminMessage");
   const closeDetail = document.getElementById("closeDetail");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
   const cancelPendingQueueBtn = document.getElementById("cancelPendingQueueBtn");
@@ -1615,32 +1802,62 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const visible = message !== "" && hasActiveSendBack(queueData);
     if (adminSendBackSection) adminSendBackSection.hidden = !visible;
     if (adminSendBackMessage) adminSendBackMessage.textContent = message;
+    if (editAdminMessage) editAdminMessage.textContent = message || "No admin message was provided.";
   }
 
   function syncModalModeState(){
     const queueCode = String(currentDetailQueue?.queue_code || "").trim();
-    statusModal?.classList.toggle("status-modal--editing", editMode);
+    statusModal?.classList.remove("status-modal--editing");
     if (modalEyebrow) {
-      modalEyebrow.textContent = editMode ? "Editing Mode" : "Queue Details";
+      modalEyebrow.textContent = "Queue Details";
     }
     if (modalTitleText) {
-      modalTitleText.textContent = editMode
-        ? (queueCode ? `Edit Request ${queueCode}` : "Edit Request")
-        : (queueCode ? `Queue ${queueCode}` : "Queue Details");
+      modalTitleText.textContent = queueCode ? `Queue ${queueCode}` : "Queue Details";
     }
   }
 
   function setEditMode(enabled){
     editMode = Boolean(enabled) && canCustomerEdit(currentDetailQueue);
     syncModalModeState();
-    if (statusEditSection) statusEditSection.hidden = !editMode;
     if (editQueueBtn) editQueueBtn.hidden = editMode || !canCustomerEdit(currentDetailQueue);
-    if (saveEditQueueBtn) saveEditQueueBtn.hidden = !editMode;
-    if (cancelEditQueueBtn) cancelEditQueueBtn.hidden = !editMode;
     if (cancelPendingQueueBtn) cancelPendingQueueBtn.hidden = editMode || !canCustomerCancel(currentDetailQueue?.status);
-    if (modalCancelMessage && editMode) {
-      modalCancelMessage.hidden = false;
-      modalCancelMessage.textContent = "You are editing this request based on admin feedback.";
+    if (!editMode) {
+      closeEditRequestModal();
+      renderCancellationAction(currentDetailQueue || {}, currentDetailQueue?.status || "PENDING");
+      return;
+    }
+
+    if (editRequestQueueTitle) {
+      const queueCode = String(currentDetailQueue?.queue_code || "").trim();
+      editRequestQueueTitle.textContent = queueCode ? `Edit Request ${queueCode}` : "Edit Request";
+    }
+    if (editAdminMessage) {
+      editAdminMessage.textContent = String(currentDetailQueue?.send_back_message || "").trim() || "No admin message was provided.";
+    }
+    renderEditForm(currentDetailQueue || {});
+    openEditRequestModal();
+  }
+
+  function openEditRequestModal(){
+    if (!editRequestModal) return;
+    editRequestModal.classList.add("is-open");
+    editRequestModal.setAttribute("aria-hidden", "false");
+    document.removeEventListener("keydown", onModalKeydown);
+    document.addEventListener("keydown", onEditModalKeydown);
+    window.setTimeout(() => {
+      const firstField = statusEditFields?.querySelector("input, select, textarea");
+      (firstField || saveEditQueueBtn || editRequestDialog)?.focus?.({ preventScroll: true });
+    }, 0);
+  }
+
+  function closeEditRequestModal(){
+    if (!editRequestModal || !editRequestModal.classList.contains("is-open")) return;
+    editRequestModal.classList.remove("is-open");
+    editRequestModal.setAttribute("aria-hidden", "true");
+    document.removeEventListener("keydown", onEditModalKeydown);
+    if (detailModal?.classList.contains("is-open")) {
+      document.addEventListener("keydown", onModalKeydown);
+      editQueueBtn?.focus?.({ preventScroll: true });
     }
   }
 
@@ -2024,9 +2241,30 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
   }
 
+  function trapEditModalFocus(e){
+    if (!editRequestDialog || e.key !== "Tab") return;
+    const focusables = editRequestDialog.querySelectorAll('button, [href], textarea, input, select, [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+      return;
+    }
+
+    if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   function closeDetailModal(){
     if (!detailModal) return;
     editMode = false;
+    closeEditRequestModal();
     syncModalModeState();
     detailModal.classList.remove("is-open");
     detailModal.setAttribute("aria-hidden", "true");
@@ -2043,6 +2281,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return;
     }
     trapModalFocus(e);
+  }
+
+  function onEditModalKeydown(e){
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setEditMode(false);
+      return;
+    }
+    trapEditModalFocus(e);
   }
 
   function renderAttachedFiles(queueData){
@@ -2206,9 +2453,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       editQueueBtn.hidden = !allowed;
       editQueueBtn.disabled = false;
     }
-    if (saveEditQueueBtn) saveEditQueueBtn.hidden = true;
-    if (cancelEditQueueBtn) cancelEditQueueBtn.hidden = true;
-    if (statusEditSection) statusEditSection.hidden = true;
   }
 
   async function cancelCurrentPendingQueue(){
@@ -2408,6 +2652,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   [closeDetail, modalCloseBtn].forEach(btn => {
     if (btn) btn.addEventListener("click", closeDetailModal);
   });
+  closeEditRequest?.addEventListener("click", () => setEditMode(false));
   cancelPendingQueueBtn?.addEventListener("click", cancelCurrentPendingQueue);
   editQueueBtn?.addEventListener("click", () => {
     renderEditForm(currentDetailQueue || {});
@@ -2422,6 +2667,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   if (detailModal) {
     detailModal.addEventListener("click", (e) => {
       if (e.target === detailModal) closeDetailModal();
+    });
+  }
+
+  if (editRequestModal) {
+    editRequestModal.addEventListener("click", (e) => {
+      if (e.target === editRequestModal) setEditMode(false);
     });
   }
 
