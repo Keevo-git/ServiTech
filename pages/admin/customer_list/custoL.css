@@ -414,6 +414,174 @@
 .cl-msgStatus[data-tone="success"]{ color:#087443; }
 .cl-msgStatus[data-tone="pending"]{ color:#1f4a8a; }
 
+#customerMessageModal{
+  padding: 24px 16px;
+  overflow-x: hidden;
+}
+
+#customerMessageModal .cl-modalCard{
+  width: min(680px, 92vw);
+  max-height: 88vh;
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow: 0 26px 70px rgba(8, 31, 61, 0.28);
+}
+
+#customerMessageModal .cl-modalBody{
+  max-height: 88vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+#customerMessageModal .cl-modalHead{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+  padding-right: 0;
+}
+
+#customerMessageModal .cl-messageModalTitleBlock{
+  min-width: 0;
+}
+
+#customerMessageModal .cl-modalHead h3{
+  margin: 0;
+  color: #1e4f8f;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+#customerMessageModal .cl-modalHead .cl-modalX{
+  position: static !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px;
+  min-height: 42px;
+  margin: 0;
+  padding: 0 !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dbe5f3 !important;
+  background: #f8fbff;
+  color: #1e4f8f !important;
+  font-size: 22px !important;
+  line-height: 1;
+  font-weight: 700 !important;
+  cursor: pointer;
+  box-shadow: none;
+  flex: 0 0 42px;
+  transform: none;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+#customerMessageModal .cl-modalHead .cl-modalX:hover{
+  background: #fee2e2;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+  box-shadow: 0 10px 20px rgba(185, 28, 28, 0.12);
+  transform: none;
+}
+
+#customerMessageModal .cl-pill,
+#customerMessageModal .cl-pill--inline{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: #eaf2ff;
+  color: #174a86;
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.2;
+  margin-top: 12px;
+  margin-left: 0;
+}
+
+#customerMessageModal .cl-infoCard{
+  margin-top: 0;
+  border-radius: 18px;
+  padding: 22px;
+  background: #f8fbff;
+  border: 1px solid #d9e4f2;
+}
+
+#customerMessageModal .cl-section{
+  margin-top: 22px;
+}
+
+#customerMessageModal .cl-sectionTitle{
+  display: block;
+  margin: 0 0 10px;
+  color: #132b47;
+  font-weight: 800;
+}
+
+#customerMessageModal .cl-textarea{
+  min-height: 160px;
+  border-radius: 16px;
+  padding: 18px;
+  resize: vertical;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #f8fbff;
+  border: 1px solid #d9e4f2;
+}
+
+#customerMessageModal .modal-actions,
+#customerMessageModal .cl-actions{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+#customerMessageModal .modal-actions button,
+#customerMessageModal .cl-actions button{
+  width: 170px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+  box-sizing: border-box;
+}
+
+#customerMessageModal #customerMessageCancel{
+  background: #fff;
+  border: 1px solid #1e4f8f;
+  color: #1e4f8f;
+  box-shadow: none;
+}
+
+#customerMessageModal #customerMessageCancel:hover{
+  background: #f8fbff;
+  border-color: #174a86;
+}
+
+#customerMessageModal #customerMessageSend{
+  background: #1f4a8a;
+  border: 1px solid #1f4a8a;
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(31, 74, 138, 0.24);
+}
+
+#customerMessageModal #customerMessageSend:hover{
+  background: #173f78;
+  border-color: #173f78;
+}
+
 .cd-hero{
   display:flex;
   align-items:center;
@@ -750,6 +918,62 @@
   .cd-fileActions a{
     justify-content:center;
     display:inline-flex;
+  }
+}
+
+@media (max-width: 560px){
+  #customerMessageModal{
+    padding: 14px;
+  }
+
+  #customerMessageModal .cl-modalCard{
+    width: min(100%, 92vw);
+    max-height: 88vh;
+    border-radius: 20px;
+  }
+
+  #customerMessageModal .cl-modalBody{
+    max-height: 88vh;
+    padding: 22px;
+  }
+
+  #customerMessageModal .cl-modalHead{
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  #customerMessageModal .cl-modalHead h3{
+    font-size: 21px;
+  }
+
+  #customerMessageModal .cl-modalHead .cl-modalX{
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px;
+    min-height: 42px;
+    flex-basis: 42px;
+  }
+
+  #customerMessageModal .cl-infoCard{
+    padding: 20px;
+  }
+
+  #customerMessageModal .cl-textarea{
+    min-height: 150px;
+  }
+
+  #customerMessageModal .modal-actions,
+  #customerMessageModal .cl-actions{
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  #customerMessageModal .modal-actions button,
+  #customerMessageModal .cl-actions button{
+    width: 100%;
+    height: 48px;
+    margin-bottom: 0;
   }
 }
 

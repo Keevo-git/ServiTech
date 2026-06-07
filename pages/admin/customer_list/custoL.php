@@ -37,7 +37,7 @@ function customer_code_from_id(int $id): string {
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260607-customer-actions') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260607-message-modal-premium') ?>">
 </head>
 
 <body>
@@ -125,17 +125,17 @@ function customer_code_from_id(int $id): string {
   <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
   <div class="cl-modalOverlay" id="customerMessageModal" aria-hidden="true">
-    <div class="cl-modalCard" role="dialog" aria-modal="true" aria-labelledby="customerMessageTitle">
-      <div class="cl-modalBody">
-        <div class="cl-modalHead">
-          <div>
+    <div class="cl-modalCard cl-messageModalCard" role="dialog" aria-modal="true" aria-labelledby="customerMessageTitle">
+      <div class="cl-modalBody cl-messageModalBody">
+        <div class="cl-modalHead cl-messageModalHead">
+          <div class="cl-messageModalTitleBlock">
             <h3 id="customerMessageTitle">Message Customer</h3>
             <span class="cl-pill cl-pill--inline" id="messageCustomerCode">C-000</span>
           </div>
           <button class="cl-modalX" type="button" id="customerMessageClose" aria-label="Close">&times;</button>
         </div>
 
-        <div class="cl-infoCard">
+        <div class="cl-infoCard cl-messageInfoCard">
           <p class="cl-infoTitle">Customer</p>
           <div class="cl-infoGrid">
             <div>
@@ -149,13 +149,13 @@ function customer_code_from_id(int $id): string {
           </div>
         </div>
 
-        <div class="cl-section">
+        <div class="cl-section cl-messageSection">
           <label class="cl-sectionTitle" for="customerMessageText">Message</label>
           <textarea class="cl-textarea" id="customerMessageText" rows="6" placeholder="Type your message to this customer..."></textarea>
           <p class="cl-msgStatus" id="customerMessageStatus" aria-live="polite"></p>
         </div>
 
-        <div class="cl-actions">
+        <div class="cl-actions modal-actions cl-messageActions">
           <button class="cl-btn cl-btn--light" type="button" id="customerMessageCancel">Cancel</button>
           <button class="cl-btn cl-btn--maroon" type="button" id="customerMessageSend">Send Message</button>
         </div>
