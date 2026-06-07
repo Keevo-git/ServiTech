@@ -244,35 +244,95 @@ $csrfToken = servitech_csrf_token();
         body: `
           <section class="policy-section">
             <h3>Overview</h3>
-            <p>ServiTech respects and values the privacy of all users accessing the platform. This Privacy Policy explains how user information is collected, used, stored, and protected within the ServiTech system.</p>
+            <p>ServiTech respects user privacy and protects personal information handled by the system. This Privacy Policy explains what ServiTech collects, how the information is used, where it is stored, who can access it, and what rights users have.</p>
           </section>
           <section class="policy-section">
-            <h3>Information Collection</h3>
-            <p>ServiTech may collect personal information such as full name, email address, contact number, account credentials, uploaded files, queue transaction details, and service request information.</p>
+            <h3>Information Collected</h3>
+            <p>ServiTech collects and stores the following information:</p>
+            <ul>
+              <li>Account details: full name, email address, contact number, role, account creation date, and update date.</li>
+              <li>Authentication details: password hashes, Google account ID for Google sign-in, email verification tokens and timestamps, password reset tokens and expiry dates, consent date, and consent version.</li>
+              <li>Queue and service request details: queue code, service category, service label, order type, paper size, quantity, color option, package label, lamination type, device type, notes, uploaded file references, estimated total, price, paid amount, status, lifecycle stage, creation date, update date, and completion date.</li>
+              <li>Payment transaction details for online print orders: payment method, amount, GCash reference number for GCash payments, payment status, and payment record dates.</li>
+              <li>Uploaded file records: original file name, private storage key, file extension, MIME type, file size, SHA-256 checksum, upload token, linked queue, upload date, linked date, and deletion date.</li>
+              <li>Notification records: message, notification type, related queue or order reference, read status, deletion date, and creation date.</li>
+              <li>Login security records: hashed email and hashed IP-based login attempt records used for throttling failed login attempts.</li>
+              <li>Session and CSRF data: ServiTech uses the SERVITECHSESSID session cookie to keep users signed in and protect forms from unauthorized requests.</li>
+            </ul>
+          </section>
+          <section class="policy-section">
+            <h3>How Information is Collected</h3>
+            <p>ServiTech collects information through these current system flows:</p>
+            <ul>
+              <li>Registration, login, Google sign-in, email verification, password reset, and profile update forms.</li>
+              <li>Queue, service request, online print order, repair, installation, laminating, rush ID, and document printing forms.</li>
+              <li>File upload forms used for documents, images, presentations, and related service files.</li>
+              <li>Payment selection and GCash reference submission for online print orders.</li>
+              <li>Admin actions for queue status updates, cancellation reasons, price updates, paid amount updates, service management, announcements, and customer record viewing.</li>
+              <li>Automatic security checks for sessions, CSRF tokens, failed login throttling, notifications, and queue status history.</li>
+            </ul>
           </section>
           <section class="policy-section">
             <h3>Purpose of Data Usage</h3>
-            <p>Collected data is used solely for account registration, authentication, queue management, printing, repair, installation, laminating, rush ID services, customer communication, academic evaluation, and system improvement.</p>
+            <p>ServiTech uses this information for the following purposes:</p>
+            <ul>
+              <li>Create, verify, update, and secure user accounts.</li>
+              <li>Authenticate users through email/password login or Google sign-in.</li>
+              <li>Create queue numbers and manage service requests from submission to completion or cancellation.</li>
+              <li>Process printing, online print orders, repair, installation, laminating, rush ID, and related service requests.</li>
+              <li>Store uploaded files and make them available to the file owner and authorized administrators for service processing.</li>
+              <li>Record cash or GCash payment details, price, paid amount, and payment review information for online print orders.</li>
+              <li>Send customer and admin notifications about new requests, payment review, price updates, cancellations, and status changes.</li>
+              <li>Protect the system through CSRF checks, session controls, role-based access checks, and failed login throttling.</li>
+              <li>Support academic evaluation, demonstration, testing, reporting, and system improvement for the ServiTech capstone project.</li>
+            </ul>
+          </section>
+          <section class="policy-section">
+            <h3>Storage and Access</h3>
+            <p>ServiTech stores account, queue, payment, notification, upload metadata, login attempt, and status history records in the project database. Uploaded files are stored in the private upload storage directory using random storage keys. Passwords are stored as password hashes. Failed login throttling stores hashed email and hashed IP-based values instead of plain login-attempt identifiers.</p>
+            <p>Customers can access their own account, queue status, notifications, and uploaded files. Administrators can access customer records, queues, orders, payment details, uploaded files, notifications, service records, announcements, and status history needed to operate and evaluate the system. ServiTech does not sell user data.</p>
           </section>
           <section class="policy-section">
             <h3>Data Protection</h3>
-            <p>Uploaded files and documents are processed only for the requested transaction and are not intentionally shared with unauthorized individuals or third parties. ServiTech implements reasonable security measures to protect user information from unauthorized access, misuse, disclosure, or alteration.</p>
+            <p>ServiTech protects user data through these implemented controls:</p>
+            <ul>
+              <li>Role-based access for customers and administrators.</li>
+              <li>HTTP-only session cookies with SameSite=Lax.</li>
+              <li>CSRF tokens for protected form and API requests.</li>
+              <li>Password hashing for stored passwords.</li>
+              <li>Hashed login attempt records for failed login throttling.</li>
+              <li>Private upload storage, random file storage keys, upload tokens, checksum records, file type validation, size limits, and restricted file downloads.</li>
+              <li>Admin-only pages protected by login and role checks.</li>
+              <li>Status history records that show queue changes and admin notes.</li>
+            </ul>
+          </section>
+          <section class="policy-section">
+            <h3>Data Retention</h3>
+            <p>ServiTech keeps account records, queue records, payment records, linked upload records, notifications, and status history in the database for system operation, order history, academic checking, and project evaluation. Queue records are not permanently deleted through the admin delete endpoint; cancelled requests remain as order history. Customer-owned unlinked uploaded files are removed through the upload cleanup flow. Failed login attempt records older than one day are deleted during login throttling cleanup.</p>
+          </section>
+          <section class="policy-section">
+            <h3>User Rights</h3>
+            <p>Under the Philippine Data Privacy Act of 2012, users can exercise the following rights over their personal data:</p>
+            <ul>
+              <li>Access their personal data stored in ServiTech.</li>
+              <li>Request correction of inaccurate account or request information.</li>
+              <li>Request deletion of personal data that the project no longer needs for account records, order history, security, academic evaluation, or legal compliance.</li>
+              <li>Request a copy of their personal data.</li>
+              <li>Raise privacy questions, concerns, or complaints for review.</li>
+            </ul>
           </section>
           <section class="policy-section">
             <h3>Academic Purpose</h3>
-            <p>ServiTech is a student academic capstone project developed for educational, demonstration, and evaluation purposes. The platform is intended to simulate queueing and service management operations for learning and academic presentation.</p>
-          </section>
-          <section class="policy-section">
-            <h3>User Responsibility</h3>
-            <p>Users agree to provide accurate information and ensure that uploaded content complies with applicable laws, school regulations, and ethical standards.</p>
-          </section>
-          <section class="policy-section">
-            <h3>Policy Updates</h3>
-            <p>ServiTech reserves the right to update or modify this Privacy Policy whenever necessary to improve security, functionality, academic evaluation, and operational performance.</p>
+            <p>ServiTech is an academic capstone/project system. The system records and displays data needed for educational demonstration, testing, evaluation, and service management workflows.</p>
           </section>
           <section class="policy-section">
             <h3>Contact Information</h3>
-            <p>For concerns or inquiries regarding privacy and data usage, users may contact:<br><?= auth_contact_link_html() ?></p>
+            <p>The project owner must replace these contact details before publication:</p>
+            <ul>
+              <li>Support email: [Insert ServiTech support email]</li>
+              <li>School/business/project address: [Insert official address]</li>
+              <li>Official contact person: [Insert official contact person]</li>
+            </ul>
           </section>
         `
       },
@@ -281,47 +341,86 @@ $csrfToken = servitech_csrf_token();
         body: `
           <section class="policy-section">
             <h3>Overview</h3>
-            <p>By creating an account and using the ServiTech platform, users agree to comply with these Terms and Conditions.</p>
+            <p>By creating an account and using ServiTech, users agree to follow these Terms &amp; Conditions. Users who do not agree should not create an account or use the platform.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Service Description</h3>
+            <p>ServiTech provides account registration, login, customer queueing, online print order submission, uploaded file handling, service status tracking, notifications, payment detail recording, profile editing, and administrator management for printing, repair, installation, laminating, rush ID, and related services.</p>
           </section>
           <section class="policy-section">
             <h3>Academic Purpose</h3>
-            <p>ServiTech is a student academic capstone project developed for educational, demonstration, and evaluation purposes. The platform is intended to simulate queueing and service management operations for learning and academic presentation.</p>
+            <p>ServiTech is an academic capstone/project system developed for educational, demonstration, testing, and evaluation purposes. Users must use the system according to school, project, and service requirements.</p>
           </section>
           <section class="policy-section">
-            <h3>Account Responsibility</h3>
-            <p>Users are responsible for maintaining the confidentiality of their account credentials and for all activity made through their account.</p>
+            <h3>User Accounts</h3>
+            <p>Users create accounts using their full name, contact number, email address, password, and privacy consent. Users can also sign in with Google, which links the account to a Google ID and verified Google email. Users are responsible for keeping their login credentials secure and for activities made through their account.</p>
           </section>
           <section class="policy-section">
-            <h3>Accurate Information</h3>
-            <p>Users must provide complete, accurate, and updated information during registration and service transactions.</p>
+            <h3>Permitted Uses</h3>
+            <p>Users can use ServiTech for legitimate service-related purposes:</p>
+            <ul>
+              <li>Create and manage service requests.</li>
+              <li>Upload files required for requested services.</li>
+              <li>View queue, order, payment, and service status.</li>
+              <li>Receive notifications about requests, payment review, price updates, cancellations, and status changes.</li>
+              <li>Update their profile information and password.</li>
+              <li>Use the system for approved printing, repair, installation, laminating, rush ID, and related service workflows.</li>
+            </ul>
           </section>
           <section class="policy-section">
-            <h3>Proper Use of the Platform</h3>
-            <p>ServiTech may only be used for lawful and appropriate service requests related to printing, repair, installation, laminating, rush ID processing, and other related services.</p>
+            <h3>Prohibited Uses</h3>
+            <p>Users must not misuse ServiTech. Prohibited actions include:</p>
+            <ul>
+              <li>Submitting false, misleading, or incomplete information.</li>
+              <li>Uploading harmful, illegal, offensive, or copyrighted files without permission.</li>
+              <li>Uploading files that are not needed for the requested service.</li>
+              <li>Sharing, lending, or misusing another person's account.</li>
+              <li>Spamming requests, abusing forms, or overloading the system.</li>
+              <li>Attempting to bypass login, CSRF protection, role checks, file restrictions, or other security controls.</li>
+              <li>Accessing another user's account, queue, payment details, notifications, or uploaded files without authorization.</li>
+              <li>Using the system for illegal activities.</li>
+            </ul>
           </section>
           <section class="policy-section">
-            <h3>Uploaded Files and Content</h3>
-            <p>Users are solely responsible for all uploaded files, documents, and submitted content. Uploading illegal, harmful, offensive, or unauthorized materials is strictly prohibited.</p>
+            <h3>Requests, Status, and Cancellations</h3>
+            <p>ServiTech creates queue records for submitted service requests. Requests start as pending and move through the status flow managed by the system and administrators. Online print orders move from pending to approved, ongoing, for pick-up, and done. Other service requests move from pending to ongoing, for pick-up or done, and then finalized.</p>
+            <p>Customers can cancel only their own pending requests. A cancelled request becomes an order history record, its paid amount is reset to zero, and administrators receive a cancellation notification. Administrators can cancel requests through the status update flow and must provide a cancellation reason. Completed and cancelled records are finalized and cannot continue through the normal status flow.</p>
           </section>
           <section class="policy-section">
-            <h3>Queue and Service Processing</h3>
-            <p>Queue estimates, turnaround times, and service availability may vary depending on operational workload, testing conditions, and staff availability.</p>
+            <h3>Payments and Transaction Details</h3>
+            <p>For online print orders, ServiTech records the selected payment method, order amount, paid amount, and GCash reference number for GCash payments. ServiTech also supports cash selection. Administrators review payment details, update price and paid amount, and approve or continue processing the order through the admin status workflow. ServiTech records transaction details for tracking and review; it does not process payment through an external payment gateway.</p>
           </section>
           <section class="policy-section">
-            <h3>System Limitations</h3>
-            <p>As an academic project, ServiTech may experience temporary errors, maintenance periods, incomplete features, or technical limitations. Developers shall not be held liable for interruptions caused by technical issues beyond reasonable control.</p>
+            <h3>Uploaded Files and User Content</h3>
+            <p>Users are responsible for the files and content they upload. ServiTech accepts PDF, JPG, PNG, DOC, PPT, DOCX, and PPTX files up to 20MB per file through the current upload handler. Uploaded files are stored in private upload storage and are linked to the user's queue or order. ServiTech uses uploaded files only to review and process the requested service. Users must have the right to upload, print, use, or reproduce submitted files.</p>
           </section>
           <section class="policy-section">
-            <h3>User Conduct</h3>
-            <p>Users must not misuse the platform, attempt unauthorized access, interfere with system operations, or compromise platform security and functionality.</p>
+            <h3>Administrator Access and Actions</h3>
+            <p>Administrators can view registered customers, queues, orders, service details, payment details, uploaded files, notifications, status history, services, and announcements. Administrators can update request status, add cancellation notes, update prices and paid amounts, manage service listings, and manage announcements. Queue records cannot be permanently deleted through the admin delete endpoint; administrators must cancel the order instead.</p>
           </section>
           <section class="policy-section">
-            <h3>Modification of Services</h3>
-            <p>ServiTech reserves the right to modify, improve, suspend, or update system features, workflows, and services whenever necessary for academic evaluation, operational improvement, and security purposes.</p>
+            <h3>Intellectual Property</h3>
+            <p>The ServiTech name, system design, logo, source code, documentation, and related project materials belong to the project owners or developers. Users must not copy, modify, redistribute, or reuse the system without permission.</p>
           </section>
           <section class="policy-section">
-            <h3>Agreement and Acceptance</h3>
-            <p>By continuing to use the platform, users acknowledge that they have read, understood, and agreed to the ServiTech Data Privacy Policy and Terms & Conditions.</p>
+            <h3>Service Availability</h3>
+            <p>ServiTech is a capstone/project system and depends on its hosting, database, PHP runtime, file storage, internet connection, and configured services. The system does not guarantee uninterrupted access, instant processing, or error-free operation.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Misuse and Account Restrictions</h3>
+            <p>ServiTech restricts access by customer and admin roles. Accounts and requests can be restricted, cancelled, or blocked from normal processing when users submit harmful content, misuse the system, violate these terms, or compromise system security.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Limitation of Responsibility</h3>
+            <p>Users are responsible for the accuracy of their account details, service request details, payment reference details, and uploaded files. ServiTech is not responsible for problems caused by user-submitted incorrect information, unauthorized account sharing, unsupported files, internet connection problems, device problems, or misuse of the system.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Changes to Terms</h3>
+            <p>The project owners can update these Terms &amp; Conditions to match changes in the ServiTech system, school requirements, academic evaluation, or service workflow. Users should review the current terms shown in the account policy modal.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Philippine Law and School Rules</h3>
+            <p>Users must follow applicable Philippine laws, the Philippine Data Privacy Act of 2012, school rules, project requirements, and service policies while using ServiTech.</p>
           </section>
         `
       }
