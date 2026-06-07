@@ -5,6 +5,7 @@
   var MOBILE_BREAKPOINT = 900;
   var activeLogoutModal = null;
   var previousFocus = null;
+  var scrollLockState = null;
 
   function isCompactViewport() {
     return window.matchMedia("(max-width: " + MOBILE_BREAKPOINT + "px)").matches;
@@ -112,6 +113,7 @@
 
     document.removeEventListener("keydown", handleLogoutModalKeydown);
     document.body.classList.remove("logout-confirm-open");
+    restoreLogoutScrollLock();
     activeLogoutModal.remove();
     activeLogoutModal = null;
 
@@ -119,6 +121,29 @@
       previousFocus.focus({ preventScroll: true });
     }
     previousFocus = null;
+  }
+
+  function applyLogoutScrollLock() {
+    if (scrollLockState) return;
+
+    var body = document.body;
+    var scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+
+    scrollLockState = {
+      paddingRight: body.style.paddingRight
+    };
+
+    if (scrollbarWidth > 0) {
+      var currentPadding = parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+      body.style.paddingRight = (currentPadding + scrollbarWidth) + "px";
+    }
+  }
+
+  function restoreLogoutScrollLock() {
+    if (!scrollLockState) return;
+
+    document.body.style.paddingRight = scrollLockState.paddingRight;
+    scrollLockState = null;
   }
 
   function handleLogoutModalKeydown(event) {
@@ -220,6 +245,7 @@
     });
 
     document.body.appendChild(overlay);
+    applyLogoutScrollLock();
     document.body.classList.add("logout-confirm-open");
     activeLogoutModal = overlay;
     document.addEventListener("keydown", handleLogoutModalKeydown);

@@ -4,6 +4,7 @@
 
   var activeModal = null;
   var previousFocus = null;
+  var scrollLockState = null;
 
   function isAdminLogoutLink(link) {
     if (!link || !link.href) return false;
@@ -48,6 +49,7 @@
 
     document.removeEventListener("keydown", handleKeydown);
     document.body.classList.remove("admin-logout-confirm-open");
+    restoreScrollLock();
     activeModal.remove();
     activeModal = null;
 
@@ -55,6 +57,29 @@
       previousFocus.focus({ preventScroll: true });
     }
     previousFocus = null;
+  }
+
+  function applyScrollLock() {
+    if (scrollLockState) return;
+
+    var body = document.body;
+    var scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+
+    scrollLockState = {
+      paddingRight: body.style.paddingRight
+    };
+
+    if (scrollbarWidth > 0) {
+      var currentPadding = parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+      body.style.paddingRight = (currentPadding + scrollbarWidth) + "px";
+    }
+  }
+
+  function restoreScrollLock() {
+    if (!scrollLockState) return;
+
+    document.body.style.paddingRight = scrollLockState.paddingRight;
+    scrollLockState = null;
   }
 
   function handleKeydown(event) {
@@ -116,6 +141,7 @@
     });
 
     document.body.appendChild(overlay);
+    applyScrollLock();
     document.body.classList.add("admin-logout-confirm-open");
     activeModal = overlay;
     document.addEventListener("keydown", handleKeydown);
