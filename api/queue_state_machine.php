@@ -145,7 +145,7 @@ function servitech_send_queue_back_to_customer(PDO $pdo, int $queueId, int $admi
   try {
     servitech_ensure_queue_lifecycle_schema($pdo);
     $stmt = $pdo->prepare("
-      SELECT id, user_id, queue_code, category, status, lifecycle_stage
+      SELECT id, user_id, queue_code, category, status, lifecycle_stage, customer_edit_required
       FROM queues
       WHERE id = :id
       LIMIT 1
@@ -158,6 +158,9 @@ function servitech_send_queue_back_to_customer(PDO $pdo, int $queueId, int $admi
     $currentStatus = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
     if (!servitech_queue_is_customer_editable_status($currentStatus)) {
       throw new DomainException("Only Pending or Approved records can be sent back for customer editing.");
+    }
+    if (!empty($queue["customer_edit_required"])) {
+      throw new DomainException("This record is already waiting for customer edits.");
     }
 
     $update = $pdo->prepare("
@@ -274,10 +277,15 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     }
 
     $payment = servitech_queue_payment_values($queue);
+    $clearCustomerEdit = servitech_queue_is_customer_editable_status($newStatus) ? 0 : 1;
     $update = $pdo->prepare("
       UPDATE queues
       SET status = :status,
           lifecycle_stage = :lifecycle_stage,
+          customer_edit_required = CASE WHEN :clear_customer_edit = 1 THEN FALSE ELSE customer_edit_required END,
+          send_back_message = CASE WHEN :clear_customer_edit = 1 THEN '' ELSE send_back_message END,
+          send_back_at = CASE WHEN :clear_customer_edit = 1 THEN NULL ELSE send_back_at END,
+          send_back_by = CASE WHEN :clear_customer_edit = 1 THEN NULL ELSE send_back_by END,
           completed_at = CASE WHEN :completed_status = 'DONE' THEN COALESCE(completed_at, NOW()) ELSE completed_at END,
           price = CASE
             WHEN :sync_payment = 1 THEN COALESCE(price, :resolved_price_for_price)
@@ -294,6 +302,7 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     $update->execute([
       ":status" => $newStatus,
       ":lifecycle_stage" => $lifecycleStage,
+      ":clear_customer_edit" => $clearCustomerEdit,
       ":completed_status" => $newStatus,
       ":sync_payment" => in_array($newStatus, ["DONE", "CANCELLED"], true) ? 1 : 0,
       ":resolved_price_for_price" => $payment["price"],

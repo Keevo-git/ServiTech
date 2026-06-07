@@ -412,20 +412,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function canSendBack(queue) {
     const status = normalizeStatus(queue?.status || currentStatus);
-    return Boolean(queue?.id) && (status === "PENDING" || status === "APPROVED");
+    return Boolean(queue?.id) && !queue?.customerEditRequired && (status === "PENDING" || status === "APPROVED");
   }
 
   function syncSendBackButton() {
     if (!sendBackBtn) return;
     const allowed = canSendBack(currentQueue);
     sendBackBtn.disabled = sendBackInProgress || !allowed;
-    sendBackBtn.title = allowed ? "" : "Only Pending or Approved records can be sent back for customer editing.";
+    sendBackBtn.title = allowed
+      ? ""
+      : (currentQueue?.customerEditRequired
+        ? "This record is already waiting for customer edits."
+        : "Only Pending or Approved records can be sent back for customer editing.");
   }
 
   function openSendBackModal() {
-    if (sendBackBtn) sendBackBtn.disabled = false;
     if (!sendBackOverlay || !sendBackModal || !currentQueue?.id || !canSendBack(currentQueue)) {
-      showStatusError("Only Pending or Approved records can be sent back for customer editing.");
+      showStatusError(currentQueue?.customerEditRequired
+        ? "This record is already waiting for customer edits."
+        : "Only Pending or Approved records can be sent back for customer editing.");
+      syncSendBackButton();
       return;
     }
     if (sendBackMessageEl) sendBackMessageEl.value = "";

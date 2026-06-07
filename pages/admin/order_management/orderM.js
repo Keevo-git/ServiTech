@@ -182,14 +182,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function canSendBack(order) {
     const status = normalizeStatus(order?.status || "PENDING");
-    return Boolean(order?.id) && (status === "PENDING" || status === "APPROVED");
+    return Boolean(order?.id) && !order?.customerEditRequired && (status === "PENDING" || status === "APPROVED");
   }
 
   function syncSendBackButton() {
     if (!sendBackBtn) return;
     const allowed = canSendBack(currentOrder);
     sendBackBtn.disabled = sendBackInProgress || !allowed;
-    sendBackBtn.title = allowed ? "" : "Only Pending or Approved records can be sent back for customer editing.";
+    sendBackBtn.title = allowed
+      ? ""
+      : (currentOrder?.customerEditRequired
+        ? "This order is already waiting for customer edits."
+        : "Only Pending or Approved records can be sent back for customer editing.");
   }
 
   function lockPageScroll() {
@@ -367,9 +371,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function openSendBackModal() {
-    if (sendBackBtn) sendBackBtn.disabled = false;
     if (!sendBackOverlay || !sendBackModal || !currentOrder?.id || !canSendBack(currentOrder)) {
-      showError("Only Pending or Approved records can be sent back for customer editing.");
+      showError(currentOrder?.customerEditRequired
+        ? "This order is already waiting for customer edits."
+        : "Only Pending or Approved records can be sent back for customer editing.");
+      syncSendBackButton();
       return;
     }
     if (sendBackMessageEl) sendBackMessageEl.value = "";
