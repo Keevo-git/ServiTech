@@ -1231,6 +1231,13 @@ body.modal-open {
   margin-top: 4px;
 }
 
+.order-modal-action-stack > .order-modal-actions,
+.order-modal-action-stack > .order-modal-update,
+.order-modal-action-stack > .order-modal-message {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
 .order-modal-action-stack .om-btn {
   margin-bottom: 0;
 }
@@ -1263,7 +1270,6 @@ body.modal-open {
 }
 
 .order-modal-update {
-  width: 100%;
   justify-self: stretch;
   margin-top: 0;
 }
@@ -1346,7 +1352,6 @@ body.modal-open {
 }
 
 .order-modal-message {
-  width: 100%;
   justify-self: stretch;
   margin-top: 0;
   border: 1px solid #214f91;
