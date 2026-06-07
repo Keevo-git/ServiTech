@@ -842,6 +842,12 @@ body.logout-confirm-open {
   overflow-y: scroll;
 }
 
+html.logout-confirm-open,
+html.logout-confirm-open body {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 .logout-confirm-overlay {
   position: fixed;
   inset: 0;
