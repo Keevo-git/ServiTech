@@ -216,6 +216,21 @@ function admin_notifications_cleanup_duplicates(PDO $pdo): void
 
     try {
         $pdo->exec("
+            UPDATE notifications n
+            SET deleted_at = NOW()
+            FROM queues q
+            WHERE q.id = n.reference_id
+              AND n.deleted_at IS NULL
+              AND LOWER(TRIM(COALESCE(n.type, 'queue'))) = 'admin_stalled'
+              AND UPPER(TRIM(COALESCE(q.status, ''))) IN ('FOR PICK-UP', 'FOR PICK UP', 'DONE', 'COMPLETED', 'CANCELLED', 'CANCELED')
+              AND n.user_id IN (
+                  SELECT id
+                  FROM users
+                  WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+              )
+        ");
+
+        $pdo->exec("
             WITH ranked_admin_notifications AS (
                 SELECT
                     n.id,
@@ -286,7 +301,9 @@ function admin_notifications_sync_stalled(PDO $pdo): void
                 q.status,
                 q.details::text AS details,
                 GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)) AS last_action_at,
-                FLOOR(EXTRACT(EPOCH FROM (NOW() - GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)))) / 86400)::int AS waiting_days
+                FLOOR(EXTRACT(EPOCH FROM (NOW() - GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)))) / 86400)::int AS waiting_days,
+                FLOOR(EXTRACT(EPOCH FROM (NOW() - GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)))) / (86400 * 14))::int AS reminder_cycle,
+                last_stalled_notification.last_reminded_at
             FROM queues q
             LEFT JOIN LATERAL (
                 SELECT MAX(h.created_at) AS last_action_at
@@ -294,8 +311,24 @@ function admin_notifications_sync_stalled(PDO $pdo): void
                 WHERE h.queue_id = q.id
                   AND h.admin_id IS NOT NULL
             ) last_admin_action ON TRUE
-            WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) IN ('PENDING', 'APPROVED', 'ONGOING', 'FOR PICK-UP', 'FOR PICK UP')
-              AND GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)) <= NOW() - INTERVAL '3 days'
+            LEFT JOIN LATERAL (
+                SELECT MAX(n.created_at) AS last_reminded_at
+                FROM notifications n
+                WHERE n.reference_id = q.id
+                  AND n.deleted_at IS NULL
+                  AND LOWER(TRIM(COALESCE(n.type, 'queue'))) = 'admin_stalled'
+                  AND n.user_id IN (
+                      SELECT id
+                      FROM users
+                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                  )
+            ) last_stalled_notification ON TRUE
+            WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) IN ('PENDING', 'APPROVED', 'ONGOING')
+              AND GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)) <= NOW() - INTERVAL '14 days'
+              AND (
+                  last_stalled_notification.last_reminded_at IS NULL
+                  OR last_stalled_notification.last_reminded_at <= NOW() - INTERVAL '14 days'
+              )
             ORDER BY GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)) ASC
             LIMIT 100
         ");
@@ -305,7 +338,8 @@ function admin_notifications_sync_stalled(PDO $pdo): void
             $queueCode = trim((string)($queue["queue_code"] ?? ""));
             $status = strtoupper(trim((string)($queue["status"] ?? "PENDING")));
             $lastAction = trim((string)($queue["last_action_at"] ?? ""));
-            $waitingDays = max(3, (int)($queue["waiting_days"] ?? 3));
+            $waitingDays = max(14, (int)($queue["waiting_days"] ?? 14));
+            $reminderCycle = max(1, (int)($queue["reminder_cycle"] ?? 1));
             $service = admin_notification_service_label($queue);
             $eventStamp = strtotime($lastAction);
             $eventVersion = $eventStamp === false ? sha1($lastAction) : date("YmdHis", $eventStamp);
@@ -319,7 +353,7 @@ function admin_notifications_sync_stalled(PDO $pdo): void
                 "admin_stalled",
                 $queueId,
                 "Queue {$queueCode}: Order/request has been waiting {$waitingDays} days without admin action. Service: {$service}. Status: {$status}.",
-                "admin_stalled:{$queueId}:{$status}:{$eventVersion}",
+                "admin_stalled:{$queueId}:{$status}:{$eventVersion}:cycle:{$reminderCycle}",
                 true
             );
         }
