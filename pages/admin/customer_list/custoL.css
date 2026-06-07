@@ -433,6 +433,13 @@
   overflow-x: hidden;
   padding: 32px;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#customerMessageModal .cl-modalBody::-webkit-scrollbar{
+  width: 0;
+  height: 0;
 }
 
 #customerMessageModal .cl-modalHead{
@@ -472,13 +479,23 @@
   background: #f8fbff;
   color: #1e4f8f !important;
   font-size: 22px !important;
-  line-height: 1;
+  line-height: 1 !important;
   font-weight: 700 !important;
   cursor: pointer;
   box-shadow: none;
   flex: 0 0 42px;
   transform: none;
   transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+#customerMessageModal .cl-modalHead .cl-modalX span{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
+  transform: translateY(-1px);
 }
 
 #customerMessageModal .cl-modalHead .cl-modalX:hover{

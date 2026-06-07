@@ -132,7 +132,7 @@ function customer_code_from_id(int $id): string {
             <h3 id="customerMessageTitle">Message Customer</h3>
             <span class="cl-pill cl-pill--inline" id="messageCustomerCode">C-000</span>
           </div>
-          <button class="cl-modalX" type="button" id="customerMessageClose" aria-label="Close">&times;</button>
+          <button class="cl-modalX" type="button" id="customerMessageClose" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
 
         <div class="cl-infoCard cl-messageInfoCard">
