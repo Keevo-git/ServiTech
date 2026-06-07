@@ -1170,14 +1170,17 @@ td.actions button.btn-message:hover {
 
 .queue-details-action-stack {
   display: grid;
-  gap: 8px;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .queue-details-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 4px;
+  margin: 0;
 }
 
 .queue-details-action {
@@ -1202,6 +1205,7 @@ td.actions button.btn-message:hover {
 
 .queue-details-update {
   width: 100%;
+  justify-self: stretch;
   margin-top: 0;
 }
 
@@ -1329,6 +1333,7 @@ td.actions button.btn-message:hover {
 
 .queue-details-message {
   width: 100%;
+  justify-self: stretch;
   margin-top: 0;
   border: 1px solid #214f91;
   border-radius: 10px;
@@ -1348,6 +1353,9 @@ td.actions button.btn-message:hover {
 .queue-details-update,
 .queue-details-message {
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 46px;
 }
 
