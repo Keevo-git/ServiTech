@@ -70,8 +70,9 @@
         <div class="queue-details-actions">
           <button class="queue-details-action queue-details-action--light" type="button" id="queueDetailsCancel">Cancel</button>
           <button class="queue-details-action queue-details-action--secondary" type="button" id="queueDetailsSendBack">Send Back</button>
-          <button class="queue-details-action queue-details-action--primary" type="button" id="queueDetailsUpdate" disabled>Update</button>
         </div>
+
+        <button class="queue-details-action queue-details-action--primary queue-details-update" type="button" id="queueDetailsUpdate" disabled>Update</button>
 
         <button
           class="btn-message queue-details-message"

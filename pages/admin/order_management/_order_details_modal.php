@@ -69,8 +69,9 @@
         <div class="order-modal-actions">
           <button class="om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
           <button class="om-btn om-btn--secondary" type="button" id="omSendBack">Send Back</button>
-          <button class="om-btn om-btn--primary" type="button" id="omSave">Update</button>
         </div>
+
+        <button class="om-btn om-btn--primary order-modal-update" type="button" id="omSave">Update</button>
 
         <button
           class="btn-message order-modal-message"

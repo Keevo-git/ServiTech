@@ -1225,7 +1225,7 @@ body.modal-open {
 
 .order-modal-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 4px;
 }
@@ -1248,6 +1248,11 @@ body.modal-open {
 .om-btn--secondary {
   background: #214f91;
   color: #fff;
+}
+
+.order-modal-update {
+  width: 100%;
+  margin-top: 12px;
 }
 
 .order-sendback-overlay {
@@ -1329,7 +1334,7 @@ body.modal-open {
 
 .order-modal-message {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 10px;
   border: 1px solid #214f91;
   border-radius: 10px;
   background: #214f91;
@@ -1337,6 +1342,12 @@ body.modal-open {
   padding: 12px 14px;
   font-weight: 800;
   cursor: pointer;
+}
+
+.order-modal-update,
+.order-modal-message {
+  box-sizing: border-box;
+  min-height: 46px;
 }
 
 @media (min-width: 1024px) {
