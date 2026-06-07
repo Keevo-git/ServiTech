@@ -619,7 +619,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260604-form-state"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260607-locked-files"></script>
 </body>
 </html>
 

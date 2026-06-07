@@ -39,6 +39,41 @@ function servitech_upload_ooxml_has_prefix(string $path, string $prefix): bool {
   return false;
 }
 
+function servitech_upload_read_accessible_contents(string $path): string {
+  if (!is_file($path) || !is_readable($path)) {
+    throw new DomainException("is locked or unreadable. Please remove file protection and try again.");
+  }
+
+  $contents = @file_get_contents($path);
+  if (!is_string($contents)) {
+    throw new DomainException("is locked or unreadable. Please remove file protection and try again.");
+  }
+
+  return $contents;
+}
+
+function servitech_upload_pdf_is_encrypted(string $contents): bool {
+  return preg_match('/\/Encrypt\s+(?:\d+\s+\d+\s+R|<<)/i', $contents) === 1;
+}
+
+function servitech_upload_office_is_encrypted(string $contents): bool {
+  $normalized = str_replace("\0", "", $contents);
+  return stripos($normalized, "EncryptedPackage") !== false
+    || stripos($normalized, "EncryptionInfo") !== false;
+}
+
+function servitech_upload_assert_unlocked(string $path, string $extension): void {
+  $contents = servitech_upload_read_accessible_contents($path);
+
+  if ($extension === "pdf" && servitech_upload_pdf_is_encrypted($contents)) {
+    throw new DomainException("is password-protected. Please upload an unlocked PDF.");
+  }
+
+  if (in_array($extension, ["doc", "docx", "ppt", "pptx"], true) && servitech_upload_office_is_encrypted($contents)) {
+    throw new DomainException("is locked or protected. Please remove file protection and try again.");
+  }
+}
+
 function servitech_upload_validate_type(string $path, string $originalName): array {
   if (!class_exists("finfo")) {
     throw new RuntimeException("PHP fileinfo extension is required for secure uploads.");
@@ -58,9 +93,14 @@ function servitech_upload_validate_type(string $path, string $originalName): arr
     "pptx" => ["application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/zip"],
   ];
 
+  if (in_array($extension, ["docx", "pptx"], true) && in_array($mime, ["application/cdfv2", "application/x-ole-storage", "application/vnd.ms-office"], true)) {
+    servitech_upload_assert_unlocked($path, $extension);
+  }
+
   if (!isset($allowed[$extension]) || !in_array($mime, $allowed[$extension], true)) {
     throw new DomainException("has invalid file content.");
   }
+  servitech_upload_assert_unlocked($path, $extension);
   if ($extension === "docx" && !servitech_upload_ooxml_has_prefix($path, "word/")) {
     throw new DomainException("is not a valid DOCX document.");
   }

@@ -50,6 +50,52 @@
       return [(file.name || "").toLowerCase(), String(file.size || 0), String(file.lastModified || 0)].join("|");
     }
 
+    function arrayBufferToBinaryString(buffer) {
+      var bytes = new Uint8Array(buffer);
+      var chunks = [];
+      var chunkSize = 0x8000;
+      for (var i = 0; i < bytes.length; i += chunkSize) {
+        chunks.push(String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize)));
+      }
+      return chunks.join("");
+    }
+
+    function hasPdfEncryptionMarker(buffer) {
+      return /\/Encrypt\s+(?:\d+\s+\d+\s+R|<<)/i.test(arrayBufferToBinaryString(buffer));
+    }
+
+    function hasOfficeEncryptionMarker(buffer) {
+      var text = arrayBufferToBinaryString(buffer).replace(/\0/g, "");
+      return text.indexOf("EncryptedPackage") !== -1 || text.indexOf("EncryptionInfo") !== -1;
+    }
+
+    async function validateUnlockedFile(file, ext) {
+      try {
+        if (ext === "pdf") {
+          var pdfBuffer = await file.arrayBuffer();
+          if (hasPdfEncryptionMarker(pdfBuffer)) {
+            return file.name + " is password-protected. Please upload an unlocked PDF.";
+          }
+          return "";
+        }
+
+        if (ext === "doc" || ext === "docx" || ext === "ppt" || ext === "pptx") {
+          var officeSlice = file.slice(0, Math.min(file.size || 0, 1024 * 1024));
+          var officeBuffer = await officeSlice.arrayBuffer();
+          if (hasOfficeEncryptionMarker(officeBuffer)) {
+            return file.name + " is locked or protected. Please remove file protection and try again.";
+          }
+          return "";
+        }
+
+        var readableSlice = file.slice(0, Math.min(file.size || 0, 4096));
+        await readableSlice.arrayBuffer();
+        return "";
+      } catch (err) {
+        return file.name + " is locked or unreadable. Please remove file protection and try again.";
+      }
+    }
+
     function currentSignature() {
       return selectedFiles.map(fileKey).sort().join("::");
     }
@@ -103,39 +149,58 @@
       }
     }
 
-    function addFiles(incoming) {
+    async function addFiles(incoming) {
       var errors = [];
       var seen = {};
+      var acceptedFiles = [];
 
       selectedFiles.forEach(function (file) {
         seen[fileKey(file)] = true;
       });
 
-      Array.from(incoming || []).forEach(function (file) {
+      var incomingFiles = Array.from(incoming || []);
+      if (incomingFiles.length && fileUploadStatus) {
+        fileUploadStatus.textContent = "Checking selected files...";
+      }
+
+      for (var i = 0; i < incomingFiles.length; i++) {
+        var file = incomingFiles[i];
         var ext = getExt(file.name);
         var key = fileKey(file);
 
         if (!allowedExt[ext]) {
           errors.push(file.name + " has unsupported file type.");
-          return;
+          continue;
         }
 
         if ((file.size || 0) > maxFileSize) {
           errors.push(file.name + " exceeds 20MB limit.");
-          return;
+          continue;
         }
 
         if (seen[key]) {
           errors.push(file.name + " is already selected.");
-          return;
+          continue;
+        }
+
+        var lockedError = await validateUnlockedFile(file, ext);
+        if (lockedError) {
+          errors.push(lockedError);
+          continue;
         }
 
         seen[key] = true;
+        acceptedFiles.push(file);
+      }
+
+      acceptedFiles.forEach(function (file) {
         selectedFiles.push(file);
       });
 
       uploadedSignature = "";
-      uploadedFiles = [];
+      if (acceptedFiles.length) {
+        uploadedFiles = [];
+      }
       syncFileInput();
       renderList();
       setFeedback(errors.join(" "), errors.length ? "error" : "success");

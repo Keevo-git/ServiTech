@@ -298,7 +298,7 @@ function rush_price(array $pricing, string $key): string {
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/rush_id_upload.js?v=20260602-toast-only"></script>
+<script src="/assets/js/rush_id_upload.js?v=20260607-locked-files"></script>
 <script src="/assets/js/main.js?v=20260604-form-state"></script>
 
 </body>

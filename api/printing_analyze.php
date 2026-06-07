@@ -313,6 +313,7 @@ $total_images = 0;
 $total_pages = 0;
 $unsupported = [];
 $uploadErrors = [];
+$validationErrors = [];
 
 if (!empty($uploadedFiles)) {
   foreach ($uploadedFiles as $file) {
@@ -337,6 +338,9 @@ if (!empty($uploadedFiles)) {
 
     try {
       $type = servitech_upload_validate_type($tmp, $name);
+    } catch (DomainException $e) {
+      $validationErrors[] = $name . " " . $e->getMessage();
+      continue;
     } catch (Throwable $e) {
       $unsupported[] = $name;
       continue;
@@ -398,6 +402,14 @@ if (!empty($uploadErrors)) {
     "ok" => false,
     "error" => "Some files failed to upload properly.",
     "upload_errors" => $uploadErrors,
+  ], 422);
+}
+
+if (!empty($validationErrors)) {
+  printing_json_exit([
+    "ok" => false,
+    "error" => implode(" ", $validationErrors),
+    "validation_errors" => $validationErrors,
   ], 422);
 }
 
