@@ -423,6 +423,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function openSendBackModal() {
+    if (sendBackBtn) sendBackBtn.disabled = false;
     if (!sendBackOverlay || !sendBackModal || !currentQueue?.id || !canSendBack(currentQueue)) {
       showStatusError("Only Pending or Approved records can be sent back for customer editing.");
       return;
@@ -595,12 +596,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("queueDetailsClose")?.addEventListener("click", closeDetails);
   document.getElementById("queueDetailsCancel")?.addEventListener("click", closeDetails);
-  document.getElementById("queueDetailsSendBack")?.addEventListener("click", openSendBackModal);
   document.getElementById("queueSendBackClose")?.addEventListener("click", closeSendBackModal);
   document.getElementById("queueSendBackCancel")?.addEventListener("click", closeSendBackModal);
   sendBackOverlay?.addEventListener("click", closeSendBackModal);
   sendBackSubmitBtn?.addEventListener("click", submitSendBack);
   sendBackMessageEl?.addEventListener("input", () => showSendBackError(""));
+  document.addEventListener("click", (event) => {
+    if (event.target?.closest?.("#queueDetailsSendBack")) {
+      event.preventDefault();
+      event.stopPropagation();
+      openSendBackModal();
+    }
+  });
   messageBtn?.addEventListener("click", closeDetails);
   overlay?.addEventListener("click", closeDetails);
   statusEl?.addEventListener("change", () => {

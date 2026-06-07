@@ -367,6 +367,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function openSendBackModal() {
+    if (sendBackBtn) sendBackBtn.disabled = false;
     if (!sendBackOverlay || !sendBackModal || !currentOrder?.id || !canSendBack(currentOrder)) {
       showError("Only Pending or Approved records can be sent back for customer editing.");
       return;
@@ -663,12 +664,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("orderModalClose")?.addEventListener("click", closeModal);
   document.getElementById("omCancel")?.addEventListener("click", closeModal);
-  document.getElementById("omSendBack")?.addEventListener("click", openSendBackModal);
   document.getElementById("orderSendBackClose")?.addEventListener("click", closeSendBackModal);
   document.getElementById("orderSendBackCancel")?.addEventListener("click", closeSendBackModal);
   sendBackOverlay?.addEventListener("click", closeSendBackModal);
   sendBackSubmitBtn?.addEventListener("click", submitSendBack);
   sendBackMessageEl?.addEventListener("input", () => showSendBackError(""));
+  document.addEventListener("click", (event) => {
+    if (event.target?.closest?.("#omSendBack")) {
+      event.preventDefault();
+      event.stopPropagation();
+      openSendBackModal();
+    }
+  });
   overlay?.addEventListener("click", closeModal);
   statusEl?.addEventListener("change", () => {
     if (statusEl.value === "CANCELLED") {
