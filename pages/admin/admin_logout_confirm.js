@@ -4,6 +4,8 @@
 
   var activeModal = null;
   var previousFocus = null;
+  var lockedScrollX = 0;
+  var lockedScrollY = 0;
 
   function isAdminLogoutLink(link) {
     if (!link || !link.href) return false;
@@ -21,9 +23,6 @@
     var style = document.createElement("style");
     style.id = "servitech-admin-logout-confirm-styles";
     style.textContent = [
-      "body.admin-logout-confirm-open{overflow-y:scroll!important;}",
-      "html.admin-logout-confirm-open{overflow-y:scroll!important;scrollbar-gutter:stable!important;}",
-      "html.admin-logout-confirm-open body{overflow-y:scroll!important;scrollbar-gutter:stable!important;}",
       ".admin-logout-confirm-overlay{position:fixed!important;inset:0!important;z-index:2147483200!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(16px,4vw,32px)!important;background:rgba(8,21,39,.66)!important;}",
       ".admin-logout-confirm-modal{box-sizing:border-box!important;width:min(100%,420px)!important;max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;padding:clamp(22px,4vw,30px)!important;border:1px solid rgba(26,63,115,.18)!important;border-radius:18px!important;background:#fff!important;color:#112338!important;box-shadow:0 26px 74px rgba(10,27,49,.42)!important;text-align:left!important;font-family:inherit!important;}",
       ".admin-logout-confirm-modal__header{margin-bottom:10px!important;}",
@@ -49,6 +48,7 @@
     if (!activeModal) return;
 
     document.removeEventListener("keydown", handleKeydown);
+    unlockBackgroundScroll();
     document.documentElement.classList.remove("admin-logout-confirm-open");
     document.body.classList.remove("admin-logout-confirm-open");
     activeModal.remove();
@@ -60,6 +60,21 @@
     previousFocus = null;
   }
 
+  function lockBackgroundScroll() {
+    lockedScrollX = window.scrollX || document.documentElement.scrollLeft || 0;
+    lockedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
+    document.addEventListener("wheel", preventBackgroundScroll, { passive: false, capture: true });
+    document.addEventListener("touchmove", preventBackgroundScroll, { passive: false, capture: true });
+    window.addEventListener("scroll", keepScrollPosition, { passive: true });
+  }
+
+  function unlockBackgroundScroll() {
+    document.removeEventListener("wheel", preventBackgroundScroll, true);
+    document.removeEventListener("touchmove", preventBackgroundScroll, true);
+    window.removeEventListener("scroll", keepScrollPosition);
+  }
+
   function handleKeydown(event) {
     if (!activeModal) return;
 
@@ -67,6 +82,15 @@
       event.preventDefault();
       closeModal();
       return;
+    }
+
+    if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].indexOf(event.key) !== -1) {
+      var isInsideModal = activeModal.querySelector(".admin-logout-confirm-modal")?.contains(event.target);
+      if (!isInsideModal || event.target === document.body) {
+        event.preventDefault();
+        keepScrollPosition();
+        return;
+      }
     }
 
     if (event.key !== "Tab") return;
@@ -86,6 +110,20 @@
       event.preventDefault();
       first.focus();
     }
+  }
+
+  function preventBackgroundScroll(event) {
+    var modal = activeModal ? activeModal.querySelector(".admin-logout-confirm-modal") : null;
+    if (!modal || !modal.contains(event.target)) {
+      event.preventDefault();
+      keepScrollPosition();
+    }
+  }
+
+  function keepScrollPosition() {
+    if (!activeModal) return;
+    if (window.scrollX === lockedScrollX && window.scrollY === lockedScrollY) return;
+    window.scrollTo(lockedScrollX, lockedScrollY);
   }
 
   function openModal(link) {
@@ -119,6 +157,7 @@
     });
 
     document.body.appendChild(overlay);
+    lockBackgroundScroll();
     document.documentElement.classList.add("admin-logout-confirm-open");
     document.body.classList.add("admin-logout-confirm-open");
     activeModal = overlay;

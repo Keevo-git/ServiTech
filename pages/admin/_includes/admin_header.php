@@ -20,7 +20,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 <script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <script src="<?= admin_url('/assets/js/header-menu.js?v=20260607-logout-confirm-scrollbar') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260607-admin-logout-confirm-scrollbar') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260607-admin-logout-confirm-no-layout-lock') ?>" defer></script>
 <header class="navbar has-nav-menu">
   <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
     <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
