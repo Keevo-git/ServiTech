@@ -245,10 +245,10 @@ function rush_price(array $pricing, string $key): string {
         <h3 class="step-title">3. UPLOAD FILES</h3>
 
         <div class="printing-field">
-          <label for="fileUpload">Upload your photo/document</label>
-          <input type="file" id="fileUpload" class="form-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" multiple>
+          <label for="fileUpload">Upload your photo</label>
+          <input type="file" id="fileUpload" class="form-file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple>
           <p id="fileUploadStatus" class="file-upload-status" aria-live="polite"></p>
-          <p class="file-note">Accepted formats: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG</p>
+          <p class="file-note">Accepted formats: JPG, JPEG, PNG</p>
         </div>
 
         <div class="file-note" id="fileAnalysisPanel">
@@ -298,7 +298,7 @@ function rush_price(array $pricing, string $key): string {
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/rush_id_upload.js?v=20260607-locked-files"></script>
+<script src="/assets/js/rush_id_upload.js?v=20260607-photo-only"></script>
 <script src="/assets/js/main.js?v=20260604-form-state"></script>
 
 </body>

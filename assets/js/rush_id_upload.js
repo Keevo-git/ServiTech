@@ -27,15 +27,12 @@
     if (!fileUpload || !fileListEl || !fileMetaEl) return;
 
     var allowedExt = {
-      pdf: true,
-      doc: true,
-      docx: true,
-      ppt: true,
-      pptx: true,
       jpg: true,
       jpeg: true,
       png: true
     };
+    var rushIdFileTypeMessage = "Rush ID only accepts JPG, JPEG, and PNG photo files.";
+    var rushIdWebpMessage = "Rush ID only accepts JPG, JPEG, and PNG photo files. WEBP files are not allowed.";
     var maxFileSize = 20 * 1024 * 1024;
     var selectedFiles = [];
     var uploadedSignature = "";
@@ -168,8 +165,13 @@
         var ext = getExt(file.name);
         var key = fileKey(file);
 
+        if (ext === "webp") {
+          errors.push(rushIdWebpMessage);
+          continue;
+        }
+
         if (!allowedExt[ext]) {
-          errors.push(file.name + " has unsupported file type.");
+          errors.push(rushIdFileTypeMessage);
           continue;
         }
 
@@ -217,6 +219,7 @@
       }
 
       var formData = new FormData();
+      formData.append("upload_context", "rush_id");
       selectedFiles.forEach(function (file) {
         formData.append("files[]", file, file.name);
       });

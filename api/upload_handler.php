@@ -26,6 +26,8 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
 }
 
 $maxBytes = 20 * 1024 * 1024;
+$uploadContext = strtolower(trim((string)($_POST["upload_context"] ?? "")));
+$isRushIdUpload = $uploadContext === "rush_id";
 
 function upload_json_exit(array $payload, int $status = 200): void {
   http_response_code($status);
@@ -98,7 +100,15 @@ foreach ($files as $file) {
   }
 
   try {
+    if ($isRushIdUpload) {
+      servitech_upload_assert_rush_id_photo_extension(servitech_upload_extension($original));
+    }
+
     $type = servitech_upload_validate_type($tmp, $original);
+    if ($isRushIdUpload) {
+      servitech_upload_assert_rush_id_photo_extension($type["extension"]);
+    }
+
     $checksum = hash_file("sha256", $tmp);
     if (!is_string($checksum) || !preg_match('/^[a-f0-9]{64}$/', $checksum)) {
       throw new RuntimeException("Unable to calculate file checksum.");
@@ -134,7 +144,11 @@ foreach ($files as $file) {
 
     $uploaded[] = servitech_upload_public_metadata((array)$insert->fetch(PDO::FETCH_ASSOC));
   } catch (DomainException $e) {
-    $errors[] = $original . " " . $e->getMessage();
+    $message = $e->getMessage();
+    if ($isRushIdUpload && $message === "has invalid file content.") {
+      $message = "is not a valid JPG, JPEG, or PNG photo.";
+    }
+    $errors[] = $original . " " . $message;
   } catch (Throwable $e) {
     error_log("upload_handler error: " . $e->getMessage());
     $errors[] = $original . " could not be saved.";

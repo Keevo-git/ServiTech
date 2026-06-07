@@ -111,6 +111,25 @@ function servitech_upload_validate_type(string $path, string $originalName): arr
   return ["extension" => $extension, "mime_type" => $mime];
 }
 
+function servitech_upload_assert_rush_id_photo_extension(string $extension): void {
+  $extension = strtolower(trim($extension));
+  if ($extension === "webp") {
+    throw new DomainException("Rush ID only accepts JPG, JPEG, and PNG photo files. WEBP files are not allowed.");
+  }
+  if (!in_array($extension, ["jpg", "jpeg", "png"], true)) {
+    throw new DomainException("Rush ID only accepts photo files in JPG, JPEG, or PNG format.");
+  }
+}
+
+function servitech_upload_assert_rush_id_uploaded_files(array $uploadedFiles): void {
+  foreach ($uploadedFiles as $file) {
+    if (!is_array($file)) {
+      throw new DomainException("An uploaded file is invalid. Please upload it again.");
+    }
+    servitech_upload_assert_rush_id_photo_extension((string)($file["file_type"] ?? ""));
+  }
+}
+
 function servitech_upload_token_from_metadata(array $file): string {
   $token = strtolower(trim((string)($file["upload_token"] ?? "")));
   if (!preg_match('/^[a-f0-9]{64}$/', $token)) {

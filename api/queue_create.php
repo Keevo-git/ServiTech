@@ -39,6 +39,8 @@ if ($service_label === "") {
   echo json_encode(["ok" => false, "error" => "Service label required"]);
   exit();
 }
+$normalizedServiceLabel = strtolower((string)preg_replace('/\s+/', ' ', $service_label));
+$isRushIdQueue = $normalizedServiceLabel === "rush id";
 
 $allowedCategories = ["printing", "online_printorder", "repair", "installation", "walkin", "general"];
 if (!in_array($category, $allowedCategories, true)) {
@@ -123,10 +125,18 @@ foreach ($details as $key => $value) {
 
 try {
   $pdo->beginTransaction();
+  if ($isRushIdQueue && empty($details["uploaded_files"])) {
+    throw new DomainException("Upload at least one JPG, JPEG, or PNG photo for Rush ID.");
+  }
+
   if (!empty($details["uploaded_files"]) && is_array($details["uploaded_files"])) {
+    $resolvedUploadedFiles = servitech_upload_resolve_owned_metadata($pdo, $user_id, $details["uploaded_files"]);
+    if ($isRushIdQueue) {
+      servitech_upload_assert_rush_id_uploaded_files($resolvedUploadedFiles);
+    }
     $details = servitech_upload_apply_metadata_to_details(
       $details,
-      servitech_upload_resolve_owned_metadata($pdo, $user_id, $details["uploaded_files"])
+      $resolvedUploadedFiles
     );
   }
   $details = servitech_pricing_apply($pdo, $category, $details);
