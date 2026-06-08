@@ -25,6 +25,16 @@ function cd_format_date($value): string {
   }
 }
 
+function cd_filter_date($value): string {
+  $value = trim((string)$value);
+  if ($value === "") return "";
+  try {
+    return (new DateTimeImmutable($value))->setTimezone(new DateTimeZone("Asia/Manila"))->format("Y-m-d");
+  } catch (Throwable $exception) {
+    return "";
+  }
+}
+
 function cd_money($value): string {
   if (!is_numeric($value)) return "PHP 0.00";
   return "PHP " . number_format((float)$value, 2);
@@ -72,6 +82,24 @@ function cd_payment_method(array $row): string {
     "gcash" => "GCash",
     "cash" => "Cash",
     default => $method !== "" ? ucwords($method) : "-",
+  };
+}
+
+function cd_filter_payment_method(array $row): string {
+  $method = strtolower(cd_payment_method($row));
+  return in_array($method, ["cash", "gcash"], true) ? $method : "";
+}
+
+function cd_filter_status(array $row): string {
+  $status = strtolower(trim((string)($row["status"] ?? "")));
+  $status = str_replace([" ", "-"], "_", $status);
+
+  return match ($status) {
+    "ongoing", "in_progress", "processing" => "ongoing",
+    "for_pickup", "for_pick_up", "pickup", "ready_for_pickup", "ready_for_pick_up" => "for-pickup",
+    "done", "completed", "complete" => "done",
+    "cancelled", "canceled" => "cancelled",
+    default => "pending",
   };
 }
 
@@ -170,7 +198,7 @@ if ($customer) {
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260607-customer-actions') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260608-history-filters') ?>">
 </head>
 <body>
   <?php
@@ -256,6 +284,33 @@ if ($customer) {
             <?php if (!$history): ?>
               <div class="cd-noHistory">No queue or order history yet.</div>
             <?php else: ?>
+              <div class="cd-historyFilters" data-history-filters>
+                <div class="cd-filterField">
+                  <label for="historyFilterDate">Queued Date</label>
+                  <input id="historyFilterDate" type="date" data-history-date>
+                </div>
+                <div class="cd-filterField">
+                  <label for="historyFilterStatus">Status</label>
+                  <select id="historyFilterStatus" data-history-status>
+                    <option value="">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="for-pickup">For Pick-up</option>
+                    <option value="done">Done</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div class="cd-filterField">
+                  <label for="historyFilterPayment">Mode of Payment</label>
+                  <select id="historyFilterPayment" data-history-payment>
+                    <option value="">All payment modes</option>
+                    <option value="cash">Cash</option>
+                    <option value="gcash">GCash</option>
+                  </select>
+                </div>
+                <button class="cl-btn cl-btn--light cd-clearFilters" type="button" data-history-clear>Clear Filters</button>
+              </div>
+
               <div class="cd-historyList">
                 <?php $fileAnchorRendered = false; ?>
                 <?php foreach ($history as $row): ?>
@@ -266,7 +321,13 @@ if ($customer) {
                     $details = cd_details_array($row["details"] ?? null);
                     if ($reference === "") $reference = trim((string)($details["reference_number"] ?? ""));
                   ?>
-                  <article class="cd-historyItem">
+                  <article
+                    class="cd-historyItem"
+                    data-history-item
+                    data-history-date="<?= cd_esc(cd_filter_date($row["created_at"] ?? "")) ?>"
+                    data-history-status="<?= cd_esc(cd_filter_status($row)) ?>"
+                    data-history-payment="<?= cd_esc(cd_filter_payment_method($row)) ?>"
+                  >
                     <div class="cd-historyTop">
                       <div>
                         <span class="cl-idPill"><?= cd_esc($row["queue_code"] ?: ("Order #" . $row["id"])) ?></span>
@@ -321,6 +382,7 @@ if ($customer) {
                   </article>
                 <?php endforeach; ?>
               </div>
+              <div class="cd-noHistory cd-filterEmpty" data-history-empty hidden>No order or queue history matches the selected filters.</div>
             <?php endif; ?>
           </section>
         <?php endif; ?>
@@ -421,6 +483,46 @@ if ($customer) {
           sendBtn.disabled = false;
         }
       });
+
+      const historyFilters = document.querySelector('[data-history-filters]');
+      if (historyFilters) {
+        const dateInput = historyFilters.querySelector('[data-history-date]');
+        const statusSelect = historyFilters.querySelector('[data-history-status]');
+        const paymentSelect = historyFilters.querySelector('[data-history-payment]');
+        const clearFilters = historyFilters.querySelector('[data-history-clear]');
+        const historyItems = Array.from(document.querySelectorAll('[data-history-item]'));
+        const emptyState = document.querySelector('[data-history-empty]');
+
+        function applyHistoryFilters() {
+          const selectedDate = dateInput?.value || '';
+          const selectedStatus = statusSelect?.value || '';
+          const selectedPayment = paymentSelect?.value || '';
+          let visibleCount = 0;
+
+          historyItems.forEach(item => {
+            const matchesDate = !selectedDate || item.dataset.historyDate === selectedDate;
+            const matchesStatus = !selectedStatus || item.dataset.historyStatus === selectedStatus;
+            const matchesPayment = !selectedPayment || item.dataset.historyPayment === selectedPayment;
+            const shouldShow = matchesDate && matchesStatus && matchesPayment;
+            item.hidden = !shouldShow;
+            if (shouldShow) visibleCount++;
+          });
+
+          if (emptyState) emptyState.hidden = visibleCount !== 0;
+        }
+
+        [dateInput, statusSelect, paymentSelect].forEach(control => {
+          control?.addEventListener('input', applyHistoryFilters);
+          control?.addEventListener('change', applyHistoryFilters);
+        });
+
+        clearFilters?.addEventListener('click', () => {
+          if (dateInput) dateInput.value = '';
+          if (statusSelect) statusSelect.value = '';
+          if (paymentSelect) paymentSelect.value = '';
+          applyHistoryFilters();
+        });
+      }
     </script>
   <?php endif; ?>
   <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
