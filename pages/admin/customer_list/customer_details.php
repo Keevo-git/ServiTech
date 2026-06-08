@@ -246,6 +246,240 @@ if ($customer) {
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260608-history-table') ?>">
+  <style>
+    .cd-historyFilters{
+      display:grid;
+      grid-template-columns:minmax(190px,1fr) minmax(220px,1.12fr) minmax(240px,1.18fr) auto;
+      align-items:end;
+      gap:16px;
+      margin:0 0 18px;
+      padding:16px;
+      background:#f5f8fc;
+      border:1px solid #d9e4f2;
+      border-radius:16px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+    }
+    .cd-filterField{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+    .cd-filterField label{
+      color:#52677f;
+      font-size:13px;
+      font-weight:800;
+    }
+    .cd-filterField input,
+    .cd-filterField select{
+      width:100%;
+      height:48px;
+      border:1px solid #cbd8e7;
+      border-radius:12px;
+      background:#fff;
+      color:#112338;
+      padding:0 14px;
+      font-size:14px;
+      font-weight:600;
+      outline:none;
+      box-sizing:border-box;
+      box-shadow:0 8px 18px rgba(19,45,75,.05);
+    }
+    .cd-filterField input:focus,
+    .cd-filterField select:focus{
+      border-color:#1f4a8a;
+      box-shadow:0 0 0 3px rgba(31,74,138,.12);
+    }
+    .cd-clearFilters{
+      height:48px;
+      min-width:142px;
+      border-radius:12px;
+      border-color:#c4d2e2;
+      color:#1d334f;
+    }
+    .cd-historyTableWrap{
+      width:100%;
+      max-width:100%;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      border:1px solid #dbe5f1;
+      border-radius:16px;
+      background:#fff;
+    }
+    .cd-historyTable{
+      width:100%;
+      min-width:1120px;
+      border-collapse:separate;
+      border-spacing:0;
+    }
+    .cd-historyTable th{
+      background:#edf3fb;
+      color:#1e3f69;
+      padding:14px 12px;
+      text-align:left;
+      font-size:12px;
+      font-weight:800;
+      border-bottom:1px solid #dbe5f1;
+      white-space:nowrap;
+    }
+    .cd-historyTable td{
+      padding:14px 12px;
+      border-bottom:1px solid #e6ecf4;
+      background:#fff;
+      color:#112338;
+      font-size:13px;
+      font-weight:650;
+      vertical-align:middle;
+    }
+    .cd-historyTable tbody tr:last-child td{ border-bottom:none; }
+    .cd-historyTable tbody tr:hover td{ background:#f8fbff; }
+    .cd-serviceName{
+      display:block;
+      min-width:170px;
+      max-width:260px;
+      color:#112338;
+      font-size:14px;
+      line-height:1.3;
+      font-weight:800;
+      overflow-wrap:anywhere;
+    }
+    .cd-fileChip,
+    .cd-mutedText{
+      display:inline-flex;
+      align-items:center;
+      white-space:nowrap;
+      font-size:12px;
+      font-weight:800;
+    }
+    .cd-fileChip{
+      justify-content:center;
+      border-radius:999px;
+      padding:7px 10px;
+      background:#eef6ff;
+      border:1px solid #cfe0f4;
+      color:#1f4a8a;
+    }
+    .cd-mutedText{ color:#5e6f85; }
+    .cd-rowActions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:nowrap;
+    }
+    .cd-rowBtn{
+      min-height:36px;
+      padding:8px 12px;
+      border-radius:10px;
+      white-space:nowrap;
+      font-size:12px;
+    }
+    .cd-statusBadge{
+      border:1px solid transparent;
+    }
+    .cd-status--pending{
+      background:#fff7e6;
+      color:#a15c00;
+      border-color:#f6d99a;
+    }
+    .cd-status--ongoing{
+      background:#e8f1ff;
+      color:#1f4a8a;
+      border-color:#c8dcf6;
+    }
+    .cd-status--for-pickup{
+      background:#f2ecff;
+      color:#6d3bbd;
+      border-color:#d9c7ff;
+    }
+    .cd-status--done{
+      background:#e9f8ef;
+      color:#0f7a3a;
+      border-color:#bfe8cc;
+    }
+    .cd-status--cancelled{
+      background:#feecec;
+      color:#b42318;
+      border-color:#f9c7c7;
+    }
+    .cd-filterEmpty[hidden]{ display:none; }
+    .cd-detailOverlay{ overflow-x:hidden; }
+    .cd-detailModal{
+      width:min(760px, calc(100vw - 32px));
+      max-height:88vh;
+      overflow:hidden;
+    }
+    .cd-detailModal .cl-modalBody{
+      max-height:88vh;
+      overflow-y:auto;
+      overflow-x:hidden;
+    }
+    .cd-detailGrid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+    }
+    .cd-detailGrid > div,
+    .cd-detailSection{
+      background:#f8fbff;
+      border:1px solid #dbe5f1;
+      border-radius:14px;
+      padding:14px;
+      min-width:0;
+    }
+    .cd-detailGrid small{
+      display:block;
+      margin-bottom:6px;
+      color:#5e6f85;
+      font-size:12px;
+      font-weight:800;
+    }
+    .cd-detailGrid strong{
+      color:#112338;
+      font-size:14px;
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+    .cd-detailSection{
+      margin-top:14px;
+    }
+    .cd-detailSection h4{
+      margin:0 0 10px;
+      color:#1f4a8a;
+    }
+    .cd-detailSection p{
+      margin:0;
+      color:#112338;
+      font-weight:650;
+      line-height:1.5;
+      overflow-wrap:anywhere;
+    }
+    .cd-detailFiles{
+      display:grid;
+      gap:10px;
+    }
+    @media (max-width:900px){
+      .cd-historyFilters{
+        grid-template-columns:1fr;
+        gap:12px;
+      }
+      .cd-clearFilters{
+        width:100%;
+      }
+      .cd-detailGrid{
+        grid-template-columns:1fr;
+      }
+    }
+    @media (max-width:560px){
+      .cd-rowActions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .cd-rowBtn{
+        width:100%;
+        margin-bottom:0;
+      }
+    }
+  </style>
 </head>
 <body>
   <?php
@@ -366,7 +600,7 @@ if ($customer) {
                       <th>Service</th>
                       <th>Date Submitted</th>
                       <th>Status</th>
-                      <th>Mode of Payment</th>
+                      <th>Payment Method</th>
                       <th>Total Amount</th>
                       <th>Payment Status</th>
                       <th>Files</th>
@@ -397,10 +631,7 @@ if ($customer) {
                   >
                     <td><span class="cl-idPill"><?= cd_esc($row["queue_code"] ?: ("Order #" . $row["id"])) ?></span></td>
                     <td>
-                      <span class="cd-serviceStack">
-                        <strong><?= cd_esc(cd_service_type($row)) ?></strong>
-                        <small><?= cd_esc(cd_category_label((string)$row["category"])) ?></small>
-                      </span>
+                      <span class="cd-serviceName"><?= cd_esc(cd_service_type($row)) ?></span>
                     </td>
                     <td><?= cd_esc(cd_format_date($row["created_at"] ?? "")) ?></td>
                     <td><span class="cd-statusBadge <?= cd_esc(cd_status_class($row)) ?>"><?= cd_esc(cd_status_label($row)) ?></span></td>
