@@ -194,7 +194,7 @@ try {
 
   <script src="/assets/js/csrf.js"></script>
   <script src="/assets/js/main.js?v=20260524repair-icon-align"></script>
-  <script src="/assets/js/header-menu.js?v=20260607-logout-confirm" defer></script>
+  <script src="/assets/js/header-menu.js?v=20260608-logout-confirm-global" defer></script>
 </body>
 </html>
 

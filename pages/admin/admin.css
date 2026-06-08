@@ -841,18 +841,23 @@ main{ flex:1; }
 .logout-confirm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9000;
+  z-index: 2147483000;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100vw;
+  height: 100dvh;
   padding: clamp(16px, 4vw, 32px);
   background: rgba(8, 21, 39, 0.64);
+  overflow: hidden;
 }
 
 .logout-confirm-modal {
+  box-sizing: border-box;
   width: min(100%, 420px);
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: clamp(22px, 4vw, 30px);
   border: 1px solid rgba(26, 63, 115, 0.18);
   border-radius: 18px;
