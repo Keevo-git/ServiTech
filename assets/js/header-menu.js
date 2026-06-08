@@ -51,6 +51,7 @@
     toggle.setAttribute("aria-controls", menu.id);
 
     toggle.addEventListener("click", function (event) {
+      if (event.__servitechHeaderMenuHandled) return;
       event.__servitechHeaderMenuHandled = true;
       setMenuExpanded(container, !container.classList.contains("is-menu-open"));
     });
