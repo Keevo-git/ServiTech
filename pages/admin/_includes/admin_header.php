@@ -21,7 +21,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-logout-confirm-global') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260608-admin-logout-confirm-global') ?>" defer></script>
-<header class="navbar has-nav-menu">
+<header class="navbar has-nav-menu admin-shared-header">
   <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
     <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
     <h1>ServiTech Admin</h1>

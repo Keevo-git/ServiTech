@@ -388,7 +388,7 @@ $notificationRoutes = [
     "fallback" => servitech_url("/pages/customer/custo_service_status.php"),
 ];
 ?>
-<header class="navbar has-nav-menu navbar--notifications">
+<header class="navbar has-nav-menu navbar--notifications customer-shared-header">
   <a href="/index.php" class="logo">
     <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech</h1>
@@ -1236,6 +1236,164 @@ $notificationRoutes = [
 
     .notification-action-btn {
       flex: 1 1 calc(50% - 5px);
+    }
+  }
+
+  /* Responsive QA pass: shared customer header/top navigation */
+  .customer-shared-header {
+    position: relative;
+    z-index: 2200;
+    overflow: visible;
+  }
+
+  .customer-shared-header .logo,
+  .customer-shared-header .header-utility,
+  .customer-shared-header nav[data-collapsible-menu] {
+    min-width: 0;
+  }
+
+  .customer-shared-header .logo h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .customer-shared-header nav[data-collapsible-menu] a {
+    flex: 0 0 auto;
+  }
+
+  @media (min-width: 901px) {
+    .customer-shared-header {
+      flex-wrap: nowrap;
+    }
+
+    .customer-shared-header nav[data-collapsible-menu] {
+      display: flex !important;
+      width: auto;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: nowrap;
+      overflow: visible;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .customer-shared-header {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      grid-template-areas:
+        "brand utility"
+        "menu menu" !important;
+      align-items: center !important;
+      gap: 10px 12px !important;
+      overflow: visible;
+    }
+
+    .customer-shared-header .logo {
+      grid-area: brand !important;
+      width: auto !important;
+      min-width: 0 !important;
+    }
+
+    .customer-shared-header .header-utility {
+      grid-area: utility !important;
+      display: inline-flex !important;
+      width: auto !important;
+      max-width: 100%;
+      justify-self: end !important;
+      align-items: center !important;
+      gap: 8px;
+    }
+
+    .customer-shared-header .header-utility .nav-toggle {
+      display: inline-flex !important;
+      flex: 0 0 42px;
+      margin: 0 !important;
+      z-index: 2;
+    }
+
+    .customer-shared-header nav[data-collapsible-menu] {
+      grid-area: menu !important;
+      display: none !important;
+      width: 100% !important;
+      max-width: 100%;
+      margin: 0 !important;
+      padding: 10px !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      justify-content: flex-start !important;
+      gap: 10px !important;
+      overflow: visible;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .customer-shared-header.is-menu-open nav[data-collapsible-menu] {
+      display: flex !important;
+    }
+
+    .customer-shared-header nav[data-collapsible-menu] a,
+    .customer-shared-header nav[data-collapsible-menu] a:visited {
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 46px;
+      margin: 0 !important;
+      align-items: center;
+      justify-content: center;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .customer-shared-header {
+      padding-inline: 14px !important;
+      gap: 9px 10px !important;
+    }
+
+    .customer-shared-header .servitech-logo {
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    .customer-shared-header .logo h1 {
+      font-size: 1.08rem !important;
+    }
+
+    .customer-shared-header .header-utility {
+      gap: 6px;
+    }
+
+    .customer-shared-header .notification-btn,
+    .customer-shared-header .header-utility .nav-toggle {
+      width: 40px !important;
+      min-width: 40px !important;
+      height: 40px !important;
+      min-height: 40px !important;
+    }
+
+    .customer-shared-header .header-utility__link,
+    .customer-shared-header .header-utility__link:visited {
+      min-height: 40px;
+      padding-inline: 12px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .customer-shared-header {
+      padding-inline: 12px !important;
+    }
+
+    .customer-shared-header .logo h1 {
+      max-width: 118px;
+    }
+
+    .customer-shared-header .header-utility__link,
+    .customer-shared-header .header-utility__link:visited {
+      padding-inline: 10px;
     }
   }
 </style>
