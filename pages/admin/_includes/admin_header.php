@@ -22,19 +22,75 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 <script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-controller') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260608-admin-logout-confirm-global') ?>" defer></script>
 <style>
+  .admin-shared-header .logo {
+    order: 1;
+  }
+
+  .admin-shared-header nav[data-collapsible-menu] {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .admin-shared-header .admin-header-actions {
+    order: 3;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .admin-shared-header .admin-header-actions .admin-notification-btn,
+  .admin-shared-header .admin-header-actions .admin-notification-btn:visited {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 46px;
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    min-height: 46px;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    text-decoration: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 8px 18px rgba(10, 27, 49, 0.22);
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+  }
+
+  .admin-shared-header .admin-header-actions .admin-notification-btn:hover {
+    border-color: rgba(255, 255, 255, 0.68);
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+  }
+
+  .admin-shared-header .admin-header-actions .admin-notification-btn:focus-visible {
+    outline: 2px solid rgba(198, 235, 255, 0.94);
+    outline-offset: 2px;
+  }
+
   @media (max-width: 900px) {
     .admin-shared-header {
       position: relative !important;
       z-index: 2200 !important;
       display: grid !important;
       grid-template-columns: minmax(0, 1fr) auto !important;
+      grid-template-areas:
+        "brand actions"
+        "menu menu" !important;
       align-items: center !important;
       gap: 10px 12px !important;
       overflow: visible !important;
     }
 
     .admin-shared-header .logo {
-      grid-column: 1 !important;
+      grid-area: brand !important;
       min-width: 0 !important;
       width: auto !important;
     }
@@ -45,17 +101,30 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       white-space: nowrap !important;
     }
 
-    .admin-shared-header .nav-toggle {
-      grid-column: 2 !important;
+    .admin-shared-header .admin-header-actions {
+      grid-area: actions !important;
       display: inline-flex !important;
       justify-self: end !important;
+      gap: 8px !important;
+    }
+
+    .admin-shared-header .admin-header-actions .admin-notification-btn,
+    .admin-shared-header .admin-header-actions .admin-notification-btn:visited,
+    .admin-shared-header .nav-toggle {
+      display: inline-flex !important;
       align-self: center !important;
+      flex: 0 0 42px !important;
+      width: 42px !important;
+      min-width: 42px !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      margin: 0 !important;
       pointer-events: auto !important;
       z-index: 2 !important;
     }
 
     .admin-shared-header nav[data-collapsible-menu] {
-      grid-column: 1 / -1 !important;
+      grid-area: menu !important;
       display: none !important;
       width: 100% !important;
       max-width: 100% !important;
@@ -94,13 +163,40 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       overflow-wrap: anywhere !important;
     }
 
-    .admin-shared-header nav[data-collapsible-menu] a.admin-notification-btn,
-    .admin-shared-header nav[data-collapsible-menu] a.admin-notification-btn:visited {
-      align-self: stretch !important;
-      width: 100% !important;
-      min-width: 0 !important;
-      height: 46px !important;
-      min-height: 46px !important;
+    .admin-shared-header .admin-header-actions .admin-notification-badge {
+      top: -6px !important;
+      right: -7px !important;
+      min-width: 23px;
+      height: 23px;
+      padding-inline: 5px;
+      font-size: 12px;
+      line-height: 23px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .admin-shared-header {
+      column-gap: 8px !important;
+    }
+
+    .admin-shared-header .admin-header-actions {
+      gap: 6px !important;
+    }
+
+    .admin-shared-header .admin-header-actions .admin-notification-btn,
+    .admin-shared-header .admin-header-actions .admin-notification-btn:visited,
+    .admin-shared-header .nav-toggle {
+      flex-basis: 40px !important;
+      width: 40px !important;
+      min-width: 40px !important;
+      height: 40px !important;
+      min-height: 40px !important;
+      border-radius: 11px !important;
+    }
+
+    .admin-shared-header .admin-notification-icon {
+      width: 24px;
+      height: 24px;
     }
   }
 </style>
@@ -109,24 +205,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
     <h1>ServiTech Admin</h1>
   </a>
-  <button
-    class="nav-toggle"
-    type="button"
-    aria-label="Toggle navigation menu"
-    aria-expanded="false"
-    aria-controls="<?= htmlspecialchars($adminHeaderMenuId, ENT_QUOTES, 'UTF-8') ?>"
-  >
-    <span class="nav-toggle__bar"></span>
-    <span class="nav-toggle__bar"></span>
-    <span class="nav-toggle__bar"></span>
-  </button>
-  <nav id="<?= htmlspecialchars($adminHeaderMenuId, ENT_QUOTES, 'UTF-8') ?>" data-collapsible-menu>
-    <?php if ($adminHeaderShowHome): ?>
-      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
-    <?php endif; ?>
-    <?php if ($adminHeaderShowServices): ?>
-      <a href="<?= admin_url('/index.php') ?>">Services</a>
-    <?php endif; ?>
+  <div class="admin-header-actions">
     <a
       href="<?= admin_queue_notification_link() ?>"
       class="admin-notification-btn"
@@ -146,6 +225,25 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
         <span class="admin-notification-badge"><?= $adminNotificationCount ?></span>
       <?php endif; ?>
     </a>
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="<?= htmlspecialchars($adminHeaderMenuId, ENT_QUOTES, 'UTF-8') ?>"
+    >
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+      <span class="nav-toggle__bar"></span>
+    </button>
+  </div>
+  <nav id="<?= htmlspecialchars($adminHeaderMenuId, ENT_QUOTES, 'UTF-8') ?>" data-collapsible-menu>
+    <?php if ($adminHeaderShowHome): ?>
+      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
+    <?php endif; ?>
+    <?php if ($adminHeaderShowServices): ?>
+      <a href="<?= admin_url('/index.php') ?>">Services</a>
+    <?php endif; ?>
     <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="admin-logout-link">Logout</a>
   </nav>
 </header>
