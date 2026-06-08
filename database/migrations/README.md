@@ -1,6 +1,21 @@
 # Database Migrations
 
-Run migration files in filename order for a fresh PostgreSQL database.
+## Supabase Auth rewrite
+
+`20260608_rewrite_supabase_schema.sql` is the new full Supabase Auth-based
+foundation. It is a destructive reset/rebuild script for the public ServiTech
+tables and should be run only on a fresh Supabase project or after an approved
+data export/migration.
+
+Do not run the legacy incremental migrations before this rewrite script. The
+rewrite intentionally replaces the old custom-auth `users`, `queues`,
+`payments`, `uploads`, and related tables with normalized Auth-linked tables,
+RLS policies, helper functions, and seed data.
+
+## Legacy migration path
+
+The older files below are kept only for maintaining pre-rewrite databases.
+Run them in filename order for the legacy schema.
 
 For an existing ServiTech database:
 
