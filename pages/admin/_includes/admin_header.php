@@ -19,7 +19,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260602-admin-toast') ?>">
 <script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-toggle-2') ?>" defer></script>
+<script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-controller') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260608-admin-logout-confirm-global') ?>" defer></script>
 <style>
   @media (max-width: 900px) {
@@ -151,56 +151,100 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 </header>
 <script>
   (function () {
-    var header = document.currentScript.previousElementSibling;
-    if (!header || !header.classList || !header.classList.contains("admin-shared-header")) return;
-
-    var toggle = header.querySelector(".nav-toggle");
-    var menu = header.querySelector("[data-collapsible-menu]");
-    if (!toggle || !menu) return;
+    if (window.ServiTechAdminMobileNavInitialized) return;
+    window.ServiTechAdminMobileNavInitialized = true;
 
     function isCompact() {
       return window.matchMedia("(max-width: 900px)").matches;
     }
 
-    function setOpen(open) {
+    function menuParts(header) {
+      return {
+        toggle: header ? header.querySelector(".nav-toggle") : null,
+        menu: header ? header.querySelector("[data-collapsible-menu]") : null
+      };
+    }
+
+    function setOpen(header, open) {
+      var parts = menuParts(header);
+      if (!header || !parts.toggle || !parts.menu) return;
+
+      open = !!open && isCompact();
       header.classList.toggle("is-menu-open", open);
-      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      parts.toggle.setAttribute("aria-expanded", open ? "true" : "false");
       if (isCompact()) {
-        menu.setAttribute("aria-hidden", open ? "false" : "true");
+        parts.menu.setAttribute("aria-hidden", open ? "false" : "true");
       } else {
-        menu.removeAttribute("aria-hidden");
+        parts.menu.removeAttribute("aria-hidden");
       }
     }
 
-    toggle.addEventListener("click", function (event) {
-      event.preventDefault();
-      event.__servitechHeaderMenuHandled = true;
-      setOpen(!header.classList.contains("is-menu-open"));
+    function closeAllAdminMenus() {
+      document.querySelectorAll(".admin-shared-header.is-menu-open").forEach(function (header) {
+        setOpen(header, false);
+      });
+    }
+
+    document.querySelectorAll(".admin-shared-header").forEach(function (header) {
+      setOpen(header, false);
     });
 
-    menu.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", function () {
-        if (isCompact()) setOpen(false);
+    document.addEventListener("click", function (event) {
+      if (!event.target || !event.target.closest) return;
+
+      var toggle = event.target.closest(".admin-shared-header .nav-toggle");
+      if (!toggle) return;
+
+      var header = toggle.closest(".admin-shared-header");
+      if (!header || !menuParts(header).menu) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === "function") {
+        event.stopImmediatePropagation();
+      }
+      event.__servitechHeaderMenuHandled = true;
+      setOpen(header, !header.classList.contains("is-menu-open"));
+    }, true);
+
+    document.addEventListener("click", function (event) {
+      if (!isCompact() || !event.target || !event.target.closest) return;
+
+      document.querySelectorAll(".admin-shared-header.is-menu-open").forEach(function (header) {
+        if (!header.contains(event.target)) {
+          setOpen(header, false);
+        }
       });
     });
 
     document.addEventListener("click", function (event) {
-      if (!isCompact() || !header.classList.contains("is-menu-open") || header.contains(event.target)) return;
-      setOpen(false);
-    });
+      if (!isCompact() || !event.target || !event.target.closest) return;
+
+      var link = event.target.closest(".admin-shared-header nav[data-collapsible-menu] a");
+      if (!link) return;
+
+      var header = link.closest(".admin-shared-header");
+      if (header) {
+        window.setTimeout(function () {
+          setOpen(header, false);
+        }, 0);
+      }
+    }, true);
 
     document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && header.classList.contains("is-menu-open")) {
-        setOpen(false);
-        toggle.focus();
+      if (event.key !== "Escape") return;
+
+      var openHeader = document.querySelector(".admin-shared-header.is-menu-open");
+      if (openHeader) {
+        var parts = menuParts(openHeader);
+        setOpen(openHeader, false);
+        if (parts.toggle) parts.toggle.focus();
       }
     });
 
     window.addEventListener("resize", function () {
-      if (!isCompact()) setOpen(false);
+      if (!isCompact()) closeAllAdminMenus();
     });
-
-    setOpen(false);
   })();
 </script>
 <?php
