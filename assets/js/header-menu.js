@@ -14,21 +14,25 @@
     return window.matchMedia("(max-width: " + MOBILE_BREAKPOINT + "px)").matches;
   }
 
-  function closeMenu(container) {
+  function setMenuExpanded(container, expanded) {
     var toggle = container.querySelector(".nav-toggle");
     var menu = container.querySelector("[data-collapsible-menu]");
 
-    container.classList.remove("is-menu-open");
+    container.classList.toggle("is-menu-open", expanded);
     if (toggle) {
-      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
     }
     if (menu) {
       if (isCompactViewport()) {
-        menu.setAttribute("aria-hidden", "true");
+        menu.setAttribute("aria-hidden", expanded ? "false" : "true");
       } else {
         menu.removeAttribute("aria-hidden");
       }
     }
+  }
+
+  function closeMenu(container) {
+    setMenuExpanded(container, false);
   }
 
   function closeOpenMenus() {
@@ -46,18 +50,9 @@
     }
     toggle.setAttribute("aria-controls", menu.id);
 
-    function setExpanded(expanded) {
-      container.classList.toggle("is-menu-open", expanded);
-      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-      if (isCompactViewport()) {
-        menu.setAttribute("aria-hidden", expanded ? "false" : "true");
-      } else {
-        menu.removeAttribute("aria-hidden");
-      }
-    }
-
-    toggle.addEventListener("click", function () {
-      setExpanded(!container.classList.contains("is-menu-open"));
+    toggle.addEventListener("click", function (event) {
+      event.__servitechHeaderMenuHandled = true;
+      setMenuExpanded(container, !container.classList.contains("is-menu-open"));
     });
 
     menu.querySelectorAll("a").forEach(function (link) {
@@ -86,8 +81,27 @@
     closeMenu(container);
   }
 
+  function initAdminMenuFallback() {
+    if (window.ServiTechAdminHeaderMenuFallbackInitialized) return;
+    window.ServiTechAdminHeaderMenuFallbackInitialized = true;
+
+    document.addEventListener("click", function (event) {
+      if (event.__servitechHeaderMenuHandled || !event.target || !event.target.closest) return;
+
+      var toggle = event.target.closest(".admin-shared-header .nav-toggle");
+      if (!toggle) return;
+
+      var container = toggle.closest(".admin-shared-header.has-nav-menu");
+      if (!container || !container.querySelector("[data-collapsible-menu]")) return;
+
+      event.preventDefault();
+      setMenuExpanded(container, !container.classList.contains("is-menu-open"));
+    });
+  }
+
   function initHeaderMenus() {
     document.querySelectorAll(".has-nav-menu").forEach(initMenu);
+    initAdminMenuFallback();
   }
 
   function normalizeText(value) {

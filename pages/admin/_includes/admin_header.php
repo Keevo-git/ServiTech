@@ -19,7 +19,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260602-admin-toast') ?>">
 <script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-logout-confirm-global') ?>" defer></script>
+<script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-toggle') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260608-admin-logout-confirm-global') ?>" defer></script>
 <header class="navbar has-nav-menu admin-shared-header">
   <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
