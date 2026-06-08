@@ -42,7 +42,10 @@
     const queueRows = Array.from(document.querySelectorAll(".queue-data-row")).map(function (row) {
       return {
         id: Number(row.dataset.queueRecordId || 0),
-        status: String(row.dataset.queueStatus || "PENDING").trim().toUpperCase()
+        status: String(row.dataset.queueStatus || "PENDING").trim().toUpperCase(),
+        customer: String(row.dataset.queueCustomer || ""),
+        customer_email: String(row.dataset.queueCustomerEmail || ""),
+        customer_phone: String(row.dataset.queueCustomerPhone || "")
       };
     });
     if (queueRows.length) return queueRows;
@@ -51,7 +54,10 @@
       const button = row.querySelector("[data-id]");
       return {
         id: Number(button ? button.dataset.id : 0),
-        status: String(row.dataset.status || "PENDING").trim().toUpperCase()
+        status: String(row.dataset.status || "PENDING").trim().toUpperCase(),
+        customer: String(row.dataset.customer || ""),
+        customer_email: String(row.dataset.customerEmail || ""),
+        customer_phone: String(row.dataset.customerPhone || "")
       };
     });
   }
@@ -69,7 +75,10 @@
     }).map(function (record) {
       return {
         id: Number(record.id || 0),
-        status: normalizeStatus(record.status)
+        status: normalizeStatus(record.status),
+        customer: String(record.customer || "").trim().toLowerCase(),
+        customer_email: String(record.customer_email || "").trim().toLowerCase(),
+        customer_phone: String(record.customer_phone || "").trim().toLowerCase()
       };
     }));
   }

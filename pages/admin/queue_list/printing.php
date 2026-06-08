@@ -62,7 +62,9 @@ function payment_amount_label($amount, $detailsTotal = null): string {
 
 $stmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount,
-    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at, u.fullname,
+    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
+    u.fullname, u.email AS customer_email,
+    COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone,
     p.payment_method, p.reference_number, p.amount,
     q.details->>'estimated_total' AS details_total
   FROM queues q
@@ -98,7 +100,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260607-action-stack') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260608-profile-sync') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
 <body class="admin-dashboard" data-admin-realtime-scope="queue_online">
@@ -148,7 +150,14 @@ require __DIR__ . "/../_includes/admin_header.php";
                 <?php $paymentSummary = queue_ui_payment_summary($r); ?>
                 <tr<?= queue_ui_row_attrs($r) ?>>
                   <td><?= esc($r["queue_code"]) ?></td>
-                  <td><?= esc($r["fullname"]) ?></td>
+                  <td>
+                    <span class="customer-stack">
+                      <strong><?= esc($r["fullname"]) ?></strong>
+                      <?php if (trim((string)($r["customer_email"] ?? "")) !== "" || trim((string)($r["customer_phone"] ?? "")) !== ""): ?>
+                        <small><?= esc(trim(implode(" | ", array_filter([(string)($r["customer_email"] ?? ""), (string)($r["customer_phone"] ?? "")], fn($value) => trim($value) !== "")))) ?></small>
+                      <?php endif; ?>
+                    </span>
+                  </td>
                   <td><?= esc($paymentSummary) ?></td>
                   <td>
                     <span class="submitted-stack">
@@ -243,8 +252,8 @@ require __DIR__ . "/../_includes/admin_header.php";
 })();
 </script>
 
-<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260602-snapshot') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260607-send-back-hidden-toggle') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260608-profile-sync') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260608-profile-sync') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

@@ -394,6 +394,26 @@ body.admin-dashboard .page-frame {
   height: 56px;
 }
 
+.order-customer-stack {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.order-customer-stack strong {
+  color: #102b4d;
+  font-size: 14px;
+}
+
+.order-customer-stack small {
+  color: #5d728c;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
 .order-table tbody tr {
   border-bottom: 1px solid #eeeeee;
 }

@@ -119,6 +119,8 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
         "id" => (int)($row["id"] ?? 0),
         "queueCode" => (string)($row["queue_code"] ?? ""),
         "customer" => (string)($row["fullname"] ?? ""),
+        "customerEmail" => (string)($row["customer_email"] ?? ""),
+        "customerPhone" => (string)($row["customer_phone"] ?? ""),
         "status" => (string)($row["status"] ?? "PENDING"),
         "serviceType" => $serviceType,
         "serviceLabel" => om_service_label($details, $fallbackService),

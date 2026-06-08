@@ -87,11 +87,15 @@ try {
             q.price,
             q.paid_amount,
             q.details::text AS details,
+            u.fullname,
+            u.email AS customer_email,
+            COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone,
             p.id AS payment_id,
             p.payment_method,
             p.reference_number,
             p.amount
         FROM queues q
+        JOIN users u ON u.id = q.user_id
         LEFT JOIN LATERAL (
             SELECT id, payment_method, reference_number, amount
             FROM payments
@@ -108,6 +112,9 @@ try {
         return [
             "id" => (int)($row["id"] ?? 0),
             "status" => strtoupper(trim((string)($row["status"] ?? "PENDING"))),
+            "customer" => strtolower(trim((string)($row["fullname"] ?? ""))),
+            "customer_email" => strtolower(trim((string)($row["customer_email"] ?? ""))),
+            "customer_phone" => strtolower(trim((string)($row["customer_phone"] ?? ""))),
         ];
     }, $rows);
 

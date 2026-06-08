@@ -296,6 +296,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const baseRows = [
       detailRow("Queue ID", order.queueCode),
       detailRow("Customer Name", order.customer),
+      detailRow("Email Address", order.customerEmail),
+      detailRow("Phone Number", order.customerPhone),
       detailRow("Service Type", order.serviceType),
       detailRow("Service", order.serviceLabel),
       ...(Array.isArray(order.details) ? order.details.map((row) => detailRow(row.label, row.value)) : []),
@@ -821,11 +823,17 @@ document.addEventListener("DOMContentLoaded", function () {
       rows.forEach((row) => {
         const orderId = String(row.dataset.orderId || "").toLowerCase();
         const customer = String(row.dataset.customer || "").toLowerCase();
+        const customerEmail = String(row.dataset.customerEmail || "").toLowerCase();
+        const customerPhone = String(row.dataset.customerPhone || "").toLowerCase();
         const rowStatus = String(row.dataset.status || "").toUpperCase();
         const rowPaymentMethod = String(row.dataset.paymentMethod || "").toLowerCase();
         const rowSubmittedDate = String(row.dataset.submittedDate || "");
 
-        const matchesSearch = !query || orderId.includes(query) || customer.includes(query);
+        const matchesSearch = !query
+          || orderId.includes(query)
+          || customer.includes(query)
+          || customerEmail.includes(query)
+          || customerPhone.includes(query);
         const matchesDate = !submittedDate || rowSubmittedDate === submittedDate;
         const matchesStatus = !statuses.length || statuses.includes(rowStatus);
         const matchesPayment = !paymentMethod || rowPaymentMethod === paymentMethod;

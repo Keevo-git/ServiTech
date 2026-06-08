@@ -50,7 +50,9 @@ function payment_amount_label($amount, $detailsTotal = null): string
 
 $walkinStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
-    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at, u.fullname,
+    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
+    u.fullname, u.email AS customer_email,
+    COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone,
     p.payment_method, p.reference_number, p.amount,
     q.details->>'estimated_total' AS details_total
   FROM queues q
@@ -84,7 +86,9 @@ $walkin = $walkinStmt->fetchAll();
 
 $onlineStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
-    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at, u.fullname,
+    q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
+    u.fullname, u.email AS customer_email,
+    COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone,
     p.payment_method, p.reference_number, p.amount,
     q.details->>'estimated_total' AS details_total
   FROM queues q
@@ -130,10 +134,10 @@ if (!in_array($printView, ["online", "walkin"], true)) {
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260607-action-stack') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260607-action-stack') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260608-profile-sync') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260608-profile-sync') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260607-send-back-hidden-toggle') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260608-profile-sync') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_<?= htmlspecialchars($printView, ENT_QUOTES, 'UTF-8') ?>">
 
@@ -187,13 +191,22 @@ require __DIR__ . "/../_includes/admin_header.php";
                           class="order-data-row"
                           data-order-id="<?= htmlspecialchars(strtolower((string)$r["queue_code"]), ENT_QUOTES, "UTF-8") ?>"
                           data-customer="<?= htmlspecialchars(strtolower((string)$r["fullname"]), ENT_QUOTES, "UTF-8") ?>"
+                          data-customer-email="<?= htmlspecialchars(strtolower((string)($r["customer_email"] ?? "")), ENT_QUOTES, "UTF-8") ?>"
+                          data-customer-phone="<?= htmlspecialchars(strtolower((string)($r["customer_phone"] ?? "")), ENT_QUOTES, "UTF-8") ?>"
                           data-status="<?= htmlspecialchars(strtoupper(trim((string)$r["status"])), ENT_QUOTES, "UTF-8") ?>"
                           data-payment-method="<?= htmlspecialchars(om_payment_method_filter_value($r), ENT_QUOTES, "UTF-8") ?>"
                           data-submitted-date="<?= htmlspecialchars(om_order_filter_date($r["created_at"]), ENT_QUOTES, "UTF-8") ?>"
                           data-submitted-at="<?= htmlspecialchars((string)$r["created_at"], ENT_QUOTES, "UTF-8") ?>"
                         >
                           <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                          <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                          <td>
+                            <span class="order-customer-stack">
+                              <strong><?= htmlspecialchars($r["fullname"]) ?></strong>
+                              <?php if (trim((string)($r["customer_email"] ?? "")) !== "" || trim((string)($r["customer_phone"] ?? "")) !== ""): ?>
+                                <small><?= htmlspecialchars(trim(implode(" | ", array_filter([(string)($r["customer_email"] ?? ""), (string)($r["customer_phone"] ?? "")], fn($value) => trim($value) !== "")))) ?></small>
+                              <?php endif; ?>
+                            </span>
+                          </td>
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                           <td><?= htmlspecialchars(om_payment_summary($r)) ?></td>
                           <td>
@@ -235,13 +248,22 @@ require __DIR__ . "/../_includes/admin_header.php";
                           class="order-data-row"
                           data-order-id="<?= htmlspecialchars(strtolower((string)$r["queue_code"]), ENT_QUOTES, "UTF-8") ?>"
                           data-customer="<?= htmlspecialchars(strtolower((string)$r["fullname"]), ENT_QUOTES, "UTF-8") ?>"
+                          data-customer-email="<?= htmlspecialchars(strtolower((string)($r["customer_email"] ?? "")), ENT_QUOTES, "UTF-8") ?>"
+                          data-customer-phone="<?= htmlspecialchars(strtolower((string)($r["customer_phone"] ?? "")), ENT_QUOTES, "UTF-8") ?>"
                           data-status="<?= htmlspecialchars(strtoupper(trim((string)$r["status"])), ENT_QUOTES, "UTF-8") ?>"
                           data-payment-method="<?= htmlspecialchars(om_payment_method_filter_value($r), ENT_QUOTES, "UTF-8") ?>"
                           data-submitted-date="<?= htmlspecialchars(om_order_filter_date($r["created_at"]), ENT_QUOTES, "UTF-8") ?>"
                           data-submitted-at="<?= htmlspecialchars((string)$r["created_at"], ENT_QUOTES, "UTF-8") ?>"
                         >
                           <td><?= htmlspecialchars($r["queue_code"]) ?></td>
-                          <td><?= htmlspecialchars($r["fullname"]) ?></td>
+                          <td>
+                            <span class="order-customer-stack">
+                              <strong><?= htmlspecialchars($r["fullname"]) ?></strong>
+                              <?php if (trim((string)($r["customer_email"] ?? "")) !== "" || trim((string)($r["customer_phone"] ?? "")) !== ""): ?>
+                                <small><?= htmlspecialchars(trim(implode(" | ", array_filter([(string)($r["customer_email"] ?? ""), (string)($r["customer_phone"] ?? "")], fn($value) => trim($value) !== "")))) ?></small>
+                              <?php endif; ?>
+                            </span>
+                          </td>
                           <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                           <td><?= htmlspecialchars(om_payment_summary($r)) ?></td>
                           <td>
@@ -281,7 +303,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php require_once __DIR__ . "/../queue_list/_queue_message_modal.php"; ?>
 
-<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260603-record-signature') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260608-profile-sync') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

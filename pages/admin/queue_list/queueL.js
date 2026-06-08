@@ -556,6 +556,8 @@ document.addEventListener("DOMContentLoaded", function () {
     detailsEl.innerHTML = [
       detailRow("Queue ID", queue.queueCode),
       detailRow("Customer Name", queue.customer),
+      detailRow("Email Address", queue.customerEmail),
+      detailRow("Phone Number", queue.customerPhone),
       detailRow("Service", queue.service),
       ...(Array.isArray(queue.details) ? queue.details.map((item) => detailRow(item.label, item.value)) : []),
       fileRows(queue.files),
@@ -719,7 +721,9 @@ document.addEventListener("DOMContentLoaded", function () {
       rows.forEach((row) => {
         const matchesSearch = !query
           || String(row.dataset.queueSearchId || "").includes(query)
-          || String(row.dataset.queueCustomer || "").includes(query);
+          || String(row.dataset.queueCustomer || "").includes(query)
+          || String(row.dataset.queueCustomerEmail || "").includes(query)
+          || String(row.dataset.queueCustomerPhone || "").includes(query);
         const matchesDate = !selectedDate || row.dataset.queueDate === selectedDate;
         const matchesStatus = !selectedStatuses.length || selectedStatuses.includes(row.dataset.queueStatus || "");
         const matchesPayment = !selectedPayment || row.dataset.queuePayment === selectedPayment;

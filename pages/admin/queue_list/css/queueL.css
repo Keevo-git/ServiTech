@@ -229,6 +229,26 @@ th {
   white-space: nowrap;
 }
 
+.customer-stack {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.customer-stack strong {
+  color: #102b4d;
+  font-size: 13px;
+}
+
+.customer-stack small {
+  color: #5d728c;
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 .submitted-stack strong {
   color: #102b4d;
   font-size: 13px;
