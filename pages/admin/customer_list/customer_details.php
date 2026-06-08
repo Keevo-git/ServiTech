@@ -103,6 +103,20 @@ function cd_filter_status(array $row): string {
   };
 }
 
+function cd_status_label(array $row): string {
+  return match (cd_filter_status($row)) {
+    "ongoing" => "Ongoing",
+    "for-pickup" => "For Pick-up",
+    "done" => "Done",
+    "cancelled" => "Cancelled",
+    default => "Pending",
+  };
+}
+
+function cd_status_class(array $row): string {
+  return "cd-status--" . cd_filter_status($row);
+}
+
 function cd_payment_status(array $row): string {
   $status = strtoupper(trim((string)($row["status"] ?? "")));
   $paymentStatus = trim((string)($row["payment_status"] ?? ""));
@@ -114,6 +128,39 @@ function cd_payment_status(array $row): string {
   if (cd_payment_method($row) !== "-" || trim((string)($row["reference_number"] ?? "")) !== "") return "Payment Submitted";
   if ($payment["price"] > 0) return "Pending Payment";
   return "-";
+}
+
+function cd_notes(array $details): string {
+  return cd_detail_value($details, ["notes", "note", "additional_info", "additional_information", "other_request", "message"]);
+}
+
+function cd_history_payload(array $row, array $files, array $payment, string $reference, array $customer): string {
+  $details = cd_details_array($row["details"] ?? null);
+  $filePayload = [];
+  foreach ($files as $file) {
+    $url = trim((string)($file["url"] ?? ""));
+    $filePayload[] = [
+      "label" => trim((string)($file["label"] ?? "File")),
+      "url" => $url,
+      "downloadUrl" => $url !== "" ? str_replace("disposition=inline", "disposition=attachment", $url) : "",
+    ];
+  }
+
+  return json_encode([
+    "id" => (string)($row["queue_code"] ?: ("Order #" . $row["id"])),
+    "customerName" => (string)($customer["fullname"] ?? "-"),
+    "serviceCategory" => cd_category_label((string)($row["category"] ?? "")),
+    "serviceName" => cd_service_type($row),
+    "dateSubmitted" => cd_format_date($row["created_at"] ?? ""),
+    "status" => cd_status_label($row),
+    "statusClass" => cd_status_class($row),
+    "paymentMethod" => cd_payment_method($row),
+    "totalAmount" => cd_money($payment["price"] ?: ($row["amount"] ?? 0)),
+    "paymentStatus" => cd_payment_status($row),
+    "gcashReference" => $reference !== "" ? $reference : "-",
+    "notes" => cd_notes($details),
+    "files" => $filePayload,
+  ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
 }
 
 $customer = null;
@@ -198,7 +245,7 @@ if ($customer) {
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260608-history-filters') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260608-history-table') ?>">
 </head>
 <body>
   <?php
@@ -311,7 +358,22 @@ if ($customer) {
                 <button class="cl-btn cl-btn--light cd-clearFilters" type="button" data-history-clear>Clear Filters</button>
               </div>
 
-              <div class="cd-historyList">
+              <div class="cd-historyTableWrap">
+                <table class="cd-historyTable">
+                  <thead>
+                    <tr>
+                      <th>Order / Queue ID</th>
+                      <th>Service</th>
+                      <th>Date Submitted</th>
+                      <th>Status</th>
+                      <th>Mode of Payment</th>
+                      <th>Total Amount</th>
+                      <th>Payment Status</th>
+                      <th>Files</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                 <?php $fileAnchorRendered = false; ?>
                 <?php foreach ($history as $row): ?>
                   <?php
@@ -320,67 +382,61 @@ if ($customer) {
                     $reference = trim((string)($row["reference_number"] ?? ""));
                     $details = cd_details_array($row["details"] ?? null);
                     if ($reference === "") $reference = trim((string)($details["reference_number"] ?? ""));
+                    $fileCount = count($files);
+                    $fileBlockId = "";
+                    if (!$fileAnchorRendered && $files) {
+                      $fileBlockId = ' id="customerAttachedFiles"';
+                      $fileAnchorRendered = true;
+                    }
                   ?>
-                  <article
-                    class="cd-historyItem"
+                  <tr
                     data-history-item
                     data-history-date="<?= cd_esc(cd_filter_date($row["created_at"] ?? "")) ?>"
                     data-history-status="<?= cd_esc(cd_filter_status($row)) ?>"
                     data-history-payment="<?= cd_esc(cd_filter_payment_method($row)) ?>"
                   >
-                    <div class="cd-historyTop">
-                      <div>
-                        <span class="cl-idPill"><?= cd_esc($row["queue_code"] ?: ("Order #" . $row["id"])) ?></span>
-                        <h3><?= cd_esc(cd_service_type($row)) ?></h3>
-                      </div>
-                      <span class="cd-statusBadge"><?= cd_esc($row["status"] ?: "PENDING") ?></span>
-                    </div>
-
-                    <dl class="cd-historyMeta">
-                      <div><dt>Service Category</dt><dd><?= cd_esc(cd_category_label((string)$row["category"])) ?></dd></div>
-                      <div><dt>Date Submitted</dt><dd><?= cd_esc(cd_format_date($row["created_at"] ?? "")) ?></dd></div>
-                      <div><dt>Payment Method</dt><dd><?= cd_esc(cd_payment_method($row)) ?></dd></div>
-                      <div><dt>Total Amount</dt><dd><?= cd_esc(cd_money($payment["price"] ?: ($row["amount"] ?? 0))) ?></dd></div>
-                      <div><dt>Payment Status</dt><dd><?= cd_esc(cd_payment_status($row)) ?></dd></div>
-                      <div><dt>GCash Reference</dt><dd><?= cd_esc($reference !== "" ? $reference : "-") ?></dd></div>
-                    </dl>
-
-                    <?php
-                      $fileBlockId = "";
-                      if (!$fileAnchorRendered && $files) {
-                        $fileBlockId = ' id="customerAttachedFiles"';
-                        $fileAnchorRendered = true;
-                      }
-                    ?>
-                    <div class="cd-filesBlock"<?= $fileBlockId ?>>
-                      <h4>Attached Files</h4>
-                      <?php if (!$files): ?>
-                        <span class="cd-fileUnavailable">No attached files</span>
+                    <td><span class="cl-idPill"><?= cd_esc($row["queue_code"] ?: ("Order #" . $row["id"])) ?></span></td>
+                    <td>
+                      <span class="cd-serviceStack">
+                        <strong><?= cd_esc(cd_service_type($row)) ?></strong>
+                        <small><?= cd_esc(cd_category_label((string)$row["category"])) ?></small>
+                      </span>
+                    </td>
+                    <td><?= cd_esc(cd_format_date($row["created_at"] ?? "")) ?></td>
+                    <td><span class="cd-statusBadge <?= cd_esc(cd_status_class($row)) ?>"><?= cd_esc(cd_status_label($row)) ?></span></td>
+                    <td><?= cd_esc(cd_payment_method($row)) ?></td>
+                    <td><?= cd_esc(cd_money($payment["price"] ?: ($row["amount"] ?? 0))) ?></td>
+                    <td><?= cd_esc(cd_payment_status($row)) ?></td>
+                    <td<?= $fileBlockId ?>>
+                      <?php if ($fileCount > 0): ?>
+                        <span class="cd-fileChip"><?= $fileCount ?> file<?= $fileCount === 1 ? "" : "s" ?></span>
                       <?php else: ?>
-                        <div class="cd-fileList">
-                          <?php foreach ($files as $file): ?>
-                            <?php
-                              $label = trim((string)($file["label"] ?? "File"));
-                              $url = trim((string)($file["url"] ?? ""));
-                              $downloadUrl = $url !== "" ? str_replace("disposition=inline", "disposition=attachment", $url) : "";
-                            ?>
-                            <div class="cd-fileItem">
-                              <span><?= cd_esc($label !== "" ? $label : "File") ?></span>
-                              <?php if ($url !== ""): ?>
-                                <span class="cd-fileActions">
-                                  <a href="<?= cd_esc($url) ?>" target="_blank" rel="noopener noreferrer">Open</a>
-                                  <a href="<?= cd_esc($downloadUrl) ?>" download>Download</a>
-                                </span>
-                              <?php else: ?>
-                                <span class="cd-fileUnavailable">File unavailable</span>
-                              <?php endif; ?>
-                            </div>
-                          <?php endforeach; ?>
-                        </div>
+                        <span class="cd-mutedText">No files</span>
                       <?php endif; ?>
-                    </div>
-                  </article>
+                    </td>
+                    <td>
+                      <div class="cd-rowActions">
+                        <button
+                          class="cl-btn cl-btn--light cd-rowBtn"
+                          type="button"
+                          data-history-view
+                          data-history-detail="<?= cd_esc(cd_history_payload($row, $files, $payment, $reference, $customer)) ?>"
+                        >View Details</button>
+                        <button
+                          class="cl-btn cl-btn--maroon cd-rowBtn"
+                          type="button"
+                          data-detail-message
+                          data-customer-id="<?= (int)$customer["id"] ?>"
+                          data-customer-code="<?= cd_esc(cd_customer_code((int)$customer["id"])) ?>"
+                          data-customer-name="<?= cd_esc($customer["fullname"] ?? "") ?>"
+                          data-customer-email="<?= cd_esc($customer["email"] ?? "") ?>"
+                        >Message</button>
+                      </div>
+                    </td>
+                  </tr>
                 <?php endforeach; ?>
+                  </tbody>
+                </table>
               </div>
               <div class="cd-noHistory cd-filterEmpty" data-history-empty hidden>No order or queue history matches the selected filters.</div>
             <?php endif; ?>
@@ -393,6 +449,42 @@ if ($customer) {
   <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
   <?php if ($customer): ?>
+    <div class="cl-modalOverlay cd-detailOverlay" id="historyDetailModal" aria-hidden="true">
+      <div class="cl-modalCard cd-detailModal" role="dialog" aria-modal="true" aria-labelledby="historyDetailTitle">
+        <div class="cl-modalBody">
+          <div class="cl-modalHead">
+            <div>
+              <h3 id="historyDetailTitle">Order / Queue Details</h3>
+              <span class="cl-pill cl-pill--inline" data-detail-id>-</span>
+            </div>
+            <button class="cl-modalX" type="button" data-history-detail-close aria-label="Close">&times;</button>
+          </div>
+
+          <div class="cd-detailGrid">
+            <div><small>Customer</small><strong data-detail-customer>-</strong></div>
+            <div><small>Service Category</small><strong data-detail-category>-</strong></div>
+            <div><small>Service Name</small><strong data-detail-service>-</strong></div>
+            <div><small>Date Submitted</small><strong data-detail-date>-</strong></div>
+            <div><small>Status</small><span class="cd-statusBadge" data-detail-status>-</span></div>
+            <div><small>Payment Method</small><strong data-detail-payment-method>-</strong></div>
+            <div><small>Total Amount</small><strong data-detail-total>-</strong></div>
+            <div><small>Payment Status</small><strong data-detail-payment-status>-</strong></div>
+            <div><small>GCash Reference</small><strong data-detail-reference>-</strong></div>
+          </div>
+
+          <div class="cd-detailSection">
+            <h4>Attached Files</h4>
+            <div class="cd-detailFiles" data-detail-files></div>
+          </div>
+
+          <div class="cd-detailSection" data-detail-notes-wrap hidden>
+            <h4>Notes</h4>
+            <p data-detail-notes></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="cl-modalOverlay" id="customerMessageModal" aria-hidden="true">
       <div class="cl-modalCard" role="dialog" aria-modal="true" aria-labelledby="customerMessageTitle">
         <div class="cl-modalBody">
@@ -447,7 +539,9 @@ if ($customer) {
         messageText.value = '';
       }
 
-      document.querySelector('[data-detail-message]')?.addEventListener('click', openModal);
+      document.querySelectorAll('[data-detail-message]').forEach(button => {
+        button.addEventListener('click', openModal);
+      });
       document.getElementById('customerMessageClose')?.addEventListener('click', closeModal);
       document.getElementById('customerMessageCancel')?.addEventListener('click', closeModal);
       modal?.addEventListener('click', event => { if (event.target === modal) closeModal(); });
@@ -521,6 +615,117 @@ if ($customer) {
           if (statusSelect) statusSelect.value = '';
           if (paymentSelect) paymentSelect.value = '';
           applyHistoryFilters();
+        });
+      }
+
+      const detailModal = document.getElementById('historyDetailModal');
+      if (detailModal) {
+        const detailStatus = detailModal.querySelector('[data-detail-status]');
+        const detailFiles = detailModal.querySelector('[data-detail-files]');
+        const detailNotesWrap = detailModal.querySelector('[data-detail-notes-wrap]');
+        const detailNotes = detailModal.querySelector('[data-detail-notes]');
+        const statusClasses = ['cd-status--pending', 'cd-status--ongoing', 'cd-status--for-pickup', 'cd-status--done', 'cd-status--cancelled'];
+
+        function setDetailText(selector, value) {
+          const target = detailModal.querySelector(selector);
+          if (target) target.textContent = value || '-';
+        }
+
+        function renderDetailFiles(files) {
+          detailFiles.textContent = '';
+          if (!Array.isArray(files) || files.length === 0) {
+            const empty = document.createElement('span');
+            empty.className = 'cd-fileUnavailable';
+            empty.textContent = 'No files';
+            detailFiles.appendChild(empty);
+            return;
+          }
+
+          files.forEach(file => {
+            const item = document.createElement('div');
+            item.className = 'cd-fileItem';
+
+            const label = document.createElement('span');
+            label.textContent = file.label || 'File';
+            item.appendChild(label);
+
+            if (file.url) {
+              const actions = document.createElement('span');
+              actions.className = 'cd-fileActions';
+
+              const openLink = document.createElement('a');
+              openLink.href = file.url;
+              openLink.target = '_blank';
+              openLink.rel = 'noopener noreferrer';
+              openLink.textContent = 'Open';
+              actions.appendChild(openLink);
+
+              const downloadLink = document.createElement('a');
+              downloadLink.href = file.downloadUrl || file.url;
+              downloadLink.setAttribute('download', '');
+              downloadLink.textContent = 'Download';
+              actions.appendChild(downloadLink);
+
+              item.appendChild(actions);
+            } else {
+              const unavailable = document.createElement('span');
+              unavailable.className = 'cd-fileUnavailable';
+              unavailable.textContent = 'File unavailable';
+              item.appendChild(unavailable);
+            }
+
+            detailFiles.appendChild(item);
+          });
+        }
+
+        function openDetailModal(payload) {
+          setDetailText('[data-detail-id]', payload.id);
+          setDetailText('[data-detail-customer]', payload.customerName);
+          setDetailText('[data-detail-category]', payload.serviceCategory);
+          setDetailText('[data-detail-service]', payload.serviceName);
+          setDetailText('[data-detail-date]', payload.dateSubmitted);
+          setDetailText('[data-detail-payment-method]', payload.paymentMethod);
+          setDetailText('[data-detail-total]', payload.totalAmount);
+          setDetailText('[data-detail-payment-status]', payload.paymentStatus);
+          setDetailText('[data-detail-reference]', payload.gcashReference);
+
+          if (detailStatus) {
+            detailStatus.classList.remove(...statusClasses);
+            if (payload.statusClass) detailStatus.classList.add(payload.statusClass);
+            detailStatus.textContent = payload.status || '-';
+          }
+
+          renderDetailFiles(payload.files);
+
+          const notes = (payload.notes || '').trim();
+          if (detailNotesWrap && detailNotes) {
+            detailNotesWrap.hidden = notes === '';
+            detailNotes.textContent = notes;
+          }
+
+          detailModal.style.display = 'flex';
+          detailModal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeDetailModal() {
+          detailModal.style.display = 'none';
+          detailModal.setAttribute('aria-hidden', 'true');
+        }
+
+        document.querySelectorAll('[data-history-view]').forEach(button => {
+          button.addEventListener('click', () => {
+            try {
+              openDetailModal(JSON.parse(button.dataset.historyDetail || '{}'));
+            } catch (error) {
+              openDetailModal({});
+            }
+          });
+        });
+
+        detailModal.querySelector('[data-history-detail-close]')?.addEventListener('click', closeDetailModal);
+        detailModal.addEventListener('click', event => { if (event.target === detailModal) closeDetailModal(); });
+        document.addEventListener('keydown', event => {
+          if (event.key === 'Escape' && detailModal.getAttribute('aria-hidden') === 'false') closeDetailModal();
         });
       }
     </script>
