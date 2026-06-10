@@ -3,14 +3,45 @@
   window.ServiTechHeaderMenuInitialized = true;
 
   var MOBILE_BREAKPOINT = 900;
-  var activeLogoutModal = null;
-  var previousFocus = null;
+  var logoutState = {
+    activeModal: null,
+    previousFocus: null,
+    scrollX: 0,
+    scrollY: 0
+  };
 
   function isCompactViewport() {
     return window.matchMedia("(max-width: " + MOBILE_BREAKPOINT + "px)").matches;
   }
 
+  function setMenuExpanded(container, expanded) {
+    var toggle = container.querySelector(".nav-toggle");
+    var menu = container.querySelector("[data-collapsible-menu]");
+
+    container.classList.toggle("is-menu-open", expanded);
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    }
+    if (menu) {
+      if (isCompactViewport()) {
+        menu.setAttribute("aria-hidden", expanded ? "false" : "true");
+      } else {
+        menu.removeAttribute("aria-hidden");
+      }
+    }
+  }
+
+  function closeMenu(container) {
+    setMenuExpanded(container, false);
+  }
+
+  function closeOpenMenus() {
+    document.querySelectorAll(".has-nav-menu.is-menu-open").forEach(closeMenu);
+  }
+
   function initMenu(container, index) {
+    if (container.classList.contains("admin-shared-header")) return;
+
     var toggle = container.querySelector(".nav-toggle");
     var menu = container.querySelector("[data-collapsible-menu]");
 
@@ -21,27 +52,15 @@
     }
     toggle.setAttribute("aria-controls", menu.id);
 
-    function setExpanded(expanded) {
-      container.classList.toggle("is-menu-open", expanded);
-      toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-      if (isCompactViewport()) {
-        menu.setAttribute("aria-hidden", expanded ? "false" : "true");
-      } else {
-        menu.removeAttribute("aria-hidden");
-      }
-    }
-
-    function closeMenu() {
-      setExpanded(false);
-    }
-
-    toggle.addEventListener("click", function () {
-      setExpanded(!container.classList.contains("is-menu-open"));
+    toggle.addEventListener("click", function (event) {
+      if (event.__servitechHeaderMenuHandled) return;
+      event.__servitechHeaderMenuHandled = true;
+      setMenuExpanded(container, !container.classList.contains("is-menu-open"));
     });
 
     menu.querySelectorAll("a").forEach(function (link) {
       link.addEventListener("click", function () {
-        if (isCompactViewport()) closeMenu();
+        if (isCompactViewport()) closeMenu(container);
       });
     });
 
@@ -49,57 +68,100 @@
       if (!isCompactViewport()) return;
       if (!container.classList.contains("is-menu-open")) return;
       if (container.contains(event.target)) return;
-      closeMenu();
+      closeMenu(container);
     });
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && container.classList.contains("is-menu-open")) {
-        closeMenu();
+        closeMenu(container);
       }
     });
 
     window.addEventListener("resize", function () {
-      if (!isCompactViewport()) closeMenu();
+      if (!isCompactViewport()) closeMenu(container);
     });
 
-    closeMenu();
+    closeMenu(container);
   }
-
-  initLogoutConfirmation();
 
   function initHeaderMenus() {
     document.querySelectorAll(".has-nav-menu").forEach(initMenu);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initHeaderMenus);
-  } else {
-    initHeaderMenus();
+  function normalizeText(value) {
+    return String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
   }
 
-  function isLogoutLink(link) {
-    if (!link || !link.href) return false;
+  function absoluteUrl(value) {
+    if (!value) return "";
+    try {
+      return new URL(value, window.location.href).href;
+    } catch (error) {
+      return String(value || "");
+    }
+  }
 
-    var href = link.getAttribute("href") || "";
+  function urlPath(value) {
+    if (!value) return "";
+    try {
+      return new URL(value, window.location.href).pathname.toLowerCase();
+    } catch (error) {
+      return String(value || "").split("?")[0].split("#")[0].toLowerCase();
+    }
+  }
+
+  function isLogoutUrl(value) {
+    var path = urlPath(value);
     return (
-      href.indexOf("/auth/logout.php") !== -1 ||
-      href.indexOf("/pages/admin/logout.php") !== -1 ||
-      link.classList.contains("admin-logout-link") ||
-      link.hasAttribute("data-logout-confirm")
+      path.indexOf("/auth/logout.php") !== -1 ||
+      path.indexOf("/pages/admin/logout.php") !== -1 ||
+      /(^|\/)logout\.php$/.test(path)
     );
   }
 
-  function getLogoutTheme(link) {
-    var explicitTheme = link.getAttribute("data-logout-theme");
+  function findLogoutTrigger(target) {
+    if (!target || !target.closest) return null;
+    if (target.closest(".logout-confirm-overlay")) return null;
+    return target.closest("a, button, input[type='button'], input[type='submit'], [role='button'], [data-logout-confirm]");
+  }
+
+  function readCandidateUrl(trigger) {
+    if (!trigger) return "";
+
+    var candidates = [
+      trigger.getAttribute("data-logout-url"),
+      trigger.getAttribute("href"),
+      trigger.getAttribute("formaction"),
+      trigger.getAttribute("data-href")
+    ];
+
+    if (trigger.form) {
+      candidates.push(trigger.form.getAttribute("action"));
+    }
+
+    for (var index = 0; index < candidates.length; index += 1) {
+      var candidate = candidates[index];
+      if (candidate && candidate !== "#") {
+        return absoluteUrl(candidate);
+      }
+    }
+
+    return "";
+  }
+
+  function getLogoutTheme(trigger, url) {
+    var explicitTheme = trigger ? trigger.getAttribute("data-logout-theme") : "";
     if (explicitTheme === "admin" || explicitTheme === "customer") {
       return explicitTheme;
     }
 
-    var href = link.getAttribute("href") || "";
     if (
-      href.indexOf("/pages/admin/logout.php") !== -1 ||
-      link.classList.contains("admin-logout-link") ||
-      document.body.classList.contains("admin-dashboard")
+      (trigger && trigger.classList.contains("admin-logout-link")) ||
+      isLogoutUrl(url) && urlPath(url).indexOf("/pages/admin/logout.php") !== -1 ||
+      document.body.classList.contains("admin-dashboard") ||
+      document.body.classList.contains("admin-page") ||
+      (document.querySelector(".navbar .logo h1") &&
+        document.querySelector(".navbar .logo h1").textContent.toLowerCase().indexOf("admin") !== -1)
     ) {
       return "admin";
     }
@@ -107,47 +169,30 @@
     return "customer";
   }
 
-  function closeLogoutModal() {
-    if (!activeLogoutModal) return;
+  function resolveLogoutRequest(trigger) {
+    if (!trigger) return null;
 
-    document.removeEventListener("keydown", handleLogoutModalKeydown);
-    document.documentElement.classList.remove("logout-confirm-open");
-    document.body.classList.remove("logout-confirm-open");
-    activeLogoutModal.remove();
-    activeLogoutModal = null;
-
-    if (previousFocus && typeof previousFocus.focus === "function") {
-      previousFocus.focus({ preventScroll: true });
-    }
-    previousFocus = null;
-  }
-
-  function handleLogoutModalKeydown(event) {
-    if (!activeLogoutModal) return;
-
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeLogoutModal();
-      return;
-    }
-
-    if (event.key !== "Tab") return;
-
-    var focusable = activeLogoutModal.querySelectorAll(
-      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    var url = readCandidateUrl(trigger);
+    var text = normalizeText(trigger.textContent || trigger.value);
+    var hasLogoutIntent = (
+      trigger.hasAttribute("data-logout-confirm") ||
+      trigger.classList.contains("admin-logout-link") ||
+      isLogoutUrl(url) ||
+      (text === "logout" || text === "log out")
     );
-    if (!focusable.length) return;
 
-    var first = focusable[0];
-    var last = focusable[focusable.length - 1];
+    if (!hasLogoutIntent) return null;
 
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
+    var theme = getLogoutTheme(trigger, url);
+    if (!url || url === window.location.href + "#") {
+      url = theme === "admin" ? "/pages/admin/logout.php" : "/auth/logout.php";
     }
+
+    return {
+      trigger: trigger,
+      url: absoluteUrl(url),
+      theme: theme
+    };
   }
 
   function ensureLogoutModalStyles() {
@@ -156,12 +201,11 @@
     var style = document.createElement("style");
     style.id = "servitech-logout-confirm-styles";
     style.textContent = [
-      "body.logout-confirm-open{overflow-y:scroll!important;}",
-      "html.logout-confirm-open{overflow-y:scroll!important;scrollbar-gutter:stable!important;}",
-      "html.logout-confirm-open body{overflow-y:scroll!important;scrollbar-gutter:stable!important;}",
-      ".logout-confirm-overlay{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(16px,4vw,32px)!important;background:rgba(45,21,15,.58)!important;}",
+      "html.logout-confirm-open,body.logout-confirm-open{scrollbar-gutter:stable!important;}",
+      "body.logout-confirm-open{overscroll-behavior:contain!important;}",
+      ".logout-confirm-overlay{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100vw!important;height:100dvh!important;padding:clamp(16px,4vw,32px)!important;background:rgba(45,21,15,.58)!important;box-sizing:border-box!important;overflow:hidden!important;}",
       ".logout-confirm-overlay--admin{background:rgba(8,21,39,.64)!important;}",
-      ".logout-confirm-modal{box-sizing:border-box!important;width:min(100%,420px)!important;max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;padding:clamp(22px,4vw,30px)!important;border:1px solid rgba(74,5,5,.14)!important;border-radius:18px!important;background:#fff!important;color:#32211a!important;box-shadow:0 24px 70px rgba(28,15,10,.34)!important;text-align:left!important;font-family:inherit!important;}",
+      ".logout-confirm-modal{box-sizing:border-box!important;width:min(100%,420px)!important;max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:clamp(22px,4vw,30px)!important;border:1px solid rgba(74,5,5,.14)!important;border-radius:18px!important;background:#fff!important;color:#32211a!important;box-shadow:0 24px 70px rgba(28,15,10,.34)!important;text-align:left!important;font-family:inherit!important;}",
       ".logout-confirm-overlay--admin .logout-confirm-modal{border-color:rgba(26,63,115,.18)!important;color:#112338!important;box-shadow:0 26px 74px rgba(10,27,49,.38)!important;}",
       ".logout-confirm-modal__header{margin-bottom:10px!important;}",
       ".logout-confirm-modal h2{margin:0!important;color:#4A0505!important;font-size:clamp(22px,5vw,26px)!important;line-height:1.2!important;letter-spacing:0!important;font-weight:800!important;}",
@@ -186,19 +230,118 @@
       "@media (max-width:360px){.logout-confirm-modal__actions{grid-template-columns:1fr!important;}}"
     ].join("");
 
-    document.head.appendChild(style);
+    (document.head || document.documentElement).appendChild(style);
   }
 
-  function openLogoutModal(link) {
+  function modalElement() {
+    return logoutState.activeModal ? logoutState.activeModal.querySelector(".logout-confirm-modal") : null;
+  }
+
+  function lockBackgroundScroll() {
+    logoutState.scrollX = window.scrollX || document.documentElement.scrollLeft || 0;
+    logoutState.scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
+    document.addEventListener("wheel", preventBackgroundScroll, { passive: false, capture: true });
+    document.addEventListener("touchmove", preventBackgroundScroll, { passive: false, capture: true });
+    window.addEventListener("scroll", keepScrollPosition, { passive: true });
+    document.documentElement.classList.add("logout-confirm-open");
+    document.body.classList.add("logout-confirm-open");
+  }
+
+  function unlockBackgroundScroll() {
+    document.removeEventListener("wheel", preventBackgroundScroll, true);
+    document.removeEventListener("touchmove", preventBackgroundScroll, true);
+    window.removeEventListener("scroll", keepScrollPosition);
+    document.documentElement.classList.remove("logout-confirm-open");
+    document.body.classList.remove("logout-confirm-open");
+  }
+
+  function keepScrollPosition() {
+    if (!logoutState.activeModal) return;
+    if (window.scrollX === logoutState.scrollX && window.scrollY === logoutState.scrollY) return;
+    window.scrollTo(logoutState.scrollX, logoutState.scrollY);
+  }
+
+  function preventBackgroundScroll(event) {
+    var modal = modalElement();
+    if (!modal || !modal.contains(event.target)) {
+      event.preventDefault();
+      keepScrollPosition();
+    }
+  }
+
+  function closeLogoutModal() {
+    if (!logoutState.activeModal) return;
+
+    document.removeEventListener("keydown", handleLogoutModalKeydown);
+    unlockBackgroundScroll();
+    logoutState.activeModal.remove();
+    logoutState.activeModal = null;
+
+    if (logoutState.previousFocus && typeof logoutState.previousFocus.focus === "function") {
+      logoutState.previousFocus.focus({ preventScroll: true });
+    }
+    logoutState.previousFocus = null;
+  }
+
+  function isScrollableKey(event) {
+    return ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].indexOf(event.key) !== -1;
+  }
+
+  function isInteractiveControl(element) {
+    return element && element.closest && element.closest("button, a, input, select, textarea, [role='button']");
+  }
+
+  function handleLogoutModalKeydown(event) {
+    if (!logoutState.activeModal) return;
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeLogoutModal();
+      return;
+    }
+
+    var modal = modalElement();
+    if (isScrollableKey(event) && (!modal || !modal.contains(event.target) || !isInteractiveControl(event.target))) {
+      event.preventDefault();
+      keepScrollPosition();
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+
+    var focusable = logoutState.activeModal.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable.length) return;
+
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function openLogoutModal(requestOrTrigger) {
+    var request = requestOrTrigger && requestOrTrigger.url
+      ? requestOrTrigger
+      : resolveLogoutRequest(requestOrTrigger);
+    if (!request) return false;
+
     closeLogoutModal();
+    closeOpenMenus();
     ensureLogoutModalStyles();
 
-    previousFocus = link;
+    logoutState.previousFocus = request.trigger || document.activeElement;
 
-    var logoutUrl = link.href;
-    var theme = getLogoutTheme(link);
     var overlay = document.createElement("div");
-    overlay.className = "logout-confirm-overlay logout-confirm-overlay--" + theme;
+    overlay.className = "logout-confirm-overlay logout-confirm-overlay--" + request.theme;
+    overlay.setAttribute("data-servitech-logout-modal", "");
     overlay.innerHTML =
       '<section class="logout-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="logout-confirm-title" aria-describedby="logout-confirm-message" tabindex="-1">' +
         '<div class="logout-confirm-modal__header">' +
@@ -219,28 +362,55 @@
 
     overlay.querySelector("[data-logout-cancel]").addEventListener("click", closeLogoutModal);
     overlay.querySelector("[data-logout-confirm-action]").addEventListener("click", function () {
-      window.location.href = logoutUrl;
+      window.location.assign(request.url);
     });
 
     document.body.appendChild(overlay);
-    document.documentElement.classList.add("logout-confirm-open");
-    document.body.classList.add("logout-confirm-open");
-    activeLogoutModal = overlay;
+    logoutState.activeModal = overlay;
+    lockBackgroundScroll();
     document.addEventListener("keydown", handleLogoutModalKeydown);
 
     var cancelButton = overlay.querySelector("[data-logout-cancel]");
     if (cancelButton) {
       cancelButton.focus({ preventScroll: true });
     }
+
+    return true;
+  }
+
+  function handleDelegatedLogoutClick(event) {
+    var trigger = findLogoutTrigger(event.target);
+    var request = resolveLogoutRequest(trigger);
+    if (!request) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (typeof event.stopImmediatePropagation === "function") {
+      event.stopImmediatePropagation();
+    }
+    openLogoutModal(request);
   }
 
   function initLogoutConfirmation() {
-    document.addEventListener("click", function (event) {
-      var link = event.target.closest ? event.target.closest("a") : null;
-      if (!isLogoutLink(link)) return;
+    if (window.ServiTechLogoutConfirmDelegated) return;
+    window.ServiTechLogoutConfirmDelegated = true;
+    document.addEventListener("click", handleDelegatedLogoutClick, true);
+  }
 
-      event.preventDefault();
-      openLogoutModal(link);
-    });
+  window.ServiTechLogoutConfirm = {
+    close: closeLogoutModal,
+    init: initLogoutConfirmation,
+    isLogoutTrigger: function (element) {
+      return !!resolveLogoutRequest(findLogoutTrigger(element));
+    },
+    open: openLogoutModal
+  };
+
+  initLogoutConfirmation();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initHeaderMenus);
+  } else {
+    initHeaderMenus();
   }
 })();
