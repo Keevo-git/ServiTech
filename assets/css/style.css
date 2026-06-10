@@ -20,6 +20,16 @@ body {
   align-items: center;
 }
 
+.site-header,
+.customer-header,
+.auth-header,
+.public-header {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  overflow: visible;
+}
+
 .navbar h1 {
   font-size: 22px;
 }

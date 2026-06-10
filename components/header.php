@@ -388,7 +388,7 @@ $notificationRoutes = [
     "fallback" => servitech_url("/pages/customer/custo_service_status.php"),
 ];
 ?>
-<header class="navbar has-nav-menu navbar--notifications customer-shared-header">
+<header class="navbar has-nav-menu navbar--notifications site-header customer-header customer-shared-header">
   <a href="/index.php" class="logo">
     <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech</h1>
@@ -508,9 +508,7 @@ $notificationRoutes = [
 
 <style>
   .customer-shared-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    z-index: 9999 !important;
   }
 
   .navbar.has-nav-menu.navbar--notifications {

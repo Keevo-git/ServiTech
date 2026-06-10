@@ -183,7 +183,7 @@ $csrfToken = servitech_csrf_token();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Forgot Password</title>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=" . AUTH_UI_VERSION) ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260610sticky-header") ?>">
 </head>
 <body class="auth-page auth-page--login">
 

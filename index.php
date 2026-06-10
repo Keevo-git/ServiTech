@@ -35,12 +35,12 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <link rel="icon" type="images/png" href="<?= htmlspecialchars(servitech_url('/assets/images/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" >
-  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260524repair-icon-align'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260610sticky-header'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 
   <!-- NAVBAR -->
-  <header class="navbar has-nav-menu">
+  <header class="navbar has-nav-menu site-header public-header">
     <a href="<?= htmlspecialchars(servitech_url('/index.php'), ENT_QUOTES, 'UTF-8') ?>" class="logo">
       <img src="<?= htmlspecialchars(servitech_url('/assets/images/LOGO_SERVITECH.png'), ENT_QUOTES, 'UTF-8') ?>" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>

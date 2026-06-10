@@ -56,7 +56,7 @@ if (!function_exists("render_auth_header")) {
     function render_auth_header(string $menuId, string $secondaryPath, string $secondaryLabel): void
     {
         ?>
-  <header class="navbar has-nav-menu">
+  <header class="navbar has-nav-menu site-header auth-header">
     <a href="<?= auth_url("/index.php") ?>" class="logo">
       <img src="<?= auth_url("/assets/images/LOGO_SERVITECH.png") ?>" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
