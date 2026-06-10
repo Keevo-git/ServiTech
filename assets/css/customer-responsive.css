@@ -1080,7 +1080,8 @@ body.customer-layout.customer-page--dashboard {
 }
 
 body.customer-layout.customer-page--print-order,
-body.customer-layout.customer-page--profile {
+body.customer-layout.customer-page--profile,
+body.customer-layout.customer-page--queue-monitor {
   background: #fff4e4 !important;
 }
 

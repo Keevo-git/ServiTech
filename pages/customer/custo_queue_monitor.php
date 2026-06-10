@@ -198,7 +198,8 @@ $monitorQueues = [
   <style>
     body.customer-layout.customer-page--queue-monitor {
       overflow-x: hidden;
-      background: #fff4e4;
+      background: #fff4e4 !important;
+      background-color: #fff4e4 !important;
     }
 
     body.customer-layout.customer-page--queue-monitor .queue-monitor-page {
@@ -206,6 +207,7 @@ $monitorQueues = [
       margin: 0 auto;
       padding: 20px 20px 80px;
       box-sizing: border-box;
+      background: #fff4e4;
     }
 
     body.customer-layout.customer-page--queue-monitor .queue-monitor-hero {
