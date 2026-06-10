@@ -193,29 +193,32 @@ $monitorQueues = [
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Queue Monitor</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260526status-badges">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <style>
     body.customer-layout.customer-page--queue-monitor {
       overflow-x: hidden;
+      background: #fff4e4;
     }
 
     body.customer-layout.customer-page--queue-monitor .queue-monitor-page {
       width: min(100%, 1200px);
       margin: 0 auto;
-      padding: clamp(22px, 5vw, 48px) 20px 64px;
+      padding: 20px 20px 80px;
       box-sizing: border-box;
     }
 
     body.customer-layout.customer-page--queue-monitor .queue-monitor-hero {
       display: grid;
       gap: 10px;
-      margin-bottom: 24px;
-      padding: clamp(24px, 4vw, 36px);
+      margin: 30px 0 25px;
+      padding: 40px 20px;
       border-radius: 16px;
-      background: linear-gradient(135deg, #ff7a18, #ffb347);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+        linear-gradient(135deg, #ff7a18, #ffb347);
       color: #ffffff;
-      box-shadow: 0 18px 34px rgba(74, 5, 5, 0.16);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
       box-sizing: border-box;
     }
 
@@ -262,6 +265,7 @@ $monitorQueues = [
       padding: 22px;
       border-radius: 16px;
       box-sizing: border-box;
+      height: 100%;
     }
 
     body.customer-layout.customer-page--queue-monitor .dashboard-card h3 {
@@ -285,23 +289,26 @@ $monitorQueues = [
       height: 306px;
       min-height: 306px;
       border: 1px solid rgba(232, 199, 123, 0.30);
+      display: flex;
+      flex-direction: column;
     }
 
-    .queue-carousel-card--mine {
+    .queue-carousel-card--mine,
+    .queue-carousel-card--latest {
       background: linear-gradient(180deg, #fffdf8 0%, #fff9ef 100%);
       box-shadow: 0 12px 26px rgba(153, 96, 16, 0.11);
     }
 
     .queue-carousel-card--latest {
-      background: linear-gradient(180deg, #fbfcff 0%, #f3f8ff 100%);
-      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.09);
-      border-color: rgba(147, 197, 253, 0.34);
+      border-color: rgba(232, 199, 123, 0.30);
     }
 
     .queue-carousel {
       display: grid;
       grid-template-rows: 52px 18px 126px;
       gap: 10px;
+      flex: 1;
+      min-height: 0;
       height: 100%;
       align-content: start;
     }
@@ -326,24 +333,16 @@ $monitorQueues = [
       flex-shrink: 0;
     }
 
-    .queue-carousel-card--mine .queue-carousel__nav {
+    .queue-carousel-card--mine .queue-carousel__nav,
+    .queue-carousel-card--latest .queue-carousel__nav {
       background: #f7e6bf;
       color: #4A0505;
     }
 
-    .queue-carousel-card--mine .queue-carousel__nav:hover {
-      background: #FAB12F;
-      transform: translateY(-1px);
-    }
-
-    .queue-carousel-card--latest .queue-carousel__nav {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-
+    .queue-carousel-card--mine .queue-carousel__nav:hover,
     .queue-carousel-card--latest .queue-carousel__nav:hover {
-      background: #bfdbfe;
-      color: #1e40af;
+      background: #FAB12F;
+      color: #4A0505;
       transform: translateY(-1px);
     }
 
@@ -368,12 +367,9 @@ $monitorQueues = [
       line-height: 1.1;
     }
 
-    .queue-carousel-card--mine .queue-carousel__category {
-      color: #4A0505;
-    }
-
+    .queue-carousel-card--mine .queue-carousel__category,
     .queue-carousel-card--latest .queue-carousel__category {
-      color: #143b7a;
+      color: #4A0505;
     }
 
     .queue-carousel__dots {
@@ -400,12 +396,9 @@ $monitorQueues = [
       transform: scale(1.15);
     }
 
-    .queue-carousel-card--latest .queue-carousel__dot {
-      background: #bfdbfe;
-    }
-
+    .queue-carousel-card--mine .queue-carousel__dot.is-active,
     .queue-carousel-card--latest .queue-carousel__dot.is-active {
-      background: #3b82f6;
+      background: #FAB12F;
       transform: scale(1.15);
     }
 
@@ -441,8 +434,8 @@ $monitorQueues = [
     }
 
     .queue-carousel-card--latest .queue-item {
-      border-color: #c8dcfb;
-      background: #f7faff;
+      border-color: #f0dfbe;
+      background: #fffaf0;
     }
 
     .queue-item__head {
@@ -503,7 +496,7 @@ $monitorQueues = [
     }
 
     .queue-carousel-card--latest .queue-item__label {
-      color: #163d73;
+      color: #4A0505;
     }
 
     .queue-item__details {
@@ -524,7 +517,7 @@ $monitorQueues = [
     }
 
     .queue-carousel-card--latest .queue-item__details {
-      color: #4f6485;
+      color: #6b5a3b;
     }
 
     .queue-carousel__empty {
@@ -544,9 +537,9 @@ $monitorQueues = [
     }
 
     .queue-carousel-card--latest .queue-carousel__empty {
-      border-color: #bfdbfe;
-      background: #f8fbff;
-      color: #4f6485;
+      border-color: #e0c991;
+      background: #fffaf0;
+      color: #7a6b4f;
     }
 
     @media (max-width: 900px) {
@@ -557,7 +550,13 @@ $monitorQueues = [
 
     @media (max-width: 640px) {
       body.customer-layout.customer-page--queue-monitor .queue-monitor-page {
-        padding-inline: 14px;
+        padding: 16px 14px 56px;
+      }
+
+      body.customer-layout.customer-page--queue-monitor .queue-monitor-hero {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        padding: 28px 18px;
       }
 
       body.customer-layout.customer-page--queue-monitor .dashboard-card {
@@ -622,7 +621,7 @@ $monitorQueues = [
     }
   </style>
 </head>
-<body class="customer-layout customer-page--queue-monitor">
+<body class="customer-layout customer-page--queue-monitor has-fixed-site-header">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -651,7 +650,7 @@ $monitorQueues = [
     </div>
 
     <div class="dashboard-card queue-carousel-card queue-carousel-card--latest">
-      <h3>NOW SERVING</h3>
+      <h3>JC STORE CURRENTLY SERVING</h3>
       <div class="divider"></div>
 
       <div class="queue-carousel">
