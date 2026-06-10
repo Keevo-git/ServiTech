@@ -270,7 +270,7 @@ $dashboardQueues = [
       width: 100% !important;
       max-width: none !important;
       margin: 0 !important;
-      padding: 0 0 60px !important;
+      padding: 0 !important;
     }
 
     body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
@@ -296,6 +296,117 @@ $dashboardQueues = [
       width: 100% !important;
       height: 100% !important;
       min-height: 220px !important;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-section {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-card {
+      width: 100%;
+      padding: 26px;
+      border: 1px solid rgba(175, 108, 9, 0.16);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #fff9ef 100%);
+      box-shadow: 0 14px 30px rgba(74, 5, 5, 0.09);
+      box-sizing: border-box;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-section-heading {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-section-heading h3 {
+      margin: 0;
+      color: #4A0505;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-section-heading p {
+      margin: 0;
+      color: #6b5a4a;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      width: 100%;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      min-width: 0;
+      min-height: 190px;
+      width: 100%;
+      padding: 22px 18px;
+      border: 1px solid rgba(175, 108, 9, 0.18);
+      border-radius: 16px;
+      background: #ffffff;
+      color: #4A0505;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(74, 5, 5, 0.08);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      touch-action: manipulation;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card:hover,
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card:focus-visible {
+      transform: translateY(-3px);
+      border-color: rgba(255, 139, 44, 0.62);
+      box-shadow: 0 16px 28px rgba(74, 5, 5, 0.13);
+      outline: none;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card.is-selected {
+      border-color: #FAB12F;
+      box-shadow: 0 16px 32px rgba(175, 108, 9, 0.18);
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card__media {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: min(100%, 150px);
+      aspect-ratio: 1;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card__media img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card__label {
+      color: #4A0505;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-submit {
+      min-width: 180px;
+      min-height: 48px;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero.hero-wrapper {
@@ -688,6 +799,10 @@ $dashboardQueues = [
         grid-template-columns: 1fr !important;
       }
 
+      body.customer-layout.customer-page--dashboard .dashboard-service-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       body.customer-layout.customer-page--dashboard .customer-dashboard.cards-row > .dashboard-card {
         height: auto;
       }
@@ -699,6 +814,39 @@ $dashboardQueues = [
     }
 
     @media (max-width: 640px) {
+      body.customer-layout.customer-page--dashboard .main-container {
+        padding: 16px;
+      }
+
+      body.customer-layout.customer-page--dashboard .dashboard-service-card {
+        padding: 20px 16px;
+      }
+
+      body.customer-layout.customer-page--dashboard .dashboard-service-options {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card {
+        min-height: 156px;
+      }
+
+      body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card__media {
+        width: 118px;
+      }
+
+      body.customer-layout.customer-page--dashboard .dashboard-service-actions {
+        justify-content: stretch;
+      }
+
+      body.customer-layout.customer-page--dashboard .dashboard-service-submit {
+        width: 100%;
+      }
+
+      body.customer-layout.customer-page--dashboard .quick-card-link {
+        min-width: 0 !important;
+      }
+
       .queue-carousel-card {
         height: auto;
         min-height: 320px;
@@ -788,38 +936,40 @@ $dashboardQueues = [
   </div>
 </section>
 
-<section class="customer-dashboard cards-row">
-  <div class="dashboard-card queue-carousel-card queue-carousel-card--mine">
-    <h3>MY CURRENT REQUESTS</h3>
-    <div class="divider"></div>
-
-    <div class="queue-carousel">
-      <div class="queue-carousel__topbar">
-        <button type="button" class="queue-carousel__nav" id="activeQueuePrev" aria-label="Previous active request category">&#9664;</button>
-        <div class="queue-carousel__category" id="activeQueueCategory">ONLINE PRINTING</div>
-        <button type="button" class="queue-carousel__nav" id="activeQueueNext" aria-label="Next active request category">&#9654;</button>
-      </div>
-
-      <div class="queue-carousel__dots" id="activeQueueDots" aria-label="Active request category indicators"></div>
-      <div class="queue-carousel__list" id="activeQueueList"></div>
+<section class="dashboard-service-section" aria-labelledby="dashboardChooseServiceTitle">
+  <form class="dashboard-service-card" id="dashboardServiceForm" novalidate>
+    <div class="dashboard-section-heading">
+      <h3 id="dashboardChooseServiceTitle">Choose a Service</h3>
+      <p>Select what you need today and continue to the same queue form used in Join Queue.</p>
     </div>
-  </div>
 
-  <div class="dashboard-card queue-carousel-card queue-carousel-card--latest">
-    <h3>JC STORE'S CURRENTLY SERVING</h3>
-    <div class="divider"></div>
+    <div class="queue-service-options dashboard-service-options" role="group" aria-label="Choose a service">
+      <button type="button" class="queue-service-card" data-dashboard-service="printing" aria-pressed="false">
+        <span class="queue-service-card__media">
+          <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
+        </span>
+        <span class="queue-service-card__label">Printing</span>
+      </button>
 
-    <div class="queue-carousel">
-      <div class="queue-carousel__topbar">
-        <button type="button" class="queue-carousel__nav" id="recentQueuePrev" aria-label="Previous latest queue category">&#9664;</button>
-        <div class="queue-carousel__category" id="recentQueueCategory">ONLINE PRINTING</div>
-        <button type="button" class="queue-carousel__nav" id="recentQueueNext" aria-label="Next latest queue category">&#9654;</button>
-      </div>
+      <button type="button" class="queue-service-card" data-dashboard-service="repair" aria-pressed="false">
+        <span class="queue-service-card__media">
+          <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
+        </span>
+        <span class="queue-service-card__label">Repair</span>
+      </button>
 
-      <div class="queue-carousel__dots" id="recentQueueDots" aria-label="Latest queue category indicators"></div>
-      <div class="queue-carousel__list" id="recentQueueList"></div>
+      <button type="button" class="queue-service-card" data-dashboard-service="installation" aria-pressed="false">
+        <span class="queue-service-card__media">
+          <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
+        </span>
+        <span class="queue-service-card__label">Installation</span>
+      </button>
     </div>
-  </div>
+
+    <div class="form-actions dashboard-service-actions">
+      <button type="submit" class="btn-next queue-join-submit dashboard-service-submit" id="dashboardServiceSubmit" disabled>Continue to Queue</button>
+    </div>
+  </form>
 </section>
 
 <section class="quick-access quick-access-section">
@@ -858,6 +1008,40 @@ $dashboardQueues = [
     </a>
   </div>
 </section>
+
+<section class="customer-dashboard cards-row" aria-label="Your Queue Updates">
+  <div class="dashboard-card queue-carousel-card queue-carousel-card--mine">
+    <h3>YOUR QUEUE UPDATES</h3>
+    <div class="divider"></div>
+
+    <div class="queue-carousel">
+      <div class="queue-carousel__topbar">
+        <button type="button" class="queue-carousel__nav" id="activeQueuePrev" aria-label="Previous active request category">&#9664;</button>
+        <div class="queue-carousel__category" id="activeQueueCategory">ONLINE PRINTING</div>
+        <button type="button" class="queue-carousel__nav" id="activeQueueNext" aria-label="Next active request category">&#9654;</button>
+      </div>
+
+      <div class="queue-carousel__dots" id="activeQueueDots" aria-label="Active request category indicators"></div>
+      <div class="queue-carousel__list" id="activeQueueList"></div>
+    </div>
+  </div>
+
+  <div class="dashboard-card queue-carousel-card queue-carousel-card--latest">
+    <h3>JC STORE'S CURRENTLY SERVING</h3>
+    <div class="divider"></div>
+
+    <div class="queue-carousel">
+      <div class="queue-carousel__topbar">
+        <button type="button" class="queue-carousel__nav" id="recentQueuePrev" aria-label="Previous latest queue category">&#9664;</button>
+        <div class="queue-carousel__category" id="recentQueueCategory">ONLINE PRINTING</div>
+        <button type="button" class="queue-carousel__nav" id="recentQueueNext" aria-label="Next latest queue category">&#9654;</button>
+      </div>
+
+      <div class="queue-carousel__dots" id="recentQueueDots" aria-label="Latest queue category indicators"></div>
+      <div class="queue-carousel__list" id="recentQueueList"></div>
+    </div>
+  </div>
+</section>
 </main>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
@@ -893,6 +1077,50 @@ $dashboardQueues = [
     updateCustomerClock();
     window.setInterval(updateCustomerClock, 1000);
   }
+
+  const dashboardServiceForm = document.getElementById("dashboardServiceForm");
+  const dashboardServiceSubmit = document.getElementById("dashboardServiceSubmit");
+  const dashboardServiceCards = Array.from(document.querySelectorAll("[data-dashboard-service]"));
+  let selectedDashboardService = "";
+
+  function updateDashboardServiceState() {
+    if (dashboardServiceSubmit) {
+      dashboardServiceSubmit.disabled = !selectedDashboardService;
+    }
+  }
+
+  function setSelectedDashboardService(service) {
+    selectedDashboardService = service;
+    dashboardServiceCards.forEach((card) => {
+      const isActive = card.dataset.dashboardService === service;
+      card.classList.toggle("is-selected", isActive);
+      card.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+    updateDashboardServiceState();
+  }
+
+  dashboardServiceCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      setSelectedDashboardService(card.dataset.dashboardService || "");
+    });
+  });
+
+  dashboardServiceForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    if (!selectedDashboardService) {
+      dashboardServiceCards[0]?.focus();
+      return;
+    }
+
+    const routes = {
+      printing: "/pages/customer/custo1_printing_option.php",
+      repair: "/pages/customer/custo1_repair_option.php",
+      installation: "/pages/customer/custo1_installation_option.php"
+    };
+
+    window.location.href = routes[selectedDashboardService] || "/pages/customer/custo_place_queueing.php";
+  });
 
   function servitechBasePath() {
     const pathname = window.location.pathname || "";
