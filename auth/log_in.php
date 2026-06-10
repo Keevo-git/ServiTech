@@ -9,7 +9,7 @@ $csrfToken = servitech_csrf_token();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Login</title>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260610steady-header") ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260610fixed-header-all") ?>">
 </head>
 <body class="auth-page auth-page--login">
 

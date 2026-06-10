@@ -128,7 +128,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: <?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260410d1">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
   <style>
     .printing-page {

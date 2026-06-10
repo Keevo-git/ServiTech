@@ -51,7 +51,7 @@ function rush_price(array $pricing, string $key): string {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Rush ID</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260410d1">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
   <style>
     .printing-upload-card .form-file {
