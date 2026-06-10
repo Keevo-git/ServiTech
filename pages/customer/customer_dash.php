@@ -81,7 +81,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 
     body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
       display: grid !important;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       gap: 20px !important;
       align-items: stretch !important;
       margin-left: 0 !important;
@@ -848,23 +848,13 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
       </div>
     </a>
 
-    <a href="/pages/customer/custo_service_status.php" class="quick-card-link">
+    <a href="/pages/customer/custo_queue_monitor.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/assets/images/LANDING_SERVICE-STAT.png" alt="Your Queue Updates" class="quick-icon">
+          <img src="/assets/images/LANDING_QUEUEING.png" alt="Queue Monitor" class="quick-icon">
         </div>
-        <h4>Your Queue Updates</h4>
-        <p>View updates for your submitted requests.</p>
-      </div>
-    </a>
-
-    <a href="/pages/customer/custo_now_serving.php" class="quick-card-link">
-      <div class="quick-card">
-        <div class="quick-icon-box">
-          <img src="/assets/images/LANDING_QUEUEING.png" alt="Now Serving" class="quick-icon">
-        </div>
-        <h4>Now Serving</h4>
-        <p>See the current queue being served.</p>
+        <h4>Queue Monitor</h4>
+        <p>View your latest queue updates and now serving.</p>
       </div>
     </a>
   </div>
