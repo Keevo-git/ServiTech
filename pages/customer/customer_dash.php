@@ -100,11 +100,11 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
       flex-direction: column !important;
       justify-content: flex-start !important;
       align-items: center !important;
-      gap: 12px !important;
+      gap: 10px !important;
       width: 100% !important;
       height: 100% !important;
-      min-height: 220px !important;
-      padding: 24px 20px !important;
+      min-height: 178px !important;
+      padding: 18px 16px !important;
       border: 1px solid rgba(175, 108, 9, 0.14);
       border-radius: 16px;
       background: #ffffff;
@@ -132,24 +132,34 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     }
 
     body.customer-layout.customer-page--dashboard .quick-icon-box {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 92px;
-      height: 92px;
-      flex: 0 0 92px;
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #fff8e8, #fde7bd);
+      box-shadow:
+        inset 0 -2px 0 rgba(122, 15, 15, 0.08),
+        0 8px 18px rgba(74, 5, 5, 0.08);
+      overflow: hidden;
     }
 
-    body.customer-layout.customer-page--dashboard .quick-icon {
-      width: 82px;
-      height: 82px;
+    body.customer-layout.customer-page--dashboard .quick-icon,
+    body.customer-layout.customer-page--dashboard .quick-access-icon-img {
+      display: block;
+      width: 30px;
+      height: 30px;
       object-fit: contain;
+      flex: 0 0 auto;
+      filter: drop-shadow(0 1px 1px rgba(74, 5, 5, 0.14));
     }
 
     body.customer-layout.customer-page--dashboard .quick-card h4 {
-      margin: 0;
+      margin: 2px 0 0;
       color: #4A0505;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
       line-height: 1.25;
       text-align: center;
@@ -158,9 +168,10 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     body.customer-layout.customer-page--dashboard .quick-card p {
       margin: 0;
       color: #6b5a4a;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.45;
       text-align: center;
+      max-width: 190px;
     }
 
     body.customer-layout.customer-page--dashboard .dashboard-service-section {
@@ -692,6 +703,10 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
         grid-template-columns: 1fr !important;
       }
 
+      body.customer-layout.customer-page--dashboard .quick-card {
+        min-height: 160px !important;
+      }
+
       .queue-carousel-card {
         height: auto;
         min-height: 320px;
@@ -821,7 +836,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     <a href="/pages/customer/custo_place_queueing.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/assets/images/LANDING_QUEUEING.png" alt="Join Queue" class="quick-icon">
+          <img class="quick-access-icon-img" src="/assets/images/QUICK-ACCESS_JOIN-QUEUE.png" alt="Join Queue">
         </div>
         <h4>Join Queue</h4>
         <p>Join the line to place your request.</p>
@@ -831,7 +846,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     <a href="/pages/customer/custo_service_status.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/assets/images/LANDING_SERVICE-STAT.png" alt="Service Status" class="quick-icon">
+          <img class="quick-access-icon-img" src="/assets/images/QUICK-ACCESS_SERVICE-STATUS.png" alt="Service Status">
         </div>
         <h4>Service Status</h4>
         <p>Check your requested service or queue status.</p>
@@ -841,7 +856,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     <a href="/pages/customer/custo_edit_profile.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/assets/images/ICON_EDIT_PROF.png" alt="Edit Profile" class="quick-icon">
+          <img class="quick-access-icon-img" src="/assets/images/QUICK-ACCESS_EDIT-PROFILE.png" alt="Edit Profile">
         </div>
         <h4>Edit Profile</h4>
         <p>Edit your personal information.</p>
@@ -851,7 +866,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     <a href="/pages/customer/custo_queue_monitor.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img src="/assets/images/LANDING_QUEUEING.png" alt="Queue Monitor" class="quick-icon">
+          <img class="quick-access-icon-img" src="/assets/images/QUICK-ACCESS_QUEUE-MONITOR.png" alt="Queue Monitor">
         </div>
         <h4>Queue Monitor</h4>
         <p>View your latest queue updates and now serving.</p>
