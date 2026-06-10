@@ -224,21 +224,6 @@ $monitorQueues = [
       box-sizing: border-box;
     }
 
-    body.customer-layout.customer-page--queue-monitor .queue-monitor-back {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: fit-content;
-      min-height: 42px;
-      padding: 9px 14px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
     body.customer-layout.customer-page--queue-monitor .queue-monitor-hero h1 {
       margin: 0;
       font-size: clamp(28px, 5vw, 42px);
@@ -288,8 +273,8 @@ $monitorQueues = [
 
     .queue-carousel-card {
       overflow: hidden;
-      height: 306px;
-      min-height: 306px;
+      height: 320px;
+      min-height: 320px;
       border: 1px solid rgba(232, 199, 123, 0.30);
       display: flex;
       flex-direction: column;
@@ -308,8 +293,8 @@ $monitorQueues = [
 
     .queue-carousel {
       display: grid;
-      grid-template-rows: 52px 18px 126px;
-      gap: 10px;
+      grid-template-rows: 52px 18px minmax(126px, 1fr);
+      gap: 14px;
       flex: 1;
       min-height: 0;
       height: 100%;
@@ -421,9 +406,9 @@ $monitorQueues = [
 
     .queue-carousel__list {
       display: flex;
-      align-items: flex-start;
+      align-items: stretch;
       min-height: 126px;
-      height: 126px;
+      height: 100%;
       padding: 0 8px;
       box-sizing: border-box;
       overflow: hidden;
@@ -441,8 +426,8 @@ $monitorQueues = [
       background: #fffaf0;
       border-radius: 14px;
       padding: 14px 16px;
-      height: 112px;
-      min-height: 112px;
+      height: 126px;
+      min-height: 126px;
       display: grid;
       grid-template-rows: 34px 24px 20px;
       align-content: start;
@@ -541,8 +526,8 @@ $monitorQueues = [
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 112px;
-      min-height: 112px;
+      height: 126px;
+      min-height: 126px;
       border-radius: 14px;
       text-align: center;
       padding: 14px 16px;
@@ -587,6 +572,7 @@ $monitorQueues = [
 
       .queue-carousel {
         grid-template-rows: 44px 18px auto;
+        gap: 12px;
       }
 
       .queue-carousel__topbar {
@@ -644,7 +630,6 @@ $monitorQueues = [
 
 <main class="queue-monitor-page">
   <section class="queue-monitor-hero">
-    <a href="/pages/customer/customer_dash.php" class="queue-monitor-back">Back to Dashboard</a>
     <h1>Queue Monitor</h1>
     <p>View your latest queue updates and the current queue being served.</p>
   </section>
