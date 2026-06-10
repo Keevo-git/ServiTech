@@ -139,21 +139,31 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
       height: 52px;
       flex: 0 0 52px;
       border-radius: 12px;
-      background: linear-gradient(145deg, #fff8e8, #fde7bd);
+      background: linear-gradient(145deg, #4A0505, #7a0f0f);
       box-shadow:
-        inset 0 -2px 0 rgba(122, 15, 15, 0.08),
-        0 8px 18px rgba(74, 5, 5, 0.08);
+        inset 0 -2px 0 rgba(0, 0, 0, 0.18),
+        0 9px 18px rgba(74, 5, 5, 0.18);
       overflow: hidden;
+      transition: background 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease, filter 0.22s ease;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-card-link:hover .quick-icon-box,
+    body.customer-layout.customer-page--dashboard .quick-card-link:focus-visible .quick-icon-box {
+      background: linear-gradient(145deg, #5a0808, #8a1717);
+      box-shadow:
+        inset 0 -2px 0 rgba(0, 0, 0, 0.16),
+        0 12px 22px rgba(74, 5, 5, 0.24);
+      filter: brightness(1.04);
     }
 
     body.customer-layout.customer-page--dashboard .quick-icon,
     body.customer-layout.customer-page--dashboard .quick-access-icon-img {
       display: block;
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       object-fit: contain;
       flex: 0 0 auto;
-      filter: drop-shadow(0 1px 1px rgba(74, 5, 5, 0.14));
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.24));
     }
 
     body.customer-layout.customer-page--dashboard .quick-card h4 {
