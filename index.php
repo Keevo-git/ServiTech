@@ -35,9 +35,9 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <link rel="icon" type="images/png" href="<?= htmlspecialchars(servitech_url('/assets/images/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" >
-  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260610steady-header'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260610fixed-header'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
-<body>
+<body class="has-fixed-site-header">
 
   <!-- NAVBAR -->
   <header class="navbar has-nav-menu site-header public-header">
