@@ -157,13 +157,26 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     }
 
     body.customer-layout.customer-page--dashboard .quick-icon,
-    body.customer-layout.customer-page--dashboard .quick-access-icon-img {
+    body.customer-layout.customer-page--dashboard .quick-access-icon-img,
+    body.customer-layout.customer-page--dashboard .quick-access-icon-symbol {
       display: block;
       width: 32px;
       height: 32px;
-      object-fit: contain;
       flex: 0 0 auto;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-icon,
+    body.customer-layout.customer-page--dashboard .quick-access-icon-img {
+      object-fit: contain;
       filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.24));
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-access-icon-symbol {
+      color: #ffffff;
+      font-size: 22px;
+      line-height: 32px;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
     }
 
     body.customer-layout.customer-page--dashboard .quick-card h4 {
@@ -846,7 +859,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     <a href="/pages/customer/custo_place_queueing.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
-          <img class="quick-access-icon-img" src="/assets/images/QUICK-ACCESS_JOIN-QUEUE.png" alt="Join Queue">
+          <span class="quick-access-icon-symbol" aria-hidden="true">&#x23F3;</span>
         </div>
         <h4>Join Queue</h4>
         <p>Join the line to place your request.</p>
