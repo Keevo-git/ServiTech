@@ -24,10 +24,12 @@ body {
 .customer-header,
 .auth-header,
 .public-header {
-  position: sticky;
-  top: 0;
-  z-index: 9999;
-  overflow: visible;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2200 !important;
+  width: 100%;
+  flex: 0 0 auto;
+  overflow: visible !important;
 }
 
 .navbar h1 {
@@ -4127,9 +4129,20 @@ body.customer-layout.customer-page--status .status-modal .modal-back {
 .navbar.has-nav-menu nav[data-collapsible-menu] {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   margin-left: auto;
+  min-width: 0;
+  overflow: visible;
+}
+
+.navbar.has-nav-menu .header-utility {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
 }
 
 .navbar.has-nav-menu .nav-toggle {
@@ -4156,6 +4169,16 @@ body.customer-layout.customer-page--status .status-modal .modal-back {
 }
 
 @media (max-width: 900px) {
+  .site-header,
+  .customer-header,
+  .auth-header,
+  .public-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2200 !important;
+    overflow: visible !important;
+  }
+
   .navbar.has-nav-menu {
     align-items: center;
     flex-wrap: wrap;
@@ -4277,11 +4300,13 @@ body.customer-layout.customer-page--status .status-modal .modal-back {
 
 @media (min-width: 901px) {
   .navbar.has-nav-menu {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 
   .navbar.has-nav-menu nav[data-collapsible-menu] {
     justify-content: flex-end;
+    width: auto;
+    flex: 0 1 auto;
   }
 }
 
@@ -4297,30 +4322,79 @@ body.customer-layout.customer-page--status .status-modal .modal-back {
 /* Final mobile alignment fix: logo + hamburger stay on one row */
 @media (max-width: 900px) {
   .navbar.has-nav-menu {
-    display: grid;
+    display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand actions"
+      "menu menu";
     align-items: center;
     row-gap: 10px;
     column-gap: 12px;
+    overflow: visible !important;
   }
 
   .navbar.has-nav-menu .logo {
-    grid-column: 1;
+    grid-area: brand;
     min-width: 0;
     width: auto;
     flex: 0 1 auto;
   }
 
+  .navbar.has-nav-menu .header-utility {
+    grid-area: actions;
+    display: inline-flex;
+    justify-self: end;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+  }
+
   .navbar.has-nav-menu .nav-toggle {
-    grid-column: 2;
     justify-self: end;
     margin-left: 0;
     align-self: center;
+    flex: 0 0 42px;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    min-height: 42px;
+    z-index: 2;
+  }
+
+  .navbar.has-nav-menu > .nav-toggle {
+    grid-area: actions;
   }
 
   .navbar.has-nav-menu nav[data-collapsible-menu] {
-    grid-column: 1 / -1;
+    grid-area: menu;
     margin: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 520px) {
+  .navbar.has-nav-menu {
+    column-gap: 10px;
+  }
+
+  .navbar.has-nav-menu .logo {
+    gap: 6px;
+  }
+
+  .navbar.has-nav-menu .logo h1 {
+    max-width: 42vw;
+  }
+
+  .navbar.has-nav-menu .servitech-logo {
+    flex: 0 0 auto;
+  }
+
+  .navbar.has-nav-menu .header-utility {
+    gap: 6px;
   }
 }
 
