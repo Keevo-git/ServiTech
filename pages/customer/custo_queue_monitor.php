@@ -293,14 +293,15 @@ $monitorQueues = [
       flex-direction: column;
     }
 
-    .queue-carousel-card--mine,
-    .queue-carousel-card--latest {
+    .queue-carousel-card--mine {
       background: linear-gradient(180deg, #fffdf8 0%, #fff9ef 100%);
       box-shadow: 0 12px 26px rgba(153, 96, 16, 0.11);
     }
 
     .queue-carousel-card--latest {
-      border-color: rgba(232, 199, 123, 0.30);
+      background: linear-gradient(180deg, #fbfcff 0%, #f3f8ff 100%);
+      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.09);
+      border-color: rgba(147, 197, 253, 0.34);
     }
 
     .queue-carousel {
@@ -333,16 +334,24 @@ $monitorQueues = [
       flex-shrink: 0;
     }
 
-    .queue-carousel-card--mine .queue-carousel__nav,
-    .queue-carousel-card--latest .queue-carousel__nav {
+    .queue-carousel-card--mine .queue-carousel__nav {
       background: #f7e6bf;
       color: #4A0505;
     }
 
-    .queue-carousel-card--mine .queue-carousel__nav:hover,
-    .queue-carousel-card--latest .queue-carousel__nav:hover {
+    .queue-carousel-card--mine .queue-carousel__nav:hover {
       background: #FAB12F;
-      color: #4A0505;
+      transform: translateY(-1px);
+    }
+
+    .queue-carousel-card--latest .queue-carousel__nav {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .queue-carousel-card--latest .queue-carousel__nav:hover {
+      background: #bfdbfe;
+      color: #1e40af;
       transform: translateY(-1px);
     }
 
@@ -367,9 +376,12 @@ $monitorQueues = [
       line-height: 1.1;
     }
 
-    .queue-carousel-card--mine .queue-carousel__category,
-    .queue-carousel-card--latest .queue-carousel__category {
+    .queue-carousel-card--mine .queue-carousel__category {
       color: #4A0505;
+    }
+
+    .queue-carousel-card--latest .queue-carousel__category {
+      color: #143b7a;
     }
 
     .queue-carousel__dots {
@@ -396,9 +408,12 @@ $monitorQueues = [
       transform: scale(1.15);
     }
 
-    .queue-carousel-card--mine .queue-carousel__dot.is-active,
+    .queue-carousel-card--latest .queue-carousel__dot {
+      background: #bfdbfe;
+    }
+
     .queue-carousel-card--latest .queue-carousel__dot.is-active {
-      background: #FAB12F;
+      background: #3b82f6;
       transform: scale(1.15);
     }
 
@@ -434,8 +449,8 @@ $monitorQueues = [
     }
 
     .queue-carousel-card--latest .queue-item {
-      border-color: #f0dfbe;
-      background: #fffaf0;
+      border-color: #c8dcfb;
+      background: #f7faff;
     }
 
     .queue-item__head {
@@ -496,7 +511,7 @@ $monitorQueues = [
     }
 
     .queue-carousel-card--latest .queue-item__label {
-      color: #4A0505;
+      color: #163d73;
     }
 
     .queue-item__details {
@@ -517,7 +532,7 @@ $monitorQueues = [
     }
 
     .queue-carousel-card--latest .queue-item__details {
-      color: #6b5a3b;
+      color: #4f6485;
     }
 
     .queue-carousel__empty {
@@ -537,9 +552,9 @@ $monitorQueues = [
     }
 
     .queue-carousel-card--latest .queue-carousel__empty {
-      border-color: #e0c991;
-      background: #fffaf0;
-      color: #7a6b4f;
+      border-color: #bfdbfe;
+      background: #f8fbff;
+      color: #4f6485;
     }
 
     @media (max-width: 900px) {
