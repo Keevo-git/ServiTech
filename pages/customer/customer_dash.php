@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
-require_once __DIR__ . "/../../api/queue_helpers.php";
 require_once __DIR__ . "/../../api/upload_helpers.php";
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -29,201 +28,8 @@ function format_fullname($name) {
   return ucwords(strtolower($name));
 }
 
-function parse_queue_details($details): array {
-  if (is_array($details)) return $details;
-  if (is_string($details) && trim($details) !== "") {
-    $decoded = json_decode($details, true);
-    if (is_array($decoded)) return $decoded;
-  }
-  return [];
-}
-
-function format_status_label($status) {
-  $s = strtoupper(trim((string)$status));
-  if ($s === "FOR PICK-UP") return "For Pick-up";
-  return ucwords(strtolower($s));
-}
-
-function queue_status_tone($status) {
-  $s = strtoupper(trim((string)$status));
-  if ($s === "ONGOING") return "ongoing";
-  if ($s === "FOR PICK-UP") return "pickup";
-  if ($s === "DONE") return "done";
-  if ($s === "CANCELLED") return "cancelled";
-  return "pending";
-}
-
-function queue_category_meta(string $categoryKey): array {
-  return match ($categoryKey) {
-    "online_print" => [
-      "label" => "Online Print Order",
-      "sql" => "q.category = :category_online_printorder",
-      "params" => [
-        ":category_online_printorder" => "online_printorder",
-      ],
-    ],
-    "printing" => [
-      "label" => "Printing",
-      "sql" => "q.category = :category_printing",
-      "params" => [
-        ":category_printing" => "printing",
-      ],
-    ],
-    "installation" => [
-      "label" => "Installation",
-      "sql" => "q.category = :category_installation",
-      "params" => [":category_installation" => "installation"],
-    ],
-    default => [
-      "label" => "Repair",
-      "sql" => "q.category = :category_repair",
-      "params" => [":category_repair" => "repair"],
-    ],
-  };
-}
-
-function normalize_service_label(string $serviceLabel, string $fallbackLabel): string {
-  $serviceLabel = trim($serviceLabel);
-  if ($serviceLabel === "") return $fallbackLabel;
-  if (strcasecmp($serviceLabel, "Online Print Order") === 0) return "Online Print Order";
-  return $serviceLabel;
-}
-
-function build_short_details(array $details, bool $includeNotes = true): string {
-  $parts = [];
-
-  if (!empty($details["paper_size"])) {
-    $parts[] = trim((string)$details["paper_size"]);
-  }
-
-  if (!empty($details["quantity"])) {
-    $qty = max(1, (int)$details["quantity"]);
-    $parts[] = $qty . " " . ($qty === 1 ? "copy" : "copies");
-  }
-
-  if (!empty($details["color_option"])) {
-    $parts[] = trim((string)$details["color_option"]);
-  }
-
-  if (!empty($details["package_label"])) {
-    $parts[] = trim((string)$details["package_label"]);
-  }
-
-  if (!empty($details["device_type"])) {
-    $parts[] = trim((string)$details["device_type"]);
-  }
-
-  if (!empty($details["lamination_type"])) {
-    $parts[] = ucfirst(strtolower(trim((string)$details["lamination_type"]))) . " Lamination";
-  }
-
-  if ($includeNotes && !count($parts) && !empty($details["notes"])) {
-    $parts[] = trim((string)$details["notes"]);
-  }
-
-  if (!count($parts)) return "No extra details";
-
-  $parts = array_slice($parts, 0, 3);
-  return implode(" | ", $parts);
-}
-
-function fetch_user_queue_items(PDO $pdo, int $userId, string $categoryKey, int $limit, bool $activeOnly): array {
-  $limit = max(1, $limit);
-  $meta = queue_category_meta($categoryKey);
-  $statusSql = $activeOnly ? "AND q.status NOT IN ('DONE', 'CANCELLED')" : "";
-
-  $sql = "
-    SELECT q.queue_code, q.status, q.details, q.created_at
-    FROM queues q
-    WHERE q.user_id = :user_id
-      AND {$meta['sql']}
-      {$statusSql}
-    ORDER BY q.created_at DESC
-    LIMIT {$limit}
-  ";
-
-  $params = array_merge([":user_id" => $userId], $meta["params"]);
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute($params);
-
-  $items = [];
-  foreach ($stmt->fetchAll() as $row) {
-    $details = parse_queue_details($row["details"] ?? null);
-    $createdAt = trim((string)($row["created_at"] ?? ""));
-    $status = strtoupper(trim((string)($row["status"] ?? "PENDING")));
-    $serviceLabel = normalize_service_label((string)($details["service_label"] ?? ""), $meta["label"]);
-
-    $items[] = [
-      "queue_code" => trim((string)($row["queue_code"] ?? "")),
-      "status" => $status,
-      "status_label" => format_status_label($status),
-      "status_tone" => queue_status_tone($status),
-      "category_label" => $meta["label"],
-      "service_label" => $serviceLabel,
-      "details_label" => build_short_details($details),
-      "created_at" => $createdAt,
-      "created_at_label" => $createdAt !== "" ? date("M d, Y h:i A", strtotime($createdAt)) : "",
-    ];
-  }
-
-  return $items;
-}
-
-function fetch_latest_queue_items(PDO $pdo, string $categoryKey, int $limit): array {
-  $limit = max(1, $limit);
-  $meta = queue_category_meta($categoryKey);
-
-  $sql = "
-    SELECT q.queue_code, q.status, q.details, q.created_at
-    FROM queues q
-    WHERE {$meta['sql']}
-    ORDER BY q.created_at DESC
-    LIMIT {$limit}
-  ";
-
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute($meta["params"]);
-
-  $items = [];
-  foreach ($stmt->fetchAll() as $row) {
-    $details = parse_queue_details($row["details"] ?? null);
-    $createdAt = trim((string)($row["created_at"] ?? ""));
-    $status = strtoupper(trim((string)($row["status"] ?? "PENDING")));
-    $serviceLabel = normalize_service_label((string)($details["service_label"] ?? ""), $meta["label"]);
-
-    $items[] = [
-      "queue_code" => trim((string)($row["queue_code"] ?? "")),
-      "status" => $status,
-      "status_label" => format_status_label($status),
-      "status_tone" => queue_status_tone($status),
-      "category_label" => $meta["label"],
-      "service_label" => $serviceLabel,
-      "details_label" => build_short_details($details, false),
-      "created_at" => $createdAt,
-      "created_at_label" => $createdAt !== "" ? date("M d, Y h:i A", strtotime($createdAt)) : "",
-    ];
-  }
-
-  return $items;
-}
 $display_name = format_fullname($fullname);
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
-$queueCategories = ["online_print", "printing", "installation", "repair"];
-$queueCategoryMeta = [];
-$activeQueues = [];
-$recentQueues = [];
-
-foreach ($queueCategories as $categoryKey) {
-  $meta = queue_category_meta($categoryKey);
-  $queueCategoryMeta[$categoryKey] = $meta["label"];
-  $activeQueues[$categoryKey] = fetch_user_queue_items($pdo, $user_id, $categoryKey, 1, true);
-  $recentQueues[$categoryKey] = fetch_latest_queue_items($pdo, $categoryKey, 1);
-}
-
-$dashboardQueues = [
-  "active" => $activeQueues,
-  "recent" => $recentQueues,
-];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -292,10 +98,69 @@ $dashboardQueues = [
     body.customer-layout.customer-page--dashboard .quick-card {
       display: flex !important;
       flex-direction: column !important;
-      justify-content: space-between !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      gap: 12px !important;
       width: 100% !important;
       height: 100% !important;
       min-height: 220px !important;
+      padding: 24px 20px !important;
+      border: 1px solid rgba(175, 108, 9, 0.14);
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 10px 24px rgba(74, 5, 5, 0.08);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+      box-sizing: border-box;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-card-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-card-link:hover .quick-card,
+    body.customer-layout.customer-page--dashboard .quick-card-link:focus-visible .quick-card {
+      transform: translateY(-4px);
+      border-color: rgba(255, 139, 44, 0.56);
+      box-shadow: 0 18px 32px rgba(74, 5, 5, 0.13);
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-card-link:focus-visible {
+      outline: 2px solid #ff8b2c;
+      outline-offset: 4px;
+      border-radius: 16px;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-icon-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 92px;
+      height: 92px;
+      flex: 0 0 92px;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-icon {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-card h4 {
+      margin: 0;
+      color: #4A0505;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    body.customer-layout.customer-page--dashboard .quick-card p {
+      margin: 0;
+      color: #6b5a4a;
+      font-size: 14px;
+      line-height: 1.45;
+      text-align: center;
     }
 
     body.customer-layout.customer-page--dashboard .dashboard-service-section {
@@ -779,9 +644,8 @@ $dashboardQueues = [
     }
 
     @media (max-width: 900px) {
-      body.customer-layout.customer-page--dashboard .customer-dashboard.cards-row,
       body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       }
 
       body.customer-layout.customer-page--dashboard .dashboard-service-options {
@@ -822,6 +686,10 @@ $dashboardQueues = [
 
       body.customer-layout.customer-page--dashboard .quick-card-link {
         min-width: 0 !important;
+      }
+
+      body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
+        grid-template-columns: 1fr !important;
       }
 
       .queue-carousel-card {
@@ -966,7 +834,7 @@ $dashboardQueues = [
           <img src="/assets/images/LANDING_SERVICE-STAT.png" alt="Service Status" class="quick-icon">
         </div>
         <h4>Service Status</h4>
-        <p>Check your requested service status or your queue status.</p>
+        <p>Check your requested service or queue status.</p>
       </div>
     </a>
 
@@ -979,40 +847,26 @@ $dashboardQueues = [
         <p>Edit your personal information.</p>
       </div>
     </a>
-  </div>
-</section>
 
-<section class="customer-dashboard cards-row" aria-label="Your Queue Updates">
-  <div class="dashboard-card queue-carousel-card queue-carousel-card--mine">
-    <h3>YOUR QUEUE UPDATES</h3>
-    <div class="divider"></div>
-
-    <div class="queue-carousel">
-      <div class="queue-carousel__topbar">
-        <button type="button" class="queue-carousel__nav" id="activeQueuePrev" aria-label="Previous active request category">&#9664;</button>
-        <div class="queue-carousel__category" id="activeQueueCategory">ONLINE PRINTING</div>
-        <button type="button" class="queue-carousel__nav" id="activeQueueNext" aria-label="Next active request category">&#9654;</button>
+    <a href="/pages/customer/custo_service_status.php" class="quick-card-link">
+      <div class="quick-card">
+        <div class="quick-icon-box">
+          <img src="/assets/images/LANDING_SERVICE-STAT.png" alt="Your Queue Updates" class="quick-icon">
+        </div>
+        <h4>Your Queue Updates</h4>
+        <p>View updates for your submitted requests.</p>
       </div>
+    </a>
 
-      <div class="queue-carousel__dots" id="activeQueueDots" aria-label="Active request category indicators"></div>
-      <div class="queue-carousel__list" id="activeQueueList"></div>
-    </div>
-  </div>
-
-  <div class="dashboard-card queue-carousel-card queue-carousel-card--latest">
-    <h3>NOW SERVING</h3>
-    <div class="divider"></div>
-
-    <div class="queue-carousel">
-      <div class="queue-carousel__topbar">
-        <button type="button" class="queue-carousel__nav" id="recentQueuePrev" aria-label="Previous latest queue category">&#9664;</button>
-        <div class="queue-carousel__category" id="recentQueueCategory">ONLINE PRINTING</div>
-        <button type="button" class="queue-carousel__nav" id="recentQueueNext" aria-label="Next latest queue category">&#9654;</button>
+    <a href="/pages/customer/custo_now_serving.php" class="quick-card-link">
+      <div class="quick-card">
+        <div class="quick-icon-box">
+          <img src="/assets/images/LANDING_QUEUEING.png" alt="Now Serving" class="quick-icon">
+        </div>
+        <h4>Now Serving</h4>
+        <p>See the current queue being served.</p>
       </div>
-
-      <div class="queue-carousel__dots" id="recentQueueDots" aria-label="Latest queue category indicators"></div>
-      <div class="queue-carousel__list" id="recentQueueList"></div>
-    </div>
+    </a>
   </div>
 </section>
 </main>
@@ -1020,14 +874,6 @@ $dashboardQueues = [
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 
 <script>
-  const queueCategories = ["online_print", "printing", "installation", "repair"];
-  const queueCategoryMeta = <?php echo json_encode($queueCategoryMeta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-  const queuePollIntervalMs = 5000;
-
-  let dashboardQueues = <?php echo json_encode($dashboardQueues, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-  let activeQueueIndex = 0;
-  let recentQueueIndex = 0;
-
   const customerNowEl = document.getElementById("customerNow");
   if (customerNowEl) {
     const customerClockFormatter = new Intl.DateTimeFormat("en-US", {
@@ -1050,201 +896,6 @@ $dashboardQueues = [
     updateCustomerClock();
     window.setInterval(updateCustomerClock, 1000);
   }
-
-  function servitechBasePath() {
-    const pathname = window.location.pathname || "";
-    if (pathname === "/ServiTech" || pathname.startsWith("/ServiTech/")) return "/ServiTech";
-    return "";
-  }
-
-  function servitechUrl(path) {
-    const cleanPath = path.startsWith("/") ? path : `/${path}`;
-    return `${servitechBasePath()}${cleanPath}`;
-  }
-
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[char]));
-  }
-
-  function formatQueueCode(value) {
-    const code = String(value ?? "").trim();
-    if (!code) return "#---";
-    return code.startsWith("#") ? code : `#${code}`;
-  }
-
-  function normalizeStatusTone(value) {
-    const raw = String(value ?? "").trim().toLowerCase().replace(/[\s_]+/g, "-");
-    if (["pending", "ongoing", "pickup", "done", "cancelled"].includes(raw)) return raw;
-    if (raw === "for-pick-up" || raw === "for-pickup") return "pickup";
-    if (raw === "canceled") return "cancelled";
-    return "pending";
-  }
-
-  function createQueueCarousel(config) {
-    const {
-      mode,
-      emptyMessage,
-      titleEl,
-      listEl,
-      dotsEl,
-      prevEl,
-      nextEl,
-      getIndex,
-      setIndex
-    } = config;
-
-    let renderTimer = null;
-    let sectionData = dashboardQueues[mode] || {};
-
-    function renderDots() {
-      const activeIndex = getIndex();
-      dotsEl.innerHTML = queueCategories.map((categoryKey, index) => {
-        const label = queueCategoryMeta[categoryKey] || categoryKey;
-        const activeClass = index === activeIndex ? " is-active" : "";
-        return `
-          <button
-            type="button"
-            class="queue-carousel__dot${activeClass}"
-            data-category-index="${index}"
-            aria-label="Show ${escapeHtml(label)} in ${escapeHtml(mode)}"
-          ></button>
-        `;
-      }).join("");
-    }
-
-    function buildItemMarkup(item, categoryLabel) {
-      const tone = normalizeStatusTone(item.status_tone || item.status);
-      const code = escapeHtml(formatQueueCode(item.queue_code));
-      const badge = escapeHtml(item.status_label || "Pending");
-      const serviceLabel = escapeHtml(item.service_label || categoryLabel);
-      const detailsLabel = escapeHtml(item.details_label || "No extra details");
-
-      return `
-        <article class="queue-item">
-          <div class="queue-item__head">
-            <div class="queue-item__code">${code}</div>
-            <div class="status-badge queue-item__badge status-${tone} queue-item__badge--${tone}">${badge}</div>
-          </div>
-          <div class="queue-item__label">${serviceLabel}</div>
-          <div class="queue-item__details">${detailsLabel}</div>
-        </article>
-      `;
-    }
-
-    function render() {
-      const currentIndex = getIndex();
-      const categoryKey = queueCategories[currentIndex];
-      const categoryLabel = queueCategoryMeta[categoryKey] || categoryKey;
-      const items = Array.isArray(sectionData[categoryKey]) ? sectionData[categoryKey] : [];
-
-      titleEl.textContent = categoryLabel.toUpperCase();
-      listEl.classList.add("is-fading");
-
-      if (renderTimer) {
-        window.clearTimeout(renderTimer);
-      }
-
-      renderTimer = window.setTimeout(() => {
-        if (!items.length) {
-          listEl.innerHTML = `<div class="queue-carousel__empty">${escapeHtml(emptyMessage)}</div>`;
-        } else {
-          listEl.innerHTML = items.map((item) => buildItemMarkup(item, categoryLabel)).join("");
-        }
-
-        renderDots();
-        listEl.classList.remove("is-fading");
-      }, 90);
-    }
-
-    function move(delta) {
-      const nextIndex = (getIndex() + delta + queueCategories.length) % queueCategories.length;
-      setIndex(nextIndex);
-      render();
-    }
-
-    prevEl?.addEventListener("click", () => move(-1));
-    nextEl?.addEventListener("click", () => move(1));
-
-    dotsEl?.addEventListener("click", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
-
-      const nextIndex = Number(target.dataset.categoryIndex);
-      if (!Number.isInteger(nextIndex)) return;
-
-      setIndex(nextIndex);
-      render();
-    });
-
-    render();
-
-    return {
-      setData(nextData) {
-        sectionData = nextData || {};
-        render();
-      }
-    };
-  }
-
-  const activeCarousel = createQueueCarousel({
-    mode: "active",
-    emptyMessage: "No active requests in this category",
-    titleEl: document.getElementById("activeQueueCategory"),
-    listEl: document.getElementById("activeQueueList"),
-    dotsEl: document.getElementById("activeQueueDots"),
-    prevEl: document.getElementById("activeQueuePrev"),
-    nextEl: document.getElementById("activeQueueNext"),
-    getIndex: () => activeQueueIndex,
-    setIndex: (value) => { activeQueueIndex = value; }
-  });
-
-  const recentCarousel = createQueueCarousel({
-    mode: "recent",
-    emptyMessage: "No latest queue in this category",
-    titleEl: document.getElementById("recentQueueCategory"),
-    listEl: document.getElementById("recentQueueList"),
-    dotsEl: document.getElementById("recentQueueDots"),
-    prevEl: document.getElementById("recentQueuePrev"),
-    nextEl: document.getElementById("recentQueueNext"),
-    getIndex: () => recentQueueIndex,
-    setIndex: (value) => { recentQueueIndex = value; }
-  });
-
-  async function refreshDashboardQueues() {
-    try {
-      const response = await fetch(`${servitechUrl("/pages/customer/get_latest_queues.php")}?t=${Date.now()}`, {
-        cache: "no-store",
-        credentials: "same-origin",
-        headers: {
-          "Accept": "application/json",
-          "X-Requested-With": "XMLHttpRequest"
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Dashboard queue refresh failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      dashboardQueues = {
-        active: data && typeof data.active === "object" ? data.active : {},
-        recent: data && typeof data.recent === "object" ? data.recent : {}
-      };
-
-      activeCarousel.setData(dashboardQueues.active);
-      recentCarousel.setData(dashboardQueues.recent);
-    } catch (error) {
-      console.warn("Dashboard queue refresh failed:", error);
-    }
-  }
-
-  window.setInterval(refreshDashboardQueues, queuePollIntervalMs);
 </script>
 
 </body>
