@@ -75,7 +75,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
     body.customer-layout.customer-page--dashboard .quick-access.quick-access-section {
       width: 100% !important;
       max-width: none !important;
-      margin: 0 !important;
+      margin: 0 0 80px !important;
       padding: 0 !important;
     }
 
@@ -728,6 +728,10 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 
       body.customer-layout.customer-page--dashboard .quick-card {
         min-height: 160px !important;
+      }
+
+      body.customer-layout.customer-page--dashboard .quick-access.quick-access-section {
+        margin-bottom: 48px !important;
       }
 
       .queue-carousel-card {

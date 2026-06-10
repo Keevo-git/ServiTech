@@ -22,6 +22,12 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 <script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-controller') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260608-admin-logout-confirm-global') ?>" defer></script>
 <style>
+  .admin-shared-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
   .admin-shared-header .logo {
     order: 1;
   }
@@ -77,7 +83,8 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 
   @media (max-width: 900px) {
     .admin-shared-header {
-      position: relative !important;
+      position: sticky !important;
+      top: 0 !important;
       z-index: 2200 !important;
       display: grid !important;
       grid-template-columns: minmax(0, 1fr) auto !important;

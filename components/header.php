@@ -507,6 +507,12 @@ $notificationRoutes = [
 </header>
 
 <style>
+  .customer-shared-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
   .navbar.has-nav-menu.navbar--notifications {
     display: flex;
     align-items: center;
