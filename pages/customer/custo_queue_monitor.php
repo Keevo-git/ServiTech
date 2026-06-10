@@ -291,13 +291,13 @@ $monitorQueues = [
       border-color: rgba(147, 197, 253, 0.34);
     }
 
-    .queue-carousel {
+    body.customer-layout.customer-page--queue-monitor .queue-carousel {
       display: grid;
-      grid-template-rows: 52px 18px minmax(126px, 1fr);
-      gap: 14px;
+      grid-template-rows: 52px 18px 140px;
+      row-gap: 14px;
       flex: 1;
       min-height: 0;
-      height: 100%;
+      height: auto;
       align-content: start;
     }
 
@@ -404,11 +404,11 @@ $monitorQueues = [
       transform: scale(1.15);
     }
 
-    .queue-carousel__list {
+    body.customer-layout.customer-page--queue-monitor .queue-carousel__list {
       display: flex;
       align-items: stretch;
-      min-height: 126px;
-      height: 100%;
+      min-height: 140px;
+      height: 140px;
       padding: 0 8px;
       box-sizing: border-box;
       overflow: hidden;
@@ -421,7 +421,7 @@ $monitorQueues = [
       opacity: 0.35;
     }
 
-    .queue-item {
+    body.customer-layout.customer-page--queue-monitor .queue-item {
       border: 1px solid #e7d5ad;
       background: #fffaf0;
       border-radius: 14px;
@@ -522,7 +522,7 @@ $monitorQueues = [
       color: #4f6485;
     }
 
-    .queue-carousel__empty {
+    body.customer-layout.customer-page--queue-monitor .queue-carousel__empty {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -591,13 +591,13 @@ $monitorQueues = [
         letter-spacing: 0.02em;
       }
 
-      .queue-carousel__list {
+      body.customer-layout.customer-page--queue-monitor .queue-carousel__list {
         height: auto;
         min-height: 138px;
         padding: 0 4px;
       }
 
-      .queue-item {
+      body.customer-layout.customer-page--queue-monitor .queue-item {
         height: auto;
         min-height: 138px;
         grid-template-rows: auto auto auto;
