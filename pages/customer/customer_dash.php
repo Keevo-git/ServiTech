@@ -251,23 +251,30 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
       min-height: 190px;
       width: 100%;
       padding: 22px 18px;
-      border: 1px solid rgba(175, 108, 9, 0.18);
-      border-radius: 16px;
+      border: 1px solid #f3dcc2;
+      border-top: 5px solid #f4a940;
+      border-radius: 18px;
       background: #ffffff;
       color: #4A0505;
       cursor: pointer;
-      box-shadow: 0 10px 22px rgba(74, 5, 5, 0.08);
+      box-shadow: 0 12px 28px rgba(120, 55, 15, 0.08);
       text-decoration: none;
+      box-sizing: border-box;
       transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
       touch-action: manipulation;
     }
 
     body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card:hover,
     body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card:focus-visible {
-      transform: translateY(-4px);
-      border-color: rgba(255, 139, 44, 0.62);
-      box-shadow: 0 18px 32px rgba(74, 5, 5, 0.14);
+      transform: translateY(-6px);
+      border-color: #f4a940;
+      box-shadow: 0 18px 36px rgba(244, 169, 64, 0.22);
       outline: none;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card:focus-visible {
+      outline: 2px solid #4A0505;
+      outline-offset: 4px;
     }
 
     body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card__media {
