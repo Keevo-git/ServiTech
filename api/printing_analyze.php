@@ -400,6 +400,7 @@ if (!empty($uploadedFiles)) {
 if (!empty($uploadErrors)) {
   printing_json_exit([
     "ok" => false,
+    "error_scope" => "file",
     "error" => "Some files failed to upload properly.",
     "upload_errors" => $uploadErrors,
   ], 422);
@@ -408,6 +409,7 @@ if (!empty($uploadErrors)) {
 if (!empty($validationErrors)) {
   printing_json_exit([
     "ok" => false,
+    "error_scope" => "file",
     "error" => implode(" ", $validationErrors),
     "validation_errors" => $validationErrors,
   ], 422);
@@ -416,6 +418,7 @@ if (!empty($validationErrors)) {
 if (!empty($unsupported)) {
   printing_json_exit([
     "ok" => false,
+    "error_scope" => "file",
     "error" => "Unsupported file type detected.",
     "unsupported_files" => $unsupported,
   ], 422);
@@ -430,6 +433,7 @@ if (empty($uploadedFiles)) {
 if ($total_pages < 1) {
   printing_json_exit([
     "ok" => false,
+    "error_scope" => "file",
     "error" => "Unable to compute total pages. Please upload valid files.",
   ], 422);
 }
@@ -438,6 +442,7 @@ $pricing = compute_print_pricing($pdo, $paper_size, $color_option, $quantity, $t
 if (!$pricing["ok"]) {
   printing_json_exit([
     "ok" => false,
+    "error_scope" => "form",
     "error" => $pricing["error"],
     "files" => $fileResults,
     "total_files" => $total_files,

@@ -640,6 +640,29 @@
         }
 
         if (!data.ok) {
+          var formValidationOnly = data.error_scope === "form";
+          if (formValidationOnly) {
+            state.error = "";
+            if (selectedFiles.length && Array.isArray(data.files) && data.files.length) {
+              state.files = data.files;
+            }
+            state.total_files = Number.isFinite(Number(data.total_files)) ? Number(data.total_files) : state.total_files;
+            state.total_images = Number.isFinite(Number(data.total_images)) ? Number(data.total_images) : state.total_images;
+            state.total_pages = Number.isFinite(Number(data.total_pages)) ? Number(data.total_pages) : state.total_pages;
+            state.price_per_page = 0;
+            state.estimated_total = 0;
+            selectedFiles.forEach(function (file) {
+              var readyTask = uploadTasks[fileKey(file)];
+              if (!readyTask) return;
+              readyTask.status = "success";
+              readyTask.progress = 100;
+              readyTask.message = "Processing complete. Ready to upload.";
+            });
+            renderList();
+            renderSummary();
+            return;
+          }
+
           state.error = data.error || "Unable to analyze files.";
           if (selectedFiles.length && Array.isArray(data.files) && data.files.length) {
             state.files = data.files;
