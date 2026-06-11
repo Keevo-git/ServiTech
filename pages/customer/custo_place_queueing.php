@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
+require_once __DIR__ . "/../../config/join_queue_flow.php";
+servitech_clear_join_queue_completion();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -62,6 +64,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 
+<script>
+  try {
+    window.sessionStorage.removeItem("servitechJoinQueueCompleted");
+  } catch (error) {
+    // Server-side state has already been reset for a new Join Queue flow.
+  }
+</script>
 <script>
   const queueJoinForm = document.getElementById("queueJoinForm");
   const queueJoinSubmit = document.getElementById("queueJoinSubmit");

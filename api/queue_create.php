@@ -6,6 +6,7 @@ require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
 require_once __DIR__ . "/upload_helpers.php";
+require_once __DIR__ . "/../config/join_queue_flow.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -209,6 +210,7 @@ try {
 
   $pdo->commit();
 
+  servitech_mark_join_queue_completed($queue_code);
   echo json_encode(["ok" => true, "queue_code" => $queue_code, "queue_id" => $queue_id]);
   exit();
 } catch (DomainException $e) {

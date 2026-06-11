@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../config/join_queue_flow.php";
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
@@ -208,6 +209,7 @@ try {
     "queue_code" => $queue_code,
     "created_at" => date(DATE_ATOM),
   ];
+  servitech_mark_join_queue_completed($queue_code);
   unset($_SESSION["print_order_draft"], $_SESSION["print_order_flash_error"], $_SESSION["print_order_form"]);
 
   if (print_order_wants_json()) {

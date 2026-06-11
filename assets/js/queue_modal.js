@@ -150,6 +150,13 @@
   }
 
   function closeQueueSuccessModal() {
+    if (
+      window.servitechJoinQueuePostSuccess
+      && window.servitechJoinQueuePostSuccess.isComplete()
+    ) {
+      window.servitechJoinQueuePostSuccess.goToChooseService();
+      return;
+    }
     hideModalLayer(document.getElementById("queueModal"));
   }
 

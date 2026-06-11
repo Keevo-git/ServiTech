@@ -1146,6 +1146,9 @@
         if (window.servitechJoinQueueLeaveGuard) {
           window.servitechJoinQueueLeaveGuard.disarm();
         }
+        if (window.servitechJoinQueuePostSuccess) {
+          window.servitechJoinQueuePostSuccess.markComplete(result.queue_code);
+        }
         openSuccessModal(result.queue_code);
       } catch (err) {
         console.error(err);

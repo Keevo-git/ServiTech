@@ -1349,6 +1349,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.servitechJoinQueueLeaveGuard) {
         window.servitechJoinQueueLeaveGuard.disarm();
       }
+      if (window.servitechJoinQueuePostSuccess) {
+        window.servitechJoinQueuePostSuccess.markComplete(result.queue_code);
+      }
 
       if (typeof window.openQueueSuccessModal === "function") {
         window.openQueueSuccessModal(result.queue_code, { service: buildServiceLabel() });

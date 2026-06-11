@@ -24,6 +24,9 @@
     }
 
     if (confirmedQueue) {
+      if (window.servitechJoinQueuePostSuccess) {
+        window.servitechJoinQueuePostSuccess.markComplete(confirmedQueue);
+      }
       openCompletionModal(confirmedQueue);
     }
 
@@ -123,6 +126,9 @@
         if (submittingToastId && typeof window.servitechDismissToast === "function") {
           window.servitechDismissToast(submittingToastId);
           submittingToastId = null;
+        }
+        if (window.servitechJoinQueuePostSuccess) {
+          window.servitechJoinQueuePostSuccess.markComplete(data.queue_code);
         }
         openCompletionModal(data.queue_code);
       } catch (error) {

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
+require_once __DIR__ . "/../../config/join_queue_flow.php";
 
 function esc_print_order($value): string {
   return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
@@ -86,6 +87,10 @@ $isConfirmed = $queue !== ""
   && is_array($confirmation)
   && trim((string)($confirmation["queue_code"] ?? "")) === $queue;
 
+if (!$isConfirmed) {
+  servitech_redirect_completed_join_queue();
+}
+
 $draft = $_SESSION["print_order_draft"] ?? null;
 if (!$isConfirmed && !is_array($draft)) {
   header("Location: /pages/customer/custo2_docu_printing.php");
@@ -102,6 +107,9 @@ header("Pragma: no-cache");
 header("Expires: 0");
 
 $referenceNumber = trim((string)($formState["reference_number"] ?? ""));
+if ($isConfirmed) {
+  unset($_SESSION["print_order_confirmation"]);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

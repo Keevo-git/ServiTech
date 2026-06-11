@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
+require_once __DIR__ . "/../../config/join_queue_flow.php";
+servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 
 $xeroxPricing = [
