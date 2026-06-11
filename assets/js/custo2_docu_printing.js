@@ -82,6 +82,7 @@
     var isSubmitting = false;
     var uploadTasks = {};
     var activeUploadSession = null;
+    var fileAnalysisCache = {};
 
     var state = {
       files: [],
@@ -242,13 +243,8 @@
       return selectedFiles.map(fileKey).sort().join("::");
     }
 
-    function currentAnalysisKey() {
-      return [
-        currentSignature(),
-        paperSizeSelect.value || "",
-        getSelectedColor(),
-        String(getQuantity())
-      ].join("::");
+    function analysisKey(files) {
+      return Array.from(files || []).map(fileKey).sort().join("::");
     }
 
     function setFeedback(message, tone) {
@@ -534,7 +530,7 @@
     function resetAnalysis(keepFeedback) {
       if (selectedFiles.length) {
         state.files = selectedFiles.map(function (file) {
-          return {
+          return fileAnalysisCache[fileKey(file)] || {
             file_name: file.name,
             file_type: getExt(file.name)
           };
@@ -543,10 +539,13 @@
           return file.name;
         });
         state.total_files = selectedFiles.length;
-        state.total_images = 0;
-        state.total_pages = 0;
-        state.price_per_page = 0;
-        state.estimated_total = 0;
+        state.total_images = state.files.reduce(function (total, fileInfo) {
+          var ext = String(fileInfo && fileInfo.file_type || "").toLowerCase();
+          return total + (/^(jpg|jpeg|png)$/.test(ext) ? 1 : 0);
+        }, 0);
+        state.total_pages = state.files.reduce(function (total, fileInfo) {
+          return total + getPageCountFromInfo(fileInfo);
+        }, 0);
       } else if (hasSavedUploads()) {
         refreshSavedFileTotals();
       } else {
@@ -574,9 +573,10 @@
       var requestPaperSize = paperSizeSelect.value || "";
       var requestColor = getSelectedColor();
       var requestQuantity = getQuantity();
-      var requestAnalysisKey = currentAnalysisKey();
-
-      resetAnalysis(true);
+      var pendingFiles = selectedFiles.filter(function (file) {
+        return !fileAnalysisCache[fileKey(file)];
+      });
+      var requestAnalysisKey = analysisKey(pendingFiles);
 
       if (!selectedFiles.length && !hasSavedUploads()) {
         state.error = "";
@@ -584,8 +584,13 @@
         return;
       }
 
-      if (selectedFiles.length && !activeUploadSession) {
-        selectedFiles.forEach(function (file) {
+      if (!pendingFiles.length) {
+        resetAnalysis(true);
+        return;
+      }
+
+      if (!activeUploadSession) {
+        pendingFiles.forEach(function (file) {
           uploadTasks[fileKey(file)] = {
             key: fileKey(file),
             file: file,
@@ -603,15 +608,9 @@
       formData.append("color_option", requestColor);
       formData.append("quantity", String(requestQuantity));
 
-      if (selectedFiles.length) {
-        selectedFiles.forEach(function (file) {
-          formData.append("files[]", file, file.name);
-        });
-      } else {
-        formData.append("total_pages", String(state.total_pages || 0));
-        formData.append("total_files", String(state.total_files || 0));
-        formData.append("total_images", String(state.total_images || 0));
-      }
+      pendingFiles.forEach(function (file) {
+        formData.append("files[]", file, file.name);
+      });
 
       var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
 
@@ -635,7 +634,7 @@
           data = { ok: false, error: "Server returned invalid response." };
         }
 
-        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== currentAnalysisKey()) {
+        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== analysisKey(pendingFiles)) {
           return;
         }
 
@@ -643,87 +642,67 @@
           var formValidationOnly = data.error_scope === "form";
           if (formValidationOnly) {
             state.error = "";
-            if (selectedFiles.length && Array.isArray(data.files) && data.files.length) {
-              state.files = data.files;
+            if (Array.isArray(data.files)) {
+              pendingFiles.forEach(function (file, index) {
+                if (data.files[index]) fileAnalysisCache[fileKey(file)] = data.files[index];
+              });
             }
-            state.total_files = Number.isFinite(Number(data.total_files)) ? Number(data.total_files) : state.total_files;
-            state.total_images = Number.isFinite(Number(data.total_images)) ? Number(data.total_images) : state.total_images;
-            state.total_pages = Number.isFinite(Number(data.total_pages)) ? Number(data.total_pages) : state.total_pages;
-            state.price_per_page = 0;
-            state.estimated_total = 0;
-            selectedFiles.forEach(function (file) {
+            pendingFiles.forEach(function (file) {
               var readyTask = uploadTasks[fileKey(file)];
               if (!readyTask) return;
               readyTask.status = "success";
               readyTask.progress = 100;
               readyTask.message = "Processing complete. Ready to upload.";
             });
-            renderList();
-            renderSummary();
+            resetAnalysis(true);
             return;
           }
 
           state.error = data.error || "Unable to analyze files.";
-          if (selectedFiles.length && Array.isArray(data.files) && data.files.length) {
-            state.files = data.files;
-          }
-          state.total_files = Number.isFinite(Number(data.total_files)) ? Number(data.total_files) : state.total_files;
-          state.total_images = Number.isFinite(Number(data.total_images)) ? Number(data.total_images) : state.total_images;
-          state.total_pages = Number.isFinite(Number(data.total_pages)) ? Number(data.total_pages) : state.total_pages;
-          state.price_per_page = 0;
-          state.estimated_total = 0;
-          selectedFiles.forEach(function (file) {
+          pendingFiles.forEach(function (file) {
             var task = uploadTasks[fileKey(file)];
             if (!task) return;
             task.status = "error";
             task.progress = 100;
             task.message = data.error || "File processing failed.";
           });
-          renderList();
-          renderSummary();
+          resetAnalysis(true);
           setFeedback(state.error, "error");
           return;
         }
 
-        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== currentAnalysisKey()) {
+        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== analysisKey(pendingFiles)) {
           return;
         }
 
         state.error = "";
-        if (selectedFiles.length && Array.isArray(data.files)) {
-          state.files = data.files;
+        if (Array.isArray(data.files)) {
+          pendingFiles.forEach(function (file, index) {
+            if (data.files[index]) fileAnalysisCache[fileKey(file)] = data.files[index];
+          });
         }
-        state.total_files = Number(data.total_files) || state.total_files;
-        state.total_images = Number(data.total_images) || 0;
-        state.total_pages = Number(data.total_pages) || 0;
-        state.price_per_page = Number(data.price_per_page) || 0;
-        state.estimated_total = Number(data.estimated_total) || 0;
-        selectedFiles.forEach(function (file) {
+        pendingFiles.forEach(function (file) {
           var task = uploadTasks[fileKey(file)];
           if (!task) return;
           task.status = "success";
           task.progress = 100;
           task.message = "Processing complete. Ready to upload.";
         });
-        renderList();
-        renderSummary();
+        resetAnalysis(true);
         setFeedback("", "error");
       } catch (err) {
-        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== currentAnalysisKey()) {
+        if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== analysisKey(pendingFiles)) {
           return;
         }
         state.error = "Network/server error while analyzing files.";
-        state.price_per_page = 0;
-        state.estimated_total = 0;
-        selectedFiles.forEach(function (file) {
+        pendingFiles.forEach(function (file) {
           var task = uploadTasks[fileKey(file)];
           if (!task) return;
           task.status = "error";
           task.progress = 100;
           task.message = "File processing failed. Please try again.";
         });
-        renderList();
-        renderSummary();
+        resetAnalysis(true);
         setFeedback(state.error, "error");
       }
     }
@@ -773,6 +752,7 @@
       }
 
       if (acceptedFiles.length && !selectedFiles.length && hasSavedUploads()) {
+        fileAnalysisCache = {};
         state.files = [];
         state.file_names = [];
         state.uploaded_files = [];
@@ -791,7 +771,6 @@
       analysisRequestSeq++;
       if (acceptedFiles.length) {
         state.uploaded_files = [];
-        uploadTasks = {};
       }
       syncFileInput();
 
@@ -836,13 +815,13 @@
       refreshSavedFileTotals();
       renderList();
       renderSummary();
-      analyzeSelectedFiles();
     }
 
     function removeSelectedByIndex(index) {
       if (index < 0) return;
 
       if (selectedFiles.length) {
+        var removedFile = selectedFiles[index] || null;
         selectedFiles = selectedFiles.filter(function (file, fileIndex) {
           return fileIndex !== index;
         });
@@ -850,12 +829,19 @@
         uploadedSignature = "";
         analysisRequestSeq++;
         state.uploaded_files = [];
-        uploadTasks = {};
+        if (removedFile) {
+          delete fileAnalysisCache[fileKey(removedFile)];
+          delete uploadTasks[fileKey(removedFile)];
+        }
         state.error = "";
         setFeedback("", "error");
         syncFileInput();
         resetAnalysis(true);
-        analyzeSelectedFiles();
+        if (selectedFiles.some(function (file) {
+          return !fileAnalysisCache[fileKey(file)];
+        })) {
+          analyzeSelectedFiles();
+        }
         return;
       }
 
@@ -943,7 +929,12 @@
         });
         if (Object.keys(cancelledKeys).length) {
           selectedFiles = selectedFiles.filter(function (file) {
-            return !cancelledKeys[fileKey(file)];
+            var key = fileKey(file);
+            if (cancelledKeys[key]) {
+              delete fileAnalysisCache[key];
+              return false;
+            }
+            return true;
           });
           syncFileInput();
           resetAnalysis(true);
@@ -1270,7 +1261,9 @@
       }
     }
 
-    var debouncedAnalyze = debounce(analyzeSelectedFiles, 220);
+    var debouncedPricingUpdate = debounce(function () {
+      renderSummary();
+    }, 80);
 
     fileUpload.addEventListener("change", function (e) {
       addFiles(e.target.files);
@@ -1288,12 +1281,12 @@
       removeSelectedByIndex(index);
     });
 
-    qtyInput.addEventListener("input", debouncedAnalyze);
-    paperSizeSelect.addEventListener("change", debouncedAnalyze);
+    qtyInput.addEventListener("input", debouncedPricingUpdate);
+    paperSizeSelect.addEventListener("change", debouncedPricingUpdate);
     orderTypeSelect.addEventListener("change", updateOrderTypeUi);
     paymentMethodSelect.addEventListener("change", updateOrderTypeUi);
     document.querySelectorAll('input[name="color"]').forEach(function (radio) {
-      radio.addEventListener("change", debouncedAnalyze);
+      radio.addEventListener("change", debouncedPricingUpdate);
     });
 
     joinQueueBtn.addEventListener("click", handleJoinQueue, true);
@@ -1304,6 +1297,7 @@
       analysisRequestSeq++;
       uploadTasks = {};
       activeUploadSession = null;
+      fileAnalysisCache = {};
       state.files = [];
       state.file_names = [];
       state.uploaded_files = [];

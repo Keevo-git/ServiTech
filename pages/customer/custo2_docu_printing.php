@@ -627,7 +627,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260611-file-errors-only"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260611-stable-file-state"></script>
 </body>
 </html>
 
