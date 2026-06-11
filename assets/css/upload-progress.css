@@ -1,0 +1,82 @@
+.servitech-upload-item {
+  display: block !important;
+  min-width: 0;
+}
+
+.servitech-upload-item__head {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.servitech-upload-item__name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.servitech-upload-progress {
+  margin-top: 0.65rem;
+}
+
+.servitech-upload-progress__track {
+  background: #f3e5d8;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.servitech-upload-progress__bar {
+  background: linear-gradient(90deg, #f08a00, #8b1e1e);
+  border-radius: inherit;
+  height: 100%;
+  min-width: 0;
+  transition: width 0.15s ease;
+}
+
+.servitech-upload-progress__meta {
+  align-items: center;
+  color: #6f5b55;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+}
+
+.servitech-upload-progress--success .servitech-upload-progress__bar {
+  background: #15803d;
+}
+
+.servitech-upload-progress--error .servitech-upload-progress__bar,
+.servitech-upload-progress--cancelled .servitech-upload-progress__bar,
+.servitech-upload-progress--discarded .servitech-upload-progress__bar {
+  background: #be123c;
+}
+
+.servitech-upload-progress--error .servitech-upload-progress__meta,
+.servitech-upload-progress--cancelled .servitech-upload-progress__meta,
+.servitech-upload-progress--discarded .servitech-upload-progress__meta {
+  color: #be123c;
+}
+
+.servitech-upload-list {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+@media (max-width: 560px) {
+  .servitech-upload-item__head,
+  .servitech-upload-progress__meta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .servitech-upload-item__head button {
+    align-self: flex-start;
+  }
+}

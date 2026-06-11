@@ -55,6 +55,7 @@ function rush_price(array $pricing, string $key): string {
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
+  <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611">
   <style>
     .printing-upload-card .form-file {
       margin-bottom: 0.45rem;
@@ -304,6 +305,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
+<script src="/assets/js/upload_progress.js?v=20260611"></script>
 <script src="/assets/js/rush_id_upload.js?v=20260611-success-reset"></script>
 <script src="/assets/js/main.js?v=20260611-queue-success"></script>
 

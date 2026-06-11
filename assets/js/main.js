@@ -1363,6 +1363,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setFeedback("", "error");
     } catch (err) {
       console.error(err);
+      await cleanupUploadedFiles(payload.uploaded_files);
       setFeedback("Network/server error. Please try again.", "error");
     } finally {
       joinBtn.disabled = false;

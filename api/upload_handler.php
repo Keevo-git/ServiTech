@@ -28,6 +28,8 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
 $maxBytes = 20 * 1024 * 1024;
 $uploadContext = strtolower(trim((string)($_POST["upload_context"] ?? "")));
 $isRushIdUpload = $uploadContext === "rush_id";
+$uploadId = trim((string)($_POST["upload_id"] ?? ""));
+$uploadRequestHandle = null;
 
 function upload_json_exit(array $payload, int $status = 200): void {
   http_response_code($status);
@@ -68,6 +70,38 @@ if (!is_dir($uploadDir) && !mkdir($uploadDir, 0750, true) && !is_dir($uploadDir)
 $files = normalize_files($_FILES["files"] ?? null);
 if (empty($files)) {
   upload_json_exit(["success" => false, "message" => "No files uploaded."], 422);
+}
+
+if ($uploadId !== "") {
+  try {
+    $uploadId = servitech_upload_request_id($uploadId);
+    if (session_status() === PHP_SESSION_ACTIVE) {
+      session_write_close();
+    }
+    $uploadRequestHandle = servitech_upload_request_open($uploadId);
+    $requestState = servitech_upload_request_read($uploadRequestHandle);
+    $ownerId = (int)($requestState["user_id"] ?? 0);
+    if ($ownerId > 0 && $ownerId !== $userId) {
+      throw new DomainException("Upload request not found.");
+    }
+    if (($requestState["status"] ?? "") === "cancelled") {
+      servitech_upload_request_close($uploadRequestHandle);
+      $uploadRequestHandle = null;
+      upload_json_exit(["success" => false, "cancelled" => true, "message" => "File upload was cancelled."], 409);
+    }
+    servitech_upload_request_write($uploadRequestHandle, [
+      "user_id" => $userId,
+      "status" => "processing",
+      "uploaded_files" => [],
+    ]);
+  } catch (DomainException $e) {
+    if (is_resource($uploadRequestHandle)) servitech_upload_request_close($uploadRequestHandle);
+    upload_json_exit(["success" => false, "message" => $e->getMessage()], 422);
+  } catch (Throwable $e) {
+    if (is_resource($uploadRequestHandle)) servitech_upload_request_close($uploadRequestHandle);
+    error_log("upload_handler request state error: " . $e->getMessage());
+    upload_json_exit(["success" => false, "message" => "Unable to initialize upload tracking."], 500);
+  }
 }
 
 $insert = $pdo->prepare("
@@ -157,6 +191,15 @@ foreach ($files as $file) {
 
 if (!empty($errors)) {
   servitech_upload_delete_owned_orphans($pdo, $userId, $uploaded);
+  if (is_resource($uploadRequestHandle)) {
+    servitech_upload_request_write($uploadRequestHandle, [
+      "user_id" => $userId,
+      "status" => "failed",
+      "uploaded_files" => [],
+      "errors" => $errors,
+    ]);
+    servitech_upload_request_close($uploadRequestHandle);
+  }
   upload_json_exit([
     "success" => false,
     "message" => "Some files failed validation/upload.",
@@ -165,7 +208,32 @@ if (!empty($errors)) {
 }
 
 if (empty($uploaded)) {
+  if (is_resource($uploadRequestHandle)) {
+    servitech_upload_request_write($uploadRequestHandle, [
+      "user_id" => $userId,
+      "status" => "failed",
+      "uploaded_files" => [],
+    ]);
+    servitech_upload_request_close($uploadRequestHandle);
+  }
   upload_json_exit(["success" => false, "message" => "No files were uploaded."], 422);
+}
+
+if (is_resource($uploadRequestHandle)) {
+  try {
+    servitech_upload_request_write($uploadRequestHandle, [
+      "user_id" => $userId,
+      "status" => "completed",
+      "uploaded_files" => $uploaded,
+    ]);
+  } catch (Throwable $e) {
+    servitech_upload_request_close($uploadRequestHandle);
+    $uploadRequestHandle = null;
+    servitech_upload_delete_owned_orphans($pdo, $userId, $uploaded);
+    error_log("upload_handler completion state error: " . $e->getMessage());
+    upload_json_exit(["success" => false, "message" => "Unable to finalize upload tracking."], 500);
+  }
+  servitech_upload_request_close($uploadRequestHandle);
 }
 
 upload_json_exit(["success" => true, "uploaded_files" => $uploaded]);

@@ -37,6 +37,8 @@
     var selectedFiles = [];
     var uploadedSignature = "";
     var uploadedFiles = [];
+    var uploadTasks = {};
+    var activeUploadSession = null;
 
     function getExt(filename) {
       var dot = filename.lastIndexOf(".");
@@ -126,17 +128,44 @@
 
       selectedFiles.forEach(function (file, index) {
         var li = document.createElement("li");
+        var head = document.createElement("div");
         var info = document.createElement("span");
         var removeBtn = document.createElement("button");
+        var key = fileKey(file);
+        var task = uploadTasks[key] || null;
 
+        li.className = "servitech-upload-item";
+        head.className = "servitech-upload-item__head";
+        info.className = "servitech-upload-item__name";
         info.textContent = file.name + " (" + getExt(file.name).toUpperCase() + ")";
         removeBtn.type = "button";
-        removeBtn.textContent = "Remove";
+        removeBtn.textContent = task && ["pending", "uploading", "processing", "cancelling"].indexOf(task.status) !== -1
+          ? "Cancel"
+          : "Remove";
+        removeBtn.dataset.uploadAction = removeBtn.textContent.toLowerCase();
+        removeBtn.dataset.fileKey = key;
         removeBtn.dataset.fileIndex = String(index);
-        removeBtn.setAttribute("aria-label", "Remove " + file.name);
+        removeBtn.setAttribute("aria-label", removeBtn.textContent + " " + file.name);
 
-        li.appendChild(info);
-        li.appendChild(removeBtn);
+        head.appendChild(info);
+        head.appendChild(removeBtn);
+        li.appendChild(head);
+        if (task) {
+          var progress = document.createElement("div");
+          var track = document.createElement("div");
+          var bar = document.createElement("div");
+          var meta = document.createElement("div");
+          progress.className = "servitech-upload-progress servitech-upload-progress--" + task.status;
+          track.className = "servitech-upload-progress__track";
+          bar.className = "servitech-upload-progress__bar";
+          bar.style.width = String(Math.max(0, Math.min(100, task.progress || 0))) + "%";
+          meta.className = "servitech-upload-progress__meta";
+          meta.textContent = task.message || "Uploading...";
+          track.appendChild(bar);
+          progress.appendChild(track);
+          progress.appendChild(meta);
+          li.appendChild(progress);
+        }
         fileListEl.appendChild(li);
       });
 
@@ -202,6 +231,7 @@
       uploadedSignature = "";
       if (acceptedFiles.length) {
         uploadedFiles = [];
+        uploadTasks = {};
       }
       syncFileInput();
       renderList();
@@ -218,41 +248,44 @@
         return buildUploadPayload(true);
       }
 
-      var formData = new FormData();
-      formData.append("upload_context", "rush_id");
-      selectedFiles.forEach(function (file) {
-        formData.append("files[]", file, file.name);
-      });
-
-      var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
-      var res = await fetch(servitechUrl("/api/upload_handler.php"), {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-          "X-CSRF-Token": csrf
-        },
-        body: formData
-      });
-
-      var raw = await res.text();
-      var data;
-      try {
-        data = JSON.parse(raw);
-      } catch (err) {
-        data = { success: false, message: "Server returned invalid response." };
+      if (!window.ServitechUpload) {
+        return { ok: false, error: "Upload progress support could not be loaded. Please refresh and try again." };
       }
 
-      if (!data.success) {
-        var message = data.message || "File upload failed.";
-        if (Array.isArray(data.errors) && data.errors.length) {
-          message += " " + data.errors.join(" ");
+      uploadTasks = {};
+      fileUpload.disabled = true;
+      activeUploadSession = window.ServitechUpload.start(selectedFiles, {
+        context: "rush_id",
+        onChange: function (tasks) {
+          uploadTasks = {};
+          tasks.forEach(function (task) {
+            uploadTasks[task.key] = task;
+          });
+          renderList();
         }
-        return { ok: false, error: message };
+      });
+      var result = await activeUploadSession.promise;
+      activeUploadSession = null;
+      fileUpload.disabled = false;
+
+      if (!result.ok) {
+        var cancelledKeys = {};
+        result.tasks.forEach(function (task) {
+          if (task.status === "cancelled") cancelledKeys[task.key] = true;
+        });
+        if (Object.keys(cancelledKeys).length) {
+          selectedFiles = selectedFiles.filter(function (file) {
+            return !cancelledKeys[fileKey(file)];
+          });
+          syncFileInput();
+        }
+        uploadedSignature = "";
+        uploadedFiles = [];
+        renderList();
+        return { ok: false, error: result.error || "File upload failed." };
       }
 
-      uploadedFiles = Array.isArray(data.uploaded_files) ? data.uploaded_files : [];
+      uploadedFiles = Array.isArray(result.uploaded_files) ? result.uploaded_files : [];
       uploadedSignature = signature;
       return buildUploadPayload(false);
     }
@@ -291,6 +324,11 @@
       var target = event.target;
       if (!target || target.tagName !== "BUTTON") return;
 
+      if (target.dataset.uploadAction === "cancel" && activeUploadSession) {
+        activeUploadSession.cancel(target.dataset.fileKey || "");
+        return;
+      }
+
       var index = parseInt(target.dataset.fileIndex || "-1", 10);
       if (!Number.isInteger(index) || index < 0) return;
 
@@ -308,12 +346,15 @@
     window.servitechResetUploadedFiles = function () {
       uploadedSignature = "";
       uploadedFiles = [];
+      uploadTasks = {};
     };
 
     document.addEventListener("servitech:join-queue-completed", function () {
       selectedFiles = [];
       uploadedSignature = "";
       uploadedFiles = [];
+      uploadTasks = {};
+      activeUploadSession = null;
       syncFileInput();
       renderList();
     });

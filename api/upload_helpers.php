@@ -7,6 +7,79 @@ function servitech_upload_private_dir(): string {
     : dirname(__DIR__) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "private_uploads";
 }
 
+function servitech_upload_request_id(string $value): string {
+  $value = strtolower(trim($value));
+  if (!preg_match('/^[a-z0-9][a-z0-9-]{15,79}$/', $value)) {
+    throw new DomainException("Invalid upload request.");
+  }
+  return $value;
+}
+
+function servitech_upload_request_state_dir(): string {
+  return servitech_upload_private_dir() . DIRECTORY_SEPARATOR . ".request_state";
+}
+
+function servitech_upload_request_state_path(string $uploadId): string {
+  $uploadId = servitech_upload_request_id($uploadId);
+  return servitech_upload_request_state_dir() . DIRECTORY_SEPARATOR . hash("sha256", $uploadId) . ".json";
+}
+
+function servitech_upload_cleanup_request_states(int $maximumAgeHours = 48): void {
+  $stateDir = servitech_upload_request_state_dir();
+  if (!is_dir($stateDir)) return;
+  $cutoff = time() - (max(1, $maximumAgeHours) * 3600);
+  foreach (glob($stateDir . DIRECTORY_SEPARATOR . "*.json") ?: [] as $path) {
+    $modifiedAt = @filemtime($path);
+    if (is_int($modifiedAt) && $modifiedAt < $cutoff) {
+      @unlink($path);
+    }
+  }
+}
+
+function servitech_upload_request_open(string $uploadId) {
+  $stateDir = servitech_upload_request_state_dir();
+  if (!is_dir($stateDir) && !mkdir($stateDir, 0750, true) && !is_dir($stateDir)) {
+    throw new RuntimeException("Unable to create upload request state directory.");
+  }
+  if (mt_rand(1, 100) === 1) {
+    servitech_upload_cleanup_request_states();
+  }
+
+  $handle = @fopen(servitech_upload_request_state_path($uploadId), "c+");
+  if (!is_resource($handle) || !flock($handle, LOCK_EX)) {
+    if (is_resource($handle)) fclose($handle);
+    throw new RuntimeException("Unable to lock upload request state.");
+  }
+  return $handle;
+}
+
+function servitech_upload_request_read($handle): array {
+  rewind($handle);
+  $raw = stream_get_contents($handle);
+  if (!is_string($raw) || trim($raw) === "") return [];
+  $state = json_decode($raw, true);
+  return is_array($state) ? $state : [];
+}
+
+function servitech_upload_request_write($handle, array $state): void {
+  $state["updated_at"] = gmdate("c");
+  $encoded = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  if (!is_string($encoded)) {
+    throw new RuntimeException("Unable to encode upload request state.");
+  }
+  rewind($handle);
+  if (!ftruncate($handle, 0) || fwrite($handle, $encoded) === false) {
+    throw new RuntimeException("Unable to save upload request state.");
+  }
+  fflush($handle);
+}
+
+function servitech_upload_request_close($handle): void {
+  if (!is_resource($handle)) return;
+  flock($handle, LOCK_UN);
+  fclose($handle);
+}
+
 function servitech_upload_storage_path(string $storageKey): string {
   $storageKey = trim($storageKey);
   if ($storageKey === "" || basename($storageKey) !== $storageKey || !preg_match('/^[a-f0-9]{64}\.[a-z0-9]+$/', $storageKey)) {
@@ -274,6 +347,51 @@ function servitech_upload_delete_owned_orphans(PDO $pdo, int $userId, array $upl
         continue;
       }
       $mark->execute([":upload_token" => $token]);
+      $deleted[] = $token;
+    } catch (Throwable $e) {
+      $errors[] = trim((string)($file["upload_token"] ?? ""));
+    }
+  }
+
+  return ["deleted_tokens" => $deleted, "errors" => $errors];
+}
+
+function servitech_upload_cancel_owned_orphans(PDO $pdo, int $userId, array $uploadedFiles): array {
+  $deleted = [];
+  $errors = [];
+  $select = $pdo->prepare("
+    SELECT upload_token, storage_key
+    FROM uploads
+    WHERE upload_token = :upload_token
+      AND user_id = :user_id
+      AND queue_id IS NULL
+      AND deleted_at IS NULL
+    LIMIT 1
+  ");
+  $mark = $pdo->prepare("
+    UPDATE uploads
+    SET deleted_at = NOW()
+    WHERE upload_token = :upload_token
+      AND user_id = :user_id
+      AND queue_id IS NULL
+      AND deleted_at IS NULL
+  ");
+
+  foreach ($uploadedFiles as $file) {
+    if (!is_array($file)) continue;
+    try {
+      $token = servitech_upload_token_from_metadata($file);
+      $select->execute([":upload_token" => $token, ":user_id" => $userId]);
+      $row = $select->fetch(PDO::FETCH_ASSOC);
+      if (!is_array($row)) continue;
+
+      $mark->execute([":upload_token" => $token, ":user_id" => $userId]);
+      if ($mark->rowCount() !== 1) continue;
+
+      $path = servitech_upload_storage_path((string)$row["storage_key"]);
+      if (is_file($path) && !@unlink($path)) {
+        $errors[] = $token;
+      }
       $deleted[] = $token;
     } catch (Throwable $e) {
       $errors[] = trim((string)($file["upload_token"] ?? ""));

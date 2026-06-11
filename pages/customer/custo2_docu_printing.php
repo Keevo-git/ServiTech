@@ -132,6 +132,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
+  <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611">
   <style>
     .printing-page {
       --printing-accent: #5f0e0f;
@@ -621,6 +622,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/main.js?v=20260611-queue-success"></script>
+<script src="/assets/js/upload_progress.js?v=20260611"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;

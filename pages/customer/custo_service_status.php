@@ -11,6 +11,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260607-status-edit-toast">
+  <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611">
   <style>
     body.customer-layout.customer-page--status {
       background:
@@ -1584,6 +1585,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/customer_toast.js?v=20260607-status-edit-toast"></script>
+<script src="/assets/js/upload_progress.js?v=20260611"></script>
 <script>
 (async function(){
   const listEl = document.getElementById("queueList");
@@ -1631,6 +1633,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   let editMode = false;
   let editRemovedFileTokens = new Set();
   let editRemovedFileIndexes = new Set();
+  let editUploadTasks = {};
+  let activeEditUploadSession = null;
   const serviceCatalogCache = {};
 
   function servitechBasePath(){
@@ -2002,11 +2006,63 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <span class="status-edit-label">Current Attachments</span>
         <div id="statusEditExistingFiles" class="status-edit-existing-files"></div>
       </div>
-      <label class="status-edit-field status-edit-field--full" for="edit_files">
-        <span class="status-edit-label">${rushId ? "Add New Photos" : "Add New Files"}</span>
+      <div class="status-edit-field status-edit-field--full">
+        <label class="status-edit-label" for="edit_files">${rushId ? "Add New Photos" : "Add New Files"}</label>
         <input id="edit_files" class="status-edit-control" name="files" type="file" multiple accept="${accept}">
-      </label>
+        <div id="statusEditUploadProgress" class="servitech-upload-list" aria-live="polite"></div>
+      </div>
     `;
+  }
+
+  function renderEditUploadProgress(){
+    const container = document.getElementById("statusEditUploadProgress");
+    const input = statusEditFields?.querySelector('[name="files"]');
+    if (!container || !input) return;
+    container.innerHTML = "";
+
+    Array.from(input.files || []).forEach((file) => {
+      const key = window.ServitechUpload?.fileKey(file) || `${file.name}|${file.size}|${file.lastModified}`;
+      const task = editUploadTasks[key] || null;
+      const row = document.createElement("div");
+      const head = document.createElement("div");
+      const name = document.createElement("span");
+      const action = document.createElement("button");
+
+      row.className = "status-edit-existing-file servitech-upload-item";
+      head.className = "servitech-upload-item__head";
+      name.className = "status-edit-existing-file__name servitech-upload-item__name";
+      name.textContent = file.name;
+      action.type = "button";
+      action.className = "status-edit-file-remove";
+      action.textContent = task && ["pending", "uploading", "processing", "cancelling"].includes(task.status)
+        ? "Cancel"
+        : "Remove";
+      action.dataset.editUploadAction = action.textContent.toLowerCase();
+      action.dataset.editUploadKey = key;
+      action.setAttribute("aria-label", `${action.textContent} ${file.name}`);
+
+      head.appendChild(name);
+      head.appendChild(action);
+      row.appendChild(head);
+
+      if (task) {
+        const progress = document.createElement("div");
+        const track = document.createElement("div");
+        const bar = document.createElement("div");
+        const meta = document.createElement("div");
+        progress.className = `servitech-upload-progress servitech-upload-progress--${task.status}`;
+        track.className = "servitech-upload-progress__track";
+        bar.className = "servitech-upload-progress__bar";
+        bar.style.width = `${Math.max(0, Math.min(100, task.progress || 0))}%`;
+        meta.className = "servitech-upload-progress__meta";
+        meta.textContent = task.message || "Uploading...";
+        track.appendChild(bar);
+        progress.appendChild(track);
+        progress.appendChild(meta);
+        row.appendChild(progress);
+      }
+      container.appendChild(row);
+    });
   }
 
   function fileToken(file){
@@ -2279,6 +2335,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     rows.push(editTextarea("notes", "Notes", queueData.notes ?? details.notes ?? ""));
     rows.push('<section id="statusEditPriceCard" class="status-edit-price-card" aria-live="polite"></section>');
     statusEditFields.innerHTML = rows.join("");
+    editUploadTasks = {};
+    renderEditUploadProgress();
     refreshEditComputedUI(queueData);
     ensureServiceCatalog(queueData).then(() => {
       if (currentDetailQueue && currentDetailQueue.id === queueData.id) {
@@ -2350,6 +2408,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function closeEditRequestModal(){
     if (!editRequestModal || !editRequestModal.classList.contains("is-open")) return;
+    if (activeEditUploadSession) {
+      activeEditUploadSession.cancelAll();
+      activeEditUploadSession = null;
+    }
     editRequestModal.classList.remove("is-open");
     editRequestModal.setAttribute("aria-hidden", "true");
     document.removeEventListener("keydown", onEditModalKeydown);
@@ -2362,27 +2424,41 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   async function uploadEditFiles(fileInput, queueData){
     const files = Array.from(fileInput?.files || []);
     if (!files.length) return [];
-
-    const fd = new FormData();
-    files.forEach((file) => fd.append("files[]", file));
-    if (serviceKey(queueData) === "rushid") {
-      fd.append("upload_context", "rush_id");
+    if (!window.ServitechUpload) {
+      throw new Error("Upload progress support could not be loaded. Please refresh and try again.");
     }
 
-    const response = await fetch(servitechUrl("/api/upload_handler.php"), {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        "X-CSRF-Token": window.servitechCsrfToken ? window.servitechCsrfToken() : ""
-      },
-      body: fd
+    editUploadTasks = {};
+    fileInput.disabled = true;
+    activeEditUploadSession = window.ServitechUpload.start(files, {
+      context: serviceKey(queueData) === "rushid" ? "rush_id" : "",
+      onChange: (tasks) => {
+        editUploadTasks = {};
+        tasks.forEach((task) => {
+          editUploadTasks[task.key] = task;
+        });
+        renderEditUploadProgress();
+      }
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.success) {
-      const detail = Array.isArray(data.errors) && data.errors.length ? data.errors.join(" ") : "";
-      throw new Error(detail || data.message || "Unable to upload replacement files.");
+    const result = await activeEditUploadSession.promise;
+    activeEditUploadSession = null;
+    fileInput.disabled = false;
+
+    if (!result.ok) {
+      const cancelledKeys = new Set(
+        result.tasks.filter((task) => task.status === "cancelled").map((task) => task.key)
+      );
+      if (cancelledKeys.size) {
+        const transfer = new DataTransfer();
+        files.forEach((file) => {
+          if (!cancelledKeys.has(window.ServitechUpload.fileKey(file))) transfer.items.add(file);
+        });
+        fileInput.files = transfer.files;
+      }
+      renderEditUploadProgress();
+      throw new Error(result.error || "Unable to upload replacement files.");
     }
-    return Array.isArray(data.uploaded_files) ? data.uploaded_files : [];
+    return Array.isArray(result.uploaded_files) ? result.uploaded_files : [];
   }
 
   async function saveCurrentEdit(){
@@ -2395,8 +2471,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (cancelEditQueueBtn) cancelEditQueueBtn.disabled = true;
     if (statusEditError) statusEditError.textContent = "";
 
+    let uploadedFiles = [];
     try {
-      const uploadedFiles = await uploadEditFiles(statusEditFields?.querySelector('[name="files"]'), currentDetailQueue);
+      uploadedFiles = await uploadEditFiles(statusEditFields?.querySelector('[name="files"]'), currentDetailQueue);
       const payload = {
         queue_id: currentDetailQueue.id,
         paper_size: inputValue("paper_size"),
@@ -2436,6 +2513,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       closeDetailModal();
       await loadQueues();
     } catch (error) {
+      if (uploadedFiles.length && window.ServitechUpload) {
+        await window.ServitechUpload.cleanup(uploadedFiles);
+      }
       const message = error.message || "Unable to save changes.";
       if (statusEditError) statusEditError.textContent = message;
       showCustomerToast(message, "error");
@@ -3172,6 +3252,27 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   saveEditQueueBtn?.addEventListener("click", saveCurrentEdit);
 
   statusEditFields?.addEventListener("click", (event) => {
+    const uploadButton = event.target?.closest?.("[data-edit-upload-action]");
+    if (uploadButton) {
+      const key = String(uploadButton.dataset.editUploadKey || "");
+      if (uploadButton.dataset.editUploadAction === "cancel" && activeEditUploadSession) {
+        activeEditUploadSession.cancel(key);
+        return;
+      }
+      const input = statusEditFields?.querySelector('[name="files"]');
+      if (input) {
+        const transfer = new DataTransfer();
+        Array.from(input.files || []).forEach((file) => {
+          if ((window.ServitechUpload?.fileKey(file) || "") !== key) transfer.items.add(file);
+        });
+        input.files = transfer.files;
+        delete editUploadTasks[key];
+        renderEditUploadProgress();
+        if (currentDetailQueue) renderEditPriceCard(currentDetailQueue);
+      }
+      return;
+    }
+
     const button = event.target?.closest?.("[data-edit-remove-file]");
     if (!button || !currentDetailQueue) return;
     const token = String(button.dataset.editRemoveToken || "").trim();
@@ -3196,7 +3297,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (currentDetailQueue) renderEditPriceCard(currentDetailQueue);
   });
 
-  statusEditFields?.addEventListener("change", () => {
+  statusEditFields?.addEventListener("change", (event) => {
+    if (event.target?.matches?.('[name="files"]')) {
+      editUploadTasks = {};
+      renderEditUploadProgress();
+    }
     if (currentDetailQueue) renderEditPriceCard(currentDetailQueue);
   });
 

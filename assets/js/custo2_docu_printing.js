@@ -80,6 +80,8 @@
     var uploadedSignature = "";
     var analysisRequestSeq = 0;
     var isSubmitting = false;
+    var uploadTasks = {};
+    var activeUploadSession = null;
 
     var state = {
       files: [],
@@ -434,7 +436,8 @@
             type: (fileInfo.file_type || (sourceFile ? getExt(sourceFile.name) : "") || "file").toUpperCase(),
             count: getPageCountFromInfo(fileInfo),
             isSlides: typeof fileInfo.slide_count !== "undefined",
-            index: index
+            index: index,
+            key: sourceFile ? fileKey(sourceFile) : ""
           });
         });
       } else {
@@ -464,21 +467,47 @@
 
       displayItems.forEach(function (item) {
         var li = document.createElement("li");
+        var head = document.createElement("div");
         var countLabel = item.count > 0
           ? " - " + item.count + (item.isSlides ? " slide(s)" : " page(s)")
           : "";
+        var task = item.key ? uploadTasks[item.key] || null : null;
 
         var info = document.createElement("span");
+        li.className = "servitech-upload-item";
+        head.className = "servitech-upload-item__head";
+        info.className = "servitech-upload-item__name";
         info.textContent = item.label + " (" + item.type + ")" + countLabel + " ";
 
         var removeBtn = document.createElement("button");
         removeBtn.type = "button";
-        removeBtn.textContent = "Remove";
-        removeBtn.setAttribute("aria-label", "Remove " + item.label);
+        removeBtn.textContent = task && ["pending", "uploading", "processing", "cancelling"].indexOf(task.status) !== -1
+          ? "Cancel"
+          : "Remove";
+        removeBtn.dataset.uploadAction = removeBtn.textContent.toLowerCase();
+        removeBtn.dataset.fileKey = item.key || "";
+        removeBtn.setAttribute("aria-label", removeBtn.textContent + " " + item.label);
         removeBtn.dataset.fileIndex = String(item.index);
 
-        li.appendChild(info);
-        li.appendChild(removeBtn);
+        head.appendChild(info);
+        head.appendChild(removeBtn);
+        li.appendChild(head);
+        if (task) {
+          var progress = document.createElement("div");
+          var track = document.createElement("div");
+          var bar = document.createElement("div");
+          var meta = document.createElement("div");
+          progress.className = "servitech-upload-progress servitech-upload-progress--" + task.status;
+          track.className = "servitech-upload-progress__track";
+          bar.className = "servitech-upload-progress__bar";
+          bar.style.width = String(Math.max(0, Math.min(100, task.progress || 0))) + "%";
+          meta.className = "servitech-upload-progress__meta";
+          meta.textContent = task.message || "Uploading...";
+          track.appendChild(bar);
+          progress.appendChild(track);
+          progress.appendChild(meta);
+          li.appendChild(progress);
+        }
         fileListEl.appendChild(li);
       });
 
@@ -688,6 +717,7 @@
       analysisRequestSeq++;
       if (acceptedFiles.length) {
         state.uploaded_files = [];
+        uploadTasks = {};
       }
       syncFileInput();
 
@@ -745,6 +775,7 @@
         uploadedSignature = "";
         analysisRequestSeq++;
         state.uploaded_files = [];
+        uploadTasks = {};
         state.error = "";
         setFeedback("", "error");
         syncFileInput();
@@ -811,43 +842,46 @@
         };
       }
 
-      var fd = new FormData();
-      selectedFiles.forEach(function (file) {
-        fd.append("files[]", file, file.name);
-      });
-
-      var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
-      var res = await fetch(servitechUrl("/api/upload_handler.php"), {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-          "X-CSRF-Token": csrf
-        },
-        body: fd
-      });
-
-      var raw = await res.text();
-      var data = null;
-      try {
-        data = JSON.parse(raw);
-      } catch (err) {
-        data = { success: false, message: "Server returned invalid response." };
+      if (!window.ServitechUpload) {
+        return { ok: false, error: "Upload progress support could not be loaded. Please refresh and try again." };
       }
 
-      if (!data.success) {
-        var errMsg = data.message || "File upload failed.";
-        if (Array.isArray(data.errors) && data.errors.length) {
-          errMsg += " " + data.errors.join(" ");
+      uploadTasks = {};
+      fileUpload.disabled = true;
+      activeUploadSession = window.ServitechUpload.start(selectedFiles, {
+        onChange: function (tasks) {
+          uploadTasks = {};
+          tasks.forEach(function (task) {
+            uploadTasks[task.key] = task;
+          });
+          renderList();
         }
-        state.error = errMsg;
-        setFeedback(errMsg, "error");
-        return { ok: false, error: errMsg };
+      });
+      var result = await activeUploadSession.promise;
+      activeUploadSession = null;
+      fileUpload.disabled = false;
+
+      if (!result.ok) {
+        var cancelledKeys = {};
+        result.tasks.forEach(function (task) {
+          if (task.status === "cancelled") cancelledKeys[task.key] = true;
+        });
+        if (Object.keys(cancelledKeys).length) {
+          selectedFiles = selectedFiles.filter(function (file) {
+            return !cancelledKeys[fileKey(file)];
+          });
+          syncFileInput();
+          resetAnalysis(true);
+        }
+        state.uploaded_files = [];
+        uploadedSignature = "";
+        renderList();
+        setFeedback(result.error || "File upload failed.", "error");
+        return { ok: false, error: result.error || "File upload failed." };
       }
 
       state.error = "";
-      state.uploaded_files = Array.isArray(data.uploaded_files) ? data.uploaded_files : [];
+      state.uploaded_files = Array.isArray(result.uploaded_files) ? result.uploaded_files : [];
       uploadedSignature = sig;
 
       return {
@@ -1170,6 +1204,10 @@
     fileListEl.addEventListener("click", function (e) {
       var target = e.target;
       if (!target || target.tagName !== "BUTTON") return;
+      if (target.dataset.uploadAction === "cancel" && activeUploadSession) {
+        activeUploadSession.cancel(target.dataset.fileKey || "");
+        return;
+      }
       var index = parseInt(target.dataset.fileIndex || "-1", 10);
       if (!Number.isInteger(index) || index < 0) return;
       removeSelectedByIndex(index);
@@ -1189,6 +1227,8 @@
       selectedFiles = [];
       uploadedSignature = "";
       analysisRequestSeq++;
+      uploadTasks = {};
+      activeUploadSession = null;
       state.files = [];
       state.file_names = [];
       state.uploaded_files = [];
