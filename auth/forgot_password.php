@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . "/_shared.php";
-require_once __DIR__ . "/../config/session_check.php";
+require_once __DIR__ . "/guest_guard.php";
 require_once __DIR__ . "/../config/mail.php";
 require_once __DIR__ . "/../config/account.php";
+servitech_require_guest_page();
 
 $messageType = "";
 $messageText = "";
@@ -229,6 +230,7 @@ $csrfToken = servitech_csrf_token();
 
 <?php render_auth_footer(); ?>
 
+<?php servitech_render_guest_history_guard(); ?>
   <script src="<?= auth_url("/assets/js/header-menu.js") ?>" defer></script>
   <script>
     const forgotPasswordForm = document.getElementById("forgotPasswordForm");

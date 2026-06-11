@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/_shared.php";
-require_once __DIR__ . "/../config/session_check.php";
+require_once __DIR__ . "/guest_guard.php";
+servitech_require_guest_page();
 $csrfToken = servitech_csrf_token();
 ?>
 <!DOCTYPE html>
@@ -652,6 +653,7 @@ $csrfToken = servitech_csrf_token();
     }, 300);
   </script>
 
+<?php servitech_render_guest_history_guard(); ?>
   <script src="<?= auth_url("/assets/js/header-menu.js") ?>" defer></script>
 
 </body>

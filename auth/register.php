@@ -1,5 +1,7 @@
 <?php
-require_once __DIR__ . "/../config/session_check.php";
+require_once __DIR__ . "/guest_guard.php";
+servitech_redirect_authenticated_user();
+
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
