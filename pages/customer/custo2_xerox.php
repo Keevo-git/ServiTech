@@ -196,6 +196,10 @@ try {
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
+<?php
+$joinQueueBackUrl = "/pages/customer/custo1_printing_option.php";
+include __DIR__ . "/../../components/join_queue_leave_guard.php";
+?>
 
 <script src="/assets/js/csrf.js"></script>
 <script>

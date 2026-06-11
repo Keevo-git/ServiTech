@@ -85,6 +85,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
+<?php
+$joinQueueBackUrl = "/pages/customer/custo_place_queueing.php";
+include __DIR__ . "/../../components/join_queue_leave_guard.php";
+?>
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/main.js?v=20260604-form-state"></script>

@@ -1118,6 +1118,9 @@
               tone: "success"
             });
           }
+          if (window.servitechJoinQueueLeaveGuard) {
+            window.servitechJoinQueueLeaveGuard.disarm();
+          }
           window.location.href = servitechUrl("/pages/customer/custo_print_order_payment.php");
           return;
         }
@@ -1140,6 +1143,9 @@
         }
 
         setFeedback("", "error");
+        if (window.servitechJoinQueueLeaveGuard) {
+          window.servitechJoinQueueLeaveGuard.disarm();
+        }
         openSuccessModal(result.queue_code);
       } catch (err) {
         console.error(err);

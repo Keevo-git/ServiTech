@@ -1346,6 +1346,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      if (window.servitechJoinQueueLeaveGuard) {
+        window.servitechJoinQueueLeaveGuard.disarm();
+      }
+
       if (typeof window.openQueueSuccessModal === "function") {
         window.openQueueSuccessModal(result.queue_code, { service: buildServiceLabel() });
       } else {
