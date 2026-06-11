@@ -730,7 +730,7 @@ if ($isConfirmed) {
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
-<script src="/assets/js/custo_print_order_payment.js?v=20260602-stable-overlay"></script>
+<script src="/assets/js/custo_print_order_payment.js?v=20260611-post-success"></script>
 </body>
 </html>
 

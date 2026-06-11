@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
+servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 ?>
 
@@ -93,7 +94,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260604-form-state"></script>
+<script src="/assets/js/main.js?v=20260611-queue-success"></script>
 
 </body>
 </html>

@@ -152,7 +152,10 @@
   function closeQueueSuccessModal() {
     if (
       window.servitechJoinQueuePostSuccess
-      && window.servitechJoinQueuePostSuccess.isComplete()
+      && (
+        window.servitechJoinQueuePostSuccess.isComplete()
+        || window.servitechJoinQueuePostSuccess.isHistoryEntryComplete()
+      )
     ) {
       window.servitechJoinQueuePostSuccess.goToChooseService();
       return;

@@ -35,6 +35,10 @@
     return true;
   }
 
+  function historyEntryIsComplete() {
+    return !!(history.state && history.state.servitechJoinQueueCompleted);
+  }
+
   function clearCompletion() {
     try {
       window.sessionStorage.removeItem(storageKey);
@@ -47,7 +51,39 @@
     window.location.replace(safeUrl());
   }
 
+  function clearSubmittedControls() {
+    document.querySelectorAll(".form-page form").forEach(function (form) {
+      form.reset();
+    });
+
+    document.querySelectorAll(".form-page input, .form-page select, .form-page textarea").forEach(function (control) {
+      if (control.type === "hidden" || control.type === "button" || control.type === "submit") {
+        return;
+      }
+
+      if (control.type === "checkbox" || control.type === "radio") {
+        control.checked = control.defaultChecked;
+      } else if (control.type === "file") {
+        control.value = "";
+      } else if (control.tagName === "SELECT") {
+        var defaultIndex = Array.prototype.findIndex.call(control.options, function (option) {
+          return option.defaultSelected;
+        });
+        control.selectedIndex = defaultIndex >= 0 ? defaultIndex : 0;
+      } else {
+        control.value = control.defaultValue;
+      }
+
+      control.classList.remove("is-invalid");
+      control.removeAttribute("aria-invalid");
+    });
+
+    document.dispatchEvent(new CustomEvent("servitech:join-queue-completed"));
+  }
+
   function markComplete(queueCode) {
+    clearSubmittedControls();
+
     try {
       window.sessionStorage.setItem(storageKey, JSON.stringify({
         queueCode: String(queueCode || ""),
@@ -66,23 +102,24 @@
     clear: clearCompletion,
     goToChooseService: goToChooseService,
     isComplete: hasCompletion,
+    isHistoryEntryComplete: historyEntryIsComplete,
     markComplete: markComplete,
     safeUrl: safeUrl
   };
 
-  if (hasCompletion()) {
+  if (hasCompletion() || historyEntryIsComplete()) {
     goToChooseService();
     return;
   }
 
   window.addEventListener("pageshow", function (event) {
-    if (event.persisted && hasCompletion()) {
+    if (event.persisted && (hasCompletion() || historyEntryIsComplete())) {
       goToChooseService();
     }
   });
 
   window.addEventListener("popstate", function () {
-    if (hasCompletion()) {
+    if (hasCompletion() || historyEntryIsComplete()) {
       goToChooseService();
     }
   });

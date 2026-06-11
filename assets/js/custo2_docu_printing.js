@@ -1185,6 +1185,24 @@
 
     joinQueueBtn.addEventListener("click", handleJoinQueue, true);
 
+    document.addEventListener("servitech:join-queue-completed", function () {
+      selectedFiles = [];
+      uploadedSignature = "";
+      analysisRequestSeq++;
+      state.files = [];
+      state.file_names = [];
+      state.uploaded_files = [];
+      state.total_files = 0;
+      state.total_images = 0;
+      state.total_pages = 0;
+      state.price_per_page = 0;
+      state.estimated_total = 0;
+      state.error = "";
+      syncFileInput();
+      renderList();
+      renderSummary();
+    });
+
     restoreDraft();
     resetAnalysis(true);
     renderSummary();

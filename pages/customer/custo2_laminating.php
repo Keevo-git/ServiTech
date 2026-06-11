@@ -185,7 +185,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260604-form-state"></script>
+<script src="/assets/js/main.js?v=20260611-queue-success"></script>
 
 </body>
 </html>

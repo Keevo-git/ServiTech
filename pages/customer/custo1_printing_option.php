@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
+servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 ?>
 <!DOCTYPE html>
@@ -77,6 +78,7 @@ servitech_redirect_completed_join_queue();
     window.location.href = routes[service] || "custo1_printing_option.php";
   });
 </script>
+<script src="/assets/js/join_queue_post_success.js?v=20260611b"></script>
 
 </body>
 </html>

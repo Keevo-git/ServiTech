@@ -6,6 +6,15 @@ const SERVITECH_JOIN_QUEUE_COMPLETION_KEY = "join_queue_completion";
 if (!function_exists("servitech_mark_join_queue_completed")) {
     function servitech_mark_join_queue_completed(string $queueCode): void
     {
+        unset(
+            $_SESSION["print_order_draft"],
+            $_SESSION["print_order_flash_error"],
+            $_SESSION["print_order_form"],
+            $_SESSION["service_payment_draft"],
+            $_SESSION["service_payment_flash_error"],
+            $_SESSION["service_payment_form"]
+        );
+
         $_SESSION[SERVITECH_JOIN_QUEUE_COMPLETION_KEY] = [
             "queue_code" => trim($queueCode),
             "completed_at" => time(),
@@ -38,16 +47,43 @@ if (!function_exists("servitech_clear_join_queue_completion")) {
     }
 }
 
+if (!function_exists("servitech_start_new_join_queue_if_requested")) {
+    function servitech_start_new_join_queue_if_requested(): void
+    {
+        if ((string)($_GET["new_queue"] ?? "") !== "1") {
+            return;
+        }
+
+        servitech_clear_join_queue_completion();
+
+        $requestUri = (string)($_SERVER["REQUEST_URI"] ?? "");
+        $path = (string)(parse_url($requestUri, PHP_URL_PATH) ?: "/");
+        $query = [];
+        parse_str((string)(parse_url($requestUri, PHP_URL_QUERY) ?? ""), $query);
+        unset($query["new_queue"]);
+
+        $location = $path;
+        if ($query) {
+            $location .= "?" . http_build_query($query);
+        }
+
+        header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0");
+        header("Location: " . $location);
+        exit();
+    }
+}
+
 if (!function_exists("servitech_redirect_completed_join_queue")) {
     function servitech_redirect_completed_join_queue(): void
     {
+        header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0");
+        header("Pragma: no-cache");
+        header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
+
         if (!servitech_join_queue_was_completed()) {
             return;
         }
 
-        header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0");
-        header("Pragma: no-cache");
-        header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
         header("Location: " . servitech_url("/pages/customer/custo_place_queueing.php"));
         exit();
     }

@@ -26,5 +26,5 @@
     </div>
   </div>
 </div>
-<script src="/assets/js/queue_modal.js?v=20260602-stable-overlay"></script>
-<script src="/assets/js/join_queue_post_success.js?v=20260611a"></script>
+<script src="/assets/js/queue_modal.js?v=20260611-post-success"></script>
+<script src="/assets/js/join_queue_post_success.js?v=20260611b"></script>

@@ -310,6 +310,14 @@
       uploadedFiles = [];
     };
 
+    document.addEventListener("servitech:join-queue-completed", function () {
+      selectedFiles = [];
+      uploadedSignature = "";
+      uploadedFiles = [];
+      syncFileInput();
+      renderList();
+    });
+
     renderList();
   });
 })();
