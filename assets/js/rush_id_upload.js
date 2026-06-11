@@ -133,13 +133,15 @@
         var removeBtn = document.createElement("button");
         var key = fileKey(file);
         var task = uploadTasks[key] || null;
+        var taskIsActive = task && window.ServitechUpload && window.ServitechUpload.isActiveStatus(task.status);
+        var taskHasProblem = task && window.ServitechUpload && window.ServitechUpload.isTerminalProblemStatus(task.status);
 
         li.className = "servitech-upload-item";
         head.className = "servitech-upload-item__head";
         info.className = "servitech-upload-item__name";
         info.textContent = file.name + " (" + getExt(file.name).toUpperCase() + ")";
         removeBtn.type = "button";
-        removeBtn.textContent = task && ["pending", "uploading", "processing", "cancelling"].indexOf(task.status) !== -1
+        removeBtn.textContent = taskIsActive
           ? "Cancel"
           : "Remove";
         removeBtn.dataset.uploadAction = removeBtn.textContent.toLowerCase();
@@ -150,7 +152,7 @@
         head.appendChild(info);
         head.appendChild(removeBtn);
         li.appendChild(head);
-        if (task) {
+        if (taskIsActive) {
           var progress = document.createElement("div");
           var track = document.createElement("div");
           var bar = document.createElement("div");
@@ -172,6 +174,11 @@
           progress.appendChild(track);
           progress.appendChild(meta);
           li.appendChild(progress);
+        } else if (taskHasProblem) {
+          var result = document.createElement("div");
+          result.className = "servitech-upload-result servitech-upload-result--" + task.status;
+          result.textContent = task.message || "File upload did not complete.";
+          li.appendChild(result);
         }
         fileListEl.appendChild(li);
       });

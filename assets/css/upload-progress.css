@@ -117,6 +117,23 @@
   color: #be123c;
 }
 
+.servitech-upload-result {
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.4;
+  margin-top: 0.55rem;
+  padding: 0.5rem 0.65rem;
+}
+
+.servitech-upload-result--error,
+.servitech-upload-result--cancelled,
+.servitech-upload-result--discarded {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+}
+
 .servitech-upload-list {
   display: grid;
   gap: 0.55rem;

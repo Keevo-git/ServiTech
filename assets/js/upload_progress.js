@@ -37,6 +37,14 @@
     return (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
   }
 
+  function isActiveStatus(status) {
+    return ["checking", "analyzing", "pending", "uploading", "processing", "cancelling"].includes(status);
+  }
+
+  function isTerminalProblemStatus(status) {
+    return ["error", "cancelled", "discarded"].includes(status);
+  }
+
   function snapshot(tasks) {
     return tasks.map(function (task) {
       return {
@@ -290,6 +298,8 @@
   window.ServitechUpload = {
     cleanup: cleanupUploadedFiles,
     fileKey: fileKey,
+    isActiveStatus: isActiveStatus,
+    isTerminalProblemStatus: isTerminalProblemStatus,
     start: start
   };
 })();

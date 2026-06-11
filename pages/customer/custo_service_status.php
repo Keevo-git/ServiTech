@@ -11,7 +11,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260607-status-edit-toast">
-  <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-visible-progress">
+  <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>
     body.customer-layout.customer-page--status {
       background:
@@ -1585,7 +1585,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/customer_toast.js?v=20260607-status-edit-toast"></script>
-<script src="/assets/js/upload_progress.js?v=20260611-visible-progress"></script>
+<script src="/assets/js/upload_progress.js?v=20260611-per-file-state"></script>
 <script>
 (async function(){
   const listEl = document.getElementById("queueList");
@@ -2023,6 +2023,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     Array.from(input.files || []).forEach((file) => {
       const key = window.ServitechUpload?.fileKey(file) || `${file.name}|${file.size}|${file.lastModified}`;
       const task = editUploadTasks[key] || null;
+      const taskIsActive = task && window.ServitechUpload?.isActiveStatus(task.status);
+      const taskHasProblem = task && window.ServitechUpload?.isTerminalProblemStatus(task.status);
       const row = document.createElement("div");
       const head = document.createElement("div");
       const name = document.createElement("span");
@@ -2034,7 +2036,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       name.textContent = file.name;
       action.type = "button";
       action.className = "status-edit-file-remove";
-      action.textContent = task && ["pending", "uploading", "processing", "cancelling"].includes(task.status)
+      action.textContent = taskIsActive
         ? "Cancel"
         : "Remove";
       action.dataset.editUploadAction = action.textContent.toLowerCase();
@@ -2045,7 +2047,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       head.appendChild(action);
       row.appendChild(head);
 
-      if (task) {
+      if (taskIsActive) {
         const progress = document.createElement("div");
         const track = document.createElement("div");
         const bar = document.createElement("div");
@@ -2067,6 +2069,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         progress.appendChild(track);
         progress.appendChild(meta);
         row.appendChild(progress);
+      } else if (taskHasProblem) {
+        const result = document.createElement("div");
+        result.className = `servitech-upload-result servitech-upload-result--${task.status}`;
+        result.textContent = task.message || "File upload did not complete.";
+        row.appendChild(result);
       }
       container.appendChild(row);
     });
