@@ -498,6 +498,13 @@
           var bar = document.createElement("div");
           var meta = document.createElement("div");
           progress.className = "servitech-upload-progress servitech-upload-progress--" + task.status;
+          progress.setAttribute("role", "progressbar");
+          progress.setAttribute("aria-label", item.label + " " + (task.message || "file progress"));
+          progress.setAttribute("aria-valuemin", "0");
+          progress.setAttribute("aria-valuemax", "100");
+          if (task.status !== "analyzing" && task.status !== "processing" && task.status !== "checking") {
+            progress.setAttribute("aria-valuenow", String(Math.max(0, Math.min(100, task.progress || 0))));
+          }
           track.className = "servitech-upload-progress__track";
           bar.className = "servitech-upload-progress__bar";
           bar.style.width = String(Math.max(0, Math.min(100, task.progress || 0))) + "%";
@@ -570,6 +577,20 @@
         return;
       }
 
+      if (selectedFiles.length && !activeUploadSession) {
+        selectedFiles.forEach(function (file) {
+          uploadTasks[fileKey(file)] = {
+            key: fileKey(file),
+            file: file,
+            status: "analyzing",
+            progress: 35,
+            message: "Processing file and counting pages...",
+            metadata: null
+          };
+        });
+        renderList();
+      }
+
       var formData = new FormData();
       formData.append("paper_size", requestPaperSize);
       formData.append("color_option", requestColor);
@@ -621,6 +642,13 @@
           state.total_pages = Number.isFinite(Number(data.total_pages)) ? Number(data.total_pages) : state.total_pages;
           state.price_per_page = 0;
           state.estimated_total = 0;
+          selectedFiles.forEach(function (file) {
+            var task = uploadTasks[fileKey(file)];
+            if (!task) return;
+            task.status = "error";
+            task.progress = 100;
+            task.message = data.error || "File processing failed.";
+          });
           renderList();
           renderSummary();
           setFeedback(state.error, "error");
@@ -640,6 +668,13 @@
         state.total_pages = Number(data.total_pages) || 0;
         state.price_per_page = Number(data.price_per_page) || 0;
         state.estimated_total = Number(data.estimated_total) || 0;
+        selectedFiles.forEach(function (file) {
+          var task = uploadTasks[fileKey(file)];
+          if (!task) return;
+          task.status = "success";
+          task.progress = 100;
+          task.message = "Processing complete. Ready to upload.";
+        });
         renderList();
         renderSummary();
         setFeedback("", "error");
@@ -650,6 +685,14 @@
         state.error = "Network/server error while analyzing files.";
         state.price_per_page = 0;
         state.estimated_total = 0;
+        selectedFiles.forEach(function (file) {
+          var task = uploadTasks[fileKey(file)];
+          if (!task) return;
+          task.status = "error";
+          task.progress = 100;
+          task.message = "File processing failed. Please try again.";
+        });
+        renderList();
         renderSummary();
         setFeedback(state.error, "error");
       }
@@ -667,6 +710,7 @@
       var incomingFiles = Array.from(incoming || []);
       if (incomingFiles.length && fileUploadStatus) {
         fileUploadStatus.textContent = "Checking selected files...";
+        fileUploadStatus.classList.add("is-processing");
       }
 
       for (var i = 0; i < incomingFiles.length; i++) {
@@ -730,6 +774,7 @@
       }
 
       resetAnalysis(true);
+      if (fileUploadStatus) fileUploadStatus.classList.remove("is-processing");
       if (acceptedFiles.length) {
         analyzeSelectedFiles();
       }

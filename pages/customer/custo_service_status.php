@@ -11,7 +11,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260607-status-edit-toast">
-  <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611">
+  <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-visible-progress">
   <style>
     body.customer-layout.customer-page--status {
       background:
@@ -1585,7 +1585,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/customer_toast.js?v=20260607-status-edit-toast"></script>
-<script src="/assets/js/upload_progress.js?v=20260611"></script>
+<script src="/assets/js/upload_progress.js?v=20260611-visible-progress"></script>
 <script>
 (async function(){
   const listEl = document.getElementById("queueList");
@@ -2051,6 +2051,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         const bar = document.createElement("div");
         const meta = document.createElement("div");
         progress.className = `servitech-upload-progress servitech-upload-progress--${task.status}`;
+        progress.setAttribute("role", "progressbar");
+        progress.setAttribute("aria-label", `${file.name} ${task.message || "file progress"}`);
+        progress.setAttribute("aria-valuemin", "0");
+        progress.setAttribute("aria-valuemax", "100");
+        if (!["processing", "checking", "analyzing"].includes(task.status)) {
+          progress.setAttribute("aria-valuenow", String(Math.max(0, Math.min(100, task.progress || 0))));
+        }
         track.className = "servitech-upload-progress__track";
         bar.className = "servitech-upload-progress__bar";
         bar.style.width = `${Math.max(0, Math.min(100, task.progress || 0))}%`;

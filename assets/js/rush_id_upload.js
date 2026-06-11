@@ -156,6 +156,13 @@
           var bar = document.createElement("div");
           var meta = document.createElement("div");
           progress.className = "servitech-upload-progress servitech-upload-progress--" + task.status;
+          progress.setAttribute("role", "progressbar");
+          progress.setAttribute("aria-label", file.name + " " + (task.message || "file progress"));
+          progress.setAttribute("aria-valuemin", "0");
+          progress.setAttribute("aria-valuemax", "100");
+          if (task.status !== "processing" && task.status !== "checking") {
+            progress.setAttribute("aria-valuenow", String(Math.max(0, Math.min(100, task.progress || 0))));
+          }
           track.className = "servitech-upload-progress__track";
           bar.className = "servitech-upload-progress__bar";
           bar.style.width = String(Math.max(0, Math.min(100, task.progress || 0))) + "%";
@@ -187,6 +194,7 @@
       var incomingFiles = Array.from(incoming || []);
       if (incomingFiles.length && fileUploadStatus) {
         fileUploadStatus.textContent = "Checking selected files...";
+        fileUploadStatus.classList.add("is-processing");
       }
 
       for (var i = 0; i < incomingFiles.length; i++) {
@@ -235,6 +243,7 @@
       }
       syncFileInput();
       renderList();
+      if (fileUploadStatus) fileUploadStatus.classList.remove("is-processing");
       setFeedback(errors.join(" "), errors.length ? "error" : "success");
     }
 

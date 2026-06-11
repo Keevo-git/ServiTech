@@ -98,6 +98,8 @@
         message: "Waiting to upload...",
         metadata: null,
         xhr: null,
+        sent: false,
+        settle: null,
         cancelRequested: false
       };
     });
@@ -118,7 +120,7 @@
       task.status = "cancelling";
       task.message = "Cancelling...";
       notify();
-      if (task.xhr) {
+      if (task.xhr && task.sent) {
         task.xhr.abort();
         return Promise.resolve();
       }
@@ -127,6 +129,7 @@
         task.progress = 0;
         task.message = "File upload was cancelled.";
         notify();
+        if (task.settle) task.settle(task);
       });
     }
 
@@ -135,6 +138,7 @@
         var xhr = new XMLHttpRequest();
         var formData = new FormData();
         task.xhr = xhr;
+        task.settle = resolve;
         formData.append("upload_id", task.id);
         if (options.context) formData.append("upload_context", options.context);
         formData.append("files[]", task.file, task.file.name);
@@ -213,14 +217,18 @@
         task.status = "uploading";
         task.message = "Uploading... 0%";
         notify();
-        try {
-          xhr.send(formData);
-        } catch (error) {
-          task.status = "error";
-          task.message = "Failed to start file upload. Please try again.";
-          notify();
-          resolve(task);
-        }
+        window.requestAnimationFrame(function () {
+          if (task.cancelRequested) return;
+          try {
+            task.sent = true;
+            xhr.send(formData);
+          } catch (error) {
+            task.status = "error";
+            task.message = "Failed to start file upload. Please try again.";
+            notify();
+            resolve(task);
+          }
+        });
       });
     }
 
