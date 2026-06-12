@@ -212,6 +212,7 @@ try {
     ? array_values(array_filter($currentDetails["uploaded_files"], "is_array"))
     : [];
   $keptUploadedFiles = [];
+  $removedUploadedFiles = [];
   foreach ($existingUploadedFiles as $index => $file) {
     $token = "";
     try {
@@ -220,9 +221,11 @@ try {
       $token = "";
     }
     if ($token !== "" && isset($removedFileTokens[$token])) {
+      $removedUploadedFiles[] = $file;
       continue;
     }
     if (isset($removedFileIndexes[$index])) {
+      $removedUploadedFiles[] = $file;
       continue;
     }
     $keptUploadedFiles[] = $file;
@@ -355,6 +358,12 @@ try {
   );
 
   $pdo->commit();
+  if (!empty($removedUploadedFiles)) {
+    $removedCleanup = servitech_upload_delete_linked_files($pdo, $userId, $queueId, $removedUploadedFiles);
+    if (!empty($removedCleanup["errors"])) {
+      error_log("queue_update_details removed upload cleanup failed: " . implode(", ", $removedCleanup["errors"]));
+    }
+  }
   echo json_encode([
     "ok" => true,
     "queue_id" => $queueId,

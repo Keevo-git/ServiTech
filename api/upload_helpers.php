@@ -12,6 +12,14 @@ function servitech_upload_max_file_count(): int {
   return 5;
 }
 
+function servitech_upload_temporary_retention_hours(): int {
+  return 24;
+}
+
+function servitech_upload_closed_retention_days(): int {
+  return 30;
+}
+
 function servitech_upload_assert_limits(array $files, string $sizeKey = "byte_size"): void {
   if (count($files) > servitech_upload_max_file_count()) {
     throw new DomainException("You can upload up to 5 files only.");
@@ -61,16 +69,18 @@ function servitech_upload_request_state_path(string $uploadId): string {
   return servitech_upload_request_state_dir() . DIRECTORY_SEPARATOR . hash("sha256", $uploadId) . ".json";
 }
 
-function servitech_upload_cleanup_request_states(int $maximumAgeHours = 48): void {
+function servitech_upload_cleanup_request_states(int $maximumAgeHours = 24): int {
   $stateDir = servitech_upload_request_state_dir();
-  if (!is_dir($stateDir)) return;
+  if (!is_dir($stateDir)) return 0;
   $cutoff = time() - (max(1, $maximumAgeHours) * 3600);
+  $deleted = 0;
   foreach (glob($stateDir . DIRECTORY_SEPARATOR . "*.json") ?: [] as $path) {
     $modifiedAt = @filemtime($path);
-    if (is_int($modifiedAt) && $modifiedAt < $cutoff) {
-      @unlink($path);
+    if (is_int($modifiedAt) && $modifiedAt < $cutoff && @unlink($path)) {
+      $deleted++;
     }
   }
+  return $deleted;
 }
 
 function servitech_upload_request_open(string $uploadId) {
@@ -261,6 +271,35 @@ function servitech_upload_public_metadata(array $row): array {
   ];
 }
 
+function servitech_upload_token_is_available(PDO $pdo, string $token): bool {
+  static $availability = [];
+
+  $token = strtolower(trim($token));
+  if (!preg_match('/^[a-f0-9]{64}$/', $token)) return false;
+  if (array_key_exists($token, $availability)) return $availability[$token];
+
+  $stmt = $pdo->prepare("
+    SELECT storage_key
+    FROM uploads
+    WHERE upload_token = :upload_token
+      AND deleted_at IS NULL
+    LIMIT 1
+  ");
+  $stmt->execute([":upload_token" => $token]);
+  $storageKey = trim((string)($stmt->fetchColumn() ?: ""));
+  if ($storageKey === "") {
+    $availability[$token] = false;
+    return false;
+  }
+
+  try {
+    $availability[$token] = is_file(servitech_upload_storage_path($storageKey));
+  } catch (Throwable $e) {
+    $availability[$token] = false;
+  }
+  return $availability[$token];
+}
+
 function servitech_upload_owned_row(PDO $pdo, int $userId, string $token, bool $requireOrphan = true): array {
   $sql = "
     SELECT upload_token, user_id, queue_id, original_name, storage_key, file_extension, mime_type, byte_size, checksum_sha256
@@ -424,14 +463,71 @@ function servitech_upload_cancel_owned_orphans(PDO $pdo, int $userId, array $upl
       $row = $select->fetch(PDO::FETCH_ASSOC);
       if (!is_array($row)) continue;
 
+      $path = servitech_upload_storage_path((string)$row["storage_key"]);
+      if (is_file($path) && !@unlink($path)) {
+        $errors[] = $token;
+        continue;
+      }
       $mark->execute([":upload_token" => $token, ":user_id" => $userId]);
       if ($mark->rowCount() !== 1) continue;
+      $deleted[] = $token;
+    } catch (Throwable $e) {
+      $errors[] = trim((string)($file["upload_token"] ?? ""));
+    }
+  }
+
+  return ["deleted_tokens" => $deleted, "errors" => $errors];
+}
+
+function servitech_upload_delete_linked_files(
+  PDO $pdo,
+  int $userId,
+  int $queueId,
+  array $uploadedFiles
+): array {
+  $deleted = [];
+  $errors = [];
+  $select = $pdo->prepare("
+    SELECT upload_token, storage_key
+    FROM uploads
+    WHERE upload_token = :upload_token
+      AND user_id = :user_id
+      AND queue_id = :queue_id
+      AND deleted_at IS NULL
+    LIMIT 1
+  ");
+  $mark = $pdo->prepare("
+    UPDATE uploads
+    SET deleted_at = NOW()
+    WHERE upload_token = :upload_token
+      AND user_id = :user_id
+      AND queue_id = :queue_id
+      AND deleted_at IS NULL
+  ");
+
+  foreach ($uploadedFiles as $file) {
+    if (!is_array($file)) continue;
+    try {
+      $token = servitech_upload_token_from_metadata($file);
+      $select->execute([
+        ":upload_token" => $token,
+        ":user_id" => $userId,
+        ":queue_id" => $queueId,
+      ]);
+      $row = $select->fetch(PDO::FETCH_ASSOC);
+      if (!is_array($row)) continue;
 
       $path = servitech_upload_storage_path((string)$row["storage_key"]);
       if (is_file($path) && !@unlink($path)) {
         $errors[] = $token;
+        continue;
       }
-      $deleted[] = $token;
+      $mark->execute([
+        ":upload_token" => $token,
+        ":user_id" => $userId,
+        ":queue_id" => $queueId,
+      ]);
+      if ($mark->rowCount() === 1) $deleted[] = $token;
     } catch (Throwable $e) {
       $errors[] = trim((string)($file["upload_token"] ?? ""));
     }
@@ -458,14 +554,82 @@ function servitech_cleanup_orphan_uploads(PDO $pdo, int $minimumAgeHours = 24): 
 
   foreach ($rows as $row) {
     $token = (string)$row["upload_token"];
-    $path = servitech_upload_storage_path((string)$row["storage_key"]);
-    if (is_file($path) && !@unlink($path)) {
+    try {
+      $path = servitech_upload_storage_path((string)$row["storage_key"]);
+      if (is_file($path) && !@unlink($path)) {
+        $errors[] = $token;
+        continue;
+      }
+      $mark->execute([":upload_token" => $token]);
+      $deleted += $mark->rowCount();
+    } catch (Throwable $e) {
       $errors[] = $token;
-      continue;
     }
-    $mark->execute([":upload_token" => $token]);
-    $deleted++;
   }
 
   return ["deleted" => $deleted, "errors" => $errors];
+}
+
+function servitech_cleanup_closed_uploads(PDO $pdo, int $retentionDays = 30): array {
+  $retentionDays = max(1, $retentionDays);
+  $stmt = $pdo->prepare("
+    SELECT u.upload_token, u.storage_key, u.queue_id
+    FROM uploads u
+    INNER JOIN queues q ON q.id = u.queue_id
+    WHERE u.queue_id IS NOT NULL
+      AND u.deleted_at IS NULL
+      AND UPPER(TRIM(COALESCE(q.status, ''))) IN (
+        'DONE', 'COMPLETED', 'CANCEL', 'CANCELLED', 'CANCELED'
+      )
+      AND q.closed_at IS NOT NULL
+      AND q.closed_at <= NOW() - (CAST(:retention_days AS INTEGER) * INTERVAL '1 day')
+    ORDER BY q.closed_at ASC, u.created_at ASC
+  ");
+  $stmt->execute([":retention_days" => $retentionDays]);
+  $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $mark = $pdo->prepare("
+    UPDATE uploads
+    SET deleted_at = NOW()
+    WHERE upload_token = :upload_token
+      AND deleted_at IS NULL
+  ");
+  $deleted = 0;
+  $errors = [];
+
+  foreach ($rows as $row) {
+    $token = (string)$row["upload_token"];
+    try {
+      $path = servitech_upload_storage_path((string)$row["storage_key"]);
+      if (is_file($path) && !@unlink($path)) {
+        $errors[] = $token;
+        continue;
+      }
+      $mark->execute([":upload_token" => $token]);
+      $deleted += $mark->rowCount();
+    } catch (Throwable $e) {
+      $errors[] = $token;
+    }
+  }
+
+  return ["deleted" => $deleted, "errors" => $errors];
+}
+
+function servitech_cleanup_upload_retention(
+  PDO $pdo,
+  int $temporaryHours = 24,
+  int $closedDays = 30
+): array {
+  $requestStatesDeleted = servitech_upload_cleanup_request_states($temporaryHours);
+  $temporary = servitech_cleanup_orphan_uploads($pdo, $temporaryHours);
+  $closed = servitech_cleanup_closed_uploads($pdo, $closedDays);
+
+  return [
+    "request_states_deleted" => $requestStatesDeleted,
+    "temporary_deleted" => (int)$temporary["deleted"],
+    "closed_deleted" => (int)$closed["deleted"],
+    "errors" => array_values(array_unique(array_merge(
+      (array)$temporary["errors"],
+      (array)$closed["errors"]
+    ))),
+  ];
 }

@@ -71,3 +71,27 @@
 - Preferred: copy `.env.example` to `.env`, set the `SUPABASE_DB_*` values, and keep `.env` private.
 - Alternative: create `config/db.local.php` from `config/db.local.example.php` if you prefer file-based local DB config.
 - Keep real credentials out of version control.
+
+## Uploaded File Retention
+- Files linked to active requests remain available while the request is operationally active, including customer edit/send-back states.
+- Files linked to `DONE` or `CANCELLED` requests are deleted 30 days after `queues.closed_at`.
+- Failed, cancelled, abandoned, and otherwise unlinked temporary uploads are deleted after 24 hours. Upload cancellation and failed multi-file uploads also attempt immediate cleanup.
+- Queue/order records and historical filenames remain after file content expires; customer and admin views show the attachment as unavailable.
+
+Apply `database/migrations/20260612_add_file_retention_policy.sql`, then schedule the CLI job once per hour. Hourly execution promptly enforces the 24-hour temporary-upload threshold while also checking the 30-day closed-request threshold.
+
+Linux/Hostinger cron example:
+
+```text
+15 * * * * /usr/bin/php /absolute/path/to/ServiTech/scripts/cleanup_upload_retention.php >> /absolute/path/to/ServiTech/logs/upload_retention.log 2>&1
+```
+
+Windows Task Scheduler action:
+
+```text
+Program: C:\xampp\php\php.exe
+Arguments: C:\xampp\htdocs\ServiTech\scripts\cleanup_upload_retention.php
+Schedule: Hourly
+```
+
+The cleanup script uses a process lock, so overlapping scheduled runs exit without deleting files twice. `scripts/cleanup_orphan_uploads.php` remains as a compatible wrapper and now enforces both temporary and closed-request retention.

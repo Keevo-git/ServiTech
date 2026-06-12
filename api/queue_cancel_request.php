@@ -63,6 +63,7 @@ try {
     SET status = 'CANCELLED',
         lifecycle_stage = 'ORDER',
         paid_amount = 0,
+        closed_at = COALESCE(closed_at, NOW()),
         updated_at = NOW()
     WHERE id = :id
       AND user_id = :user_id

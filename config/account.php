@@ -50,7 +50,7 @@ function servitech_password_validation_error(string $password): string
 
 function servitech_account_consent_version(): string
 {
-    return servitech_account_env("AUTH_CONSENT_VERSION", "2026-06-02");
+    return servitech_account_env("AUTH_CONSENT_VERSION", "2026-06-12");
 }
 
 function servitech_account_email_verification_required(): bool

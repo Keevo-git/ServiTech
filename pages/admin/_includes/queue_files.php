@@ -78,10 +78,11 @@ function admin_queue_upload_file_url(string $path): string
     return function_exists("admin_url_raw") ? admin_url_raw($downloadPath) : $downloadPath;
 }
 
-function admin_queue_file_items($details): array
+function admin_queue_file_items($details, ?PDO $pdo = null): array
 {
     $details = admin_queue_details_array($details);
     $items = [];
+    $pdo = $pdo instanceof PDO ? $pdo : (($GLOBALS["pdo"] ?? null) instanceof PDO ? $GLOBALS["pdo"] : null);
 
     $uploadedFiles = $details["uploaded_files"] ?? [];
     if (is_array($uploadedFiles)) {
@@ -97,9 +98,10 @@ function admin_queue_file_items($details): array
 
             $token = strtolower(trim((string)($file["upload_token"] ?? "")));
             if (preg_match('/^[a-f0-9]{64}$/', $token)) {
+                $available = !($pdo instanceof PDO) || servitech_upload_token_is_available($pdo, $token);
                 $items[] = [
                     "label" => $label,
-                    "url" => admin_url_raw(servitech_upload_download_path($token, true)),
+                    "url" => $available ? admin_url_raw(servitech_upload_download_path($token, true)) : "",
                     "path" => "",
                 ];
                 continue;

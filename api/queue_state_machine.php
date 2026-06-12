@@ -287,6 +287,10 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
           send_back_at = CASE WHEN :clear_customer_edit = 1 THEN NULL ELSE send_back_at END,
           send_back_by = CASE WHEN :clear_customer_edit = 1 THEN NULL ELSE send_back_by END,
           completed_at = CASE WHEN :completed_status = 'DONE' THEN COALESCE(completed_at, NOW()) ELSE completed_at END,
+          closed_at = CASE
+            WHEN :closed_status IN ('DONE', 'CANCELLED') THEN COALESCE(closed_at, NOW())
+            ELSE closed_at
+          END,
           price = CASE
             WHEN :sync_payment = 1 THEN COALESCE(price, :resolved_price_for_price)
             ELSE price
@@ -304,6 +308,7 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
       ":lifecycle_stage" => $lifecycleStage,
       ":clear_customer_edit" => $clearCustomerEdit,
       ":completed_status" => $newStatus,
+      ":closed_status" => $newStatus,
       ":sync_payment" => in_array($newStatus, ["DONE", "CANCELLED"], true) ? 1 : 0,
       ":resolved_price_for_price" => $payment["price"],
       ":paid_status" => $newStatus,

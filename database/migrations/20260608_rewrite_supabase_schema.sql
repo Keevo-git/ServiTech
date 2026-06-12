@@ -45,6 +45,7 @@ DROP FUNCTION IF EXISTS public.handle_new_auth_user() CASCADE;
 DROP FUNCTION IF EXISTS public.set_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS public.protect_customer_profile_fields() CASCADE;
 DROP FUNCTION IF EXISTS public.set_request_category_from_service() CASCADE;
+DROP FUNCTION IF EXISTS public.set_request_closure_timestamps() CASCADE;
 DROP FUNCTION IF EXISTS public.validate_printing_request_detail_kind() CASCADE;
 DROP FUNCTION IF EXISTS public.validate_device_service_detail_kind() CASCADE;
 DROP FUNCTION IF EXISTS public.set_edit_submission_request_id() CASCADE;
@@ -291,6 +292,7 @@ CREATE TABLE public.service_requests (
   approved_at TIMESTAMPTZ NULL,
   completed_at TIMESTAMPTZ NULL,
   cancelled_at TIMESTAMPTZ NULL,
+  closed_at TIMESTAMPTZ NULL,
   cancelled_by UUID NULL REFERENCES public.profiles(user_id) ON DELETE SET NULL,
   cancellation_reason TEXT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -534,6 +536,8 @@ CREATE INDEX idx_service_price_options_service_sort ON public.service_price_opti
 CREATE INDEX idx_service_requests_customer_created ON public.service_requests (customer_id, created_at DESC);
 CREATE INDEX idx_service_requests_ops_queue ON public.service_requests (lifecycle, status, category_id, queue_date, daily_sequence);
 CREATE INDEX idx_service_requests_service_created ON public.service_requests (service_id, created_at DESC);
+CREATE INDEX idx_service_requests_closed_file_retention ON public.service_requests (closed_at)
+  WHERE status IN ('done', 'cancelled');
 CREATE INDEX idx_printing_request_details_kind ON public.printing_request_details (print_kind);
 CREATE INDEX idx_request_financials_pending ON public.request_financials (pending_amount) WHERE pending_amount > 0;
 CREATE INDEX idx_payments_request_created ON public.payments (request_id, created_at DESC);
@@ -542,6 +546,8 @@ CREATE INDEX idx_file_attachments_owner_created ON public.file_attachments (owne
 CREATE INDEX idx_file_attachments_request_created ON public.file_attachments (request_id, created_at DESC);
 CREATE INDEX idx_file_attachments_orphan_cleanup ON public.file_attachments (created_at)
   WHERE request_id IS NULL AND deleted_at IS NULL;
+CREATE INDEX idx_file_attachments_linked_retention ON public.file_attachments (request_id, deleted_at)
+  WHERE request_id IS NOT NULL AND deleted_at IS NULL;
 CREATE UNIQUE INDEX idx_request_edit_requests_one_open
   ON public.request_edit_requests (request_id)
   WHERE status = 'open';
@@ -594,6 +600,26 @@ CREATE TRIGGER set_request_edit_requests_updated_at BEFORE UPDATE ON public.requ
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER set_announcements_updated_at BEFORE UPDATE ON public.announcements
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE OR REPLACE FUNCTION public.set_request_closure_timestamps()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.status = 'done' THEN
+    NEW.completed_at = COALESCE(NEW.completed_at, NOW());
+    NEW.closed_at = COALESCE(NEW.closed_at, NEW.completed_at, NOW());
+  ELSIF NEW.status = 'cancelled' THEN
+    NEW.cancelled_at = COALESCE(NEW.cancelled_at, NOW());
+    NEW.closed_at = COALESCE(NEW.closed_at, NEW.cancelled_at, NOW());
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER set_request_closure_timestamps
+  BEFORE INSERT OR UPDATE OF status ON public.service_requests
+  FOR EACH ROW EXECUTE FUNCTION public.set_request_closure_timestamps();
 
 CREATE OR REPLACE FUNCTION public.is_staff()
 RETURNS BOOLEAN

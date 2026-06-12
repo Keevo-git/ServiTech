@@ -309,7 +309,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Data Retention</h3>
-            <p>ServiTech keeps account records, queue records, payment records, linked upload records, notifications, and status history in the database for system operation, order history, academic checking, and project evaluation. Queue records are not permanently deleted through the admin delete endpoint; cancelled requests remain as order history. Customer-owned unlinked uploaded files are removed through the upload cleanup flow. Failed login attempt records older than one day are deleted during login throttling cleanup.</p>
+            <p>ServiTech retains uploaded files only as long as operationally needed. Files linked to active requests remain available while processing, review, pick-up, or a requested customer edit is ongoing. When a request becomes Done or Cancelled, its stored file content is retained for 30 days for rechecking, disputes, and authorized review, then automatically deleted. Temporary failed, cancelled, abandoned, or unlinked uploads are deleted within 24 hours. Queue, payment, notification, and status-history records may remain after file deletion so the service history stays accurate; expired attachments are shown as unavailable.</p>
           </section>
           <section class="policy-section">
             <h3>User Rights</h3>
@@ -393,7 +393,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Uploaded Files and User Content</h3>
-            <p>Users are responsible for the files and content they upload. ServiTech accepts PDF, JPG, PNG, DOC, PPT, DOCX, and PPTX files up to 20MB per file through the current upload handler. Uploaded files are stored in private upload storage and are linked to the user's queue or order. ServiTech uses uploaded files only to review and process the requested service. Users must have the right to upload, print, use, or reproduce submitted files.</p>
+            <p>Users are responsible for the files and content they upload. Upload-enabled services accept up to 5 files per submission, with a maximum of 25 MB per file and 100 MB total, subject to each service's file-type rules. Uploaded files are stored in private upload storage and linked to the user's queue or order. ServiTech uses them only to review and process the requested service. Active-request files remain available while operationally needed, Done or Cancelled request files expire after 30 days, and temporary failed, cancelled, abandoned, or unlinked uploads expire within 24 hours. Users must have the right to upload, print, use, or reproduce submitted files.</p>
           </section>
           <section class="policy-section">
             <h3>Administrator Access and Actions</h3>

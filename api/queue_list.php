@@ -57,7 +57,7 @@ function queue_list_upload_url(string $path): string {
   return servitech_url("/api/legacy_upload_download.php?path=" . rawurlencode($safePath));
 }
 
-function queue_list_normalize_uploaded_files(array $details): array {
+function queue_list_normalize_uploaded_files(PDO $pdo, array $details): array {
   $uploaded = isset($details["uploaded_files"]) && is_array($details["uploaded_files"])
     ? $details["uploaded_files"]
     : [];
@@ -68,8 +68,9 @@ function queue_list_normalize_uploaded_files(array $details): array {
 
     $token = strtolower(trim((string)($file["upload_token"] ?? "")));
     if (preg_match('/^[a-f0-9]{64}$/', $token)) {
-      $file["href"] = servitech_url(servitech_upload_download_path($token));
-      $file["available"] = true;
+      $available = servitech_upload_token_is_available($pdo, $token);
+      $file["href"] = $available ? servitech_url(servitech_upload_download_path($token)) : "";
+      $file["available"] = $available;
       $out[] = $file;
       continue;
     }
@@ -168,7 +169,7 @@ try {
       "price_per_page" => $details["price_per_page"] ?? null,
       "estimated_total" => $details["estimated_total"] ?? null,
       "file_analysis" => $details["file_analysis"] ?? null,
-      "uploaded_files" => queue_list_normalize_uploaded_files($details),
+      "uploaded_files" => queue_list_normalize_uploaded_files($pdo, $details),
       "details" => $details,
     ];
   }

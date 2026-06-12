@@ -85,6 +85,7 @@ function servitech_ensure_queue_write_schema(PDO $pdo): void {
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS price NUMERIC(12, 2) NULL");
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(12, 2) NOT NULL DEFAULT 0");
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ NULL");
+  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ NULL");
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS lifecycle_stage VARCHAR(16)");
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS queue_cycle_date DATE");
   $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS daily_sequence INTEGER");
@@ -158,6 +159,13 @@ function servitech_ensure_queue_write_schema(PDO $pdo): void {
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queue_status_history_queue_id ON queue_status_history (queue_id, created_at)");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queue_status_history_action_type ON queue_status_history (queue_id, action_type, created_at DESC)");
   $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queues_customer_edit_required ON queues (customer_edit_required) WHERE customer_edit_required = TRUE");
+  $pdo->exec("
+    CREATE INDEX IF NOT EXISTS idx_queues_closed_file_retention
+    ON queues (closed_at)
+    WHERE UPPER(TRIM(COALESCE(status, ''))) IN (
+      'DONE', 'COMPLETED', 'CANCEL', 'CANCELLED', 'CANCELED'
+    )
+  ");
 }
 
 function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {

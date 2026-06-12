@@ -33,6 +33,8 @@ For an existing ServiTech database:
    already completed before the customer notification-center update.
 7. Run `20260602_add_queue_payment_tracking.sql` on databases that were
    already completed before editable queue price and paid-amount tracking.
+8. Run `20260612_add_file_retention_policy.sql` to add a stable closure
+   timestamp and indexes used by automatic upload retention cleanup.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on
