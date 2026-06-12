@@ -545,6 +545,16 @@ $notificationRoutes = [
     min-width: 0;
   }
 
+  .navbar.has-nav-menu.navbar--notifications .logo h1 {
+    font-size: clamp(17px, 2vw, 22px);
+    line-height: 1.1;
+  }
+
+  .navbar.has-nav-menu.navbar--notifications nav[data-collapsible-menu] a {
+    font-size: 15px;
+    line-height: 1.2;
+  }
+
   .navbar.has-nav-menu.navbar--notifications .header-utility__link,
   .navbar.has-nav-menu.navbar--notifications .header-utility__link:visited {
     display: inline-flex;
@@ -557,7 +567,7 @@ $notificationRoutes = [
     background-color: #ffffff;
     color: #4A0505;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     line-height: 1.2;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
@@ -1116,7 +1126,7 @@ $notificationRoutes = [
     }
 
     .navbar.has-nav-menu.navbar--notifications .logo h1 {
-      font-size: 1.2rem;
+      font-size: clamp(17px, 2vw, 22px);
       line-height: 1.1;
     }
 
@@ -1137,7 +1147,7 @@ $notificationRoutes = [
       min-height: 40px;
       padding: 9px 13px;
       border-radius: 11px;
-      font-size: 14px;
+      font-size: 15px;
     }
 
     .notification-dropdown {
@@ -1363,7 +1373,7 @@ $notificationRoutes = [
     }
 
     .customer-shared-header .logo h1 {
-      font-size: 1.08rem !important;
+      font-size: 17px !important;
     }
 
     .customer-shared-header .header-utility {
@@ -1382,7 +1392,7 @@ $notificationRoutes = [
     .customer-shared-header .header-utility__link:visited {
       min-height: 40px;
       padding-inline: 12px;
-      font-size: 14px;
+      font-size: 15px;
     }
   }
 

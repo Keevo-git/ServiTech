@@ -56,6 +56,7 @@ main{ flex:1; }
 .navbar .logo h1{
   margin:0;
   font-size:clamp(17px,2vw,22px);
+  line-height:1.1;
   letter-spacing:.3px;
 }
 
@@ -72,6 +73,8 @@ main{ flex:1; }
   border:1px solid rgba(255,255,255,.26);
   border-radius:10px;
   padding:8px 12px;
+  font-size:15px;
+  line-height:1.2;
   font-weight:700;
   transition:all .18s ease;
 }
@@ -333,6 +336,8 @@ main{ flex:1; }
   border:1px solid rgba(255,255,255,.26);
   border-radius:10px;
   padding:8px 12px;
+  font-size:15px;
+  line-height:1.2;
   font-weight:700;
 }
 
@@ -850,6 +855,8 @@ main{ flex:1; }
 }
 
 .admin-shared-header .logo h1 {
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1.1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -861,6 +868,8 @@ main{ flex:1; }
 
 .admin-shared-header nav[data-collapsible-menu] a {
   flex: 0 0 auto;
+  font-size: 15px;
+  line-height: 1.2;
 }
 
 @media (min-width: 901px) {

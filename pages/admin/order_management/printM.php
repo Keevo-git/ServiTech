@@ -132,7 +132,7 @@ if (!in_array($printView, ["online", "walkin"], true)) {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Order Management - Printing</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260608-profile-sync') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260608-profile-sync') ?>">

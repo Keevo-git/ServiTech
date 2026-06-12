@@ -15,7 +15,7 @@ $adminHeaderShowNotificationOverlay = false;
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Notifications - Admin</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260604-admin-mobile-nav') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <style>
     body.admin-dashboard.admin-notifications-page {

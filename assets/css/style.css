@@ -4476,7 +4476,7 @@ body.has-fixed-site-header .site-header.public-header .logo h1,
 body.auth-page .site-header.auth-header .logo h1,
 body.customer-layout .site-header.customer-shared-header .logo h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: clamp(17px, 2vw, 22px);
   line-height: 1.1;
 }
 
@@ -4485,8 +4485,15 @@ body.auth-page .site-header.auth-header nav[data-collapsible-menu] a,
 body.customer-layout .site-header.customer-shared-header nav[data-collapsible-menu] a {
   min-height: 42px;
   padding: 9px 18px;
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.2;
   border-radius: 12px;
+}
+
+body.customer-layout .site-header.customer-shared-header .header-utility__link,
+body.has-fixed-site-header .site-header.customer-shared-header .header-utility__link {
+  font-size: 15px;
+  line-height: 1.2;
 }
 
 body.auth-page .auth-shell {
@@ -5104,7 +5111,7 @@ body.auth-page--register .agreement-row__error:not(:empty) {
   }
 
   body.auth-page--register .navbar.has-nav-menu .logo h1 {
-    font-size: 20px;
+    font-size: 17px;
   }
 
   body.auth-page--register .navbar.has-nav-menu .servitech-logo {

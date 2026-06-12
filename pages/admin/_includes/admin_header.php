@@ -32,9 +32,19 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     order: 1;
   }
 
+  .admin-shared-header .logo h1 {
+    font-size: clamp(17px, 2vw, 22px);
+    line-height: 1.1;
+  }
+
   .admin-shared-header nav[data-collapsible-menu] {
     order: 2;
     margin-left: auto;
+  }
+
+  .admin-shared-header nav[data-collapsible-menu] a {
+    font-size: 15px;
+    line-height: 1.2;
   }
 
   .admin-shared-header .admin-header-actions {
