@@ -41,7 +41,7 @@ try {
 
   <!-- NAVBAR -->
   <header class="navbar has-nav-menu site-header public-header">
-    <a href="<?= htmlspecialchars(servitech_url('/index.php'), ENT_QUOTES, 'UTF-8') ?>" class="logo">
+    <a href="<?= htmlspecialchars(servitech_brand_home_url(), ENT_QUOTES, 'UTF-8') ?>" class="logo">
       <img src="<?= htmlspecialchars(servitech_url('/assets/images/LOGO_SERVITECH.png'), ENT_QUOTES, 'UTF-8') ?>" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
     </a>

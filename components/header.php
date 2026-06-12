@@ -389,7 +389,7 @@ $notificationRoutes = [
 ];
 ?>
 <header class="navbar has-nav-menu navbar--notifications site-header customer-header customer-shared-header">
-  <a href="/index.php" class="logo">
+  <a href="<?= htmlspecialchars(servitech_brand_home_url(), ENT_QUOTES, "UTF-8") ?>" class="logo">
     <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
     <h1>ServiTech</h1>
   </a>

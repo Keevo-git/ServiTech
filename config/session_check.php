@@ -82,3 +82,23 @@ if (!function_exists("servitech_is_customer")) {
         return servitech_current_role() === "customer";
     }
 }
+
+if (!function_exists("servitech_brand_home_path")) {
+    function servitech_brand_home_path(): string
+    {
+        if (!servitech_is_logged_in()) {
+            return "/index.php";
+        }
+
+        return servitech_is_admin()
+            ? "/pages/admin/admin_dashboard.php"
+            : "/pages/customer/customer_dash.php";
+    }
+}
+
+if (!function_exists("servitech_brand_home_url")) {
+    function servitech_brand_home_url(): string
+    {
+        return servitech_url(servitech_brand_home_path());
+    }
+}

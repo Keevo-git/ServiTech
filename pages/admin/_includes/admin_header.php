@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../../../config/session_check.php";
 require_once __DIR__ . "/url.php";
 require_once __DIR__ . "/queue_files.php";
 require_once __DIR__ . "/admin_notification_center.php";
@@ -218,7 +219,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
   }
 </style>
 <header class="navbar has-nav-menu admin-shared-header">
-  <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>" class="logo">
+  <a href="<?= htmlspecialchars(servitech_brand_home_url(), ENT_QUOTES, 'UTF-8') ?>" class="logo">
     <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
     <h1>ServiTech Admin</h1>
   </a>

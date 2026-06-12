@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../config/app.php";
+require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/mail.php";
 
 const AUTH_UI_VERSION = "20260612header-brand-hit-area";
@@ -57,7 +57,7 @@ if (!function_exists("render_auth_header")) {
     {
         ?>
   <header class="navbar has-nav-menu site-header auth-header">
-    <a href="<?= auth_url("/index.php") ?>" class="logo">
+    <a href="<?= htmlspecialchars(servitech_brand_home_url(), ENT_QUOTES, "UTF-8") ?>" class="logo">
       <img src="<?= auth_url("/assets/images/LOGO_SERVITECH.png") ?>" alt="ServiTech Logo" class="servitech-logo">
       <h1>ServiTech</h1>
     </a>
