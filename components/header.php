@@ -228,6 +228,9 @@ if (!function_exists("servitech_notification_supabase_anon_key")) {
 if (!function_exists("servitech_notification_realtime_enabled")) {
     function servitech_notification_realtime_enabled(): bool
     {
+        if (function_exists("servitech_supabase_auth_enabled") && servitech_supabase_auth_enabled()) {
+            return false;
+        }
         $value = strtolower(trim((string)getenv("SERVITECH_ENABLE_SUPABASE_REALTIME")));
         return in_array($value, ["1", "true", "yes", "on"], true);
     }

@@ -16,10 +16,14 @@ if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
 }
 
 $stmt = $pdo->prepare("
-  SELECT upload_token, user_id, original_name, storage_key, mime_type
+  SELECT upload_token, user_id, original_name, storage_key, mime_type,
+         COALESCE(NULLIF(to_jsonb(uploads)->>'visibility', ''), 'private') AS visibility,
+         COALESCE(NULLIF(to_jsonb(uploads)->>'upload_status', ''), 'active') AS upload_status
   FROM uploads
   WHERE upload_token = :upload_token
     AND deleted_at IS NULL
+    AND COALESCE(NULLIF(to_jsonb(uploads)->>'upload_status', ''), 'active') = 'active'
+    AND COALESCE(NULLIF(to_jsonb(uploads)->>'visibility', ''), 'private') = 'private'
   LIMIT 1
 ");
 $stmt->execute([":upload_token" => $token]);

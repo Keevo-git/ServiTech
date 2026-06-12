@@ -120,6 +120,17 @@ if ($requestMethod === "POST") {
     } else {
         try {
             if (forgot_password_rate_limit_allows($submittedEmail)) {
+                if (servitech_supabase_auth_enabled()) {
+                    servitech_supabase_send_recovery(
+                        $submittedEmail,
+                        servitech_account_public_url("/auth/reset_password.php")
+                    );
+                    $messageType = "success";
+                    $messageText = FORGOT_PASSWORD_PUBLIC_MESSAGE;
+                    $submittedEmail = "";
+                    goto forgot_password_complete;
+                }
+
                 require_once __DIR__ . "/../config/db.php";
                 servitech_forgot_password_mail_log("Database connection loaded.");
 
@@ -166,6 +177,7 @@ if ($requestMethod === "POST") {
             $messageType = "success";
             $messageText = FORGOT_PASSWORD_PUBLIC_MESSAGE;
             $submittedEmail = "";
+            forgot_password_complete:
         } catch (Throwable $e) {
             servitech_mail_log("forgot password error: " . $e->getMessage());
             servitech_forgot_password_mail_log("Forgot password exception: " . $e->getMessage());

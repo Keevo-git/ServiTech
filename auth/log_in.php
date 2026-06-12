@@ -57,7 +57,6 @@ $csrfToken = servitech_csrf_token();
           <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
           <div class="forgot-password-container">
             <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link">Forgot Password?</a>
-            <a href="<?= auth_url("/auth/resend_verification.php") ?>" class="forgot-link">Resend verification email</a>
           </div>
         </div>
 

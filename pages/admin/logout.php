@@ -3,6 +3,11 @@
 require_once __DIR__ . "/../../config/session_check.php";
 require_once __DIR__ . "/_includes/url.php";
 
+$supabaseAccessToken = trim((string)($_SESSION["supabase_access_token"] ?? ""));
+if ($supabaseAccessToken !== "") {
+    servitech_supabase_logout_token($supabaseAccessToken);
+}
+servitech_supabase_clear_auth_session();
 $_SESSION = [];
 session_destroy();
 

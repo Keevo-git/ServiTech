@@ -58,6 +58,54 @@ if ($passwordError !== "") {
     exit();
 }
 
+if (servitech_supabase_auth_enabled()) {
+    try {
+        if (!servitech_supabase_auth_configured()) {
+            throw new RuntimeException("Supabase Auth is enabled but not configured.");
+        }
+
+        $privilegedPdo = servitech_db_connect_privileged();
+        $existingProfile = $privilegedPdo->prepare("
+            SELECT id
+            FROM users
+            WHERE LOWER(email) = LOWER(:email)
+            LIMIT 1
+        ");
+        $existingProfile->execute([":email" => $email]);
+        if ($existingProfile->fetchColumn()) {
+            header("Location: " . servitech_url("/auth/log_in.php?registered=exists"));
+            exit();
+        }
+
+        $authResponse = servitech_supabase_sign_up($email, $password_raw, [
+            "fullname" => $fullname,
+            "contact" => $contact,
+            "privacy_consent" => "1",
+            "consent_version" => servitech_account_consent_version(),
+        ]);
+        $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        header("Location: " . servitech_url(
+            ($profile["role"] ?? "customer") === "admin"
+                ? "/pages/admin/admin_dashboard.php"
+                : "/pages/customer/customer_dash.php"
+        ));
+        exit();
+    } catch (DomainException $e) {
+        error_log("Supabase registration rejected: " . $e->getMessage());
+        $message = strtolower($e->getMessage());
+        $code = str_contains($message, "already") || str_contains($message, "registered")
+            ? "exists"
+            : "error";
+        header("Location: " . servitech_url("/auth/regis.php?error=" . $code));
+        exit();
+    } catch (Throwable $e) {
+        error_log("Supabase registration error: " . $e->getMessage());
+        servitech_supabase_clear_auth_session();
+        header("Location: " . servitech_url("/auth/regis.php?error=error"));
+        exit();
+    }
+}
+
 $password_hash = password_hash($password_raw, PASSWORD_DEFAULT);
 if (!is_string($password_hash) || $password_hash === "") {
     header("Location: " . servitech_url("/auth/regis.php?error=error"));

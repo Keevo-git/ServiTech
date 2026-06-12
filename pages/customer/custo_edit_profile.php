@@ -112,7 +112,15 @@ function getTableColumns(PDO $pdo, string $table): array
 
 function resolveProfileSchema(PDO $pdo): array
 {
-    $candidates = [
+    $userCandidate = [
+        "table" => "users",
+        "name" => ["fullname", "name"],
+        "email" => ["email"],
+        "phone" => ["phone", "contact", "contacts"],
+        "password" => ["password_hash", "password"],
+        "updated_at" => ["updated_at"],
+    ];
+    $candidates = servitech_supabase_auth_enabled() ? [$userCandidate] : [
         [
             "table" => "customers",
             "name" => ["name"],
@@ -121,14 +129,7 @@ function resolveProfileSchema(PDO $pdo): array
             "password" => ["password_hash", "password"],
             "updated_at" => ["updated_at"],
         ],
-        [
-            "table" => "users",
-            "name" => ["fullname", "name"],
-            "email" => ["email"],
-            "phone" => ["phone", "contact", "contacts"],
-            "password" => ["password_hash", "password"],
-            "updated_at" => ["updated_at"],
-        ],
+        $userCandidate,
     ];
 
     foreach ($candidates as $candidate) {
@@ -407,22 +408,61 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $errors["general"] = "We could not load your profile for updating.";
     }
 
-    if (!empty($changedFields["email"]) && $errors["email"] === "" && $schema && emailExists($pdo, $schema, $formData["email"], $userId)) {
-        $errors["email"] = "That email address is already in use.";
+    if (!empty($changedFields["email"]) && $errors["email"] === "" && $schema) {
+        $emailLookupPdo = servitech_supabase_auth_enabled()
+            ? servitech_db_connect_privileged()
+            : $pdo;
+        if (emailExists($emailLookupPdo, $schema, $formData["email"], $userId)) {
+            $errors["email"] = "That email address is already in use.";
+        }
     }
 
-    if (
-        $errors["current_password"] === ""
-        && $schema
-        && $profile
-        && !verifyStoredPassword((string)($profile["profile_password"] ?? ""), $formData["current_password"])
-    ) {
-        $errors["current_password"] = "Current password is incorrect.";
+    if ($errors["current_password"] === "" && $schema && $profile) {
+        if (servitech_supabase_auth_enabled()) {
+            try {
+                $reauth = servitech_supabase_sign_in($currentEmail, $formData["current_password"]);
+                servitech_supabase_store_auth_session($reauth);
+            } catch (Throwable $exception) {
+                $errors["current_password"] = "Current password is incorrect.";
+            }
+        } elseif (!verifyStoredPassword((string)($profile["profile_password"] ?? ""), $formData["current_password"])) {
+            $errors["current_password"] = "Current password is incorrect.";
+        }
     }
 
     $hasErrors = (bool)array_filter($errors);
 
     if (!$hasErrors && $schema && $profile) {
+        if (servitech_supabase_auth_enabled()) {
+            try {
+                $authChanges = [];
+                if (!empty($changedFields["email"])) {
+                    $authChanges["email"] = $formData["email"];
+                }
+                if (wantsPasswordChange($formData)) {
+                    $authChanges["password"] = $formData["new_password"];
+                }
+                if ($authChanges) {
+                    $updatedAuth = servitech_supabase_update_user(
+                        (string)($_SESSION["supabase_access_token"] ?? ""),
+                        $authChanges
+                    );
+                    $returnedEmail = normalizeEmail((string)($updatedAuth["email"] ?? $currentEmail));
+                    if (isset($authChanges["email"]) && $returnedEmail !== $formData["email"]) {
+                        throw new RuntimeException(
+                            "Supabase did not apply the email change immediately. Confirm email-change verification is disabled during testing."
+                        );
+                    }
+                }
+            } catch (Throwable $exception) {
+                error_log("Supabase profile auth update error: " . $exception->getMessage());
+                $errors["general"] = $exception instanceof DomainException
+                    ? $exception->getMessage()
+                    : "We could not update your authentication details right now.";
+            }
+        }
+
+        if ($errors["general"] === "") {
         $changes = [];
         $changedLabels = [];
 
@@ -434,7 +474,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (!empty($changedFields["email"])) {
             $changes[$schema["emailColumn"]] = $formData["email"];
             $changedLabels[] = "Email address";
-            if ($schema["table"] === "users") {
+            if ($schema["table"] === "users" && !servitech_supabase_auth_enabled()) {
                 $changes["email_verified_at"] = null;
                 $changes["email_verification_token"] = null;
                 $changes["email_verification_expires"] = null;
@@ -448,8 +488,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $changedLabels[] = "Phone number";
         }
 
-        if (wantsPasswordChange($formData)) {
+        if (wantsPasswordChange($formData) && !servitech_supabase_auth_enabled()) {
             $changes[$schema["passwordColumn"]] = password_hash($formData["new_password"], PASSWORD_DEFAULT);
+            $changedLabels[] = "Password";
+        } elseif (wantsPasswordChange($formData)) {
             $changedLabels[] = "Password";
         }
 
@@ -494,6 +536,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($errors["general"] === "") {
             header("Location: /pages/customer/custo_edit_profile.php");
             exit();
+        }
         }
     }
 

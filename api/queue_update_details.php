@@ -272,27 +272,6 @@ try {
   $price = isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : null;
   $changeSummary = queue_update_change_summary($currentDetails, $details, count($resolvedUploadedFiles), $removedFileCount);
 
-  $update = $pdo->prepare("
-    UPDATE queues
-    SET details = :details::jsonb,
-        price = :price,
-        customer_edit_required = FALSE,
-        send_back_message = '',
-        send_back_at = NULL,
-        send_back_by = NULL,
-        updated_at = NOW()
-    WHERE id = :id
-  ");
-  $update->execute([
-    ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
-    ":price" => $price,
-    ":id" => $queueId,
-  ]);
-
-  if (!empty($resolvedUploadedFiles)) {
-    servitech_upload_link_to_queue($pdo, $userId, $queueId, $resolvedUploadedFiles);
-  }
-
   if ($category === "online_printorder") {
     $paymentAmount = isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : 0;
     $paymentMethod = (string)($details["payment_method"] ?? "cash");
@@ -329,6 +308,27 @@ try {
         ":reference_number" => $paymentMethod === "gcash" ? $referenceNumber : null,
       ]);
     }
+  }
+
+  $update = $pdo->prepare("
+    UPDATE queues
+    SET details = :details::jsonb,
+        price = :price,
+        customer_edit_required = FALSE,
+        send_back_message = '',
+        send_back_at = NULL,
+        send_back_by = NULL,
+        updated_at = NOW()
+    WHERE id = :id
+  ");
+  $update->execute([
+    ":details" => json_encode($details, JSON_UNESCAPED_UNICODE),
+    ":price" => $price,
+    ":id" => $queueId,
+  ]);
+
+  if (!empty($resolvedUploadedFiles)) {
+    servitech_upload_link_to_queue($pdo, $userId, $queueId, $resolvedUploadedFiles);
   }
 
   $history = $pdo->prepare("

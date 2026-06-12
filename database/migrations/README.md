@@ -1,16 +1,15 @@
 # Database Migrations
 
-## Supabase Auth rewrite
+## Supabase Auth foundation
 
-`20260608_rewrite_supabase_schema.sql` is the new full Supabase Auth-based
-foundation. It is a destructive reset/rebuild script for the public ServiTech
-tables and should be run only on a fresh Supabase project or after an approved
-data export/migration.
+`20260612_add_supabase_auth_rls_foundation.sql` is the additive Supabase Auth,
+RLS, role, and upload-metadata foundation for the existing ServiTech schema.
+It preserves existing public tables and integer foreign keys.
 
-Do not run the legacy incremental migrations before this rewrite script. The
-rewrite intentionally replaces the old custom-auth `users`, `queues`,
-`payments`, `uploads`, and related tables with normalized Auth-linked tables,
-RLS policies, helper functions, and seed data.
+Before applying it, complete and validate the backup procedure in
+`docs/SUPABASE_SECURITY_MIGRATION.md`. Apply it to staging first. Do not enable
+`SUPABASE_AUTH_ENABLED` or `SERVITECH_DB_ENFORCE_RLS` until the migration,
+admin Auth linkage, and role tests have passed.
 
 ## Legacy migration path
 

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/supabase_auth.php";
 
 function servitech_db_raw_env_value(string $key): string
 {
@@ -129,14 +130,54 @@ if ($host === "" || $user === "" || $pass === "") {
     throw new RuntimeException("Database configuration is incomplete. Set the SUPABASE_DB_* environment variables.");
 }
 
-$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=$sslmode";
+function servitech_db_connect(bool $applyRlsContext = true): PDO
+{
+    global $host, $port, $db, $user, $pass, $sslmode;
 
-try {
-    $pdo = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    $dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=$sslmode";
+    try {
+        $connection = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+    } catch (PDOException $e) {
+        error_log("DB connection failed: " . $e->getMessage());
+        throw new RuntimeException("Database connection failed.");
+    }
+
+    $enforceRls = servitech_supabase_env_bool("SERVITECH_DB_ENFORCE_RLS", false);
+    if (!$applyRlsContext || !$enforceRls || PHP_SAPI === "cli") {
+        return $connection;
+    }
+
+    $claims = is_array($_SESSION["supabase_claims"] ?? null)
+        ? $_SESSION["supabase_claims"]
+        : [];
+    $accessToken = trim((string)($_SESSION["supabase_access_token"] ?? ""));
+    $authenticated = $accessToken !== ""
+        && preg_match('/^[0-9a-f-]{36}$/i', (string)($claims["sub"] ?? ""));
+    $databaseRole = $authenticated ? "authenticated" : "anon";
+    $claims = $authenticated ? $claims : ["role" => "anon"];
+    $claims["role"] = $databaseRole;
+
+    $connection->exec("SET ROLE " . $databaseRole);
+    $setClaims = $connection->prepare("
+        SELECT
+          set_config('request.jwt.claims', :claims, false),
+          set_config('request.jwt.claim.sub', :subject, false),
+          set_config('request.jwt.claim.role', :role, false)
+    ");
+    $setClaims->execute([
+        ":claims" => json_encode($claims, JSON_UNESCAPED_SLASHES),
+        ":subject" => (string)($claims["sub"] ?? ""),
+        ":role" => $databaseRole,
     ]);
-} catch (PDOException $e) {
-    error_log("DB connection failed: " . $e->getMessage());
-    throw new RuntimeException("Database connection failed.");
+    return $connection;
 }
+
+function servitech_db_connect_privileged(): PDO
+{
+    return servitech_db_connect(false);
+}
+
+$pdo = servitech_db_connect(true);

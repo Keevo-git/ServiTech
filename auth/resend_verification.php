@@ -3,6 +3,11 @@ require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
 servitech_require_guest_page();
 
+if (servitech_supabase_auth_enabled()) {
+    header("Location: " . auth_url_raw("/auth/log_in.php?verification=disabled"));
+    exit();
+}
+
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/account.php";
 require_once __DIR__ . "/../config/mail.php";

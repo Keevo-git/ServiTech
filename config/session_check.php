@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/app.php";
+require_once __DIR__ . "/supabase_auth.php";
 // session_check.php
 $lifetimeEnv = getenv("SESSION_LIFETIME_SECONDS");
 $sessionLifetime = (is_string($lifetimeEnv) && ctype_digit($lifetimeEnv) && (int)$lifetimeEnv > 0)
@@ -24,6 +25,18 @@ session_set_cookie_params([
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
+
+if (servitech_supabase_auth_enabled()) {
+    $hadApplicationSession = !empty($_SESSION["user_id"]);
+    if (!servitech_supabase_refresh_session_if_needed() && $hadApplicationSession) {
+        unset(
+            $_SESSION["user_id"],
+            $_SESSION["role"],
+            $_SESSION["admin_logged_in"],
+            $_SESSION["admin_email"]
+        );
+    }
 }
 
 // Normalize role once per request for consistent access checks.

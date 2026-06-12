@@ -26,6 +26,15 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
 }
 
 $uploadContext = strtolower(trim((string)($_POST["upload_context"] ?? "")));
+$allowedUploadContexts = ["service_request", "document_printing", "rush_id", "payment"];
+if ($uploadContext === "") {
+  $uploadContext = "service_request";
+}
+if (!in_array($uploadContext, $allowedUploadContexts, true)) {
+  http_response_code(422);
+  echo json_encode(["success" => false, "message" => "Invalid upload purpose."]);
+  exit();
+}
 $isRushIdUpload = $uploadContext === "rush_id";
 $uploadId = trim((string)($_POST["upload_id"] ?? ""));
 $uploadRequestHandle = null;
@@ -108,15 +117,30 @@ if ($uploadId !== "") {
   }
 }
 
-$insert = $pdo->prepare("
-  INSERT INTO uploads (
-    upload_token, user_id, original_name, storage_key, file_extension, mime_type, byte_size, checksum_sha256
-  )
-  VALUES (
-    :upload_token, :user_id, :original_name, :storage_key, :file_extension, :mime_type, :byte_size, :checksum_sha256
-  )
-  RETURNING upload_token, original_name, file_extension, mime_type, byte_size, checksum_sha256
-");
+$supabaseUploadMetadataEnabled = function_exists("servitech_supabase_auth_enabled")
+  && servitech_supabase_auth_enabled();
+$insert = $supabaseUploadMetadataEnabled
+  ? $pdo->prepare("
+      INSERT INTO uploads (
+        upload_token, user_id, uploaded_by, original_name, storage_key, file_extension,
+        mime_type, byte_size, checksum_sha256, upload_purpose, visibility, upload_status
+      )
+      VALUES (
+        :upload_token, :user_id, :uploaded_by, :original_name, :storage_key, :file_extension,
+        :mime_type, :byte_size, :checksum_sha256, :upload_purpose, 'private', 'active'
+      )
+      RETURNING upload_token, original_name, file_extension, mime_type, byte_size, checksum_sha256,
+                upload_purpose, visibility, upload_status
+    ")
+  : $pdo->prepare("
+      INSERT INTO uploads (
+        upload_token, user_id, original_name, storage_key, file_extension, mime_type, byte_size, checksum_sha256
+      )
+      VALUES (
+        :upload_token, :user_id, :original_name, :storage_key, :file_extension, :mime_type, :byte_size, :checksum_sha256
+      )
+      RETURNING upload_token, original_name, file_extension, mime_type, byte_size, checksum_sha256
+    ");
 $uploaded = [];
 $errors = [];
 $seenChecksums = [];
@@ -173,7 +197,7 @@ foreach ($files as $file) {
     @chmod($targetPath, 0600);
 
     try {
-      $insert->execute([
+      $insertParams = [
         ":upload_token" => $token,
         ":user_id" => $userId,
         ":original_name" => substr($original, 0, 255),
@@ -182,7 +206,12 @@ foreach ($files as $file) {
         ":mime_type" => $type["mime_type"],
         ":byte_size" => $size,
         ":checksum_sha256" => $checksum,
-      ]);
+      ];
+      if ($supabaseUploadMetadataEnabled) {
+        $insertParams[":uploaded_by"] = $userId;
+        $insertParams[":upload_purpose"] = $uploadContext;
+      }
+      $insert->execute($insertParams);
     } catch (Throwable $e) {
       @unlink($targetPath);
       throw $e;

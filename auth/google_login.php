@@ -27,6 +27,66 @@ if ($credential === "") {
     exit();
 }
 
+if (servitech_supabase_auth_enabled()) {
+    try {
+        if (!servitech_supabase_auth_configured()) {
+            throw new RuntimeException("Supabase Auth is enabled but not configured.");
+        }
+        $authResponse = servitech_supabase_sign_in_with_google_token($credential);
+        $authUser = is_array($authResponse["user"] ?? null) ? $authResponse["user"] : [];
+        $authUserId = trim((string)($authUser["id"] ?? ""));
+        $authEmail = strtolower(trim((string)($authUser["email"] ?? "")));
+        if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId) || $authEmail === "") {
+            throw new RuntimeException("Google sign-in did not return a usable Supabase identity.");
+        }
+
+        $privilegedPdo = servitech_db_connect_privileged();
+        $profile = $privilegedPdo->prepare("
+            SELECT id, auth_user_id
+            FROM users
+            WHERE auth_user_id = :auth_user_id OR LOWER(email) = LOWER(:email)
+            ORDER BY CASE WHEN auth_user_id = :auth_user_id THEN 0 ELSE 1 END
+            LIMIT 1
+        ");
+        $profile->execute([
+            ":auth_user_id" => $authUserId,
+            ":email" => $authEmail,
+        ]);
+        $existing = $profile->fetch(PDO::FETCH_ASSOC);
+        if (is_array($existing) && trim((string)($existing["auth_user_id"] ?? "")) === "") {
+            $link = $privilegedPdo->prepare("
+                UPDATE users
+                SET auth_user_id = :auth_user_id,
+                    email_verified_at = COALESCE(email_verified_at, NOW()),
+                    updated_at = NOW()
+                WHERE id = :id AND auth_user_id IS NULL
+            ");
+            $link->execute([
+                ":auth_user_id" => $authUserId,
+                ":id" => (int)$existing["id"],
+            ]);
+        }
+
+        $applicationProfile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        echo json_encode([
+            "ok" => true,
+            "redirect" => ($applicationProfile["role"] ?? "customer") === "admin"
+                ? "/pages/admin/admin_dashboard.php"
+                : "/pages/customer/customer_dash.php",
+        ]);
+        exit();
+    } catch (DomainException $e) {
+        http_response_code(401);
+        echo json_encode(["ok" => false, "error" => "Google authentication failed."]);
+        exit();
+    } catch (Throwable $e) {
+        error_log("Supabase Google login error: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(["ok" => false, "error" => "Google sign-in could not be completed right now."]);
+        exit();
+    }
+}
+
 $verification = servitech_google_verify_id_token($credential);
 if (empty($verification["ok"])) {
     http_response_code(401);

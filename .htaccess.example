@@ -14,6 +14,13 @@ Options -Indexes
 # SetEnv SUPABASE_DB_USER "postgres"
 # SetEnv SUPABASE_DB_PASS "paste-database-password-on-server-only"
 # SetEnv SUPABASE_DB_SSLMODE "require"
+# SetEnv SUPABASE_URL "https://your-project-ref.supabase.co"
+# SetEnv SUPABASE_ANON_KEY "publishable-anon-key"
+# Keep SUPABASE_SERVICE_ROLE_KEY in the private .env file, not in public/client code.
+# SetEnv SUPABASE_AUTH_ENABLED "0"
+# SetEnv SERVITECH_DB_ENFORCE_RLS "0"
+# SetEnv SERVITECH_PRIVATE_UPLOAD_DIR "/home/your-hostinger-user/ServiTech_Uploads"
+# SetEnv SERVITECH_REQUIRE_PRIVATE_UPLOAD_ROOT "1"
 # SetEnv APP_DEBUG "0"
 # SetEnv SMTP_HOST "smtp.gmail.com"
 # SetEnv SMTP_PORT "587"

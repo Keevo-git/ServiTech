@@ -60,9 +60,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 throw new RuntimeException("Invalid announcement.");
             }
 
-            $stmt = $pdo->prepare("DELETE FROM announcements WHERE id = :id");
+            $stmt = $pdo->prepare("
+                UPDATE announcements
+                SET active = FALSE, updated_at = NOW()
+                WHERE id = :id
+            ");
             $stmt->execute([":id" => $id]);
-            $notice = "Announcement deleted.";
+            $notice = "Announcement archived.";
         } elseif ($action === "edit_announcement") {
             $id = (int)($_POST["announcement_id"] ?? 0);
             $title = trim((string)($_POST["title"] ?? ""));

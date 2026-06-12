@@ -3,6 +3,7 @@ require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/account.php";
 
+$supabaseRecoveryMode = servitech_supabase_auth_enabled();
 $token = (string)($_GET["token"] ?? $_POST["token"] ?? "");
 $tokenLooksValid = preg_match('/\A[a-f0-9]{64}\z/i', $token) === 1;
 $messageType = "";
@@ -30,7 +31,7 @@ function reset_password_lookup(PDO $pdo, string $token): ?array
 }
 
 $resetRequest = null;
-if ($tokenLooksValid) {
+if (!$supabaseRecoveryMode && $tokenLooksValid) {
     try {
         require_once __DIR__ . "/../config/db.php";
         $resetRequest = reset_password_lookup($pdo, $token);
@@ -48,7 +49,12 @@ if ($requestMethod === "POST") {
     $password = (string)($_POST["password"] ?? "");
     $confirmPassword = (string)($_POST["confirm_password"] ?? "");
 
-    if (!$resetRequest) {
+    $supabaseAccessToken = trim((string)($_POST["access_token"] ?? ""));
+
+    if ($supabaseRecoveryMode && $supabaseAccessToken === "") {
+        $messageType = "error";
+        $messageText = "This reset link is invalid or has expired. Request a new password reset link.";
+    } elseif (!$supabaseRecoveryMode && !$resetRequest) {
         $messageType = "error";
         $messageText = "This reset link is invalid or has expired. Request a new password reset link.";
     } elseif (($passwordError = servitech_password_validation_error($password)) !== "") {
@@ -61,6 +67,12 @@ if ($requestMethod === "POST") {
         $tokenIsUsable = true;
     } else {
         try {
+            if ($supabaseRecoveryMode) {
+                servitech_supabase_update_user($supabaseAccessToken, ["password" => $password]);
+                header("Location: " . auth_url_raw("/auth/log_in.php?reset=success"));
+                exit();
+            }
+
             $pdo->beginTransaction();
 
             $update = $pdo->prepare("UPDATE users SET password_hash = :password_hash, updated_at = NOW() WHERE id = :user_id");
@@ -86,6 +98,8 @@ if ($requestMethod === "POST") {
             $tokenIsUsable = true;
         }
     }
+} elseif ($supabaseRecoveryMode) {
+    $tokenIsUsable = true;
 } elseif (!$tokenIsUsable) {
     $messageType = "error";
     $messageText = "This reset link is invalid or has expired. Request a new password reset link.";
@@ -123,6 +137,9 @@ $csrfToken = servitech_csrf_token();
         <form id="resetPasswordForm" action="<?= auth_url("/auth/reset_password.php") ?>" method="POST" class="register-form login-form" novalidate autocomplete="on">
           <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
           <input type="hidden" name="token" value="<?= htmlspecialchars($token, ENT_QUOTES, "UTF-8") ?>">
+          <?php if ($supabaseRecoveryMode): ?>
+            <input type="hidden" id="recoveryAccessToken" name="access_token" value="">
+          <?php endif; ?>
 
           <div class="form-field">
             <label for="newPassword">New Password</label>
@@ -159,6 +176,23 @@ $csrfToken = servitech_csrf_token();
     const confirmPasswordError = document.getElementById("confirmPasswordError");
     const passwordMinLength = <?= SERVITECH_PASSWORD_MIN_LENGTH ?>;
     const passwordMaxLength = <?= SERVITECH_PASSWORD_MAX_BYTES ?>;
+    const supabaseRecoveryMode = <?= $supabaseRecoveryMode ? "true" : "false" ?>;
+    const recoveryAccessToken = document.getElementById("recoveryAccessToken");
+
+    if (supabaseRecoveryMode && recoveryAccessToken) {
+      const recoveryParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const accessToken = recoveryParams.get("access_token") || "";
+      const recoveryType = recoveryParams.get("type") || "";
+      if (recoveryType !== "recovery" || !accessToken) {
+        resetPasswordSubmit.disabled = true;
+        newPassword.disabled = true;
+        confirmPassword.disabled = true;
+        newPasswordError.textContent = "This reset link is invalid or has expired.";
+      } else {
+        recoveryAccessToken.value = accessToken;
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    }
 
     function setFieldState(input, error, message) {
       error.textContent = message;

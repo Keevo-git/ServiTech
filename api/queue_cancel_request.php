@@ -58,17 +58,31 @@ try {
     throw new DomainException("Only pending requests can be cancelled by the customer.");
   }
 
-  $update = $pdo->prepare("
-    UPDATE queues
-    SET status = 'CANCELLED',
-        lifecycle_stage = 'ORDER',
-        paid_amount = 0,
-        closed_at = COALESCE(closed_at, NOW()),
-        updated_at = NOW()
-    WHERE id = :id
-      AND user_id = :user_id
-  ");
-  $update->execute([":id" => $queueId, ":user_id" => $userId]);
+  $rlsEnforced = function_exists("servitech_supabase_env_bool")
+    && servitech_supabase_env_bool("SERVITECH_DB_ENFORCE_RLS", false);
+  if ($rlsEnforced) {
+    $cancel = $pdo->prepare("
+      SELECT *
+      FROM public.servitech_customer_cancel_queue(:queue_id)
+    ");
+    $cancel->execute([":queue_id" => $queueId]);
+    $cancelledQueue = $cancel->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($cancelledQueue)) {
+      throw new RuntimeException("Queue cancellation did not return a result.");
+    }
+  } else {
+    $update = $pdo->prepare("
+      UPDATE queues
+      SET status = 'CANCELLED',
+          lifecycle_stage = 'ORDER',
+          paid_amount = 0,
+          closed_at = COALESCE(closed_at, NOW()),
+          updated_at = NOW()
+      WHERE id = :id
+        AND user_id = :user_id
+    ");
+    $update->execute([":id" => $queueId, ":user_id" => $userId]);
+  }
 
   $queueCode = trim((string)($queue["queue_code"] ?? ""));
   $historyNote = "Cancelled by customer while request was pending.";

@@ -15,3 +15,4 @@
 /config/mail.local.php
 /logs/*.log
 /mail_error.log
+/backups/

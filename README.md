@@ -22,6 +22,8 @@
 - Internal includes, links, and redirects were updated to the new structure.
 - Admin and customer now share the same Supabase PDO connection from `config/db.php`.
 - Login is centralized at `auth/login.php` and routes admins to `pages/admin/` by role.
+- The staged Supabase Auth/RLS migration runbook is in `docs/SUPABASE_SECURITY_MIGRATION.md`.
+- The current implementation and verification status is in `docs/IMPLEMENTATION_REPORT.md`.
 
 ## Environment Variables
 - `SUPABASE_DB_HOST`
@@ -30,6 +32,14 @@
 - `SUPABASE_DB_USER`
 - `SUPABASE_DB_PASS`
 - `SUPABASE_DB_SSLMODE` (default: `require`)
+- `SUPABASE_DB_URL` (exact session-pooler URL used only for backup/audit tooling)
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (server-only; never render it into client assets)
+- `SUPABASE_AUTH_ENABLED` (`0` until the additive migration and staging tests pass)
+- `SERVITECH_DB_ENFORCE_RLS` (`0` until Supabase Auth is enabled)
+- `SERVITECH_PRIVATE_UPLOAD_DIR` (absolute path ending in `ServiTech_Uploads`)
+- `SERVITECH_REQUIRE_PRIVATE_UPLOAD_ROOT` (`1` in production)
 - `SMTP_HOST` (default: `smtp.gmail.com`)
 - `SMTP_PORT` (default: `587`)
 - `SMTP_SECURE` (default: `tls`; `SMTP_ENCRYPTION` is still accepted as a legacy alias)
@@ -95,3 +105,14 @@ Schedule: Hourly
 ```
 
 The cleanup script uses a process lock, so overlapping scheduled runs exit without deleting files twice. `scripts/cleanup_orphan_uploads.php` remains as a compatible wrapper and now enforces both temporary and closed-request retention.
+
+## Supabase Migration Verification
+
+Run the local non-destructive checks with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/verify_security_migration.ps1
+```
+
+Do not enable the Auth/RLS feature flags until the backup, staging migration, admin linkage,
+and anonymous/customer/admin role tests in the migration runbook have passed.

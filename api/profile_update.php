@@ -35,6 +35,110 @@ if ($fullname === "" || $email === "" || !filter_var($email, FILTER_VALIDATE_EMA
   exit();
 }
 
+if (preg_match('/^09\d{9}$/', $contact)) {
+  $contact = "+63" . substr($contact, 1);
+}
+if ($contact !== "" && !preg_match('/^\+639\d{9}$/', $contact)) {
+  header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("Enter a valid Philippine mobile number."));
+  exit();
+}
+
+if (servitech_supabase_auth_enabled()) {
+  try {
+    $privilegedPdo = servitech_db_connect_privileged();
+    $current = $privilegedPdo->prepare("
+      SELECT id, email
+      FROM users
+      WHERE id = :id AND auth_user_id = :auth_user_id
+      LIMIT 1
+    ");
+    $current->execute([
+      ":id" => $user_id,
+      ":auth_user_id" => (string)($_SESSION["auth_user_id"] ?? ""),
+    ]);
+    $profile = $current->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($profile)) {
+      throw new DomainException("Your authenticated profile could not be found.");
+    }
+
+    $emailOwner = $privilegedPdo->prepare("
+      SELECT id
+      FROM users
+      WHERE LOWER(email) = LOWER(:email)
+        AND id <> :id
+      LIMIT 1
+    ");
+    $emailOwner->execute([
+      ":email" => $email,
+      ":id" => $user_id,
+    ]);
+    if ($emailOwner->fetchColumn()) {
+      throw new DomainException("Email is already used.");
+    }
+
+    $changingPass = ($new_password !== "" || $confirm_password !== "");
+    if ($changingPass) {
+      if ($new_password !== $confirm_password) {
+        throw new DomainException("New password and confirm password do not match.");
+      }
+      $passwordError = servitech_password_validation_error($new_password);
+      if ($passwordError !== "") {
+        throw new DomainException($passwordError);
+      }
+      if ($current_password === "") {
+        throw new DomainException("Current password is required.");
+      }
+      $reauth = servitech_supabase_sign_in((string)$profile["email"], $current_password);
+      servitech_supabase_store_auth_session($reauth);
+    }
+
+    $authUpdates = [];
+    if (strcasecmp((string)$profile["email"], $email) !== 0) {
+      $authUpdates["email"] = strtolower($email);
+    }
+    if ($changingPass) {
+      $authUpdates["password"] = $new_password;
+    }
+    if ($authUpdates) {
+      $updatedAuth = servitech_supabase_update_user(
+        (string)$_SESSION["supabase_access_token"],
+        $authUpdates
+      );
+      $returnedEmail = strtolower(trim((string)($updatedAuth["email"] ?? $profile["email"])));
+      if (isset($authUpdates["email"]) && $returnedEmail !== strtolower($email)) {
+        throw new DomainException(
+          "Supabase did not apply the email change immediately. Confirm email-change verification is disabled during testing."
+        );
+      }
+    }
+
+    $update = $pdo->prepare("
+      UPDATE users
+      SET fullname = :fullname,
+          email = :email,
+          contact = :contact,
+          updated_at = NOW()
+      WHERE id = :id
+    ");
+    $update->execute([
+      ":fullname" => $fullname,
+      ":email" => strtolower($email),
+      ":contact" => $contact !== "" ? $contact : null,
+      ":id" => $user_id,
+    ]);
+
+    header("Location: /pages/customer/custo_edit_profile.php?ok=" . urlencode("Profile updated!"));
+    exit();
+  } catch (DomainException $e) {
+    header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode($e->getMessage()));
+    exit();
+  } catch (Throwable $e) {
+    error_log("Supabase profile_update error: " . $e->getMessage());
+    header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("Unable to update your profile right now."));
+    exit();
+  }
+}
+
 try {
   // email uniqueness
   $chk = $pdo->prepare("SELECT id FROM users WHERE email = :email AND id <> :id LIMIT 1");

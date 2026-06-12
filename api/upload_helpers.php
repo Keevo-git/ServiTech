@@ -47,9 +47,39 @@ function servitech_upload_assert_limits(array $files, string $sizeKey = "byte_si
 
 function servitech_upload_private_dir(): string {
   $configured = trim((string)getenv("SERVITECH_PRIVATE_UPLOAD_DIR"));
-  return $configured !== ""
+  $path = $configured !== ""
     ? rtrim($configured, "\\/")
     : dirname(__DIR__) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "private_uploads";
+
+  $strictPrivateRoot = function_exists("servitech_supabase_env_bool")
+    ? servitech_supabase_env_bool(
+        "SERVITECH_REQUIRE_PRIVATE_UPLOAD_ROOT",
+        function_exists("servitech_supabase_auth_enabled") && servitech_supabase_auth_enabled()
+      )
+    : false;
+  if (!$strictPrivateRoot) {
+    return $path;
+  }
+
+  if ($configured === "" || !preg_match('/^(?:[A-Za-z]:[\\\\\\/]|\\/)/', $path)) {
+    throw new RuntimeException("SERVITECH_PRIVATE_UPLOAD_DIR must be an absolute private path.");
+  }
+  if (strcasecmp(basename(str_replace("\\", "/", $path)), "ServiTech_Uploads") !== 0) {
+    throw new RuntimeException("The private upload directory must end with ServiTech_Uploads.");
+  }
+
+  $normalizedPath = strtolower(rtrim(str_replace("\\", "/", $path), "/"));
+  $documentRoot = realpath((string)($_SERVER["DOCUMENT_ROOT"] ?? ""));
+  if (is_string($documentRoot) && $documentRoot !== "") {
+    $normalizedDocumentRoot = strtolower(rtrim(str_replace("\\", "/", $documentRoot), "/"));
+    if (
+      $normalizedPath === $normalizedDocumentRoot
+      || str_starts_with($normalizedPath . "/", $normalizedDocumentRoot . "/")
+    ) {
+      throw new RuntimeException("ServiTech_Uploads must be outside the public web root.");
+    }
+  }
+  return $path;
 }
 
 function servitech_upload_request_id(string $value): string {
@@ -267,6 +297,9 @@ function servitech_upload_public_metadata(array $row): array {
     "mime_type" => (string)($row["mime_type"] ?? ""),
     "byte_size" => (int)($row["byte_size"] ?? 0),
     "checksum_sha256" => (string)($row["checksum_sha256"] ?? ""),
+    "upload_purpose" => (string)($row["upload_purpose"] ?? "service_request"),
+    "visibility" => (string)($row["visibility"] ?? "private"),
+    "status" => (string)($row["upload_status"] ?? "active"),
     "download_url" => servitech_upload_download_path($token),
   ];
 }
@@ -302,11 +335,16 @@ function servitech_upload_token_is_available(PDO $pdo, string $token): bool {
 
 function servitech_upload_owned_row(PDO $pdo, int $userId, string $token, bool $requireOrphan = true): array {
   $sql = "
-    SELECT upload_token, user_id, queue_id, original_name, storage_key, file_extension, mime_type, byte_size, checksum_sha256
+    SELECT upload_token, user_id, queue_id, original_name, storage_key, file_extension, mime_type,
+           byte_size, checksum_sha256,
+           COALESCE(NULLIF(to_jsonb(uploads)->>'upload_purpose', ''), 'service_request') AS upload_purpose,
+           COALESCE(NULLIF(to_jsonb(uploads)->>'visibility', ''), 'private') AS visibility,
+           COALESCE(NULLIF(to_jsonb(uploads)->>'upload_status', ''), 'active') AS upload_status
     FROM uploads
     WHERE upload_token = :upload_token
       AND user_id = :user_id
       AND deleted_at IS NULL
+      AND COALESCE(NULLIF(to_jsonb(uploads)->>'upload_status', ''), 'active') = 'active'
   ";
   if ($requireOrphan) {
     $sql .= " AND queue_id IS NULL";

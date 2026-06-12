@@ -2,6 +2,11 @@
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 
+if (servitech_supabase_auth_enabled()) {
+    header("Location: " . servitech_url("/auth/log_in.php?verification=disabled"));
+    exit();
+}
+
 $token = trim((string)($_GET["token"] ?? ""));
 if (!preg_match('/\A[a-f0-9]{64}\z/i', $token)) {
     header("Location: " . servitech_url("/auth/log_in.php?verification=invalid"));

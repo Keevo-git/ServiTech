@@ -202,9 +202,13 @@ if ($action === "delete") {
     if ($id <= 0) {
         respond(["ok" => false, "error" => "Invalid id"]);
     }
-    $stmt = $pdo->prepare("DELETE FROM services WHERE id = :id");
+    $stmt = $pdo->prepare("
+      UPDATE services
+      SET active = FALSE, updated_at = NOW()
+      WHERE id = :id
+    ");
     $stmt->execute([":id" => $id]);
-    respond(["ok" => true]);
+    respond(["ok" => true, "archived" => true]);
 }
 
 respond(["ok" => false, "error" => "Unknown action"]);

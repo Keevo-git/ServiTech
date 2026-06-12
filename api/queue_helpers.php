@@ -82,90 +82,30 @@ function servitech_rollover_expired_queue_cycles(PDO $pdo): void {
 }
 
 function servitech_ensure_queue_write_schema(PDO $pdo): void {
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS price NUMERIC(12, 2) NULL");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(12, 2) NOT NULL DEFAULT 0");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ NULL");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ NULL");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS lifecycle_stage VARCHAR(16)");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS queue_cycle_date DATE");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS daily_sequence INTEGER");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS customer_edit_required BOOLEAN NOT NULL DEFAULT FALSE");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS send_back_message TEXT NOT NULL DEFAULT ''");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS send_back_at TIMESTAMPTZ NULL");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS send_back_by INTEGER NULL");
-  $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()");
+  static $verified = false;
+  if ($verified) return;
 
-  $pdo->exec("
-    UPDATE queues
-    SET queue_cycle_date = COALESCE(queue_cycle_date, (created_at AT TIME ZONE 'Asia/Manila')::date, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date),
-        lifecycle_stage = CASE
-          WHEN UPPER(TRIM(COALESCE(lifecycle_stage, ''))) IN ('QUEUE', 'ORDER') THEN UPPER(TRIM(lifecycle_stage))
-          WHEN COALESCE(queue_cycle_date, (created_at AT TIME ZONE 'Asia/Manila')::date, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date) < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date THEN 'ORDER'
-          ELSE 'QUEUE'
-        END,
-        daily_sequence = COALESCE(daily_sequence, 0),
-        paid_amount = COALESCE(paid_amount, 0)
-    WHERE queue_cycle_date IS NULL
-       OR lifecycle_stage IS NULL
-       OR UPPER(TRIM(lifecycle_stage)) NOT IN ('QUEUE', 'ORDER')
-       OR daily_sequence IS NULL
-       OR paid_amount IS NULL
-  ");
-
+  $requiredQueueColumns = [
+    "price", "paid_amount", "completed_at", "closed_at", "lifecycle_stage",
+    "queue_cycle_date", "daily_sequence", "customer_edit_required",
+    "send_back_message", "send_back_at", "send_back_by", "updated_at",
+  ];
   $stmt = $pdo->query("
-    SELECT pg_get_constraintdef(oid)
-    FROM pg_constraint
-    WHERE conrelid = 'queues'::regclass
-      AND conname = 'queues_status_check'
-    LIMIT 1
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'queues'
   ");
-  $statusConstraint = strtoupper((string)($stmt->fetchColumn() ?: ""));
-  if ($statusConstraint === "" || strpos($statusConstraint, "APPROVED") === false) {
-    $pdo->exec("ALTER TABLE queues DROP CONSTRAINT IF EXISTS queues_status_check");
-    $pdo->exec("
-      ALTER TABLE queues ADD CONSTRAINT queues_status_check
-      CHECK (
-        UPPER(TRIM(status)) IN (
-          'PENDING', 'PENDING PAYMENT', 'APPROVED', 'ONGOING',
-          'FOR PICK-UP', 'FOR PICK UP', 'DONE', 'COMPLETED',
-          'CANCELLED', 'CANCELED'
-        )
-      ) NOT VALID
-    ");
+  $available = array_fill_keys(array_map("strval", $stmt->fetchAll(PDO::FETCH_COLUMN)), true);
+  $missing = array_values(array_filter(
+    $requiredQueueColumns,
+    static fn(string $column): bool => !isset($available[$column])
+  ));
+  if ($missing) {
+    throw new RuntimeException(
+      "Required database migrations are missing: queues." . implode(", queues.", $missing)
+    );
   }
-
-  $pdo->exec("
-    CREATE TABLE IF NOT EXISTS queue_status_history (
-      id BIGSERIAL PRIMARY KEY,
-      queue_id BIGINT NOT NULL,
-      category TEXT NOT NULL DEFAULT '',
-      old_status TEXT NULL,
-      new_status TEXT NOT NULL,
-      admin_id INTEGER NULL,
-      admin_name VARCHAR(160) NOT NULL DEFAULT '',
-      notes TEXT NOT NULL DEFAULT '',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  ");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS queue_id BIGINT");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT ''");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS old_status TEXT NULL");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS new_status TEXT");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS admin_id INTEGER NULL");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS admin_name VARCHAR(160) NOT NULL DEFAULT ''");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT ''");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS action_type TEXT NOT NULL DEFAULT 'status_change'");
-  $pdo->exec("ALTER TABLE queue_status_history ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()");
-  $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queue_status_history_queue_id ON queue_status_history (queue_id, created_at)");
-  $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queue_status_history_action_type ON queue_status_history (queue_id, action_type, created_at DESC)");
-  $pdo->exec("CREATE INDEX IF NOT EXISTS idx_queues_customer_edit_required ON queues (customer_edit_required) WHERE customer_edit_required = TRUE");
-  $pdo->exec("
-    CREATE INDEX IF NOT EXISTS idx_queues_closed_file_retention
-    ON queues (closed_at)
-    WHERE UPPER(TRIM(COALESCE(status, ''))) IN (
-      'DONE', 'COMPLETED', 'CANCEL', 'CANCELLED', 'CANCELED'
-    )
-  ");
+  $verified = true;
 }
 
 function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
@@ -173,7 +113,12 @@ function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
   if ($ensured) return;
 
   servitech_ensure_queue_write_schema($pdo);
-  servitech_rollover_expired_queue_cycles($pdo);
+  $rlsEnforced = function_exists("servitech_supabase_env_bool")
+    && servitech_supabase_env_bool("SERVITECH_DB_ENFORCE_RLS", false);
+  $isAdmin = function_exists("servitech_is_admin") && servitech_is_admin();
+  if (!$rlsEnforced || $isAdmin) {
+    servitech_rollover_expired_queue_cycles($pdo);
+  }
   $ensured = true;
 }
 
@@ -184,6 +129,25 @@ function servitech_generate_queue_identity(PDO $pdo, string $prefix): array {
   }
 
   servitech_ensure_queue_lifecycle_schema($pdo);
+  $rlsEnforced = function_exists("servitech_supabase_env_bool")
+    && servitech_supabase_env_bool("SERVITECH_DB_ENFORCE_RLS", false);
+  if ($rlsEnforced) {
+    $stmt = $pdo->prepare("
+      SELECT queue_code, queue_cycle_date, daily_sequence
+      FROM public.servitech_next_queue_identity(:prefix)
+    ");
+    $stmt->execute([":prefix" => $prefix]);
+    $identity = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($identity)) {
+      throw new RuntimeException("Queue identity could not be generated.");
+    }
+    return [
+      "queue_code" => (string)$identity["queue_code"],
+      "queue_cycle_date" => (string)$identity["queue_cycle_date"],
+      "daily_sequence" => (int)$identity["daily_sequence"],
+    ];
+  }
+
   $pdo->exec("LOCK TABLE queues IN EXCLUSIVE MODE");
 
   $cycleDate = servitech_queue_cycle_date();
@@ -214,6 +178,25 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
   $message = trim($message);
   $eventKey = trim($eventKey);
   if ($userId <= 0 || $message === "") {
+    return;
+  }
+
+  $rlsEnforced = function_exists("servitech_supabase_env_bool")
+    && servitech_supabase_env_bool("SERVITECH_DB_ENFORCE_RLS", false);
+  if ($rlsEnforced) {
+    $stmt = $pdo->prepare("
+      SELECT public.servitech_add_notification_secure(
+        :user_id, :type, :reference_id, :message, :event_key, :dedupe_deleted
+      )
+    ");
+    $stmt->execute([
+      ":user_id" => $userId,
+      ":type" => $type,
+      ":reference_id" => $referenceId,
+      ":message" => $message,
+      ":event_key" => $eventKey,
+      ":dedupe_deleted" => $dedupeDeleted,
+    ]);
     return;
   }
 
@@ -274,6 +257,24 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
 
 function servitech_notify_admins(PDO $pdo, string $type, ?int $referenceId, string $message, string $eventKey = "", bool $dedupeDeleted = false): void {
   if (trim($message) === "") {
+    return;
+  }
+
+  $rlsEnforced = function_exists("servitech_supabase_env_bool")
+    && servitech_supabase_env_bool("SERVITECH_DB_ENFORCE_RLS", false);
+  if ($rlsEnforced) {
+    $stmt = $pdo->prepare("
+      SELECT public.servitech_notify_admin_secure(
+        :type, :reference_id, :message, :event_key, :dedupe_deleted
+      )
+    ");
+    $stmt->execute([
+      ":type" => $type,
+      ":reference_id" => $referenceId,
+      ":message" => $message,
+      ":event_key" => $eventKey,
+      ":dedupe_deleted" => $dedupeDeleted,
+    ]);
     return;
   }
 
