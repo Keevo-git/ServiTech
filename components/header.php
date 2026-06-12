@@ -508,7 +508,7 @@ $notificationRoutes = [
 
 <style>
   .customer-shared-header {
-    z-index: 9999 !important;
+    z-index: var(--site-header-z, 1200) !important;
   }
 
   .navbar.has-nav-menu.navbar--notifications {
@@ -517,7 +517,7 @@ $notificationRoutes = [
     flex-wrap: nowrap;
     gap: 12px;
     width: 100%;
-    padding: 20px 60px;
+    padding: 13px clamp(14px, 4vw, 50px);
   }
 
   .navbar.has-nav-menu.navbar--notifications nav[data-collapsible-menu] {
@@ -550,14 +550,14 @@ $notificationRoutes = [
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 46px;
-    padding: 11px 22px;
+    min-height: 42px;
+    padding: 9px 18px;
     border: 1px solid rgba(74, 5, 5, 0.22);
     border-radius: 14px;
     background-color: #ffffff;
     color: #4A0505;
     text-decoration: none;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1.2;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
@@ -593,8 +593,8 @@ $notificationRoutes = [
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
     padding: 0;
     border: 1px solid rgba(74, 5, 5, 0.22);
     border-radius: 14px;
@@ -1076,8 +1076,8 @@ $notificationRoutes = [
       grid-template-areas:
         "brand utility"
         "menu menu" !important;
-      row-gap: 10px !important;
-      padding: 18px 24px !important;
+      row-gap: 8px !important;
+      padding: 11px 24px !important;
     }
 
     .navbar.has-nav-menu.navbar--notifications .logo {
@@ -1342,7 +1342,7 @@ $notificationRoutes = [
     .customer-shared-header nav[data-collapsible-menu] a:visited {
       width: 100% !important;
       min-width: 0 !important;
-      min-height: 46px;
+      min-height: 42px;
       margin: 0 !important;
       align-items: center;
       justify-content: center;

@@ -11,7 +11,7 @@ servitech_redirect_completed_join_queue();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Printing Options</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-scale-layering">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
 </head>
 <body class="customer-layout customer-page--forms">

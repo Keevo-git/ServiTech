@@ -8,7 +8,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260610fixed-header-all">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-scale-layering">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260607-status-edit-toast">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
@@ -228,7 +228,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     body.customer-layout.customer-page--status #detailModal {
-      z-index: 5000 !important;
+      z-index: var(--site-modal-z, 20000) !important;
       align-items: center !important;
       background: rgba(32, 18, 15, 0.48) !important;
       justify-content: center !important;
@@ -615,7 +615,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     body.customer-layout.customer-page--status #editRequestModal {
-      z-index: 5400 !important;
+      z-index: var(--site-stacked-modal-z, 20100) !important;
       align-items: center !important;
       background: rgba(32, 18, 15, 0.56) !important;
       justify-content: center !important;
