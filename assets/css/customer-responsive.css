@@ -1893,6 +1893,11 @@ body.customer-layout .form-page--order-summary .order-summary-panel {
   min-width: 0;
 }
 
+body.customer-layout .form-page--order-summary,
+body.customer-layout .form-page--order-summary .form-page-shell {
+  overflow: visible;
+}
+
 body.customer-layout .form-page--order-summary .order-summary-panel .summary-card {
   margin: 0 !important;
 }
@@ -1924,11 +1929,13 @@ body.customer-layout .form-page--order-summary .order-summary-panel .form-action
   body.customer-layout .form-page--order-summary .order-summary-panel {
     align-self: start;
     grid-column: 2;
-    max-height: calc(100vh - 48px);
+    height: fit-content;
+    max-height: calc(100vh - var(--fixed-site-header-offset, 72px) - 32px);
+    max-height: calc(100dvh - var(--fixed-site-header-offset, 72px) - 32px);
     overflow-y: auto;
     position: sticky;
     scrollbar-width: thin;
-    top: 24px;
+    top: calc(var(--fixed-site-header-offset, 72px) + 16px);
   }
 
   body.customer-layout .form-page--order-summary .order-summary-panel .summary-card {
