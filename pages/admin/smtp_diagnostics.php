@@ -106,6 +106,7 @@ servitech_log_smtp_config_status($check);
     a {
       color: #7c130d;
       font-weight: 700;
+      cursor: pointer;
     }
   </style>
 </head>
