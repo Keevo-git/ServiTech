@@ -131,7 +131,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
   <title>ServiTech: <?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-order-summary">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-natural-sticky-summary">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>
     .printing-page {

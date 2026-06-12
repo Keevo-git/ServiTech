@@ -58,7 +58,7 @@ try {
   <title>ServiTech: Xerox</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-order-summary">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-natural-sticky-summary">
   <style>
     body.customer-page--custo2 .form-actions {
       align-items: stretch !important;

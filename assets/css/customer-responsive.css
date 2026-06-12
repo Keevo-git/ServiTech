@@ -1929,12 +1929,7 @@ body.customer-layout .form-page--order-summary .order-summary-panel .form-action
   body.customer-layout .form-page--order-summary .order-summary-panel {
     align-self: start;
     grid-column: 2;
-    height: fit-content;
-    max-height: calc(100vh - var(--fixed-site-header-offset, 72px) - 32px);
-    max-height: calc(100dvh - var(--fixed-site-header-offset, 72px) - 32px);
-    overflow-y: auto;
     position: sticky;
-    scrollbar-width: thin;
     top: calc(var(--fixed-site-header-offset, 72px) + 16px);
   }
 
