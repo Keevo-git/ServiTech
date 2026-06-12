@@ -12,7 +12,7 @@ header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Place Queueing Customer</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png">
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-global-type">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260501q1">
 </head>
 <body class="customer-layout customer-page--queue">

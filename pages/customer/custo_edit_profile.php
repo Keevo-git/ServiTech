@@ -539,7 +539,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Edit Profile</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-global-type">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260315h17">
   <style>
     .profile-edit-page {

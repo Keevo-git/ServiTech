@@ -523,7 +523,7 @@ $notificationRoutes = [
   .navbar.has-nav-menu.navbar--notifications nav[data-collapsible-menu] {
     order: 2;
     flex: 0 1 auto;
-    margin-left: 0;
+    margin-left: auto;
     justify-content: flex-end;
     min-width: 0;
   }
@@ -541,7 +541,10 @@ $notificationRoutes = [
 
   .navbar.has-nav-menu.navbar--notifications .logo {
     order: 1;
-    flex: 1 1 auto;
+    display: inline-flex;
+    flex: 0 1 auto;
+    width: fit-content;
+    max-width: 100%;
     min-width: 0;
   }
 
@@ -1092,6 +1095,8 @@ $notificationRoutes = [
 
     .navbar.has-nav-menu.navbar--notifications .logo {
       grid-area: brand !important;
+      width: fit-content !important;
+      justify-self: start !important;
       min-width: 0 !important;
     }
 
@@ -1305,7 +1310,8 @@ $notificationRoutes = [
 
     .customer-shared-header .logo {
       grid-area: brand !important;
-      width: auto !important;
+      width: fit-content !important;
+      justify-self: start !important;
       min-width: 0 !important;
     }
 

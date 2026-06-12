@@ -4472,6 +4472,22 @@ body.customer-layout .site-header.customer-shared-header .servitech-logo {
   object-fit: contain;
 }
 
+body.has-fixed-site-header .site-header.public-header > .logo,
+body.auth-page .site-header.auth-header > .logo,
+body.customer-layout .site-header.customer-shared-header > .logo,
+body.has-fixed-site-header .site-header.customer-shared-header > .logo {
+  display: inline-flex;
+  flex: 0 1 auto !important;
+  width: fit-content !important;
+  max-width: 100%;
+  justify-self: start !important;
+}
+
+body.customer-layout .site-header.customer-shared-header nav[data-collapsible-menu],
+body.has-fixed-site-header .site-header.customer-shared-header nav[data-collapsible-menu] {
+  margin-left: auto;
+}
+
 body.has-fixed-site-header .site-header.public-header .logo h1,
 body.auth-page .site-header.auth-header .logo h1,
 body.customer-layout .site-header.customer-shared-header .logo h1 {
@@ -4553,7 +4569,8 @@ body.customer-layout .modal-backdrop {
   body.has-fixed-site-header .site-header.customer-shared-header .logo {
     grid-area: brand !important;
     min-width: 0 !important;
-    width: auto !important;
+    width: fit-content !important;
+    justify-self: start !important;
   }
 
   body.has-fixed-site-header .site-header.public-header > .nav-toggle,
