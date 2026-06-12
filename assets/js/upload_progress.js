@@ -1,4 +1,27 @@
 (function () {
+  var limits = {
+    maxFileBytes: 25 * 1024 * 1024,
+    maxTotalBytes: 100 * 1024 * 1024,
+    maxFiles: 5,
+    fileSizeMessage: "Maximum file size is 25 MB per file.",
+    totalSizeMessage: "Total upload size must not exceed 100 MB.",
+    fileCountMessage: "You can upload up to 5 files only."
+  };
+
+  function totalBytes(files) {
+    return Array.from(files || []).reduce(function (total, file) {
+      return total + Math.max(0, Number(file && (file.size ?? file.byte_size)) || 0);
+    }, 0);
+  }
+
+  function limitMessage(file, currentCount, currentBytes) {
+    var fileBytes = Math.max(0, Number(file && file.size) || 0);
+    if (fileBytes > limits.maxFileBytes) return limits.fileSizeMessage;
+    if (currentCount >= limits.maxFiles) return limits.fileCountMessage;
+    if (currentBytes + fileBytes > limits.maxTotalBytes) return limits.totalSizeMessage;
+    return "";
+  }
+
   function basePath() {
     if (typeof window.SERVITECH_BASE_PATH === "string" && window.SERVITECH_BASE_PATH.trim() !== "") {
       return window.SERVITECH_BASE_PATH.replace(/\/+$/, "");
@@ -96,14 +119,26 @@
   function start(files, options) {
     options = options || {};
     var onChange = typeof options.onChange === "function" ? options.onChange : function () {};
-    var tasks = Array.from(files || []).map(function (file) {
+    var selectedFiles = Array.from(files || []);
+    var preflightError = "";
+    if (selectedFiles.length > limits.maxFiles) {
+      preflightError = limits.fileCountMessage;
+    } else if (selectedFiles.some(function (file) {
+      return (Number(file && file.size) || 0) > limits.maxFileBytes;
+    })) {
+      preflightError = limits.fileSizeMessage;
+    } else if (totalBytes(selectedFiles) > limits.maxTotalBytes) {
+      preflightError = limits.totalSizeMessage;
+    }
+
+    var tasks = selectedFiles.map(function (file) {
       return {
         id: uploadId(),
         key: fileKey(file),
         file: file,
-        status: "pending",
+        status: preflightError ? "error" : "pending",
         progress: 0,
-        message: "Waiting to upload...",
+        message: preflightError || "Waiting to upload...",
         metadata: null,
         xhr: null,
         sent: false,
@@ -247,7 +282,15 @@
     }
     window.addEventListener("pagehide", cancelForNavigation, { once: true });
 
-    var promise = Promise.all(tasks.map(upload)).then(function () {
+    var promise = preflightError
+      ? Promise.resolve({
+          ok: false,
+          cancelled: false,
+          error: preflightError,
+          uploaded_files: [],
+          tasks: snapshot(tasks)
+        })
+      : Promise.all(tasks.map(upload)).then(function () {
       var failed = tasks.filter(function (task) {
         return task.status !== "success";
       });
@@ -300,6 +343,9 @@
     fileKey: fileKey,
     isActiveStatus: isActiveStatus,
     isTerminalProblemStatus: isTerminalProblemStatus,
-    start: start
+    limits: limits,
+    limitMessage: limitMessage,
+    start: start,
+    totalBytes: totalBytes
   };
 })();

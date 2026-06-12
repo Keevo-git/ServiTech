@@ -1,6 +1,11 @@
 DirectoryIndex index.php index.html
 Options -Indexes
 
+<IfModule php_module>
+  php_value upload_max_filesize 25M
+  php_value post_max_size 105M
+</IfModule>
+
 # Hostinger/Apache environment variable example. Keep real credentials out of git.
 # Prefer a private .env file or ignored local config files for secrets.
 # SetEnv SUPABASE_DB_HOST "db.your-project-ref.supabase.co"

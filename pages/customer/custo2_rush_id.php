@@ -251,7 +251,7 @@ function rush_price(array $pricing, string $key): string {
           <label for="fileUpload">Upload your photo</label>
           <input type="file" id="fileUpload" class="form-file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple>
           <p id="fileUploadStatus" class="file-upload-status" aria-live="polite"></p>
-          <p class="file-note">Accepted formats: JPG, JPEG, PNG</p>
+          <p class="file-note">Accepted formats: JPG, JPEG, PNG. Up to 5 photos, 25 MB each, 100 MB total.</p>
         </div>
 
         <div class="file-note" id="fileAnalysisPanel">
@@ -305,8 +305,8 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/upload_progress.js?v=20260611-per-file-state"></script>
-<script src="/assets/js/rush_id_upload.js?v=20260611-per-file-state"></script>
+<script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
+<script src="/assets/js/rush_id_upload.js?v=20260612-upload-limits"></script>
 <script src="/assets/js/main.js?v=20260611-queue-success"></script>
 
 </body>

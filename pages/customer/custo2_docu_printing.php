@@ -557,7 +557,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
           <label for="fileUpload">Upload your document</label>
           <input type="file" id="fileUpload" class="form-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" multiple>
           <p id="fileUploadStatus" class="file-upload-status" aria-live="polite"></p>
-          <p class="file-note">Accepted formats: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG</p>
+          <p class="file-note">Accepted formats: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG. Up to 5 files, 25 MB each, 100 MB total.</p>
         </div>
 
         <div class="file-note" id="fileAnalysisPanel">
@@ -622,12 +622,12 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/main.js?v=20260611-queue-success"></script>
-<script src="/assets/js/upload_progress.js?v=20260611-per-file-state"></script>
+<script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260611-stable-file-state"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260612-upload-limits"></script>
 </body>
 </html>
 

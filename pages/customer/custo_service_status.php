@@ -1585,7 +1585,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/customer_toast.js?v=20260607-status-edit-toast"></script>
-<script src="/assets/js/upload_progress.js?v=20260611-per-file-state"></script>
+<script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
 (async function(){
   const listEl = document.getElementById("queueList");
@@ -2009,9 +2009,65 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       <div class="status-edit-field status-edit-field--full">
         <label class="status-edit-label" for="edit_files">${rushId ? "Add New Photos" : "Add New Files"}</label>
         <input id="edit_files" class="status-edit-control" name="files" type="file" multiple accept="${accept}">
+        <span class="status-edit-existing-file__meta">Up to 5 files total, 25 MB each, 100 MB combined.</span>
         <div id="statusEditUploadProgress" class="servitech-upload-list" aria-live="polite"></div>
       </div>
     `;
+  }
+
+  function validateEditFileSelection(input, queueData){
+    if (!input || !supportsFileUpload(queueData)) return [];
+    const limits = window.ServitechUpload?.limits || {
+      maxFileBytes: 25 * 1024 * 1024,
+      maxTotalBytes: 100 * 1024 * 1024,
+      maxFiles: 5,
+      fileSizeMessage: "Maximum file size is 25 MB per file.",
+      totalSizeMessage: "Total upload size must not exceed 100 MB.",
+      fileCountMessage: "You can upload up to 5 files only."
+    };
+    const rushId = serviceKey(queueData) === "rushid";
+    const allowed = rushId
+      ? new Set(["jpg", "jpeg", "png"])
+      : new Set(["pdf", "doc", "docx", "ppt", "pptx", "jpg", "jpeg", "png"]);
+    const keptFiles = keptEditFiles(queueData);
+    let count = keptFiles.length;
+    let bytes = keptFiles.reduce((total, file) => total + Math.max(0, Number(file?.byte_size) || 0), 0);
+    const accepted = [];
+    const errors = [];
+
+    Array.from(input.files || []).forEach((file) => {
+      const extension = String(file.name || "").split(".").pop().toLowerCase();
+      if (rushId && extension === "webp") {
+        errors.push("Rush ID only accepts JPG, JPEG, and PNG photo files. WEBP files are not allowed.");
+        return;
+      }
+      if (!allowed.has(extension)) {
+        errors.push(rushId
+          ? "Rush ID only accepts JPG, JPEG, and PNG photo files."
+          : `${file.name} has unsupported file type.`);
+        return;
+      }
+      if ((file.size || 0) > limits.maxFileBytes) {
+        errors.push(limits.fileSizeMessage);
+        return;
+      }
+      if (count >= limits.maxFiles) {
+        errors.push(limits.fileCountMessage);
+        return;
+      }
+      if (bytes + (file.size || 0) > limits.maxTotalBytes) {
+        errors.push(limits.totalSizeMessage);
+        return;
+      }
+      accepted.push(file);
+      count++;
+      bytes += file.size || 0;
+    });
+
+    const transfer = new DataTransfer();
+    accepted.forEach((file) => transfer.items.add(file));
+    input.files = transfer.files;
+    return Array.from(new Set(errors));
   }
 
   function renderEditUploadProgress(){
@@ -2108,6 +2164,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           token: fileToken(file),
           label,
           href: file?.available === false ? "" : (file?.href || file?.download_url || resolveFileHref(file?.saved_path || file?.file_path || "")),
+          byte_size: Math.max(0, Number(file?.byte_size) || 0),
           analysis
         };
       });
@@ -2123,6 +2180,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           token: "",
           label,
           href: resolveFileHref(label),
+          byte_size: 0,
           analysis
         };
       });
@@ -2135,6 +2193,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       token: "",
       label: fallbackLabel,
       href: queueData.file_href || resolveFileHref(fallbackLabel),
+      byte_size: 0,
       analysis: {}
     }];
   }
@@ -3313,8 +3372,16 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   statusEditFields?.addEventListener("change", (event) => {
     if (event.target?.matches?.('[name="files"]')) {
+      const errors = validateEditFileSelection(event.target, currentDetailQueue);
       editUploadTasks = {};
       renderEditUploadProgress();
+      if (errors.length) {
+        const message = errors.join(" ");
+        if (statusEditError) statusEditError.textContent = message;
+        showCustomerToast(message, "error");
+      } else if (statusEditError) {
+        statusEditError.textContent = "";
+      }
     }
     if (currentDetailQueue) renderEditPriceCard(currentDetailQueue);
   });

@@ -25,7 +25,6 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "POST") {
   exit();
 }
 
-$maxBytes = 20 * 1024 * 1024;
 $uploadContext = strtolower(trim((string)($_POST["upload_context"] ?? "")));
 $isRushIdUpload = $uploadContext === "rush_id";
 $uploadId = trim((string)($_POST["upload_id"] ?? ""));
@@ -70,6 +69,11 @@ if (!is_dir($uploadDir) && !mkdir($uploadDir, 0750, true) && !is_dir($uploadDir)
 $files = normalize_files($_FILES["files"] ?? null);
 if (empty($files)) {
   upload_json_exit(["success" => false, "message" => "No files uploaded."], 422);
+}
+try {
+  servitech_upload_assert_limits($files, "size");
+} catch (DomainException $e) {
+  upload_json_exit(["success" => false, "message" => $e->getMessage()], 422);
 }
 
 if ($uploadId !== "") {
@@ -124,12 +128,20 @@ foreach ($files as $file) {
   $size = (int)($file["size"] ?? 0);
 
   if ($original === "" || $error === UPLOAD_ERR_NO_FILE) continue;
+  if (in_array($error, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+    $errors[] = "Maximum file size is 25 MB per file.";
+    continue;
+  }
   if ($error !== UPLOAD_ERR_OK || $tmp === "" || !is_uploaded_file($tmp)) {
     $errors[] = $original . " failed to upload.";
     continue;
   }
-  if ($size <= 0 || $size > $maxBytes) {
-    $errors[] = $original . " must be between 1 byte and 20MB.";
+  if ($size <= 0) {
+    $errors[] = $original . " is empty.";
+    continue;
+  }
+  if ($size > servitech_upload_max_file_bytes()) {
+    $errors[] = "Maximum file size is 25 MB per file.";
     continue;
   }
 

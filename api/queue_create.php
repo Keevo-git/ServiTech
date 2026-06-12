@@ -85,6 +85,8 @@ if ($service_label === "Document Printing" || $category === "online_printorder")
 $isOnlineDocumentPrinting = $category === "online_printorder"
   && $order_type === "online"
   && in_array($service_label, ["Document Printing", "Online Print Order"], true);
+$serviceKind = servitech_pricing_service_kind($category, $service_label);
+$supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
 if ($payment_method !== "" && !$isOnlineDocumentPrinting) {
   echo json_encode(["ok" => false, "error" => "Payment options are only available for Online Document Printing."]);
   exit();
@@ -126,6 +128,9 @@ foreach ($details as $key => $value) {
 
 try {
   $pdo->beginTransaction();
+  if (!$supportsFileUploads && !empty($details["uploaded_files"])) {
+    throw new DomainException("This service does not support file attachments.");
+  }
   if ($isRushIdQueue && empty($details["uploaded_files"])) {
     throw new DomainException("Upload at least one JPG, JPEG, or PNG photo for Rush ID.");
   }

@@ -306,6 +306,15 @@ $uploadedFiles = normalize_uploaded_files($_FILES["files"] ?? null);
 if (empty($uploadedFiles) && $provided_total_pages === null) {
   printing_json_exit(["ok" => false, "error" => "No files uploaded."], 422);
 }
+try {
+  servitech_upload_assert_limits($uploadedFiles, "size");
+} catch (DomainException $e) {
+  printing_json_exit([
+    "ok" => false,
+    "error_scope" => "file",
+    "error" => $e->getMessage(),
+  ], 422);
+}
 
 $fileResults = [];
 $total_files = 0;
@@ -326,13 +335,22 @@ if (!empty($uploadedFiles)) {
       continue;
     }
 
+    if (in_array($error, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+      $validationErrors[] = "Maximum file size is 25 MB per file.";
+      continue;
+    }
+
     if ($error !== UPLOAD_ERR_OK || $tmp === "" || !is_uploaded_file($tmp)) {
       $uploadErrors[] = $name !== "" ? $name : "Unknown file";
       continue;
     }
 
-    if ($size <= 0 || $size > 20 * 1024 * 1024) {
+    if ($size <= 0) {
       $unsupported[] = $name;
+      continue;
+    }
+    if ($size > servitech_upload_max_file_bytes()) {
+      $validationErrors[] = "Maximum file size is 25 MB per file.";
       continue;
     }
 

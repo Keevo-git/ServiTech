@@ -1,5 +1,42 @@
 <?php
 
+function servitech_upload_max_file_bytes(): int {
+  return 25 * 1024 * 1024;
+}
+
+function servitech_upload_max_total_bytes(): int {
+  return 100 * 1024 * 1024;
+}
+
+function servitech_upload_max_file_count(): int {
+  return 5;
+}
+
+function servitech_upload_assert_limits(array $files, string $sizeKey = "byte_size"): void {
+  if (count($files) > servitech_upload_max_file_count()) {
+    throw new DomainException("You can upload up to 5 files only.");
+  }
+
+  $totalBytes = 0;
+  foreach ($files as $file) {
+    if (!is_array($file)) {
+      throw new DomainException("An uploaded file is invalid. Please upload it again.");
+    }
+
+    $size = (int)($file[$sizeKey] ?? 0);
+    if ($size > servitech_upload_max_file_bytes()) {
+      throw new DomainException("Maximum file size is 25 MB per file.");
+    }
+    if ($size > 0) {
+      $totalBytes += $size;
+    }
+  }
+
+  if ($totalBytes > servitech_upload_max_total_bytes()) {
+    throw new DomainException("Total upload size must not exceed 100 MB.");
+  }
+}
+
 function servitech_upload_private_dir(): string {
   $configured = trim((string)getenv("SERVITECH_PRIVATE_UPLOAD_DIR"));
   return $configured !== ""
@@ -265,10 +302,12 @@ function servitech_upload_resolve_owned_metadata(PDO $pdo, int $userId, array $u
     $seen[$token] = true;
     $resolved[] = servitech_upload_public_metadata(servitech_upload_owned_row($pdo, $userId, $token, $requireOrphan));
   }
+  servitech_upload_assert_limits($resolved);
   return $resolved;
 }
 
 function servitech_upload_apply_metadata_to_details(array $details, array $uploadedFiles): array {
+  servitech_upload_assert_limits($uploadedFiles);
   $details["uploaded_files"] = array_values($uploadedFiles);
   if (empty($uploadedFiles)) return $details;
 

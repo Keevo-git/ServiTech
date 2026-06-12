@@ -74,7 +74,16 @@
       jpeg: true,
       png: true,
     };
-    var MAX_FILE_SIZE = 20 * 1024 * 1024;
+    var uploadLimits = window.ServitechUpload && window.ServitechUpload.limits
+      ? window.ServitechUpload.limits
+      : {
+          maxFileBytes: 25 * 1024 * 1024,
+          maxTotalBytes: 100 * 1024 * 1024,
+          maxFiles: 5,
+          fileSizeMessage: "Maximum file size is 25 MB per file.",
+          totalSizeMessage: "Total upload size must not exceed 100 MB.",
+          fileCountMessage: "You can upload up to 5 files only."
+        };
 
     var selectedFiles = [];
     var uploadedSignature = "";
@@ -711,6 +720,9 @@
       var errors = [];
       var existing = {};
       var acceptedFiles = [];
+      var acceptedBytes = selectedFiles.reduce(function (total, file) {
+        return total + Math.max(0, Number(file.size) || 0);
+      }, 0);
 
       selectedFiles.forEach(function (f) {
         existing[fileKey(f)] = true;
@@ -730,8 +742,8 @@
           continue;
         }
 
-        if ((file.size || 0) > MAX_FILE_SIZE) {
-          errors.push(file.name + " exceeds 20MB limit.");
+        if ((file.size || 0) > uploadLimits.maxFileBytes) {
+          errors.push(uploadLimits.fileSizeMessage);
           continue;
         }
 
@@ -747,8 +759,18 @@
           continue;
         }
 
+        if (selectedFiles.length + acceptedFiles.length >= uploadLimits.maxFiles) {
+          errors.push(uploadLimits.fileCountMessage);
+          continue;
+        }
+        if (acceptedBytes + (file.size || 0) > uploadLimits.maxTotalBytes) {
+          errors.push(uploadLimits.totalSizeMessage);
+          continue;
+        }
+
         existing[key] = true;
         acceptedFiles.push(file);
+        acceptedBytes += file.size || 0;
       }
 
       if (acceptedFiles.length && !selectedFiles.length && hasSavedUploads()) {
@@ -775,8 +797,8 @@
       syncFileInput();
 
       if (errors.length) {
-        state.error = errors.join(" ");
-        setFeedback(state.error, "error");
+        state.error = "";
+        setFeedback(Array.from(new Set(errors)).join(" "), "error");
       } else {
         state.error = "";
         setFeedback("", "error");

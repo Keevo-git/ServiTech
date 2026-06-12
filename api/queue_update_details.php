@@ -241,6 +241,7 @@ try {
         ? "Upload at least one JPG, JPEG, or PNG photo for Rush ID."
         : "Upload at least one file before continuing.");
     }
+    servitech_upload_assert_limits($mergedUploadedFiles);
     if ($serviceKind === "rush_id") {
       servitech_upload_assert_rush_id_uploaded_files($mergedUploadedFiles);
     }
