@@ -346,7 +346,7 @@ function servitech_check_smtp_config(): array
         $missing[] = "SMTP_FROM_EMAIL";
     }
 
-    if ((string)$config["username"] !== "" && !filter_var((string)$config["username"], FILTER_VALIDATE_EMAIL)) {
+    if ((string)$config["username"] !== "" && preg_match('/[\r\n]/', (string)$config["username"])) {
         $missing[] = "SMTP_USERNAME";
     }
 
