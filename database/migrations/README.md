@@ -11,6 +11,12 @@ Before applying it, complete and validate the backup procedure in
 `SUPABASE_AUTH_ENABLED` or `SERVITECH_DB_ENFORCE_RLS` until the migration,
 admin Auth linkage, and role tests have passed.
 
+If `20260612_add_supabase_auth_rls_foundation.sql` was applied before the
+catalog delete-grant hardening, also run
+`20260612_revoke_public_catalog_delete_grants.sql`. New installs should still
+run it after the foundation migration; it is a harmless no-op when the delete
+grant is already absent.
+
 ## Legacy migration path
 
 The older files below are kept only for maintaining pre-rewrite databases.
@@ -34,6 +40,8 @@ For an existing ServiTech database:
    already completed before editable queue price and paid-amount tracking.
 8. Run `20260612_add_file_retention_policy.sql` to add a stable closure
    timestamp and indexes used by automatic upload retention cleanup.
+9. Run `20260612_revoke_public_catalog_delete_grants.sql` after the Supabase
+   Auth foundation migration to keep services and announcements archive-only.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on

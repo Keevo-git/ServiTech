@@ -822,7 +822,7 @@ GRANT SELECT, INSERT, UPDATE ON
   public.uploads
 TO authenticated;
 GRANT SELECT ON public.services, public.announcements TO authenticated;
-GRANT INSERT, UPDATE, DELETE ON public.services, public.announcements TO authenticated;
+GRANT INSERT, UPDATE ON public.services, public.announcements TO authenticated;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 
 COMMIT;
