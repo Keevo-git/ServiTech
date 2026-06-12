@@ -1887,6 +1887,12 @@ body.customer-layout.customer-page--print-order #printOrderFeedback.success {
 }
 
 /* Join Queue pages that include an order summary */
+html.customer-order-summary-page,
+html.customer-order-summary-page body.customer-page--order-summary {
+  overflow-x: clip !important;
+  overflow-y: visible;
+}
+
 body.customer-layout .form-page--order-summary .order-summary-panel {
   display: grid;
   gap: 16px;
@@ -1929,7 +1935,7 @@ body.customer-layout .form-page--order-summary .order-summary-panel .form-action
   body.customer-layout .form-page--order-summary .order-summary-panel {
     align-self: start;
     grid-column: 2;
-    position: sticky;
+    position: sticky !important;
     top: calc(var(--fixed-site-header-offset, 72px) + 16px);
   }
 

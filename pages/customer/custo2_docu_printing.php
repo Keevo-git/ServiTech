@@ -124,14 +124,14 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="customer-order-summary-page">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: <?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-natural-sticky-summary">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-scroll-root">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>
     .printing-page {
@@ -482,7 +482,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
     }
   </style>
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 printing-page" data-service="printing">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary printing-page" data-service="printing">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 

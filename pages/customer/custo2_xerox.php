@@ -51,14 +51,14 @@ try {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="customer-order-summary-page">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Xerox</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-natural-sticky-summary">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-scroll-root">
   <style>
     body.customer-page--custo2 .form-actions {
       align-items: stretch !important;
@@ -116,7 +116,7 @@ try {
     }
   </style>
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2" data-service="xerox" data-service-label="Xerox">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="xerox" data-service-label="Xerox">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
