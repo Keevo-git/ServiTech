@@ -131,7 +131,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
   <title>ServiTech: <?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-order-summary-sidebar">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>
     .printing-page {
@@ -486,7 +486,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
-<section class="form-page form-page--single">
+<section class="form-page form-page--single form-page--order-summary">
   <div class="form-page-shell">
     <div class="form-page-intro">
       <h2 class="page-title">JC PRINTING SERVICES</h2>
@@ -569,46 +569,47 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
       </div>
     </div>
 
-    <aside class="summary-card">
-      <h3 class="summary-title">ORDER SUMMARY</h3>
+    <div class="order-summary-panel">
+      <aside class="summary-card">
+        <h3 class="summary-title">ORDER SUMMARY</h3>
 
-      <div class="summary-row">
-        <span>SERVICE:</span>
-        <strong><?= htmlspecialchars(strtoupper($documentPrintingLabel), ENT_QUOTES, "UTF-8") ?></strong>
+        <div class="summary-row">
+          <span>SERVICE:</span>
+          <strong><?= htmlspecialchars(strtoupper($documentPrintingLabel), ENT_QUOTES, "UTF-8") ?></strong>
+        </div>
+
+        <div class="summary-row">
+          <span>PAPER SIZE:</span>
+          <strong id="summaryPaperSize">Not Selected</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>QUANTITY:</span>
+          <strong id="summaryQty">1</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>TOTAL PAGES:</span>
+          <strong id="summaryTotalPages">0</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>PRICE / PAGE:</span>
+          <strong id="summaryPricePerPage">&#8369;0.00</strong>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-total">
+          <span>Estimated Total:</span>
+          <strong id="summaryTotal">&#8369;0.00</strong>
+        </div>
+      </aside>
+
+      <div class="form-actions">
+        <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
+        <button type="button" class="btn-next" id="joinQueueBtn">Join Queue</button>
       </div>
-
-      <div class="summary-row">
-        <span>PAPER SIZE:</span>
-        <strong id="summaryPaperSize">Not Selected</strong>
-      </div>
-
-      <div class="summary-row">
-        <span>QUANTITY:</span>
-        <strong id="summaryQty">1</strong>
-      </div>
-
-      <div class="summary-row">
-        <span>TOTAL PAGES:</span>
-        <strong id="summaryTotalPages">0</strong>
-      </div>
-
-      <div class="summary-row">
-        <span>PRICE / PAGE:</span>
-        <strong id="summaryPricePerPage">&#8369;0.00</strong>
-      </div>
-
-      <div class="summary-divider"></div>
-
-      <div class="summary-total">
-        <span>Estimated Total:</span>
-        <strong id="summaryTotal">&#8369;0.00</strong>
-      </div>
-    </aside>
-
-
-    <div class="form-actions">
-      <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
-      <button type="button" class="btn-next" id="joinQueueBtn">Join Queue</button>
     </div>
   </div>
 </section>

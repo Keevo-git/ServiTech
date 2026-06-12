@@ -1885,3 +1885,66 @@ body.customer-layout.customer-page--print-order #printOrderFeedback.success {
     width: 100% !important;
   }
 }
+
+/* Join Queue pages that include an order summary */
+body.customer-layout .form-page--order-summary .order-summary-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+body.customer-layout .form-page--order-summary .order-summary-panel .summary-card {
+  margin: 0 !important;
+}
+
+body.customer-layout .form-page--order-summary .order-summary-panel .form-actions {
+  gap: 12px;
+  margin: 0 !important;
+}
+
+@media (min-width: 1025px) {
+  body.customer-layout .form-page--order-summary .form-page-shell {
+    align-items: start;
+    display: grid !important;
+    gap: 24px 32px;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) !important;
+    width: min(100%, 1220px) !important;
+  }
+
+  body.customer-layout .form-page--order-summary .form-page-intro {
+    grid-column: 1 / -1;
+  }
+
+  body.customer-layout .form-page--order-summary .form-content-stack {
+    display: grid !important;
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  body.customer-layout .form-page--order-summary .order-summary-panel {
+    align-self: start;
+    grid-column: 2;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    position: sticky;
+    scrollbar-width: thin;
+    top: 24px;
+  }
+
+  body.customer-layout .form-page--order-summary .order-summary-panel .summary-card {
+    position: static !important;
+    top: auto !important;
+    width: 100% !important;
+  }
+
+  body.customer-layout .form-page--order-summary .order-summary-panel .form-actions {
+    align-items: stretch !important;
+    flex-direction: column !important;
+    justify-content: stretch !important;
+  }
+
+  body.customer-layout .form-page--order-summary .order-summary-panel .btn-back,
+  body.customer-layout .form-page--order-summary .order-summary-panel .btn-next {
+    width: 100% !important;
+  }
+}
