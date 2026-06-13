@@ -14,28 +14,42 @@
 .ms-head p{ margin:4px 0 0; color:#444; font-weight:600; font-size:13px; }
 
 .ms-tabs{
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
-  gap:12px;
-  width:100%;
-  margin:10px 0 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  padding: 8px;
+  margin: 10px 0 14px;
+  background: #edf3fb;
+  border: 1px solid #d3deea;
+  border-radius: 12px;
 }
 .ms-tab{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:100%;
-  min-width:0;
-  text-align:center;
-  padding:7px 18px;
-  border-radius:8px;
-  background:#ebf2fb;
-  color:#1a447a;
-  font-weight:900;
-  text-decoration:none;
-  border:1px solid #d4dfed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #1b3f70;
+  text-decoration: none;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.18s ease;
 }
-.ms-tab.active{ background:var(--maroon); color:#fff; border-color:var(--maroon); box-shadow:0 10px 18px rgba(19,45,75,.2); }
+.ms-tab:hover{
+  background: rgba(255, 255, 255, 0.7);
+}
+.ms-tab.active{
+  background: #fff;
+  border-color: #c7d6ea;
+  color: var(--maroon);
+  box-shadow: 0 7px 18px rgba(33, 61, 96, 0.1);
+}
 
 .ms-add{
   background:var(--maroon); color:#fff;
@@ -128,11 +142,13 @@
     align-items:stretch;
   }
 
-  .ms-tabs{
+  .ms-row2{
     grid-template-columns:1fr;
   }
+}
 
-  .ms-row2{
+@media (max-width: 640px) {
+  .ms-tabs{
     grid-template-columns:1fr;
   }
 }
