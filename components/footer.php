@@ -40,7 +40,7 @@ $footerEmail = servitech_contact_email();
     <span aria-hidden="true">|</span>
     <a href="/terms-of-service.php">Terms of Service</a>
     <span aria-hidden="true">|</span>
-    <a href="#cookie-preferences" class="cookie-preferences-link" data-cookie-preferences-open>Cookie Preferences</a>
+    <a href="<?= htmlspecialchars(servitech_url('/privacy-policy.php#cookie-preferences'), ENT_QUOTES, 'UTF-8') ?>" class="cookie-preferences-link" data-cookie-preferences-open>Cookie Preferences</a>
   </div>
 
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>

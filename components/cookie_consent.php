@@ -1,6 +1,21 @@
 <?php
 require_once __DIR__ . "/../config/app.php";
 
+if (!function_exists("servitech_cookie_consent_has_valid_cookie_choice")) {
+    function servitech_cookie_consent_has_valid_cookie_choice(): bool
+    {
+        $raw = trim((string)($_COOKIE["SERVITECH_COOKIE_CONSENT"] ?? ""));
+        if ($raw === "") {
+            return false;
+        }
+
+        $preference = json_decode($raw, true);
+        return is_array($preference)
+            && ($preference["necessary"] ?? null) === true
+            && is_bool($preference["functional"] ?? null);
+    }
+}
+
 if (!function_exists("servitech_render_cookie_consent")) {
     function servitech_render_cookie_consent(): void
     {
@@ -16,6 +31,7 @@ if (!function_exists("servitech_render_cookie_consent")) {
         $consentStyles = is_file($stylePath) ? (string)file_get_contents($stylePath) : "";
         $consentScript = is_file($scriptPath) ? (string)file_get_contents($scriptPath) : "";
         $consentScript = str_ireplace("</script", "<\/script", $consentScript);
+        $serverHasChoice = servitech_cookie_consent_has_valid_cookie_choice();
         ?>
 <style data-cookie-consent-styles>
 <?= $consentStyles ?>
@@ -26,7 +42,8 @@ if (!function_exists("servitech_render_cookie_consent")) {
   id="servitechCookieConsent"
   data-cookie-consent-root
   data-cookie-path="<?= htmlspecialchars($cookiePath, ENT_QUOTES, 'UTF-8') ?>"
-  hidden
+  data-server-has-choice="<?= $serverHasChoice ? "true" : "false" ?>"
+  <?= $serverHasChoice ? "hidden" : "" ?>
 >
   <section class="cookie-consent__banner" data-cookie-banner role="region" aria-labelledby="cookieConsentTitle">
     <div class="cookie-consent__copy">
