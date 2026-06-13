@@ -1739,11 +1739,14 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
     body.customer-page--profile .profile-shell {
       width: min(100%, 1080px);
+      align-items: start;
     }
 
     body.customer-page--profile .profile-summary,
     body.customer-page--profile .profile-panel {
       width: 100%;
+      align-self: start;
+      margin-top: 0;
     }
 
     body.customer-page--profile .profile-summary h1,
