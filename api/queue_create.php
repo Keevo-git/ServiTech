@@ -88,7 +88,7 @@ $isOnlineDocumentPrinting = $category === "online_printorder"
 $serviceKind = servitech_pricing_service_kind($category, $service_label);
 $supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
 if ($payment_method !== "" && !$isOnlineDocumentPrinting) {
-  echo json_encode(["ok" => false, "error" => "Payment options are only available for Online Document Printing."]);
+  echo json_encode(["ok" => false, "error" => "Payment options are only available for Document Printing."]);
   exit();
 }
 

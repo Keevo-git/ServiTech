@@ -6,7 +6,11 @@ require_once __DIR__ . "/../../config/db.php";
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $requestedOrderType = strtolower(trim((string)($_GET["order_type"] ?? "")));
-if (!in_array($requestedOrderType, ["online", "walkin"], true)) {
+if ($requestedOrderType === "walkin") {
+  header("Location: /pages/customer/custo2_docu_printing.php?order_type=online");
+  exit();
+}
+if ($requestedOrderType !== "online") {
   $requestedOrderType = is_array($sessionPrintDraft)
     && strtolower(trim((string)($sessionPrintDraft["order_type"] ?? ""))) === "online"
       ? "online"
@@ -16,9 +20,7 @@ if ($requestedOrderType === "") {
   header("Location: /pages/customer/custo1_printing_option.php");
   exit();
 }
-$documentPrintingLabel = $requestedOrderType === "online"
-  ? "Online Document Printing"
-  : "Walk-In Document Printing";
+$documentPrintingLabel = "Document Printing";
 $printDraft = [];
 $printPricing = [
   "long_full_price" => 10.0,

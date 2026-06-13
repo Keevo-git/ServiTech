@@ -23,18 +23,34 @@ function status_class($status): string {
 }
 
 function service_label($category, $details = null): string {
+  $legacyPrintingLabels = [
+    "online document printing",
+    "online print order",
+    "online printing",
+    "walk-in document printing",
+    "walk-in printing",
+    "walkin printing",
+    "print walk-in",
+    "print online",
+  ];
+
   if (is_string($details) && $details !== "") {
     $decoded = json_decode($details, true);
     if (is_array($decoded) && trim((string)($decoded["service_label"] ?? "")) !== "") {
-      return trim((string)$decoded["service_label"]);
+      $label = trim((string)$decoded["service_label"]);
+      return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Printing" : $label;
     }
   } elseif (is_array($details) && trim((string)($details["service_label"] ?? "")) !== "") {
-    return trim((string)$details["service_label"]);
+    $label = trim((string)$details["service_label"]);
+    return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Printing" : $label;
   }
 
   $map = [
     "printing" => "Document Printing",
-    "online_printorder" => "Online Print Order",
+    "online_printorder" => "Document Printing",
+    "printing_online" => "Document Printing",
+    "walkin" => "Document Printing",
+    "printing_walkin" => "Document Printing",
     "xerox" => "Xerox",
     "rush-id" => "Rush ID",
     "laminating" => "Laminating",
@@ -77,7 +93,10 @@ $stmt = $pdo->prepare("
     LIMIT 1
   ) p ON TRUE
   WHERE (
-    LOWER(TRIM(q.category)) IN ('online_printorder', 'printing_online', 'xerox', 'rush-id', 'laminating')
+    LOWER(TRIM(q.category)) IN (
+      'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
+      'xerox', 'rush-id', 'laminating'
+    )
     OR (
       LOWER(TRIM(q.category)) = 'printing'
       AND LOWER(TRIM(COALESCE(q.details->>'order_type', ''))) = 'online'
@@ -103,7 +122,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260608-profile-sync') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
-<body class="admin-dashboard" data-admin-realtime-scope="queue_online">
+<body class="admin-dashboard" data-admin-realtime-scope="queue_printing">
 
 <?php
 $adminHeaderVariant = "special";
@@ -121,8 +140,7 @@ require __DIR__ . "/../_includes/admin_header.php";
     <div class="page-inner">
       <div class="panel">
         <div class="tabs" role="tablist">
-          <a class="tab active" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Printing (Online)</a>
-          <a class="tab" href="<?= admin_url('/pages/admin/queue_list/walkin.php') ?>">Printing (Walk-In)</a>
+          <a class="tab active" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Printing</a>
           <a class="tab" href="<?= admin_url('/pages/admin/queue_list/repair.php') ?>">Repair</a>
           <a class="tab" href="<?= admin_url('/pages/admin/queue_list/installation.php') ?>">Installation</a>
         </div>
@@ -143,7 +161,7 @@ require __DIR__ . "/../_includes/admin_header.php";
             <tbody>
             <?php if (!$rows): ?>
               <tr>
-                <td colspan="6" style="text-align:center;padding:18px;color:#666;">No online printing queues yet.</td>
+                <td colspan="6" style="text-align:center;padding:18px;color:#666;">No printing queues yet.</td>
               </tr>
             <?php else: ?>
               <?php foreach ($rows as $r): ?>

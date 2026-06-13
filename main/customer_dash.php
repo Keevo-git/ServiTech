@@ -47,21 +47,10 @@ function queue_status_tone($status) {
 
 function queue_category_meta(string $categoryKey): array {
   return match ($categoryKey) {
-    "online_print" => [
-      "label" => "Online Printing",
-      "sql" => "q.category = :category_printing AND COALESCE(q.details->>'service_label', '') = :online_service_label",
-      "params" => [
-        ":category_printing" => "printing",
-        ":online_service_label" => "Online Print Order",
-      ],
-    ],
     "printing" => [
       "label" => "Printing",
-      "sql" => "q.category = :category_printing AND COALESCE(q.details->>'service_label', '') <> :online_service_label",
-      "params" => [
-        ":category_printing" => "printing",
-        ":online_service_label" => "Online Print Order",
-      ],
+      "sql" => "q.category IN ('printing', 'online_printorder', 'printing_online', 'walkin', 'printing_walkin')",
+      "params" => [],
     ],
     "installation" => [
       "label" => "Installation",
@@ -79,7 +68,14 @@ function queue_category_meta(string $categoryKey): array {
 function normalize_service_label(string $serviceLabel, string $fallbackLabel): string {
   $serviceLabel = trim($serviceLabel);
   if ($serviceLabel === "") return $fallbackLabel;
-  if (strcasecmp($serviceLabel, "Online Print Order") === 0) return "Online Printing";
+  if (in_array(strtolower($serviceLabel), [
+    "online document printing",
+    "online print order",
+    "online printing",
+    "walk-in document printing",
+    "walk-in printing",
+    "walkin printing",
+  ], true)) return "Document Printing";
   return $serviceLabel;
 }
 
@@ -201,7 +197,7 @@ function fetch_latest_queue_items(PDO $pdo, string $categoryKey, int $limit): ar
   return $items;
 }
 $display_name = format_fullname($fullname);
-$queueCategories = ["online_print", "printing", "installation", "repair"];
+$queueCategories = ["printing", "installation", "repair"];
 $queueCategoryMeta = [];
 $activeQueues = [];
 $recentQueues = [];
@@ -679,7 +675,7 @@ $dashboardQueues = [
     <div class="queue-carousel">
       <div class="queue-carousel__topbar">
         <button type="button" class="queue-carousel__nav" id="activeQueuePrev" aria-label="Previous active request category">&#9664;</button>
-        <div class="queue-carousel__category" id="activeQueueCategory">ONLINE PRINTING</div>
+        <div class="queue-carousel__category" id="activeQueueCategory">PRINTING</div>
         <button type="button" class="queue-carousel__nav" id="activeQueueNext" aria-label="Next active request category">&#9654;</button>
       </div>
 
@@ -695,7 +691,7 @@ $dashboardQueues = [
     <div class="queue-carousel">
       <div class="queue-carousel__topbar">
         <button type="button" class="queue-carousel__nav" id="recentQueuePrev" aria-label="Previous latest queue category">&#9664;</button>
-        <div class="queue-carousel__category" id="recentQueueCategory">ONLINE PRINTING</div>
+        <div class="queue-carousel__category" id="recentQueueCategory">PRINTING</div>
         <button type="button" class="queue-carousel__nav" id="recentQueueNext" aria-label="Next latest queue category">&#9654;</button>
       </div>
 
@@ -745,7 +741,7 @@ $dashboardQueues = [
 <?php include __DIR__ . "/../components/footer.php"; ?>
 
 <script>
-  const queueCategories = ["online_print", "printing", "installation", "repair"];
+  const queueCategories = ["printing", "installation", "repair"];
   const queueCategoryMeta = <?php echo json_encode($queueCategoryMeta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
   const queuePollIntervalMs = 5000;
 

@@ -34,8 +34,7 @@ servitech_redirect_completed_join_queue();
 
       <select id="serviceType" class="form-select">
         <option value="" selected disabled>Select A Service</option>
-        <option value="online-document-printing">Online Document Printing</option>
-        <option value="walkin-document-printing">Walk-In Document Printing</option>
+        <option value="document-printing">Document Printing</option>
         <option value="xerox">Xerox</option>
         <option value="rush-id">Rush ID</option>
         <option value="laminating">Laminating</option>
@@ -68,8 +67,7 @@ servitech_redirect_completed_join_queue();
     }
 
     const routes = {
-      "online-document-printing": "custo2_docu_printing.php?order_type=online",
-      "walkin-document-printing": "custo2_docu_printing.php?order_type=walkin",
+      "document-printing": "custo2_docu_printing.php?order_type=online",
       "xerox": "custo2_xerox.php",
       "rush-id": "custo2_rush_id.php",
       "laminating": "custo2_laminating.php"

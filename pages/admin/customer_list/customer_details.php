@@ -52,11 +52,11 @@ function cd_details_array($details): array {
 function cd_category_label(string $category): string {
   $category = strtolower(trim($category));
   return match ($category) {
-    "online_printorder" => "Online Printing",
+    "online_printorder" => "Printing",
     "printing" => "Printing",
     "repair" => "Repair",
     "installation" => "Installation",
-    "walkin" => "Walk-in Printing",
+    "walkin", "printing_walkin" => "Printing",
     default => $category !== "" ? ucwords(str_replace("_", " ", $category)) : "-",
   };
 }

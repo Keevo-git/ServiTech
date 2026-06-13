@@ -189,7 +189,7 @@ function admin_notification_category_label(string $category): string
 {
     $category = strtolower(trim($category));
     return match ($category) {
-        "online_printorder", "printing_online" => "Online Printing",
+        "online_printorder", "printing_online" => "Printing",
         "printing", "walkin", "printing_walkin" => "Printing",
         "repair" => "Repair",
         "installation" => "Installation",
@@ -202,6 +202,19 @@ function admin_notification_service_label(array $queue): string
     $details = admin_queue_details_array($queue["details"] ?? null);
     $service = trim((string)($details["service_label"] ?? $details["package_label"] ?? ""));
     if ($service !== "") {
+        $normalized = strtolower($service);
+        if (in_array($normalized, [
+            "online document printing",
+            "online print order",
+            "online printing",
+            "walk-in document printing",
+            "walk-in printing",
+            "walkin printing",
+            "print walk-in",
+            "print online",
+        ], true)) {
+            return "Printing";
+        }
         return $service;
     }
 

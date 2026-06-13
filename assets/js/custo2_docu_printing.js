@@ -179,7 +179,6 @@
     // P**** => printing, OP**** => online_printorder.
     function getQueueCategoryFromOrderType(orderType) {
       if (orderType === "online") return "online_printorder";
-      if (orderType === "walkin") return "printing";
       return "";
     }
 
@@ -191,7 +190,7 @@
     }
 
     function getServiceLabelFromOrderType(orderType) {
-      return orderType === "online" ? "Online Print Order" : "Document Printing";
+      return orderType === "online" ? "Document Printing" : "";
     }
 
     function fileKey(file) {
@@ -1143,7 +1142,7 @@
       if (!queueModal || !modalQueueNo) return;
       if (typeof window.openQueueSuccessModal === "function") {
         window.openQueueSuccessModal(queueCode, {
-          service: getOrderType() === "online" ? "Online Document Printing" : "Walk-In Document Printing"
+          service: "Document Printing"
         });
         return;
       }

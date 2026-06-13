@@ -70,19 +70,21 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
     );
 
     $serviceExpression = "
-        COALESCE(
-            NULLIF(TRIM(details->>'service_label'), ''),
-            CASE
-                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('online_printorder', 'printing_online')
-                    OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
-                    THEN 'Online Print Order'
-                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('walkin', 'printing_walkin') THEN 'Walk-in Printing'
-                WHEN LOWER(TRIM(COALESCE(category, ''))) = 'printing' THEN 'Document Printing'
+        CASE
+            WHEN LOWER(TRIM(COALESCE(category, ''))) IN (
+                'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin'
+            )
+                OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
+                THEN 'Printing'
+            ELSE COALESCE(
+                NULLIF(TRIM(details->>'service_label'), ''),
+                CASE
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'repair' THEN 'Repair Service'
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'installation' THEN 'Installation Service'
                 ELSE 'Other Service'
-            END
-        )
+                END
+            )
+        END
     ";
 
     $mostRequested = admin_dashboard_fetch_rows(
@@ -103,8 +105,8 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
             CASE
                 WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('online_printorder', 'printing_online')
                     OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
-                    THEN 'Online Printing'
-                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('printing', 'walkin', 'printing_walkin') THEN 'Walk-in Printing'
+                    THEN 'Printing'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('printing', 'walkin', 'printing_walkin') THEN 'Printing'
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'repair' THEN 'Repair'
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'installation' THEN 'Installation'
                 ELSE 'Other'

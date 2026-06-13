@@ -155,8 +155,6 @@ if (!function_exists("admin_notification_target_url")) {
             $path = $isOrder ? "/pages/admin/order_management/repairM.php" : "/pages/admin/queue_list/repair.php";
         } elseif ($category === "installation") {
             $path = $isOrder ? "/pages/admin/order_management/installationM.php" : "/pages/admin/queue_list/installation.php";
-        } elseif (in_array($category, ["walkin", "printing_walkin"], true)) {
-            $path = $isOrder ? "/pages/admin/order_management/printM.php" : "/pages/admin/queue_list/walkin.php";
         } else {
             $path = $isOrder ? "/pages/admin/order_management/printM.php" : "/pages/admin/queue_list/printing.php";
         }

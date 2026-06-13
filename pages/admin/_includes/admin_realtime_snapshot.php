@@ -8,6 +8,16 @@ header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 
 $scope = strtolower(trim((string)($_GET["scope"] ?? "")));
 $predicates = [
+    "queue_printing" => "
+        UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
+        AND (
+            LOWER(TRIM(COALESCE(q.category, ''))) IN (
+                'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
+                'xerox', 'rush-id', 'laminating'
+            )
+            OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
+        )
+    ",
     "queue_online" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
         AND (
@@ -36,6 +46,15 @@ $predicates = [
     "queue_installation" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
         AND LOWER(TRIM(COALESCE(q.category, ''))) = 'installation'
+    ",
+    "order_printing" => "
+        UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND (
+            LOWER(TRIM(COALESCE(q.category, ''))) IN (
+                'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin'
+            )
+            OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
+        )
     ",
     "order_online" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
