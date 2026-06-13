@@ -4728,9 +4728,15 @@ body.logout-confirm-open {
   overscroll-behavior: contain;
 }
 
-html.logout-confirm-open,
-html.logout-confirm-open body {
+html.logout-confirm-open--admin,
+html.logout-confirm-open--admin body {
   scrollbar-gutter: stable;
+}
+
+html.logout-confirm-open--customer,
+html.logout-confirm-open--customer body {
+  scrollbar-gutter: auto;
+  overflow-x: clip;
 }
 
 .logout-confirm-overlay {
@@ -4745,6 +4751,11 @@ html.logout-confirm-open body {
   padding: clamp(16px, 4vw, 32px);
   background: rgba(45, 21, 15, 0.58);
   overflow: hidden;
+}
+
+.logout-confirm-overlay--customer {
+  width: auto;
+  max-width: 100%;
 }
 
 .logout-confirm-modal {

@@ -201,9 +201,11 @@
     var style = document.createElement("style");
     style.id = "servitech-logout-confirm-styles";
     style.textContent = [
-      "html.logout-confirm-open,body.logout-confirm-open{scrollbar-gutter:stable!important;}",
+      "html.logout-confirm-open--admin,body.logout-confirm-open--admin{scrollbar-gutter:stable!important;}",
+      "html.logout-confirm-open--customer,body.logout-confirm-open--customer{scrollbar-gutter:auto!important;overflow-x:clip!important;}",
       "body.logout-confirm-open{overscroll-behavior:contain!important;}",
       ".logout-confirm-overlay{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100vw!important;height:100dvh!important;padding:clamp(16px,4vw,32px)!important;background:rgba(45,21,15,.58)!important;box-sizing:border-box!important;overflow:hidden!important;}",
+      ".logout-confirm-overlay--customer{width:auto!important;max-width:100%!important;}",
       ".logout-confirm-overlay--admin{background:rgba(8,21,39,.64)!important;}",
       ".logout-confirm-modal{box-sizing:border-box!important;width:min(100%,420px)!important;max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:clamp(22px,4vw,30px)!important;border:1px solid rgba(74,5,5,.14)!important;border-radius:18px!important;background:#fff!important;color:#32211a!important;box-shadow:0 24px 70px rgba(28,15,10,.34)!important;text-align:left!important;font-family:inherit!important;}",
       ".logout-confirm-overlay--admin .logout-confirm-modal{border-color:rgba(26,63,115,.18)!important;color:#112338!important;box-shadow:0 26px 74px rgba(10,27,49,.38)!important;}",
@@ -237,15 +239,18 @@
     return logoutState.activeModal ? logoutState.activeModal.querySelector(".logout-confirm-modal") : null;
   }
 
-  function lockBackgroundScroll() {
+  function lockBackgroundScroll(theme) {
     logoutState.scrollX = window.scrollX || document.documentElement.scrollLeft || 0;
     logoutState.scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    var themeClass = theme === "admin" ? "logout-confirm-open--admin" : "logout-confirm-open--customer";
 
     document.addEventListener("wheel", preventBackgroundScroll, { passive: false, capture: true });
     document.addEventListener("touchmove", preventBackgroundScroll, { passive: false, capture: true });
     window.addEventListener("scroll", keepScrollPosition, { passive: true });
     document.documentElement.classList.add("logout-confirm-open");
+    document.documentElement.classList.add(themeClass);
     document.body.classList.add("logout-confirm-open");
+    document.body.classList.add(themeClass);
   }
 
   function unlockBackgroundScroll() {
@@ -253,7 +258,11 @@
     document.removeEventListener("touchmove", preventBackgroundScroll, true);
     window.removeEventListener("scroll", keepScrollPosition);
     document.documentElement.classList.remove("logout-confirm-open");
+    document.documentElement.classList.remove("logout-confirm-open--customer");
+    document.documentElement.classList.remove("logout-confirm-open--admin");
     document.body.classList.remove("logout-confirm-open");
+    document.body.classList.remove("logout-confirm-open--customer");
+    document.body.classList.remove("logout-confirm-open--admin");
   }
 
   function keepScrollPosition() {
@@ -367,7 +376,7 @@
 
     document.body.appendChild(overlay);
     logoutState.activeModal = overlay;
-    lockBackgroundScroll();
+    lockBackgroundScroll(request.theme);
     document.addEventListener("keydown", handleLogoutModalKeydown);
 
     var cancelButton = overlay.querySelector("[data-logout-cancel]");
