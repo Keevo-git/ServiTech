@@ -1687,6 +1687,18 @@ body.auth-page {
   padding-right: 58px;
 }
 
+.password-input-wrap input[type="password"]::-ms-reveal,
+.password-input-wrap input[type="password"]::-ms-clear {
+  display: none;
+}
+
+.password-input-wrap input[type="password"]::-webkit-credentials-auto-fill-button,
+.password-input-wrap input[type="password"]::-webkit-contacts-auto-fill-button {
+  display: none !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .password-toggle {
   position: absolute;
   top: 50%;

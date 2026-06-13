@@ -11,7 +11,7 @@ $csrfToken = servitech_csrf_token();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Register</title>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260613-footer-legal-links") ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260613-password-toggle-fix") ?>">
 </head>
 <body class="auth-page auth-page--register">
 
@@ -79,7 +79,10 @@ $csrfToken = servitech_csrf_token();
 
             <div class="form-field">
               <label for="confirmPassword">Confirm Password</label>
-              <input id="confirmPassword" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
+              <div class="password-input-wrap">
+                <input id="confirmPassword" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
+                <button type="button" class="password-toggle" id="registrationConfirmPasswordToggle" aria-label="Show confirm password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
+              </div>
               <p class="field-error" id="confirmPasswordError" aria-live="polite"></p>
             </div>
           </div>
@@ -164,6 +167,7 @@ $csrfToken = servitech_csrf_token();
     const policyModalContent = document.getElementById("policyModalContent");
     const authCard = document.querySelector(".auth-card--register");
     const registrationPasswordToggle = document.getElementById("registrationPasswordToggle");
+    const registrationConfirmPasswordToggle = document.getElementById("registrationConfirmPasswordToggle");
     const contactInput = document.getElementById("contact");
     const privacyContactHtml = <?= json_encode(auth_contact_link_html(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     const privacyContactPhone = <?= json_encode(servitech_contact_phone(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
@@ -590,18 +594,33 @@ $csrfToken = servitech_csrf_token();
       contactInput.value = fields.contact.input.value ? `+63${fields.contact.input.value}` : "";
     }
 
-    function updateRegistrationPasswordToggleVisibility() {
-      const hasPassword = Boolean(fields.password.input.value);
-      registrationPasswordToggle.classList.toggle("has-value", hasPassword);
-      registrationPasswordToggle.tabIndex = hasPassword ? 0 : -1;
-      registrationPasswordToggle.setAttribute("aria-hidden", hasPassword ? "false" : "true");
+    function updateRegistrationPasswordToggleVisibility(input, toggle, fieldLabel) {
+      const hasValue = Boolean(input.value);
+      toggle.classList.toggle("has-value", hasValue);
+      toggle.tabIndex = hasValue ? 0 : -1;
+      toggle.setAttribute("aria-hidden", hasValue ? "false" : "true");
 
-      if (!hasPassword) {
-        fields.password.input.type = "password";
-        registrationPasswordToggle.classList.remove("is-visible");
-        registrationPasswordToggle.setAttribute("aria-label", "Show password");
-        registrationPasswordToggle.setAttribute("aria-pressed", "false");
+      if (!hasValue) {
+        input.type = "password";
+        toggle.classList.remove("is-visible");
+        toggle.setAttribute("aria-label", `Show ${fieldLabel}`);
+        toggle.setAttribute("aria-pressed", "false");
       }
+    }
+
+    function updateRegistrationPasswordToggles() {
+      updateRegistrationPasswordToggleVisibility(fields.password.input, registrationPasswordToggle, "password");
+      updateRegistrationPasswordToggleVisibility(fields.confirmPassword.input, registrationConfirmPasswordToggle, "confirm password");
+    }
+
+    function bindPasswordToggle(input, toggle, fieldLabel) {
+      toggle.addEventListener("click", () => {
+        const showPassword = input.type === "password";
+        input.type = showPassword ? "text" : "password";
+        toggle.setAttribute("aria-label", `${showPassword ? "Hide" : "Show"} ${fieldLabel}`);
+        toggle.setAttribute("aria-pressed", showPassword ? "true" : "false");
+        toggle.classList.toggle("is-visible", showPassword);
+      });
     }
 
     async function handleRegisterGoogleCredential(response) {
@@ -719,8 +738,8 @@ $csrfToken = servitech_csrf_token();
           validateField("confirmPassword");
         }
 
-        if (fieldName === "password") {
-          updateRegistrationPasswordToggleVisibility();
+        if (fieldName === "password" || fieldName === "confirmPassword") {
+          updateRegistrationPasswordToggles();
         }
 
         validateForm(false);
@@ -740,13 +759,8 @@ $csrfToken = servitech_csrf_token();
       }
     });
 
-    registrationPasswordToggle.addEventListener("click", () => {
-      const showPassword = fields.password.input.type === "password";
-      fields.password.input.type = showPassword ? "text" : "password";
-      registrationPasswordToggle.setAttribute("aria-label", showPassword ? "Hide password" : "Show password");
-      registrationPasswordToggle.setAttribute("aria-pressed", showPassword ? "true" : "false");
-      registrationPasswordToggle.classList.toggle("is-visible", showPassword);
-    });
+    bindPasswordToggle(fields.password.input, registrationPasswordToggle, "password");
+    bindPasswordToggle(fields.confirmPassword.input, registrationConfirmPasswordToggle, "confirm password");
 
     document.querySelectorAll("[data-doc-trigger]").forEach((button) => {
       button.addEventListener("click", () => openPolicyModal(button.dataset.docTrigger));
@@ -770,10 +784,10 @@ $csrfToken = servitech_csrf_token();
     validateForm(false);
     window.addEventListener("pageshow", () => {
       syncPhilippineMobileInput();
-      updateRegistrationPasswordToggleVisibility();
+      updateRegistrationPasswordToggles();
       validateForm(false);
     });
-    updateRegistrationPasswordToggleVisibility();
+    updateRegistrationPasswordToggles();
 
     let registerGoogleLoadAttempts = 0;
     let registerGoogleLoadTimer = null;
