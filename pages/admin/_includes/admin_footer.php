@@ -2,8 +2,8 @@
 if (!function_exists("admin_url")) {
     require_once __DIR__ . "/url.php";
 }
-require_once __DIR__ . "/../../../config/mail.php";
-$adminFooterEmail = servitech_smtp_public_from_email();
+require_once __DIR__ . "/../../../config/contact.php";
+$adminFooterEmail = servitech_contact_email();
 ?>
 <style>
   .admin-shared-footer {
@@ -32,7 +32,7 @@ $adminFooterEmail = servitech_smtp_public_from_email();
 
       <div class="contact-item">
         <img src="<?= admin_url('/assets/images/FOOTER_FB.png') ?>" alt="Facebook">
-        <a href="https://www.facebook.com/JCstorebagbaguin" target="_blank" rel="noopener noreferrer">JC Store</a>
+        <a href="<?= htmlspecialchars(servitech_contact_facebook_url(), ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars(servitech_contact_facebook_label(), ENT_QUOTES, "UTF-8") ?></a>
       </div>
 
       <div class="contact-item">
@@ -46,7 +46,7 @@ $adminFooterEmail = servitech_smtp_public_from_email();
 
       <div class="contact-item">
         <img src="<?= admin_url('/assets/images/FOOTER_PHONE.png') ?>" alt="Phone">
-        <span>+63 912 393 4321</span>
+        <span><?= htmlspecialchars(servitech_contact_phone(), ENT_QUOTES, "UTF-8") ?></span>
       </div>
     </div>
 

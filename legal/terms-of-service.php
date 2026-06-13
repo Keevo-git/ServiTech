@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . "/../config/app.php";
-require_once __DIR__ . "/../config/mail.php";
+require_once __DIR__ . "/../config/contact.php";
 
-$supportEmail = servitech_smtp_public_from_email();
+$supportEmail = servitech_contact_email();
 $effectiveDate = "June 13, 2026";
 ?>
 <!DOCTYPE html>

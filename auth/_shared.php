@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . "/../config/session_check.php";
-require_once __DIR__ . "/../config/mail.php";
+require_once __DIR__ . "/../config/contact.php";
 
 const AUTH_UI_VERSION = "20260612header-brand-hit-area";
 
@@ -28,7 +28,7 @@ if (!function_exists("auth_json_url")) {
 if (!function_exists("auth_contact_email")) {
     function auth_contact_email(): string
     {
-        return servitech_smtp_public_from_email();
+        return servitech_contact_email();
     }
 }
 
@@ -92,8 +92,8 @@ if (!function_exists("render_auth_footer")) {
 
         <div class="contact-item">
           <img src="<?= auth_url("/assets/images/FOOTER_FB.png") ?>" alt="Facebook">
-          <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer">
-            JC Store
+          <a href="<?= htmlspecialchars(servitech_contact_facebook_url(), ENT_QUOTES, "UTF-8") ?>" target="_blank" rel="noopener noreferrer">
+            <?= htmlspecialchars(servitech_contact_facebook_label(), ENT_QUOTES, "UTF-8") ?>
           </a>
         </div>
 
@@ -104,7 +104,7 @@ if (!function_exists("render_auth_footer")) {
 
         <div class="contact-item">
           <img src="<?= auth_url("/assets/images/FOOTER_PHONE.png") ?>" alt="Phone">
-          <span>+63 912 393 4321</span>
+          <span><?= htmlspecialchars(servitech_contact_phone(), ENT_QUOTES, "UTF-8") ?></span>
         </div>
       </div>
 
