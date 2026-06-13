@@ -83,7 +83,15 @@
 }
 
 .site-privacy-controls__actions {
-  max-width: 410px;
+  align-items: stretch;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  width: 250px;
+}
+
+.site-privacy-controls__actions .site-privacy-controls__btn {
+  width: 100%;
 }
 
 .site-privacy-controls__btn {
@@ -290,6 +298,10 @@
     display: grid;
     grid-template-columns: 1fr;
     max-width: none;
+  }
+
+  .site-privacy-controls__actions {
+    width: 100%;
   }
 
   .site-privacy-controls__btn {
