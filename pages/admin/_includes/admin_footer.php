@@ -96,7 +96,7 @@ $adminFooterEmail = servitech_contact_email();
     <span aria-hidden="true">|</span>
     <a href="<?= admin_url('/terms-of-service.php') ?>">Terms of Service</a>
     <span aria-hidden="true">|</span>
-    <button type="button" class="cookie-preferences-link" data-cookie-preferences-open>Cookie Preferences</button>
+    <a href="#cookie-preferences" class="cookie-preferences-link" data-cookie-preferences-open>Cookie Preferences</a>
   </div>
 
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>

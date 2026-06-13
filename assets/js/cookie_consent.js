@@ -260,6 +260,7 @@
 
     lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     root.hidden = false;
+    hideBanner();
     syncModalFields();
     modal.hidden = false;
     document.documentElement.classList.add("cookie-consent-open");
@@ -277,6 +278,10 @@
     modal.hidden = true;
     document.documentElement.classList.remove("cookie-consent-open");
     document.body.classList.remove("cookie-consent-open");
+
+    if (!hasChoice()) {
+      showBanner();
+    }
 
     if (lastFocusedElement && document.contains(lastFocusedElement)) {
       lastFocusedElement.focus();
@@ -380,6 +385,14 @@
       trapFocus(event);
     });
 
+    if (window.addEventListener) {
+      window.addEventListener("hashchange", function () {
+        if (window.location.hash === "#cookie-preferences") {
+          openModal();
+        }
+      });
+    }
+
     if (!hasChoice()) {
       showBanner();
     } else {
@@ -387,6 +400,10 @@
       synchronizePreferenceStorage(memoryPreferences);
       root.hidden = false;
       hideBanner();
+    }
+
+    if (window.location.hash === "#cookie-preferences") {
+      openModal();
     }
   }
 

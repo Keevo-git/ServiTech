@@ -16,15 +16,18 @@
   border: 1px solid #eadbd3;
   border-radius: 8px;
   bottom: 18px;
+  box-sizing: border-box;
   box-shadow: 0 20px 60px rgba(36, 18, 15, 0.18);
   display: grid;
   gap: 18px;
   grid-template-columns: minmax(0, 1fr) auto;
-  left: 18px;
-  max-width: min(980px, calc(100vw - 36px));
+  left: 50%;
+  max-width: none;
   padding: 18px;
   position: fixed;
-  right: 18px;
+  right: auto;
+  transform: translateX(-50%);
+  width: min(980px, calc(100vw - 36px));
   z-index: 16000;
 }
 
@@ -34,6 +37,10 @@
   color: #4a0505;
   letter-spacing: 0;
   margin: 0;
+}
+
+.cookie-consent__copy {
+  min-width: 0;
 }
 
 .cookie-consent__copy h2 {
@@ -51,6 +58,7 @@
 
 .cookie-consent__copy p {
   margin: 8px 0 0;
+  overflow-wrap: anywhere;
 }
 
 .cookie-consent__eyebrow {
@@ -278,10 +286,10 @@
   .cookie-consent__banner {
     align-items: stretch;
     grid-template-columns: 1fr;
-    left: 12px;
-    right: 12px;
     bottom: 12px;
-    max-width: calc(100vw - 24px);
+    left: 50%;
+    right: auto;
+    width: calc(100vw - 24px);
   }
 
   .cookie-consent__actions,

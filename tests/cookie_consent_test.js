@@ -39,6 +39,7 @@ function createElement() {
 }
 
 function createBrowserState(sharedState) {
+  const listeners = {};
   const root = createElement();
   const banner = createElement();
   const modal = createElement();
@@ -58,7 +59,10 @@ function createBrowserState(sharedState) {
     body: { classList: createClassList() },
     documentElement: { classList: createClassList() },
     readyState: "loading",
-    addEventListener() {},
+    addEventListener(type, listener) {
+      listeners[type] = listeners[type] || [];
+      listeners[type].push(listener);
+    },
     contains() {
       return true;
     },
@@ -98,8 +102,10 @@ function createBrowserState(sharedState) {
   };
 
   const window = {
+    addEventListener() {},
     localStorage,
     location: {
+      hash: "",
       hostname: "localhost",
       protocol: "http:"
     },
@@ -126,7 +132,26 @@ function createBrowserState(sharedState) {
   return {
     api: window.servitechCookieConsent,
     banner,
-    root
+    modal,
+    root,
+    clickPreferencesLink() {
+      const trigger = {
+        closest() {
+          return trigger;
+        },
+        getAttribute() {
+          return null;
+        },
+        hasAttribute(name) {
+          return name === "data-cookie-preferences-open";
+        }
+      };
+      const event = {
+        target: trigger,
+        preventDefault() {}
+      };
+      (listeners.click || []).forEach((listener) => listener(event));
+    }
   };
 }
 
@@ -139,6 +164,8 @@ function newSharedState() {
   const firstVisit = createBrowserState(shared);
   assert.strictEqual(firstVisit.api.hasChoice(), false);
   assert.strictEqual(firstVisit.banner.hidden, false, "new visitor should see banner");
+  firstVisit.clickPreferencesLink();
+  assert.strictEqual(firstVisit.modal.hidden, false, "footer preferences link should open the modal");
 
   firstVisit.api.rejectNonEssential();
   assert.strictEqual(firstVisit.api.hasChoice(), true);

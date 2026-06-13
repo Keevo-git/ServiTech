@@ -10,10 +10,16 @@ if (!function_exists("servitech_render_cookie_consent")) {
         }
         $rendered = true;
 
-        $assetVersion = "20260613-cookie-consent-hardfix";
         $cookiePath = servitech_cookie_path();
+        $stylePath = __DIR__ . "/../assets/css/cookie-consent.css";
+        $scriptPath = __DIR__ . "/../assets/js/cookie_consent.js";
+        $consentStyles = is_file($stylePath) ? (string)file_get_contents($stylePath) : "";
+        $consentScript = is_file($scriptPath) ? (string)file_get_contents($scriptPath) : "";
+        $consentScript = str_ireplace("</script", "<\/script", $consentScript);
         ?>
-<link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/cookie-consent.css?v=' . $assetVersion), ENT_QUOTES, 'UTF-8') ?>">
+<style data-cookie-consent-styles>
+<?= $consentStyles ?>
+</style>
 
 <div
   class="cookie-consent"
@@ -88,7 +94,9 @@ if (!function_exists("servitech_render_cookie_consent")) {
   </div>
 </div>
 
-<script src="<?= htmlspecialchars(servitech_url('/assets/js/cookie_consent.js?v=' . $assetVersion), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script data-cookie-consent-script>
+<?= $consentScript ?>
+</script>
 <?php
     }
 }
