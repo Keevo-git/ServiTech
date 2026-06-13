@@ -44,14 +44,12 @@ function createBrowserState(sharedState) {
   const banner = createElement();
   const modal = createElement();
   const dialog = createElement();
-  const toggle = createElement();
 
   root.dataset.storagePath = "/ServiTech/";
   root.querySelector = (selector) => ({
     "[data-privacy-notice]": banner,
     "[data-privacy-modal]": modal,
-    ".site-privacy-controls__dialog": dialog,
-    "[data-privacy-functional-toggle]": toggle
+    ".site-privacy-controls__dialog": dialog
   }[selector] || null);
 
   const document = {
@@ -157,6 +155,24 @@ function createBrowserState(sharedState) {
         preventDefault() {}
       };
       (listeners.click || []).forEach((listener) => listener(event));
+    },
+    clickAction(action) {
+      const trigger = {
+        closest() {
+          return trigger;
+        },
+        getAttribute(name) {
+          return name === "data-privacy-action" ? action : null;
+        },
+        hasAttribute() {
+          return false;
+        }
+      };
+      const event = {
+        target: trigger,
+        preventDefault() {}
+      };
+      (listeners.click || []).forEach((listener) => listener(event));
     }
   };
 }
@@ -172,14 +188,14 @@ function newSharedState() {
   assert.strictEqual(firstVisit.banner.hidden, false, "new visitor should see banner");
   firstVisit.clickPreferencesLink();
   assert.strictEqual(firstVisit.modal.hidden, false, "footer preferences link should open the modal");
-
-  firstVisit.api.rejectNonEssential();
+  firstVisit.clickAction("close");
   assert.strictEqual(firstVisit.api.hasChoice(), true);
-  assert.strictEqual(firstVisit.api.allows("functional"), false);
+  assert.strictEqual(firstVisit.banner.hidden, true, "closing should continue with required settings");
 
-  const returningRejected = createBrowserState(shared);
-  assert.strictEqual(returningRejected.banner.hidden, true, "saved rejection should suppress banner");
-  assert.strictEqual(returningRejected.api.allows("functional"), false);
+  const returningVisit = createBrowserState(shared);
+  assert.strictEqual(returningVisit.banner.hidden, true, "saved acknowledgement should suppress banner");
+  returningVisit.clickPreferencesLink();
+  assert.strictEqual(returningVisit.modal.hidden, false, "saved visitors can reopen preferences");
 }
 
 {
@@ -199,31 +215,13 @@ function newSharedState() {
 {
   const shared = newSharedState();
   const firstVisit = createBrowserState(shared);
-  let allowedCount = 0;
-  let blockedCount = 0;
-  firstVisit.api.whenAllowed(
-    "functional",
-    () => {
-      allowedCount += 1;
-    },
-    () => {
-      blockedCount += 1;
-    }
-  );
+  firstVisit.clickAction("continue-required");
+  assert.strictEqual(firstVisit.api.hasChoice(), true, "required-only choice should be saved");
+  assert.strictEqual(firstVisit.api.allows("necessary"), true);
+  assert.strictEqual(firstVisit.api.allows("functional"), false);
 
-  firstVisit.api.acceptAll();
-  assert.strictEqual(allowedCount, 1, "acceptance should enable optional behavior");
-
-  const returningAccepted = createBrowserState(shared);
-  assert.strictEqual(returningAccepted.banner.hidden, true, "saved acceptance should suppress banner");
-  assert.strictEqual(returningAccepted.api.allows("functional"), true);
-
-  firstVisit.api.savePreferences({ functional: false });
-  assert.ok(blockedCount >= 2, "revocation should notify optional behavior to stop");
-
-  const returningChanged = createBrowserState(shared);
-  assert.strictEqual(returningChanged.banner.hidden, true, "changed preference should remain saved");
-  assert.strictEqual(returningChanged.api.allows("functional"), false);
+  const returningVisit = createBrowserState(shared);
+  assert.strictEqual(returningVisit.banner.hidden, true, "saved choice should suppress banner");
 }
 
 {
@@ -237,7 +235,7 @@ function newSharedState() {
 
   const migratedVisit = createBrowserState(shared);
   assert.strictEqual(migratedVisit.banner.hidden, true, "valid legacy choice should remain valid");
-  assert.strictEqual(migratedVisit.api.allows("functional"), true);
+  assert.strictEqual(migratedVisit.api.allows("functional"), false, "unused legacy category must stay disabled");
   assert.ok(shared.cookies.SERVITECH_COOKIE_CONSENT, "missing cookie should be repaired");
 }
 

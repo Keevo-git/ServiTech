@@ -11,8 +11,7 @@ if (!function_exists("servitech_cookie_consent_has_valid_cookie_choice")) {
 
         $preference = json_decode($raw, true);
         return is_array($preference)
-            && ($preference["necessary"] ?? null) === true
-            && is_bool($preference["functional"] ?? null);
+            && ($preference["necessary"] ?? null) === true;
     }
 }
 
@@ -55,13 +54,11 @@ if (!function_exists("servitech_render_cookie_consent")) {
       <p class="site-privacy-controls__eyebrow">Privacy controls</p>
       <h2 id="privacyControlsTitle">ServiTech uses necessary cookies and browser storage.</h2>
       <p>
-        Necessary cookies and authentication storage keep login, Google account access, security checks, forms, uploads, notifications, and service pages working.
-        Optional functional enhancements only run when you allow them.
+        These required settings keep you signed in, protect your account, support forms and uploads, manage bookings, show important notifications, and remember your cookie choice.
       </p>
     </div>
     <div class="site-privacy-controls__actions" aria-label="Cookie consent actions">
-      <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--primary" data-privacy-action="accept-all">Accept All</button>
-      <button type="button" class="site-privacy-controls__btn" data-privacy-action="reject">Reject Non-Essential</button>
+      <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--primary" data-privacy-action="continue-required">Continue with Required Only</button>
       <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--ghost" data-privacy-action="manage">Manage Preferences</button>
     </div>
   </section>
@@ -76,41 +73,31 @@ if (!function_exists("servitech_render_cookie_consent")) {
       aria-describedby="privacySettingsIntro"
       tabindex="-1"
     >
-      <a href="#privacy-settings-closed" class="site-privacy-controls__close" data-privacy-action="close" aria-label="Close cookie preferences">
+      <a href="#privacy-settings-closed" class="site-privacy-controls__close" data-privacy-action="close" aria-label="Close and continue with required settings" title="Close and continue with required settings">
         <span aria-hidden="true">&times;</span>
       </a>
       <div class="site-privacy-controls__dialog-head">
         <p class="site-privacy-controls__eyebrow">Cookie Preferences</p>
-        <h2 id="privacySettingsTitle">Choose what ServiTech may use</h2>
+        <h2 id="privacySettingsTitle">Required website settings</h2>
         <p id="privacySettingsIntro">
-          You can change these settings later from the Cookie Preferences link in the footer.
+          ServiTech currently uses only the cookies and browser settings required for the website to work.
         </p>
       </div>
 
       <div class="site-privacy-controls__category">
         <div>
           <h3>Strictly Necessary</h3>
-          <p>Required for login sessions, Google authentication when selected, CSRF protection, security checks, upload continuity, forms, notifications, and short-lived workflow messages.</p>
+          <p>Required to keep you signed in, protect your account, process forms, continue uploads, manage bookings, show important system notifications, and support Google sign-in when you choose it. These are always active because the website cannot work properly without them.</p>
         </div>
         <span class="site-privacy-controls__status" aria-label="Strictly necessary cookies are always active">Always active</span>
       </div>
 
-      <label class="site-privacy-controls__category site-privacy-controls__category--toggle">
-        <span>
-          <strong>Functional Enhancements</strong>
-          <span>Allows optional realtime notification enhancement. Core notifications continue through regular polling when this is off.</span>
-        </span>
-        <input type="checkbox" data-privacy-functional-toggle>
-      </label>
-
       <p class="site-privacy-controls__note">
-        ServiTech does not currently use analytics, advertising, or marketing tracking cookies. Those categories are not shown because no active scripts were found for them.
+        ServiTech does not currently use analytics, advertising, or marketing tracking cookies. These options are not shown because they are not being used.
       </p>
 
       <div class="site-privacy-controls__dialog-actions">
-        <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--primary" data-privacy-action="save">Save Preferences</button>
-        <button type="button" class="site-privacy-controls__btn" data-privacy-action="reject">Reject Non-Essential</button>
-        <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--ghost" data-privacy-action="accept-all">Accept All</button>
+        <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--primary" data-privacy-action="continue-required">Continue with Required Only</button>
       </div>
     </section>
   </div>

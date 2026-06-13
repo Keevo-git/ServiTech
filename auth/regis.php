@@ -318,7 +318,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Cookies and Browser Storage</h3>
-            <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, Google authentication when selected, CSRF protection, form safety, uploads, notifications, and short-lived workflow messages. Optional realtime notification enhancement follows Cookie Preferences. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
+            <p>ServiTech uses required cookies and browser settings to keep you signed in, protect your account, support forms and uploads, show important notifications, remember your cookie choice, and support Google sign-in when you choose it. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
           </section>
           <section class="policy-section">
             <h3>Data Retention</h3>

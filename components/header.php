@@ -2034,7 +2034,13 @@ $notificationRoutes = [
           return;
         }
 
-        realtimeClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+        realtimeClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        });
         realtimeChannel = realtimeClient
           .channel("notifications")
           .on(
@@ -2110,24 +2116,14 @@ $notificationRoutes = [
         document.head.appendChild(script);
       }
 
-      function initRealtimeWithConsent() {
+      function initRequiredNotifications() {
         if (!config.supabaseUrl || !config.supabaseAnonKey) {
           startNotificationPolling();
           return;
         }
 
-        if (!window.servitechCookieConsent) {
-          startNotificationPolling();
-          return;
-        }
-
-        window.servitechCookieConsent.whenAllowed("functional", function () {
-          loadSupabaseClientScript(function () {
-            initRealtime();
-            startNotificationPolling();
-          });
-        }, function () {
-          stopRealtime();
+        loadSupabaseClientScript(function () {
+          initRealtime();
           startNotificationPolling();
         });
       }
@@ -2240,7 +2236,7 @@ $notificationRoutes = [
 
       refreshNotifications()
         .finally(function () {
-          initRealtimeWithConsent();
+          initRequiredNotifications();
         });
     })();
   </script>

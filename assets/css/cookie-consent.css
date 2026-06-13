@@ -244,18 +244,6 @@
   white-space: nowrap;
 }
 
-.site-privacy-controls__category--toggle {
-  cursor: pointer;
-}
-
-.site-privacy-controls__category input[type="checkbox"] {
-  accent-color: #4a0505;
-  flex: 0 0 auto;
-  height: 24px;
-  margin: 0;
-  width: 24px;
-}
-
 .site-privacy-controls__note {
   background: #f8f5f2;
   border: 1px solid #eadbd3;

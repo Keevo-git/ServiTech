@@ -140,8 +140,7 @@ $effectiveDate = "June 13, 2026";
       <p>ServiTech uses role-based access checks, customer ownership checks, admin-only page guards, password hashing, CSRF tokens, SameSite/HTTP-only session cookies, failed-login throttling with hashed identifiers, file type and size validation, private upload storage, random file storage keys, protected download endpoints, and status-history records for queue actions. These controls reduce risk but do not replace organizational safeguards such as limiting administrator access, protecting hosting credentials, securing backups, and reviewing logs.</p>
 
       <h2>Cookies and Browser Storage</h2>
-      <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, Google authentication when selected, CSRF protection, security checks, upload continuity, form safety, notifications, and short-lived workflow messages. These are required for the website or requested authentication flow to operate and cannot be disabled through the cookie preferences tool.</p>
-      <p>Optional functional enhancements are controlled by the user's cookie preference. The current optional enhancement is Supabase realtime notification delivery. If functional enhancements are rejected, regular notification polling remains available.</p>
+      <p>ServiTech uses required cookies and browser storage to keep users signed in, protect accounts, process forms, continue uploads, manage bookings, show important system notifications, remember cookie choices, and support Google sign-in when selected. These settings are always active because the website cannot work properly without them.</p>
       <p>ServiTech does not currently use analytics, advertising, or marketing tracking cookies. Users can change their cookie choice later through the Cookie Preferences link in the footer.</p>
 
       <h2>User Rights</h2>

@@ -3,30 +3,26 @@
 
   var COOKIE_NAME = "SERVITECH_COOKIE_CONSENT";
   var STORAGE_KEY = "servitech.cookieConsent";
-  var VERSION = "1";
+  var VERSION = "2";
   var MAX_AGE = 60 * 60 * 24 * 180;
   var DEFAULT_PREFERENCES = {
     version: VERSION,
     necessary: true,
-    functional: false,
     updatedAt: ""
   };
 
   var listeners = [];
-  var allowedCallbacks = [];
   var lastFocusedElement = null;
   var root = null;
   var banner = null;
   var modal = null;
   var dialog = null;
-  var functionalToggle = null;
   var memoryPreferences = null;
 
   function clonePreferences(preferences) {
     return {
       version: VERSION,
       necessary: true,
-      functional: Boolean(preferences && preferences.functional),
       updatedAt: preferences && preferences.updatedAt ? String(preferences.updatedAt) : ""
     };
   }
@@ -80,7 +76,7 @@
 
     try {
       var parsed = JSON.parse(raw);
-      if (!parsed || parsed.necessary !== true || typeof parsed.functional !== "boolean") {
+      if (!parsed || parsed.necessary !== true) {
         return null;
       }
       return clonePreferences(parsed);
@@ -131,11 +127,7 @@
   }
 
   function allows(category) {
-    if (category === "necessary") {
-      return true;
-    }
-    var preferences = storedPreferences();
-    return Boolean(preferences && preferences[category] === true);
+    return category === "necessary";
   }
 
   function notify(preferences) {
@@ -148,29 +140,25 @@
         }, 0);
       }
     });
-
-    allowedCallbacks.slice().forEach(function (entry) {
-      runAllowedCallback(entry);
-    });
   }
 
-  function savePreferences(partial) {
-    var next = clonePreferences(partial);
+  function savePreferences() {
+    var next = clonePreferences(DEFAULT_PREFERENCES);
     next.updatedAt = new Date().toISOString();
     memoryPreferences = next;
     synchronizePreferenceStorage(next);
 
     hideBanner();
-    closeModal();
+    closeModal(false);
     notify(next);
   }
 
   function acceptAll() {
-    savePreferences({ functional: true });
+    savePreferences();
   }
 
   function rejectNonEssential() {
-    savePreferences({ functional: false });
+    savePreferences();
   }
 
   function onChange(listener) {
@@ -185,38 +173,14 @@
     };
   }
 
-  function runAllowedCallback(entry) {
-    var allowed = allows(entry.category);
-    if (allowed && !entry.didAllow) {
-      entry.didAllow = true;
-      entry.onAllowed(currentPreferences());
-      return;
-    }
-
-    if (!allowed && typeof entry.onBlocked === "function") {
-      entry.didAllow = false;
-      entry.onBlocked(currentPreferences());
-    }
-  }
-
   function whenAllowed(category, onAllowed, onBlocked) {
-    if (typeof onAllowed !== "function") {
-      return function () {};
+    if (allows(category) && typeof onAllowed === "function") {
+      onAllowed(currentPreferences());
+    } else if (!allows(category) && typeof onBlocked === "function") {
+      onBlocked(currentPreferences());
     }
-
-    var entry = {
-      category: category,
-      onAllowed: onAllowed,
-      onBlocked: onBlocked,
-      didAllow: false
-    };
-    allowedCallbacks.push(entry);
-    runAllowedCallback(entry);
-
     return function () {
-      allowedCallbacks = allowedCallbacks.filter(function (item) {
-        return item !== entry;
-      });
+      return undefined;
     };
   }
 
@@ -248,12 +212,6 @@
     banner.hidden = false;
   }
 
-  function syncModalFields() {
-    if (functionalToggle) {
-      functionalToggle.checked = allows("functional");
-    }
-  }
-
   function openModal() {
     if (!root || !modal || !dialog) {
       return;
@@ -262,7 +220,6 @@
     lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     root.hidden = false;
     hideBanner();
-    syncModalFields();
     modal.hidden = false;
     document.documentElement.classList.add("site-privacy-controls-open");
     document.body.classList.add("site-privacy-controls-open");
@@ -271,8 +228,13 @@
     }, 0);
   }
 
-  function closeModal() {
+  function closeModal(saveIfUnanswered) {
     if (!modal) {
+      return;
+    }
+
+    if (saveIfUnanswered !== false && !hasChoice()) {
+      savePreferences();
       return;
     }
 
@@ -288,10 +250,6 @@
       }
     }
 
-    if (!hasChoice()) {
-      showBanner();
-    }
-
     if (lastFocusedElement && document.contains(lastFocusedElement)) {
       lastFocusedElement.focus();
     }
@@ -299,24 +257,16 @@
   }
 
   function handleAction(action) {
-    if (action === "accept-all") {
-      acceptAll();
-      return;
-    }
-    if (action === "reject") {
-      rejectNonEssential();
+    if (action === "continue-required" || action === "save") {
+      savePreferences();
       return;
     }
     if (action === "manage") {
       openModal();
       return;
     }
-    if (action === "save") {
-      savePreferences({ functional: Boolean(functionalToggle && functionalToggle.checked) });
-      return;
-    }
     if (action === "close") {
-      closeModal();
+      closeModal(true);
     }
   }
 
@@ -363,7 +313,6 @@
     banner = root.querySelector("[data-privacy-notice]");
     modal = root.querySelector("[data-privacy-modal]");
     dialog = root.querySelector(".site-privacy-controls__dialog");
-    functionalToggle = root.querySelector("[data-privacy-functional-toggle]");
 
     document.addEventListener("click", function (event) {
       var trigger = event.target && event.target.closest
@@ -388,7 +337,7 @@
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && modal && !modal.hidden) {
-        closeModal();
+        closeModal(true);
         return;
       }
       trapFocus(event);

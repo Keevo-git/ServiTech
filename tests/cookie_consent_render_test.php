@@ -7,9 +7,8 @@ if ($case === "invalid") {
     $_COOKIE["SERVITECH_COOKIE_CONSENT"] = "{}";
 } elseif ($case === "valid") {
     $_COOKIE["SERVITECH_COOKIE_CONSENT"] = json_encode([
-        "version" => "1",
+        "version" => "2",
         "necessary" => true,
-        "functional" => false,
         "updatedAt" => "2026-06-13T00:00:00.000Z",
     ]);
 }
@@ -45,6 +44,34 @@ if (!str_contains($html, 'id="privacy-settings"')
     || !str_contains($html, '.site-privacy-controls__modal:target')) {
     fwrite(STDERR, "Preferences modal or no-JavaScript hash fallback is missing.\n");
     exit(1);
+}
+
+foreach ([
+    "Functional Enhancements",
+    "Accept All",
+    "Reject Non-Essential",
+    "data-privacy-functional-toggle",
+    "CSRF",
+    "polling",
+    "realtime",
+    "workflow messages",
+] as $disallowedText) {
+    if (stripos($html, $disallowedText) !== false) {
+        fwrite(STDERR, "Rendered privacy UI contains disallowed text: {$disallowedText}\n");
+        exit(1);
+    }
+}
+
+foreach ([
+    "Continue with Required Only",
+    "show important system notifications",
+    "support Google sign-in when you choose it",
+    "does not currently use analytics, advertising, or marketing tracking cookies",
+] as $requiredText) {
+    if (!str_contains($html, $requiredText)) {
+        fwrite(STDERR, "Rendered privacy UI is missing required text: {$requiredText}\n");
+        exit(1);
+    }
 }
 
 $bannerHidden = preg_match('/\shidden(?:\s|$)/', (string)$bannerMatch["attributes"]) === 1;
