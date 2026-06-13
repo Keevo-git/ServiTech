@@ -33,85 +33,90 @@ if (!function_exists("servitech_render_cookie_consent")) {
         $consentScript = str_ireplace("</script", "<\/script", $consentScript);
         $serverHasChoice = servitech_cookie_consent_has_valid_cookie_choice();
         ?>
-<style data-cookie-consent-styles>
+<style data-site-privacy-controls-styles>
 <?= $consentStyles ?>
 </style>
 
 <div
-  class="cookie-consent"
-  id="servitechCookieConsent"
-  data-cookie-consent-root
-  data-cookie-path="<?= htmlspecialchars($cookiePath, ENT_QUOTES, 'UTF-8') ?>"
+  class="site-privacy-controls"
+  id="servitechPrivacyControls"
+  data-site-privacy-root
+  data-storage-path="<?= htmlspecialchars($cookiePath, ENT_QUOTES, 'UTF-8') ?>"
   data-server-has-choice="<?= $serverHasChoice ? "true" : "false" ?>"
-  <?= $serverHasChoice ? "hidden" : "" ?>
 >
-  <section class="cookie-consent__banner" data-cookie-banner role="region" aria-labelledby="cookieConsentTitle">
-    <div class="cookie-consent__copy">
-      <p class="cookie-consent__eyebrow">Privacy controls</p>
-      <h2 id="cookieConsentTitle">ServiTech uses necessary cookies and browser storage.</h2>
+  <section
+    class="site-privacy-controls__banner"
+    data-privacy-notice
+    role="region"
+    aria-labelledby="privacyControlsTitle"
+    <?= $serverHasChoice ? "hidden" : "" ?>
+  >
+    <div class="site-privacy-controls__copy">
+      <p class="site-privacy-controls__eyebrow">Privacy controls</p>
+      <h2 id="privacyControlsTitle">ServiTech uses necessary cookies and browser storage.</h2>
       <p>
         Necessary cookies and authentication storage keep login, Google account access, security checks, forms, uploads, notifications, and service pages working.
         Optional functional enhancements only run when you allow them.
       </p>
     </div>
-    <div class="cookie-consent__actions" aria-label="Cookie consent actions">
-      <button type="button" class="cookie-consent__btn cookie-consent__btn--primary" data-cookie-action="accept-all">Accept All</button>
-      <button type="button" class="cookie-consent__btn" data-cookie-action="reject">Reject Non-Essential</button>
-      <button type="button" class="cookie-consent__btn cookie-consent__btn--ghost" data-cookie-action="manage">Manage Preferences</button>
+    <div class="site-privacy-controls__actions" aria-label="Cookie consent actions">
+      <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--primary" data-privacy-action="accept-all">Accept All</button>
+      <button type="button" class="site-privacy-controls__btn" data-privacy-action="reject">Reject Non-Essential</button>
+      <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--ghost" data-privacy-action="manage">Manage Preferences</button>
     </div>
   </section>
 
-  <div class="cookie-consent__modal" data-cookie-modal hidden>
-    <div class="cookie-consent__backdrop" data-cookie-action="close" aria-hidden="true"></div>
+  <div class="site-privacy-controls__modal" id="privacy-settings" data-privacy-modal hidden>
+    <div class="site-privacy-controls__backdrop" data-privacy-action="close" aria-hidden="true"></div>
     <section
-      class="cookie-consent__dialog"
+      class="site-privacy-controls__dialog"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="cookiePreferencesTitle"
-      aria-describedby="cookiePreferencesIntro"
+      aria-labelledby="privacySettingsTitle"
+      aria-describedby="privacySettingsIntro"
       tabindex="-1"
     >
-      <button type="button" class="cookie-consent__close" data-cookie-action="close" aria-label="Close cookie preferences">
+      <a href="#privacy-settings-closed" class="site-privacy-controls__close" data-privacy-action="close" aria-label="Close cookie preferences">
         <span aria-hidden="true">&times;</span>
-      </button>
-      <div class="cookie-consent__dialog-head">
-        <p class="cookie-consent__eyebrow">Cookie Preferences</p>
-        <h2 id="cookiePreferencesTitle">Choose what ServiTech may use</h2>
-        <p id="cookiePreferencesIntro">
+      </a>
+      <div class="site-privacy-controls__dialog-head">
+        <p class="site-privacy-controls__eyebrow">Cookie Preferences</p>
+        <h2 id="privacySettingsTitle">Choose what ServiTech may use</h2>
+        <p id="privacySettingsIntro">
           You can change these settings later from the Cookie Preferences link in the footer.
         </p>
       </div>
 
-      <div class="cookie-consent__category">
+      <div class="site-privacy-controls__category">
         <div>
           <h3>Strictly Necessary</h3>
           <p>Required for login sessions, Google authentication when selected, CSRF protection, security checks, upload continuity, forms, notifications, and short-lived workflow messages.</p>
         </div>
-        <span class="cookie-consent__status" aria-label="Strictly necessary cookies are always active">Always active</span>
+        <span class="site-privacy-controls__status" aria-label="Strictly necessary cookies are always active">Always active</span>
       </div>
 
-      <label class="cookie-consent__category cookie-consent__category--toggle">
+      <label class="site-privacy-controls__category site-privacy-controls__category--toggle">
         <span>
           <strong>Functional Enhancements</strong>
           <span>Allows optional realtime notification enhancement. Core notifications continue through regular polling when this is off.</span>
         </span>
-        <input type="checkbox" data-cookie-functional-toggle>
+        <input type="checkbox" data-privacy-functional-toggle>
       </label>
 
-      <p class="cookie-consent__note">
+      <p class="site-privacy-controls__note">
         ServiTech does not currently use analytics, advertising, or marketing tracking cookies. Those categories are not shown because no active scripts were found for them.
       </p>
 
-      <div class="cookie-consent__dialog-actions">
-        <button type="button" class="cookie-consent__btn cookie-consent__btn--primary" data-cookie-action="save">Save Preferences</button>
-        <button type="button" class="cookie-consent__btn" data-cookie-action="reject">Reject Non-Essential</button>
-        <button type="button" class="cookie-consent__btn cookie-consent__btn--ghost" data-cookie-action="accept-all">Accept All</button>
+      <div class="site-privacy-controls__dialog-actions">
+        <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--primary" data-privacy-action="save">Save Preferences</button>
+        <button type="button" class="site-privacy-controls__btn" data-privacy-action="reject">Reject Non-Essential</button>
+        <button type="button" class="site-privacy-controls__btn site-privacy-controls__btn--ghost" data-privacy-action="accept-all">Accept All</button>
       </div>
     </section>
   </div>
 </div>
 
-<script data-cookie-consent-script>
+<script data-site-privacy-controls-script>
 <?= $consentScript ?>
 </script>
 <?php

@@ -273,7 +273,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     <?php if ($adminHeaderShowServices): ?>
       <a href="<?= admin_url('/index.php') ?>">Services</a>
     <?php endif; ?>
-    <a href="<?= admin_url('/privacy-policy.php#cookie-preferences') ?>" data-cookie-preferences-open>Cookie Preferences</a>
+    <a href="<?= admin_url('/privacy-policy.php#privacy-settings') ?>" data-privacy-settings-open>Cookie Preferences</a>
     <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="admin-logout-link">Logout</a>
   </nav>
 </header>

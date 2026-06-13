@@ -161,7 +161,7 @@ $effectiveDate = "June 13, 2026";
 
       <div class="legal-actions">
         <a class="legal-button" href="<?= htmlspecialchars(servitech_url('/terms-of-service.php'), ENT_QUOTES, 'UTF-8') ?>">Read Terms of Service</a>
-        <a class="legal-button legal-button--light" href="#cookie-preferences" data-cookie-preferences-open>Cookie Preferences</a>
+        <a class="legal-button legal-button--light" href="#privacy-settings" data-privacy-settings-open>Cookie Preferences</a>
         <a class="legal-button legal-button--light" href="<?= htmlspecialchars(servitech_url('/index.php'), ENT_QUOTES, 'UTF-8') ?>">Back to ServiTech</a>
       </div>
     </article>

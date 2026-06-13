@@ -46,12 +46,12 @@ function createBrowserState(sharedState) {
   const dialog = createElement();
   const toggle = createElement();
 
-  root.dataset.cookiePath = "/ServiTech/";
+  root.dataset.storagePath = "/ServiTech/";
   root.querySelector = (selector) => ({
-    "[data-cookie-banner]": banner,
-    "[data-cookie-modal]": modal,
-    ".cookie-consent__dialog": dialog,
-    "[data-cookie-functional-toggle]": toggle
+    "[data-privacy-notice]": banner,
+    "[data-privacy-modal]": modal,
+    ".site-privacy-controls__dialog": dialog,
+    "[data-privacy-functional-toggle]": toggle
   }[selector] || null);
 
   const document = {
@@ -67,7 +67,7 @@ function createBrowserState(sharedState) {
       return true;
     },
     querySelector(selector) {
-      return selector === "[data-cookie-consent-root]" ? root : null;
+      return selector === "[data-site-privacy-root]" ? root : null;
     }
   };
 
@@ -103,11 +103,17 @@ function createBrowserState(sharedState) {
 
   const window = {
     addEventListener() {},
+    history: {
+      replaceState() {}
+    },
     localStorage,
     location: {
       hash: "",
       hostname: "localhost",
+      pathname: "/index.php",
       protocol: "http:"
+      ,
+      search: ""
     },
     setTimeout(callback) {
       callback();
@@ -130,7 +136,7 @@ function createBrowserState(sharedState) {
   vm.runInNewContext(source, context, { filename: "cookie_consent.js" });
 
   return {
-    api: window.servitechCookieConsent,
+    api: window.servitechPrivacyControls,
     banner,
     modal,
     root,
@@ -143,7 +149,7 @@ function createBrowserState(sharedState) {
           return null;
         },
         hasAttribute(name) {
-          return name === "data-cookie-preferences-open";
+          return name === "data-privacy-settings-open";
         }
       };
       const event = {
@@ -174,6 +180,20 @@ function newSharedState() {
   const returningRejected = createBrowserState(shared);
   assert.strictEqual(returningRejected.banner.hidden, true, "saved rejection should suppress banner");
   assert.strictEqual(returningRejected.api.allows("functional"), false);
+}
+
+{
+  const shared = {
+    cookies: {
+      SERVITECH_COOKIE_CONSENT: encodeURIComponent("{}")
+    },
+    local: {
+      "servitech.cookieConsent": ""
+    }
+  };
+  const invalidVisit = createBrowserState(shared);
+  assert.strictEqual(invalidVisit.api.hasChoice(), false, "invalid storage must not count as a choice");
+  assert.strictEqual(invalidVisit.banner.hidden, false, "invalid storage should show the first-visit banner");
 }
 
 {

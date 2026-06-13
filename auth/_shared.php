@@ -121,7 +121,7 @@ if (!function_exists("render_auth_footer")) {
       <span aria-hidden="true">|</span>
       <a href="<?= auth_url("/terms-of-service.php") ?>">Terms of Service</a>
       <span aria-hidden="true">|</span>
-      <a href="<?= auth_url("/privacy-policy.php#cookie-preferences") ?>" class="cookie-preferences-link" data-cookie-preferences-open>Cookie Preferences</a>
+      <a href="<?= auth_url("/privacy-policy.php#privacy-settings") ?>" class="footer-privacy-settings-link" data-privacy-settings-open>Cookie Preferences</a>
     </div>
 
     <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>

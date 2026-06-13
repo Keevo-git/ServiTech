@@ -32,8 +32,8 @@
   }
 
   function cookiePath() {
-    if (root && root.dataset.cookiePath) {
-      return root.dataset.cookiePath;
+    if (root && root.dataset.storagePath) {
+      return root.dataset.storagePath;
     }
     return "/";
   }
@@ -220,7 +220,7 @@
     };
   }
 
-  window.servitechCookieConsent = {
+  window.servitechPrivacyControls = {
     version: VERSION,
     getPreferences: currentPreferences,
     hasChoice: hasChoice,
@@ -232,6 +232,7 @@
     acceptAll: acceptAll,
     rejectNonEssential: rejectNonEssential
   };
+  window.servitechCookieConsent = window.servitechPrivacyControls;
 
   function hideBanner() {
     if (banner) {
@@ -263,8 +264,8 @@
     hideBanner();
     syncModalFields();
     modal.hidden = false;
-    document.documentElement.classList.add("cookie-consent-open");
-    document.body.classList.add("cookie-consent-open");
+    document.documentElement.classList.add("site-privacy-controls-open");
+    document.body.classList.add("site-privacy-controls-open");
     window.setTimeout(function () {
       dialog.focus();
     }, 0);
@@ -276,8 +277,16 @@
     }
 
     modal.hidden = true;
-    document.documentElement.classList.remove("cookie-consent-open");
-    document.body.classList.remove("cookie-consent-open");
+    document.documentElement.classList.remove("site-privacy-controls-open");
+    document.body.classList.remove("site-privacy-controls-open");
+
+    if (window.location.hash === "#privacy-settings") {
+      if (window.history && typeof window.history.replaceState === "function") {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      } else {
+        window.location.hash = "privacy-settings-closed";
+      }
+    }
 
     if (!hasChoice()) {
       showBanner();
@@ -345,32 +354,32 @@
   }
 
   function initUi() {
-    root = document.querySelector("[data-cookie-consent-root]");
-    if (!root || root.dataset.cookieConsentReady === "true") {
+    root = document.querySelector("[data-site-privacy-root]");
+    if (!root || root.dataset.privacyControlsReady === "true") {
       return;
     }
 
-    root.dataset.cookieConsentReady = "true";
-    banner = root.querySelector("[data-cookie-banner]");
-    modal = root.querySelector("[data-cookie-modal]");
-    dialog = root.querySelector(".cookie-consent__dialog");
-    functionalToggle = root.querySelector("[data-cookie-functional-toggle]");
+    root.dataset.privacyControlsReady = "true";
+    banner = root.querySelector("[data-privacy-notice]");
+    modal = root.querySelector("[data-privacy-modal]");
+    dialog = root.querySelector(".site-privacy-controls__dialog");
+    functionalToggle = root.querySelector("[data-privacy-functional-toggle]");
 
     document.addEventListener("click", function (event) {
       var trigger = event.target && event.target.closest
-        ? event.target.closest("[data-cookie-action], [data-cookie-preferences-open]")
+        ? event.target.closest("[data-privacy-action], [data-privacy-settings-open]")
         : null;
       if (!trigger) {
         return;
       }
 
-      if (trigger.hasAttribute("data-cookie-preferences-open")) {
+      if (trigger.hasAttribute("data-privacy-settings-open")) {
         event.preventDefault();
         openModal();
         return;
       }
 
-      var action = trigger.getAttribute("data-cookie-action");
+      var action = trigger.getAttribute("data-privacy-action");
       if (action) {
         event.preventDefault();
         handleAction(action);
@@ -387,7 +396,7 @@
 
     if (window.addEventListener) {
       window.addEventListener("hashchange", function () {
-        if (window.location.hash === "#cookie-preferences") {
+        if (window.location.hash === "#privacy-settings") {
           openModal();
         }
       });
@@ -398,16 +407,15 @@
     } else {
       memoryPreferences = storedPreferences();
       synchronizePreferenceStorage(memoryPreferences);
-      root.hidden = false;
       hideBanner();
     }
 
-    if (window.location.hash === "#cookie-preferences") {
+    if (window.location.hash === "#privacy-settings") {
       openModal();
     }
   }
 
-  if (document.querySelector("[data-cookie-consent-root]")) {
+  if (document.querySelector("[data-site-privacy-root]")) {
     initUi();
   } else if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initUi);

@@ -146,7 +146,7 @@ servitech_log_smtp_config_status($check);
       <p><strong>Fallback config:</strong> <?= is_file($localConfigPath) ? "config/mail.local.php present" : "config/mail.local.php missing" ?></p>
       <p><strong>Private log:</strong> logs/forgot_password_mail.log</p>
       <p><a href="<?= admin_url("/pages/admin/admin_dashboard.php") ?>">Back to dashboard</a></p>
-      <p><a href="<?= admin_url("/privacy-policy.php#cookie-preferences") ?>" data-cookie-preferences-open>Cookie Preferences</a></p>
+      <p><a href="<?= admin_url("/privacy-policy.php#privacy-settings") ?>" data-privacy-settings-open>Cookie Preferences</a></p>
     </div>
   </main>
   <?php require_once __DIR__ . "/../../components/cookie_consent.php"; ?>
