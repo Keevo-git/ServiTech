@@ -37,11 +37,11 @@ The audit used the Philippine Data Privacy Act of 2012 and the NPC IRR as the ba
 
 | Category | Current usage | Control |
 | --- | --- | --- |
-| Strictly Necessary | `SERVITECHSESSID` session cookie, `SERVITECH_CSRF` CSRF cookie, server session authentication/Supabase token state, form/session continuity, protected upload/download state, notification security requests, and short-lived sessionStorage used for join-queue safety or redirect/toast messages | Always active because login, security, forms, uploads, notifications, and core workflows depend on them |
-| Functional / Preferences | Google Sign-In browser client and optional Supabase realtime notification enhancement | Disabled until Functional Services consent is accepted; rejection falls back to email/password login and notification polling |
+| Strictly Necessary | `SERVITECHSESSID` session cookie, `SERVITECH_CSRF` CSRF cookie, server session authentication/Supabase token state, Google authentication support when selected, form/session continuity, protected upload/download state, notification security requests, and short-lived sessionStorage used for join-queue safety or redirect/toast messages | Always active because login, requested authentication, security, forms, uploads, notifications, and core workflows depend on them |
+| Functional / Preferences | Optional Supabase realtime notification enhancement | Disabled until Functional Enhancements consent is accepted; rejection uses regular notification polling |
 | Analytics / Performance | No active analytics script, beacon, Google Analytics, dataLayer, or performance-tracking tag found in the live code scan | Not shown in the preference center because it is not currently used |
 | Marketing / Tracking | No active ad pixel, marketing tag, retargeting script, or marketing embed found in the live code scan | Not shown in the preference center because it is not currently used |
-| Other browser storage | Cookie consent preference cookie `SERVITECH_COOKIE_CONSENT`; Google Identity may create `g_state` after functional consent | Consent preference is treated as necessary to remember the user's choice; `g_state` cleanup is attempted when functional services are rejected |
+| Other browser storage | Cookie consent preference cookie `SERVITECH_COOKIE_CONSENT`, necessary localStorage fallback `servitech.cookieConsent`, and Google Identity auth state such as `g_state` when Google authentication is used | Consent preference storage is necessary to remember the user's choice; Google auth state is necessary for the user-requested authentication flow |
 
 ## Findings
 
@@ -86,7 +86,7 @@ No critical code-level exposure was confirmed in this static audit after the dir
 3. Optional browser clients previously loaded without a cookie preference gate.
    - Location: `auth/log_in.php`, `auth/regis.php`, `components/header.php`.
    - Risk: third-party functional services could initialize before the user made a browser-storage choice.
-   - Fix implemented: added category-aware consent gating for Google Sign-In and Supabase realtime notification enhancement.
+   - Fix implemented: Supabase realtime notification enhancement is consent-gated. Google Sign-In is classified as necessary for the user-requested authentication flow and is not blocked by optional-cookie rejection.
    - Remaining: if future analytics or marketing scripts are added, wire them to explicit categories before loading.
 
 4. Admin access is broad and single-role.

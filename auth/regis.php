@@ -318,7 +318,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Cookies and Browser Storage</h3>
-            <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, CSRF protection, form safety, uploads, notifications, and short-lived workflow messages. Optional functional services, including Google Sign-In and realtime notification enhancement, only load when allowed through Cookie Preferences. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
+            <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, Google authentication when selected, CSRF protection, form safety, uploads, notifications, and short-lived workflow messages. Optional realtime notification enhancement follows Cookie Preferences. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
           </section>
           <section class="policy-section">
             <h3>Data Retention</h3>
@@ -781,25 +781,6 @@ $csrfToken = servitech_csrf_token();
     let registerGoogleClientScriptLoaded = Boolean(window.google && google.accounts && google.accounts.id);
     let registerGoogleSignInInitialized = false;
 
-    function showRegisterGoogleConsentNotice() {
-      const signInHint = document.getElementById("registerGoogleSignInHint");
-      const signInSlot = document.getElementById("registerGoogleSignInSlot");
-      const fallbackButton = document.getElementById("registerGoogleFallbackButton");
-      const fallbackLabel = document.getElementById("registerGoogleFallbackLabel");
-
-      registerGoogleSignInInitialized = false;
-      if (signInSlot) signInSlot.replaceChildren();
-      if (fallbackButton) fallbackButton.disabled = true;
-      if (fallbackLabel) fallbackLabel.textContent = "Continue with Google Account";
-      if (signInHint) {
-        signInHint.textContent = "Google account sign-in uses an optional browser service. Allow Functional Services in Cookie Preferences to use it, or create an account with the form.";
-        signInHint.hidden = false;
-      }
-      if (window.google && google.accounts && google.accounts.id && typeof google.accounts.id.cancel === "function") {
-        google.accounts.id.cancel();
-      }
-    }
-
     function startRegisterGoogleSignInWhenReady() {
       if (registerGoogleSignInInitialized) {
         return;
@@ -860,11 +841,7 @@ $csrfToken = servitech_csrf_token();
       document.head.appendChild(script);
     }
 
-    if (window.servitechCookieConsent) {
-      window.servitechCookieConsent.whenAllowed("functional", loadRegisterGoogleClientScript, showRegisterGoogleConsentNotice);
-    } else {
-      showRegisterGoogleConsentNotice();
-    }
+    loadRegisterGoogleClientScript();
   </script>
 
 <?php servitech_render_guest_history_guard(); ?>

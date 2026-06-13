@@ -10,7 +10,7 @@ if (!function_exists("servitech_render_cookie_consent")) {
         }
         $rendered = true;
 
-        $assetVersion = "20260613-cookie-consent";
+        $assetVersion = "20260613-cookie-consent-hardfix";
         $cookiePath = servitech_cookie_path();
         ?>
 <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/cookie-consent.css?v=' . $assetVersion), ENT_QUOTES, 'UTF-8') ?>">
@@ -27,8 +27,8 @@ if (!function_exists("servitech_render_cookie_consent")) {
       <p class="cookie-consent__eyebrow">Privacy controls</p>
       <h2 id="cookieConsentTitle">ServiTech uses necessary cookies and browser storage.</h2>
       <p>
-        Necessary cookies keep login, security checks, forms, uploads, notifications, and service pages working.
-        Optional functional services, such as Google Sign-In and realtime notification enhancement, only run when you allow them.
+        Necessary cookies and authentication storage keep login, Google account access, security checks, forms, uploads, notifications, and service pages working.
+        Optional functional enhancements only run when you allow them.
       </p>
     </div>
     <div class="cookie-consent__actions" aria-label="Cookie consent actions">
@@ -62,15 +62,15 @@ if (!function_exists("servitech_render_cookie_consent")) {
       <div class="cookie-consent__category">
         <div>
           <h3>Strictly Necessary</h3>
-          <p>Required for login sessions, CSRF protection, security checks, upload continuity, forms, notifications, and short-lived workflow messages.</p>
+          <p>Required for login sessions, Google authentication when selected, CSRF protection, security checks, upload continuity, forms, notifications, and short-lived workflow messages.</p>
         </div>
         <span class="cookie-consent__status" aria-label="Strictly necessary cookies are always active">Always active</span>
       </div>
 
       <label class="cookie-consent__category cookie-consent__category--toggle">
         <span>
-          <strong>Functional Services</strong>
-          <span>Allows optional Google Sign-In and realtime notification enhancement. Core email/password login and notification polling still work when this is off.</span>
+          <strong>Functional Enhancements</strong>
+          <span>Allows optional realtime notification enhancement. Core notifications continue through regular polling when this is off.</span>
         </span>
         <input type="checkbox" data-cookie-functional-toggle>
       </label>

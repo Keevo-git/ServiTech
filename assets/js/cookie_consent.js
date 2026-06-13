@@ -2,7 +2,8 @@
   "use strict";
 
   var COOKIE_NAME = "SERVITECH_COOKIE_CONSENT";
-  var VERSION = "2026-06-13";
+  var STORAGE_KEY = "servitech.cookieConsent";
+  var VERSION = "1";
   var MAX_AGE = 60 * 60 * 24 * 180;
   var DEFAULT_PREFERENCES = {
     version: VERSION,
@@ -19,6 +20,7 @@
   var modal = null;
   var dialog = null;
   var functionalToggle = null;
+  var memoryPreferences = null;
 
   function clonePreferences(preferences) {
     return {
@@ -43,49 +45,81 @@
   }
 
   function writeCookie(value) {
+    var expires = new Date(Date.now() + (MAX_AGE * 1000)).toUTCString();
     document.cookie = COOKIE_NAME + "=" + encodeURIComponent(JSON.stringify(value))
       + "; Max-Age=" + MAX_AGE
+      + "; Expires=" + expires
       + "; Path=" + cookiePath()
       + "; SameSite=Lax"
       + (window.location.protocol === "https:" ? "; Secure" : "");
+
+    return Boolean(readCookie(COOKIE_NAME));
   }
 
-  function expireCookie(name, path, domain) {
-    document.cookie = name + "=; Max-Age=0; Path=" + path
-      + (domain ? "; Domain=" + domain : "")
-      + "; SameSite=Lax";
-  }
-
-  function cleanupFunctionalStorage() {
-    var host = window.location.hostname || "";
-    var domains = [""];
-    if (host && host.indexOf(".") !== -1) {
-      domains.push(host);
-      domains.push("." + host.replace(/^\./, ""));
+  function readLocalPreferences() {
+    try {
+      return window.localStorage.getItem(STORAGE_KEY) || "";
+    } catch (error) {
+      return "";
     }
-
-    [cookiePath(), "/"].forEach(function (path) {
-      domains.forEach(function (domain) {
-        expireCookie("g_state", path, domain);
-      });
-    });
   }
 
-  function storedPreferences() {
-    var raw = readCookie(COOKIE_NAME);
+  function writeLocalPreferences(value) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+      return window.localStorage.getItem(STORAGE_KEY) !== null;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function parsePreferences(raw) {
     if (!raw) {
       return null;
     }
 
     try {
       var parsed = JSON.parse(raw);
-      if (!parsed || parsed.version !== VERSION || parsed.necessary !== true) {
+      if (!parsed || parsed.necessary !== true || typeof parsed.functional !== "boolean") {
         return null;
       }
       return clonePreferences(parsed);
     } catch (error) {
       return null;
     }
+  }
+
+  function preferenceTime(preferences) {
+    var value = preferences && preferences.updatedAt ? Date.parse(preferences.updatedAt) : 0;
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  function storedPreferences() {
+    if (memoryPreferences) {
+      return clonePreferences(memoryPreferences);
+    }
+
+    var cookiePreferences = parsePreferences(readCookie(COOKIE_NAME));
+    var localPreferences = parsePreferences(readLocalPreferences());
+
+    if (!cookiePreferences) {
+      return localPreferences;
+    }
+    if (!localPreferences) {
+      return cookiePreferences;
+    }
+
+    return preferenceTime(localPreferences) > preferenceTime(cookiePreferences)
+      ? localPreferences
+      : cookiePreferences;
+  }
+
+  function synchronizePreferenceStorage(preferences) {
+    if (!preferences) {
+      return;
+    }
+    writeCookie(preferences);
+    writeLocalPreferences(preferences);
   }
 
   function currentPreferences() {
@@ -123,11 +157,8 @@
   function savePreferences(partial) {
     var next = clonePreferences(partial);
     next.updatedAt = new Date().toISOString();
-    writeCookie(next);
-
-    if (!next.functional) {
-      cleanupFunctionalStorage();
-    }
+    memoryPreferences = next;
+    synchronizePreferenceStorage(next);
 
     hideBanner();
     closeModal();
@@ -352,12 +383,16 @@
     if (!hasChoice()) {
       showBanner();
     } else {
+      memoryPreferences = storedPreferences();
+      synchronizePreferenceStorage(memoryPreferences);
       root.hidden = false;
       hideBanner();
     }
   }
 
-  if (document.readyState === "loading") {
+  if (document.querySelector("[data-cookie-consent-root]")) {
+    initUi();
+  } else if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initUi);
   } else {
     initUi();

@@ -1469,6 +1469,8 @@ $notificationRoutes = [
       var notificationPollTimer = null;
       var notificationRefreshInFlight = false;
       var realtimeConnected = false;
+      var realtimeClient = null;
+      var realtimeChannel = null;
       var notificationPollMs = 4000;
 
       function syncPanelMode() {
@@ -2028,9 +2030,12 @@ $notificationRoutes = [
           return;
         }
 
-        var supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+        if (realtimeChannel) {
+          return;
+        }
 
-        supabaseClient
+        realtimeClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+        realtimeChannel = realtimeClient
           .channel("notifications")
           .on(
             "postgres_changes",
@@ -2055,6 +2060,26 @@ $notificationRoutes = [
               startNotificationPolling();
             }
           });
+      }
+
+      function stopRealtime() {
+        realtimeConnected = false;
+        if (!realtimeChannel) {
+          return;
+        }
+
+        try {
+          if (realtimeClient && typeof realtimeClient.removeChannel === "function") {
+            realtimeClient.removeChannel(realtimeChannel);
+          } else if (typeof realtimeChannel.unsubscribe === "function") {
+            realtimeChannel.unsubscribe();
+          }
+        } catch (error) {
+          console.warn("Supabase realtime cleanup failed.", error);
+        }
+
+        realtimeChannel = null;
+        realtimeClient = null;
       }
 
       var supabaseClientScriptLoading = false;
@@ -2102,6 +2127,7 @@ $notificationRoutes = [
             startNotificationPolling();
           });
         }, function () {
+          stopRealtime();
           startNotificationPolling();
         });
       }

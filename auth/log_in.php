@@ -234,7 +234,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Cookies and Browser Storage</h3>
-            <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, CSRF protection, form safety, uploads, notifications, and short-lived workflow messages. Optional functional services, including Google Sign-In and realtime notification enhancement, only load when allowed through Cookie Preferences. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
+            <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, Google authentication when selected, CSRF protection, form safety, uploads, notifications, and short-lived workflow messages. Optional realtime notification enhancement follows Cookie Preferences. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
           </section>
           <section class="policy-section">
             <h3>Data Retention</h3>
@@ -647,17 +647,6 @@ $csrfToken = servitech_csrf_token();
     let googleClientScriptLoaded = Boolean(window.google && google.accounts && google.accounts.id);
     let googleSignInInitialized = false;
 
-    function showGoogleConsentNotice() {
-      googleSignInInitialized = false;
-      googleFallbackButton.disabled = true;
-      googleFallbackLabel.textContent = "Continue with Google Account";
-      googleSignInHint.textContent = "Google account sign-in uses an optional browser service. Allow Functional Services in Cookie Preferences to use it, or sign in with email and password.";
-      googleSignInSlot.replaceChildren();
-      if (window.google && google.accounts && google.accounts.id && typeof google.accounts.id.cancel === "function") {
-        google.accounts.id.cancel();
-      }
-    }
-
     function startGoogleSignInWhenReady() {
       if (googleSignInInitialized) {
         return;
@@ -709,11 +698,7 @@ $csrfToken = servitech_csrf_token();
       document.head.appendChild(script);
     }
 
-    if (window.servitechCookieConsent) {
-      window.servitechCookieConsent.whenAllowed("functional", loadGoogleClientScript, showGoogleConsentNotice);
-    } else {
-      showGoogleConsentNotice();
-    }
+    loadGoogleClientScript();
   </script>
 
 <?php servitech_render_guest_history_guard(); ?>
