@@ -25,7 +25,14 @@ function admin_dashboard_fetch_rows(PDO $pdo, string $sql, array $params = []): 
 function fetch_admin_dashboard_stats(PDO $pdo): array
 {
     // ✅ CUSTOMERS
-    $customers = admin_dashboard_safe_count($pdo, "SELECT COUNT(*) FROM users");
+    $customers = admin_dashboard_safe_count(
+        $pdo,
+        "
+        SELECT COUNT(*)
+        FROM users
+        WHERE LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'customer'
+        "
+    );
 
     // ✅ ONLINE ORDERS (BRUTE-FORCE FIX - WILL NOT RETURN 0 UNLESS NO DATA)
     $onlineOrders = admin_dashboard_safe_count(

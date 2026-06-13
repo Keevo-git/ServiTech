@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/google_auth.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/registration_notifications.php";
 
 servitech_enforce_same_origin(true);
 servitech_enforce_csrf_token(true);
@@ -68,6 +69,15 @@ if (servitech_supabase_auth_enabled()) {
         }
 
         $applicationProfile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        if (!is_array($existing) && ($applicationProfile["role"] ?? "customer") !== "admin") {
+            $profileFullname = trim((string)($authUser["user_metadata"]["full_name"] ?? $authUser["user_metadata"]["name"] ?? ""));
+            servitech_notify_admin_new_customer(
+                $privilegedPdo,
+                (int)($applicationProfile["id"] ?? 0),
+                $profileFullname,
+                $authEmail
+            );
+        }
         echo json_encode([
             "ok" => true,
             "redirect" => ($applicationProfile["role"] ?? "customer") === "admin"
@@ -111,6 +121,7 @@ if ($fullName === "") {
 }
 
 try {
+    $createdCustomer = false;
     $findUser = $pdo->prepare("
         SELECT id, email,
                COALESCE(NULLIF(to_jsonb(users)->>'fullname', ''), :full_name) AS fullname,
@@ -210,10 +221,14 @@ try {
         $inserted = $insertUser->fetch();
         $userId = (int)($inserted["id"] ?? 0);
         $role = strtolower((string)($inserted["role"] ?? "customer"));
+        $createdCustomer = $role !== "admin";
     }
 
     if ($userId <= 0) {
         throw new RuntimeException("Could not resolve authenticated user.");
+    }
+    if ($createdCustomer) {
+        servitech_notify_admin_new_customer($pdo, $userId, $fullName, $email);
     }
 
     session_regenerate_id(true);

@@ -7,6 +7,7 @@ require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
 require_once __DIR__ . "/../config/mail.php";
+require_once __DIR__ . "/registration_notifications.php";
 
 servitech_enforce_same_origin(false);
 servitech_enforce_csrf_token(false);
@@ -84,6 +85,14 @@ if (servitech_supabase_auth_enabled()) {
             "consent_version" => servitech_account_consent_version(),
         ]);
         $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        if (($profile["role"] ?? "customer") !== "admin") {
+            servitech_notify_admin_new_customer(
+                $privilegedPdo,
+                (int)($profile["id"] ?? 0),
+                $fullname,
+                $email
+            );
+        }
         header("Location: " . servitech_url(
             ($profile["role"] ?? "customer") === "admin"
                 ? "/pages/admin/admin_dashboard.php"
@@ -154,6 +163,7 @@ try {
                 NOW(), :consent_version,
                 :email_verification_token, :email_verification_expires, :email_verification_sent_at
             )
+            RETURNING id
         ");
         $ins->execute($params);
     } catch (PDOException $e) {
@@ -168,9 +178,16 @@ try {
                 NOW(), :consent_version,
                 :email_verification_token, :email_verification_expires, :email_verification_sent_at
             )
+            RETURNING id
         ");
         $ins->execute($params);
     }
+    $customerId = (int)($ins->fetchColumn() ?: 0);
+    if ($customerId <= 0) {
+        throw new RuntimeException("Registration did not return a customer ID.");
+    }
+
+    servitech_notify_admin_new_customer($pdo, $customerId, $fullname, $email);
 
     if (is_string($verification["token"])) {
         $mailResult = servitech_send_email_verification_mail(

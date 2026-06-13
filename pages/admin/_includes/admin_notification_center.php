@@ -24,6 +24,9 @@ if (!function_exists("admin_notification_event_category")) {
         $message = strtolower((string)($row["message"] ?? ""));
         $isTodaysNotification = admin_notification_is_today((string)($row["created_at"] ?? ""));
 
+        if ($type === "new_customer_registration") {
+            return "new-customers";
+        }
         if ($type === "admin_stalled" || str_contains($message, "without admin action")) {
             return "stalled-orders";
         }
@@ -116,8 +119,12 @@ if (!function_exists("admin_notification_type_label")) {
         if ($type === "admin_new_order") {
             return "New Order";
         }
+        if ($type === "new_customer_registration") {
+            return "New Registered Customer";
+        }
 
         return match (admin_notification_event_category($row)) {
+            "new-customers" => "New Registered Customer",
             "new-orders" => "New Order",
             "cancelled" => "Cancelled",
             "stalled-orders" => "Stalled Order",
@@ -129,6 +136,15 @@ if (!function_exists("admin_notification_type_label")) {
 if (!function_exists("admin_notification_target_url")) {
     function admin_notification_target_url(array $row): string
     {
+        $type = admin_notification_type_key((string)($row["type"] ?? ""));
+        if ($type === "new_customer_registration") {
+            $eventKey = trim((string)($row["event_key"] ?? ""));
+            if (preg_match('/^new_customer_registration:(\d+)$/', $eventKey, $matches)) {
+                return admin_url("/pages/admin/customer_list/customer_details.php?id=" . (int)$matches[1]);
+            }
+            return admin_url("/pages/admin/customer_list/custoL.php");
+        }
+
         $queueId = (int)($row["reference_id"] ?? 0);
         $category = strtolower(trim((string)($row["queue_category"] ?? "")));
         $lifecycleStage = strtoupper(trim((string)($row["lifecycle_stage"] ?? "QUEUE")));
@@ -210,6 +226,7 @@ if (!function_exists("admin_notification_center_data")) {
         $counts = [
             "all" => 0,
             "unread" => 0,
+            "new-customers" => 0,
             "new-orders" => 0,
             "cancelled" => 0,
             "stalled-orders" => 0,
@@ -716,6 +733,11 @@ if (!function_exists("admin_notification_render_styles")) {
     color: #b42318;
   }
 
+  .admin-notification-item__category--new-customers {
+    background: #e9f8f2;
+    color: #08765a;
+  }
+
   .admin-notification-item__category--stalled-orders {
     background: #fff7e6;
     color: #8a4b00;
@@ -1004,6 +1026,7 @@ if (!function_exists("admin_notification_render_center")) {
         $counts = array_merge([
             "all" => 0,
             "unread" => 0,
+            "new-customers" => 0,
             "new-orders" => 0,
             "cancelled" => 0,
             "stalled-orders" => 0,
@@ -1039,7 +1062,7 @@ if (!function_exists("admin_notification_render_center")) {
       <div class="admin-notification-head">
         <div>
           <h1 id="<?= admin_notification_h($titleId) ?>">Notification Center</h1>
-          <p><strong data-admin-notification-summary><?= $unreadCount ?> unread</strong> order requests, cancellations, and stalled-work reminders</p>
+          <p><strong data-admin-notification-summary><?= $unreadCount ?> unread</strong> customer registrations and service updates</p>
         </div>
         <?php if ($isOverlay): ?>
           <button type="button" class="admin-notification-close" data-admin-notification-close aria-label="Close notifications">Close</button>
@@ -1056,6 +1079,7 @@ if (!function_exists("admin_notification_render_center")) {
             $filters = [
                 "all" => "All",
                 "unread" => "Unread",
+                "new-customers" => "New Customers",
                 "new-orders" => "New Orders",
                 "cancelled" => "Cancelled",
                 "stalled-orders" => "Stalled Orders",
@@ -1113,7 +1137,7 @@ if (!function_exists("admin_notification_render_center")) {
           <div class="admin-notification-list" data-admin-notification-list>
             <div class="admin-notification-empty" data-admin-notification-empty <?= empty($notifications) ? "" : "hidden" ?>>
               <strong>No notifications yet.</strong>
-              <span>New requests, cancellations, and stalled orders will appear here.</span>
+              <span>New customer registrations and service updates will appear here.</span>
             </div>
 
             <?php foreach ($notifications as $notification): ?>
@@ -1292,6 +1316,7 @@ if (!function_exists("admin_notification_render_script")) {
       var counts = {
         all: 0,
         unread: 0,
+        "new-customers": 0,
         "new-orders": 0,
         cancelled: 0,
         "stalled-orders": 0,
