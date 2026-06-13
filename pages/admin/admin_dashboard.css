@@ -690,9 +690,9 @@ body.admin-dashboard .dashboard-content .admin-quick-grid{
   grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
   gap: 24px !important;
   align-items: stretch !important;
-  width: min(100%, 920px) !important;
-  max-width: 920px !important;
-  margin-inline: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
 }
 
 body.admin-dashboard .dashboard-content .admin-quick-card-link{
@@ -849,8 +849,8 @@ body.admin-dashboard .footer-bottom{
 
   body.admin-dashboard .dashboard-content .admin-quick-grid{
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    width: min(100%, 720px) !important;
-    max-width: 720px !important;
+    width: 100% !important;
+    max-width: none !important;
   }
 
   body.admin-dashboard .dashboard-content .admin-quick-card-link,
