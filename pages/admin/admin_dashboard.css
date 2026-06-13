@@ -684,6 +684,62 @@ body.admin-dashboard .card p{
   text-align: center;
 }
 
+/* Explicit dashboard action-card layout; isolated from generic .card rules. */
+body.admin-dashboard .dashboard-content .admin-quick-grid{
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+}
+
+body.admin-dashboard .dashboard-content .admin-quick-card-link{
+  display: flex !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  align-self: stretch !important;
+  color: inherit;
+  text-decoration: none;
+}
+
+body.admin-dashboard .dashboard-content .admin-quick-card{
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 184px !important;
+  padding: 30px 24px !important;
+  text-align: center !important;
+}
+
+body.admin-dashboard .dashboard-content .admin-quick-card .admin-quick-icon{
+  display: inline-flex !important;
+  flex: 0 0 60px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 60px !important;
+  min-width: 60px !important;
+  height: 60px !important;
+  min-height: 60px !important;
+  margin: 0 auto 2px !important;
+  border-radius: 13px;
+  font-size: 26px !important;
+}
+
+body.admin-dashboard .dashboard-content .admin-quick-card h4{
+  margin: 0 !important;
+  text-align: center !important;
+}
+
+body.admin-dashboard .dashboard-content .admin-quick-card p{
+  margin: 0 !important;
+  text-align: center !important;
+  line-height: 1.45 !important;
+}
+
 body.admin-dashboard .footer{
   margin-top: 30px;
   background: linear-gradient(120deg, #112b4f, #1a3f73 52%, #265792);
@@ -787,6 +843,10 @@ body.admin-dashboard .footer-bottom{
   body.admin-dashboard .analytics-section{
     grid-template-columns: repeat(2, 1fr);
   }
+
+  body.admin-dashboard .dashboard-content .admin-quick-grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 }
 
 @media (max-width: 600px){
@@ -815,6 +875,15 @@ body.admin-dashboard .footer-bottom{
   body.admin-dashboard .card{
     min-height: 160px;
     padding: 22px 18px;
+  }
+
+  body.admin-dashboard .dashboard-content .admin-quick-grid{
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.admin-dashboard .dashboard-content .admin-quick-card{
+    min-height: 164px !important;
+    padding: 28px 20px !important;
   }
 
   body.admin-dashboard .topbar .btn,

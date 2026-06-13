@@ -29,7 +29,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <title>ServiTech Admin Dashboard</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260613-admin-quick-access') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -96,26 +96,26 @@ require __DIR__ . "/_includes/admin_header.php";
 
   <h3 class="section-title">Quick Access</h3>
 
-  <section class="quick-grid quick-access-section quick-access-grid">
-    <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link">
-      <article class="card">
-        <div class="icon">&#x23F3;</div>
+  <section class="quick-grid quick-access-section quick-access-grid admin-quick-grid">
+    <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon admin-quick-icon">&#x23F3;</div>
         <h4>Queue List</h4>
         <p>View and update queues</p>
       </article>
     </a>
 
-    <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link">
-      <article class="card">
-        <div class="icon">&#x1F4E6;</div>
+    <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon admin-quick-icon">&#x1F4E6;</div>
         <h4>Order Management</h4>
         <p>Manage customer orders</p>
       </article>
     </a>
 
-    <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>" class="card-link">
-      <article class="card">
-        <div class="icon icon--customer-list" aria-hidden="true">
+    <a href="<?= project_url('/pages/admin/customer_list/custoL.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon icon--customer-list admin-quick-icon" aria-hidden="true">
           <img
             src="<?= project_url('/pages/admin/IMAGES/LANDING_CUSTOMER_LIST.png?v=20260411h4') ?>"
             alt=""
@@ -127,17 +127,17 @@ require __DIR__ . "/_includes/admin_header.php";
       </article>
     </a>
 
-    <a href="<?= project_url('/pages/admin/Services/edit_services.php') ?>" class="card-link">
-      <article class="card">
-        <div class="icon">&#x270F;&#xFE0F;</div>
+    <a href="<?= project_url('/pages/admin/Services/edit_services.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon admin-quick-icon">&#x270F;&#xFE0F;</div>
         <h4>Edit Services</h4>
         <p>Edit the shown services on the landing page</p>
       </article>
     </a>
 
-    <a href="<?= project_url('/pages/admin/announcement.php') ?>" class="card-link">
-      <article class="card card--announcement">
-        <div class="icon" aria-hidden="true">&#x1F4E2;</div>
+    <a href="<?= project_url('/pages/admin/announcement.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card card--announcement admin-quick-card">
+        <div class="icon admin-quick-icon" aria-hidden="true">&#x1F4E2;</div>
         <h4>Announcement</h4>
         <p>Post a notice on the landing page</p>
       </article>
