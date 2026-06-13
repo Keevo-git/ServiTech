@@ -414,7 +414,7 @@ $notificationRoutes = [
           </span>
         </button>
 
-        <div class="notification-backdrop" data-notification-backdrop aria-hidden="true"></div>
+        <div class="notification-backdrop" data-notification-backdrop aria-hidden="true" hidden></div>
 
         <section
           id="notificationPanel"
@@ -424,6 +424,7 @@ $notificationRoutes = [
           aria-labelledby="notificationPanelTitle"
           aria-modal="false"
           aria-hidden="true"
+          hidden
           tabindex="-1"
         >
           <div class="notification-dropdown__header">
@@ -680,6 +681,11 @@ $notificationRoutes = [
     visibility: hidden;
     pointer-events: none;
     transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  .notification-backdrop[hidden],
+  .notification-dropdown[hidden] {
+    display: none !important;
   }
 
   .notification-backdrop.is-open {
@@ -1469,10 +1475,14 @@ $notificationRoutes = [
 
       function syncPanelMode() {
         var isOpen = dropdown.classList.contains("is-open");
+        dropdown.hidden = !isOpen;
         dropdown.setAttribute("aria-modal", isOpen ? "true" : "false");
+        dropdown.setAttribute("aria-hidden", isOpen ? "false" : "true");
         document.body.classList.toggle("notifications-open", isOpen);
+        backdrop.hidden = !isOpen;
         backdrop.classList.toggle("is-open", isOpen);
         backdrop.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        toggleButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
       }
 
       function formatDate(value) {
@@ -1815,9 +1825,9 @@ $notificationRoutes = [
       }
 
       function openDropdown() {
+        dropdown.hidden = false;
+        backdrop.hidden = false;
         dropdown.classList.add("is-open");
-        dropdown.setAttribute("aria-hidden", "false");
-        toggleButton.setAttribute("aria-expanded", "true");
         syncPanelMode();
         window.setTimeout(function () {
           dropdown.focus({ preventScroll: true });
@@ -1832,8 +1842,6 @@ $notificationRoutes = [
 
         var shouldRestoreFocus = !options || options.restoreFocus !== false;
         dropdown.classList.remove("is-open");
-        dropdown.setAttribute("aria-hidden", "true");
-        toggleButton.setAttribute("aria-expanded", "false");
         syncPanelMode();
 
         if (shouldRestoreFocus) {
@@ -2155,9 +2163,7 @@ $notificationRoutes = [
       window.markSelectedNotificationsAsRead = markSelectedAsRead;
       window.deleteSelectedNotifications = deleteSelectedNotifications;
 
-      if (new URL(window.location.href).searchParams.get("notifications") === "open") {
-        openDropdown();
-      }
+      closeDropdown({ restoreFocus: false });
 
       refreshNotifications()
         .finally(function () {

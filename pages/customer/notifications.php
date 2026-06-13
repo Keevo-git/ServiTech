@@ -12,5 +12,5 @@ if (servitech_is_admin()) {
 }
 
 // Customer notifications are maintained by the shared header dropdown.
-header("Location: " . servitech_url("/pages/customer/customer_dash.php?notifications=open"));
+header("Location: " . servitech_url("/pages/customer/customer_dash.php"));
 exit();
