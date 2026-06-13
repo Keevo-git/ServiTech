@@ -102,6 +102,39 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     outline-offset: 2px;
   }
 
+  .admin-shared-header .admin-header-actions .admin-logout-link,
+  .admin-shared-header .admin-header-actions .admin-logout-link:visited {
+    display: inline-flex;
+    flex: 0 0 auto;
+    min-height: 46px;
+    margin: 0;
+    padding: 11px 20px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 190, 198, 0.64);
+    border-radius: 12px;
+    background: rgba(174, 45, 62, 0.28);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+  }
+
+  .admin-shared-header .admin-header-actions .admin-logout-link:hover {
+    border-color: rgba(255, 210, 216, 0.86);
+    background: rgba(201, 55, 74, 0.62);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  .admin-shared-header .admin-header-actions .admin-logout-link:focus-visible {
+    outline: 2px solid rgba(255, 220, 224, 0.94);
+    outline-offset: 2px;
+  }
+
   @media (max-width: 900px) {
     .admin-shared-header {
       position: sticky !important;
@@ -149,6 +182,13 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       margin: 0 !important;
       pointer-events: auto !important;
       z-index: 2 !important;
+    }
+
+    .admin-shared-header .admin-header-actions .admin-logout-link,
+    .admin-shared-header .admin-header-actions .admin-logout-link:visited {
+      min-height: 42px;
+      padding: 10px 14px;
+      font-size: 14px;
     }
 
     .admin-shared-header nav[data-collapsible-menu] {
@@ -223,6 +263,12 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       border-radius: 11px !important;
     }
 
+    .admin-shared-header .admin-header-actions .admin-logout-link,
+    .admin-shared-header .admin-header-actions .admin-logout-link:visited {
+      min-height: 40px;
+      padding-inline: 11px;
+    }
+
     .admin-shared-header .admin-notification-icon {
       width: 24px;
       height: 24px;
@@ -234,6 +280,15 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     <img src="<?= admin_url('/assets/images/LOGO_SERVITECH.png') ?>" alt="ServiTech Logo">
     <h1>ServiTech Admin</h1>
   </a>
+  <nav id="<?= htmlspecialchars($adminHeaderMenuId, ENT_QUOTES, 'UTF-8') ?>" data-collapsible-menu>
+    <?php if ($adminHeaderShowHome): ?>
+      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
+    <?php endif; ?>
+    <?php if ($adminHeaderShowServices): ?>
+      <a href="<?= admin_url('/index.php') ?>">Services</a>
+    <?php endif; ?>
+    <a href="<?= admin_url('/privacy-policy.php#privacy-settings') ?>" data-privacy-settings-open>Cookie Preferences</a>
+  </nav>
   <div class="admin-header-actions">
     <a
       href="<?= admin_queue_notification_link() ?>"
@@ -254,6 +309,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
         <span class="admin-notification-badge"><?= $adminNotificationCount ?></span>
       <?php endif; ?>
     </a>
+    <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="admin-logout-link">Logout</a>
     <button
       class="nav-toggle"
       type="button"
@@ -266,16 +322,6 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       <span class="nav-toggle__bar"></span>
     </button>
   </div>
-  <nav id="<?= htmlspecialchars($adminHeaderMenuId, ENT_QUOTES, 'UTF-8') ?>" data-collapsible-menu>
-    <?php if ($adminHeaderShowHome): ?>
-      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
-    <?php endif; ?>
-    <?php if ($adminHeaderShowServices): ?>
-      <a href="<?= admin_url('/index.php') ?>">Services</a>
-    <?php endif; ?>
-    <a href="<?= admin_url('/privacy-policy.php#privacy-settings') ?>" data-privacy-settings-open>Cookie Preferences</a>
-    <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="admin-logout-link">Logout</a>
-  </nav>
 </header>
 <script>
   (function () {
