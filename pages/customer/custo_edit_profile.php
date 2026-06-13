@@ -612,8 +612,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
     .profile-summary {
       padding: 1.85rem;
-      position: sticky;
-      top: 1.5rem;
+      position: relative;
+      top: auto;
       overflow: hidden;
       background:
         linear-gradient(180deg, rgba(74, 5, 5, 0.98) 0%, rgba(105, 18, 8, 0.96) 44%, rgba(158, 65, 12, 0.94) 100%);
@@ -2162,6 +2162,37 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
       body.customer-page--profile .confirm-modal__header {
         padding-right: 2.35rem;
+      }
+    }
+
+    @media (min-width: 881px) {
+      body.customer-page--profile .profile-shell {
+        display: grid;
+        align-items: start !important;
+        align-content: start !important;
+        place-items: start stretch;
+      }
+
+      body.customer-page--profile .profile-summary {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: start !important;
+        position: relative !important;
+        top: auto !important;
+        transform: none !important;
+        margin-top: 0 !important;
+        margin-block-start: 0 !important;
+      }
+
+      body.customer-page--profile .profile-panel {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: start !important;
+        position: relative;
+        top: auto;
+        transform: none;
+        margin-top: 0 !important;
+        margin-block-start: 0 !important;
       }
     }
   </style>
