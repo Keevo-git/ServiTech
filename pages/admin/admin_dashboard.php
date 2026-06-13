@@ -29,7 +29,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <title>ServiTech Admin Dashboard</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260613-admin-quick-access-full-width') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260614-dashboard-polish') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -56,7 +56,8 @@ require __DIR__ . "/_includes/admin_header.php";
 
   <section class="stats">
 
-    <div class="stat">
+    <div class="stat stat--customers">
+      <span class="stat-icon" aria-hidden="true">&#x1F465;</span>
       <h4>CUSTOMERS</h4>
       <div 
         class="value" 
@@ -68,8 +69,9 @@ require __DIR__ . "/_includes/admin_header.php";
       <p class="stat-note">Registered user accounts</p>
     </div>
 
-    <div class="stat">
-      <h4>ONLINE ORDERS</h4>
+    <div class="stat stat--orders">
+      <span class="stat-icon" aria-hidden="true">&#x1F5A8;</span>
+      <h4>PRINTING ORDERS</h4>
       <div 
         class="value" 
         id="ordersCount" 
@@ -77,10 +79,11 @@ require __DIR__ . "/_includes/admin_header.php";
       >
         <?= $onlineOrders ?>
       </div>
-      <p class="stat-note">Web-based and pending jobs</p>
+      <p class="stat-note">Document printing requests</p>
     </div>
 
-    <div class="stat">
+    <div class="stat stat--queue">
+      <span class="stat-icon" aria-hidden="true">&#x23F3;</span>
       <h4>ACTIVE QUEUE</h4>
       <div 
         class="value" 
@@ -94,7 +97,10 @@ require __DIR__ . "/_includes/admin_header.php";
 
   </section>
 
-  <h3 class="section-title">Quick Access</h3>
+  <header class="admin-quick-access-header">
+    <h3 class="section-title">Admin Quick Access</h3>
+    <div class="admin-section-divider" aria-hidden="true"></div>
+  </header>
 
   <section class="quick-grid quick-access-section quick-access-grid admin-quick-grid">
     <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link admin-quick-card-link">
