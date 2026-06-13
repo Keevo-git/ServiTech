@@ -3,6 +3,7 @@ require_once __DIR__ . "/../../../config/session_check.php";
 require_once __DIR__ . "/url.php";
 require_once __DIR__ . "/queue_files.php";
 require_once __DIR__ . "/admin_notification_center.php";
+require_once __DIR__ . "/../../../components/cookie_consent.php";
 
 $adminHeaderVariant = $adminHeaderVariant ?? "default";
 $adminHeaderMenuId = $adminHeaderMenuId ?? "admin-header-menu";
@@ -43,9 +44,18 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     margin-left: auto;
   }
 
-  .admin-shared-header nav[data-collapsible-menu] a {
+  .admin-shared-header nav[data-collapsible-menu] a,
+  .admin-shared-header nav[data-collapsible-menu] button {
     font-size: 15px;
     line-height: 1.2;
+  }
+
+  .admin-shared-header nav[data-collapsible-menu] button {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
   }
 
   .admin-shared-header .admin-header-actions {
@@ -165,7 +175,8 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     }
 
     .admin-shared-header nav[data-collapsible-menu] a,
-    .admin-shared-header nav[data-collapsible-menu] a:visited {
+    .admin-shared-header nav[data-collapsible-menu] a:visited,
+    .admin-shared-header nav[data-collapsible-menu] button {
       display: flex !important;
       width: 100% !important;
       max-width: 100% !important;
@@ -262,6 +273,7 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     <?php if ($adminHeaderShowServices): ?>
       <a href="<?= admin_url('/index.php') ?>">Services</a>
     <?php endif; ?>
+    <a href="#cookie-preferences" data-cookie-preferences-open>Cookie Preferences</a>
     <a href="<?= admin_url('/pages/admin/logout.php') ?>" class="admin-logout-link">Logout</a>
   </nav>
 </header>

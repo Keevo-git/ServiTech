@@ -146,7 +146,6 @@ $csrfToken = servitech_csrf_token();
 
 <?php render_auth_footer(); ?>
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="<?= auth_url("/assets/js/csrf.js") ?>" defer></script>
   <script>
     const registerPageUrl = <?= auth_json_url("/auth/regis.php") ?>;
@@ -316,6 +315,10 @@ $csrfToken = servitech_csrf_token();
               <li>Admin-only pages protected by login and role checks.</li>
               <li>Status history records that show queue changes and admin notes.</li>
             </ul>
+          </section>
+          <section class="policy-section">
+            <h3>Cookies and Browser Storage</h3>
+            <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, CSRF protection, form safety, uploads, notifications, and short-lived workflow messages. Optional functional services, including Google Sign-In and realtime notification enhancement, only load when allowed through Cookie Preferences. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
           </section>
           <section class="policy-section">
             <h3>Data Retention</h3>
@@ -773,21 +776,95 @@ $csrfToken = servitech_csrf_token();
     updateRegistrationPasswordToggleVisibility();
 
     let registerGoogleLoadAttempts = 0;
-    const registerGoogleLoadTimer = setInterval(() => {
-      registerGoogleLoadAttempts += 1;
+    let registerGoogleLoadTimer = null;
+    let registerGoogleClientScriptLoading = false;
+    let registerGoogleClientScriptLoaded = Boolean(window.google && google.accounts && google.accounts.id);
+    let registerGoogleSignInInitialized = false;
 
-      if (window.google && google.accounts && google.accounts.id) {
+    function showRegisterGoogleConsentNotice() {
+      const signInHint = document.getElementById("registerGoogleSignInHint");
+      const signInSlot = document.getElementById("registerGoogleSignInSlot");
+      const fallbackButton = document.getElementById("registerGoogleFallbackButton");
+      const fallbackLabel = document.getElementById("registerGoogleFallbackLabel");
+
+      registerGoogleSignInInitialized = false;
+      if (signInSlot) signInSlot.replaceChildren();
+      if (fallbackButton) fallbackButton.disabled = true;
+      if (fallbackLabel) fallbackLabel.textContent = "Continue with Google Account";
+      if (signInHint) {
+        signInHint.textContent = "Google account sign-in uses an optional browser service. Allow Functional Services in Cookie Preferences to use it, or create an account with the form.";
+        signInHint.hidden = false;
+      }
+      if (window.google && google.accounts && google.accounts.id && typeof google.accounts.id.cancel === "function") {
+        google.accounts.id.cancel();
+      }
+    }
+
+    function startRegisterGoogleSignInWhenReady() {
+      if (registerGoogleSignInInitialized) {
+        return;
+      }
+      if (registerGoogleLoadTimer) {
         clearInterval(registerGoogleLoadTimer);
-        loadRegisterGoogleSignIn();
-      } else if (registerGoogleLoadAttempts >= 20) {
-        clearInterval(registerGoogleLoadTimer);
+      }
+
+      registerGoogleLoadAttempts = 0;
+      registerGoogleLoadTimer = setInterval(() => {
+        registerGoogleLoadAttempts += 1;
+
+        if (window.google && google.accounts && google.accounts.id) {
+          clearInterval(registerGoogleLoadTimer);
+          registerGoogleLoadTimer = null;
+          registerGoogleSignInInitialized = true;
+          loadRegisterGoogleSignIn();
+        } else if (registerGoogleLoadAttempts >= 20) {
+          clearInterval(registerGoogleLoadTimer);
+          registerGoogleLoadTimer = null;
+          const signInHint = document.getElementById("registerGoogleSignInHint");
+          if (signInHint) {
+            signInHint.textContent = "Google account sign-in could not be loaded. Please refresh the page.";
+            signInHint.hidden = false;
+          }
+        }
+      }, 300);
+    }
+
+    function loadRegisterGoogleClientScript() {
+      if (registerGoogleClientScriptLoaded || (window.google && google.accounts && google.accounts.id)) {
+        registerGoogleClientScriptLoaded = true;
+        startRegisterGoogleSignInWhenReady();
+        return;
+      }
+      if (registerGoogleClientScriptLoading) {
+        return;
+      }
+
+      registerGoogleClientScriptLoading = true;
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        registerGoogleClientScriptLoaded = true;
+        startRegisterGoogleSignInWhenReady();
+      };
+      script.onerror = () => {
         const signInHint = document.getElementById("registerGoogleSignInHint");
+        const fallbackButton = document.getElementById("registerGoogleFallbackButton");
         if (signInHint) {
-          signInHint.textContent = "Google account sign-in could not be loaded. Please refresh the page.";
+          signInHint.textContent = "Google account sign-in could not be loaded. Please use the form above.";
           signInHint.hidden = false;
         }
-      }
-    }, 300);
+        if (fallbackButton) fallbackButton.disabled = true;
+      };
+      document.head.appendChild(script);
+    }
+
+    if (window.servitechCookieConsent) {
+      window.servitechCookieConsent.whenAllowed("functional", loadRegisterGoogleClientScript, showRegisterGoogleConsentNotice);
+    } else {
+      showRegisterGoogleConsentNotice();
+    }
   </script>
 
 <?php servitech_render_guest_history_guard(); ?>

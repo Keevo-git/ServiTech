@@ -120,10 +120,13 @@ if (!function_exists("render_auth_footer")) {
       <a href="<?= auth_url("/privacy-policy.php") ?>">Privacy Policy</a>
       <span aria-hidden="true">|</span>
       <a href="<?= auth_url("/terms-of-service.php") ?>">Terms of Service</a>
+      <span aria-hidden="true">|</span>
+      <button type="button" class="cookie-preferences-link" data-cookie-preferences-open>Cookie Preferences</button>
     </div>
 
     <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
   </footer>
+<?php require_once __DIR__ . "/../components/cookie_consent.php"; ?>
 <?php
     }
 }

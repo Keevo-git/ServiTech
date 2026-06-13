@@ -1101,7 +1101,8 @@ html:has(body.modal-open) {
 }
 
 .footer-legal-links a,
-.footer-legal-links a:visited {
+.footer-legal-links a:visited,
+.footer-legal-links button {
   color: #fff5e9;
   font-weight: 700;
   text-decoration: none;
@@ -1110,7 +1111,8 @@ html:has(body.modal-open) {
   transition: background-color 0.2s ease, color 0.2s ease, text-decoration-color 0.2s ease;
 }
 
-.footer-legal-links a:hover {
+.footer-legal-links a:hover,
+.footer-legal-links button:hover {
   color: #ffd79d;
   background: rgba(255, 255, 255, 0.08);
   text-decoration: underline;
@@ -1118,7 +1120,8 @@ html:has(body.modal-open) {
   text-underline-offset: 4px;
 }
 
-.footer-legal-links a:focus-visible {
+.footer-legal-links a:focus-visible,
+.footer-legal-links button:focus-visible {
   outline: 2px solid #ffd79d;
   outline-offset: 3px;
 }

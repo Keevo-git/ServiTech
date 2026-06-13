@@ -1,0 +1,322 @@
+.cookie-consent {
+  color: #24120f;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.45;
+}
+
+.cookie-consent[hidden],
+.cookie-consent__banner[hidden],
+.cookie-consent__modal[hidden] {
+  display: none !important;
+}
+
+.cookie-consent__banner {
+  align-items: center;
+  background: #fffdf9;
+  border: 1px solid #eadbd3;
+  border-radius: 8px;
+  bottom: 18px;
+  box-shadow: 0 20px 60px rgba(36, 18, 15, 0.18);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  left: 18px;
+  max-width: min(980px, calc(100vw - 36px));
+  padding: 18px;
+  position: fixed;
+  right: 18px;
+  z-index: 16000;
+}
+
+.cookie-consent__copy h2,
+.cookie-consent__dialog-head h2,
+.cookie-consent__category h3 {
+  color: #4a0505;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.cookie-consent__copy h2 {
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.cookie-consent__copy p,
+.cookie-consent__dialog-head p,
+.cookie-consent__category p,
+.cookie-consent__category span,
+.cookie-consent__note {
+  font-size: 14px;
+}
+
+.cookie-consent__copy p {
+  margin: 8px 0 0;
+}
+
+.cookie-consent__eyebrow {
+  color: #7c130d;
+  font-size: 12px !important;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 6px !important;
+  text-transform: uppercase;
+}
+
+.cookie-consent__actions,
+.cookie-consent__dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.cookie-consent__actions {
+  max-width: 410px;
+}
+
+.cookie-consent__btn {
+  align-items: center;
+  background: #fff7ed;
+  border: 1px solid #eadbd3;
+  border-radius: 8px;
+  color: #4a0505;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 14px;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.cookie-consent__btn:hover,
+.cookie-consent__btn:focus-visible {
+  border-color: #d8b5a8;
+  box-shadow: 0 6px 14px rgba(74, 5, 5, 0.12);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.cookie-consent__btn--primary {
+  background: #4a0505;
+  border-color: #4a0505;
+  color: #ffffff;
+}
+
+.cookie-consent__btn--primary:hover,
+.cookie-consent__btn--primary:focus-visible {
+  background: #6b0c0c;
+  border-color: #6b0c0c;
+}
+
+.cookie-consent__btn--ghost {
+  background: #ffffff;
+}
+
+.cookie-consent__modal {
+  inset: 0;
+  position: fixed;
+  z-index: 16010;
+}
+
+.cookie-consent__backdrop {
+  background: rgba(15, 23, 42, 0.54);
+  inset: 0;
+  position: absolute;
+}
+
+.cookie-consent__dialog {
+  background: #fffdf9;
+  border: 1px solid #eadbd3;
+  border-radius: 8px;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.32);
+  box-sizing: border-box;
+  left: 50%;
+  max-height: min(720px, calc(100vh - 36px));
+  max-width: min(680px, calc(100vw - 36px));
+  overflow-y: auto;
+  padding: 26px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+}
+
+.cookie-consent__dialog:focus {
+  outline: none;
+}
+
+.cookie-consent__close {
+  align-items: center;
+  background: #fff7ed;
+  border: 1px solid #eadbd3;
+  border-radius: 8px;
+  color: #4a0505;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 26px;
+  height: 40px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 40px;
+}
+
+.cookie-consent__close:hover,
+.cookie-consent__close:focus-visible {
+  background: #fee2e2;
+  outline: 2px solid rgba(124, 19, 13, 0.25);
+  outline-offset: 2px;
+}
+
+.cookie-consent__dialog-head {
+  padding-right: 44px;
+}
+
+.cookie-consent__dialog-head h2 {
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.cookie-consent__dialog-head p {
+  color: #5b4038;
+  margin: 10px 0 0;
+}
+
+.cookie-consent__category {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #eadbd3;
+  border-radius: 8px;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.cookie-consent__category h3,
+.cookie-consent__category strong {
+  color: #4a0505;
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.cookie-consent__category p,
+.cookie-consent__category span span {
+  color: #5b4038;
+  display: block;
+  margin: 6px 0 0;
+}
+
+.cookie-consent__status {
+  background: #e8f4ec;
+  border: 1px solid #b8ddc3;
+  border-radius: 999px;
+  color: #14532d;
+  flex: 0 0 auto;
+  font-size: 13px !important;
+  font-weight: 800;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.cookie-consent__category--toggle {
+  cursor: pointer;
+}
+
+.cookie-consent__category input[type="checkbox"] {
+  accent-color: #4a0505;
+  flex: 0 0 auto;
+  height: 24px;
+  margin: 0;
+  width: 24px;
+}
+
+.cookie-consent__note {
+  background: #f8f5f2;
+  border: 1px solid #eadbd3;
+  border-radius: 8px;
+  color: #5b4038;
+  margin: 16px 0 0;
+  padding: 12px 14px;
+}
+
+.cookie-consent__dialog-actions {
+  margin-top: 18px;
+}
+
+.cookie-preferences-link {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cookie-preferences-link:hover,
+.cookie-preferences-link:focus-visible {
+  color: #f5a623;
+  outline: none;
+}
+
+@media (max-width: 760px) {
+  .cookie-consent__banner {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: calc(100vw - 24px);
+  }
+
+  .cookie-consent__actions,
+  .cookie-consent__dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
+
+  .cookie-consent__btn {
+    width: 100%;
+  }
+
+  .cookie-consent__category {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 440px) {
+  .cookie-consent__banner {
+    padding: 14px;
+  }
+
+  .cookie-consent__copy h2 {
+    font-size: 18px;
+  }
+
+  .cookie-consent__dialog {
+    max-height: calc(100vh - 20px);
+    max-width: calc(100vw - 20px);
+    padding: 20px;
+  }
+
+  .cookie-consent__dialog-head h2 {
+    font-size: 22px;
+  }
+}

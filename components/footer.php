@@ -39,9 +39,12 @@ $footerEmail = servitech_contact_email();
     <a href="/privacy-policy.php">Privacy Policy</a>
     <span aria-hidden="true">|</span>
     <a href="/terms-of-service.php">Terms of Service</a>
+    <span aria-hidden="true">|</span>
+    <button type="button" class="cookie-preferences-link" data-cookie-preferences-open>Cookie Preferences</button>
   </div>
 
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
 </footer>
+<?php require_once __DIR__ . "/cookie_consent.php"; ?>
 <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260602-global-toast">
 <script src="/assets/js/customer_toast.js?v=20260602-global-toast"></script>

@@ -117,7 +117,6 @@ $csrfToken = servitech_csrf_token();
 
 <?php render_auth_footer(); ?>
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="<?= auth_url("/assets/js/csrf.js") ?>" defer></script>
   <script>
     const loginPageUrl = <?= auth_json_url("/auth/log_in.php") ?>;
@@ -232,6 +231,10 @@ $csrfToken = servitech_csrf_token();
               <li>Admin-only pages protected by login and role checks.</li>
               <li>Status history records that show queue changes and admin notes.</li>
             </ul>
+          </section>
+          <section class="policy-section">
+            <h3>Cookies and Browser Storage</h3>
+            <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, CSRF protection, form safety, uploads, notifications, and short-lived workflow messages. Optional functional services, including Google Sign-In and realtime notification enhancement, only load when allowed through Cookie Preferences. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
           </section>
           <section class="policy-section">
             <h3>Data Retention</h3>
@@ -639,17 +642,78 @@ $csrfToken = servitech_csrf_token();
     applyPageMessageFromQuery();
 
     let googleLoadAttempts = 0;
-    const googleLoadTimer = setInterval(() => {
-      googleLoadAttempts += 1;
+    let googleLoadTimer = null;
+    let googleClientScriptLoading = false;
+    let googleClientScriptLoaded = Boolean(window.google && google.accounts && google.accounts.id);
+    let googleSignInInitialized = false;
 
-      if (window.google && google.accounts && google.accounts.id) {
-        clearInterval(googleLoadTimer);
-        loadGoogleSignIn();
-      } else if (googleLoadAttempts >= 20) {
-        clearInterval(googleLoadTimer);
-        googleSignInHint.textContent = "Google account sign-in could not be loaded. Please refresh the page.";
+    function showGoogleConsentNotice() {
+      googleSignInInitialized = false;
+      googleFallbackButton.disabled = true;
+      googleFallbackLabel.textContent = "Continue with Google Account";
+      googleSignInHint.textContent = "Google account sign-in uses an optional browser service. Allow Functional Services in Cookie Preferences to use it, or sign in with email and password.";
+      googleSignInSlot.replaceChildren();
+      if (window.google && google.accounts && google.accounts.id && typeof google.accounts.id.cancel === "function") {
+        google.accounts.id.cancel();
       }
-    }, 300);
+    }
+
+    function startGoogleSignInWhenReady() {
+      if (googleSignInInitialized) {
+        return;
+      }
+      if (googleLoadTimer) {
+        clearInterval(googleLoadTimer);
+      }
+
+      googleLoadAttempts = 0;
+      googleLoadTimer = setInterval(() => {
+        googleLoadAttempts += 1;
+
+        if (window.google && google.accounts && google.accounts.id) {
+          clearInterval(googleLoadTimer);
+          googleLoadTimer = null;
+          googleSignInInitialized = true;
+          loadGoogleSignIn();
+        } else if (googleLoadAttempts >= 20) {
+          clearInterval(googleLoadTimer);
+          googleLoadTimer = null;
+          googleSignInHint.textContent = "Google account sign-in could not be loaded. Please refresh the page.";
+        }
+      }, 300);
+    }
+
+    function loadGoogleClientScript() {
+      if (googleClientScriptLoaded || (window.google && google.accounts && google.accounts.id)) {
+        googleClientScriptLoaded = true;
+        startGoogleSignInWhenReady();
+        return;
+      }
+      if (googleClientScriptLoading) {
+        return;
+      }
+
+      googleClientScriptLoading = true;
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        googleClientScriptLoaded = true;
+        startGoogleSignInWhenReady();
+      };
+      script.onerror = () => {
+        googleSignInHint.textContent = "Google account sign-in could not be loaded. Please use email and password.";
+        googleFallbackButton.disabled = true;
+      };
+      document.head.appendChild(script);
+    }
+
+    if (window.servitechCookieConsent) {
+      window.servitechCookieConsent.whenAllowed("functional", loadGoogleClientScript, showGoogleConsentNotice);
+    } else {
+      showGoogleConsentNotice();
+    }
   </script>
 
 <?php servitech_render_guest_history_guard(); ?>

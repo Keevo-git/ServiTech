@@ -80,9 +80,13 @@ $effectiveDate = "June 13, 2026";
 
     .legal-button {
       background: #4a0505;
+      border: 0;
       border-radius: 999px;
       color: #fff;
+      cursor: pointer;
       display: inline-block;
+      font: inherit;
+      font-weight: 700;
       padding: 12px 18px;
       text-decoration: none;
     }
@@ -156,9 +160,11 @@ $effectiveDate = "June 13, 2026";
 
       <div class="legal-actions">
         <a class="legal-button" href="<?= htmlspecialchars(servitech_url('/privacy-policy.php'), ENT_QUOTES, 'UTF-8') ?>">Read Privacy Policy</a>
+        <button type="button" class="legal-button legal-button--light" data-cookie-preferences-open>Cookie Preferences</button>
         <a class="legal-button legal-button--light" href="<?= htmlspecialchars(servitech_url('/index.php'), ENT_QUOTES, 'UTF-8') ?>">Back to ServiTech</a>
       </div>
     </article>
   </main>
+  <?php require_once __DIR__ . "/../components/cookie_consent.php"; ?>
 </body>
 </html>

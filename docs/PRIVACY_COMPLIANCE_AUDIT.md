@@ -30,7 +30,18 @@ The audit used the Philippine Data Privacy Act of 2012 and the NPC IRR as the ba
 - Passwords are hashed; failed login throttling stores hashed email/IP identifiers.
 - Uploads use private storage keys, upload tokens, file type/size checks, active/private status checks, and protected download endpoints.
 - Upload retention cleanup exists for temporary orphan files and closed-request files.
-- Public footer links expose Privacy Policy and Terms of Service.
+- Cookie consent controls are available through the shared cookie banner/preference center and footer Cookie Preferences link.
+- Public footer links expose Privacy Policy, Terms of Service, and Cookie Preferences.
+
+## Cookie and Browser Storage Audit
+
+| Category | Current usage | Control |
+| --- | --- | --- |
+| Strictly Necessary | `SERVITECHSESSID` session cookie, `SERVITECH_CSRF` CSRF cookie, server session authentication/Supabase token state, form/session continuity, protected upload/download state, notification security requests, and short-lived sessionStorage used for join-queue safety or redirect/toast messages | Always active because login, security, forms, uploads, notifications, and core workflows depend on them |
+| Functional / Preferences | Google Sign-In browser client and optional Supabase realtime notification enhancement | Disabled until Functional Services consent is accepted; rejection falls back to email/password login and notification polling |
+| Analytics / Performance | No active analytics script, beacon, Google Analytics, dataLayer, or performance-tracking tag found in the live code scan | Not shown in the preference center because it is not currently used |
+| Marketing / Tracking | No active ad pixel, marketing tag, retargeting script, or marketing embed found in the live code scan | Not shown in the preference center because it is not currently used |
+| Other browser storage | Cookie consent preference cookie `SERVITECH_COOKIE_CONSENT`; Google Identity may create `g_state` after functional consent | Consent preference is treated as necessary to remember the user's choice; `g_state` cleanup is attempted when functional services are rejected |
 
 ## Findings
 
@@ -72,13 +83,19 @@ No critical code-level exposure was confirmed in this static audit after the dir
    - Fix implemented: default consent version updated to `2026-06-13`.
    - Remaining: if production uses `AUTH_CONSENT_VERSION`, update that environment variable too.
 
-3. Admin access is broad and single-role.
+3. Optional browser clients previously loaded without a cookie preference gate.
+   - Location: `auth/log_in.php`, `auth/regis.php`, `components/header.php`.
+   - Risk: third-party functional services could initialize before the user made a browser-storage choice.
+   - Fix implemented: added category-aware consent gating for Google Sign-In and Supabase realtime notification enhancement.
+   - Remaining: if future analytics or marketing scripts are added, wire them to explicit categories before loading.
+
+4. Admin access is broad and single-role.
    - Location: queue/order/customer/admin pages.
    - Risk: all admins can see customer contact data, payment references, attached files, and history even if their operational task is narrower.
    - Recommended fix: introduce scoped admin roles or documented access procedures if the business needs least-privilege separation.
    - Status: not changed to avoid breaking admin workflows.
 
-4. Account/data deletion and data portability are not self-service.
+5. Account/data deletion and data portability are not self-service.
    - Location: customer profile and admin tooling.
    - Risk: policy rights depend on manual operator procedures.
    - Recommended fix: add an admin privacy-request workflow or export/delete runbook after legal/business retention decisions.
@@ -104,6 +121,7 @@ No critical code-level exposure was confirmed in this static audit after the dir
 - Updated default account consent version to `2026-06-13`.
 - Removed privacy contact placeholders from registration policy modal.
 - Expanded public Privacy Policy to match current system behavior.
+- Added cookie consent banner, preference center, saved preference cookie, footer Cookie Preferences links, optional functional-service gating, and cookie/storage policy text.
 - Added this audit artifact.
 - Added a privacy incident response runbook.
 

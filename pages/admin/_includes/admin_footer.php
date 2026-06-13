@@ -16,9 +16,42 @@ $adminFooterEmail = servitech_contact_email();
   .admin-shared-footer .footer-logo-link h1,
   .admin-shared-footer .contact-item a,
   .admin-shared-footer .contact-item span,
+  .admin-shared-footer .footer-legal-links a,
+  .admin-shared-footer .footer-legal-links span,
+  .admin-shared-footer .footer-legal-links button,
   .admin-shared-footer .footer-bottom,
   .admin-shared-footer .footer-left h3 {
     color: #ffffff !important;
+  }
+
+  .admin-shared-footer .footer-legal-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: min(100%, 1100px);
+    margin: 24px auto 0;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    gap: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .admin-shared-footer .footer-legal-links a,
+  .admin-shared-footer .footer-legal-links button {
+    border-radius: 8px;
+    padding: 6px 10px;
+    text-decoration: none;
+  }
+
+  .admin-shared-footer .footer-legal-links a:hover,
+  .admin-shared-footer .footer-legal-links button:hover,
+  .admin-shared-footer .footer-legal-links a:focus-visible,
+  .admin-shared-footer .footer-legal-links button:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffd79d !important;
   }
 
   .admin-shared-footer .footer-bottom {
@@ -58,8 +91,17 @@ $adminFooterEmail = servitech_contact_email();
     </div>
   </div>
 
+  <div class="footer-legal-links" aria-label="Footer legal links">
+    <a href="<?= admin_url('/privacy-policy.php') ?>">Privacy Policy</a>
+    <span aria-hidden="true">|</span>
+    <a href="<?= admin_url('/terms-of-service.php') ?>">Terms of Service</a>
+    <span aria-hidden="true">|</span>
+    <button type="button" class="cookie-preferences-link" data-cookie-preferences-open>Cookie Preferences</button>
+  </div>
+
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
 </footer>
+<?php require_once __DIR__ . "/../../../components/cookie_consent.php"; ?>
 <style>
   .queue-cancellation-overlay {
     align-items: center;

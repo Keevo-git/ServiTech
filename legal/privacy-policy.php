@@ -80,9 +80,13 @@ $effectiveDate = "June 13, 2026";
 
     .legal-button {
       background: #4a0505;
+      border: 0;
       border-radius: 999px;
       color: #fff;
+      cursor: pointer;
       display: inline-block;
+      font: inherit;
+      font-weight: 700;
       padding: 12px 18px;
       text-decoration: none;
     }
@@ -135,6 +139,11 @@ $effectiveDate = "June 13, 2026";
       <h2>Security Measures</h2>
       <p>ServiTech uses role-based access checks, customer ownership checks, admin-only page guards, password hashing, CSRF tokens, SameSite/HTTP-only session cookies, failed-login throttling with hashed identifiers, file type and size validation, private upload storage, random file storage keys, protected download endpoints, and status-history records for queue actions. These controls reduce risk but do not replace organizational safeguards such as limiting administrator access, protecting hosting credentials, securing backups, and reviewing logs.</p>
 
+      <h2>Cookies and Browser Storage</h2>
+      <p>ServiTech uses strictly necessary cookies and browser storage for login sessions, CSRF protection, security checks, upload continuity, form safety, notifications, and short-lived workflow messages. These are required for the website to operate and cannot be disabled through the cookie preferences tool.</p>
+      <p>Optional functional services are controlled by the user's cookie preference. These include Google Sign-In and realtime notification enhancement. If functional services are rejected, ServiTech does not intentionally load those optional browser clients; email/password login and notification polling remain available.</p>
+      <p>ServiTech does not currently use analytics, advertising, or marketing tracking cookies. Users can change their cookie choice later through the Cookie Preferences link in the footer.</p>
+
       <h2>User Rights</h2>
       <p>Under the Philippine Data Privacy Act of 2012, users may request access, correction, deletion or blocking where appropriate, a copy of their personal data where feasible, objection or withdrawal where processing is based on consent, or review of privacy concerns. The customer profile page supports correction of account details. Other requests may require manual review because service history, payment review, security, academic evaluation, or legal requirements may require some records to be retained.</p>
 
@@ -152,9 +161,11 @@ $effectiveDate = "June 13, 2026";
 
       <div class="legal-actions">
         <a class="legal-button" href="<?= htmlspecialchars(servitech_url('/terms-of-service.php'), ENT_QUOTES, 'UTF-8') ?>">Read Terms of Service</a>
+        <button type="button" class="legal-button legal-button--light" data-cookie-preferences-open>Cookie Preferences</button>
         <a class="legal-button legal-button--light" href="<?= htmlspecialchars(servitech_url('/index.php'), ENT_QUOTES, 'UTF-8') ?>">Back to ServiTech</a>
       </div>
     </article>
   </main>
+  <?php require_once __DIR__ . "/../components/cookie_consent.php"; ?>
 </body>
 </html>

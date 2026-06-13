@@ -391,6 +391,7 @@ $notificationRoutes = [
     "fallback" => servitech_url("/pages/customer/custo_service_status.php"),
 ];
 ?>
+<?php require_once __DIR__ . "/cookie_consent.php"; ?>
 <header class="navbar has-nav-menu navbar--notifications site-header customer-header customer-shared-header">
   <a href="<?= htmlspecialchars(servitech_brand_home_url(), ENT_QUOTES, "UTF-8") ?>" class="logo">
     <img src="/assets/images/LOGO_SERVITECH.png" alt="ServiTech Logo" class="servitech-logo">
@@ -1428,9 +1429,6 @@ $notificationRoutes = [
 </style>
 
 <?php if ($notificationUserId > 0): ?>
-  <?php if ($notificationRealtimeEnabled): ?>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <?php endif; ?>
   <script>
     (function () {
       if (window.__servitechNotificationHeaderInit) {
@@ -2059,6 +2057,55 @@ $notificationRoutes = [
           });
       }
 
+      var supabaseClientScriptLoading = false;
+      var supabaseClientScriptLoaded = Boolean(window.supabase && window.supabase.createClient);
+
+      function loadSupabaseClientScript(callback) {
+        if (supabaseClientScriptLoaded || (window.supabase && window.supabase.createClient)) {
+          supabaseClientScriptLoaded = true;
+          callback();
+          return;
+        }
+
+        if (supabaseClientScriptLoading) {
+          return;
+        }
+
+        supabaseClientScriptLoading = true;
+        var script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+        script.async = true;
+        script.onload = function () {
+          supabaseClientScriptLoaded = true;
+          callback();
+        };
+        script.onerror = function () {
+          startNotificationPolling();
+        };
+        document.head.appendChild(script);
+      }
+
+      function initRealtimeWithConsent() {
+        if (!config.supabaseUrl || !config.supabaseAnonKey) {
+          startNotificationPolling();
+          return;
+        }
+
+        if (!window.servitechCookieConsent) {
+          startNotificationPolling();
+          return;
+        }
+
+        window.servitechCookieConsent.whenAllowed("functional", function () {
+          loadSupabaseClientScript(function () {
+            initRealtime();
+            startNotificationPolling();
+          });
+        }, function () {
+          startNotificationPolling();
+        });
+      }
+
       toggleButton.addEventListener("click", function (event) {
         event.stopPropagation();
         toggleDropdown();
@@ -2167,8 +2214,7 @@ $notificationRoutes = [
 
       refreshNotifications()
         .finally(function () {
-          initRealtime();
-          startNotificationPolling();
+          initRealtimeWithConsent();
         });
     })();
   </script>
