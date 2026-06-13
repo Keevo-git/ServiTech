@@ -166,6 +166,8 @@ $csrfToken = servitech_csrf_token();
     const authCard = document.querySelector(".auth-card--register");
     const registrationPasswordToggle = document.getElementById("registrationPasswordToggle");
     const contactInput = document.getElementById("contact");
+    const privacyContactHtml = <?= json_encode(auth_contact_link_html(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    const privacyContactPhone = <?= json_encode(servitech_contact_phone(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     let activePolicyTrigger = null;
 
     const fields = {
@@ -289,9 +291,17 @@ $csrfToken = servitech_csrf_token();
             </ul>
           </section>
           <section class="policy-section">
+            <h3>Legal Basis and Consent</h3>
+            <p>ServiTech asks users to acknowledge the Data Privacy Policy and Terms &amp; Conditions during account creation. The system stores the consent date and policy version for traceability. Most processing is used to provide the requested service, manage the account, protect the system, keep operational records, and support the academic capstone/project purpose. Any future marketing or unrelated data sharing should use a separate notice or consent flow.</p>
+          </section>
+          <section class="policy-section">
             <h3>Storage and Access</h3>
             <p>ServiTech stores account, queue, payment, notification, upload metadata, login attempt, and status history records in the project database. Uploaded files are stored in the private upload storage directory using random storage keys. Passwords are stored as password hashes. Failed login throttling stores hashed email and hashed IP-based values instead of plain login-attempt identifiers.</p>
             <p>Customers can access their own account, queue status, notifications, and uploaded files. Administrators can access customer records, queues, orders, payment details, uploaded files, notifications, service records, announcements, and status history needed to operate and evaluate the system. ServiTech does not sell user data.</p>
+          </section>
+          <section class="policy-section">
+            <h3>Service Providers</h3>
+            <p>Depending on configuration, ServiTech may use hosting and private file storage, Supabase for database or authentication services, Google for Google sign-in, and email/SMTP services for account or notification emails. These services should be used only to operate ServiTech and not for unrelated purposes.</p>
           </section>
           <section class="policy-section">
             <h3>Data Protection</h3>
@@ -327,12 +337,15 @@ $csrfToken = servitech_csrf_token();
             <p>ServiTech is an academic capstone/project system. The system records and displays data needed for educational demonstration, testing, evaluation, and service management workflows.</p>
           </section>
           <section class="policy-section">
+            <h3>Security Incidents</h3>
+            <p>If ServiTech discovers a possible personal data breach or security incident, project operators should contain the incident, preserve relevant evidence, assess affected data and users, document remediation, notify responsible personnel, and determine whether affected users or the National Privacy Commission must be notified.</p>
+          </section>
+          <section class="policy-section">
             <h3>Contact Information</h3>
-            <p>The project owner must replace these contact details before publication:</p>
+            <p>For privacy questions, requests, or complaints, contact ServiTech through the configured support channels:</p>
             <ul>
-              <li>Support email: [Insert ServiTech support email]</li>
-              <li>School/business/project address: [Insert official address]</li>
-              <li>Official contact person: [Insert official contact person]</li>
+              <li>Support email: ${privacyContactHtml}</li>
+              <li>Phone: ${privacyContactPhone}</li>
             </ul>
           </section>
         `
