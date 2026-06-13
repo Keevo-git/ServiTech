@@ -130,7 +130,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: <?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-scroll-root">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>

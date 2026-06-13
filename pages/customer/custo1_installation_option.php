@@ -12,7 +12,7 @@ servitech_redirect_completed_join_queue();
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ServiTech: Installation Services</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260612header-brand-hit-area">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
 </head>
 <body class="customer-layout customer-page--forms" data-service="installation">

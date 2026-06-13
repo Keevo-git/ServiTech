@@ -2,7 +2,7 @@
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/contact.php";
 
-const AUTH_UI_VERSION = "20260612header-brand-hit-area";
+const AUTH_UI_VERSION = "20260613-footer-legal-links";
 
 if (!function_exists("auth_url_raw")) {
     function auth_url_raw(string $path = "/"): string
@@ -114,6 +114,12 @@ if (!function_exists("render_auth_footer")) {
           <h1>ServiTech: JC Store</h1>
         </a>
       </div>
+    </div>
+
+    <div class="footer-legal-links" aria-label="Footer legal links">
+      <a href="<?= auth_url("/privacy-policy.php") ?>">Privacy Policy</a>
+      <span aria-hidden="true">|</span>
+      <a href="<?= auth_url("/terms-of-service.php") ?>">Terms of Service</a>
     </div>
 
     <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>

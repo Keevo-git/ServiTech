@@ -35,7 +35,7 @@ $footerEmail = servitech_contact_email();
     </div>
   </div>
 
-  <div class="footer-legal-links">
+  <div class="footer-legal-links" aria-label="Footer legal links">
     <a href="/privacy-policy.php">Privacy Policy</a>
     <span aria-hidden="true">|</span>
     <a href="/terms-of-service.php">Terms of Service</a>

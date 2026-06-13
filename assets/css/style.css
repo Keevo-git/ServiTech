@@ -1017,7 +1017,7 @@ html:has(body.modal-open) {
 .footer {
   background-color: #4A0505;
   color: #ffffff;
-  padding: 30px 40px 20px;
+  padding: 32px clamp(20px, 5vw, 40px) 20px;
   margin-top: 30px;
 }
 
@@ -1028,6 +1028,7 @@ html:has(body.modal-open) {
   max-width: 1100px;
   margin: auto;
   flex-wrap: wrap;
+  gap: 28px 40px;
 }
 
 /* LEFT SIDE */
@@ -1088,20 +1089,48 @@ html:has(body.modal-open) {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-top: 18px;
+  flex-wrap: wrap;
+  width: min(100%, 1100px);
+  margin: 24px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  gap: 0;
   font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
 }
 
-.footer-legal-links a {
-  color: #ffffff;
+.footer-legal-links a,
+.footer-legal-links a:visited {
+  color: #fff5e9;
   font-weight: 700;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.footer-legal-links a:hover {
+  color: #ffd79d;
+  background: rgba(255, 255, 255, 0.08);
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.footer-legal-links a:focus-visible {
+  outline: 2px solid #ffd79d;
+  outline-offset: 3px;
 }
 
 .footer-legal-links span {
-  color: rgba(255, 255, 255, 0.55);
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  margin: 0 4px;
+  overflow: hidden;
+  color: transparent;
+  background: rgba(255, 255, 255, 0.42);
 }
 
 .footer-bottom {
@@ -1111,6 +1140,12 @@ html:has(body.modal-open) {
   padding-top: 10px;
   opacity: 0.8;
   font-size: 13px;
+}
+
+.footer-legal-links + .footer-bottom {
+  margin-top: 10px;
+  border-top: 0;
+  padding-top: 0;
 }
 
 @media (max-width: 600px) {
@@ -1126,6 +1161,26 @@ html:has(body.modal-open) {
 
   .contact-item {
     justify-content: center;
+  }
+
+  .footer-legal-links {
+    margin-top: 22px;
+    padding-top: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .footer-legal-links {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .footer-legal-links a {
+    width: 100%;
+  }
+
+  .footer-legal-links span {
+    display: none;
   }
 }
 
