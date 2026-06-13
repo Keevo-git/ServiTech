@@ -1759,6 +1759,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const knownLabels = {
       printorder: "Print Order",
       documentprinting: "Document Printing",
+      onlineprintorder: "Document Printing",
+      onlineprinting: "Document Printing",
+      onlinedocumentprinting: "Document Printing",
+      walkinprinting: "Document Printing",
+      walkindocumentprinting: "Document Printing",
+      printwalkin: "Document Printing",
+      printonline: "Document Printing",
       rushid: "Rush ID",
       openlinesamsungiphone: "Openline Samsung & iPhone",
       bypassgoogleaccount: "Bypass Google Account",
@@ -1846,7 +1853,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function filterCategoryKey(queueData){
     const category = categoryKey(queueData);
-    if (category === "printing" || category === "online_printorder" || category === "walkin") return "printing";
+    if (["printing", "online_printorder", "printing_online", "walkin", "printing_walkin"].includes(category)) return "printing";
     if (category === "repair") return "repair";
     if (category === "installation") return "installation";
     return category;
@@ -1864,7 +1871,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function isDocumentPrinting(queueData){
     const service = serviceKey(queueData);
-    return service === "documentprinting" || service === "onlineprintorder" || categoryKey(queueData) === "online_printorder";
+    const legacyServices = [
+      "documentprinting",
+      "onlineprintorder",
+      "onlineprinting",
+      "onlinedocumentprinting",
+      "walkinprinting",
+      "walkindocumentprinting",
+      "printwalkin",
+      "printonline"
+    ];
+    const printingCategories = ["printing", "online_printorder", "printing_online", "walkin", "printing_walkin"];
+    return legacyServices.includes(service) || printingCategories.includes(categoryKey(queueData));
   }
 
   function isOnlineDocumentPrinting(queueData){
@@ -2619,7 +2637,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     };
 
     if (isDocumentPrinting(queueData)) {
-      add("Order Type", isOnlineDocumentPrinting(queueData) ? "Online" : "Walk-In");
       add("Paper Size", queueData.paper_size ?? details.paper_size);
       add("Quantity/Copies", queueData.quantity ?? details.quantity);
       add("Color Option", queueData.color_option ?? details.color_option);
@@ -2788,8 +2805,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       </div>
       <hr class="queue-card__divider">
       <p class="queue-card__meta">
-        <strong>${esc(formatServiceLabel(q.service_label || "Service"))}</strong>
-        <small>${esc(formatLabel(q.category || ""))}</small>
+        <strong>${esc(isDocumentPrinting(q) ? "Document Printing" : formatServiceLabel(q.service_label || "Service"))}</strong>
+        <small>${esc(isDocumentPrinting(q) ? "Printing" : formatLabel(q.category || ""))}</small>
       </p>
     `;
 
@@ -3189,8 +3206,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     if (modalTitleText) modalTitleText.textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
     document.getElementById("modalQueueRef").textContent = card.dataset.queue || "Not available";
-    document.getElementById("modalType").textContent = formatLabel(card.dataset.type || "");
-    document.getElementById("modalService").textContent = card.dataset.service || "";
+    document.getElementById("modalType").textContent = isDocumentPrinting(queueData)
+      ? "Printing"
+      : formatLabel(card.dataset.type || "");
+    document.getElementById("modalService").textContent = isDocumentPrinting(queueData)
+      ? "Document Printing"
+      : (card.dataset.service || "");
     document.getElementById("modalSubmittedAt").textContent = formatDateTime(queueData.created_at);
     const completedRow = document.getElementById("modalCompletedAtRow");
     const completedAt = document.getElementById("modalCompletedAt");

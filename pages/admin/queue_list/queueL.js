@@ -558,6 +558,7 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Customer Name", queue.customer),
       detailRow("Email Address", queue.customerEmail),
       detailRow("Phone Number", queue.customerPhone),
+      detailRow("Category", queue.category),
       detailRow("Service", queue.service),
       ...(Array.isArray(queue.details) ? queue.details.map((item) => detailRow(item.label, item.value)) : []),
       fileRows(queue.files),

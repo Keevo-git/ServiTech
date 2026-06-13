@@ -67,7 +67,37 @@ function om_payment_summary(array $row): string
 
 function om_service_label(array $details, string $fallback): string
 {
-    return om_detail_value($details, ["service_label", "service", "service_type", "installation_type", "repair_type"], $fallback);
+    $label = om_detail_value($details, ["service_label", "service", "service_type", "installation_type", "repair_type"], $fallback);
+    $legacyPrintingLabels = [
+        "online print order",
+        "online document printing",
+        "online printing",
+        "walk-in printing",
+        "walk-in document printing",
+        "walkin printing",
+        "print walk-in",
+        "print online",
+    ];
+
+    return in_array(strtolower(trim($label)), $legacyPrintingLabels, true)
+        ? "Document Printing"
+        : $label;
+}
+
+function om_category_label(string $serviceType, string $serviceLabel): string
+{
+    $combined = strtolower(trim($serviceType . " " . $serviceLabel));
+    if (str_contains($combined, "print") || str_contains($combined, "xerox") || str_contains($combined, "laminat") || str_contains($combined, "rush id")) {
+        return "Printing";
+    }
+    if (str_contains($combined, "installation")) {
+        return "Installation";
+    }
+    if (str_contains($combined, "repair")) {
+        return "Repair";
+    }
+
+    return "";
 }
 
 function om_additional_comments(array $details): string
@@ -93,13 +123,16 @@ function om_extra_detail_rows(array $details): array
         "Package" => ["package_label", "package"],
         "Lamination Type" => ["lamination_type"],
         "Total Pages" => ["total_pages", "page_count"],
-        "Order Type" => ["order_type"],
+        "Price Per Page" => ["price_per_page"],
     ];
 
     $rows = [];
     foreach ($map as $label => $keys) {
         $value = om_detail_value($details, $keys);
         if ($value !== "") {
+            if ($label === "Price Per Page" && is_numeric($value)) {
+                $value = "PHP " . number_format((float)$value, 2);
+            }
             $rows[] = ["label" => $label, "value" => $value];
         }
     }
@@ -114,6 +147,11 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
     $referenceNumber = $row["reference_number"] ?? ($details["reference_number"] ?? "");
     $detailsTotal = $row["details_total"] ?? ($details["estimated_total"] ?? null);
     $payment = servitech_queue_payment_values($row);
+    $serviceLabel = om_service_label($details, $fallbackService);
+    $categoryLabel = om_category_label($serviceType, $serviceLabel);
+    if ($categoryLabel === "Printing" && in_array(strtolower(trim($serviceLabel)), ["online", "walk-in", "walk in", "walkin"], true)) {
+        $serviceLabel = "Document Printing";
+    }
 
     return [
         "id" => (int)($row["id"] ?? 0),
@@ -123,7 +161,8 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
         "customerPhone" => (string)($row["customer_phone"] ?? ""),
         "status" => (string)($row["status"] ?? "PENDING"),
         "serviceType" => $serviceType,
-        "serviceLabel" => om_service_label($details, $fallbackService),
+        "category" => $categoryLabel,
+        "serviceLabel" => $serviceLabel,
         "submitted" => trim(admin_queue_submitted_date($row["created_at"] ?? null) . " " . admin_queue_submitted_time($row["created_at"] ?? null)),
         "completed" => admin_queue_has_timestamp($row["completed_at"] ?? null)
             ? trim(admin_queue_completed_date($row["completed_at"]) . " " . admin_queue_completed_time($row["completed_at"]))

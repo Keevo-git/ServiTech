@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Customer Name", order.customer),
       detailRow("Email Address", order.customerEmail),
       detailRow("Phone Number", order.customerPhone),
-      detailRow("Service Type", order.serviceType),
+      detailRow("Category", order.category),
       detailRow("Service", order.serviceLabel),
       ...(Array.isArray(order.details) ? order.details.map((row) => detailRow(row.label, row.value)) : []),
       fileRows(order.files),

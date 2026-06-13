@@ -67,6 +67,13 @@ function qm_normalize_service_label(string $serviceLabel, string $fallbackLabel)
     "online document printing",
     "walk-in printing",
     "walk-in document printing",
+    "walkin printing",
+    "print walk-in",
+    "print online",
+    "online",
+    "walk-in",
+    "walk in",
+    "walkin",
   ], true)) return "Document Printing";
   return $serviceLabel;
 }

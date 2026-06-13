@@ -1797,3 +1797,84 @@ body.modal-open {
   }
 }
 
+/* Shared order detail modal sizing and overflow safeguards. */
+.order-modal {
+  width: min(1100px, 94vw);
+  max-width: 1100px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.order-modal .modal-header {
+  flex: 0 0 auto;
+}
+
+.order-modal .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.order-detail-row,
+.order-detail-row strong,
+.order-detail-row--files strong,
+.order-file-chip,
+.order-file-chip > span:first-child {
+  min-width: 0;
+}
+
+.order-file-chip > span:first-child {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.order-file-actions {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+  .order-modal {
+    width: 95vw;
+    max-height: 90vh;
+    border-radius: 18px;
+  }
+
+  .order-modal-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .order-detail-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .order-modal-actions,
+  .order-modal-action-stack {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .order-modal .om-btn,
+  .order-modal .order-modal-message {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .order-file-chip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .order-file-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .order-file-actions a {
+    text-align: center;
+    width: 100%;
+  }
+}

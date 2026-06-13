@@ -181,7 +181,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                               class="btn-primary view-order-btn"
                               type="button"
                               data-id="<?= (int)$r["id"] ?>"
-                              data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true, "allowApproved" => true]), "Printing Order", "Document Printing") ?>"
+                              data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true, "allowApproved" => true]), "Printing", "Document Printing") ?>"
                             >View</button>
                           </td>
                         </tr>

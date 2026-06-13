@@ -148,7 +148,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                               class="btn-primary view-order-btn"
                               type="button"
                               data-id="<?= (int)$r["id"] ?>"
-                              data-order="<?= om_order_payload_attr($r, "Walk-in Queue: Repair", "Repair Service") ?>"
+                              data-order="<?= om_order_payload_attr($r, "Repair", "Repair Service") ?>"
                             >View</button>
                           </td>
                         </tr>

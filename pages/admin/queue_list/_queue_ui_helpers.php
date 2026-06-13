@@ -18,6 +18,46 @@ function queue_ui_detail_value(array $details, array $keys): string
     return "";
 }
 
+function queue_ui_normalize_service_label(string $serviceLabel): string
+{
+    $normalized = strtolower(trim($serviceLabel));
+    $legacyPrintingLabels = [
+        "online print order",
+        "online document printing",
+        "online printing",
+        "walk-in printing",
+        "walk-in document printing",
+        "walkin printing",
+        "print walk-in",
+        "print online",
+    ];
+
+    return in_array($normalized, $legacyPrintingLabels, true)
+        ? "Document Printing"
+        : trim($serviceLabel);
+}
+
+function queue_ui_category_label(array $row, string $serviceLabel): string
+{
+    $category = strtolower(trim((string)($row["category"] ?? "")));
+    $normalizedService = strtolower(queue_ui_normalize_service_label($serviceLabel));
+
+    if (
+        in_array($category, ["printing", "online_printorder", "printing_online", "walkin", "printing_walkin", "xerox", "rush-id", "laminating"], true)
+        || in_array($normalizedService, ["document printing", "xerox", "rush id", "laminating"], true)
+    ) {
+        return "Printing";
+    }
+    if ($category === "installation" || str_contains($normalizedService, "installation")) {
+        return "Installation";
+    }
+    if ($category === "repair" || str_contains($normalizedService, "repair")) {
+        return "Repair";
+    }
+
+    return $category !== "" ? ucwords(str_replace(["_", "-"], " ", $category)) : "";
+}
+
 function queue_ui_filter_date($value): string
 {
     $submittedAt = trim((string)$value);
@@ -71,12 +111,16 @@ function queue_ui_detail_rows(array $details): array
         "Package" => ["package_label", "package"],
         "Lamination Type" => ["lamination_type"],
         "Total Pages" => ["total_pages", "page_count"],
+        "Price Per Page" => ["price_per_page"],
     ];
 
     $rows = [];
     foreach ($map as $label => $keys) {
         $value = queue_ui_detail_value($details, $keys);
         if ($value !== "") {
+            if ($label === "Price Per Page" && is_numeric($value)) {
+                $value = "PHP " . number_format((float)$value, 2);
+            }
             $rows[] = ["label" => $label, "value" => $value];
         }
     }
@@ -88,6 +132,11 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
 {
     $details = queue_ui_details_array($row["details"] ?? null);
     $payment = servitech_queue_payment_values($row);
+    $serviceLabel = queue_ui_normalize_service_label($serviceLabel);
+    $categoryLabel = queue_ui_category_label($row, $serviceLabel);
+    if ($categoryLabel === "Printing" && in_array(strtolower($serviceLabel), ["online", "walk-in", "walk in", "walkin"], true)) {
+        $serviceLabel = "Document Printing";
+    }
 
     return [
         "id" => (int)($row["id"] ?? 0),
@@ -95,6 +144,7 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "customer" => (string)($row["fullname"] ?? ""),
         "customerEmail" => (string)($row["customer_email"] ?? ""),
         "customerPhone" => (string)($row["customer_phone"] ?? ""),
+        "category" => $categoryLabel,
         "service" => $serviceLabel,
         "status" => (string)($row["status"] ?? "PENDING"),
         "submitted" => trim(admin_queue_submitted_date($row["created_at"] ?? null) . " " . admin_queue_submitted_time($row["created_at"] ?? null)),
