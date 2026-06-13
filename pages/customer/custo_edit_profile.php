@@ -2195,6 +2195,23 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         margin-block-start: 0 !important;
       }
     }
+
+    body.customer-page--profile #profileConfirmOverlay {
+      z-index: 20000 !important;
+    }
+
+    body.customer-page--profile #profileConfirmModal {
+      z-index: 20020 !important;
+    }
+
+    body.customer-page--profile #passwordModalOverlay {
+      z-index: 20100 !important;
+    }
+
+    body.customer-page--profile #passwordChangeModal {
+      z-index: 20120 !important;
+      pointer-events: auto;
+    }
   </style>
 </head>
 <body class="customer-layout customer-page--profile<?php echo ($openConfirmModal || $openPasswordModal) ? " modal-open" : ""; ?>">
@@ -2749,6 +2766,14 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     if (openPasswordButton) {
       openPasswordButton.addEventListener("click", openPasswordChangeModal);
     }
+
+    [confirmModal, passwordModal].forEach(function (modal) {
+      if (modal) {
+        modal.addEventListener("click", function (event) {
+          event.stopPropagation();
+        });
+      }
+    });
 
     [passwordClose, passwordCancel].forEach(function (button) {
       if (button) {
