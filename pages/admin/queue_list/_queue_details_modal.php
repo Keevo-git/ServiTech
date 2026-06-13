@@ -74,6 +74,7 @@
           </div>
 
           <button class="queue-details-action queue-details-action--primary queue-details-update" type="button" id="queueDetailsUpdate" disabled>Update</button>
+          <p class="queue-details-update-feedback" id="queueDetailsUpdateFeedback" role="status" aria-live="polite" hidden></p>
 
           <button
             class="btn-message queue-details-message"

@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const statusEl = document.getElementById("queueDetailsStatus");
   const statusHelpEl = document.getElementById("queueDetailsStatusHelp");
   const updateBtn = document.getElementById("queueDetailsUpdate");
+  const updateFeedbackEl = document.getElementById("queueDetailsUpdateFeedback");
   const messageBtn = document.getElementById("queueDetailsMessage");
   const paymentSection = document.querySelector(".queue-payment-section");
   const priceEl = document.getElementById("queueDetailsPrice");
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const sendBackSubmitBtn = document.getElementById("queueSendBackSubmit");
   let currentStatus = "PENDING";
   let currentQueue = null;
+  let currentQueueRow = null;
   let initialPayment = { price: "0.00", paidAmount: "0.00" };
   let transitionButtons = new Map();
   let updateInProgress = false;
@@ -150,9 +152,17 @@ document.addEventListener("DOMContentLoaded", function () {
     if (message && notify) window.servitechAdminToast?.error(message);
   }
 
+  function showUpdateFeedback(message = "", tone = "") {
+    if (!updateFeedbackEl) return;
+    updateFeedbackEl.hidden = !message;
+    updateFeedbackEl.textContent = message;
+    updateFeedbackEl.className = `queue-details-update-feedback${tone ? ` is-${tone}` : ""}`;
+  }
+
   function clearErrors() {
     showPaymentError("");
     showStatusError("", false);
+    showUpdateFeedback();
   }
 
   function syncPaymentPreview(status = statusEl?.value || currentStatus) {
@@ -199,7 +209,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function applyStatusResult(out) {
     const newStatus = normalizeStatus(out.status || currentStatus);
     currentQueue.status = newStatus;
-    renderStatusState(newStatus, Array.isArray(out.allowed_transitions) ? out.allowed_transitions : []);
+    currentQueue.allowedStatuses = Array.isArray(out.allowed_transitions) ? out.allowed_transitions : [];
+    renderStatusState(newStatus, currentQueue.allowedStatuses);
     syncSendBackButton();
     if (out.payment && typeof out.payment === "object") {
       applyPaymentResult({
@@ -209,6 +220,22 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     } else {
       syncPaymentPreview(newStatus);
+    }
+  }
+
+  function syncCurrentRow() {
+    if (!currentQueueRow || !currentQueue) return;
+
+    currentQueueRow.dataset.queueStatus = currentStatus;
+    const badge = currentQueueRow.querySelector("td .status-badge");
+    if (badge) {
+      badge.className = `status-badge ${statusClass(currentStatus)}`;
+      badge.textContent = statusLabels[currentStatus] || currentStatus;
+    }
+
+    const viewButton = currentQueueRow.querySelector(".queue-view-btn");
+    if (viewButton) {
+      viewButton.dataset.queue = JSON.stringify(currentQueue);
     }
   }
 
@@ -330,30 +357,40 @@ document.addEventListener("DOMContentLoaded", function () {
     const paymentOk = !paymentTried || paymentResult.ok;
     const statusOk = !statusTried || statusResult.ok;
 
+    if (!paymentTried && !statusTried) {
+      showUpdateFeedback("No changes to update.");
+      return;
+    }
+
     if (paymentTried && statusTried && paymentOk && statusOk) {
-      window.servitechAdminToast?.persist("Status and payment updated successfully.");
-      location.reload();
-      return true;
+      const message = "Status and payment updated successfully.";
+      window.servitechAdminToast?.success(message);
+      showUpdateFeedback(message, "success");
+      syncCurrentRow();
+      return;
     }
 
     if (paymentTried && statusTried && !paymentOk && !statusOk) {
       window.servitechAdminToast?.error("Unable to update status and payment.");
-      return false;
+      showUpdateFeedback("Unable to update status and payment. Please try again.", "error");
+      return;
     }
 
     if ((statusTried || paymentTried) && statusOk && paymentOk) {
       const message = statusTried ? (statusResult.message || "Order status updated successfully.") : "Payment details saved successfully.";
-      window.servitechAdminToast?.persist(message);
-      location.reload();
-      return true;
+      window.servitechAdminToast?.success(message);
+      showUpdateFeedback(message, "success");
+      syncCurrentRow();
+      return;
     }
 
     if (statusTried && !statusOk) window.servitechAdminToast?.error(statusResult.error || "Unable to update the order status.");
     if (statusTried && statusOk) window.servitechAdminToast?.success(statusResult.message || "Order status updated successfully.");
     if (paymentTried && !paymentOk) window.servitechAdminToast?.error(paymentResult.error || "Unable to update payment details.");
     if (paymentTried && paymentOk) window.servitechAdminToast?.success(paymentResult.message || "Payment details saved successfully.");
-
-    return false;
+    const errorMessage = statusResult?.error || paymentResult?.error || "Unable to save all changes. Please try again.";
+    showUpdateFeedback(errorMessage, "error");
+    if ((statusTried && statusOk) || (paymentTried && paymentOk)) syncCurrentRow();
   }
 
   function detailRow(label, value) {
@@ -525,7 +562,10 @@ document.addEventListener("DOMContentLoaded", function () {
       if (status) transitionButtons.set(status, button);
     });
 
-    renderStatusState(currentStatus, Array.from(transitionButtons.keys()));
+    const allowedStatuses = Array.isArray(queue.allowedStatuses)
+      ? queue.allowedStatuses
+      : Array.from(transitionButtons.keys());
+    renderStatusState(currentStatus, allowedStatuses);
   }
 
   function openDetails(button) {
@@ -540,6 +580,7 @@ document.addEventListener("DOMContentLoaded", function () {
       queue = {};
     }
     currentQueue = queue;
+    currentQueueRow = row;
     clearErrors();
 
     titleEl.textContent = queue.queueCode || "Queue Details";
@@ -646,6 +687,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!currentQueue?.id || updateInProgress) return;
 
     updateInProgress = true;
+    const updateLabel = updateBtn.textContent;
+    updateBtn.textContent = "Updating...";
+    updateBtn.setAttribute("aria-busy", "true");
     syncStatusUpdateButton();
     clearErrors();
 
@@ -653,16 +697,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const action = statusActions[selectedStatus];
     if (selectedStatus !== currentStatus && !action) {
       showStatusError("Invalid status selected.");
+      showUpdateFeedback("Invalid status selected.", "error");
       updateInProgress = false;
+      updateBtn.textContent = updateLabel;
+      updateBtn.removeAttribute("aria-busy");
       syncStatusUpdateButton();
       return;
     }
 
     const paymentResult = await savePayment();
     const statusResult = await saveStatus(action);
-    if (showUpdateResultToasts(paymentResult, statusResult)) return;
+    showUpdateResultToasts(paymentResult, statusResult);
 
     updateInProgress = false;
+    updateBtn.textContent = updateLabel;
+    updateBtn.removeAttribute("aria-busy");
     syncStatusUpdateButton();
   });
   document.addEventListener("keydown", (event) => {

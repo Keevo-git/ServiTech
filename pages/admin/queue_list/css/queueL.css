@@ -1458,3 +1458,171 @@ td.actions button.btn-message:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* Responsive refinements for the shared Queue Management details modal. */
+.queue-details-modal {
+  width: min(1120px, 94vw);
+  max-width: 1120px;
+  max-height: 92dvh;
+}
+
+.queue-details-head {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.queue-details-head > div {
+  min-width: 0;
+}
+
+.queue-details-head h3 {
+  max-width: 100%;
+  line-height: 1.2;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: nowrap;
+}
+
+.queue-details-body {
+  max-height: none;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.queue-details-info,
+.queue-details-admin-panel,
+.queue-details-list,
+.queue-detail-row,
+.queue-detail-row strong,
+.queue-detail-file,
+.queue-detail-file > span:first-child {
+  min-width: 0;
+}
+
+.queue-detail-file > span:first-child {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.queue-details-update-feedback {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.queue-details-update-feedback.is-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.queue-details-update-feedback.is-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 900px) {
+  .queue-details-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .queue-details-admin-panel {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .queue-details-modal {
+    width: 96vw;
+    max-width: 96vw;
+    max-height: 90dvh;
+    border-radius: 16px;
+  }
+
+  .queue-details-head {
+    gap: 12px;
+    padding: 16px 16px 12px;
+  }
+
+  .queue-details-head h3 {
+    font-size: clamp(17px, 5vw, 20px);
+    letter-spacing: -0.01em;
+  }
+
+  .queue-details-close {
+    flex: 0 0 42px;
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    margin-top: -5px;
+  }
+
+  .queue-details-body {
+    padding: 14px 16px 18px;
+  }
+
+  .queue-details-summary,
+  .queue-detail-row,
+  .queue-payment-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .queue-details-summary {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .queue-detail-row {
+    gap: 4px;
+    padding: 3px 0 9px;
+  }
+
+  .queue-detail-file {
+    gap: 10px;
+  }
+
+  .queue-detail-file__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .queue-detail-file__actions a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid #b9cbe3;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .queue-details-actions {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .queue-details-action,
+  .queue-details-message {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 380px) {
+  .queue-details-head h3 {
+    font-size: 16px;
+  }
+
+  .queue-detail-file__actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
