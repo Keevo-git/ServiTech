@@ -35,6 +35,12 @@ $footerEmail = servitech_smtp_public_from_email();
     </div>
   </div>
 
+  <div class="footer-legal-links">
+    <a href="/privacy-policy.php">Privacy Policy</a>
+    <span aria-hidden="true">|</span>
+    <a href="/terms-of-service.php">Terms of Service</a>
+  </div>
+
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
 </footer>
 <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260602-global-toast">

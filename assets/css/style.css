@@ -1084,6 +1084,26 @@ html:has(body.modal-open) {
 }
 
 /* BOTTOM TEXT */
+.footer-legal-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.footer-legal-links a {
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-legal-links span {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 .footer-bottom {
   text-align: center;
   margin-top: 20px;
