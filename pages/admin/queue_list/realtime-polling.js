@@ -8,6 +8,21 @@
   let pollTimer = null;
   let requestInFlight = false;
   let lastRecordSignature = "";
+  let reloadPending = false;
+
+  function hasActiveAdminModal() {
+    return Boolean(document.querySelector(
+      ".queue-details-modal.active, .queue-sendback-modal.active, .order-modal.active, .order-sendback-modal.active"
+    ));
+  }
+
+  function reloadOrDefer() {
+    if (hasActiveAdminModal()) {
+      reloadPending = true;
+      return;
+    }
+    window.location.reload();
+  }
 
   function adminUrl(path) {
     const adminLink = document.querySelector('a[href*="/pages/admin/"]');
@@ -106,11 +121,13 @@
       syncNotificationBadge(data.notification_count);
       const snapshotRecordSignature = recordSignature(data.records);
       if (!lastRecordSignature && recordSignature(renderedRecords()) !== snapshotRecordSignature) {
-        window.location.reload();
+        lastRecordSignature = snapshotRecordSignature;
+        reloadOrDefer();
         return;
       }
       if (lastRecordSignature && lastRecordSignature !== snapshotRecordSignature) {
-        window.location.reload();
+        lastRecordSignature = snapshotRecordSignature;
+        reloadOrDefer();
         return;
       }
       lastRecordSignature = snapshotRecordSignature;
@@ -136,6 +153,13 @@
 
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) refreshSnapshot();
+  });
+  document.addEventListener("servitech:admin-modal-closed", function () {
+    window.setTimeout(function () {
+      if (!reloadPending || hasActiveAdminModal()) return;
+      reloadPending = false;
+      window.location.reload();
+    }, 50);
   });
   window.addEventListener("beforeunload", stopPolling);
 

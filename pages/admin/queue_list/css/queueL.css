@@ -1471,7 +1471,8 @@ td.actions button.btn-message:hover {
   min-width: 0;
 }
 
-.queue-details-head > div {
+.queue-details-title-wrap {
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -1550,7 +1551,7 @@ td.actions button.btn-message:hover {
   }
 
   .queue-details-head h3 {
-    font-size: clamp(17px, 5vw, 20px);
+    font-size: clamp(16px, 4.6vw, 20px);
     letter-spacing: -0.01em;
   }
 
@@ -1561,6 +1562,8 @@ td.actions button.btn-message:hover {
     width: 42px;
     height: 42px;
     margin-top: -5px;
+    border-radius: 999px;
+    font-size: 26px;
   }
 
   .queue-details-body {

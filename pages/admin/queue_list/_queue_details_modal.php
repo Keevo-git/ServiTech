@@ -11,7 +11,7 @@
   data-send-back-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_send_back.php'), ENT_QUOTES, 'UTF-8') ?>"
 >
   <div class="queue-details-head">
-    <div>
+    <div class="queue-details-title-wrap">
       <p>Queue Details</p>
       <h3 id="queueDetailsTitle">Queue Details</h3>
     </div>

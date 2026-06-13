@@ -441,6 +441,7 @@ document.addEventListener("DOMContentLoaded", function () {
     overlay.classList.remove("active");
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");
+    document.dispatchEvent(new CustomEvent("servitech:admin-modal-closed"));
   }
 
   function showSendBackError(message = "") {
@@ -663,7 +664,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
   messageBtn?.addEventListener("click", closeDetails);
-  overlay?.addEventListener("click", closeDetails);
+  overlay?.addEventListener("click", (event) => {
+    if (event.target === overlay) closeDetails();
+  });
   statusEl?.addEventListener("change", () => {
     if (statusEl.value === "CANCELLED") {
       statusEl.value = currentStatus;
@@ -683,7 +686,9 @@ document.addEventListener("DOMContentLoaded", function () {
     clearErrors();
     syncPaymentPreview();
   });
-  updateBtn?.addEventListener("click", async () => {
+  updateBtn?.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!currentQueue?.id || updateInProgress) return;
 
     updateInProgress = true;

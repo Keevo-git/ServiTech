@@ -119,7 +119,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260614-uniform-tabs') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260614-queue-modal-fix2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
 <body class="admin-dashboard" data-admin-realtime-scope="queue_printing">
@@ -270,8 +270,8 @@ require __DIR__ . "/../_includes/admin_header.php";
 })();
 </script>
 
-<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260608-profile-sync') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260608-profile-sync') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260614-queue-modal-fix2') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260614-queue-modal-fix2') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>
