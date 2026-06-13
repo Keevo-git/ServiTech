@@ -511,6 +511,15 @@ if (!function_exists("admin_notification_render_styles")) {
     padding-bottom: 12px;
   }
 
+  .admin-notification-refine.is-new-customers {
+    grid-template-columns: minmax(180px, 240px) auto;
+    justify-content: start;
+  }
+
+  .admin-notification-field[hidden] {
+    display: none !important;
+  }
+
   .admin-notification-field {
     display: flex;
     min-width: 0;
@@ -788,6 +797,40 @@ if (!function_exists("admin_notification_render_styles")) {
   .admin-notification-close:focus-visible {
     outline: 2px solid #fbbf24;
     outline-offset: 2px;
+  }
+
+  @media (max-width: 980px) and (min-width: 769px) {
+    .admin-notification-overlay-shell {
+      padding: 14px;
+    }
+
+    .admin-notification-overlay-shell .admin-notification-center {
+      width: calc(100vw - 28px);
+      max-width: calc(100vw - 28px);
+      height: calc(100dvh - 28px);
+      max-height: calc(100dvh - 28px);
+    }
+
+    .admin-notification-body {
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .admin-notification-refine {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-notification-refine.is-new-customers {
+      grid-template-columns: minmax(180px, 240px) auto;
+    }
+
+    .admin-notification-clear-filter {
+      justify-self: start;
+    }
+
+    .admin-notification-actions {
+      flex-wrap: wrap;
+    }
   }
 
   @media (max-width: 768px) {
@@ -1094,7 +1137,7 @@ if (!function_exists("admin_notification_render_center")) {
 
         <main class="admin-notification-main">
           <div class="admin-notification-refine" aria-label="Search and date filters">
-            <label class="admin-notification-field">
+            <label class="admin-notification-field" data-admin-notification-service-field>
               <span>Service</span>
               <select data-admin-service-filter aria-label="Filter notifications by service">
                 <?php
@@ -1110,7 +1153,7 @@ if (!function_exists("admin_notification_render_center")) {
                 <?php endforeach; ?>
               </select>
             </label>
-            <label class="admin-notification-field">
+            <label class="admin-notification-field" data-admin-notification-order-field>
               <span>Order ID</span>
               <input type="search" data-admin-notification-search placeholder="Search Queue or Order ID" autocomplete="off">
             </label>
@@ -1275,6 +1318,9 @@ if (!function_exists("admin_notification_render_script")) {
     var deleteSelectedButton = root.querySelector("[data-admin-notification-delete-selected]");
     var filterButtons = Array.from(root.querySelectorAll("[data-admin-notification-filter]"));
     var serviceFilterControls = Array.from(root.querySelectorAll("[data-admin-service-filter]"));
+    var refineFilters = root.querySelector(".admin-notification-refine");
+    var serviceFilterField = root.querySelector("[data-admin-notification-service-field]");
+    var orderFilterField = root.querySelector("[data-admin-notification-order-field]");
     var searchInput = root.querySelector("[data-admin-notification-search]");
     var dateInput = root.querySelector("[data-admin-notification-date]");
     var clearFiltersButton = root.querySelector("[data-admin-notification-clear-filters]");
@@ -1297,17 +1343,32 @@ if (!function_exists("admin_notification_render_script")) {
     }
 
     function itemMatchesService(item) {
+      if (activeFilter === "new-customers") return true;
       return activeServiceFilter === "all"
         || item.dataset.adminNotificationService === activeServiceFilter;
     }
 
     function itemMatchesRefine(item) {
-      var query = String(searchInput?.value || "").trim().toLowerCase();
+      var query = activeFilter === "new-customers"
+        ? ""
+        : String(searchInput?.value || "").trim().toLowerCase();
       var selectedDate = String(dateInput?.value || "").trim();
       var queueId = String(item.dataset.adminNotificationQueue || "").trim().toLowerCase();
       var matchesSearch = !query || queueId.indexOf(query) !== -1;
       var matchesDate = !selectedDate || item.dataset.adminNotificationDate === selectedDate;
       return matchesSearch && matchesDate;
+    }
+
+    function syncRefineVisibility() {
+      var isNewCustomers = activeFilter === "new-customers";
+      if (refineFilters) refineFilters.classList.toggle("is-new-customers", isNewCustomers);
+      if (serviceFilterField) serviceFilterField.hidden = isNewCustomers;
+      if (orderFilterField) orderFilterField.hidden = isNewCustomers;
+
+      if (isNewCustomers) {
+        activeServiceFilter = "all";
+        if (searchInput) searchInput.value = "";
+      }
     }
 
     function syncCounts() {
@@ -1383,6 +1444,7 @@ if (!function_exists("admin_notification_render_script")) {
     }
 
     function applyFilter() {
+      syncRefineVisibility();
       notificationItems().forEach(function (item) {
         var isVisible = itemMatchesCategory(item) && itemMatchesService(item) && itemMatchesRefine(item);
         item.hidden = !isVisible;
