@@ -33,7 +33,6 @@ if (!is_array($data)) {
   print_order_draft_json(["ok" => false, "error" => "Invalid JSON payload."], 422);
 }
 
-$order_type = strtolower(trim((string)($data["order_type"] ?? "")));
 $paper_size = trim((string)($data["paper_size"] ?? ""));
 $quantity = max(0, (int)($data["quantity"] ?? 0));
 $color_option = trim((string)($data["color_option"] ?? ""));
@@ -41,11 +40,8 @@ $payment_method = strtolower(trim((string)($data["payment_method"] ?? "")));
 $uploaded_files = isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [];
 
 $errors = [];
-if ($order_type !== "online") {
-  $errors[] = "Invalid order type.";
-}
-if ($paper_size === "") {
-  $errors[] = "Paper size is required.";
+if (!in_array($paper_size, ["Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
+  $errors[] = "Select a valid paper size.";
 }
 if ($quantity < 1) {
   $errors[] = "Quantity must be at least 1.";
@@ -103,7 +99,6 @@ if (is_array($existingDraft) && !empty($existingDraft["uploaded_files"]) && is_a
 
 $draft = [
   "service_label" => "Document Printing",
-  "order_type" => "online",
   "paper_size" => $paper_size,
   "quantity" => $quantity,
   "color_option" => $color_option,

@@ -89,13 +89,11 @@ function servitech_pricing_normalize_color(string $color): string {
 }
 
 function servitech_pricing_document_prices(array $service): array {
-  $defaults = [
+  return [
     "longFull" => 10.0, "longHalf" => 5.0,
     "shortFull" => 10.0, "shortHalf" => 5.0,
     "a4Full" => 10.0, "a4Half" => 5.0,
-    "a3Full" => 10.0, "a3Half" => 5.0,
   ];
-  return servitech_pricing_numeric_map(servitech_pricing_decode_map($service), $defaults, "Document Printing");
 }
 
 function servitech_pricing_xerox_prices(array $service): array {
@@ -271,7 +269,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   if ($kind === "document_printing") {
     $paper = servitech_pricing_normalize_paper((string)($details["paper_size"] ?? ""));
     $color = servitech_pricing_normalize_color((string)($details["color_option"] ?? ""));
-    if ($paper === "") throw new DomainException("Select a valid paper size.");
+    if ($paper === "" || $paper === "a3") throw new DomainException("Select a valid paper size.");
     if ($color === "") throw new DomainException("Select a valid color option.");
     $details = array_merge($details, servitech_pricing_analyze_saved_uploads($pdo, (array)($details["uploaded_files"] ?? [])));
     $prices = servitech_pricing_document_prices($service);
@@ -317,7 +315,7 @@ function servitech_pricing_validate_admin_catalog(string $category, string $name
   $kind = servitech_pricing_service_kind($category, $name);
   $validated = match ($kind) {
     "document_printing" => servitech_pricing_numeric_map($pricing, array_fill_keys([
-      "longFull", "longHalf", "shortFull", "shortHalf", "a4Full", "a4Half", "a3Full", "a3Half",
+      "longFull", "longHalf", "shortFull", "shortHalf", "a4Full", "a4Half",
     ], null), "Document Printing"),
     "xerox" => servitech_pricing_numeric_map($pricing, array_fill_keys(["long", "short", "a4", "a3"], null), "Xerox"),
     "rush_id" => servitech_pricing_numeric_map($pricing, array_fill_keys([
@@ -328,7 +326,7 @@ function servitech_pricing_validate_admin_catalog(string $category, string $name
   };
 
   if ($kind === "document_printing") {
-    foreach (["long", "short", "a4", "a3"] as $paper) {
+    foreach (["long", "short", "a4"] as $paper) {
       if ($validated[$paper . "Full"] < $validated[$paper . "Half"]) {
         throw new DomainException("Document Printing full-color prices cannot be lower than half-color prices.");
       }

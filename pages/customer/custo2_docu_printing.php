@@ -5,21 +5,6 @@ servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
-$requestedOrderType = strtolower(trim((string)($_GET["order_type"] ?? "")));
-if ($requestedOrderType === "walkin") {
-  header("Location: /pages/customer/custo2_docu_printing.php?order_type=online");
-  exit();
-}
-if ($requestedOrderType !== "online") {
-  $requestedOrderType = is_array($sessionPrintDraft)
-    && strtolower(trim((string)($sessionPrintDraft["order_type"] ?? ""))) === "online"
-      ? "online"
-      : "";
-}
-if ($requestedOrderType === "") {
-  header("Location: /pages/customer/custo1_printing_option.php");
-  exit();
-}
 $documentPrintingLabel = "Document Printing";
 $printDraft = [];
 $printPricing = [
@@ -29,8 +14,6 @@ $printPricing = [
   "short_half_price" => 5.0,
   "a4_full_price" => 10.0,
   "a4_half_price" => 5.0,
-  "a3_full_price" => 10.0,
-  "a3_half_price" => 5.0,
 ];
 
 function document_printing_extract_price(string $description, string $option): ?float {
@@ -90,24 +73,14 @@ try {
     $halfPrice = document_printing_extract_price($description, "Half") ?? $defaultPrice;
     $fullPrice = document_printing_extract_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($halfPrice, $defaultPrice));
 
-    $printPricing = [
-      "long_full_price" => isset($storedPricing["longFull"]) ? (float)$storedPricing["longFull"] : (document_printing_extract_block_price($description, "Long Bond", "Full") ?? $fullPrice),
-      "long_half_price" => isset($storedPricing["longHalf"]) ? (float)$storedPricing["longHalf"] : (document_printing_extract_block_price($description, "Long Bond", "Half") ?? $halfPrice),
-      "short_full_price" => isset($storedPricing["shortFull"]) ? (float)$storedPricing["shortFull"] : (document_printing_extract_block_price($description, "Short Bond", "Full") ?? $fullPrice),
-      "short_half_price" => isset($storedPricing["shortHalf"]) ? (float)$storedPricing["shortHalf"] : (document_printing_extract_block_price($description, "Short Bond", "Half") ?? $halfPrice),
-      "a4_full_price" => isset($storedPricing["a4Full"]) ? (float)$storedPricing["a4Full"] : (document_printing_extract_block_price($description, "A4", "Full") ?? $fullPrice),
-      "a4_half_price" => isset($storedPricing["a4Half"]) ? (float)$storedPricing["a4Half"] : (document_printing_extract_block_price($description, "A4", "Half") ?? $halfPrice),
-      "a3_full_price" => isset($storedPricing["a3Full"]) ? (float)$storedPricing["a3Full"] : (document_printing_extract_block_price($description, "A3", "Full") ?? $fullPrice),
-      "a3_half_price" => isset($storedPricing["a3Half"]) ? (float)$storedPricing["a3Half"] : (document_printing_extract_block_price($description, "A3", "Half") ?? $halfPrice),
-    ];
+    // Document Printing uses fixed color prices across supported paper sizes.
   }
 } catch (Throwable $e) {
   // Keep the order form usable if the service table is unavailable.
 }
 
-if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolower(trim((string)($sessionPrintDraft["order_type"] ?? ""))) === "online") {
+if (is_array($sessionPrintDraft)) {
   $printDraft = [
-    "order_type" => "online",
     "paper_size" => trim((string)($sessionPrintDraft["paper_size"] ?? "")),
     "quantity" => max(1, (int)($sessionPrintDraft["quantity"] ?? 1)),
     "color_option" => trim((string)($sessionPrintDraft["color_option"] ?? "")),
@@ -284,8 +257,24 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
       align-items: center;
       display: flex;
       font-weight: 500;
-      gap: 0.6rem;
+      gap: 0.75rem;
+      justify-content: space-between;
       margin: 0;
+      width: 100%;
+    }
+
+    .printing-page .color-option-left {
+      align-items: center;
+      display: flex;
+      gap: 0.6rem;
+      min-width: 0;
+    }
+
+    .printing-page .color-option-price {
+      color: var(--printing-accent);
+      flex: 0 0 auto;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     #paymentSection[hidden],
@@ -506,9 +495,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
               <div class="static-text service-type-display"><span><?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></span></div>
             </div>
 
-            <input type="hidden" id="orderTypeSelect" value="<?= htmlspecialchars($requestedOrderType, ENT_QUOTES, "UTF-8") ?>">
-
-            <div id="paymentSection" class="payment-section printing-field" hidden>
+            <div id="paymentSection" class="payment-section printing-field">
               <span class="payment-section__label">Document Printing Payment</span>
               <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
               <select class="form-select" id="paymentMethodSelect">
@@ -526,7 +513,6 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
                 <option>Short Bond (8.5 x 11)</option>
                 <option>Long Bond (8.5 x 13)</option>
                 <option>A4</option>
-                <option>A3</option>
               </select>
             </div>
 
@@ -544,9 +530,18 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
           <div>
             <label>Color Option<span class="required">*</span></label>
             <div class="radio-group">
-              <label><input type="radio" name="color" value="Black & White"> Black & White</label>
-              <label><input type="radio" name="color" value="Colored Full"> Colored (Full)</label>
-              <label><input type="radio" name="color" value="Colored Half"> Colored (Half)</label>
+              <label>
+                <span class="color-option-left"><input type="radio" name="color" value="Black & White"><span>Black &amp; White</span></span>
+                <span class="color-option-price">&#8369;5.00</span>
+              </label>
+              <label>
+                <span class="color-option-left"><input type="radio" name="color" value="Colored (Full)"><span>Colored (Full)</span></span>
+                <span class="color-option-price">&#8369;10.00</span>
+              </label>
+              <label>
+                <span class="color-option-left"><input type="radio" name="color" value="Colored (Half)"><span>Colored (Half)</span></span>
+                <span class="color-option-price">&#8369;5.00</span>
+              </label>
             </div>
           </div>
         </div>
@@ -583,6 +578,11 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
         <div class="summary-row">
           <span>PAPER SIZE:</span>
           <strong id="summaryPaperSize">Not Selected</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>COLOR OPTION:</span>
+          <strong id="summaryColorOption">Not Selected</strong>
         </div>
 
         <div class="summary-row">
@@ -630,7 +630,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260614-unified-printing"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260614-document-printing-prices"></script>
 </body>
 </html>
 

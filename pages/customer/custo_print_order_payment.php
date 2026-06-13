@@ -691,7 +691,7 @@ if ($isConfirmed) {
                 <strong><?= print_order_money((float)($draft["price_per_page"] ?? 0)) ?></strong>
               </div>
               <div class="print-payment-meta-row">
-                <span>Order Type</span>
+                <span>Service</span>
                 <strong>Document Printing</strong>
               </div>
             </div>
@@ -720,7 +720,7 @@ if ($isConfirmed) {
         </div>
 
         <div class="form-actions form-actions--compact">
-          <a href="/pages/customer/custo2_docu_printing.php?order_type=online" class="btn-back">Back</a>
+          <a href="/pages/customer/custo2_docu_printing.php" class="btn-back">Back</a>
           <button type="submit" class="btn-next" id="placePrintOrderBtn">Submit Payment &amp; Join Queue</button>
         </div>
       </form>

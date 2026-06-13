@@ -135,35 +135,27 @@
     grid.innerHTML = `
       <div class="ms-field">
         <label>Long Bond Full Price</label>
-        <input id="ms_long_full_price" type="text" placeholder="e.g., 15.00">
+        <input id="ms_long_full_price" type="text" value="10.00" readonly>
       </div>
       <div class="ms-field">
         <label>Long Bond Half / B&W Price</label>
-        <input id="ms_long_half_price" type="text" placeholder="e.g., 10.00">
+        <input id="ms_long_half_price" type="text" value="5.00" readonly>
       </div>
       <div class="ms-field">
         <label>Short Bond Full Price</label>
-        <input id="ms_short_full_price" type="text" placeholder="e.g., 10.00">
+        <input id="ms_short_full_price" type="text" value="10.00" readonly>
       </div>
       <div class="ms-field">
         <label>Short Bond Half / B&W Price</label>
-        <input id="ms_short_half_price" type="text" placeholder="e.g., 5.00">
+        <input id="ms_short_half_price" type="text" value="5.00" readonly>
       </div>
       <div class="ms-field">
         <label>A4 Full Price</label>
-        <input id="ms_a4_full_price" type="text" placeholder="e.g., 10.00">
+        <input id="ms_a4_full_price" type="text" value="10.00" readonly>
       </div>
       <div class="ms-field">
         <label>A4 Half / B&W Price</label>
-        <input id="ms_a4_half_price" type="text" placeholder="e.g., 5.00">
-      </div>
-      <div class="ms-field">
-        <label>A3 Full Price</label>
-        <input id="ms_a3_full_price" type="text" placeholder="e.g., 20.00">
-      </div>
-      <div class="ms-field">
-        <label>A3 Half / B&W Price</label>
-        <input id="ms_a3_half_price" type="text" placeholder="e.g., 10.00">
+        <input id="ms_a4_half_price" type="text" value="5.00" readonly>
       </div>
     `;
     fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
@@ -176,31 +168,13 @@
   }
 
   function getDocumentPrices(data) {
-    let storedPrices = null;
-    if (data?.pricing_json) {
-      try {
-        storedPrices = typeof data.pricing_json === "string"
-          ? JSON.parse(data.pricing_json)
-          : data.pricing_json;
-      } catch (err) {
-        storedPrices = null;
-      }
-    }
-
-    const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
-    const description = String(data?.description || fDesc?.value || "");
-    const low = rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : (data?.price || fPrice?.value || "5");
-    const high = rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "10";
-
     return {
-      longFull: storedPrices?.longFull ?? extractBlockPrice(description, "Long Bond", "Full") ?? high,
-      longHalf: storedPrices?.longHalf ?? extractBlockPrice(description, "Long Bond", "Half") ?? low,
-      shortFull: storedPrices?.shortFull ?? extractBlockPrice(description, "Short Bond", "Full") ?? high,
-      shortHalf: storedPrices?.shortHalf ?? extractBlockPrice(description, "Short Bond", "Half") ?? low,
-      a4Full: storedPrices?.a4Full ?? extractBlockPrice(description, "A4", "Full") ?? high,
-      a4Half: storedPrices?.a4Half ?? extractBlockPrice(description, "A4", "Half") ?? low,
-      a3Full: storedPrices?.a3Full ?? extractBlockPrice(description, "A3", "Full") ?? high,
-      a3Half: storedPrices?.a3Half ?? extractBlockPrice(description, "A3", "Half") ?? low,
+      longFull: "10.00",
+      longHalf: "5.00",
+      shortFull: "10.00",
+      shortHalf: "5.00",
+      a4Full: "10.00",
+      a4Half: "5.00",
     };
   }
 
@@ -212,8 +186,6 @@
       shortHalf: getDocumentPriceInput("#ms_short_half_price")?.value.trim() || "",
       a4Full: getDocumentPriceInput("#ms_a4_full_price")?.value.trim() || "",
       a4Half: getDocumentPriceInput("#ms_a4_half_price")?.value.trim() || "",
-      a3Full: getDocumentPriceInput("#ms_a3_full_price")?.value.trim() || "",
-      a3Half: getDocumentPriceInput("#ms_a3_half_price")?.value.trim() || "",
     };
   }
 
@@ -234,7 +206,7 @@
 
     if (fPriceHint) {
       fPriceHint.textContent = enabled
-        ? "Long Bond, Short Bond, A4, and A3 can each use separate prices."
+        ? "Document Printing uses fixed color prices for Long Bond, Short Bond, and A4."
         : "Choose Full or Half when editing print price lines inside the description.";
     }
     if (fDescriptionHint) {
@@ -253,8 +225,6 @@
       "#ms_short_half_price": prices.shortHalf,
       "#ms_a4_full_price": prices.a4Full,
       "#ms_a4_half_price": prices.a4Half,
-      "#ms_a3_full_price": prices.a3Full,
-      "#ms_a3_half_price": prices.a3Half,
     };
     Object.keys(inputMap).forEach((selector) => {
       const input = getDocumentPriceInput(selector);
@@ -650,8 +620,6 @@
       "ms_short_half_price",
       "ms_a4_full_price",
       "ms_a4_half_price",
-      "ms_a3_full_price",
-      "ms_a3_half_price",
     ].includes(event.target.id)) {
       syncDocumentPriceRange();
       return;
@@ -693,15 +661,14 @@
       const prices = getDocumentPriceValues();
       const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
       if (invalid) {
-        showErr("Enter valid Long Bond, Short Bond, A4, and A3 prices.");
+        showErr("Enter valid Long Bond, Short Bond, and A4 prices.");
         return;
       }
 
       if (
         Number(prices.longFull) < Number(prices.longHalf) ||
         Number(prices.shortFull) < Number(prices.shortHalf) ||
-        Number(prices.a4Full) < Number(prices.a4Half) ||
-        Number(prices.a3Full) < Number(prices.a3Half)
+        Number(prices.a4Full) < Number(prices.a4Half)
       ) {
         showErr("Full prices should be greater than or equal to Half / B&W prices.");
         return;

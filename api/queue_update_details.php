@@ -165,12 +165,15 @@ try {
 
   $serviceKind = servitech_pricing_service_kind($category, (string)$details["service_label"]);
   $currentOrderType = strtolower(trim((string)($currentDetails["order_type"] ?? "")));
+  $currentPaymentMethod = strtolower(trim((string)($currentDetails["payment_method"] ?? "")));
   $isDocumentPrintingPaymentFlow = $serviceKind === "document_printing"
-    && ($category === "online_printorder" || $currentOrderType === "online");
+    && ($category === "online_printorder"
+      || $currentOrderType === "online"
+      || in_array($currentPaymentMethod, ["cash", "gcash"], true));
 
   if ($serviceKind === "document_printing") {
     $details["service_label"] = "Document Printing";
-    $details["order_type"] = $isDocumentPrintingPaymentFlow ? "online" : "walkin";
+    unset($details["order_type"]);
     $details["paper_size"] = trim((string)($data["paper_size"] ?? ""));
     $details["color_option"] = trim((string)($data["color_option"] ?? ""));
   } elseif ($serviceKind === "xerox") {

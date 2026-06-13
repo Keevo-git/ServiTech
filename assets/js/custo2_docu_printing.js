@@ -36,23 +36,19 @@
     var draftState = window.servitechPrintOrderDraft && typeof window.servitechPrintOrderDraft === "object"
       ? window.servitechPrintOrderDraft
       : null;
-    var dynamicPricing = window.servitechDocumentPrintPricing && typeof window.servitechDocumentPrintPricing === "object"
-      ? window.servitechDocumentPrintPricing
-      : {};
-
     var fileUpload = document.getElementById("fileUpload");
     var fileListEl = document.getElementById("fileAnalysisList");
     var fileMetaEl = document.getElementById("fileAnalysisMeta");
     var fileUploadStatus = document.getElementById("fileUploadStatus");
     var qtyInput = document.getElementById("qtyInput");
     var paperSizeSelect = document.getElementById("paperSizeSelect");
-    var orderTypeSelect = document.getElementById("orderTypeSelect");
     var paymentSection = document.getElementById("paymentSection");
     var paymentMethodSelect = document.getElementById("paymentMethodSelect");
     var cashPaymentNote = document.getElementById("cashPaymentNote");
     var joinQueueBtn = document.getElementById("joinQueueBtn");
     var notesInput = document.getElementById("notes");
     var summaryPaperSize = document.getElementById("summaryPaperSize");
+    var summaryColorOption = document.getElementById("summaryColorOption");
     var summaryQty = document.getElementById("summaryQty");
     var summaryTotalPages = document.getElementById("summaryTotalPages");
     var summaryPricePerPage = document.getElementById("summaryPricePerPage");
@@ -60,7 +56,7 @@
     var queueModal = document.getElementById("queueModal");
     var modalQueueNo = document.getElementById("modalQueueNo");
 
-    if (!fileUpload || !fileListEl || !fileMetaEl || !qtyInput || !paperSizeSelect || !orderTypeSelect || !paymentMethodSelect || !joinQueueBtn) {
+    if (!fileUpload || !fileListEl || !fileMetaEl || !qtyInput || !paperSizeSelect || !paymentMethodSelect || !joinQueueBtn) {
       return;
     }
 
@@ -126,19 +122,9 @@
         return 0;
       }
 
-      var isLong = paperSize.indexOf("long bond") !== -1 || paperSize.indexOf("8.5 x 13") !== -1;
-      var isA4 = paperSize === "a4";
-      var isA3 = paperSize === "a3";
-      var prefix = isLong ? "long" : (isA4 ? "a4" : (isA3 ? "a3" : "short"));
-      var fullPrice = Number(dynamicPricing[prefix + "_full_price"]);
-      var halfPrice = Number(dynamicPricing[prefix + "_half_price"]);
-
-      if (!Number.isFinite(halfPrice) || halfPrice <= 0) halfPrice = 5;
-      if (!Number.isFinite(fullPrice) || fullPrice <= 0) fullPrice = Math.max(halfPrice, 10);
-
-      if (colorOption === "colored full") return fullPrice;
-      if (colorOption === "colored half") return halfPrice;
-      return halfPrice;
+      if (colorOption === "colored full" || colorOption === "colored (full)") return 10;
+      if (colorOption === "colored half" || colorOption === "colored (half)" || colorOption === "black & white") return 5;
+      return 0;
     }
 
     function syncClientPricing() {
@@ -150,7 +136,7 @@
       }
 
       state.price_per_page = pricePerPage;
-      state.estimated_total = Math.max(1, Number(state.total_pages) || 0) * pricePerPage * getQuantity();
+      state.estimated_total = Math.max(0, Number(state.total_pages) || 0) * pricePerPage * getQuantity();
     }
 
     function getQuantity() {
@@ -165,32 +151,8 @@
       return parseInt(raw, 10);
     }
 
-    function getOrderType() {
-      return (orderTypeSelect.value || "").trim().toLowerCase();
-    }
-
     function getPaymentMethod() {
-      return getOrderType() === "online"
-        ? (paymentMethodSelect.value || "").trim().toLowerCase()
-        : "";
-    }
-
-    // Document Printing is one unified printing service. The order type is
-    // retained only for the existing payment flow.
-    function getQueueCategoryFromOrderType(orderType) {
-      if (orderType === "online") return "printing";
-      return "";
-    }
-
-    function getCategoryFromQueueCode(code) {
-      var normalized = (code || "").trim().toUpperCase();
-      if (normalized.indexOf("OP") === 0) return "online_printorder";
-      if (normalized.indexOf("P") === 0) return "printing";
-      return "";
-    }
-
-    function getServiceLabelFromOrderType(orderType) {
-      return orderType === "online" ? "Document Printing" : "";
+      return (paymentMethodSelect.value || "").trim().toLowerCase();
     }
 
     function fileKey(file) {
@@ -277,7 +239,6 @@
     }
 
     function clearValidationState() {
-      setFieldInvalid(orderTypeSelect, false);
       setFieldInvalid(paymentMethodSelect, false);
       setFieldInvalid(paperSizeSelect, false);
       setFieldInvalid(qtyInput, false);
@@ -310,6 +271,9 @@
       var size = paperSizeSelect.value || "";
       if (summaryPaperSize) {
         summaryPaperSize.textContent = size ? size : "Not Selected";
+      }
+      if (summaryColorOption) {
+        summaryColorOption.textContent = getSelectedColor() || "Not Selected";
       }
       if (summaryQty) summaryQty.textContent = String(getQuantity());
       if (summaryTotalPages) summaryTotalPages.textContent = String(state.total_pages || 0);
@@ -1013,24 +977,17 @@
       }
     }
 
-    function updateOrderTypeUi() {
-      var online = getOrderType() === "online";
-      paymentSection.hidden = !online;
-      if (!online) {
-        paymentMethodSelect.value = "";
-      }
-      cashPaymentNote.hidden = !(online && getPaymentMethod() === "cash");
-      setFieldInvalid(orderTypeSelect, false);
+    function updatePaymentUi() {
+      paymentSection.hidden = false;
+      cashPaymentNote.hidden = getPaymentMethod() !== "cash";
       setFieldInvalid(paymentMethodSelect, false);
     }
 
     function buildPayload() {
       var fileNames = currentFileNames();
-      var orderType = getOrderType();
       return {
-        category: getQueueCategoryFromOrderType(orderType),
-        service_label: getServiceLabelFromOrderType(orderType),
-        order_type: orderType,
+        category: "printing",
+        service_label: "Document Printing",
         paper_size: paperSizeSelect.value || null,
         quantity: getEnteredQuantity(),
         color_option: getSelectedColor(),
@@ -1050,11 +1007,6 @@
 
     function validatePayload(payload) {
       var errors = [];
-
-      if (!payload.order_type) {
-        errors.push("Select an order type.");
-        setFieldInvalid(orderTypeSelect, true);
-      }
 
       if (!payload.paper_size) {
         errors.push("Select paper size.");
@@ -1076,8 +1028,8 @@
         setFieldInvalid(fileUpload, true);
       }
 
-      if (payload.order_type === "online" && !payload.payment_method) {
-        errors.push("Select a payment method for online orders.");
+      if (!payload.payment_method) {
+        errors.push("Select a payment method for Document Printing.");
         setFieldInvalid(paymentMethodSelect, true);
       }
 
@@ -1113,7 +1065,7 @@
       }
     }
 
-    async function saveOnlineDraft(payload) {
+    async function savePrintDraft(payload) {
       var csrf = (window.servitechCsrfToken && window.servitechCsrfToken()) || "";
       var res = await fetch(servitechUrl("/api/print_order_draft.php"), {
         method: "POST",
@@ -1155,14 +1107,13 @@
         return;
       }
 
-      var draftOrderType = (draftState.order_type || "").toLowerCase();
-      if (draftOrderType !== "online") {
-        return;
-      }
-
-      orderTypeSelect.value = "online";
       paymentMethodSelect.value = draftState.payment_method || "";
-      paperSizeSelect.value = draftState.paper_size || "";
+      var restoredPaperSize = draftState.paper_size || "";
+      paperSizeSelect.value = [
+        "Short Bond (8.5 x 11)",
+        "Long Bond (8.5 x 13)",
+        "A4"
+      ].indexOf(restoredPaperSize) !== -1 ? restoredPaperSize : "";
       qtyInput.value = String(Math.max(1, parseInt(draftState.quantity, 10) || 1));
       if (notesInput) {
         notesInput.value = draftState.notes || "";
@@ -1196,7 +1147,7 @@
       }
 
       clearValidationState();
-      updateOrderTypeUi();
+      updatePaymentUi();
 
       var payload = buildPayload();
       var errors = validatePayload(payload);
@@ -1205,7 +1156,7 @@
         return;
       }
 
-      var usesGcashPaymentPage = payload.order_type === "online" && payload.payment_method === "gcash";
+      var usesGcashPaymentPage = payload.payment_method === "gcash";
       setProcessingState(true);
       setFeedback(usesGcashPaymentPage ? "Preparing payment..." : "Submitting your queue request...", "info");
 
@@ -1225,7 +1176,7 @@
         }
 
         if (usesGcashPaymentPage) {
-          var draftResult = await saveOnlineDraft(payload);
+          var draftResult = await savePrintDraft(payload);
           if (!draftResult.ok) {
             if (canCleanupUploads) {
               await cleanupUploadedFiles(payload.uploaded_files);
@@ -1255,7 +1206,7 @@
           return;
         }
 
-        if (getCategoryFromQueueCode(result.queue_code) !== payload.category) {
+        if (!String(result.queue_code || "").toUpperCase().startsWith("P")) {
           if (canCleanupUploads) {
             await cleanupUploadedFiles(payload.uploaded_files);
           }
@@ -1304,8 +1255,7 @@
 
     qtyInput.addEventListener("input", debouncedPricingUpdate);
     paperSizeSelect.addEventListener("change", debouncedPricingUpdate);
-    orderTypeSelect.addEventListener("change", updateOrderTypeUi);
-    paymentMethodSelect.addEventListener("change", updateOrderTypeUi);
+    paymentMethodSelect.addEventListener("change", updatePaymentUi);
     document.querySelectorAll('input[name="color"]').forEach(function (radio) {
       radio.addEventListener("change", debouncedPricingUpdate);
     });
@@ -1336,7 +1286,7 @@
     restoreDraft();
     resetAnalysis(true);
     renderSummary();
-    updateOrderTypeUi();
+    updatePaymentUi();
   });
 })();
 

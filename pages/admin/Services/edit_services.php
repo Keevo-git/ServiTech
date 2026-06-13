@@ -268,7 +268,7 @@ require __DIR__ . "/../_includes/admin_header.php";
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260521laminating-prices') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260614-document-printing-prices') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

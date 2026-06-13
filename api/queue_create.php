@@ -32,7 +32,6 @@ if (!is_array($data)) {
 
 $category = strtolower(trim((string)($data["category"] ?? "printing")));
 $service_label = trim((string)($data["service_label"] ?? ""));
-$order_type = strtolower(trim((string)($data["order_type"] ?? "")));
 $payment_method = strtolower(trim((string)($data["payment_method"] ?? "")));
 $reference_number = trim((string)($data["reference_number"] ?? ""));
 
@@ -46,10 +45,6 @@ $isRushIdQueue = $normalizedServiceLabel === "rush id";
 $allowedCategories = ["printing", "online_printorder", "repair", "installation", "walkin", "general"];
 if (!in_array($category, $allowedCategories, true)) {
   $category = "printing";
-}
-
-if (!in_array($order_type, ["walkin", "online"], true)) {
-  $order_type = "";
 }
 
 if (!in_array($payment_method, ["cash", "gcash"], true)) {
@@ -68,32 +63,28 @@ if ($payment_method === "gcash" && !preg_match('/^\d{13}$/', $reference_number))
 
 $prefix = servitech_get_queue_prefix_for_category($category);
 
-// Document Printing uses one unified printing queue. The order type remains
-// available for payment/routing compatibility but no longer changes identity.
+// Document Printing always uses the unified printing queue.
 if ($service_label === "Document Printing" || $category === "online_printorder") {
-  if ($order_type === "") {
-    echo json_encode(["ok" => false, "error" => "Order type is required for document printing."]);
-    exit();
-  }
-
-  $printMeta = servitech_get_print_order_queue_meta($order_type);
-  $category = $printMeta["category"];
-  $prefix = $printMeta["prefix"];
+  $category = "printing";
+  $prefix = "P";
+  $service_label = "Document Printing";
 }
 
-$isOnlineDocumentPrinting = $category === "printing"
-  && $order_type === "online"
-  && in_array($service_label, ["Document Printing", "Online Print Order"], true);
+$isDocumentPrinting = $category === "printing"
+  && $service_label === "Document Printing";
 $serviceKind = servitech_pricing_service_kind($category, $service_label);
 $supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
-if ($payment_method !== "" && !$isOnlineDocumentPrinting) {
+if ($isDocumentPrinting && $payment_method === "") {
+  echo json_encode(["ok" => false, "error" => "Select a payment method for Document Printing."]);
+  exit();
+}
+if ($payment_method !== "" && !$isDocumentPrinting) {
   echo json_encode(["ok" => false, "error" => "Payment options are only available for Document Printing."]);
   exit();
 }
 
 $details = [
   "service_label" => $service_label,
-  "order_type" => $order_type !== "" ? $order_type : null,
   "paper_size" => $data["paper_size"] ?? null,
   "quantity" => isset($data["quantity"]) ? max(1, (int)$data["quantity"]) : null,
   "color_option" => $data["color_option"] ?? null,
@@ -146,7 +137,7 @@ try {
   }
   $details = servitech_pricing_apply($pdo, $category, $details);
   if ($payment_method !== "" && !isset($details["estimated_total"])) {
-    throw new DomainException("Online payment is not available for this service.");
+    throw new DomainException("Payment is not available for this service.");
   }
 
   $queueIdentity = servitech_generate_queue_identity($pdo, $prefix);

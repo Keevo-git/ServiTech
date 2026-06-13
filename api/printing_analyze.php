@@ -65,7 +65,6 @@ function normalize_paper_size(string $paper): string {
   if (strpos($v, "short bond") !== false || strpos($v, "8.5 x 11") !== false) return "short";
   if (strpos($v, "long bond") !== false || strpos($v, "8.5 x 13") !== false) return "long";
   if ($v === "a4") return "a4";
-  if ($v === "a3") return "a3";
   return "";
 }
 
@@ -124,8 +123,6 @@ function fetch_document_printing_prices(PDO $pdo): array {
     "short_half" => 5.0,
     "a4_full" => 10.0,
     "a4_half" => 5.0,
-    "a3_full" => 10.0,
-    "a3_half" => 5.0,
   ];
 
   try {
@@ -158,8 +155,6 @@ function fetch_document_printing_prices(PDO $pdo): array {
       "short_half" => isset($storedPricing["shortHalf"]) ? (float)$storedPricing["shortHalf"] : (extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half),
       "a4_full" => isset($storedPricing["a4Full"]) ? (float)$storedPricing["a4Full"] : (extract_document_printing_block_price($description, "A4", "Full") ?? $full),
       "a4_half" => isset($storedPricing["a4Half"]) ? (float)$storedPricing["a4Half"] : (extract_document_printing_block_price($description, "A4", "Half") ?? $half),
-      "a3_full" => isset($storedPricing["a3Full"]) ? (float)$storedPricing["a3Full"] : (extract_document_printing_block_price($description, "A3", "Full") ?? $full),
-      "a3_half" => isset($storedPricing["a3Half"]) ? (float)$storedPricing["a3Half"] : (extract_document_printing_block_price($description, "A3", "Half") ?? $half),
     ];
   } catch (Throwable $e) {
     return $prices;
@@ -270,17 +265,9 @@ function compute_print_pricing(PDO $pdo, string $paperRaw, string $colorRaw, int
     return ["ok" => false, "error" => "Select a valid color option."];
   }
 
-  $prices = fetch_document_printing_prices($pdo);
-  $paperPrefix = match ($paper) {
-    "long" => "long",
-    "a4" => "a4",
-    "a3" => "a3",
-    default => "short",
-  };
   $pricePerPage = match ($color) {
-    "full" => $prices[$paperPrefix . "_full"],
-    "half" => $prices[$paperPrefix . "_half"],
-    default => $prices[$paperPrefix . "_half"],
+    "full" => 10.0,
+    "half", "bw" => 5.0,
   };
   $safeQty = max(1, $quantity);
   $safePages = max(0, $totalPages);

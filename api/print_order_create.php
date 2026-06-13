@@ -76,8 +76,8 @@ $_SESSION["print_order_form"] = [
 ];
 
 $errors = [];
-if ($paper_size === "") {
-  $errors[] = "Paper size is required.";
+if (!in_array($paper_size, ["Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
+  $errors[] = "Select a valid paper size.";
 }
 if ($quantity < 1) {
   $errors[] = "Quantity must be at least 1.";
@@ -104,7 +104,6 @@ if ($errors) {
 
 $details = [
   "service_label" => "Document Printing",
-  "order_type" => "online",
   "paper_size" => $paper_size,
   "quantity" => $quantity,
   "color_option" => $color_option,
@@ -135,7 +134,10 @@ foreach ($details as $key => $value) {
 try {
   $pdo->beginTransaction();
 
-  $printMeta = servitech_get_print_order_queue_meta("online");
+  $printMeta = [
+    "category" => "printing",
+    "prefix" => "P",
+  ];
   $details = servitech_upload_apply_metadata_to_details(
     $details,
     servitech_upload_resolve_owned_metadata($pdo, $user_id, (array)($details["uploaded_files"] ?? []))

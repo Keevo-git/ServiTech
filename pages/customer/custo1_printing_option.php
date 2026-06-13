@@ -67,7 +67,7 @@ servitech_redirect_completed_join_queue();
     }
 
     const routes = {
-      "document-printing": "custo2_docu_printing.php?order_type=online",
+      "document-printing": "custo2_docu_printing.php",
       "xerox": "custo2_xerox.php",
       "rush-id": "custo2_rush_id.php",
       "laminating": "custo2_laminating.php"
