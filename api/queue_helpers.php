@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Keep queue prefix/category rules in one place so OP**** never drifts away
- * from online_printorder and P**** always stays tied to printing.
+ * Keep queue prefix/category rules in one place.
+ * Legacy OP codes remain readable, but all new printing requests use P.
  */
 function servitech_get_queue_prefix_for_category(string $category): string {
   $category = strtolower(trim($category));
 
   return match ($category) {
-    "online_printorder" => "OP",
+    "online_printorder" => "P",
     "printing" => "P",
     "repair" => "R",
     "installation" => "I",
@@ -44,14 +44,14 @@ function servitech_get_print_order_queue_meta(string $orderType): array {
 
   return match ($orderType) {
     "online" => [
-      "category" => "online_printorder",
-      "prefix" => "OP",
-      "label" => "ONLINE PRINT ORDER",
+      "category" => "printing",
+      "prefix" => "P",
+      "label" => "Document Printing",
     ],
     "walkin" => [
       "category" => "printing",
       "prefix" => "P",
-      "label" => "WALK-IN",
+      "label" => "Document Printing",
     ],
     default => [
       "category" => "",

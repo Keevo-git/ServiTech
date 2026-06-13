@@ -13,8 +13,20 @@
 .ms-head h2{ margin:0; color:var(--maroon); font-weight:900; }
 .ms-head p{ margin:4px 0 0; color:#444; font-weight:600; font-size:13px; }
 
-.ms-tabs{ display:flex; gap:10px; margin:10px 0 12px; }
+.ms-tabs{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:12px;
+  width:100%;
+  margin:10px 0 12px;
+}
 .ms-tab{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-width:0;
+  text-align:center;
   padding:7px 18px;
   border-radius:8px;
   background:#ebf2fb;
@@ -117,7 +129,6 @@
   }
 
   .ms-tabs{
-    display:grid;
     grid-template-columns:1fr;
   }
 

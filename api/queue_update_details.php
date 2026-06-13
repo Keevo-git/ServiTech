@@ -164,8 +164,13 @@ try {
   $details["notes"] = trim((string)($data["notes"] ?? ""));
 
   $serviceKind = servitech_pricing_service_kind($category, (string)$details["service_label"]);
+  $currentOrderType = strtolower(trim((string)($currentDetails["order_type"] ?? "")));
+  $isDocumentPrintingPaymentFlow = $serviceKind === "document_printing"
+    && ($category === "online_printorder" || $currentOrderType === "online");
+
   if ($serviceKind === "document_printing") {
-    $details["order_type"] = $category === "online_printorder" ? "online" : "walkin";
+    $details["service_label"] = "Document Printing";
+    $details["order_type"] = $isDocumentPrintingPaymentFlow ? "online" : "walkin";
     $details["paper_size"] = trim((string)($data["paper_size"] ?? ""));
     $details["color_option"] = trim((string)($data["color_option"] ?? ""));
   } elseif ($serviceKind === "xerox") {
@@ -251,11 +256,11 @@ try {
     $details = servitech_upload_apply_metadata_to_details($details, $mergedUploadedFiles);
   }
 
-  if ($category === "online_printorder") {
+  if ($isDocumentPrintingPaymentFlow) {
     $paymentMethod = strtolower(trim((string)($data["payment_method"] ?? ($currentDetails["payment_method"] ?? ""))));
     $referenceNumber = trim((string)($data["reference_number"] ?? ""));
     if (!in_array($paymentMethod, ["cash", "gcash"], true)) {
-      throw new DomainException("Payment method is required for online print orders.");
+      throw new DomainException("Payment method is required for Document Printing.");
     }
     if ($paymentMethod === "gcash" && $referenceNumber === "") {
       throw new DomainException("Reference number is required for GCash payments.");
@@ -272,7 +277,7 @@ try {
   $price = isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : null;
   $changeSummary = queue_update_change_summary($currentDetails, $details, count($resolvedUploadedFiles), $removedFileCount);
 
-  if ($category === "online_printorder") {
+  if ($isDocumentPrintingPaymentFlow) {
     $paymentAmount = isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : 0;
     $paymentMethod = (string)($details["payment_method"] ?? "cash");
     $referenceNumber = (string)($details["reference_number"] ?? "");

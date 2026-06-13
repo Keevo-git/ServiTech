@@ -509,7 +509,7 @@ if ($requestedOrderType === "online" && is_array($sessionPrintDraft) && strtolow
             <input type="hidden" id="orderTypeSelect" value="<?= htmlspecialchars($requestedOrderType, ENT_QUOTES, "UTF-8") ?>">
 
             <div id="paymentSection" class="payment-section printing-field" hidden>
-              <span class="payment-section__label">Online Order Payment</span>
+              <span class="payment-section__label">Document Printing Payment</span>
               <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
               <select class="form-select" id="paymentMethodSelect">
                 <option value="" selected>Select payment method</option>
@@ -630,7 +630,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260612-upload-limits"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260614-unified-printing"></script>
 </body>
 </html>
 

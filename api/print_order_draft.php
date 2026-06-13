@@ -102,7 +102,7 @@ if (is_array($existingDraft) && !empty($existingDraft["uploaded_files"]) && is_a
 }
 
 $draft = [
-  "service_label" => trim((string)($data["service_label"] ?? "Document Printing")),
+  "service_label" => "Document Printing",
   "order_type" => "online",
   "paper_size" => $paper_size,
   "quantity" => $quantity,
@@ -123,7 +123,7 @@ $draft = [
 $draft = servitech_upload_apply_metadata_to_details($draft, $uploaded_files);
 
 try {
-  $draft = servitech_pricing_apply($pdo, "online_printorder", $draft);
+  $draft = servitech_pricing_apply($pdo, "printing", $draft);
 } catch (DomainException $e) {
   print_order_draft_json(["ok" => false, "error" => $e->getMessage()], 422);
 }

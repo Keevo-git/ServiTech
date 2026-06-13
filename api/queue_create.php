@@ -68,9 +68,8 @@ if ($payment_method === "gcash" && !preg_match('/^\d{13}$/', $reference_number))
 
 $prefix = servitech_get_queue_prefix_for_category($category);
 
-// Printing queues must always respect the selected order type:
-// Walk-in  => P**** / printing
-// Online   => OP**** / online_printorder
+// Document Printing uses one unified printing queue. The order type remains
+// available for payment/routing compatibility but no longer changes identity.
 if ($service_label === "Document Printing" || $category === "online_printorder") {
   if ($order_type === "") {
     echo json_encode(["ok" => false, "error" => "Order type is required for document printing."]);
@@ -82,7 +81,7 @@ if ($service_label === "Document Printing" || $category === "online_printorder")
   $prefix = $printMeta["prefix"];
 }
 
-$isOnlineDocumentPrinting = $category === "online_printorder"
+$isOnlineDocumentPrinting = $category === "printing"
   && $order_type === "online"
   && in_array($service_label, ["Document Printing", "Online Print Order"], true);
 $serviceKind = servitech_pricing_service_kind($category, $service_label);

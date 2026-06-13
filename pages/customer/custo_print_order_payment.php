@@ -692,7 +692,7 @@ if ($isConfirmed) {
               </div>
               <div class="print-payment-meta-row">
                 <span>Order Type</span>
-                <strong>Online Print Order</strong>
+                <strong>Document Printing</strong>
               </div>
             </div>
           </div>

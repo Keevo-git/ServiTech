@@ -99,7 +99,7 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260521responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260614-uniform-tabs') ?>">
 </head>
 <body>
 
@@ -127,9 +127,9 @@ require __DIR__ . "/../_includes/admin_header.php";
     </div>
 
     <div class="ms-tabs">
-      <a class="ms-tab <?= $tab==="printing"?"active":"" ?>" href="?tab=printing">Print</a>
+      <a class="ms-tab <?= $tab==="printing"?"active":"" ?>" href="?tab=printing">Printing</a>
       <a class="ms-tab <?= $tab==="repair"?"active":"" ?>" href="?tab=repair">Repair</a>
-      <a class="ms-tab <?= $tab==="installation"?"active":"" ?>" href="?tab=installation">Install</a>
+      <a class="ms-tab <?= $tab==="installation"?"active":"" ?>" href="?tab=installation">Installation</a>
     </div>
 
     <div class="ms-tableWrap table-scroll-wrapper">

@@ -103,7 +103,7 @@ if ($errors) {
 }
 
 $details = [
-  "service_label" => trim((string)($draft["service_label"] ?? "Document Printing")),
+  "service_label" => "Document Printing",
   "order_type" => "online",
   "paper_size" => $paper_size,
   "quantity" => $quantity,

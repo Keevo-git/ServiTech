@@ -1726,6 +1726,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const raw = (value || "").toString().trim();
     if (!raw) return "";
 
+    if (/^(online|walk-?in)\s+(document\s+)?printing$/i.test(raw)
+      || /^online\s+print\s*order$/i.test(raw)
+      || /^(online_printorder|printing_online|printing_walkin|walkin)$/i.test(raw)) {
+      return /print\s*order|document/i.test(raw) ? "Document Printing" : "Printing";
+    }
+
     return raw
       .replace(/print\s*order/ig, "Print Order")
       .replace(/printorder/ig, "Print Order")

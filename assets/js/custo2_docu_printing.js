@@ -175,10 +175,10 @@
         : "";
     }
 
-    // Keep the client payload aligned with the PHP queue rules:
-    // P**** => printing, OP**** => online_printorder.
+    // Document Printing is one unified printing service. The order type is
+    // retained only for the existing payment flow.
     function getQueueCategoryFromOrderType(orderType) {
-      if (orderType === "online") return "online_printorder";
+      if (orderType === "online") return "printing";
       return "";
     }
 

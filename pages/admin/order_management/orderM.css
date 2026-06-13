@@ -89,8 +89,8 @@ body.admin-dashboard .page-frame {
 
 .order-tabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(150px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
   width: 100%;
   padding: 8px;
   margin: 10px 0 14px;
@@ -101,6 +101,10 @@ body.admin-dashboard .page-frame {
 
 .order-tabs .tab,
 .order-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   min-width: 0;
 }
 
@@ -1536,13 +1540,7 @@ body.modal-open {
   }
 }
 
-@media (max-width: 760px) {
-  .order-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .order-tabs {
     grid-template-columns: 1fr;
   }
