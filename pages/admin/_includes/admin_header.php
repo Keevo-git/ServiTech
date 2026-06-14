@@ -287,7 +287,6 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     <?php if ($adminHeaderShowServices): ?>
       <a href="<?= admin_url('/index.php') ?>">Services</a>
     <?php endif; ?>
-    <a href="<?= admin_url('/privacy-policy.php#privacy-settings') ?>" data-privacy-settings-open>Cookie Preferences</a>
   </nav>
   <div class="admin-header-actions">
     <a
