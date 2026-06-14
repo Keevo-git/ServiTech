@@ -29,7 +29,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <title>ServiTech Admin Dashboard</title>
   <link rel="icon" type="images/png" href="/assets/images/favicon.png" >
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260614-dashboard-polish') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260614-dashboard-polish-2') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -57,7 +57,6 @@ require __DIR__ . "/_includes/admin_header.php";
   <section class="stats">
 
     <div class="stat stat--customers">
-      <span class="stat-icon" aria-hidden="true">&#x1F465;</span>
       <h4>CUSTOMERS</h4>
       <div 
         class="value" 
@@ -70,7 +69,6 @@ require __DIR__ . "/_includes/admin_header.php";
     </div>
 
     <div class="stat stat--orders">
-      <span class="stat-icon" aria-hidden="true">&#x1F5A8;</span>
       <h4>PRINTING ORDERS</h4>
       <div 
         class="value" 
@@ -83,7 +81,6 @@ require __DIR__ . "/_includes/admin_header.php";
     </div>
 
     <div class="stat stat--queue">
-      <span class="stat-icon" aria-hidden="true">&#x23F3;</span>
       <h4>ACTIVE QUEUE</h4>
       <div 
         class="value" 
