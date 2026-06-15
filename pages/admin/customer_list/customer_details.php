@@ -356,7 +356,7 @@ if ($customer) {
     }
     .cd-customerName{
       margin:0;
-      color:#0f172a;
+      color:#123f73;
       font-size:clamp(1.55rem, 3vw, 2rem);
       font-weight:900;
       line-height:1.15;
@@ -609,6 +609,53 @@ if ($customer) {
       white-space:nowrap;
       font-size:12px;
     }
+    .customer-details-page .cl-btn,
+    .customer-details-page .cl-modalX,
+    .customer-details-page .cd-fileActions a{
+      cursor:pointer;
+      transition:
+        background-color .2s ease,
+        color .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease,
+        transform .2s ease;
+    }
+    .customer-details-page .cl-btn:focus-visible,
+    .customer-details-page .cl-modalX:focus-visible,
+    .customer-details-page .cd-fileActions a:focus-visible{
+      outline:3px solid rgba(37,99,235,.24);
+      outline-offset:2px;
+    }
+    @media (hover:hover){
+      .customer-details-page .cl-btn:hover,
+      .customer-details-page .cl-modalX:hover,
+      .customer-details-page .cd-fileActions a:hover{
+        transform:translateY(-1px);
+      }
+      .customer-details-page .cl-btn--maroon:hover{
+        background:#153f7a;
+        border-color:#153f7a;
+        box-shadow:0 10px 22px rgba(29,78,216,.24);
+      }
+      .customer-details-page .cl-btn--light:hover,
+      .customer-details-page .cd-fileActions a:hover{
+        background:#eff6ff;
+        border-color:#2563eb;
+        color:#1d4ed8;
+        box-shadow:0 8px 18px rgba(15,23,42,.08);
+      }
+      .customer-details-page .cl-modalX:hover{
+        background:#eff6ff;
+        border-color:#bfdbfe !important;
+        color:#174a7c;
+        box-shadow:0 8px 18px rgba(15,23,42,.1);
+      }
+    }
+    .customer-details-page .cl-btn:disabled{
+      cursor:not-allowed;
+      transform:none;
+      opacity:.65;
+    }
     .cd-statusBadge{
       border:1px solid transparent;
     }
@@ -638,49 +685,109 @@ if ($customer) {
       border-color:#f9c7c7;
     }
     .cd-filterEmpty[hidden]{ display:none; }
-    .cd-detailOverlay{ overflow-x:hidden; }
+    .cd-detailOverlay{
+      overflow-x:hidden;
+      background:rgba(15,23,42,.68);
+      backdrop-filter:blur(3px);
+    }
     .cd-detailModal{
-      width:min(760px, calc(100vw - 32px));
-      max-height:88vh;
+      width:min(920px, calc(100vw - 32px));
+      max-height:90vh;
       overflow:hidden;
+      border:1px solid rgba(219,234,254,.9);
+      border-radius:24px;
+      box-shadow:0 24px 70px rgba(15,23,42,.24);
     }
     .cd-detailModal .cl-modalBody{
-      max-height:88vh;
+      max-height:90vh;
       overflow-y:auto;
       overflow-x:hidden;
+      padding:0;
+      scrollbar-gutter:stable;
     }
-    .cd-detailGrid{
+    .cd-detailModalHead{
+      position:relative;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      margin:0;
+      padding:28px 32px 22px;
+      border-bottom:1px solid #e5edf7;
+    }
+    .cd-detailModalHead h3{
+      margin:0;
+      color:#123f73;
+      font-size:clamp(1.45rem, 3vw, 1.9rem);
+      font-weight:900;
+      line-height:1.2;
+    }
+    .cd-detailModalHead .cl-modalX{
+      position:static;
+      flex:0 0 42px;
+      width:42px !important;
+      height:42px !important;
+      min-width:42px;
+      min-height:42px;
+      padding:0 !important;
+      border:1px solid #dbe5f3 !important;
+      border-radius:50%;
+      background:#f8fbff;
+      color:#52677f;
+    }
+    .cd-detailModalContent{
+      padding:24px 32px 30px;
+    }
+    .cd-detailOverview{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:12px;
+      gap:18px;
+      padding:20px;
+      background:linear-gradient(135deg, #eff6ff, #f8fbff);
+      border:1px solid #dbeafe;
+      border-radius:18px;
     }
-    .cd-detailGrid > div,
-    .cd-detailSection{
-      background:#f8fbff;
-      border:1px solid #dbe5f1;
-      border-radius:14px;
-      padding:14px;
+    .cd-detailItem{
       min-width:0;
     }
-    .cd-detailGrid small{
+    .cd-detailItem small{
       display:block;
-      margin-bottom:6px;
-      color:#5e6f85;
-      font-size:12px;
-      font-weight:800;
+      margin-bottom:7px;
+      color:#64748b;
+      font-size:11px;
+      font-weight:850;
+      letter-spacing:.06em;
+      text-transform:uppercase;
     }
-    .cd-detailGrid strong{
-      color:#112338;
+    .cd-detailItem strong{
+      display:block;
+      color:#0f172a;
       font-size:14px;
-      line-height:1.35;
+      font-weight:800;
+      line-height:1.45;
       overflow-wrap:anywhere;
     }
+    .cd-detailOverview .cd-statusBadge{
+      width:max-content;
+      max-width:100%;
+    }
     .cd-detailSection{
-      margin-top:14px;
+      padding:22px 0;
+      border-bottom:1px solid #e5edf7;
     }
     .cd-detailSection h4{
-      margin:0 0 10px;
-      color:#1f4a8a;
+      margin:0 0 16px;
+      color:#174a7c;
+      font-size:16px;
+      font-weight:900;
+    }
+    .cd-detailInfoGrid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px 28px;
+    }
+    .cd-detailPaymentGrid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
     }
     .cd-detailSection p{
       margin:0;
@@ -689,9 +796,38 @@ if ($customer) {
       line-height:1.5;
       overflow-wrap:anywhere;
     }
+    .cd-detailSection:last-child{
+      padding-bottom:0;
+      border-bottom:0;
+    }
     .cd-detailFiles{
       display:grid;
+      gap:12px;
+    }
+    .cd-detailModal .cd-fileItem{
+      gap:16px;
+      padding:16px 18px;
+      background:#f8fbff;
+      border:1px solid #dbeafe;
+      border-radius:16px;
+    }
+    .cd-detailModal .cd-fileItem > span:first-child{
+      color:#0f172a;
+      font-weight:800;
+      line-height:1.45;
+    }
+    .cd-detailModal .cd-fileActions{
+      flex:0 0 auto;
       gap:10px;
+    }
+    .cd-detailModal .cd-fileActions a{
+      display:inline-flex;
+      min-height:40px;
+      padding:0 16px;
+      align-items:center;
+      justify-content:center;
+      background:#fff;
+      border-color:#c8dcf6;
     }
     @media (max-width:900px){
       .cd-profileHeader{
@@ -713,7 +849,9 @@ if ($customer) {
       .cd-clearFilters{
         width:100%;
       }
-      .cd-detailGrid{
+      .cd-detailOverview,
+      .cd-detailInfoGrid,
+      .cd-detailPaymentGrid{
         grid-template-columns:1fr;
       }
     }
@@ -771,10 +909,40 @@ if ($customer) {
         width:100%;
         margin-bottom:0;
       }
+      .cd-detailOverlay{
+        padding:14px 10px;
+      }
+      .cd-detailModal{
+        width:min(100%, 96vw);
+        max-height:90vh;
+        border-radius:18px;
+      }
+      .cd-detailModal .cl-modalBody{
+        max-height:90vh;
+      }
+      .cd-detailModalHead{
+        padding:22px 20px 18px;
+      }
+      .cd-detailModalContent{
+        padding:20px;
+      }
+      .cd-detailOverview{
+        padding:16px;
+      }
+      .cd-detailModal .cd-fileItem{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .cd-detailModal .cd-fileActions{
+        width:100%;
+      }
+      .cd-detailModal .cd-fileActions a{
+        flex:1;
+      }
     }
   </style>
 </head>
-<body>
+<body class="customer-details-page">
   <?php
   $adminHeaderMenuId = "admin-customer-details-header-menu";
   $adminHeaderVariant = "special";
@@ -989,34 +1157,57 @@ if ($customer) {
     <div class="cl-modalOverlay cd-detailOverlay" id="historyDetailModal" aria-hidden="true">
       <div class="cl-modalCard cd-detailModal" role="dialog" aria-modal="true" aria-labelledby="historyDetailTitle">
         <div class="cl-modalBody">
-          <div class="cl-modalHead">
+          <div class="cl-modalHead cd-detailModalHead">
             <div>
               <h3 id="historyDetailTitle">Order / Queue Details</h3>
-              <span class="cl-pill cl-pill--inline" data-detail-id>-</span>
             </div>
             <button class="cl-modalX" type="button" data-history-detail-close aria-label="Close">&times;</button>
           </div>
 
-          <div class="cd-detailGrid">
-            <div><small>Customer</small><strong data-detail-customer>-</strong></div>
-            <div><small>Service Category</small><strong data-detail-category>-</strong></div>
-            <div><small>Service Name</small><strong data-detail-service>-</strong></div>
-            <div><small>Date Submitted</small><strong data-detail-date>-</strong></div>
-            <div><small>Status</small><span class="cd-statusBadge" data-detail-status>-</span></div>
-            <div><small>Payment Method</small><strong data-detail-payment-method>-</strong></div>
-            <div><small>Total Amount</small><strong data-detail-total>-</strong></div>
-            <div><small>Payment Status</small><strong data-detail-payment-status>-</strong></div>
-            <div><small>GCash Reference</small><strong data-detail-reference>-</strong></div>
-          </div>
+          <div class="cd-detailModalContent">
+            <div class="cd-detailOverview">
+              <div class="cd-detailItem">
+                <small>Order / Queue ID</small>
+                <strong data-detail-id>-</strong>
+              </div>
+              <div class="cd-detailItem">
+                <small>Status</small>
+                <span class="cd-statusBadge" data-detail-status>-</span>
+              </div>
+              <div class="cd-detailItem">
+                <small>Date Submitted</small>
+                <strong data-detail-date>-</strong>
+              </div>
+            </div>
 
-          <div class="cd-detailSection">
-            <h4>Attached Files</h4>
-            <div class="cd-detailFiles" data-detail-files></div>
-          </div>
+            <section class="cd-detailSection">
+              <h4>Customer &amp; Service</h4>
+              <div class="cd-detailInfoGrid">
+                <div class="cd-detailItem"><small>Customer</small><strong data-detail-customer>-</strong></div>
+                <div class="cd-detailItem"><small>Service Category</small><strong data-detail-category>-</strong></div>
+                <div class="cd-detailItem"><small>Service Name</small><strong data-detail-service>-</strong></div>
+              </div>
+            </section>
 
-          <div class="cd-detailSection" data-detail-notes-wrap hidden>
-            <h4>Notes</h4>
-            <p data-detail-notes></p>
+            <section class="cd-detailSection">
+              <h4>Payment Details</h4>
+              <div class="cd-detailInfoGrid cd-detailPaymentGrid">
+                <div class="cd-detailItem"><small>Payment Method</small><strong data-detail-payment-method>-</strong></div>
+                <div class="cd-detailItem"><small>Total Amount</small><strong data-detail-total>-</strong></div>
+                <div class="cd-detailItem"><small>Payment Status</small><strong data-detail-payment-status>-</strong></div>
+                <div class="cd-detailItem"><small>GCash Reference</small><strong data-detail-reference>-</strong></div>
+              </div>
+            </section>
+
+            <section class="cd-detailSection">
+              <h4>Attached Files</h4>
+              <div class="cd-detailFiles" data-detail-files></div>
+            </section>
+
+            <section class="cd-detailSection" data-detail-notes-wrap hidden>
+              <h4>Notes</h4>
+              <p data-detail-notes></p>
+            </section>
           </div>
         </div>
       </div>
