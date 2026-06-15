@@ -17,6 +17,19 @@ $print_url = $is_admin
 
 $landingAnnouncement = null;
 $storeAvailability = servitech_store_current_availability($pdo);
+$landingAvailabilityMessages = [
+  "open" => "We are open today. Queue requests are accepted until " . $storeAvailability["queue_cutoff_label"] . ".",
+  "closed" => "Regular queue requests are unavailable right now. Online Document Printing is still available.",
+  "paused" => "Queue requests are temporarily paused. Online Document Printing is still available.",
+  "fully_booked" => "We are fully booked today. Online Document Printing is still available.",
+  "holiday" => "We are closed today. Online Document Printing is still available.",
+  "closed_today" => "We are closed today. Online Document Printing is still available.",
+  "outside_hours" => "Regular queue requests are outside today's shop hours. Online Document Printing is still available.",
+  "past_cutoff" => "Today's queue cutoff has passed. Online Document Printing is still available.",
+];
+$landingAvailabilityMessage = $landingAvailabilityMessages[$storeAvailability["reason_code"]]
+  ?? $storeAvailability["message"];
+$landingUpcomingHoliday = $storeAvailability["upcoming_holidays"][0] ?? null;
 try {
   $announcementStmt = $pdo->query("
     SELECT title, message
@@ -38,9 +51,9 @@ try {
   <title>ServiTech: JC Repair Shop</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260613-footer-legal-links'), ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/store-availability.css?v=20260615'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/landing-store-details.css?v=20260615'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
-<body class="has-fixed-site-header">
+<body class="has-fixed-site-header landing-page">
 
   <!-- NAVBAR -->
   <header class="navbar has-nav-menu site-header public-header">
@@ -88,8 +101,6 @@ try {
       </div>
     </section>
   <?php endif; ?>
-
-  <?php include __DIR__ . "/components/store_availability_card.php"; ?>
 
   <!-- HERO -->
   <section class="hero">
@@ -160,6 +171,53 @@ try {
       </div>
     </div>
 
+  </section>
+
+  <section class="landing-store-details" aria-labelledby="landingStoreDetailsTitle">
+    <div class="landing-store-details__inner">
+      <header class="landing-store-details__heading">
+        <div>
+          <span class="landing-store-details__eyebrow">Plan Your Visit</span>
+          <h2 id="landingStoreDetailsTitle">Store Availability</h2>
+        </div>
+        <p><?= htmlspecialchars($landingAvailabilityMessage, ENT_QUOTES, "UTF-8") ?></p>
+      </header>
+
+      <div class="landing-store-details__grid">
+        <div class="landing-store-detail landing-store-detail--status">
+          <span class="landing-store-detail__label">Store status</span>
+          <strong class="landing-store-detail__status landing-store-detail__status--<?= htmlspecialchars($storeAvailability["effective_status"], ENT_QUOTES, "UTF-8") ?>">
+            <?= htmlspecialchars($storeAvailability["status_label"], ENT_QUOTES, "UTF-8") ?>
+          </strong>
+        </div>
+
+        <div class="landing-store-detail">
+          <span class="landing-store-detail__label">Today's shop hours</span>
+          <strong><?= htmlspecialchars($storeAvailability["today_hours"], ENT_QUOTES, "UTF-8") ?></strong>
+        </div>
+
+        <div class="landing-store-detail">
+          <span class="landing-store-detail__label">Queue cutoff</span>
+          <strong><?= htmlspecialchars($storeAvailability["queue_cutoff_label"], ENT_QUOTES, "UTF-8") ?></strong>
+        </div>
+
+        <div class="landing-store-detail landing-store-detail--printing">
+          <span class="landing-store-detail__label">Online Document Printing</span>
+          <strong>Available</strong>
+        </div>
+
+        <?php if (is_array($landingUpcomingHoliday)): ?>
+          <div class="landing-store-detail landing-store-detail--holiday">
+            <span class="landing-store-detail__label">Upcoming closed date</span>
+            <strong>
+              <?= htmlspecialchars(date("M j, Y", strtotime((string)$landingUpcomingHoliday["holiday_date"])), ENT_QUOTES, "UTF-8") ?>
+              &middot;
+              <?= htmlspecialchars($landingUpcomingHoliday["title"] ?? "Store closed", ENT_QUOTES, "UTF-8") ?>
+            </strong>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
   </section>
 
   <div id="service-modal" class="modal-overlay" aria-hidden="true">

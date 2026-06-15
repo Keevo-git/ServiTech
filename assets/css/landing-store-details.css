@@ -1,0 +1,172 @@
+.landing-page .services {
+  padding-bottom: 30px;
+}
+
+.landing-page .service-type-cards {
+  margin-bottom: 24px;
+}
+
+.landing-store-details {
+  padding: 0 clamp(16px, 6vw, 70px) 64px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fffaf1 100%);
+  color: #4a2020;
+}
+
+.landing-store-details__inner {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding-top: 30px;
+  border-top: 1px solid rgba(122, 15, 15, 0.16);
+}
+
+.landing-store-details__heading {
+  display: grid;
+  grid-template-columns: minmax(220px, .75fr) minmax(320px, 1.25fr);
+  align-items: end;
+  gap: 28px;
+  margin-bottom: 22px;
+}
+
+.landing-store-details__eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #c46917;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.landing-store-details h2 {
+  margin: 0;
+  color: #4a0505;
+  font-size: clamp(25px, 3vw, 32px);
+  line-height: 1.15;
+}
+
+.landing-store-details__heading p {
+  margin: 0;
+  color: #6d594e;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.landing-store-details__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid #ecdcc8;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .76);
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(91, 45, 13, .06);
+}
+
+.landing-store-detail {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 92px;
+  padding: 17px 19px;
+  border-right: 1px solid #eee1d1;
+}
+
+.landing-store-detail:nth-child(4) {
+  border-right: 0;
+}
+
+.landing-store-detail__label {
+  color: #826f61;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.landing-store-detail strong {
+  color: #4a2020;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.landing-store-detail__status {
+  justify-self: start;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e5f7ef;
+  color: #087054 !important;
+  font-size: 13px !important;
+}
+
+.landing-store-detail__status--closed,
+.landing-store-detail__status--fully_booked {
+  background: #fee8e9;
+  color: #9d1d28 !important;
+}
+
+.landing-store-detail__status--paused {
+  background: #fff0d3;
+  color: #945706 !important;
+}
+
+.landing-store-detail--printing strong {
+  color: #087054;
+}
+
+.landing-store-detail--holiday {
+  grid-column: 1 / -1;
+  min-height: 68px;
+  border-top: 1px solid #eee1d1;
+  border-right: 0;
+  background: #fff8ec;
+}
+
+.landing-store-detail--holiday strong {
+  font-size: 14px;
+}
+
+@media (max-width: 850px) {
+  .landing-store-details__heading {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .landing-store-details__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-store-detail:nth-child(2) {
+    border-right: 0;
+  }
+
+  .landing-store-detail:nth-child(3),
+  .landing-store-detail:nth-child(4) {
+    border-top: 1px solid #eee1d1;
+  }
+}
+
+@media (max-width: 520px) {
+  .landing-store-details {
+    padding: 0 16px 44px;
+  }
+
+  .landing-store-details__inner {
+    padding-top: 24px;
+  }
+
+  .landing-store-details__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-store-detail,
+  .landing-store-detail:nth-child(2),
+  .landing-store-detail:nth-child(3),
+  .landing-store-detail:nth-child(4) {
+    min-height: 76px;
+    border-top: 1px solid #eee1d1;
+    border-right: 0;
+  }
+
+  .landing-store-detail:first-child {
+    border-top: 0;
+  }
+}
