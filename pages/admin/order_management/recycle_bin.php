@@ -48,6 +48,10 @@ function rb_service_label(array $row): string
 }
 
 try {
+    $schemaReady = admin_order_recycle_schema_ready($pdo);
+    if (!$schemaReady) {
+        $rows = [];
+    } else {
     $stmt = $pdo->query("
       SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount,
         q.created_at, q.deleted_at, u.fullname,
@@ -67,7 +71,7 @@ try {
       ORDER BY q.deleted_at DESC, q.id DESC
     ");
     $rows = $stmt->fetchAll();
-    $schemaReady = true;
+    }
 } catch (Throwable $exception) {
     error_log("order recycle bin query error: " . $exception->getMessage());
     $rows = [];
@@ -190,10 +194,12 @@ require __DIR__ . "/../_includes/admin_header.php";
 </div>
 
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
-<?php require_once __DIR__ . "/_order_delete_modal.php"; ?>
+<?php if ($schemaReady) require_once __DIR__ . "/_order_delete_modal.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260616') ?>" defer></script>
+<?php if ($schemaReady): ?>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260616-safe-schema') ?>" defer></script>
+<?php endif; ?>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
 </html>

@@ -10,6 +10,15 @@ $id = (int)($_POST["id"] ?? 0);
 $action = strtolower(trim((string)($_POST["action"] ?? "")));
 $adminId = (int)($_SESSION["user_id"] ?? 0);
 
+if (!admin_order_recycle_schema_ready($pdo)) {
+    http_response_code(503);
+    echo json_encode([
+        "ok" => false,
+        "error" => "Recycle Bin is unavailable until the database migration is applied.",
+    ]);
+    exit();
+}
+
 if ($id <= 0 || !in_array($action, ["soft_delete", "restore", "permanent_delete"], true)) {
     http_response_code(422);
     echo json_encode(["ok" => false, "error" => "Invalid recycle-bin request."]);

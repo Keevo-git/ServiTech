@@ -29,6 +29,9 @@ function status_label(string $s): string
     };
 }
 
+$orderRecycleReady = admin_order_recycle_schema_ready($pdo);
+$orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL" : "";
+
 $rows = $pdo->query("
   SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
     q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
@@ -47,7 +50,7 @@ $rows = $pdo->query("
   ) p ON TRUE
   WHERE q.category = 'repair'
     AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
-    AND q.deleted_at IS NULL
+    {$orderRecyclePredicate}
   ORDER BY
     CASE
       WHEN UPPER(TRIM(COALESCE(q.status, ''))) IN ('DONE', 'CANCEL', 'CANCELLED', 'CANCELED') THEN 1
@@ -94,7 +97,9 @@ require __DIR__ . "/../_includes/admin_header.php";
           <div class="panel-heading__copy">
             <h3>All Orders <small>Manage and update order statuses</small></h3>
           </div>
-          <a class="recycle-bin-link" href="<?= admin_url('/pages/admin/order_management/recycle_bin.php') ?>">Recycle Bin</a>
+          <?php if ($orderRecycleReady): ?>
+            <a class="recycle-bin-link" href="<?= admin_url('/pages/admin/order_management/recycle_bin.php') ?>">Recycle Bin</a>
+          <?php endif; ?>
         </div>
 
         <div class="orders-scroll-wrapper">
@@ -155,7 +160,9 @@ require __DIR__ . "/../_includes/admin_header.php";
                                 data-id="<?= (int)$r["id"] ?>"
                                 data-order="<?= om_order_payload_attr($r, "Repair", "Repair Service") ?>"
                               >View</button>
-                              <button class="delete-order-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>">Delete</button>
+                              <?php if ($orderRecycleReady): ?>
+                                <button class="delete-order-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>">Delete</button>
+                              <?php endif; ?>
                             </div>
                           </td>
                         </tr>
@@ -176,10 +183,12 @@ require __DIR__ . "/../_includes/admin_header.php";
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <?php require_once __DIR__ . "/_order_details_modal.php"; ?>
-<?php require_once __DIR__ . "/_order_delete_modal.php"; ?>
+<?php if ($orderRecycleReady) require_once __DIR__ . "/_order_delete_modal.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260616') ?>" defer></script>
+<?php if ($orderRecycleReady): ?>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260616-safe-schema') ?>" defer></script>
+<?php endif; ?>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260608-profile-sync') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
