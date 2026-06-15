@@ -76,6 +76,7 @@ function cd_service_type(array $row): string {
   $normalizedLabel = strtolower(trim(preg_replace('/[\s_-]+/', ' ', $label)));
   $legacyPrintingLabels = [
     "online print order",
+    "online document printing",
     "online printing",
     "walk in printing",
     "walkin printing",
@@ -286,33 +287,58 @@ if ($customer) {
       max-width:none;
     }
     .cd-hero{
-      padding:32px 38px;
-      border-radius:22px;
-      box-shadow:0 18px 42px rgba(20,50,84,.16);
+      position:relative;
+      overflow:hidden;
+      padding:34px 38px;
+      border-radius:24px;
+      background:linear-gradient(135deg, #1e3a5f, #2f6fa8);
+      box-shadow:0 18px 40px rgba(15,23,42,.14);
+      isolation:isolate;
     }
-    .cd-hero > div{
+    .cd-hero::before,
+    .cd-hero::after{
+      content:"";
+      position:absolute;
+      z-index:0;
+      border-radius:999px;
+      pointer-events:none;
+    }
+    .cd-hero::before{
+      right:90px;
+      bottom:-115px;
+      width:260px;
+      height:260px;
+      background:rgba(255,255,255,.045);
+    }
+    .cd-hero::after{
+      top:-105px;
+      right:-65px;
+      width:245px;
+      height:245px;
+      background:rgba(255,255,255,.08);
+    }
+    .cd-heroContent{
+      position:relative;
+      z-index:1;
       min-width:0;
+      max-width:760px;
     }
     .cd-hero h1{
       font-size:clamp(1.7rem, 3vw, 2.35rem);
       line-height:1.12;
       overflow-wrap:anywhere;
     }
-    .cd-backTop{
-      min-height:46px;
-      padding:12px 20px;
-    }
     .cd-profileShell{
       background:#fff;
       border:1px solid rgba(37,99,235,.14);
-      border-radius:22px;
+      border-radius:24px;
       box-shadow:0 18px 45px rgba(15,23,42,.08);
-      padding:28px;
+      padding:30px;
       min-width:0;
     }
     .cd-profileHeader{
       display:grid;
-      grid-template-columns:minmax(0, 1.25fr) minmax(340px, .75fr);
+      grid-template-columns:minmax(0, 1.6fr) minmax(320px, .9fr);
       gap:32px;
       align-items:start;
     }
@@ -372,8 +398,8 @@ if ($customer) {
     }
     .cd-summaryPanel{
       min-width:0;
-      padding-left:30px;
-      border-left:1px solid #e3ebf5;
+      padding-left:28px;
+      border-left:1px solid #e5edf7;
     }
     .cd-summaryHeading{
       margin:0 0 14px;
@@ -384,13 +410,13 @@ if ($customer) {
     .cd-summaryGrid{
       display:grid;
       grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:12px;
+      gap:14px;
     }
     .cd-summaryCard{
       display:flex;
       min-width:0;
-      min-height:104px;
-      padding:15px;
+      min-height:96px;
+      padding:16px;
       flex-direction:column;
       align-items:flex-start;
       justify-content:space-between;
@@ -420,20 +446,29 @@ if ($customer) {
     .cd-summaryCard--paid strong{ color:#15803d; }
     .cd-summaryCard--cancelled strong{ color:#c52222; }
     .cd-actionsCard{
-      padding:20px 24px;
+      padding:22px 26px;
+      background:rgba(255,255,255,.96);
       border-color:rgba(37,99,235,.12);
-      border-radius:18px;
-      box-shadow:0 12px 32px rgba(15,23,42,.06);
+      border-radius:20px;
+      box-shadow:0 12px 30px rgba(15,23,42,.06);
+    }
+    .cd-actionsCopy{
+      min-width:0;
+    }
+    .cd-actionsCopy p{
+      max-width:520px;
     }
     .cd-actionButtons .cl-btn{
-      min-height:44px;
+      min-height:46px;
+      padding:0 22px;
+      white-space:nowrap;
     }
     .cd-historyCard{
       min-width:0;
-      padding:26px;
+      padding:28px;
       border-color:rgba(37,99,235,.12);
-      border-radius:22px;
-      box-shadow:0 18px 45px rgba(15,23,42,.07);
+      border-radius:24px;
+      box-shadow:0 18px 45px rgba(15,23,42,.08);
       overflow:hidden;
     }
     .cd-sectionHead{
@@ -448,10 +483,10 @@ if ($customer) {
       align-items:end;
       gap:16px;
       margin:0 0 20px;
-      padding:18px;
-      background:#f4f8ff;
+      padding:16px;
+      background:#f3f7fc;
       border:1px solid #dbeafe;
-      border-radius:16px;
+      border-radius:18px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
     }
     .cd-filterField{
@@ -498,7 +533,7 @@ if ($customer) {
       overflow-x:auto;
       -webkit-overflow-scrolling:touch;
       border:1px solid #dbe5f1;
-      border-radius:16px;
+      border-radius:18px;
       background:#fff;
     }
     .cd-historyTable{
@@ -510,7 +545,7 @@ if ($customer) {
     .cd-historyTable th{
       background:#edf3fb;
       color:#1e3f69;
-      padding:14px 12px;
+      padding:14px 16px;
       text-align:left;
       font-size:12px;
       font-weight:800;
@@ -518,7 +553,7 @@ if ($customer) {
       white-space:nowrap;
     }
     .cd-historyTable td{
-      padding:14px 12px;
+      padding:14px 16px;
       border-bottom:1px solid #e6ecf4;
       background:#fff;
       color:#112338;
@@ -527,6 +562,10 @@ if ($customer) {
       line-height:1.4;
       vertical-align:middle;
       overflow-wrap:anywhere;
+    }
+    .cd-historyTable th:first-child,
+    .cd-historyTable td:first-child{
+      padding-left:18px;
     }
     .cd-historyTable tbody tr:last-child td{ border-bottom:none; }
     .cd-historyTable tbody tr:hover td{ background:#f8fbff; }
@@ -654,7 +693,7 @@ if ($customer) {
       display:grid;
       gap:10px;
     }
-    @media (max-width:1050px){
+    @media (max-width:900px){
       .cd-profileHeader{
         grid-template-columns:1fr;
         gap:26px;
@@ -680,12 +719,7 @@ if ($customer) {
     }
     @media (max-width:700px){
       .cd-hero{
-        padding:24px 20px;
-        align-items:stretch;
-      }
-      .cd-backTop{
-        width:100%;
-        text-align:center;
+        padding:26px 22px;
       }
       .cd-profileShell,
       .cd-historyCard{
@@ -716,6 +750,13 @@ if ($customer) {
       .cd-historyCard{
         padding:17px;
       }
+      .cd-actionsCard{
+        padding:18px;
+        border-radius:18px;
+      }
+      .cd-historyFilters{
+        padding:14px;
+      }
       .cd-summaryGrid{
         grid-template-columns:1fr;
       }
@@ -742,12 +783,11 @@ if ($customer) {
 
   <div class="admin-wrapper">
     <section class="admin-hero cd-hero customer-details-container">
-      <div>
+      <div class="cd-heroContent">
         <span class="cd-kicker">Customer Details</span>
         <h1><?= $customer ? cd_esc($customer["fullname"] ?: "Customer") : "Customer Not Found" ?></h1>
         <p><?= $customer ? "Profile, service history, payments, and uploaded files." : "The selected customer record is unavailable." ?></p>
       </div>
-      <a class="cl-btn cl-btn--light cd-backTop" href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Back to Customer List</a>
     </section>
 
     <main class="admin-container cl-main customer-details-container">
@@ -799,9 +839,9 @@ if ($customer) {
           </section>
 
           <section class="cl-card cd-actionsCard">
-            <div>
+            <div class="cd-actionsCopy">
               <h2>Actions</h2>
-              <p>Send a direct notification or return to the customer list.</p>
+              <p>Send a direct notification, review files, or return to the customer list.</p>
             </div>
             <div class="cd-actionButtons">
               <button
