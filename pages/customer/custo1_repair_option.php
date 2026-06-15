@@ -22,7 +22,6 @@ $storeAvailability = servitech_store_current_availability($pdo);
 <body class="customer-layout customer-page--forms" data-service="repair">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
-<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
 
 <section class="form-page form-page--single">
   <div class="form-page-shell">

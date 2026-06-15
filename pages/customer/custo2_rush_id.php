@@ -188,7 +188,6 @@ function rush_price(array $pricing, string $key): string {
 <body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="Rush ID">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
-<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
 
 <section class="form-page form-page--single form-page--order-summary">
   <div class="form-page-shell">

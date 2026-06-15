@@ -23,8 +23,6 @@ header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
-<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
-
 <section class="form-page queue-join-page">
   <div class="form-page-shell queue-join-shell">
     <div class="queue-join-intro">
