@@ -2,6 +2,7 @@
 require_once __DIR__ . "/config/session_check.php"; // use your consistent session setup
 require_once __DIR__ . "/config/app.php";
 require_once __DIR__ . "/config/db.php";
+require_once __DIR__ . "/config/store_availability.php";
 $is_logged_in = servitech_is_logged_in();
 $is_admin = servitech_is_admin();
 $queue_url = $is_admin
@@ -15,6 +16,7 @@ $print_url = $is_admin
   : ($is_logged_in ? "/pages/customer/custo2_docu_printing.php" : "/auth/log_in.php");
 
 $landingAnnouncement = null;
+$storeAvailability = servitech_store_current_availability($pdo);
 try {
   $announcementStmt = $pdo->query("
     SELECT title, message
@@ -36,6 +38,7 @@ try {
   <title>ServiTech: JC Repair Shop</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260613-footer-legal-links'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/store-availability.css?v=20260615'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body class="has-fixed-site-header">
 
@@ -85,6 +88,8 @@ try {
       </div>
     </section>
   <?php endif; ?>
+
+  <?php include __DIR__ . "/components/store_availability_card.php"; ?>
 
   <!-- HERO -->
   <section class="hero">

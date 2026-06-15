@@ -7,6 +7,7 @@ require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/../config/join_queue_flow.php";
+require_once __DIR__ . "/../config/store_availability.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -117,6 +118,7 @@ foreach ($details as $key => $value) {
 }
 
 try {
+  servitech_store_assert_queue_available($pdo, $category, $service_label);
   $pdo->beginTransaction();
   if (!$supportsFileUploads && !empty($details["uploaded_files"])) {
     throw new DomainException("This service does not support file attachments.");

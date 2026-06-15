@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
+require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/../../config/store_availability.php";
+$storeAvailability = servitech_store_current_availability($pdo);
 header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
@@ -14,10 +17,13 @@ header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260501q1">
+  <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--queue">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
+
+<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
 
 <section class="form-page queue-join-page">
   <div class="form-page-shell queue-join-shell">
@@ -41,18 +47,22 @@ header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
           <span class="queue-service-card__label">Printing</span>
         </button>
 
-        <button type="button" class="queue-service-card" data-service="repair" aria-pressed="false">
+        <button type="button" class="queue-service-card" data-service="repair" aria-pressed="false"
+          <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled aria-disabled="true"' ?>>
           <span class="queue-service-card__media">
             <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
           </span>
           <span class="queue-service-card__label">Repair</span>
+          <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
         </button>
 
-        <button type="button" class="queue-service-card" data-service="installation" aria-pressed="false">
+        <button type="button" class="queue-service-card" data-service="installation" aria-pressed="false"
+          <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled aria-disabled="true"' ?>>
           <span class="queue-service-card__media">
             <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
           </span>
           <span class="queue-service-card__label">Installation</span>
+          <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
         </button>
       </div>
 

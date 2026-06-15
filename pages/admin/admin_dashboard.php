@@ -146,6 +146,14 @@ require __DIR__ . "/_includes/admin_header.php";
       </article>
     </a>
 
+    <a href="<?= project_url('/pages/admin/store_availability.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon admin-quick-icon" aria-hidden="true">&#x1F552;</div>
+        <h4>Store Availability</h4>
+        <p>Manage shop hours, cutoffs, holidays, and service status</p>
+      </article>
+    </a>
+
   </section>
 
   <h3 class="section-title">Live Analytics</h3>

@@ -1,8 +1,10 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
+require_once __DIR__ . "/../../config/store_availability.php";
 servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
+$storeAvailability = servitech_store_current_availability($pdo);
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $documentPrintingLabel = "Document Printing";
@@ -107,6 +109,7 @@ if (is_array($sessionPrintDraft)) {
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-scroll-root">
+  <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>
     .printing-page {
@@ -476,6 +479,7 @@ if (is_array($sessionPrintDraft)) {
 <body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary printing-page" data-service="printing">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
+<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
 
 <section class="form-page form-page--single form-page--order-summary">
   <div class="form-page-shell">

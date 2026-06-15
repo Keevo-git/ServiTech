@@ -42,6 +42,8 @@ For an existing ServiTech database:
    timestamp and indexes used by automatic upload retention cleanup.
 9. Run `20260612_revoke_public_catalog_delete_grants.sql` after the Supabase
    Auth foundation migration to keep services and announcements archive-only.
+10. Run `20260615_add_store_availability.sql` to add shop hours, queue cutoff,
+    store status, holiday dates, public read policies, and admin-only writes.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on

@@ -1366,7 +1366,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await cleanupUploadedFiles(payload.uploaded_files);
       setFeedback("Network/server error. Please try again.", "error");
     } finally {
-      joinBtn.disabled = false;
+      joinBtn.disabled = joinBtn.dataset.availabilityLocked === "true";
       joinBtn.removeAttribute("aria-busy");
     }
   });

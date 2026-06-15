@@ -1,8 +1,11 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
+require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/../../config/store_availability.php";
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
+$storeAvailability = servitech_store_current_availability($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,10 +16,13 @@ servitech_redirect_completed_join_queue();
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
+  <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
+
+<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
 
 <section class="form-page form-page--single">
   <div class="form-page-shell">
@@ -35,10 +41,13 @@ servitech_redirect_completed_join_queue();
       <select id="serviceType" class="form-select">
         <option value="" selected disabled>Select A Service</option>
         <option value="document-printing">Document Printing</option>
-        <option value="xerox">Xerox</option>
-        <option value="rush-id">Rush ID</option>
-        <option value="laminating">Laminating</option>
+        <option value="xerox" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Xerox<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>
+        <option value="rush-id" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Rush ID<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>
+        <option value="laminating" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Laminating<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>
       </select>
+      <?php if (!$storeAvailability["regular_queue_allowed"]): ?>
+        <p class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></p>
+      <?php endif; ?>
     </div>
 
     <div class="form-actions">

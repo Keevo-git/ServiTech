@@ -749,14 +749,6 @@ body.admin-dashboard .dashboard-content .admin-quick-card-link{
   text-decoration: none;
 }
 
-body.admin-dashboard .dashboard-content .admin-quick-card-link:nth-child(4){
-  grid-column: 2 / span 2;
-}
-
-body.admin-dashboard .dashboard-content .admin-quick-card-link:nth-child(5){
-  grid-column: 4 / span 2;
-}
-
 body.admin-dashboard .dashboard-content .admin-quick-card{
   display: flex !important;
   flex-direction: column !important;

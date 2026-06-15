@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/../../config/store_availability.php";
 require_once __DIR__ . "/../../api/upload_helpers.php";
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -30,6 +31,7 @@ function format_fullname($name) {
 
 $display_name = format_fullname($fullname);
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
+$storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -40,6 +42,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
+  <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
   <style>
     body.customer-layout.customer-page--dashboard .main-container {
       width: 100%;
@@ -830,6 +833,8 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
   </div>
 </section>
 
+<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
+
 <section class="dashboard-service-section" aria-labelledby="dashboardChooseServiceTitle">
   <div class="dashboard-service-card">
     <div class="dashboard-section-heading">
@@ -845,18 +850,24 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
         <span class="queue-service-card__label">Printing</span>
       </a>
 
-      <a href="/pages/customer/custo1_repair_option.php" class="queue-service-card">
+      <a href="<?= $storeAvailability["regular_queue_allowed"] ? "/pages/customer/custo1_repair_option.php" : "#" ?>"
+         class="queue-service-card"
+         <?= $storeAvailability["regular_queue_allowed"] ? "" : 'aria-disabled="true" onclick="return false;"' ?>>
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Repair</span>
+        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
       </a>
 
-      <a href="/pages/customer/custo1_installation_option.php" class="queue-service-card">
+      <a href="<?= $storeAvailability["regular_queue_allowed"] ? "/pages/customer/custo1_installation_option.php" : "#" ?>"
+         class="queue-service-card"
+         <?= $storeAvailability["regular_queue_allowed"] ? "" : 'aria-disabled="true" onclick="return false;"' ?>>
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Installation</span>
+        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
       </a>
     </div>
   </div>

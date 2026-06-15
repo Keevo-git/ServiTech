@@ -1,0 +1,144 @@
+.store-availability-card {
+  width: min(1160px, calc(100% - 32px));
+  margin: 24px auto;
+  padding: 22px;
+  border: 1px solid #d7e3ef;
+  border-left: 6px solid #2563eb;
+  border-radius: 18px;
+  background: #fff;
+  color: #18324f;
+  box-shadow: 0 14px 32px rgba(28, 55, 88, 0.11);
+  box-sizing: border-box;
+}
+
+.store-availability-card--open { border-left-color: #15916f; }
+.store-availability-card--paused { border-left-color: #d88718; }
+.store-availability-card--fully_booked,
+.store-availability-card--closed { border-left-color: #b4232f; }
+
+.store-availability-card__main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.store-availability-card__eyebrow {
+  color: #58708a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.store-availability-card h2 {
+  margin: 5px 0 6px;
+  color: #17385e;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.store-availability-card p {
+  margin: 0;
+  color: #53677d;
+  line-height: 1.55;
+}
+
+.store-availability-card__status {
+  flex: 0 0 auto;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: #e8f2ff;
+  color: #1d4f8f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.store-availability-card--open .store-availability-card__status {
+  background: #dcf7ed;
+  color: #087054;
+}
+
+.store-availability-card--closed .store-availability-card__status,
+.store-availability-card--fully_booked .store-availability-card__status {
+  background: #fee8e9;
+  color: #9d1d28;
+}
+
+.store-availability-card--paused .store-availability-card__status {
+  background: #fff2d8;
+  color: #9a5a08;
+}
+
+.store-availability-card__details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0 0;
+}
+
+.store-availability-card__details div {
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: #f5f8fc;
+}
+
+.store-availability-card dt {
+  color: #6a7c90;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.store-availability-card dd {
+  margin: 5px 0 0;
+  color: #1d3855;
+  font-weight: 800;
+}
+
+.store-availability-card__holidays {
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e8f1;
+}
+
+.store-availability-card__holidays ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.store-availability-card__holidays li {
+  display: inline-flex;
+  gap: 7px;
+  color: #53677d;
+  font-size: 13px;
+}
+
+.store-availability-card__holidays time { font-weight: 800; color: #253f5c; }
+
+.queue-unavailable-note {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff3e1;
+  color: #7c4b0d;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.queue-service-card[aria-disabled="true"],
+.queue-service-card:disabled {
+  cursor: not-allowed !important;
+  filter: grayscale(.55);
+  opacity: .55;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 700px) {
+  .store-availability-card { padding: 18px; }
+  .store-availability-card__main { flex-direction: column; }
+  .store-availability-card__details { grid-template-columns: 1fr; }
+}

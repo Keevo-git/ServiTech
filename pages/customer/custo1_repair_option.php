@@ -1,8 +1,11 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
+require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/../../config/store_availability.php";
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
+$storeAvailability = servitech_store_current_availability($pdo);
 ?>
 
 <!DOCTYPE html>
@@ -14,10 +17,12 @@ servitech_redirect_completed_join_queue();
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260524-queue-modal">
+  <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms" data-service="repair">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
+<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
 
 <section class="form-page form-page--single">
   <div class="form-page-shell">
@@ -81,7 +86,8 @@ servitech_redirect_completed_join_queue();
 
     <div class="form-actions">
       <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
-      <button type="button" class="btn-next" id="joinQueueBtn">Join Queue</button>
+      <button type="button" class="btn-next" id="joinQueueBtn" <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled data-availability-locked="true"' ?>>Join Queue</button>
+      <?php if (!$storeAvailability["regular_queue_allowed"]): ?><p class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></p><?php endif; ?>
     </div>
   </div>
 </section>
