@@ -72,7 +72,23 @@ function cd_detail_value(array $details, array $keys): string {
 function cd_service_type(array $row): string {
   $details = cd_details_array($row["details"] ?? null);
   $label = cd_detail_value($details, ["service_label", "service_name", "service", "document_type", "request_type"]);
-  return $label !== "" ? $label : cd_category_label((string)($row["category"] ?? ""));
+  $category = strtolower(trim((string)($row["category"] ?? "")));
+  $normalizedLabel = strtolower(trim(preg_replace('/[\s_-]+/', ' ', $label)));
+  $legacyPrintingLabels = [
+    "online print order",
+    "online printing",
+    "walk in printing",
+    "walkin printing",
+  ];
+
+  if (
+    in_array($normalizedLabel, $legacyPrintingLabels, true)
+    || in_array($category, ["online_printorder", "walkin", "printing_walkin"], true)
+  ) {
+    return "Document Printing";
+  }
+
+  return $label !== "" ? $label : cd_category_label($category);
 }
 
 function cd_payment_method(array $row): string {
@@ -247,15 +263,194 @@ if ($customer) {
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260608-history-table') ?>">
   <style>
+    html,
+    body{
+      max-width:100%;
+      overflow-x:hidden;
+    }
+    .customer-details-container{
+      width:min(1180px, 100%);
+      max-width:1180px;
+      margin-left:auto;
+      margin-right:auto;
+      box-sizing:border-box;
+    }
+    .admin-hero.customer-details-container{
+      margin-bottom:20px;
+    }
+    .admin-container.cl-main.customer-details-container{
+      padding:0 0 40px;
+    }
+    .cd-wrap{
+      width:100%;
+      max-width:none;
+    }
+    .cd-hero{
+      padding:32px 38px;
+      border-radius:22px;
+      box-shadow:0 18px 42px rgba(20,50,84,.16);
+    }
+    .cd-hero > div{
+      min-width:0;
+    }
+    .cd-hero h1{
+      font-size:clamp(1.7rem, 3vw, 2.35rem);
+      line-height:1.12;
+      overflow-wrap:anywhere;
+    }
+    .cd-backTop{
+      min-height:46px;
+      padding:12px 20px;
+    }
+    .cd-profileShell{
+      background:#fff;
+      border:1px solid rgba(37,99,235,.14);
+      border-radius:22px;
+      box-shadow:0 18px 45px rgba(15,23,42,.08);
+      padding:28px;
+      min-width:0;
+    }
+    .cd-profileHeader{
+      display:grid;
+      grid-template-columns:minmax(0, 1.25fr) minmax(340px, .75fr);
+      gap:32px;
+      align-items:start;
+    }
+    .cd-profileIdentity{
+      min-width:0;
+    }
+    .cd-profileEyebrow{
+      display:block;
+      margin-bottom:8px;
+      color:#2563eb;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .cd-customerName{
+      margin:0;
+      color:#0f172a;
+      font-size:clamp(1.55rem, 3vw, 2rem);
+      font-weight:900;
+      line-height:1.15;
+      overflow-wrap:anywhere;
+    }
+    .cd-customerEmail{
+      display:inline-block;
+      margin-top:8px;
+      color:#52677f;
+      font-weight:650;
+      line-height:1.45;
+      overflow-wrap:anywhere;
+    }
+    .cd-infoGrid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:18px 28px;
+      margin-top:26px;
+    }
+    .cd-infoItem{
+      min-width:0;
+    }
+    .cd-infoItem span{
+      display:block;
+      margin-bottom:5px;
+      color:#64748b;
+      font-size:11px;
+      font-weight:850;
+      letter-spacing:.07em;
+      text-transform:uppercase;
+    }
+    .cd-infoItem strong{
+      display:block;
+      color:#0f172a;
+      font-size:14px;
+      font-weight:800;
+      line-height:1.4;
+      overflow-wrap:anywhere;
+    }
+    .cd-summaryPanel{
+      min-width:0;
+      padding-left:30px;
+      border-left:1px solid #e3ebf5;
+    }
+    .cd-summaryHeading{
+      margin:0 0 14px;
+      color:#1f4a8a;
+      font-size:15px;
+      font-weight:850;
+    }
+    .cd-summaryGrid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+    .cd-summaryCard{
+      display:flex;
+      min-width:0;
+      min-height:104px;
+      padding:15px;
+      flex-direction:column;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      background:#f8fbff;
+      border:1px solid #dbeafe;
+      border-radius:16px;
+      box-shadow:none;
+    }
+    .cd-summaryCard span{
+      font-size:11px;
+      line-height:1.35;
+    }
+    .cd-summaryCard strong{
+      color:#1d4ed8;
+      font-size:28px;
+      line-height:1;
+    }
+    .cd-summaryCard--pending,
+    .cd-summaryCard--submitted,
+    .cd-summaryCard--paid,
+    .cd-summaryCard--cancelled{
+      border-left:1px solid #dbeafe;
+    }
+    .cd-summaryCard--pending strong{ color:#b56a00; }
+    .cd-summaryCard--submitted strong{ color:#16869a; }
+    .cd-summaryCard--paid strong{ color:#15803d; }
+    .cd-summaryCard--cancelled strong{ color:#c52222; }
+    .cd-actionsCard{
+      padding:20px 24px;
+      border-color:rgba(37,99,235,.12);
+      border-radius:18px;
+      box-shadow:0 12px 32px rgba(15,23,42,.06);
+    }
+    .cd-actionButtons .cl-btn{
+      min-height:44px;
+    }
+    .cd-historyCard{
+      min-width:0;
+      padding:26px;
+      border-color:rgba(37,99,235,.12);
+      border-radius:22px;
+      box-shadow:0 18px 45px rgba(15,23,42,.07);
+      overflow:hidden;
+    }
+    .cd-sectionHead{
+      margin-bottom:20px;
+    }
+    .cd-sectionHead h2{
+      font-size:clamp(1.35rem, 2.5vw, 1.7rem);
+    }
     .cd-historyFilters{
       display:grid;
       grid-template-columns:minmax(190px,1fr) minmax(220px,1.12fr) minmax(240px,1.18fr) auto;
       align-items:end;
       gap:16px;
-      margin:0 0 18px;
-      padding:16px;
-      background:#f5f8fc;
-      border:1px solid #d9e4f2;
+      margin:0 0 20px;
+      padding:18px;
+      background:#f4f8ff;
+      border:1px solid #dbeafe;
       border-radius:16px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
     }
@@ -308,7 +503,7 @@ if ($customer) {
     }
     .cd-historyTable{
       width:100%;
-      min-width:1120px;
+      min-width:1060px;
       border-collapse:separate;
       border-spacing:0;
     }
@@ -329,7 +524,9 @@ if ($customer) {
       color:#112338;
       font-size:13px;
       font-weight:650;
+      line-height:1.4;
       vertical-align:middle;
+      overflow-wrap:anywhere;
     }
     .cd-historyTable tbody tr:last-child td{ border-bottom:none; }
     .cd-historyTable tbody tr:hover td{ background:#f8fbff; }
@@ -457,9 +654,21 @@ if ($customer) {
       display:grid;
       gap:10px;
     }
+    @media (max-width:1050px){
+      .cd-profileHeader{
+        grid-template-columns:1fr;
+        gap:26px;
+      }
+      .cd-summaryPanel{
+        padding-top:24px;
+        padding-left:0;
+        border-top:1px solid #e3ebf5;
+        border-left:0;
+      }
+    }
     @media (max-width:900px){
       .cd-historyFilters{
-        grid-template-columns:1fr;
+        grid-template-columns:repeat(2, minmax(0, 1fr));
         gap:12px;
       }
       .cd-clearFilters{
@@ -469,7 +678,50 @@ if ($customer) {
         grid-template-columns:1fr;
       }
     }
+    @media (max-width:700px){
+      .cd-hero{
+        padding:24px 20px;
+        align-items:stretch;
+      }
+      .cd-backTop{
+        width:100%;
+        text-align:center;
+      }
+      .cd-profileShell,
+      .cd-historyCard{
+        padding:20px;
+        border-radius:18px;
+      }
+      .cd-infoGrid,
+      .cd-historyFilters{
+        grid-template-columns:1fr;
+      }
+      .cd-actionsCard{
+        align-items:stretch;
+      }
+      .cd-actionButtons{
+        flex-direction:column;
+        width:100%;
+      }
+      .cd-actionButtons .cl-btn{
+        width:100%;
+      }
+    }
     @media (max-width:560px){
+      .admin-wrapper{
+        padding-left:12px;
+        padding-right:12px;
+      }
+      .cd-profileShell,
+      .cd-historyCard{
+        padding:17px;
+      }
+      .cd-summaryGrid{
+        grid-template-columns:1fr;
+      }
+      .cd-summaryCard{
+        min-height:86px;
+      }
       .cd-rowActions{
         flex-direction:column;
         align-items:stretch;
@@ -489,7 +741,7 @@ if ($customer) {
   ?>
 
   <div class="admin-wrapper">
-    <section class="admin-hero cd-hero">
+    <section class="admin-hero cd-hero customer-details-container">
       <div>
         <span class="cd-kicker">Customer Details</span>
         <h1><?= $customer ? cd_esc($customer["fullname"] ?: "Customer") : "Customer Not Found" ?></h1>
@@ -498,7 +750,7 @@ if ($customer) {
       <a class="cl-btn cl-btn--light cd-backTop" href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Back to Customer List</a>
     </section>
 
-    <main class="admin-container cl-main">
+    <main class="admin-container cl-main customer-details-container">
       <div class="cl-wrap cd-wrap">
         <?php if (!$customer): ?>
           <section class="cl-card cd-emptyState">
@@ -507,29 +759,43 @@ if ($customer) {
             <a class="cl-btn cl-btn--maroon" href="<?= admin_url('/pages/admin/customer_list/custoL.php') ?>">Back to Customer List</a>
           </section>
         <?php else: ?>
-          <section class="cd-profileGrid">
-            <article class="cl-card cd-profileCard">
-              <span class="cd-cardLabel">Customer ID</span>
-              <strong><?= cd_esc(cd_customer_code((int)$customer["id"])) ?></strong>
-              <small>Internal ID: <?= (int)$customer["id"] ?></small>
-            </article>
-            <article class="cl-card cd-profileCard">
-              <span class="cd-cardLabel">Full Name</span>
-              <strong><?= cd_esc($customer["fullname"] ?: "-") ?></strong>
-              <small><?= cd_esc($customer["email"] ?: "-") ?></small>
-            </article>
-            <article class="cl-card cd-profileCard">
-              <span class="cd-cardLabel">Contact</span>
-              <strong><?= cd_esc($customer["contacts"] ?: "-") ?></strong>
-              <small>Account created: <?= cd_esc(cd_format_date($customer["created_at"] ?? "")) ?></small>
-            </article>
-          </section>
+          <section class="cd-profileShell" aria-labelledby="customerProfileTitle">
+            <div class="cd-profileHeader">
+              <div class="cd-profileIdentity">
+                <span class="cd-profileEyebrow">Customer Information</span>
+                <h2 class="cd-customerName" id="customerProfileTitle"><?= cd_esc($customer["fullname"] ?: "-") ?></h2>
+                <span class="cd-customerEmail"><?= cd_esc($customer["email"] ?: "-") ?></span>
 
-          <section class="cd-summaryGrid">
-            <article class="cd-summaryCard cd-summaryCard--pending"><span>Pending Payment</span><strong><?= $summary["pending_payment"] ?></strong></article>
-            <article class="cd-summaryCard cd-summaryCard--submitted"><span>Payment Submitted</span><strong><?= $summary["payment_submitted"] ?></strong></article>
-            <article class="cd-summaryCard cd-summaryCard--paid"><span>Paid / Verified</span><strong><?= $summary["paid_verified"] ?></strong></article>
-            <article class="cd-summaryCard cd-summaryCard--cancelled"><span>Cancelled Orders</span><strong><?= $summary["cancelled"] ?></strong></article>
+                <div class="cd-infoGrid">
+                  <div class="cd-infoItem">
+                    <span>Customer ID</span>
+                    <strong><?= cd_esc(cd_customer_code((int)$customer["id"])) ?></strong>
+                  </div>
+                  <div class="cd-infoItem">
+                    <span>Internal ID</span>
+                    <strong><?= (int)$customer["id"] ?></strong>
+                  </div>
+                  <div class="cd-infoItem">
+                    <span>Contact Number</span>
+                    <strong><?= cd_esc($customer["contacts"] ?: "-") ?></strong>
+                  </div>
+                  <div class="cd-infoItem">
+                    <span>Account Created</span>
+                    <strong><?= cd_esc(cd_format_date($customer["created_at"] ?? "")) ?></strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cd-summaryPanel">
+                <h3 class="cd-summaryHeading">Order &amp; Payment Summary</h3>
+                <div class="cd-summaryGrid">
+                  <article class="cd-summaryCard cd-summaryCard--pending"><span>Pending Payment</span><strong><?= $summary["pending_payment"] ?></strong></article>
+                  <article class="cd-summaryCard cd-summaryCard--submitted"><span>Payment Submitted</span><strong><?= $summary["payment_submitted"] ?></strong></article>
+                  <article class="cd-summaryCard cd-summaryCard--paid"><span>Paid / Verified</span><strong><?= $summary["paid_verified"] ?></strong></article>
+                  <article class="cd-summaryCard cd-summaryCard--cancelled"><span>Cancelled Orders</span><strong><?= $summary["cancelled"] ?></strong></article>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section class="cl-card cd-actionsCard">
