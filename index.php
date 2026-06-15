@@ -34,7 +34,7 @@ try {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
-  <link rel="icon" type="images/png" href="<?= htmlspecialchars(servitech_url('/assets/images/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" >
+  <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260613-footer-legal-links'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body class="has-fixed-site-header">

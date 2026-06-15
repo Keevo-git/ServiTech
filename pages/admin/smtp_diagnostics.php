@@ -30,6 +30,7 @@ servitech_log_smtp_config_status($check);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SMTP Diagnostics - ServiTech Admin</title>
+  <?= servitech_favicon_link() ?>
   <style>
     body {
       margin: 0;

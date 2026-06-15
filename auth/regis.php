@@ -11,9 +11,7 @@ $csrfToken = servitech_csrf_token();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Register</title>
-  <link rel="icon" type="image/png" href="<?= auth_url("/assets/images/favicon.png") ?>">
-  <link rel="shortcut icon" type="image/png" href="<?= auth_url("/assets/images/favicon.png") ?>">
-  <link rel="apple-touch-icon" href="<?= auth_url("/assets/images/favicon.png") ?>">
+  <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260613-password-toggle-fix") ?>">
 </head>
 <body class="auth-page auth-page--register">

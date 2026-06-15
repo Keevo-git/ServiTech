@@ -11,6 +11,7 @@ $effectiveDate = "June 13, 2026";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Terms of Service - ServiTech</title>
+  <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css'), ENT_QUOTES, 'UTF-8') ?>">
   <style>
     body {

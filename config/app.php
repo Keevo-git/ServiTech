@@ -41,6 +41,12 @@ function servitech_url(string $path = "/"): string
     return $base . $cleanPath;
 }
 
+function servitech_favicon_link(): string
+{
+    $href = htmlspecialchars(servitech_url("/assets/images/favicon.png"), ENT_QUOTES, "UTF-8");
+    return '<link rel="icon" type="image/png" href="' . $href . '">';
+}
+
 function servitech_cookie_path(): string
 {
     $base = servitech_base_path();
