@@ -490,7 +490,8 @@ main{ flex:1; }
 }
 
 .contact-item a:hover{
-  text-decoration:underline;
+  color:#fbbf24;
+  text-decoration:none;
 }
 
 .contact-item span{

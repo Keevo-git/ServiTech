@@ -2,7 +2,7 @@
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/contact.php";
 
-const AUTH_UI_VERSION = "20260613-footer-legal-links";
+const AUTH_UI_VERSION = "20260616-footer-hover";
 
 if (!function_exists("auth_url_raw")) {
     function auth_url_raw(string $path = "/"): string

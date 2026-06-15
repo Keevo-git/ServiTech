@@ -1056,9 +1056,45 @@ html:has(body.modal-open) {
   text-decoration: none;
 }
 
-.contact-item a:hover {
-  color: #ffd79d;
+.footer a,
+.footer button {
   text-decoration: none;
+  text-shadow: none;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.footer a:hover,
+.footer a:focus-visible,
+.footer button:hover,
+.footer button:focus-visible {
+  color: #fbbf24;
+  opacity: 1;
+  text-decoration: none;
+  text-shadow: none;
+  transform: translateY(-1px);
+}
+
+.footer a:active,
+.footer button:active {
+  color: #fbbf24;
+  text-decoration: none;
+  text-shadow: none;
+  transform: translateY(0);
+}
+
+.footer a:focus-visible,
+.footer button:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.footer .footer-logo-link:hover h1,
+.footer .footer-logo-link:focus-visible h1,
+.footer .footer-logo-link:active h1 {
+  color: #fbbf24;
 }
 
 /* FOOTER LOGO */
@@ -1082,6 +1118,7 @@ html:has(body.modal-open) {
   color: #ffffff;
   font-weight: 600;
   font-style: italic;
+  transition: color 0.2s ease;
 }
 
 /* BOTTOM TEXT */
@@ -1108,21 +1145,24 @@ html:has(body.modal-open) {
   text-decoration: none;
   padding: 6px 10px;
   border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease, text-decoration-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .footer-legal-links a:hover,
-.footer-legal-links button:hover {
-  color: #ffd79d;
-  background: rgba(255, 255, 255, 0.08);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
+.footer-legal-links a:focus-visible,
+.footer-legal-links button:hover,
+.footer-legal-links button:focus-visible {
+  color: #fbbf24;
+  background: transparent;
+  text-decoration: none;
 }
 
 .footer-legal-links a:focus-visible,
 .footer-legal-links button:focus-visible {
-  outline: 2px solid #ffd79d;
+  outline: 2px solid #fbbf24;
   outline-offset: 3px;
 }
 

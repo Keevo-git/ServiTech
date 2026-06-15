@@ -43,6 +43,10 @@ $adminFooterEmail = servitech_contact_email();
     text-decoration: none !important;
   }
 
+  .admin-shared-footer .footer-logo-link h1 {
+    transition: color .2s ease;
+  }
+
   .admin-shared-footer .contact-item {
     display: flex;
     align-items: center;
@@ -70,11 +74,10 @@ $adminFooterEmail = servitech_contact_email();
   .admin-shared-footer a,
   .admin-shared-footer button {
     text-decoration: none !important;
+    text-shadow: none !important;
     transition:
       color .2s ease,
       opacity .2s ease,
-      text-shadow .2s ease,
-      background-color .2s ease,
       transform .2s ease;
   }
 
@@ -103,25 +106,39 @@ $adminFooterEmail = servitech_contact_email();
   .admin-shared-footer .footer-logo-link:hover,
   .admin-shared-footer .contact-item a:hover,
   .admin-shared-footer .footer-legal-links a:hover,
-  .admin-shared-footer .footer-legal-links button:hover {
-    color: #ffffff !important;
-    opacity: .9;
+  .admin-shared-footer .footer-legal-links button:hover,
+  .admin-shared-footer .footer-logo-link:focus-visible,
+  .admin-shared-footer .contact-item a:focus-visible,
+  .admin-shared-footer .footer-legal-links a:focus-visible,
+  .admin-shared-footer .footer-legal-links button:focus-visible {
+    color: #fbbf24 !important;
+    opacity: 1;
     text-decoration: none !important;
-    text-shadow: 0 0 8px rgba(255, 255, 255, .25);
+    text-shadow: none !important;
+    transform: translateY(-1px);
   }
 
-  .admin-shared-footer .footer-legal-links a:hover,
-  .admin-shared-footer .footer-legal-links button:hover {
-    background: rgba(255, 255, 255, 0.08);
+  .admin-shared-footer .footer-logo-link:hover h1,
+  .admin-shared-footer .footer-logo-link:focus-visible h1,
+  .admin-shared-footer .footer-logo-link:active h1 {
+    color: #fbbf24 !important;
+  }
+
+  .admin-shared-footer .footer-logo-link:active,
+  .admin-shared-footer .contact-item a:active,
+  .admin-shared-footer .footer-legal-links a:active,
+  .admin-shared-footer .footer-legal-links button:active {
+    color: #fbbf24 !important;
+    text-decoration: none !important;
+    text-shadow: none !important;
+    transform: translateY(0);
   }
 
   .admin-shared-footer .footer-logo-link:focus-visible,
   .admin-shared-footer .contact-item a:focus-visible,
   .admin-shared-footer .footer-legal-links a:focus-visible,
   .admin-shared-footer .footer-legal-links button:focus-visible {
-    color: #ffffff !important;
-    text-decoration: none !important;
-    outline: 2px solid rgba(255, 255, 255, .82);
+    outline: 2px solid #fbbf24;
     outline-offset: 3px;
   }
 

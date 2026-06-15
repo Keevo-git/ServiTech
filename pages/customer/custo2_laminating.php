@@ -50,7 +50,7 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Laminating</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-scroll-root">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
   <style>

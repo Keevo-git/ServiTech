@@ -273,14 +273,15 @@
   font: inherit;
   font-weight: 700;
   padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration: none;
+  text-shadow: none;
 }
 
 .footer-privacy-settings-link:hover,
 .footer-privacy-settings-link:focus-visible {
-  color: #f5a623;
-  outline: none;
+  color: #fbbf24;
+  text-decoration: none;
+  text-shadow: none;
 }
 
 @media (max-width: 760px) {

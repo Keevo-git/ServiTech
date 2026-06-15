@@ -839,7 +839,8 @@ body.admin-dashboard .contact-item span{
 }
 
 body.admin-dashboard .contact-item a:hover{
-  text-decoration: underline;
+  color: #fbbf24;
+  text-decoration: none;
 }
 
 body.admin-dashboard .footer-logo-link{

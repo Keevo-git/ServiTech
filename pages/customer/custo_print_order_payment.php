@@ -118,7 +118,7 @@ if ($isConfirmed) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Print Order Payment</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
   <style>
     .printing-page {

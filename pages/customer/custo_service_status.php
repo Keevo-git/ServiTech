@@ -8,7 +8,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260613-footer-legal-links">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260607-status-edit-toast">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
