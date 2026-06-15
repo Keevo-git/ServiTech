@@ -515,6 +515,15 @@ if ($customer) {
       box-sizing:border-box;
       box-shadow:0 8px 18px rgba(19,45,75,.05);
     }
+    .cd-filterField select{
+      appearance:none;
+      -webkit-appearance:none;
+      padding-right:44px;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='m5 7.5 5 5 5-5' stroke='%231e3f69' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 16px center;
+      background-size:14px 14px;
+    }
     .cd-filterField input:focus,
     .cd-filterField select:focus{
       border-color:#1f4a8a;
@@ -538,14 +547,14 @@ if ($customer) {
     }
     .cd-historyTable{
       width:100%;
-      min-width:1060px;
+      min-width:1240px;
       border-collapse:separate;
       border-spacing:0;
     }
     .cd-historyTable th{
       background:#edf3fb;
       color:#1e3f69;
-      padding:14px 16px;
+      padding:18px 20px;
       text-align:left;
       font-size:12px;
       font-weight:800;
@@ -553,7 +562,7 @@ if ($customer) {
       white-space:nowrap;
     }
     .cd-historyTable td{
-      padding:14px 16px;
+      padding:18px 20px;
       border-bottom:1px solid #e6ecf4;
       background:#fff;
       color:#112338;
@@ -565,7 +574,16 @@ if ($customer) {
     }
     .cd-historyTable th:first-child,
     .cd-historyTable td:first-child{
-      padding-left:18px;
+      padding-left:20px;
+    }
+    .cd-historyTable th:nth-child(n+4),
+    .cd-historyTable td:nth-child(n+4){
+      text-align:center;
+    }
+    .cd-historyTable th:last-child,
+    .cd-historyTable td:last-child{
+      min-width:160px;
+      padding-right:32px;
     }
     .cd-historyTable tbody tr:last-child td{ border-bottom:none; }
     .cd-historyTable tbody tr:hover td{ background:#f8fbff; }
@@ -598,11 +616,15 @@ if ($customer) {
     .cd-mutedText{ color:#5e6f85; }
     .cd-rowActions{
       display:flex;
+      flex-direction:column;
       align-items:center;
+      justify-content:center;
       gap:8px;
-      flex-wrap:nowrap;
+      width:100%;
     }
     .cd-rowBtn{
+      width:120px;
+      min-width:120px;
       min-height:36px;
       padding:8px 12px;
       border-radius:10px;
@@ -657,7 +679,20 @@ if ($customer) {
       opacity:.65;
     }
     .cd-statusBadge{
+      width:110px;
+      min-width:110px;
+      height:34px;
+      padding:0 14px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
       border:1px solid transparent;
+      box-sizing:border-box;
+      font-weight:700;
+      line-height:1;
+      white-space:nowrap;
+      text-align:center;
     }
     .cd-status--pending{
       background:#fef3c7;
@@ -804,7 +839,6 @@ if ($customer) {
       overflow-wrap:anywhere;
     }
     .cd-detailOverview .cd-statusBadge{
-      width:max-content;
       max-width:100%;
     }
     .cd-detailSection{
@@ -960,12 +994,7 @@ if ($customer) {
       .cd-summaryCard{
         min-height:86px;
       }
-      .cd-rowActions{
-        flex-direction:column;
-        align-items:stretch;
-      }
       .cd-rowBtn{
-        width:100%;
         margin-bottom:0;
       }
       .cd-detailOverlay{
