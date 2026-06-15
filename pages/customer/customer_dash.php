@@ -32,6 +32,29 @@ function format_fullname($name) {
 $display_name = format_fullname($fullname);
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
+$dashboardAvailabilityMessages = [
+  "open" => "You may place a queue request until " . $storeAvailability["queue_cutoff_label"] . ".",
+  "closed" => "Regular queue is unavailable. Online Document Printing is still available.",
+  "paused" => "Queue requests are temporarily paused. Online Document Printing is still available.",
+  "fully_booked" => "We are fully booked today. Online Document Printing is still available.",
+  "holiday" => "Regular queue is closed today. Online Document Printing is still available.",
+  "closed_today" => "Regular queue is closed today. Online Document Printing is still available.",
+  "outside_hours" => "Regular queue is outside today's shop hours. Online Document Printing is still available.",
+  "past_cutoff" => "Today's queue cutoff has passed. Online Document Printing is still available.",
+];
+$dashboardAvailabilityMessage = $dashboardAvailabilityMessages[$storeAvailability["reason_code"]]
+  ?? $storeAvailability["message"];
+$dashboardRestrictionMessages = [
+  "closed" => "Regular queue is unavailable.",
+  "paused" => "Queue requests are temporarily paused.",
+  "fully_booked" => "Fully booked today.",
+  "holiday" => "Closed for today.",
+  "closed_today" => "Closed for today.",
+  "outside_hours" => "Outside today's shop hours.",
+  "past_cutoff" => "Today's queue cutoff has passed.",
+];
+$dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability["reason_code"]]
+  ?? "Regular queue is unavailable.";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,14 +71,14 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 12px 20px 20px;
       box-sizing: border-box;
     }
 
     body.customer-layout.customer-page--dashboard .dashboard-content {
       display: flex;
       flex-direction: column;
-      gap: 25px;
+      gap: 16px;
     }
 
     body.customer-layout.customer-page--dashboard .customer-dashboard.cards-row {
@@ -307,14 +330,14 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
       width: 100%;
       margin: 0;
       padding: 0 !important;
-      padding-top: 30px !important;
+      padding-top: 8px !important;
       background: transparent;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__inner.hero-container {
       width: 100%;
       margin: 0;
-      padding: 40px 20px;
+      padding: 20px 24px;
       box-sizing: border-box;
       border-radius: 16px;
       background:
@@ -322,6 +345,17 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
         linear-gradient(135deg, #ff7a18, #ffb347);
       backdrop-filter: blur(6px);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(430px, 1.15fr);
+      align-items: center;
+      gap: 24px;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__welcome {
+      min-width: 0;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero,
@@ -332,28 +366,95 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero h2 {
-      margin-bottom: 8px;
+      margin: 0 0 5px;
       font-weight: 700;
       text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero p {
-      margin-bottom: 0;
+      margin: 0;
       text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__time {
       display: inline-block;
-      margin-top: 12px;
-      padding: 6px 14px;
+      margin-top: 9px;
+      padding: 5px 11px;
       border: 1px solid rgba(255, 255, 255, 0.28);
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.15);
-      font-size: 0.85rem;
+      font-size: 0.76rem;
       font-weight: 500;
       line-height: 1.3;
       backdrop-filter: blur(6px);
       box-shadow: 0 8px 18px rgba(92, 42, 4, 0.13);
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability {
+      min-width: 0;
+      padding: 13px 15px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 14px;
+      background: rgba(91, 36, 4, 0.15);
+      backdrop-filter: blur(6px);
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 9px;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability-head strong {
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 25px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #7a2f08;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability-details {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px 14px;
+      margin: 0;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability-details div {
+      min-width: 0;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability-details dt {
+      color: rgba(255, 255, 255, 0.74);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability-details dd {
+      margin: 2px 0 0;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability-message {
+      margin-top: 9px !important;
+      color: rgba(255, 255, 255, 0.93) !important;
+      font-size: 12px;
+      line-height: 1.35;
     }
 
     .queue-carousel-card {
@@ -688,6 +789,11 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
     }
 
     @media (max-width: 900px) {
+      body.customer-layout.customer-page--dashboard .customer-hero__layout {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
       body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       }
@@ -713,6 +819,22 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
 
       body.customer-layout.customer-page--dashboard .dashboard-service-card {
         padding: 20px 16px;
+      }
+
+      body.customer-layout.customer-page--dashboard .customer-hero__inner.hero-container {
+        padding: 17px 16px;
+      }
+
+      body.customer-layout.customer-page--dashboard .customer-hero__availability {
+        padding: 12px;
+      }
+
+      body.customer-layout.customer-page--dashboard .customer-hero__availability-details {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      body.customer-layout.customer-page--dashboard .customer-hero__availability-details div:last-child {
+        grid-column: 1 / -1;
       }
 
       body.customer-layout.customer-page--dashboard .dashboard-service-options {
@@ -825,15 +947,39 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
 <main class="main-container dashboard-content">
 <section class="customer-hero hero-wrapper">
   <div class="customer-hero__inner hero-container">
-    <h2>Welcome, <span id="customerName"><?php echo htmlspecialchars($display_name); ?></span>!</h2>
-    <p>Manage your queue, request status and print orders.</p>
-    <time class="customer-hero__time live-datetime" id="customerNow" datetime="<?php echo htmlspecialchars($dashboardNow->format(DateTimeInterface::ATOM), ENT_QUOTES, "UTF-8"); ?>">
-      <?php echo htmlspecialchars($dashboardNow->format("M d, Y, h:i:s A"), ENT_QUOTES, "UTF-8"); ?>
-    </time>
+    <div class="customer-hero__layout">
+      <div class="customer-hero__welcome">
+        <h2>Welcome, <span id="customerName"><?php echo htmlspecialchars($display_name); ?></span>!</h2>
+        <p>Manage your queue, request status and print orders.</p>
+        <time class="customer-hero__time live-datetime" id="customerNow" datetime="<?php echo htmlspecialchars($dashboardNow->format(DateTimeInterface::ATOM), ENT_QUOTES, "UTF-8"); ?>">
+          <?php echo htmlspecialchars($dashboardNow->format("M d, Y, h:i:s A"), ENT_QUOTES, "UTF-8"); ?>
+        </time>
+      </div>
+
+      <div class="customer-hero__availability" aria-label="Store availability">
+        <div class="customer-hero__availability-head">
+          <strong>Store Status</strong>
+          <span class="customer-hero__status"><?= htmlspecialchars($storeAvailability["status_label"], ENT_QUOTES, "UTF-8") ?></span>
+        </div>
+        <dl class="customer-hero__availability-details">
+          <div>
+            <dt>Today's hours</dt>
+            <dd><?= htmlspecialchars($storeAvailability["today_hours"], ENT_QUOTES, "UTF-8") ?></dd>
+          </div>
+          <div>
+            <dt>Queue until</dt>
+            <dd><?= htmlspecialchars($storeAvailability["queue_cutoff_label"], ENT_QUOTES, "UTF-8") ?></dd>
+          </div>
+          <div>
+            <dt>Online Document Printing</dt>
+            <dd>Available</dd>
+          </div>
+        </dl>
+        <p class="customer-hero__availability-message"><?= htmlspecialchars($dashboardAvailabilityMessage, ENT_QUOTES, "UTF-8") ?></p>
+      </div>
+    </div>
   </div>
 </section>
-
-<?php include __DIR__ . "/../../components/store_availability_card.php"; ?>
 
 <section class="dashboard-service-section" aria-labelledby="dashboardChooseServiceTitle">
   <div class="dashboard-service-card">
@@ -848,6 +994,7 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
           <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Printing</span>
+        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note">Online Document Printing is available.</span><?php endif; ?>
       </a>
 
       <a href="<?= $storeAvailability["regular_queue_allowed"] ? "/pages/customer/custo1_repair_option.php" : "#" ?>"
@@ -857,7 +1004,7 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
           <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Repair</span>
-        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
+        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
       </a>
 
       <a href="<?= $storeAvailability["regular_queue_allowed"] ? "/pages/customer/custo1_installation_option.php" : "#" ?>"
@@ -867,7 +1014,7 @@ $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
           <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Installation</span>
-        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
+        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
       </a>
     </div>
   </div>
