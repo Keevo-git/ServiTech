@@ -70,6 +70,7 @@ $onlineStmt = $pdo->prepare("
     LIMIT 1
   ) p ON TRUE
   WHERE UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+    AND q.deleted_at IS NULL
     AND (
       LOWER(TRIM(COALESCE(q.category, ''))) IN (
         'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin'
@@ -98,7 +99,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260614-uniform-tabs') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260614-uniform-tabs') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260616-recycle-bin') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260608-profile-sync') ?>" defer></script>
 </head>
@@ -123,7 +124,10 @@ require __DIR__ . "/../_includes/admin_header.php";
 
       <div class="card-panel">
         <div class="panel-heading">
-          <h3>All Orders <small>Manage and update order statuses</small></h3>
+          <div class="panel-heading__copy">
+            <h3>All Orders <small>Manage and update order statuses</small></h3>
+          </div>
+          <a class="recycle-bin-link" href="<?= admin_url('/pages/admin/order_management/recycle_bin.php') ?>">Recycle Bin</a>
         </div>
 
         <div class="orders-scroll-wrapper">
@@ -140,7 +144,7 @@ require __DIR__ . "/../_includes/admin_header.php";
               <div class="table-scroll-wrapper">
                 <table id="onlineOrdersTable" class="orders table-content order-table order-table--online">
                   <thead>
-                    <tr><th>Order ID</th><th>Customer Name</th><th>Status</th><th>Payment</th><th>Submitted Date</th><th>Action</th></tr>
+                    <tr><th>Order ID</th><th>Customer Name</th><th class="status-cell">Status</th><th>Payment</th><th>Submitted Date</th><th class="action-cell">Action</th></tr>
                   </thead>
                   <tbody>
                     <?php if (!$online): ?>
@@ -168,7 +172,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                               <?php endif; ?>
                             </span>
                           </td>
-                          <td><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
+                          <td class="status-cell"><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
                           <td><?= htmlspecialchars(om_payment_summary($r)) ?></td>
                           <td>
                             <span class="datetime-stack">
@@ -177,12 +181,15 @@ require __DIR__ . "/../_includes/admin_header.php";
                             </span>
                           </td>
                           <td class="order-actions">
-                            <button
-                              class="btn-primary view-order-btn"
-                              type="button"
-                              data-id="<?= (int)$r["id"] ?>"
-                              data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true, "allowApproved" => true]), "Printing", "Document Printing") ?>"
-                            >View</button>
+                            <div class="action-buttons">
+                              <button
+                                class="btn-primary view-order-btn"
+                                type="button"
+                                data-id="<?= (int)$r["id"] ?>"
+                                data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true, "allowApproved" => true]), "Printing", "Document Printing") ?>"
+                              >View</button>
+                              <button class="delete-order-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>">Delete</button>
+                            </div>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -202,8 +209,10 @@ require __DIR__ . "/../_includes/admin_header.php";
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <?php require_once __DIR__ . "/_order_details_modal.php"; ?>
+<?php require_once __DIR__ . "/_order_delete_modal.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
+<script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260616') ?>" defer></script>
 <?php require_once __DIR__ . "/../queue_list/_queue_message_modal.php"; ?>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260608-profile-sync') ?>" defer></script>

@@ -49,6 +49,7 @@ $predicates = [
     ",
     "order_printing" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND q.deleted_at IS NULL
         AND (
             LOWER(TRIM(COALESCE(q.category, ''))) IN (
                 'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin'
@@ -58,6 +59,7 @@ $predicates = [
     ",
     "order_online" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND q.deleted_at IS NULL
         AND (
             LOWER(TRIM(COALESCE(q.category, ''))) IN ('online_printorder', 'printing_online')
             OR (
@@ -69,6 +71,7 @@ $predicates = [
     ",
     "order_walkin" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND q.deleted_at IS NULL
         AND (
             LOWER(TRIM(COALESCE(q.category, ''))) IN ('walkin', 'printing_walkin')
             OR (
@@ -80,10 +83,12 @@ $predicates = [
     ",
     "order_repair" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND q.deleted_at IS NULL
         AND LOWER(TRIM(COALESCE(q.category, ''))) = 'repair'
     ",
     "order_installation" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND q.deleted_at IS NULL
         AND LOWER(TRIM(COALESCE(q.category, ''))) = 'installation'
     ",
 ];

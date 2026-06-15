@@ -12,7 +12,7 @@
 
   function hasActiveAdminModal() {
     return Boolean(document.querySelector(
-      ".queue-details-modal.active, .queue-sendback-modal.active, .order-modal.active, .order-sendback-modal.active"
+      ".queue-details-modal.active, .queue-sendback-modal.active, .order-modal.active, .order-sendback-modal.active, .order-confirm-overlay.is-open"
     ));
   }
 

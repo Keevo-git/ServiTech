@@ -44,6 +44,8 @@ For an existing ServiTech database:
    Auth foundation migration to keep services and announcements archive-only.
 10. Run `20260615_add_store_availability.sql` to add shop hours, queue cutoff,
     store status, holiday dates, public read policies, and admin-only writes.
+11. Run `20260616_add_order_recycle_bin.sql` to add soft-delete metadata and
+    the Order Management recycle-bin index.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on
