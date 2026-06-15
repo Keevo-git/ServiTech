@@ -31,6 +31,8 @@ $adminHeaderShowNotificationOverlay = false;
   <?php admin_notification_render_center($adminNotificationData, ["mode" => "page", "id" => "adminNotificationPagePanel"]); ?>
 </div>
 
+<?php require_once __DIR__ . "/_includes/admin_footer.php"; ?>
+
 <?php admin_notification_render_script(); ?>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

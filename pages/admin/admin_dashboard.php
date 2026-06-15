@@ -156,7 +156,10 @@ require __DIR__ . "/_includes/admin_header.php";
 
   </section>
 
-  <h3 class="section-title">Live Analytics</h3>
+  <header class="admin-quick-access-header admin-analytics-header">
+    <h3 class="section-title">Live Analytics</h3>
+    <div class="admin-section-divider" aria-hidden="true"></div>
+  </header>
 
   <section class="analytics-grid analytics-grid--visual">
     <article class="analytics-card analytics-card--wide analytics-card--dark">

@@ -9,7 +9,50 @@ $adminFooterEmail = servitech_contact_email();
   .admin-shared-footer {
     background: linear-gradient(120deg, #112b4f, #1a3f73 52%, #265792) !important;
     color: #ffffff !important;
+    padding: 30px clamp(20px, 4vw, 40px) 20px !important;
+    overflow: hidden;
     box-shadow: 0 -10px 24px rgba(17, 43, 79, 0.16);
+  }
+
+  .admin-shared-footer .footer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px 40px;
+    width: min(100%, 1100px);
+    margin: 0 auto;
+  }
+
+  .admin-shared-footer .footer-left,
+  .admin-shared-footer .footer-right {
+    min-width: 0;
+  }
+
+  .admin-shared-footer .footer-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .admin-shared-footer .footer-logo-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 100%;
+    text-decoration: none !important;
+  }
+
+  .admin-shared-footer .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .admin-shared-footer .contact-item a,
+  .admin-shared-footer .contact-item span {
+    overflow-wrap: anywhere;
   }
 
   .admin-shared-footer .footer-logo-link,
@@ -22,6 +65,17 @@ $adminFooterEmail = servitech_contact_email();
   .admin-shared-footer .footer-bottom,
   .admin-shared-footer .footer-left h3 {
     color: #ffffff !important;
+  }
+
+  .admin-shared-footer a,
+  .admin-shared-footer button {
+    text-decoration: none !important;
+    transition:
+      color .2s ease,
+      opacity .2s ease,
+      text-shadow .2s ease,
+      background-color .2s ease,
+      transform .2s ease;
   }
 
   .admin-shared-footer .footer-legal-links {
@@ -43,19 +97,88 @@ $adminFooterEmail = servitech_contact_email();
   .admin-shared-footer .footer-legal-links button {
     border-radius: 8px;
     padding: 6px 10px;
-    text-decoration: none;
+    text-decoration: none !important;
+  }
+
+  .admin-shared-footer .footer-logo-link:hover,
+  .admin-shared-footer .contact-item a:hover,
+  .admin-shared-footer .footer-legal-links a:hover,
+  .admin-shared-footer .footer-legal-links button:hover {
+    color: #ffffff !important;
+    opacity: .9;
+    text-decoration: none !important;
+    text-shadow: 0 0 8px rgba(255, 255, 255, .25);
   }
 
   .admin-shared-footer .footer-legal-links a:hover,
-  .admin-shared-footer .footer-legal-links button:hover,
+  .admin-shared-footer .footer-legal-links button:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .admin-shared-footer .footer-logo-link:focus-visible,
+  .admin-shared-footer .contact-item a:focus-visible,
   .admin-shared-footer .footer-legal-links a:focus-visible,
   .admin-shared-footer .footer-legal-links button:focus-visible {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffd79d !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    outline: 2px solid rgba(255, 255, 255, .82);
+    outline-offset: 3px;
   }
 
   .admin-shared-footer .footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+    margin: 10px 0 0 !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+    text-align: center;
+  }
+
+  @media (max-width: 760px) {
+    .admin-shared-footer .footer-container {
+      flex-direction: column !important;
+      align-items: center !important;
+      text-align: center;
+      gap: 26px;
+    }
+
+    .admin-shared-footer .footer-left,
+    .admin-shared-footer .footer-right {
+      width: 100%;
+    }
+
+    .admin-shared-footer .footer-right,
+    .admin-shared-footer .footer-logo-link,
+    .admin-shared-footer .contact-item {
+      justify-content: center !important;
+    }
+
+    .admin-shared-footer .footer-legal-links {
+      margin-top: 22px;
+      padding-top: 14px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .admin-shared-footer .footer-logo-link {
+      flex-wrap: wrap;
+    }
+
+    .admin-shared-footer .footer-logo-link h1 {
+      font-size: 18px;
+    }
+
+    .admin-shared-footer .footer-legal-links {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .admin-shared-footer .footer-legal-links a,
+    .admin-shared-footer .footer-legal-links button {
+      width: 100%;
+    }
+
+    .admin-shared-footer .footer-legal-links span {
+      display: none;
+    }
   }
 </style>
 <footer class="footer admin-shared-footer">
