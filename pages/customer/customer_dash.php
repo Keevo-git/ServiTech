@@ -349,9 +349,9 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .customer-hero__layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(430px, 1.15fr);
+      grid-template-columns: minmax(500px, 0.95fr) minmax(520px, 1.05fr);
       align-items: center;
-      gap: 24px;
+      gap: 20px;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__welcome {
@@ -367,7 +367,11 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .customer-hero h2 {
       margin: 0 0 5px;
+      font-size: clamp(30px, 2.55vw, 37px);
       font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
       text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
@@ -392,7 +396,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability {
       min-width: 0;
-      padding: 13px 15px;
+      padding: 16px 18px;
       border: 1px solid rgba(255, 255, 255, 0.28);
       border-radius: 14px;
       background: rgba(91, 36, 4, 0.15);
@@ -404,7 +408,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 9px;
+      margin-bottom: 11px;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-head strong {
@@ -428,7 +432,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 7px 14px;
+      gap: 8px 18px;
       margin: 0;
     }
 
@@ -445,15 +449,15 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details dd {
       margin: 2px 0 0;
       color: #ffffff;
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 800;
       line-height: 1.25;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-message {
-      margin-top: 9px !important;
+      margin-top: 11px !important;
       color: rgba(255, 255, 255, 0.93) !important;
-      font-size: 12px;
+      font-size: 12.5px;
       line-height: 1.35;
     }
 
@@ -788,12 +792,18 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       color: #4f6485;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1080px) {
       body.customer-layout.customer-page--dashboard .customer-hero__layout {
         grid-template-columns: 1fr;
         gap: 14px;
       }
 
+      body.customer-layout.customer-page--dashboard .customer-hero h2 {
+        white-space: normal;
+      }
+    }
+
+    @media (max-width: 900px) {
       body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       }
