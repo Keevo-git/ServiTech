@@ -29,7 +29,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <title>ServiTech Admin Dashboard</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260614-dashboard-polish-2') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260615-quick-access-grid') ?>">
 </head>
 <body class="admin-dashboard">
 

@@ -605,6 +605,7 @@ body.admin-dashboard .analytics-section{
 
 body.admin-dashboard .quick-access-section{
   width: 100%;
+  margin-bottom: 9px;
 }
 
 body.admin-dashboard .quick-access{
@@ -731,7 +732,7 @@ body.admin-dashboard .card p{
 /* Explicit dashboard action-card layout; isolated from generic .card rules. */
 body.admin-dashboard .dashboard-content .admin-quick-grid{
   display: grid !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 24px !important;
   align-items: stretch !important;
   width: 100% !important;
@@ -741,7 +742,7 @@ body.admin-dashboard .dashboard-content .admin-quick-grid{
 
 body.admin-dashboard .dashboard-content .admin-quick-card-link{
   display: flex !important;
-  grid-column: span 2;
+  grid-column: auto;
   min-width: 0 !important;
   height: 100% !important;
   align-self: stretch !important;
@@ -790,6 +791,7 @@ body.admin-dashboard .dashboard-content .admin-quick-card p{
   justify-content: center;
   text-align: center !important;
   line-height: 1.45 !important;
+  overflow-wrap: anywhere;
 }
 
 body.admin-dashboard .footer{
@@ -881,6 +883,14 @@ body.admin-dashboard .admin-shared-footer .footer-legal-links + .footer-bottom{
   border-top: 0 !important;
 }
 
+@media (max-width: 992px){
+  body.admin-dashboard .dashboard-content .admin-quick-grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
 @media (max-width: 900px){
   body.admin-dashboard .stats{
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -898,17 +908,6 @@ body.admin-dashboard .admin-shared-footer .footer-legal-links + .footer-bottom{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  body.admin-dashboard .dashboard-content .admin-quick-grid{
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    width: 100% !important;
-    max-width: none !important;
-  }
-
-  body.admin-dashboard .dashboard-content .admin-quick-card-link,
-  body.admin-dashboard .dashboard-content .admin-quick-card-link:nth-child(4),
-  body.admin-dashboard .dashboard-content .admin-quick-card-link:nth-child(5){
-    grid-column: auto;
-  }
 }
 
 @media (max-width: 1024px){
@@ -963,13 +962,14 @@ body.admin-dashboard .admin-shared-footer .footer-legal-links + .footer-bottom{
 
   body.admin-dashboard .dashboard-content .admin-quick-grid{
     grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
     width: 100% !important;
     max-width: 100% !important;
   }
 
   body.admin-dashboard .dashboard-content .admin-quick-card{
-    min-height: 164px !important;
-    padding: 28px 20px !important;
+    min-height: 150px !important;
+    padding: 22px 18px !important;
   }
 
   body.admin-dashboard .topbar .btn,
