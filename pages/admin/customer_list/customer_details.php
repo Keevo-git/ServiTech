@@ -660,109 +660,145 @@ if ($customer) {
       border:1px solid transparent;
     }
     .cd-status--pending{
-      background:#fff7e6;
-      color:#a15c00;
-      border-color:#f6d99a;
+      background:#fef3c7;
+      color:#b45309;
+      border-color:#fde68a;
     }
     .cd-status--ongoing{
-      background:#e8f1ff;
-      color:#1f4a8a;
-      border-color:#c8dcf6;
+      background:#dbeafe;
+      color:#1d4ed8;
+      border-color:#bfdbfe;
     }
     .cd-status--for-pickup{
-      background:#f2ecff;
-      color:#6d3bbd;
-      border-color:#d9c7ff;
+      background:#f3e8ff;
+      color:#7e22ce;
+      border-color:#e9d5ff;
     }
     .cd-status--done{
-      background:#e9f8ef;
-      color:#0f7a3a;
-      border-color:#bfe8cc;
+      background:#dcfce7;
+      color:#15803d;
+      border-color:#bbf7d0;
     }
     .cd-status--cancelled{
-      background:#feecec;
-      color:#b42318;
-      border-color:#f9c7c7;
+      background:#fee2e2;
+      color:#b91c1c;
+      border-color:#fecaca;
     }
     .cd-filterEmpty[hidden]{ display:none; }
     .cd-detailOverlay{
       overflow-x:hidden;
       background:rgba(15,23,42,.68);
       backdrop-filter:blur(3px);
+      padding:clamp(16px, 3vw, 32px);
     }
     .cd-detailModal{
-      width:min(920px, calc(100vw - 32px));
+      width:min(960px, 92vw);
       max-height:90vh;
       overflow:hidden;
+      background:#fff;
       border:1px solid rgba(219,234,254,.9);
       border-radius:24px;
-      box-shadow:0 24px 70px rgba(15,23,42,.24);
+      box-shadow:0 30px 80px rgba(15,23,42,.28);
     }
     .cd-detailModal .cl-modalBody{
+      display:flex;
+      flex-direction:column;
       max-height:90vh;
-      overflow-y:auto;
-      overflow-x:hidden;
+      overflow:hidden;
       padding:0;
-      scrollbar-gutter:stable;
     }
     .cd-detailModalHead{
       position:relative;
+      z-index:2;
+      flex:0 0 auto;
       display:flex;
-      align-items:flex-start;
+      align-items:center;
       justify-content:space-between;
-      gap:18px;
+      gap:24px;
       margin:0;
-      padding:28px 32px 22px;
+      padding:28px 38px;
+      background:#fff;
       border-bottom:1px solid #e5edf7;
     }
     .cd-detailModalHead h3{
       margin:0;
       color:#123f73;
-      font-size:clamp(1.45rem, 3vw, 1.9rem);
+      font-size:clamp(1.4rem, 2.5vw, 1.8rem);
       font-weight:900;
       line-height:1.2;
     }
     .cd-detailModalHead .cl-modalX{
       position:static;
-      flex:0 0 42px;
-      width:42px !important;
-      height:42px !important;
-      min-width:42px;
-      min-height:42px;
+      flex:0 0 44px;
+      width:44px !important;
+      height:44px !important;
+      min-width:44px;
+      min-height:44px;
       padding:0 !important;
       border:1px solid #dbe5f3 !important;
       border-radius:50%;
       background:#f8fbff;
-      color:#52677f;
+      color:#174a7c !important;
+      font-family:Arial, sans-serif;
+      font-size:0 !important;
+      line-height:1 !important;
+    }
+    .cd-detailModalHead .cl-modalX span{
+      display:block;
+      font-size:25px;
+      font-weight:500;
+      line-height:1;
+      transform:translateY(-1px);
     }
     .cd-detailModalContent{
-      padding:24px 32px 30px;
+      flex:1 1 auto;
+      min-height:0;
+      max-height:calc(90vh - 101px);
+      overflow-y:auto;
+      overflow-x:hidden;
+      padding:32px 38px 38px;
+      scrollbar-width:thin;
+      scrollbar-color:#9fb6d1 transparent;
+      scrollbar-gutter:stable;
+    }
+    .cd-detailModalContent::-webkit-scrollbar{
+      width:8px;
+    }
+    .cd-detailModalContent::-webkit-scrollbar-track{
+      background:transparent;
+    }
+    .cd-detailModalContent::-webkit-scrollbar-thumb{
+      background:#9fb6d1;
+      border:2px solid #fff;
+      border-radius:999px;
     }
     .cd-detailOverview{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:18px;
-      padding:20px;
+      gap:20px;
+      padding:24px;
       background:linear-gradient(135deg, #eff6ff, #f8fbff);
       border:1px solid #dbeafe;
       border-radius:18px;
+      margin-bottom:18px;
     }
     .cd-detailItem{
       min-width:0;
     }
     .cd-detailItem small{
       display:block;
-      margin-bottom:7px;
+      margin-bottom:8px;
       color:#64748b;
       font-size:11px;
       font-weight:850;
-      letter-spacing:.06em;
+      line-height:1.35;
+      letter-spacing:.075em;
       text-transform:uppercase;
     }
     .cd-detailItem strong{
       display:block;
-      color:#0f172a;
-      font-size:14px;
+      color:#10233d;
+      font-size:15px;
       font-weight:800;
       line-height:1.45;
       overflow-wrap:anywhere;
@@ -772,19 +808,23 @@ if ($customer) {
       max-width:100%;
     }
     .cd-detailSection{
-      padding:22px 0;
-      border-bottom:1px solid #e5edf7;
+      margin-bottom:18px;
+      padding:24px;
+      background:#f9fcff;
+      border:1px solid #dbe7f3;
+      border-radius:18px;
     }
     .cd-detailSection h4{
-      margin:0 0 16px;
+      margin:0 0 20px;
       color:#174a7c;
-      font-size:16px;
+      font-size:17px;
       font-weight:900;
+      line-height:1.3;
     }
     .cd-detailInfoGrid{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:18px 28px;
+      gap:22px 28px;
     }
     .cd-detailPaymentGrid{
       grid-template-columns:repeat(2,minmax(0,1fr));
@@ -797,8 +837,7 @@ if ($customer) {
       overflow-wrap:anywhere;
     }
     .cd-detailSection:last-child{
-      padding-bottom:0;
-      border-bottom:0;
+      margin-bottom:0;
     }
     .cd-detailFiles{
       display:grid;
@@ -807,14 +846,18 @@ if ($customer) {
     .cd-detailModal .cd-fileItem{
       gap:16px;
       padding:16px 18px;
-      background:#f8fbff;
+      background:#fff;
       border:1px solid #dbeafe;
       border-radius:16px;
     }
     .cd-detailModal .cd-fileItem > span:first-child{
+      flex:1 1 auto;
+      min-width:0;
       color:#0f172a;
       font-weight:800;
       line-height:1.45;
+      overflow-wrap:anywhere;
+      word-break:break-word;
     }
     .cd-detailModal .cd-fileActions{
       flex:0 0 auto;
@@ -828,6 +871,15 @@ if ($customer) {
       justify-content:center;
       background:#fff;
       border-color:#c8dcf6;
+    }
+    .cd-detailModal .cd-fileUnavailable{
+      width:max-content;
+      max-width:100%;
+      background:#eef2f7;
+      color:#64748b;
+      border:1px solid #dbe3ec;
+      overflow-wrap:anywhere;
+      white-space:normal;
     }
     @media (max-width:900px){
       .cd-profileHeader{
@@ -853,6 +905,13 @@ if ($customer) {
       .cd-detailInfoGrid,
       .cd-detailPaymentGrid{
         grid-template-columns:1fr;
+      }
+      .cd-detailModalHead{
+        padding:24px;
+      }
+      .cd-detailModalContent{
+        max-height:calc(90vh - 93px);
+        padding:24px;
       }
     }
     @media (max-width:700px){
@@ -910,24 +969,33 @@ if ($customer) {
         margin-bottom:0;
       }
       .cd-detailOverlay{
-        padding:14px 10px;
+        padding:12px;
       }
       .cd-detailModal{
-        width:min(100%, 96vw);
+        width:94vw;
         max-height:90vh;
-        border-radius:18px;
+        border-radius:20px;
       }
       .cd-detailModal .cl-modalBody{
         max-height:90vh;
       }
       .cd-detailModalHead{
-        padding:22px 20px 18px;
+        gap:14px;
+        padding:20px 18px;
+      }
+      .cd-detailModalHead h3{
+        font-size:1.3rem;
       }
       .cd-detailModalContent{
-        padding:20px;
+        max-height:calc(90vh - 85px);
+        padding:18px;
       }
       .cd-detailOverview{
-        padding:16px;
+        gap:18px;
+        padding:20px;
+      }
+      .cd-detailSection{
+        padding:20px;
       }
       .cd-detailModal .cd-fileItem{
         flex-direction:column;
@@ -1161,7 +1229,9 @@ if ($customer) {
             <div>
               <h3 id="historyDetailTitle">Order / Queue Details</h3>
             </div>
-            <button class="cl-modalX" type="button" data-history-detail-close aria-label="Close">&times;</button>
+            <button class="cl-modalX" type="button" data-history-detail-close aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
           </div>
 
           <div class="cd-detailModalContent">
@@ -1348,6 +1418,7 @@ if ($customer) {
 
       const detailModal = document.getElementById('historyDetailModal');
       if (detailModal) {
+        let detailModalTrigger = null;
         const detailStatus = detailModal.querySelector('[data-detail-status]');
         const detailFiles = detailModal.querySelector('[data-detail-files]');
         const detailNotesWrap = detailModal.querySelector('[data-detail-notes-wrap]');
@@ -1406,7 +1477,8 @@ if ($customer) {
           });
         }
 
-        function openDetailModal(payload) {
+        function openDetailModal(payload, trigger = null) {
+          detailModalTrigger = trigger;
           setDetailText('[data-detail-id]', payload.id);
           setDetailText('[data-detail-customer]', payload.customerName);
           setDetailText('[data-detail-category]', payload.serviceCategory);
@@ -1433,19 +1505,26 @@ if ($customer) {
 
           detailModal.style.display = 'flex';
           detailModal.setAttribute('aria-hidden', 'false');
+          document.documentElement.classList.add('modal-open');
+          document.body.classList.add('modal-open');
+          detailModal.querySelector('[data-history-detail-close]')?.focus();
         }
 
         function closeDetailModal() {
           detailModal.style.display = 'none';
           detailModal.setAttribute('aria-hidden', 'true');
+          document.documentElement.classList.remove('modal-open');
+          document.body.classList.remove('modal-open');
+          detailModalTrigger?.focus();
+          detailModalTrigger = null;
         }
 
         document.querySelectorAll('[data-history-view]').forEach(button => {
           button.addEventListener('click', () => {
             try {
-              openDetailModal(JSON.parse(button.dataset.historyDetail || '{}'));
+              openDetailModal(JSON.parse(button.dataset.historyDetail || '{}'), button);
             } catch (error) {
-              openDetailModal({});
+              openDetailModal({}, button);
             }
           });
         });
