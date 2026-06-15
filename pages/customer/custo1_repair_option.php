@@ -84,7 +84,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
 
 
     <div class="form-actions">
-      <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
+      <a href="/pages/customer/customer_dash.php" class="btn-back">Back</a>
       <button type="button" class="btn-next" id="joinQueueBtn" <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled data-availability-locked="true"' ?>>Join Queue</button>
       <?php if (!$storeAvailability["regular_queue_allowed"]): ?><p class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></p><?php endif; ?>
     </div>
@@ -94,7 +94,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 <?php
-$joinQueueBackUrl = "/pages/customer/custo_place_queueing.php";
+$joinQueueBackUrl = "/pages/customer/customer_dash.php";
 include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 

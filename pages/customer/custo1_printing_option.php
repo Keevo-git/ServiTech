@@ -49,7 +49,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
     </div>
 
     <div class="form-actions">
-      <a href="/pages/customer/custo_place_queueing.php" class="btn-back">Back</a>
+      <a href="/pages/customer/customer_dash.php" class="btn-back">Back</a>
       <button type="button" class="btn-next" id="nextBtn" disabled>Next</button>
     </div>
   </div>
