@@ -27,19 +27,23 @@ if ($id <= 0 || !in_array($action, ["soft_delete", "restore", "permanent_delete"
 
 try {
     $pdo->exec("
-      DELETE FROM queues
+      UPDATE queues
+      SET permanently_hidden_at = COALESCE(permanently_hidden_at, NOW()),
+          updated_at = NOW()
       WHERE UPPER(TRIM(COALESCE(lifecycle_stage, 'QUEUE'))) = 'ORDER'
         AND deleted_at IS NOT NULL
+        AND permanently_hidden_at IS NULL
         AND deleted_at <= NOW() - INTERVAL '30 days'
     ");
 
     $pdo->beginTransaction();
 
     $select = $pdo->prepare("
-      SELECT id, queue_code, lifecycle_stage, deleted_at
+      SELECT id, queue_code, lifecycle_stage, deleted_at, permanently_hidden_at
       FROM queues
       WHERE id = :id
         AND UPPER(TRIM(COALESCE(lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND permanently_hidden_at IS NULL
       LIMIT 1
       FOR UPDATE
     ");
@@ -85,13 +89,21 @@ try {
         $message = "Order restored successfully.";
     } else {
         if (trim((string)($queue["deleted_at"] ?? "")) === "") {
-            throw new DomainException("Move this order to the Recycle Bin before deleting it permanently.");
+            throw new DomainException("Move this order to the Recycle Bin before removing it from the system view.");
         }
 
-        // Managed uploads use ON DELETE SET NULL, so queue deletion does not erase stored files.
-        $delete = $pdo->prepare("DELETE FROM queues WHERE id = :id");
-        $delete->execute([":id" => $id]);
-        $message = "Order permanently deleted. Uploaded files were preserved.";
+        $update = $pdo->prepare("
+          UPDATE queues
+          SET permanently_hidden_at = NOW(),
+              permanently_hidden_by = :hidden_by,
+              updated_at = NOW()
+          WHERE id = :id
+        ");
+        $update->execute([
+            ":hidden_by" => $adminId > 0 ? $adminId : null,
+            ":id" => $id,
+        ]);
+        $message = "Order removed from the system view. The database record remains stored.";
     }
 
     $pdo->commit();

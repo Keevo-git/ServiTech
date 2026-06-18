@@ -87,12 +87,15 @@ function admin_order_recycle_schema_ready(PDO $pdo): bool {
         ALTER TABLE queues
           ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ NULL,
           ADD COLUMN IF NOT EXISTS deleted_by INTEGER NULL,
+          ADD COLUMN IF NOT EXISTS permanently_hidden_at TIMESTAMPTZ NULL,
+          ADD COLUMN IF NOT EXISTS permanently_hidden_by INTEGER NULL,
           ADD COLUMN IF NOT EXISTS delete_reason TEXT NULL
       ");
       $pdo->exec("
         CREATE INDEX IF NOT EXISTS idx_queues_order_recycle_bin
           ON queues (deleted_at DESC, id DESC)
           WHERE deleted_at IS NOT NULL
+            AND permanently_hidden_at IS NULL
             AND UPPER(TRIM(COALESCE(lifecycle_stage, 'QUEUE'))) = 'ORDER'
       ");
       $ensured = true;
@@ -101,19 +104,23 @@ function admin_order_recycle_schema_ready(PDO $pdo): bool {
     }
   }
 
-  return admin_table_has_columns($pdo, "queues", ["deleted_at", "deleted_by", "delete_reason"]);
+  return admin_table_has_columns($pdo, "queues", ["deleted_at", "deleted_by", "permanently_hidden_at", "permanently_hidden_by", "delete_reason"]);
 }
 
 function admin_order_soft_delete_column_ready(PDO $pdo): bool {
   static $ensured = false;
   if (!$ensured) {
     try {
-      $pdo->exec("ALTER TABLE queues ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ NULL");
+      $pdo->exec("
+        ALTER TABLE queues
+          ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ NULL,
+          ADD COLUMN IF NOT EXISTS permanently_hidden_at TIMESTAMPTZ NULL
+      ");
       $ensured = true;
     } catch (Throwable $exception) {
       error_log("admin order soft-delete column ensure failed: " . $exception->getMessage());
     }
   }
 
-  return admin_table_has_columns($pdo, "queues", ["deleted_at"]);
+  return admin_table_has_columns($pdo, "queues", ["deleted_at", "permanently_hidden_at"]);
 }

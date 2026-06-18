@@ -102,9 +102,12 @@ try {
         $rows = [];
     } else {
     $pdo->exec("
-      DELETE FROM queues
+      UPDATE queues
+      SET permanently_hidden_at = COALESCE(permanently_hidden_at, NOW()),
+          updated_at = NOW()
       WHERE UPPER(TRIM(COALESCE(lifecycle_stage, 'QUEUE'))) = 'ORDER'
         AND deleted_at IS NOT NULL
+        AND permanently_hidden_at IS NULL
         AND deleted_at <= NOW() - INTERVAL '30 days'
     ");
 
@@ -124,6 +127,7 @@ try {
       ) p ON TRUE
       WHERE UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
         AND q.deleted_at IS NOT NULL
+        AND q.permanently_hidden_at IS NULL
       ORDER BY q.deleted_at DESC, q.id DESC
     ");
     $rows = $stmt->fetchAll();
@@ -145,7 +149,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-system-hide') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -157,7 +161,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 <div class="admin-wrapper">
   <section class="admin-hero order-header">
     <h1>Order Recycle Bin</h1>
-    <p>Restore archived orders or permanently remove records that are no longer needed.</p>
+    <p>Restore archived orders or remove them from the system view while keeping database records stored.</p>
   </section>
 
   <main class="admin-container">
@@ -178,7 +182,7 @@ require __DIR__ . "/../_includes/admin_header.php";
           <?php elseif (!$rows): ?>
             <div class="recycle-bin-empty">
               <h2>Recycle Bin is empty</h2>
-              <p>Orders moved here will remain restorable until permanently deleted.</p>
+              <p>Orders moved here remain restorable until removed from the system view.</p>
             </div>
           <?php else: ?>
             <div class="table-scroll-wrapper table-responsive">
@@ -238,7 +242,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                             data-recycle-action="permanent_delete"
                             data-id="<?= (int)$row["id"] ?>"
                             data-code="<?= htmlspecialchars((string)$row["queue_code"], ENT_QUOTES, "UTF-8") ?>"
-                          >Delete Permanently</button>
+                          >Remove Permanently</button>
                         </div>
                       </td>
                     </tr>
@@ -258,7 +262,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($schemaReady): ?>
-  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-bin-actions') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-recycle-system-hide') ?>" defer></script>
 <?php endif; ?>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>

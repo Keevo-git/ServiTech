@@ -54,7 +54,7 @@ function payment_amount_label($amount, $detailsTotal = null): string
 }
 
 $orderRecycleReady = admin_order_recycle_schema_ready($pdo);
-$orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL" : "";
+$orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL" : "";
 
 $onlineStmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
@@ -102,7 +102,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260614-uniform-tabs') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-responsive') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-system-hide') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260618-modal-stays-open') ?>" defer></script>
 </head>
@@ -220,7 +220,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($orderRecycleReady): ?>
-  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-bin-actions') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-recycle-system-hide') ?>" defer></script>
 <?php endif; ?>
 <?php require_once __DIR__ . "/../queue_list/_queue_message_modal.php"; ?>
 

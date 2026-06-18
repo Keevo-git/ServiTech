@@ -2221,8 +2221,17 @@ body.modal-open {
 
 .recycle-bin-table th:nth-child(10),
 .recycle-bin-table td:nth-child(10) {
-  width: 255px;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  width: 290px;
+  background: #fff;
   text-align: center;
+}
+
+.recycle-bin-table th:nth-child(10) {
+  z-index: 3;
+  background: #fff;
 }
 
 .days-left-pill {

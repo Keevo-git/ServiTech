@@ -7,7 +7,7 @@ header("Content-Type: application/json; charset=utf-8");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 
 $scope = strtolower(trim((string)($_GET["scope"] ?? "")));
-$orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL" : "";
+$orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL" : "";
 $predicates = [
     "queue_printing" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
