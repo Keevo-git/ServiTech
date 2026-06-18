@@ -1483,8 +1483,10 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       margin: 0;
       line-height: 1;
       z-index: 4;
+      pointer-events: auto;
       opacity: 1;
       visibility: visible;
+      transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
     }
 
     .password-field input::-ms-reveal,
@@ -1515,6 +1517,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
     .password-toggle:hover,
     .password-toggle:focus-visible {
+      background: rgba(120, 53, 15, 0.08);
+      border-radius: 999px;
       color: #6d2d05;
       outline: none;
     }
@@ -1850,6 +1854,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       opacity: 1 !important;
       visibility: visible !important;
       color: #111111 !important;
+      cursor: pointer !important;
+      pointer-events: auto !important;
     }
 
     body.customer-page--profile .password-toggle svg,
@@ -2488,7 +2494,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                 aria-describedby="current-password-error"
                 class="<?php echo $errors["current_password"] !== "" ? "is-invalid" : ""; ?>"
               >
-              <button type="button" class="password-toggle" data-toggle-password="current_password" aria-controls="current_password" aria-label="Show current password" aria-pressed="false">
+              <button type="button" class="password-toggle" data-password-toggle data-target="current_password" data-toggle-password="current_password" aria-controls="current_password" aria-label="Show current password" aria-pressed="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
@@ -2538,7 +2544,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                   aria-describedby="new-password-note new-password-error"
                   class="<?php echo $errors["new_password"] !== "" ? "is-invalid" : ""; ?>"
                 >
-                <button type="button" class="password-toggle" data-toggle-password="new_password" aria-controls="new_password" aria-label="Show new password" aria-pressed="false">
+                <button type="button" class="password-toggle" data-password-toggle data-target="new_password" data-toggle-password="new_password" aria-controls="new_password" aria-label="Show new password" aria-pressed="false">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
@@ -2562,7 +2568,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                   aria-describedby="confirm-password-error"
                   class="<?php echo $errors["confirm_password"] !== "" ? "is-invalid" : ""; ?>"
                 >
-                <button type="button" class="password-toggle" data-toggle-password="confirm_password" aria-controls="confirm_password" aria-label="Show confirm password" aria-pressed="false">
+                <button type="button" class="password-toggle" data-password-toggle data-target="confirm_password" data-toggle-password="confirm_password" aria-controls="confirm_password" aria-label="Show confirm password" aria-pressed="false">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
               </div>
@@ -2721,8 +2727,30 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
 
       button.innerHTML = icon;
+      button.classList.toggle("is-visible", isVisible);
       button.classList.toggle("is-password-visible", isVisible);
       button.setAttribute("aria-pressed", isVisible ? "true" : "false");
+    }
+
+    function getPasswordToggleTargetId(button) {
+      return button.getAttribute("data-target") || button.getAttribute("data-toggle-password") || button.getAttribute("aria-controls") || "";
+    }
+
+    function getPasswordToggleLabel(input) {
+      return (input.name || input.id || "password").replace(/_/g, " ");
+    }
+
+    function resetPasswordToggle(inputId) {
+      const input = inputId ? document.getElementById(inputId) : null;
+
+      if (input) {
+        input.type = "password";
+      }
+
+      document.querySelectorAll("[data-password-toggle][data-target='" + inputId + "'], [data-toggle-password='" + inputId + "']").forEach(function (button) {
+        setPasswordToggleIcon(button, false);
+        button.setAttribute("aria-label", input ? "Show " + getPasswordToggleLabel(input) : "Show password");
+      });
     }
 
     function resetPasswordFields() {
@@ -2734,10 +2762,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         clearError(key);
       });
 
-      document.querySelectorAll("[data-toggle-password='new_password'], [data-toggle-password='confirm_password']").forEach(function (button) {
-        setPasswordToggleIcon(button, false);
-        button.setAttribute("aria-label", "Show " + button.getAttribute("data-toggle-password").replace(/_/g, " "));
-      });
+      ["new_password", "confirm_password"].forEach(resetPasswordToggle);
     }
 
     function openPasswordChangeModal() {
@@ -2929,6 +2954,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         fields.current_password.value = "";
         clearError("current_password");
       }
+      resetPasswordToggle("current_password");
       confirmOverlay.hidden = false;
       confirmModal.hidden = false;
       confirmOverlay.classList.add("active");
@@ -2968,6 +2994,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         fields.current_password.value = "";
         clearError("current_password");
       }
+      resetPasswordToggle("current_password");
       submitButton.focus();
     }
 
@@ -3019,8 +3046,8 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       });
     }
 
-    document.querySelectorAll("[data-toggle-password]").forEach(function (toggleButton) {
-      const inputId = toggleButton.getAttribute("data-toggle-password");
+    document.querySelectorAll("[data-password-toggle], [data-toggle-password]").forEach(function (toggleButton) {
+      const inputId = getPasswordToggleTargetId(toggleButton);
       const targetInput = inputId ? document.getElementById(inputId) : null;
 
       if (!targetInput) {
@@ -3029,11 +3056,14 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
       setPasswordToggleIcon(toggleButton, targetInput.type !== "password");
 
-      toggleButton.addEventListener("click", function () {
+      toggleButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
         const shouldShow = targetInput.type === "password";
         targetInput.type = shouldShow ? "text" : "password";
         setPasswordToggleIcon(toggleButton, shouldShow);
-        toggleButton.setAttribute("aria-label", (shouldShow ? "Hide " : "Show ") + targetInput.name.replace(/_/g, " "));
+        toggleButton.setAttribute("aria-label", (shouldShow ? "Hide " : "Show ") + getPasswordToggleLabel(targetInput));
       });
     });
 
