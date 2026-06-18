@@ -94,6 +94,10 @@ function cd_service_type(array $row): string {
     return "Document Print";
   }
 
+  if ($normalizedLabel === "xerox") {
+    return "Photocopy";
+  }
+
   return $label !== "" ? $label : cd_category_label($category);
 }
 

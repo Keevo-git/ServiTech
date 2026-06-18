@@ -1766,6 +1766,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       walkindocumentprinting: "Document Print",
       printwalkin: "Document Print",
       printonline: "Document Print",
+      xerox: "Photocopy",
       rushid: "Rush ID",
       openlinesamsungiphone: "Openline Samsung & iPhone",
       bypassgoogleaccount: "Bypass Google Account",
@@ -1944,7 +1945,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return services.find((item) => /rush.*id/i.test(String(item?.name || ""))) || null;
     }
     if (service === "xerox") {
-      return services.find((item) => /^xerox$/i.test(String(item?.name || "").trim())) || null;
+      return services.find((item) => /^(xerox|photocopy)$/i.test(String(item?.name || "").trim())) || null;
     }
     if (service === "laminating") {
       return services.find((item) => /laminat/i.test(String(item?.name || ""))) || null;
@@ -2877,7 +2878,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       "A3": 5,
     };
 
-    if (serviceLower.includes("xerox") && xeroxPriceMap[paperSize]) {
+    if ((serviceLower.includes("xerox") || serviceLower.includes("photocopy")) && xeroxPriceMap[paperSize]) {
       return toPeso(xeroxPriceMap[paperSize] * quantity);
     }
 

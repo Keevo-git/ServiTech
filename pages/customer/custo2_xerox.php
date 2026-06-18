@@ -28,7 +28,7 @@ try {
     SELECT description, price, pricing_json::text AS pricing_json
     FROM services
     WHERE category = 'printing'
-      AND LOWER(name) LIKE '%xerox%'
+      AND (LOWER(name) LIKE '%xerox%' OR LOWER(name) LIKE '%photocopy%')
       AND active = TRUE
     ORDER BY sort_order ASC, id ASC
     LIMIT 1
@@ -49,7 +49,7 @@ try {
     ];
   }
 } catch (Throwable $e) {
-  // Keep the Xerox form usable if service pricing cannot be loaded.
+  // Keep the photocopy form usable if service pricing cannot be loaded.
 }
 ?>
 
@@ -58,7 +58,7 @@ try {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ServiTech: Xerox</title>
+  <title>ServiTech: Photocopy</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-scroll-root">
@@ -120,7 +120,7 @@ try {
     }
   </style>
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="xerox" data-service-label="Xerox">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="xerox" data-service-label="Photocopy">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -138,7 +138,7 @@ try {
         <div class="form-grid">
           <div>
             <label>Service Type<span class="required">*</span></label>
-            <p class="static-text">Xerox</p>
+            <p class="static-text">Photocopy</p>
 
             <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
             <select class="form-select" id="paperSizeSelect">
@@ -158,7 +158,7 @@ try {
 
           <div>
             <p class="form-note">
-              Service uses default Xerox settings &mdash; no color choice needed.
+              Service uses default photocopy settings &mdash; no color choice needed.
             </p>
           </div>
         </div>
@@ -172,7 +172,7 @@ try {
 
         <div class="summary-row">
           <span>SERVICE:</span>
-          <strong>XEROX</strong>
+          <strong>PHOTOCOPY</strong>
         </div>
 
         <div class="summary-row">

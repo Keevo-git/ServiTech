@@ -21,7 +21,7 @@ function servitech_pricing_service_kind(string $category, string $serviceLabel):
   ) {
     return "document_printing";
   }
-  if ($label === "xerox") return "xerox";
+  if ($label === "xerox" || $label === "photocopy") return "xerox";
   if ($label === "rush id") return "rush_id";
   if ($label === "laminating") return "laminating";
   if ($category === "repair") return "repair";
@@ -50,7 +50,7 @@ function servitech_pricing_decode_map(array $service): array {
 function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $serviceLabel): array {
   $where = match ($kind) {
     "document_printing" => "category = 'printing' AND LOWER(name) LIKE '%document%printing%'",
-    "xerox" => "category = 'printing' AND LOWER(name) LIKE '%xerox%'",
+    "xerox" => "category = 'printing' AND (LOWER(name) LIKE '%xerox%' OR LOWER(name) LIKE '%photocopy%')",
     "rush_id" => "category = 'printing' AND LOWER(name) LIKE '%rush%' AND LOWER(name) LIKE '%id%'",
     "laminating" => "category = 'printing' AND LOWER(name) LIKE '%laminat%'",
     "repair" => "category = 'repair' AND LOWER(TRIM(name)) = LOWER(TRIM(:name))",
@@ -109,7 +109,7 @@ function servitech_pricing_xerox_prices(array $service): array {
     "short" => 3.0,
     "a4" => 3.0,
     "a3" => 5.0,
-  ], "Xerox");
+  ], "Photocopy");
 }
 
 function servitech_pricing_rush_id_prices(array $service): array {
@@ -289,7 +289,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
 
   if ($kind === "xerox") {
     $paper = servitech_pricing_normalize_paper((string)($details["paper_size"] ?? ""));
-    if ($paper === "") throw new DomainException("Select a valid Xerox paper size.");
+    if ($paper === "") throw new DomainException("Select a valid photocopy paper size.");
     $unitPrice = servitech_pricing_xerox_prices($service)[$paper];
   } elseif ($kind === "rush_id") {
     if (!preg_match('/package\s*([1-6])/i', (string)($details["package_label"] ?? ""), $matches)) {
@@ -324,7 +324,7 @@ function servitech_pricing_validate_admin_catalog(string $category, string $name
     "document_printing" => servitech_pricing_numeric_map($pricing, array_fill_keys([
       "longFull", "longHalf", "shortFull", "shortHalf", "a4Full", "a4Half",
     ], null), "Document Printing"),
-    "xerox" => servitech_pricing_numeric_map($pricing, array_fill_keys(["long", "short", "a4", "a3"], null), "Xerox"),
+    "xerox" => servitech_pricing_numeric_map($pricing, array_fill_keys(["long", "short", "a4", "a3"], null), "Photocopy"),
     "rush_id" => servitech_pricing_numeric_map($pricing, array_fill_keys([
       "package1", "package2", "package3", "package4", "package5", "package6",
     ], null), "Rush ID"),

@@ -79,6 +79,7 @@ function qm_normalize_service_label(string $serviceLabel, string $fallbackLabel)
     "walk in",
     "walkin",
   ], true)) return "Document Print";
+  if (strcasecmp($serviceLabel, "xerox") === 0) return "Photocopy";
   return $serviceLabel;
 }
 

@@ -85,13 +85,13 @@ function om_service_label(array $details, string $fallback): string
 
     return in_array(strtolower(trim($label)), $legacyPrintingLabels, true)
         ? "Document Print"
-        : $label;
+        : (strcasecmp($label, "xerox") === 0 ? "Photocopy" : $label);
 }
 
 function om_category_label(string $serviceType, string $serviceLabel): string
 {
     $combined = strtolower(trim($serviceType . " " . $serviceLabel));
-    if (str_contains($combined, "print") || str_contains($combined, "xerox") || str_contains($combined, "laminat") || str_contains($combined, "rush id")) {
+    if (str_contains($combined, "print") || str_contains($combined, "xerox") || str_contains($combined, "photocopy") || str_contains($combined, "laminat") || str_contains($combined, "rush id")) {
         return "Print";
     }
     if (str_contains($combined, "installation")) {

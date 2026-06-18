@@ -42,11 +42,11 @@ function service_label($category, $details = null): string {
     $decoded = json_decode($details, true);
     if (is_array($decoded) && trim((string)($decoded["service_label"] ?? "")) !== "") {
       $label = trim((string)$decoded["service_label"]);
-      return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Print" : $label;
+      return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Print" : (strcasecmp($label, "xerox") === 0 ? "Photocopy" : $label);
     }
   } elseif (is_array($details) && trim((string)($details["service_label"] ?? "")) !== "") {
     $label = trim((string)$details["service_label"]);
-    return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Print" : $label;
+    return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Print" : (strcasecmp($label, "xerox") === 0 ? "Photocopy" : $label);
   }
 
   $map = [
@@ -55,7 +55,8 @@ function service_label($category, $details = null): string {
     "printing_online" => "Document Print",
     "walkin" => "Document Print",
     "printing_walkin" => "Document Print",
-    "xerox" => "Xerox",
+    "xerox" => "Photocopy",
+    "photocopy" => "Photocopy",
     "rush-id" => "Rush ID",
     "laminating" => "Laminating",
   ];

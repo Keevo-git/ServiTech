@@ -83,6 +83,7 @@ function normalize_service_label(string $serviceLabel, string $fallbackLabel): s
     "walk-in document printing",
     "walk-in document print",
   ], true)) return "Document Print";
+  if (strcasecmp($serviceLabel, "xerox") === 0) return "Photocopy";
   return $serviceLabel;
 }
 

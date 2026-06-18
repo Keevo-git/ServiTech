@@ -38,7 +38,7 @@ function queue_ui_normalize_service_label(string $serviceLabel): string
 
     return in_array($normalized, $legacyPrintingLabels, true)
         ? "Document Print"
-        : trim($serviceLabel);
+        : (strcasecmp(trim($serviceLabel), "xerox") === 0 ? "Photocopy" : trim($serviceLabel));
 }
 
 function queue_ui_category_label(array $row, string $serviceLabel): string
@@ -47,8 +47,8 @@ function queue_ui_category_label(array $row, string $serviceLabel): string
     $normalizedService = strtolower(queue_ui_normalize_service_label($serviceLabel));
 
     if (
-        in_array($category, ["printing", "online_printorder", "printing_online", "walkin", "printing_walkin", "xerox", "rush-id", "laminating"], true)
-        || in_array($normalizedService, ["document print", "xerox", "rush id", "laminating"], true)
+        in_array($category, ["printing", "online_printorder", "printing_online", "walkin", "printing_walkin", "xerox", "photocopy", "rush-id", "laminating"], true)
+        || in_array($normalizedService, ["document print", "xerox", "photocopy", "rush id", "laminating"], true)
     ) {
         return "Print";
     }

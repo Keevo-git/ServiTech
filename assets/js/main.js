@@ -272,7 +272,7 @@ const serviceModalData = {
         lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
         detailKey: "documentPrinting",
       },
-      { title: "Xerox", lines: ["Long Bond Paper: ₱5", "Short Bond Paper: ₱3", "A4: ₱3"] },
+      { title: "Photocopy", lines: ["Long Bond Paper: ₱5", "Short Bond Paper: ₱3", "A4: ₱3"] },
       {
         title: "Rush ID",
         icon: "id",
@@ -389,6 +389,7 @@ function bindServiceDetailCards(bodyEl) {
 
 function displayServiceName(name) {
   return String(name || "")
+    .replace(/\bXerox\b/gi, "Photocopy")
     .replace(/\bDocument\s+Printing\b/gi, "Document Print")
     .replace(/\bPrinting\s+Service\b/gi, "Print Service")
     .replace(/\bPrinting\b/g, "Print");
@@ -482,7 +483,7 @@ serviceModalData.printing.cards = [
     detailKey: "rushId",
   },
   {
-    title: "Xerox",
+    title: "Photocopy",
     icon: "copy",
     lines: ["Long Bond Paper: PHP 5", "Short Bond Paper: PHP 3", "A4: PHP 3"],
   },
@@ -543,7 +544,7 @@ function getServiceDetailKey(category, serviceName) {
     .toLowerCase()
     .replace(/[\s_-]+/g, " ");
 
-  if (normalizedName.includes("document") && normalizedName.includes("printing")) return "documentPrinting";
+  if (normalizedName.includes("document") && (normalizedName.includes("printing") || normalizedName.includes("print"))) return "documentPrinting";
   if (normalizedName.includes("rush") && normalizedName.includes("id")) return "rushId";
   return undefined;
 }
@@ -587,7 +588,7 @@ function getServiceIconKey(category, serviceName) {
   const normalizedName = String(serviceName || "").toLowerCase();
 
   if (category === "printing") {
-    if (normalizedName.includes("xerox")) return "copy";
+    if (normalizedName.includes("xerox") || normalizedName.includes("photocopy")) return "copy";
     if (normalizedName.includes("rush id")) return "id";
     if (normalizedName.includes("laminat")) return "laminate";
     return "print";
@@ -603,7 +604,7 @@ function getServiceCardFallbackLine(category, serviceName) {
 
   if (category === "printing") {
     if (normalizedName.includes("document print")) return "Print documents using common paper sizes and color options.";
-    if (normalizedName.includes("xerox")) return "Photocopy service for common paper sizes.";
+    if (normalizedName.includes("xerox") || normalizedName.includes("photocopy")) return "Photocopy service for common paper sizes.";
     if (normalizedName.includes("rush id")) return "ID photo packages for common size requirements.";
     if (normalizedName.includes("laminat")) return "Protect documents with thin or thick laminating options.";
   }
@@ -1106,7 +1107,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = (document.title || "").toLowerCase();
 
     if (title.includes("document print")) serviceLabel = "Document Print";
-    if (title.includes("xerox")) serviceLabel = "Xerox";
+    if (title.includes("xerox") || title.includes("photocopy")) serviceLabel = "Photocopy";
     if (title.includes("laminating")) serviceLabel = "Laminating";
     if (title.includes("rush id")) serviceLabel = "Rush ID";
 

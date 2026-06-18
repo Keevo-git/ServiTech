@@ -35,10 +35,15 @@
     return normalizedCategory === "printing" && normalizedName.includes("document") && normalizedName.includes("printing");
   }
 
+  function displayServiceName(name) {
+    const value = String(name || "").trim();
+    return value.toLowerCase() === "xerox" ? "Photocopy" : value;
+  }
+
   function isXeroxService(category, name) {
     const normalizedCategory = String(category || "").trim().toLowerCase();
     const normalizedName = String(name || "").trim().toLowerCase();
-    return normalizedCategory === "printing" && normalizedName.includes("xerox");
+    return normalizedCategory === "printing" && (normalizedName.includes("xerox") || normalizedName.includes("photocopy"));
   }
 
   function isRushIdService(category, name) {
@@ -323,7 +328,7 @@
 
     if (fPriceModeField) fPriceModeField.style.display = "none";
     if (fPriceField) fPriceField.style.display = "none";
-    if (fPriceHint) fPriceHint.textContent = "Xerox uses one full price per paper size.";
+    if (fPriceHint) fPriceHint.textContent = "Photocopy uses one full price per paper size.";
     if (fDescriptionHint) fDescriptionHint.textContent = "Description is optional. Paper prices are saved from the fields below.";
 
     const prices = getXeroxPrices(data || {});
@@ -522,7 +527,7 @@
 
     fId.value = data?.id || "";
     fCat.value = data?.category || window.MS_ACTIVE_TAB || "printing";
-    fName.value = data?.name || "";
+    fName.value = displayServiceName(data?.name || "");
     fDesc.value = data?.description || "";
     if (fPriceRange) fPriceRange.value = data?.price_range || "";
     fActive.value = (data?.active ?? 1) ? "1" : "0";
@@ -680,7 +685,7 @@
       const prices = getXeroxPriceValues();
       const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
       if (invalid) {
-        showErr("Enter valid Xerox prices for Long Bond, Short Bond, A4, and A3.");
+        showErr("Enter valid photocopy prices for Long Bond, Short Bond, A4, and A3.");
         return;
       }
 

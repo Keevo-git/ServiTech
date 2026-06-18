@@ -12,7 +12,7 @@ try {
     $seedData = [
       // Print Services
       ['printing', 'Document Print', "Short Bond Paper (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nShort Bond Paper (B&W)\n₱5.00\n\nA4 (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nA4 (B&W)\n₱5.00", 5.00, 1, 0],
-      ['printing', 'Xerox', "Long Bond Paper: ₱5\nShort Bond Paper: ₱3\nA4: ₱3", 3.00, 1, 1],
+      ['printing', 'Photocopy', "Long Bond Paper: ₱5\nShort Bond Paper: ₱3\nA4: ₱3", 3.00, 1, 1],
       ['printing', 'Rush ID', "Choose between packages 1-6.\nPrice varies by selected package.", 30.00, 1, 2],
       ['printing', 'Laminating', "Manipis / Thin: ₱20\nMakapal / Thick: ₱30", 20.00, 1, 3],
       // Repair Services
@@ -53,7 +53,7 @@ try {
     UPDATE services
     SET price_range = CASE
       WHEN category = 'printing' AND LOWER(name) LIKE '%document%printing%' THEN '₱5 – ₱10'
-      WHEN category = 'printing' AND LOWER(name) LIKE '%xerox%' THEN '₱3 – ₱5'
+      WHEN category = 'printing' AND (LOWER(name) LIKE '%xerox%' OR LOWER(name) LIKE '%photocopy%') THEN '₱3 – ₱5'
       WHEN category = 'printing' AND LOWER(name) LIKE '%rush%id%' THEN '₱30 – ₱50'
       WHEN category = 'printing' AND LOWER(name) LIKE '%laminat%' THEN '₱20 – ₱30'
       WHEN category = 'repair' AND LOWER(name) LIKE '%lcd%' THEN '₱1200 – ₱5500'
@@ -89,6 +89,10 @@ $stmt->execute([":cat"=>$tab]);
 $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
+function ms_display_service_name($name): string {
+  $name = trim((string)$name);
+  return strcasecmp($name, "xerox") === 0 ? "Photocopy" : $name;
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -162,7 +166,7 @@ require __DIR__ . "/../_includes/admin_header.php";
             ];
           ?>
             <tr>
-              <td><?= h($s["name"]) ?></td>
+              <td><?= h(ms_display_service_name($s["name"])) ?></td>
               <td><?= h($s["description"]) ?></td>
               <td><?= h($s["price_range"] ?: "Not set") ?></td>
               <td><?= $s["price"]===null ? "&mdash;" : "&#8369;".h(number_format((float)$s["price"],2)) ?></td>

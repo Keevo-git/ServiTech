@@ -219,6 +219,9 @@ function admin_notification_service_label(array $queue): string
         ], true)) {
             return "Document Print";
         }
+        if ($normalized === "xerox") {
+            return "Photocopy";
+        }
         return $service;
     }
 
