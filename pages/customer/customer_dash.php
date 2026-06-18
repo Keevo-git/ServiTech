@@ -32,6 +32,22 @@ function format_fullname($name) {
 $display_name = format_fullname($fullname);
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
+$dashboardStatusKey = strtolower((string)($storeAvailability["effective_status"] ?? $storeAvailability["reason_code"] ?? "closed"));
+$dashboardStatusTone = [
+  "open" => "open",
+  "closed" => "closed",
+  "closed_today" => "closed",
+  "holiday" => "closed",
+  "outside_hours" => "closed",
+  "past_cutoff" => "closed",
+  "paused" => "paused",
+  "fully_booked" => "fully-booked",
+][$dashboardStatusKey] ?? "closed";
+$dashboardStatusText = [
+  "open" => "Currently Open",
+  "paused" => "Currently Paused",
+  "fully_booked" => "Fully Booked",
+][$dashboardStatusKey] ?? "Currently Closed";
 $dashboardRestrictionMessages = [
   "closed" => "Regular queue is unavailable.",
   "paused" => "Queue requests are temporarily paused.",
@@ -405,6 +421,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
       gap: 12px;
       margin-bottom: 11px;
     }
@@ -418,19 +435,60 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     body.customer-layout.customer-page--dashboard .customer-hero__status {
       display: inline-flex;
       align-items: center;
-      min-height: 25px;
-      padding: 4px 10px;
+      gap: 8px;
+      min-height: 30px;
+      padding: 7px 12px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.9);
-      color: #7a2f08;
-      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      cursor: default;
+      font-size: 0.82rem;
       font-weight: 900;
+      line-height: 1;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.13);
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status--open {
+      border-color: rgba(187, 247, 208, 0.5);
+      background: rgba(22, 101, 52, 0.24);
+      color: #dcfce7;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status--closed {
+      border-color: rgba(254, 202, 202, 0.46);
+      background: rgba(127, 29, 29, 0.24);
+      color: #fee2e2;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status--paused {
+      border-color: rgba(253, 230, 138, 0.48);
+      background: rgba(146, 64, 14, 0.24);
+      color: #fef3c7;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status--fully-booked {
+      border-color: rgba(221, 214, 254, 0.46);
+      background: rgba(88, 28, 135, 0.24);
+      color: #ede9fe;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px 18px;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+      gap: 10px 18px;
       margin: 0;
     }
 
@@ -447,9 +505,17 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details dd {
       margin: 2px 0 0;
       color: #ffffff;
-      font-size: 13.5px;
+      font-size: clamp(12.5px, 1vw, 13.5px);
       font-weight: 800;
       line-height: 1.25;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__availability-time {
+      display: inline-block;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow-wrap: normal;
+      word-break: keep-all;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-message {
@@ -984,16 +1050,16 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       <div class="customer-hero__availability" aria-label="Store availability">
         <div class="customer-hero__availability-head">
           <strong>Store Status</strong>
-          <span class="customer-hero__status"><?= htmlspecialchars($storeAvailability["status_label"], ENT_QUOTES, "UTF-8") ?></span>
+          <span class="customer-hero__status customer-hero__status--<?= htmlspecialchars($dashboardStatusTone, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($dashboardStatusText, ENT_QUOTES, "UTF-8") ?></span>
         </div>
         <dl class="customer-hero__availability-details">
           <div>
             <dt>Today's hours</dt>
-            <dd><?= htmlspecialchars($storeAvailability["today_hours"], ENT_QUOTES, "UTF-8") ?></dd>
+            <dd><span class="customer-hero__availability-time"><?= htmlspecialchars($storeAvailability["today_hours"], ENT_QUOTES, "UTF-8") ?></span></dd>
           </div>
           <div>
             <dt>Queue until</dt>
-            <dd><?= htmlspecialchars($storeAvailability["queue_cutoff_label"], ENT_QUOTES, "UTF-8") ?></dd>
+            <dd><span class="customer-hero__availability-time"><?= htmlspecialchars($storeAvailability["queue_cutoff_label"], ENT_QUOTES, "UTF-8") ?></span></dd>
           </div>
           <div>
             <dt>Online Document Print</dt>
