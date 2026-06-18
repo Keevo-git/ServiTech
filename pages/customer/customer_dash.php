@@ -436,19 +436,20 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      max-width: 100%;
       min-height: 30px;
-      padding: 7px 12px;
+      padding: 7px 13px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.34);
+      border: 1px solid rgba(255, 255, 255, 0.35);
       background: rgba(255, 255, 255, 0.18);
       color: #ffffff;
       cursor: default;
-      font-size: 0.82rem;
-      font-weight: 900;
-      line-height: 1;
+      font-size: clamp(0.72rem, 1vw, 0.85rem);
+      font-weight: 800;
+      line-height: 1.15;
       pointer-events: none;
-      white-space: nowrap;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      white-space: normal;
+      box-shadow: none;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status::before {
@@ -457,32 +458,24 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       height: 8px;
       flex: 0 0 8px;
       border-radius: 999px;
-      background: currentColor;
+      background: #ffffff;
       box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.13);
     }
 
-    body.customer-layout.customer-page--dashboard .customer-hero__status--open {
-      border-color: rgba(187, 247, 208, 0.5);
-      background: rgba(22, 101, 52, 0.24);
-      color: #dcfce7;
+    body.customer-layout.customer-page--dashboard .customer-hero__status--open::before {
+      background: #22C55E;
     }
 
-    body.customer-layout.customer-page--dashboard .customer-hero__status--closed {
-      border-color: rgba(254, 202, 202, 0.46);
-      background: rgba(127, 29, 29, 0.24);
-      color: #fee2e2;
+    body.customer-layout.customer-page--dashboard .customer-hero__status--closed::before {
+      background: #EF4444;
     }
 
-    body.customer-layout.customer-page--dashboard .customer-hero__status--paused {
-      border-color: rgba(253, 230, 138, 0.48);
-      background: rgba(146, 64, 14, 0.24);
-      color: #fef3c7;
+    body.customer-layout.customer-page--dashboard .customer-hero__status--paused::before {
+      background: #F59E0B;
     }
 
-    body.customer-layout.customer-page--dashboard .customer-hero__status--fully-booked {
-      border-color: rgba(221, 214, 254, 0.46);
-      background: rgba(88, 28, 135, 0.24);
-      color: #ede9fe;
+    body.customer-layout.customer-page--dashboard .customer-hero__status--fully-booked::before {
+      background: #A855F7;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details {
