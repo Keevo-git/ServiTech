@@ -440,8 +440,8 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       min-height: 30px;
       padding: 7px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(45, 24, 12, 0.42);
+      border: 0;
+      background: #DCFCE7;
       color: #ffffff;
       cursor: default;
       font-size: clamp(0.72rem, 1vw, 0.85rem);
@@ -458,24 +458,44 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       height: 8px;
       flex: 0 0 8px;
       border-radius: 999px;
-      background: #ffffff;
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.13);
+      background: currentColor;
+      box-shadow: none;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status--open {
+      background: #DCFCE7;
+      color: #166534;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status--open::before {
-      background: #4ADE80;
+      background: #22C55E;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status--closed {
+      background: #FEE2E2;
+      color: #991B1B;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status--closed::before {
-      background: #F87171;
+      background: #EF4444;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status--paused {
+      background: #FEF3C7;
+      color: #92400E;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status--paused::before {
-      background: #FBBF24;
+      background: #F59E0B;
+    }
+
+    body.customer-layout.customer-page--dashboard .customer-hero__status--fully-booked {
+      background: #F3E8FF;
+      color: #6B21A8;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status--fully-booked::before {
-      background: #C084FC;
+      background: #A855F7;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details {
