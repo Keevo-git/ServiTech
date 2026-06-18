@@ -410,12 +410,13 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       margin-top: 0;
       min-width: 0;
       padding: 16px 18px;
-      border: 1px solid rgba(120, 53, 15, 0.12);
-      border-radius: 14px;
-      background: rgba(255, 248, 237, 0.92);
-      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
       box-sizing: border-box;
-      color: #3B2A1F;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-head {
@@ -428,7 +429,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-head strong {
-      color: #7C2D12;
+      color: #ffffff;
       font-size: 13px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -512,16 +513,16 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details dt {
-      color: #9A3412;
+      color: rgba(255, 255, 255, 0.85);
       font-size: 11px;
       font-weight: 700;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details dd {
       margin: 2px 0 0;
-      color: #7C2D12;
+      color: #ffffff;
       font-size: clamp(12.5px, 1vw, 13.5px);
-      font-weight: 800;
+      font-weight: 700;
       line-height: 1.25;
     }
 
@@ -535,7 +536,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-message {
       margin-top: 11px !important;
-      color: #3B2A1F !important;
+      color: rgba(255, 255, 255, 0.92) !important;
       font-size: 12.5px;
       line-height: 1.35;
     }
