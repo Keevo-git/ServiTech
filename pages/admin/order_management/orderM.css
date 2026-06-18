@@ -2209,3 +2209,81 @@ body.modal-open {
     overflow-x: hidden !important;
   }
 }
+
+/* Premium circular close buttons for Order Management modals. */
+.order-modal .modal-header,
+.order-sendback-head {
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+.order-modal .modal-header > div,
+.order-sendback-head > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.order-modal .close-modal,
+.order-sendback-modal .close-modal {
+  position: relative !important;
+  inset: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  border: 1px solid #d7e2f0 !important;
+  border-radius: 50% !important;
+  background: #f8fafc !important;
+  color: #7f1d1d !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08) !important;
+  transform: translateY(0) !important;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease !important;
+}
+
+.order-modal .close-modal:hover,
+.order-modal .close-modal:focus-visible,
+.order-sendback-modal .close-modal:hover,
+.order-sendback-modal .close-modal:focus-visible {
+  background: #fee2e2 !important;
+  border-color: #fecaca !important;
+  color: #991b1b !important;
+  box-shadow: 0 10px 22px rgba(127, 29, 29, 0.16) !important;
+  transform: translateY(-1px) !important;
+  outline: none !important;
+}
+
+@media (max-width: 768px) {
+  .order-modal .modal-header,
+  .order-sendback-head {
+    align-items: flex-start !important;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .order-modal .close-modal,
+  .order-sendback-modal .close-modal {
+    flex-basis: 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    max-width: 38px !important;
+    max-height: 38px !important;
+    margin: 0 0 0 auto !important;
+    font-size: 21px !important;
+  }
+}
