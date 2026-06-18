@@ -842,6 +842,27 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
+    .confirm-modal__close::before,
+    .confirm-modal__close::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      top: 50%;
+      left: 50%;
+      transform-origin: center;
+    }
+
+    .confirm-modal__close::before {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .confirm-modal__close::after {
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
     .confirm-modal__close:hover,
     .confirm-modal__close:focus-visible {
       background: #ffe9d0;
@@ -853,7 +874,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     .confirm-modal__close span,
     .confirm-modal__close svg,
     .confirm-modal__close i {
-      display: block;
+      display: none;
       line-height: 1;
       margin: 0;
     }
@@ -1440,12 +1461,12 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
     .password-field input {
       width: 100%;
-      padding-right: 48px;
+      padding-right: 42px;
     }
 
     .password-toggle {
       position: absolute;
-      right: 14px;
+      right: 6px;
       top: 50%;
       transform: translateY(-50%);
       width: 34px;
@@ -1461,6 +1482,18 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       padding: 0;
       margin: 0;
       line-height: 1;
+    }
+
+    .password-field input::-ms-reveal,
+    .password-field input::-ms-clear {
+      display: none;
+    }
+
+    .password-field input::-webkit-credentials-auto-fill-button,
+    .password-field input::-webkit-caps-lock-indicator {
+      visibility: hidden;
+      display: none !important;
+      pointer-events: none;
     }
 
     .password-toggle svg,
@@ -1604,7 +1637,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
 
       .password-toggle {
-        right: 14px;
+        right: 6px;
       }
     }
     .profile-summary {
@@ -1792,10 +1825,14 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     body.customer-page--profile .password-field input {
-      padding-right: 48px;
+      padding-right: 42px !important;
     }
 
     body.customer-page--profile .password-toggle {
+      position: absolute !important;
+      right: 6px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
       width: 34px;
       height: 34px;
       max-width: none;
@@ -1959,7 +1996,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
 
       body.customer-page--profile .password-field input {
-        padding-right: 48px;
+        padding-right: 42px !important;
       }
 
       body.customer-page--profile .action-buttons {
@@ -2435,7 +2472,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                 aria-describedby="current-password-error"
                 class="<?php echo $errors["current_password"] !== "" ? "is-invalid" : ""; ?>"
               >
-              <button type="button" class="password-toggle" data-toggle-password="current_password" aria-controls="current_password" aria-label="Show current password">Show</button>
+              <button type="button" class="password-toggle" data-toggle-password="current_password" aria-controls="current_password" aria-label="Show current password" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
             </div>
             <div id="current-password-error" class="field-error"><?php echo e($errors["current_password"]); ?></div>
           </div>
@@ -2483,7 +2522,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                   aria-describedby="new-password-note new-password-error"
                   class="<?php echo $errors["new_password"] !== "" ? "is-invalid" : ""; ?>"
                 >
-                <button type="button" class="password-toggle" data-toggle-password="new_password" aria-controls="new_password" aria-label="Show new password">Show</button>
+                <button type="button" class="password-toggle" data-toggle-password="new_password" aria-controls="new_password" aria-label="Show new password" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
               </div>
               <div id="new-password-note" class="field-note">Use <?php echo SERVITECH_PASSWORD_MIN_LENGTH; ?> to <?php echo SERVITECH_PASSWORD_MAX_BYTES; ?> characters.</div>
               <div id="new-password-error" class="field-error"><?php echo e($errors["new_password"]); ?></div>
@@ -2505,7 +2546,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                   aria-describedby="confirm-password-error"
                   class="<?php echo $errors["confirm_password"] !== "" ? "is-invalid" : ""; ?>"
                 >
-                <button type="button" class="password-toggle" data-toggle-password="confirm_password" aria-controls="confirm_password" aria-label="Show confirm password">Show</button>
+                <button type="button" class="password-toggle" data-toggle-password="confirm_password" aria-controls="confirm_password" aria-label="Show confirm password" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
               </div>
               <div id="confirm-password-error" class="field-error"><?php echo e($errors["confirm_password"]); ?></div>
             </div>
