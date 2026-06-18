@@ -32,18 +32,6 @@ function format_fullname($name) {
 $display_name = format_fullname($fullname);
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
-$dashboardAvailabilityMessages = [
-  "open" => "You may place a queue request until " . $storeAvailability["queue_cutoff_label"] . ".",
-  "closed" => "Regular queue is unavailable. Online Document Printing is still available.",
-  "paused" => "Queue requests are temporarily paused. Online Document Printing is still available.",
-  "fully_booked" => "We are fully booked today. Online Document Printing is still available.",
-  "holiday" => "Regular queue is closed today. Online Document Printing is still available.",
-  "closed_today" => "Regular queue is closed today. Online Document Printing is still available.",
-  "outside_hours" => "Regular queue is outside today's shop hours. Online Document Printing is still available.",
-  "past_cutoff" => "Today's queue cutoff has passed. Online Document Printing is still available.",
-];
-$dashboardAvailabilityMessage = $dashboardAvailabilityMessages[$storeAvailability["reason_code"]]
-  ?? $storeAvailability["message"];
 $dashboardRestrictionMessages = [
   "closed" => "Regular queue is unavailable.",
   "paused" => "Queue requests are temporarily paused.",
@@ -985,7 +973,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
             <dd>Available</dd>
           </div>
         </dl>
-        <p class="customer-hero__availability-message"><?= htmlspecialchars($dashboardAvailabilityMessage, ENT_QUOTES, "UTF-8") ?></p>
+        <p class="customer-hero__availability-message"><?= htmlspecialchars($storeAvailability["customer_message"], ENT_QUOTES, "UTF-8") ?></p>
       </div>
     </div>
   </div>

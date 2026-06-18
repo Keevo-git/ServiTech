@@ -14,6 +14,10 @@
 .store-availability-card--open { border-left-color: #15916f; }
 .store-availability-card--paused { border-left-color: #d88718; }
 .store-availability-card--fully_booked,
+.store-availability-card--holiday,
+.store-availability-card--closed_today,
+.store-availability-card--outside_hours,
+.store-availability-card--past_cutoff,
 .store-availability-card--closed { border-left-color: #b4232f; }
 
 .store-availability-card__main {
@@ -59,7 +63,11 @@
 }
 
 .store-availability-card--closed .store-availability-card__status,
-.store-availability-card--fully_booked .store-availability-card__status {
+.store-availability-card--fully_booked .store-availability-card__status,
+.store-availability-card--holiday .store-availability-card__status,
+.store-availability-card--closed_today .store-availability-card__status,
+.store-availability-card--outside_hours .store-availability-card__status,
+.store-availability-card--past_cutoff .store-availability-card__status {
   background: #fee8e9;
   color: #9d1d28;
 }

@@ -3,10 +3,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
-header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
-header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
 ?>
 <!DOCTYPE html>
 <html lang="en">

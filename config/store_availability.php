@@ -103,6 +103,10 @@ function servitech_store_status_label(string $status): string
         "closed" => "Closed",
         "paused" => "Paused",
         "fully_booked" => "Fully Booked",
+        "holiday" => "Holiday",
+        "closed_today" => "Closed Today",
+        "outside_hours" => "Outside Hours",
+        "past_cutoff" => "Past Cutoff",
     ][$status] ?? "Closed";
 }
 
@@ -114,6 +118,22 @@ function servitech_store_format_time(?string $time): string
     }
     $date = DateTimeImmutable::createFromFormat("!H:i", $time);
     return $date ? $date->format("g:i A") : $time;
+}
+
+function servitech_store_day_label(int $day): string
+{
+    return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][$day] ?? "Unknown";
+}
+
+function servitech_store_send_no_cache_headers(): void
+{
+    if (headers_sent()) {
+        return;
+    }
+
+    header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0");
+    header("Pragma: no-cache");
+    header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
 }
 
 function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = null): array
@@ -137,41 +157,43 @@ function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = nul
 
     $reasonCode = "open";
     $regularQueueAllowed = true;
-    $effectiveStatus = $configuredStatus;
+    $effectiveStatus = "open";
+    $opensAt = servitech_store_normalize_time($hours["opens_at"] ?? null);
+    $closesAt = servitech_store_normalize_time($hours["closes_at"] ?? null);
 
-    if ($configuredStatus !== "open") {
+    if ($todayHoliday !== null) {
         $regularQueueAllowed = false;
-        $reasonCode = $configuredStatus;
-    } elseif ($todayHoliday !== null) {
-        $regularQueueAllowed = false;
-        $effectiveStatus = "closed";
+        $effectiveStatus = "holiday";
         $reasonCode = "holiday";
+    } elseif ($configuredStatus !== "open") {
+        $regularQueueAllowed = false;
+        $effectiveStatus = $configuredStatus;
+        $reasonCode = $configuredStatus;
     } elseif (empty($hours["is_open"])) {
         $regularQueueAllowed = false;
-        $effectiveStatus = "closed";
+        $effectiveStatus = "closed_today";
         $reasonCode = "closed_today";
     } else {
-        $opensAt = servitech_store_normalize_time($hours["opens_at"] ?? null);
-        $closesAt = servitech_store_normalize_time($hours["closes_at"] ?? null);
         if ($opensAt === null || $closesAt === null || $currentTime < $opensAt || $currentTime >= $closesAt) {
             $regularQueueAllowed = false;
-            $effectiveStatus = "closed";
+            $effectiveStatus = "outside_hours";
             $reasonCode = "outside_hours";
         } elseif ($currentTime > $cutoff) {
             $regularQueueAllowed = false;
+            $effectiveStatus = "past_cutoff";
             $reasonCode = "past_cutoff";
         }
     }
 
     $messages = [
-        "open" => "We are open today. You may place a queue request until " . servitech_store_format_time($cutoff) . ".",
-        "closed" => "The store is currently closed. Queue requests are unavailable, but Online Document Printing is still available.",
+        "open" => "We are open today. Queue requests are accepted until " . servitech_store_format_time($cutoff) . ".",
+        "closed" => "Regular queue requests are unavailable right now. Online Document Printing is still available.",
         "paused" => "Queue requests are temporarily paused. Online Document Printing is still available.",
-        "fully_booked" => "The store is fully booked today. Online Document Printing is still available.",
-        "holiday" => "The store is closed today" . ($todayHoliday ? " for " . trim((string)$todayHoliday["title"]) : "") . ". Online Document Printing is still available.",
-        "closed_today" => "The store is closed today. Online Document Printing is still available.",
-        "outside_hours" => "Regular queue requests are available only during today's shop hours. Online Document Printing is still available.",
-        "past_cutoff" => "Today's queue cutoff has passed. Online Document Printing is still available.",
+        "fully_booked" => "We are fully booked today. Online Document Printing is still available.",
+        "holiday" => "We are closed today" . ($todayHoliday ? " for " . trim((string)$todayHoliday["title"]) : "") . ". Online Document Printing is still available.",
+        "closed_today" => "We are closed today. Online Document Printing is still available.",
+        "outside_hours" => "Regular queue requests are outside today's shop hours. Online Document Printing is still available.",
+        "past_cutoff" => "Regular queue is closed for today. Online Document Printing is still available.",
     ];
 
     $todayHours = empty($hours["is_open"])
@@ -182,12 +204,30 @@ function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = nul
         "configured_status" => $configuredStatus,
         "effective_status" => $effectiveStatus,
         "status_label" => servitech_store_status_label($effectiveStatus),
+        "is_open" => $regularQueueAllowed,
         "regular_queue_allowed" => $regularQueueAllowed,
+        "can_accept_regular_queue" => $regularQueueAllowed,
         "document_printing_allowed" => true,
+        "can_accept_online_printing" => true,
         "reason_code" => $reasonCode,
+        "reason" => $reasonCode,
         "message" => $messages[$reasonCode] ?? $messages["closed"],
+        "customer_message" => $messages[$reasonCode] ?? $messages["closed"],
         "today_hours" => $todayHours,
+        "today_hours_raw" => [
+            "day_of_week" => $day,
+            "day_label" => servitech_store_day_label($day),
+            "is_open" => !empty($hours["is_open"]),
+            "opens_at" => $opensAt,
+            "closes_at" => $closesAt,
+        ],
+        "current_date" => $date,
+        "current_day" => servitech_store_day_label($day),
+        "current_time" => $currentTime,
+        "current_datetime" => $now->format(DateTimeInterface::ATOM),
+        "shop_timezone" => $timezone->getName(),
         "queue_cutoff_time" => $cutoff,
+        "cutoff_time" => $cutoff,
         "queue_cutoff_label" => servitech_store_format_time($cutoff),
         "today_holiday" => $todayHoliday,
         "upcoming_holidays" => (array)($snapshot["holidays"] ?? []),

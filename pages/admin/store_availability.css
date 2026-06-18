@@ -72,6 +72,43 @@ body.store-settings-page {
   box-shadow: 0 10px 26px rgba(29, 52, 79, .08);
 }
 
+.availability-debug-panel {
+  margin-top: 20px;
+}
+
+.availability-debug-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.availability-debug-grid div {
+  padding: 12px 13px;
+  border: 1px solid #e2ebf4;
+  border-radius: 11px;
+  background: #f7faff;
+}
+
+.availability-debug-grid dt {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.availability-debug-grid dd {
+  margin: 5px 0 0;
+  color: #17385e;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.availability-debug-grid dd small {
+  color: #64748b;
+  font-weight: 700;
+}
+
 .settings-panel__heading {
   display: flex;
   align-items: flex-start;
@@ -197,4 +234,5 @@ button:disabled { cursor: not-allowed; opacity: .5; }
   .holiday-note-field, .holiday-form__actions { grid-column: 1; }
   .holiday-item { grid-template-columns: 1fr; }
   .holiday-item__actions { justify-content: flex-start; }
+  .availability-debug-grid { grid-template-columns: 1fr; }
 }

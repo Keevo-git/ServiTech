@@ -17,18 +17,6 @@ $print_url = $is_admin
 
 $landingAnnouncement = null;
 $storeAvailability = servitech_store_current_availability($pdo);
-$landingAvailabilityMessages = [
-  "open" => "We are open today. Queue requests are accepted until " . $storeAvailability["queue_cutoff_label"] . ".",
-  "closed" => "Regular queue requests are unavailable right now. Online Document Printing is still available.",
-  "paused" => "Queue requests are temporarily paused. Online Document Printing is still available.",
-  "fully_booked" => "We are fully booked today. Online Document Printing is still available.",
-  "holiday" => "We are closed today. Online Document Printing is still available.",
-  "closed_today" => "We are closed today. Online Document Printing is still available.",
-  "outside_hours" => "Regular queue requests are outside today's shop hours. Online Document Printing is still available.",
-  "past_cutoff" => "Today's queue cutoff has passed. Online Document Printing is still available.",
-];
-$landingAvailabilityMessage = $landingAvailabilityMessages[$storeAvailability["reason_code"]]
-  ?? $storeAvailability["message"];
 $landingUpcomingHoliday = $storeAvailability["upcoming_holidays"][0] ?? null;
 try {
   $announcementStmt = $pdo->query("
@@ -180,7 +168,7 @@ try {
           <span class="landing-store-details__eyebrow">Plan Your Visit</span>
           <h2 id="landingStoreDetailsTitle">Store Availability</h2>
         </div>
-        <p><?= htmlspecialchars($landingAvailabilityMessage, ENT_QUOTES, "UTF-8") ?></p>
+        <p><?= htmlspecialchars($storeAvailability["customer_message"], ENT_QUOTES, "UTF-8") ?></p>
       </header>
 
       <div class="landing-store-details__grid">

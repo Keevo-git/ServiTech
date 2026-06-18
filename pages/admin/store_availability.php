@@ -211,6 +211,69 @@ $adminHeaderVariant = "special";
   <?php if ($notice !== ""): ?><div class="store-alert store-alert--success"><?= store_admin_h($notice) ?></div><?php endif; ?>
   <?php if ($error !== ""): ?><div class="store-alert store-alert--error"><?= store_admin_h($error) ?></div><?php endif; ?>
 
+  <section class="settings-panel availability-debug-panel" aria-labelledby="availabilityDebugTitle">
+    <div class="settings-panel__heading">
+      <div><span>&#9432;</span><h2 id="availabilityDebugTitle">Current Availability Check</h2></div>
+      <p>This summary uses the same Store Availability helper that controls customer displays and queue submissions.</p>
+    </div>
+    <dl class="availability-debug-grid">
+      <div>
+        <dt>Current shop date</dt>
+        <dd><?= store_admin_h(date("M j, Y", strtotime($availability["current_date"] ?? "now"))) ?></dd>
+      </div>
+      <div>
+        <dt>Current day</dt>
+        <dd><?= store_admin_h($availability["current_day"] ?? "-") ?></dd>
+      </div>
+      <div>
+        <dt>Current system time</dt>
+        <dd><?= store_admin_h(date("M j, Y, g:i:s A", strtotime($availability["current_datetime"] ?? "now"))) ?></dd>
+      </div>
+      <div>
+        <dt>Shop timezone</dt>
+        <dd><?= store_admin_h($availability["shop_timezone"] ?? "Asia/Manila") ?></dd>
+      </div>
+      <div>
+        <dt>Today's opening time</dt>
+        <dd><?= store_admin_h(servitech_store_format_time($availability["today_hours_raw"]["opens_at"] ?? null)) ?></dd>
+      </div>
+      <div>
+        <dt>Today's closing time</dt>
+        <dd><?= store_admin_h(servitech_store_format_time($availability["today_hours_raw"]["closes_at"] ?? null)) ?></dd>
+      </div>
+      <div>
+        <dt>Queue cutoff</dt>
+        <dd><?= store_admin_h($availability["queue_cutoff_label"] ?? "Not set") ?></dd>
+      </div>
+      <div>
+        <dt>Manual status</dt>
+        <dd><?= store_admin_h(servitech_store_status_label((string)($availability["configured_status"] ?? "open"))) ?></dd>
+      </div>
+      <div>
+        <dt>Holiday match</dt>
+        <dd>
+          <?php if (is_array($availability["today_holiday"] ?? null)): ?>
+            <?= store_admin_h(($availability["today_holiday"]["title"] ?? "Closed date") . " (" . ($availability["today_holiday"]["holiday_date"] ?? "") . ")") ?>
+          <?php else: ?>
+            None today
+          <?php endif; ?>
+        </dd>
+      </div>
+      <div>
+        <dt>Final result</dt>
+        <dd><?= store_admin_h($availability["status_label"] ?? "Closed") ?> <small>(<?= store_admin_h($availability["reason"] ?? "closed") ?>)</small></dd>
+      </div>
+      <div>
+        <dt>Can accept regular queue</dt>
+        <dd><?= !empty($availability["can_accept_regular_queue"]) ? "Yes" : "No" ?></dd>
+      </div>
+      <div>
+        <dt>Can accept Online Document Printing</dt>
+        <dd><?= !empty($availability["can_accept_online_printing"]) ? "Yes" : "No" ?></dd>
+      </div>
+    </dl>
+  </section>
+
   <form method="post" class="store-settings-form">
     <input type="hidden" name="csrf_token" value="<?= store_admin_h($csrfToken) ?>">
     <input type="hidden" name="action" value="save_settings">

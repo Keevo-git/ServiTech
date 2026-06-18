@@ -98,7 +98,11 @@
 }
 
 .landing-store-detail__status--closed,
-.landing-store-detail__status--fully_booked {
+.landing-store-detail__status--fully_booked,
+.landing-store-detail__status--holiday,
+.landing-store-detail__status--closed_today,
+.landing-store-detail__status--outside_hours,
+.landing-store-detail__status--past_cutoff {
   background: #fee8e9;
   color: #9d1d28 !important;
 }
