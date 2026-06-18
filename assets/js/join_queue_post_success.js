@@ -2,7 +2,7 @@
   "use strict";
 
   var storageKey = "servitechJoinQueueCompleted";
-  var safePath = "/pages/customer/custo_place_queueing.php";
+  var safePath = "/pages/customer/customer_dash.php";
 
   function basePath() {
     if (typeof window.SERVITECH_BASE_PATH === "string" && window.SERVITECH_BASE_PATH.trim() !== "") {

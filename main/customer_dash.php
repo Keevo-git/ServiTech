@@ -707,7 +707,7 @@ $dashboardQueues = [
   <div class="divider"></div>
 
   <div class="quick-grid">
-    <a href="/main/custo_place_queueing.php" class="quick-card-link">
+    <a href="/pages/customer/customer_dash.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
           <img src="/assets/images/LANDING_QUEUEING.png" alt="Join Queue" class="quick-icon">

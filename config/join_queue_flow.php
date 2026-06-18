@@ -84,7 +84,7 @@ if (!function_exists("servitech_redirect_completed_join_queue")) {
             return;
         }
 
-        header("Location: " . servitech_url("/pages/customer/custo_place_queueing.php"));
+        header("Location: " . servitech_url("/pages/customer/customer_dash.php"));
         exit();
     }
 }

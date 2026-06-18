@@ -7,7 +7,7 @@ $is_logged_in = servitech_is_logged_in();
 $is_admin = servitech_is_admin();
 $queue_url = $is_admin
   ? "/pages/admin/queue_list/printing.php"
-  : ($is_logged_in ? "/pages/customer/custo_place_queueing.php" : "/auth/log_in.php");
+  : ($is_logged_in ? "/pages/customer/customer_dash.php" : "/auth/log_in.php");
 $status_url = $is_admin
   ? "/pages/admin/order_management/printM.php"
   : ($is_logged_in ? "/pages/customer/custo_service_status.php" : "/auth/log_in.php");

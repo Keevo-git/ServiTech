@@ -3328,7 +3328,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     if (!data.queues || data.queues.length === 0) {
       allQueues = [];
-      renderState("No queues yet.", '<a href="/pages/customer/custo_place_queueing.php" class="btn-next">Join Queue</a>');
+      renderState("No queues yet.", '<a href="/pages/customer/customer_dash.php" class="btn-next">Join Queue</a>');
       renderListState(archiveListEl, "No completed queues yet.");
       return;
     }

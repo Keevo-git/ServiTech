@@ -1,7 +1,7 @@
 <?php
 $joinQueueBackUrl = isset($joinQueueBackUrl) && is_string($joinQueueBackUrl)
     ? $joinQueueBackUrl
-    : "/pages/customer/custo_place_queueing.php";
+    : "/pages/customer/customer_dash.php";
 ?>
 <link rel="stylesheet" href="/assets/css/join-queue-leave-guard.css?v=20260611a">
 <div
