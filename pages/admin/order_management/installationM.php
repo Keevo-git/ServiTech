@@ -84,7 +84,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-close-button-circle') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-responsive') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260618-modal-stays-open') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_installation">
@@ -175,7 +175,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                                 data-order="<?= om_order_payload_attr($r, "Installation Queue", "Installation Service") ?>"
                               >View</button>
                               <?php if ($orderRecycleReady): ?>
-                                <button class="delete-order-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>">Delete</button>
+                                <button class="delete-order-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>">Move to Bin</button>
                               <?php endif; ?>
                             </div>
                           </td>
@@ -201,7 +201,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($orderRecycleReady): ?>
-  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260616-safe-schema') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-bin-actions') ?>" defer></script>
 <?php endif; ?>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260618-modal-stays-open') ?>" defer></script>

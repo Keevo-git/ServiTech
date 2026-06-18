@@ -5,6 +5,7 @@
   const dialog = overlay.querySelector(".order-confirm-dialog");
   const title = overlay.querySelector("[data-order-confirm-title]");
   const message = overlay.querySelector("[data-order-confirm-message]");
+  const closeButton = overlay.querySelector("[data-order-confirm-close]");
   const cancelButton = overlay.querySelector("[data-order-confirm-cancel]");
   const submitButton = overlay.querySelector("[data-order-confirm-submit]");
   const endpoint = overlay.dataset.orderRecycleEndpoint || "";
@@ -15,9 +16,9 @@
 
   const configurations = {
     soft_delete: {
-      title: "Move order to Recycle Bin?",
-      message: "This order will be hidden from Order Management but can still be restored from the Recycle Bin.",
-      submit: "Move to Recycle Bin",
+      title: "Move Order to Bin?",
+      message: "This order will be removed from Order Management but can still be restored from the Recycle Bin within 30 days.",
+      submit: "Move to Bin",
     },
     restore: {
       title: "Restore order?",
@@ -26,7 +27,7 @@
     },
     permanent_delete: {
       title: "Permanently delete order?",
-      message: "This action cannot be undone. Uploaded files will remain preserved in storage.",
+      message: "This action cannot be undone.",
       submit: "Delete Permanently",
     },
   };
@@ -105,6 +106,7 @@
   });
 
   cancelButton?.addEventListener("click", closeModal);
+  closeButton?.addEventListener("click", closeModal);
   submitButton?.addEventListener("click", submitAction);
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) closeModal();

@@ -2074,6 +2074,234 @@ body.modal-open {
   }
 }
 
+/* Responsive recycle-bin and Move to Bin controls. */
+.order-table td.order-actions {
+  width: 230px;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(86px, 1fr));
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.action-buttons .view-order-btn,
+.action-buttons .delete-order-btn,
+.restore-order-btn,
+.permanent-delete-btn {
+  width: 100%;
+  min-height: 38px;
+  border-radius: 9px;
+}
+
+.delete-order-btn {
+  border-color: #f0b4b4;
+  background: #fff7f7;
+  color: #b42318;
+  box-shadow: 0 6px 14px rgba(185, 28, 28, 0.08);
+}
+
+.delete-order-btn:hover,
+.delete-order-btn:focus-visible {
+  border-color: #dc2626;
+  background: #fee2e2;
+  color: #991b1b;
+  box-shadow: 0 10px 20px rgba(185, 28, 28, 0.14);
+}
+
+.order-confirm-dialog {
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+}
+
+.order-confirm-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 10px;
+}
+
+.order-confirm-head h3 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.order-confirm-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid #d7e2f0;
+  border-radius: 50%;
+  background: #f8fafc;
+  color: #7f1d1d;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.order-confirm-close:hover,
+.order-confirm-close:focus-visible {
+  border-color: #fecaca;
+  background: #fee2e2;
+  color: #991b1b;
+  box-shadow: 0 10px 22px rgba(127, 29, 29, 0.16);
+  outline: none;
+}
+
+.order-confirm-actions button {
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.order-confirm-actions button:hover,
+.order-confirm-actions button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, .12);
+  outline: none;
+}
+
+.recycle-bin-table {
+  min-width: 1640px;
+}
+
+.recycle-bin-table th:nth-child(1),
+.recycle-bin-table td:nth-child(1) {
+  width: 130px;
+}
+
+.recycle-bin-table th:nth-child(2),
+.recycle-bin-table td:nth-child(2) {
+  width: 190px;
+}
+
+.recycle-bin-table th:nth-child(3),
+.recycle-bin-table td:nth-child(3) {
+  width: 180px;
+}
+
+.recycle-bin-table th:nth-child(4),
+.recycle-bin-table td:nth-child(4) {
+  width: 135px;
+}
+
+.recycle-bin-table th:nth-child(5),
+.recycle-bin-table td:nth-child(5) {
+  width: 130px;
+}
+
+.recycle-bin-table th:nth-child(6),
+.recycle-bin-table td:nth-child(6) {
+  width: 150px;
+}
+
+.recycle-bin-table th:nth-child(7),
+.recycle-bin-table td:nth-child(7),
+.recycle-bin-table th:nth-child(8),
+.recycle-bin-table td:nth-child(8) {
+  width: 165px;
+}
+
+.recycle-bin-table th:nth-child(9),
+.recycle-bin-table td:nth-child(9) {
+  width: 140px;
+  text-align: center;
+}
+
+.recycle-bin-table th:nth-child(10),
+.recycle-bin-table td:nth-child(10) {
+  width: 255px;
+  text-align: center;
+}
+
+.days-left-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid #cbd8e8;
+  border-radius: 999px;
+  background: #f8fbff;
+  color: #28486d;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.recycle-actions {
+  grid-template-columns: repeat(2, minmax(100px, 1fr));
+}
+
+.restore-order-btn {
+  border-color: #7cc89a;
+  background: #eafaf0;
+  color: #146c39;
+}
+
+.restore-order-btn:hover,
+.restore-order-btn:focus-visible {
+  border-color: #15803d;
+  background: #dcfce7;
+  box-shadow: 0 10px 20px rgba(21, 128, 61, .14);
+}
+
+.permanent-delete-btn {
+  border-color: #ef9a9a;
+  background: #fff5f5;
+  color: #b42318;
+}
+
+.permanent-delete-btn:hover,
+.permanent-delete-btn:focus-visible {
+  border-color: #dc2626;
+  background: #fee2e2;
+  box-shadow: 0 10px 20px rgba(185, 28, 28, .14);
+}
+
+@media (max-width: 720px) {
+  .order-table td.order-actions {
+    width: 170px;
+  }
+
+  .action-buttons,
+  .recycle-actions {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .order-confirm-overlay {
+    padding: 12px;
+  }
+
+  .order-confirm-dialog {
+    width: min(100%, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
+    padding: 22px 18px;
+    border-radius: 16px;
+  }
+
+  .order-confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .order-confirm-actions button {
+    width: 100%;
+  }
+}
+
 /* Final order-modal overrides: keep hover effects aligned and scrolling internal. */
 .order-modal,
 .order-sendback-modal {

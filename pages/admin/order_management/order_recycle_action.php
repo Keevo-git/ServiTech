@@ -26,6 +26,13 @@ if ($id <= 0 || !in_array($action, ["soft_delete", "restore", "permanent_delete"
 }
 
 try {
+    $pdo->exec("
+      DELETE FROM queues
+      WHERE UPPER(TRIM(COALESCE(lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND deleted_at IS NOT NULL
+        AND deleted_at <= NOW() - INTERVAL '30 days'
+    ");
+
     $pdo->beginTransaction();
 
     $select = $pdo->prepare("

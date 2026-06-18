@@ -47,11 +47,67 @@ function rb_service_label(array $row): string
     });
 }
 
+function rb_payment_method(array $row): string
+{
+    $details = admin_queue_details_array($row["details"] ?? null);
+    $method = $row["payment_method"] ?? ($details["payment_method"] ?? "");
+    return om_payment_method_label($method) ?: "-";
+}
+
+function rb_total_amount(array $row): string
+{
+    $details = admin_queue_details_array($row["details"] ?? null);
+    $payment = servitech_queue_payment_values([
+        "price" => $row["price"] ?? null,
+        "paid_amount" => $row["paid_amount"] ?? null,
+        "amount" => $row["amount"] ?? null,
+        "details_total" => $row["details_total"] ?? ($details["estimated_total"] ?? null),
+        "details" => $row["details"] ?? null,
+    ]);
+
+    $total = (float)($payment["price"] ?? 0);
+    if ($total <= 0) {
+        return "-";
+    }
+
+    return "PHP " . number_format($total, 2);
+}
+
+function rb_days_left($deletedAt): string
+{
+    $deleted = trim((string)$deletedAt);
+    if ($deleted === "") {
+        return "-";
+    }
+
+    try {
+        $now = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
+        $deletedDate = (new DateTimeImmutable($deleted))->setTimezone(new DateTimeZone("Asia/Manila"));
+        $expires = $deletedDate->modify("+30 days");
+        $seconds = $expires->getTimestamp() - $now->getTimestamp();
+        if ($seconds <= 86400) {
+            return "Deletes today";
+        }
+
+        $days = max(1, (int)floor($seconds / 86400));
+        return $days . " day" . ($days === 1 ? "" : "s") . " left";
+    } catch (Throwable $exception) {
+        return "-";
+    }
+}
+
 try {
     $schemaReady = admin_order_recycle_schema_ready($pdo);
     if (!$schemaReady) {
         $rows = [];
     } else {
+    $pdo->exec("
+      DELETE FROM queues
+      WHERE UPPER(TRIM(COALESCE(lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND deleted_at IS NOT NULL
+        AND deleted_at <= NOW() - INTERVAL '30 days'
+    ");
+
     $stmt = $pdo->query("
       SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount,
         q.created_at, q.deleted_at, u.fullname,
@@ -89,7 +145,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260616-recycle-bin') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-responsive') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -129,13 +185,15 @@ require __DIR__ . "/../_includes/admin_header.php";
               <table class="orders table-content order-table recycle-bin-table">
                 <thead>
                   <tr>
-                    <th>Order / Queue ID</th>
+                    <th>Order ID</th>
                     <th>Customer Name</th>
                     <th>Service</th>
                     <th class="status-cell">Status</th>
                     <th>Payment</th>
+                    <th>Total Amount</th>
                     <th>Submitted Date</th>
-                    <th>Deleted Date</th>
+                    <th>Moved to Bin Date</th>
+                    <th>Days Left</th>
                     <th class="action-cell">Actions</th>
                   </tr>
                 </thead>
@@ -150,7 +208,8 @@ require __DIR__ . "/../_includes/admin_header.php";
                           <?= htmlspecialchars(rb_status_label((string)$row["status"]), ENT_QUOTES, "UTF-8") ?>
                         </span>
                       </td>
-                      <td><?= htmlspecialchars(om_payment_summary($row) ?: "-", ENT_QUOTES, "UTF-8") ?></td>
+                      <td><?= htmlspecialchars(rb_payment_method($row), ENT_QUOTES, "UTF-8") ?></td>
+                      <td><?= htmlspecialchars(rb_total_amount($row), ENT_QUOTES, "UTF-8") ?></td>
                       <td>
                         <span class="datetime-stack">
                           <strong><?= htmlspecialchars(admin_queue_submitted_date($row["created_at"]), ENT_QUOTES, "UTF-8") ?></strong>
@@ -163,6 +222,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                           <small><?= htmlspecialchars(admin_queue_submitted_time($row["deleted_at"]), ENT_QUOTES, "UTF-8") ?></small>
                         </span>
                       </td>
+                      <td><span class="days-left-pill"><?= htmlspecialchars(rb_days_left($row["deleted_at"]), ENT_QUOTES, "UTF-8") ?></span></td>
                       <td class="order-actions">
                         <div class="action-buttons recycle-actions">
                           <button
@@ -198,7 +258,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($schemaReady): ?>
-  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260616-safe-schema') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-bin-actions') ?>" defer></script>
 <?php endif; ?>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
