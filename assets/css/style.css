@@ -1762,6 +1762,23 @@ body.auth-page {
   text-decoration: none;
 }
 
+.auth-login-options .forgot-link {
+  align-self: center;
+  color: #5d3a2f;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: color 0.18s ease, opacity 0.18s ease;
+}
+
+.auth-login-options .forgot-link:hover,
+.auth-login-options .forgot-link:focus-visible {
+  color: #7a0808;
+  opacity: 0.92;
+  text-decoration: none;
+}
+
 .password-input-wrap {
   position: relative;
   width: 100%;
