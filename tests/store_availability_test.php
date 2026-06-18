@@ -35,6 +35,9 @@ $mondaySixPm = new DateTimeImmutable("2026-06-15 18:00:00", $timezone);
 $mondayPastCutoff = new DateTimeImmutable("2026-06-15 16:31:00", $timezone);
 $mondayBeforeOpening = new DateTimeImmutable("2026-06-15 07:30:00", $timezone);
 $tuesdayMorning = new DateTimeImmutable("2026-06-16 10:00:00", $timezone);
+$thursdayNineOhTwoPm = new DateTimeImmutable("2026-06-18 21:02:00", $timezone);
+$thursdayElevenThirtyPm = new DateTimeImmutable("2026-06-18 23:30:00", $timezone);
+$fridayTwelveOhOneAm = new DateTimeImmutable("2026-06-19 00:01:00", $timezone);
 
 $open = servitech_store_evaluate(availability_snapshot(), $mondayBeforeCutoff);
 availability_assert($open["regular_queue_allowed"], "Open store before cutoff should accept regular queues.");
@@ -58,6 +61,26 @@ $extendedClosing["queue_cutoff_time"] = "21:00";
 $extendedClosing = availability_set_hours($extendedClosing, 1, true, "08:00", "22:00");
 $openAtSix = servitech_store_evaluate($extendedClosing, $mondaySixPm);
 availability_assert($openAtSix["regular_queue_allowed"], "6:00 PM should be open after closing time is extended to 10:00 PM.");
+
+$midnightCutoff = availability_snapshot();
+$midnightCutoff["queue_cutoff_time"] = "00:00";
+$midnightCutoff = availability_set_hours($midnightCutoff, 4, true, "08:00", "23:00");
+$midnightCutoff = availability_set_hours($midnightCutoff, 5, true, "08:00", "23:00");
+$openAtNineWithMidnightCutoff = servitech_store_evaluate($midnightCutoff, $thursdayNineOhTwoPm);
+availability_assert($openAtNineWithMidnightCutoff["regular_queue_allowed"], "9:02 PM should be open with 8 AM - 11 PM hours and midnight cutoff.");
+availability_assert($openAtNineWithMidnightCutoff["status_label"] === "Open", "9:02 PM with midnight cutoff should display Open.");
+availability_assert(strpos((string)$openAtNineWithMidnightCutoff["cutoff_datetime"], "2026-06-19T00:00:00") === 0, "Midnight cutoff should resolve to the next day.");
+
+$outsideAtElevenThirtyWithMidnightCutoff = servitech_store_evaluate($midnightCutoff, $thursdayElevenThirtyPm);
+availability_assert(!$outsideAtElevenThirtyWithMidnightCutoff["regular_queue_allowed"], "11:30 PM should be blocked after 11 PM closing.");
+availability_assert($outsideAtElevenThirtyWithMidnightCutoff["reason_code"] === "outside_hours", "11:30 PM should be outside hours, not past cutoff.");
+
+$nextDayAfterMidnight = servitech_store_evaluate($midnightCutoff, $fridayTwelveOhOneAm);
+availability_assert($nextDayAfterMidnight["current_day"] === "Friday", "12:01 AM should evaluate the new day's schedule.");
+availability_assert($nextDayAfterMidnight["reason_code"] === "outside_hours", "12:01 AM should not remain blocked by yesterday's cutoff.");
+
+$fivePmMidnightCutoff = servitech_store_evaluate($midnightCutoff, new DateTimeImmutable("2026-06-18 17:00:00", $timezone));
+availability_assert($fivePmMidnightCutoff["regular_queue_allowed"], "5:00 PM should be open after cutoff is changed to midnight.");
 
 $pastCutoff = servitech_store_evaluate(availability_snapshot(), $mondayPastCutoff);
 availability_assert(!$pastCutoff["regular_queue_allowed"] && $pastCutoff["reason_code"] === "past_cutoff", "Past cutoff should block regular queues.");

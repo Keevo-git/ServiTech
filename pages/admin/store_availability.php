@@ -164,6 +164,18 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
 
 $snapshot = servitech_store_fetch_snapshot($pdo, 50);
 $availability = servitech_store_evaluate($snapshot);
+$availabilityWarnings = [];
+if (!empty($availability["today_hours_raw"]["is_open"]) && !empty($availability["closing_datetime"]) && !empty($availability["cutoff_datetime"])) {
+    try {
+        $closingDateTime = new DateTimeImmutable((string)$availability["closing_datetime"]);
+        $cutoffDateTime = new DateTimeImmutable((string)$availability["cutoff_datetime"]);
+        if ($cutoffDateTime > $closingDateTime) {
+            $availabilityWarnings[] = "Queue cutoff is after today's closing time. This is allowed, but the store closing time will block regular services first.";
+        }
+    } catch (Throwable $exception) {
+        // Ignore debug-only datetime parsing failures.
+    }
+}
 $holidays = [];
 if ($snapshot["settings_available"]) {
     try {
@@ -243,7 +255,12 @@ $adminHeaderVariant = "special";
       </div>
       <div>
         <dt>Queue cutoff</dt>
-        <dd><?= store_admin_h($availability["queue_cutoff_label"] ?? "Not set") ?></dd>
+        <dd>
+          <?= store_admin_h($availability["queue_cutoff_label"] ?? "Not set") ?>
+          <?php if (!empty($availability["cutoff_datetime"])): ?>
+            <small><?= store_admin_h(date("M j, g:i A", strtotime((string)$availability["cutoff_datetime"]))) ?></small>
+          <?php endif; ?>
+        </dd>
       </div>
       <div>
         <dt>Manual status</dt>
@@ -272,6 +289,13 @@ $adminHeaderVariant = "special";
         <dd><?= !empty($availability["can_accept_online_printing"]) ? "Yes" : "No" ?></dd>
       </div>
     </dl>
+    <?php if ($availabilityWarnings): ?>
+      <div class="availability-debug-warnings" role="note">
+        <?php foreach ($availabilityWarnings as $warning): ?>
+          <p><?= store_admin_h($warning) ?></p>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
   </section>
 
   <form method="post" class="store-settings-form">

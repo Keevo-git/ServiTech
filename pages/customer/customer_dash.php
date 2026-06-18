@@ -59,7 +59,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 12px 20px 20px;
+      padding: 24px 20px 20px;
       box-sizing: border-box;
     }
 

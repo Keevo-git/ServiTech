@@ -136,6 +136,11 @@ function servitech_store_send_no_cache_headers(): void
     header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
 }
 
+function servitech_store_datetime_for_local_time(DateTimeImmutable $date, string $time, DateTimeZone $timezone): DateTimeImmutable
+{
+    return new DateTimeImmutable($date->format("Y-m-d") . " " . $time . ":00", $timezone);
+}
+
 function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = null): array
 {
     $timezone = new DateTimeZone("Asia/Manila");
@@ -160,6 +165,17 @@ function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = nul
     $effectiveStatus = "open";
     $opensAt = servitech_store_normalize_time($hours["opens_at"] ?? null);
     $closesAt = servitech_store_normalize_time($hours["closes_at"] ?? null);
+    $openingDateTime = $opensAt !== null
+        ? servitech_store_datetime_for_local_time($now, $opensAt, $timezone)
+        : null;
+    $closingDateTime = $closesAt !== null
+        ? servitech_store_datetime_for_local_time($now, $closesAt, $timezone)
+        : null;
+    $cutoffDateTime = servitech_store_datetime_for_local_time($now, $cutoff, $timezone);
+
+    if ($openingDateTime !== null && $cutoffDateTime <= $openingDateTime) {
+        $cutoffDateTime = $cutoffDateTime->modify("+1 day");
+    }
 
     if ($todayHoliday !== null) {
         $regularQueueAllowed = false;
@@ -174,11 +190,11 @@ function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = nul
         $effectiveStatus = "closed_today";
         $reasonCode = "closed_today";
     } else {
-        if ($opensAt === null || $closesAt === null || $currentTime < $opensAt || $currentTime >= $closesAt) {
+        if ($openingDateTime === null || $closingDateTime === null || $now < $openingDateTime || $now >= $closingDateTime) {
             $regularQueueAllowed = false;
             $effectiveStatus = "outside_hours";
             $reasonCode = "outside_hours";
-        } elseif ($currentTime > $cutoff) {
+        } elseif ($now > $cutoffDateTime) {
             $regularQueueAllowed = false;
             $effectiveStatus = "past_cutoff";
             $reasonCode = "past_cutoff";
@@ -226,6 +242,9 @@ function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = nul
         "current_time" => $currentTime,
         "current_datetime" => $now->format(DateTimeInterface::ATOM),
         "shop_timezone" => $timezone->getName(),
+        "opening_datetime" => $openingDateTime ? $openingDateTime->format(DateTimeInterface::ATOM) : null,
+        "closing_datetime" => $closingDateTime ? $closingDateTime->format(DateTimeInterface::ATOM) : null,
+        "cutoff_datetime" => $cutoffDateTime->format(DateTimeInterface::ATOM),
         "queue_cutoff_time" => $cutoff,
         "cutoff_time" => $cutoff,
         "queue_cutoff_label" => servitech_store_format_time($cutoff),

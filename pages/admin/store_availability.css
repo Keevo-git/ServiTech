@@ -105,8 +105,28 @@ body.store-settings-page {
 }
 
 .availability-debug-grid dd small {
+  display: block;
+  margin-top: 2px;
   color: #64748b;
   font-weight: 700;
+}
+
+.availability-debug-warnings {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.availability-debug-warnings p {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #f2d49b;
+  border-radius: 10px;
+  background: #fff8e8;
+  color: #8a5609;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .settings-panel__heading {
