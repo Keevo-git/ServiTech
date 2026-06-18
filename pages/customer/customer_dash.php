@@ -95,8 +95,8 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
       display: grid !important;
-      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-      gap: 20px !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 24px !important;
       align-items: stretch !important;
       margin-left: 0 !important;
       padding-left: 0 !important;
@@ -104,7 +104,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .quick-card-link {
       display: flex !important;
-      min-width: 230px !important;
+      min-width: 0 !important;
       max-width: none !important;
       align-self: stretch !important;
     }
@@ -112,15 +112,15 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     body.customer-layout.customer-page--dashboard .quick-card {
       display: flex !important;
       flex-direction: column !important;
-      justify-content: flex-start !important;
+      justify-content: center !important;
       align-items: center !important;
-      gap: 10px !important;
+      gap: 12px !important;
       width: 100% !important;
       height: 100% !important;
-      min-height: 178px !important;
-      padding: 18px 16px !important;
+      min-height: 184px !important;
+      padding: 30px 24px !important;
       border: 1px solid rgba(175, 108, 9, 0.14);
-      border-radius: 16px;
+      border-radius: 18px;
       background: #ffffff;
       box-shadow: 0 10px 24px rgba(74, 5, 5, 0.08);
       transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
@@ -854,10 +854,12 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
       body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
         grid-template-columns: 1fr !important;
+        gap: 16px !important;
       }
 
       body.customer-layout.customer-page--dashboard .quick-card {
-        min-height: 160px !important;
+        min-height: 150px !important;
+        padding: 22px 18px !important;
       }
 
       body.customer-layout.customer-page--dashboard .quick-access.quick-access-section {
@@ -1023,16 +1025,6 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
   <div class="divider"></div>
 
   <div class="quick-grid quick-access-grid">
-    <a href="/pages/customer/custo_place_queueing.php" class="quick-card-link">
-      <div class="quick-card">
-        <div class="quick-icon-box">
-          <span class="quick-access-icon-symbol" aria-hidden="true">&#x23F3;</span>
-        </div>
-        <h4>Join Queue</h4>
-        <p>Join the line to place your request.</p>
-      </div>
-    </a>
-
     <a href="/pages/customer/custo_service_status.php" class="quick-card-link">
       <div class="quick-card">
         <div class="quick-icon-box">
