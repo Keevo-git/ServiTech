@@ -336,13 +336,15 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__layout {
-      display: grid;
-      grid-template-columns: minmax(500px, 0.95fr) minmax(520px, 1.05fr);
-      align-items: center;
-      gap: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      width: 100%;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__welcome {
+      width: 100%;
       min-width: 0;
     }
 
@@ -358,8 +360,8 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       font-size: clamp(30px, 2.55vw, 37px);
       font-weight: 700;
       line-height: 1.12;
-      letter-spacing: -0.02em;
-      white-space: nowrap;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
       text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
@@ -383,12 +385,18 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability {
+      position: relative;
+      align-self: stretch;
+      width: 100%;
+      max-width: 760px;
+      margin-top: 24px;
       min-width: 0;
       padding: 16px 18px;
       border: 1px solid rgba(255, 255, 255, 0.28);
       border-radius: 14px;
       background: rgba(91, 36, 4, 0.15);
       backdrop-filter: blur(6px);
+      box-sizing: border-box;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-head {
@@ -781,13 +789,8 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     }
 
     @media (max-width: 1080px) {
-      body.customer-layout.customer-page--dashboard .customer-hero__layout {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-
-      body.customer-layout.customer-page--dashboard .customer-hero h2 {
-        white-space: normal;
+      body.customer-layout.customer-page--dashboard .customer-hero__availability {
+        max-width: none;
       }
     }
 
@@ -824,6 +827,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       }
 
       body.customer-layout.customer-page--dashboard .customer-hero__availability {
+        margin-top: 18px;
         padding: 12px;
       }
 
