@@ -539,6 +539,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       color: rgba(255, 255, 255, 0.92) !important;
       font-size: 12.5px;
       line-height: 1.35;
+      overflow-wrap: anywhere;
     }
 
     .queue-carousel-card {
@@ -1063,26 +1064,26 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
         </time>
       </div>
 
-      <div class="customer-hero__availability" aria-label="Store availability">
+      <div class="customer-hero__availability" aria-label="Store availability" data-live-store-status>
         <div class="customer-hero__availability-head">
           <strong>Store Status</strong>
-          <span class="customer-hero__status customer-hero__status--<?= htmlspecialchars($dashboardStatusTone, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($dashboardStatusText, ENT_QUOTES, "UTF-8") ?></span>
+          <span class="customer-hero__status customer-hero__status--<?= htmlspecialchars($dashboardStatusTone, ENT_QUOTES, "UTF-8") ?>" data-store-status-badge><?= htmlspecialchars($dashboardStatusText, ENT_QUOTES, "UTF-8") ?></span>
         </div>
         <dl class="customer-hero__availability-details">
           <div>
             <dt>Today's hours</dt>
-            <dd><span class="customer-hero__availability-time"><?= htmlspecialchars($storeAvailability["today_hours"], ENT_QUOTES, "UTF-8") ?></span></dd>
+            <dd><span class="customer-hero__availability-time" data-store-status-today-hours><?= htmlspecialchars($storeAvailability["today_hours"], ENT_QUOTES, "UTF-8") ?></span></dd>
           </div>
           <div>
             <dt>Queue until</dt>
-            <dd><span class="customer-hero__availability-time"><?= htmlspecialchars($storeAvailability["queue_cutoff_label"], ENT_QUOTES, "UTF-8") ?></span></dd>
+            <dd><span class="customer-hero__availability-time" data-store-status-queue-until><?= htmlspecialchars($storeAvailability["queue_cutoff_label"], ENT_QUOTES, "UTF-8") ?></span></dd>
           </div>
           <div>
             <dt>Online Document Print</dt>
-            <dd>Available</dd>
+            <dd data-store-status-document-print>Available</dd>
           </div>
         </dl>
-        <p class="customer-hero__availability-message"><?= htmlspecialchars($storeAvailability["customer_message"], ENT_QUOTES, "UTF-8") ?></p>
+        <p class="customer-hero__availability-message" data-store-status-message><?= htmlspecialchars($storeAvailability["customer_message"], ENT_QUOTES, "UTF-8") ?></p>
       </div>
     </div>
   </div>
@@ -1185,6 +1186,101 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     updateCustomerClock();
     window.setInterval(updateCustomerClock, 1000);
+  }
+
+  const storeStatusCard = document.querySelector("[data-live-store-status]");
+  const storeStatusState = {
+    endpoint: "/pages/customer/api/store_status.php",
+    version: null,
+    pollMs: 10000,
+    timer: null,
+    inFlight: false
+  };
+
+  const storeStatusClasses = [
+    "customer-hero__status--open",
+    "customer-hero__status--closed",
+    "customer-hero__status--paused",
+    "customer-hero__status--fully-booked"
+  ];
+
+  function getStoreStatusLabel(status) {
+    const normalized = String(status || "").toLowerCase();
+    if (normalized === "open") return "Currently Open";
+    if (normalized === "paused") return "Currently Paused";
+    if (normalized === "fully_booked" || normalized === "full_booked" || normalized === "fully-booked") return "Fully Booked";
+    return "Currently Closed";
+  }
+
+  function getStoreStatusClass(status) {
+    const normalized = String(status || "").toLowerCase();
+    if (normalized === "open") return "open";
+    if (normalized === "paused") return "paused";
+    if (normalized === "fully_booked" || normalized === "full_booked" || normalized === "fully-booked") return "fully-booked";
+    return "closed";
+  }
+
+  function setStoreStatusText(selector, value) {
+    const target = storeStatusCard ? storeStatusCard.querySelector(selector) : null;
+    if (!target || typeof value === "undefined" || value === null) return;
+    const next = String(value);
+    if (target.textContent !== next) {
+      target.textContent = next;
+    }
+  }
+
+  function renderStoreStatus(statusData) {
+    if (!storeStatusCard || !statusData || statusData.ok === false) return;
+
+    const badge = storeStatusCard.querySelector("[data-store-status-badge]");
+    const statusKey = statusData.status || statusData.reason_code || "";
+    const statusClass = statusData.status_class || getStoreStatusClass(statusKey);
+    const statusLabel = statusData.status_label || getStoreStatusLabel(statusKey);
+
+    if (badge) {
+      badge.textContent = statusLabel;
+      badge.classList.remove(...storeStatusClasses);
+      badge.classList.add(`customer-hero__status--${statusClass}`);
+    }
+
+    setStoreStatusText("[data-store-status-today-hours]", statusData.today_hours);
+    setStoreStatusText("[data-store-status-queue-until]", statusData.queue_until);
+    setStoreStatusText("[data-store-status-document-print]", statusData.online_document_print);
+    setStoreStatusText("[data-store-status-message]", statusData.message);
+  }
+
+  async function fetchLatestStoreStatus() {
+    if (!storeStatusCard || storeStatusState.inFlight) return;
+    storeStatusState.inFlight = true;
+
+    try {
+      const response = await fetch(`${storeStatusState.endpoint}?t=${Date.now()}`, {
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" },
+        cache: "no-store"
+      });
+
+      if (!response.ok) return;
+
+      const statusData = await response.json();
+      const nextVersion = statusData.version || JSON.stringify(statusData);
+      if (nextVersion !== storeStatusState.version) {
+        storeStatusState.version = nextVersion;
+        renderStoreStatus(statusData);
+      }
+    } catch (error) {
+      // Keep the server-rendered status when a transient network error happens.
+    } finally {
+      storeStatusState.inFlight = false;
+    }
+  }
+
+  if (storeStatusCard) {
+    fetchLatestStoreStatus();
+    storeStatusState.timer = window.setInterval(fetchLatestStoreStatus, storeStatusState.pollMs);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) fetchLatestStoreStatus();
+    });
   }
 </script>
 
