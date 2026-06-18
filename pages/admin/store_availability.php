@@ -201,7 +201,7 @@ $adminHeaderVariant = "special";
   <title>Store Availability</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/store_availability.css?v=20260615') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/store_availability.css?v=20260618-preview-ui') ?>">
 </head>
 <body class="store-settings-page">
 <?php require __DIR__ . "/_includes/admin_header.php"; ?>
@@ -237,73 +237,81 @@ $adminHeaderVariant = "special";
 
     <div class="availability-result-cards" aria-label="Current availability result">
       <article class="availability-result-card availability-result-card--primary">
-        <span>Current Store Result</span>
-        <strong><?= store_admin_h($availability["status_label"] ?? "Closed") ?></strong>
+        <span class="availability-result-card__label">Current Store Result</span>
+        <strong class="availability-status-badge availability-status-badge--<?= store_admin_h($availability["effective_status"] ?? "closed") ?>">
+          <?= store_admin_h($availability["status_label"] ?? "Closed") ?>
+        </strong>
         <small>Reason: <?= store_admin_h(str_replace("_", " ", (string)($availability["reason"] ?? "closed"))) ?></small>
       </article>
       <article class="availability-result-card">
-        <span>Regular Queue Available</span>
+        <span class="availability-result-card__label">Regular Queue Available</span>
         <strong class="availability-yesno availability-yesno--<?= !empty($availability["can_accept_regular_queue"]) ? "yes" : "no" ?>">
           <?= !empty($availability["can_accept_regular_queue"]) ? "Yes" : "No" ?>
         </strong>
       </article>
       <article class="availability-result-card">
-        <span>Online Document Printing Available</span>
+        <span class="availability-result-card__label">Online Document Printing Available</span>
         <strong class="availability-yesno availability-yesno--<?= !empty($availability["can_accept_online_printing"]) ? "yes" : "no" ?>">
           <?= !empty($availability["can_accept_online_printing"]) ? "Yes" : "No" ?>
         </strong>
       </article>
     </div>
 
-    <dl class="availability-info-grid">
-      <div>
-        <dt>Current Shop Date</dt>
-        <dd><?= store_admin_h(date("M j, Y", strtotime($availability["current_date"] ?? "now"))) ?></dd>
+    <div class="availability-info-grid" aria-label="Availability rule details">
+      <div class="availability-info-item">
+        <span class="availability-info-label">Current Shop Date</span>
+        <strong class="availability-info-value"><?= store_admin_h(date("M j, Y", strtotime($availability["current_date"] ?? "now"))) ?></strong>
       </div>
-      <div>
-        <dt>Current Day</dt>
-        <dd><?= store_admin_h($availability["current_day"] ?? "-") ?></dd>
+      <div class="availability-info-item">
+        <span class="availability-info-label">Current Day</span>
+        <strong class="availability-info-value"><?= store_admin_h($availability["current_day"] ?? "-") ?></strong>
       </div>
-      <div>
-        <dt>Current System Time</dt>
-        <dd><?= store_admin_h(date("g:i:s A", strtotime($availability["current_datetime"] ?? "now"))) ?></dd>
+      <div class="availability-info-item">
+        <span class="availability-info-label">Current System Time</span>
+        <strong class="availability-info-value"><?= store_admin_h(date("g:i:s A", strtotime($availability["current_datetime"] ?? "now"))) ?></strong>
       </div>
-      <div>
-        <dt>Shop Timezone</dt>
-        <dd><?= store_admin_h($availability["shop_timezone"] ?? "Asia/Manila") ?></dd>
+      <div class="availability-info-item">
+        <span class="availability-info-label">Shop Timezone</span>
+        <strong class="availability-info-value"><?= store_admin_h($availability["shop_timezone"] ?? "Asia/Manila") ?></strong>
       </div>
-      <div>
-        <dt>Today's Opening Time</dt>
-        <dd><?= store_admin_h(servitech_store_format_time($availability["today_hours_raw"]["opens_at"] ?? null)) ?></dd>
+      <div class="availability-info-item">
+        <span class="availability-info-label">Today's Opening Time</span>
+        <strong class="availability-info-value"><?= store_admin_h(servitech_store_format_time($availability["today_hours_raw"]["opens_at"] ?? null)) ?></strong>
       </div>
-      <div>
-        <dt>Today's Closing Time</dt>
-        <dd><?= store_admin_h(servitech_store_format_time($availability["today_hours_raw"]["closes_at"] ?? null)) ?></dd>
+      <div class="availability-info-item">
+        <span class="availability-info-label">Today's Closing Time</span>
+        <strong class="availability-info-value"><?= store_admin_h(servitech_store_format_time($availability["today_hours_raw"]["closes_at"] ?? null)) ?></strong>
       </div>
-      <div>
-        <dt>Queue Cutoff</dt>
-        <dd>
+      <div class="availability-info-item">
+        <span class="availability-info-label">Queue Cutoff</span>
+        <strong class="availability-info-value">
           <?= store_admin_h($availability["queue_cutoff_label"] ?? "Not set") ?>
           <?php if (!empty($availability["cutoff_datetime"])): ?>
             <small><?= store_admin_h(date("M j, g:i A", strtotime((string)$availability["cutoff_datetime"]))) ?></small>
           <?php endif; ?>
-        </dd>
+        </strong>
       </div>
-      <div>
-        <dt>Selected Store Status</dt>
-        <dd><?= store_admin_h(servitech_store_status_label((string)($availability["configured_status"] ?? "open"))) ?></dd>
+      <div class="availability-info-item">
+        <span class="availability-info-label">Selected Store Status</span>
+        <strong class="availability-status-badge availability-status-badge--<?= store_admin_h($availability["configured_status"] ?? "open") ?>">
+          <?= store_admin_h(servitech_store_status_label((string)($availability["configured_status"] ?? "open"))) ?>
+        </strong>
       </div>
-      <div>
-        <dt>Holiday Today</dt>
-        <dd>
-          <?php if (is_array($availability["today_holiday"] ?? null)): ?>
+      <div class="availability-info-item">
+        <span class="availability-info-label">Holiday Today</span>
+        <?php if (is_array($availability["today_holiday"] ?? null)): ?>
+          <strong class="availability-status-badge availability-status-badge--holiday">
             <?= store_admin_h(($availability["today_holiday"]["title"] ?? "Closed date") . " (" . ($availability["today_holiday"]["holiday_date"] ?? "") . ")") ?>
-          <?php else: ?>
-            None today
-          <?php endif; ?>
-        </dd>
+          </strong>
+        <?php else: ?>
+          <strong class="availability-status-badge availability-status-badge--open">None today</strong>
+        <?php endif; ?>
       </div>
-    </dl>
+      <div class="availability-info-item availability-info-item--wide">
+        <span class="availability-info-label">Reason</span>
+        <strong class="availability-info-value"><?= store_admin_h(str_replace("_", " ", (string)($availability["reason"] ?? "closed"))) ?></strong>
+      </div>
+    </div>
 
     <?php if ($availabilityWarnings): ?>
       <div class="availability-warning-callout" role="note">
