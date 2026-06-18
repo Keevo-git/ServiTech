@@ -76,7 +76,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
 
     const routes = {
       "document-printing": "custo2_docu_printing.php",
-      "xerox": "custo2_xerox.php",
+      "xerox": "custo2_photocopy.php",
       "rush-id": "custo2_rush_id.php",
       "laminating": "custo2_laminating.php"
     };

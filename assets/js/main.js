@@ -948,14 +948,18 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
   const qtyInput = document.getElementById("qtyInput");
   if (!qtyInput) return;
+  if (document.getElementById("summaryTotalPages") || window.servitechDocumentPrintPricing) return;
 
   const paperSizeSelect = document.getElementById("paperSizeSelect");
   const lamTypeSelect = document.getElementById("lamTypeSelect");
   const packageSelect = document.getElementById("packageSelect");
+  const paymentMethodSelect = document.getElementById("paymentMethodSelect");
   const colorRadios = document.querySelectorAll('input[name="color"]');
 
   const summaryPaperSize = document.getElementById("summaryPaperSize");
   const summaryPackage = document.getElementById("summaryPackage");
+  const summaryLamType = document.getElementById("summaryLamType");
+  const summaryPayment = document.getElementById("summaryPayment");
   const summaryQty = document.getElementById("summaryQty");
   const summaryTotal = document.getElementById("summaryTotal");
 
@@ -984,32 +988,49 @@ document.addEventListener("DOMContentLoaded", () => {
     if (packageSelect && summaryPackage) {
       const opt = packageSelect.options[packageSelect.selectedIndex];
       const label = opt?.textContent || "";
-      summaryPackage.textContent = label && label !== "Select a Package" ? label : "Not Selected";
+      summaryPackage.textContent = packageSelect.value && !opt?.disabled ? label : "Not Selected";
     }
 
-    let pricePerItem = defaultPrice;
+    if (lamTypeSelect && summaryLamType) {
+      const opt = lamTypeSelect.options[lamTypeSelect.selectedIndex];
+      summaryLamType.textContent = lamTypeSelect.value && !opt?.disabled ? (opt?.textContent || "Not Selected") : "Not Selected";
+    }
+
+    if (paymentMethodSelect && summaryPayment) {
+      const value = (paymentMethodSelect.value || "").trim().toLowerCase();
+      summaryPayment.textContent = value === "gcash" ? "GCash" : (value === "cash" ? "Cash" : "Not Selected");
+    }
+
+    let pricePerItem = 0;
+    let canCompute = qty > 0;
 
     if (lamTypeSelect) {
       const opt = lamTypeSelect.options[lamTypeSelect.selectedIndex];
-      const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : null;
-      pricePerItem = p !== null ? p : defaultPrice;
+      const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : NaN;
+      canCompute = canCompute && !!lamTypeSelect.value && !opt?.disabled && Number.isFinite(p);
+      pricePerItem = canCompute ? p : 0;
     } else if (packageSelect) {
       const opt = packageSelect.options[packageSelect.selectedIndex];
-      const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : 0;
-      pricePerItem = p;
+      const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : NaN;
+      canCompute = canCompute && !!packageSelect.value && !opt?.disabled && Number.isFinite(p);
+      pricePerItem = canCompute ? p : 0;
     } else if (isXerox && paperSizeSelect) {
       const size = paperSizeSelect.value;
-      pricePerItem = xeroxPriceMap[size] ?? 0;
+      canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(xeroxPriceMap[size]);
+      pricePerItem = canCompute ? xeroxPriceMap[size] : 0;
+    } else {
+      pricePerItem = defaultPrice;
     }
 
     if (summaryTotal) {
-      summaryTotal.textContent = `\u20B1${(qty * pricePerItem).toFixed(2)}`;
+      summaryTotal.textContent = canCompute ? `\u20B1${(qty * pricePerItem).toFixed(2)}` : "\u20B10.00";
     }
   }
 
   if (paperSizeSelect) paperSizeSelect.addEventListener("change", updateSummary);
   if (lamTypeSelect) lamTypeSelect.addEventListener("change", updateSummary);
   if (packageSelect) packageSelect.addEventListener("change", updateSummary);
+  if (paymentMethodSelect) paymentMethodSelect.addEventListener("change", updateSummary);
   qtyInput.addEventListener("input", updateSummary);
   colorRadios.forEach((r) => r.addEventListener("change", updateSummary));
 
@@ -1038,6 +1059,7 @@ document.addEventListener("DOMContentLoaded", () => {
       null,
     packageSelect: document.getElementById("packageSelect"),
     lamTypeSelect: document.getElementById("lamTypeSelect"),
+    paymentMethodSelect: document.getElementById("paymentMethodSelect"),
     repairServiceSelect: document.getElementById("repairServiceSelect"),
     deviceTypeSelect: document.getElementById("deviceTypeSelect"),
     installationTypeSelect: document.getElementById("installationTypeSelect"),
@@ -1081,6 +1103,7 @@ document.addEventListener("DOMContentLoaded", () => {
       refs.qtyInput,
       refs.packageSelect,
       refs.lamTypeSelect,
+      refs.paymentMethodSelect,
       refs.repairServiceSelect,
       refs.deviceTypeSelect,
       refs.installationTypeSelect,
@@ -1145,6 +1168,7 @@ document.addEventListener("DOMContentLoaded", () => {
       paper_size: refs.paperSizeSelect ? refs.paperSizeSelect.value : null,
       quantity: readQuantityValue(),
       color_option: getSelectedColor(),
+      payment_method: refs.paymentMethodSelect ? (refs.paymentMethodSelect.value || null) : null,
       package_label: refs.packageSelect
         ? (refs.packageSelect.options[refs.packageSelect.selectedIndex]?.textContent || null)
         : null,
@@ -1220,6 +1244,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (refs.lamTypeSelect && (!refs.lamTypeSelect.value || refs.lamTypeSelect.selectedOptions[0]?.disabled)) {
       errors.push("Select lamination type.");
       setFieldInvalid(refs.lamTypeSelect, true);
+    }
+
+    if (refs.paymentMethodSelect && (!payload.payment_method || refs.paymentMethodSelect.selectedOptions[0]?.disabled)) {
+      errors.push("Select payment method.");
+      setFieldInvalid(refs.paymentMethodSelect, true);
     }
 
     if (refs.repairServiceSelect && (!refs.repairServiceSelect.value || refs.repairServiceSelect.selectedOptions[0]?.disabled)) {

@@ -52,12 +52,7 @@ if (!in_array($payment_method, ["cash", "gcash"], true)) {
   $payment_method = "";
 }
 
-if ($payment_method === "gcash" && $reference_number === "") {
-  echo json_encode(["ok" => false, "error" => "Reference number is required for GCash payments."]);
-  exit();
-}
-
-if ($payment_method === "gcash" && !preg_match('/^\d{13}$/', $reference_number)) {
+if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d{13}$/', $reference_number)) {
   echo json_encode(["ok" => false, "error" => "GCash reference number must be exactly 13 digits."]);
   exit();
 }
@@ -76,12 +71,12 @@ $isDocumentPrinting = $category === "printing"
   && $service_label === "Document Printing";
 $serviceKind = servitech_pricing_service_kind($category, $service_label);
 $supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
-if ($isDocumentPrinting && $payment_method === "") {
-  echo json_encode(["ok" => false, "error" => "Select a payment method for Document Print."]);
+if (in_array($serviceKind, ["document_printing", "rush_id", "laminating", "xerox"], true) && $payment_method === "") {
+  echo json_encode(["ok" => false, "error" => "Select a payment method."]);
   exit();
 }
-if ($payment_method !== "" && !$isDocumentPrinting) {
-  echo json_encode(["ok" => false, "error" => "Payment options are only available for Document Print."]);
+if ($payment_method !== "" && $category !== "printing") {
+  echo json_encode(["ok" => false, "error" => "Payment options are only available for print services."]);
   exit();
 }
 

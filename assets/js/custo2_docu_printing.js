@@ -85,6 +85,7 @@
     var uploadedSignature = "";
     var analysisRequestSeq = 0;
     var isSubmitting = false;
+    var isAnalyzingFiles = false;
     var uploadTasks = {};
     var activeUploadSession = null;
     var fileAnalysisCache = {};
@@ -269,16 +270,25 @@
     function renderSummary() {
       syncClientPricing();
       var size = paperSizeSelect.value || "";
+      var color = getSelectedColor();
+      var qty = getEnteredQuantity();
+      var hasValidQty = Number.isFinite(qty) && qty > 0;
+      var hasReadyPages = (Number(state.total_pages) || 0) > 0;
+      var hasRequiredInputs = !!size && !!color && hasValidQty && hasAnyFiles();
       if (summaryPaperSize) {
         summaryPaperSize.textContent = size ? size : "Not Selected";
       }
       if (summaryColorOption) {
-        summaryColorOption.textContent = getSelectedColor() || "Not Selected";
+        summaryColorOption.textContent = color || "Not Selected";
       }
-      if (summaryQty) summaryQty.textContent = String(getQuantity());
+      if (summaryQty) summaryQty.textContent = hasValidQty ? String(qty) : "0";
       if (summaryTotalPages) summaryTotalPages.textContent = String(state.total_pages || 0);
-      if (summaryPricePerPage) summaryPricePerPage.textContent = toPeso(state.price_per_page || 0);
-      if (summaryTotal) summaryTotal.textContent = toPeso(state.estimated_total || 0);
+      if (summaryPricePerPage) summaryPricePerPage.textContent = size && color ? toPeso(state.price_per_page || 0) : toPeso(0);
+      if (summaryTotal) {
+        summaryTotal.textContent = isAnalyzingFiles && hasRequiredInputs
+          ? "Computing..."
+          : (hasRequiredInputs && hasReadyPages ? toPeso(state.estimated_total || 0) : toPeso(0));
+      }
     }
 
     function restoredFileCount() {
@@ -557,10 +567,12 @@
       }
 
       if (!pendingFiles.length) {
+        isAnalyzingFiles = false;
         resetAnalysis(true);
         return;
       }
 
+      isAnalyzingFiles = true;
       if (!activeUploadSession) {
         pendingFiles.forEach(function (file) {
           uploadTasks[fileKey(file)] = {
@@ -574,6 +586,7 @@
         });
         renderList();
       }
+      renderSummary();
 
       var formData = new FormData();
       formData.append("paper_size", requestPaperSize);
@@ -626,6 +639,7 @@
               readyTask.progress = 100;
               readyTask.message = "Processing complete. Ready to upload.";
             });
+            isAnalyzingFiles = false;
             resetAnalysis(true);
             return;
           }
@@ -638,6 +652,7 @@
             task.progress = 100;
             task.message = data.error || "File processing failed.";
           });
+          isAnalyzingFiles = false;
           resetAnalysis(true);
           setFeedback(state.error, "error");
           return;
@@ -661,6 +676,8 @@
           task.message = "Processing complete. Ready to upload.";
         });
         resetAnalysis(true);
+        isAnalyzingFiles = false;
+        renderSummary();
         setFeedback("", "error");
       } catch (err) {
         if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== analysisKey(pendingFiles)) {
@@ -675,6 +692,8 @@
           task.message = "File processing failed. Please try again.";
         });
         resetAnalysis(true);
+        isAnalyzingFiles = false;
+        renderSummary();
         setFeedback(state.error, "error");
       }
     }
@@ -756,6 +775,7 @@
       analysisRequestSeq++;
       if (acceptedFiles.length) {
         state.uploaded_files = [];
+        isAnalyzingFiles = true;
       }
       syncFileInput();
 
@@ -819,6 +839,7 @@
           delete uploadTasks[fileKey(removedFile)];
         }
         state.error = "";
+        isAnalyzingFiles = false;
         setFeedback("", "error");
         syncFileInput();
         resetAnalysis(true);
@@ -1266,6 +1287,7 @@
       selectedFiles = [];
       uploadedSignature = "";
       analysisRequestSeq++;
+      isAnalyzingFiles = false;
       uploadTasks = {};
       activeUploadSession = null;
       fileAnalysisCache = {};

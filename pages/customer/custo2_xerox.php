@@ -111,6 +111,17 @@ try {
       transform: translateY(-2px);
     }
 
+    body.customer-page--custo2 .order-summary-panel .form-actions {
+      flex-direction: row !important;
+      margin: 0 !important;
+      max-width: none !important;
+    }
+
+    body.customer-page--custo2 .order-summary-panel .form-actions .btn-back,
+    body.customer-page--custo2 .order-summary-panel .form-actions .btn-next {
+      width: auto !important;
+    }
+
     @media (max-width: 720px) {
       body.customer-page--custo2 .form-actions .btn-back,
       body.customer-page--custo2 .form-actions .btn-next {
@@ -152,6 +163,13 @@ try {
             <label for="qtyInput">Quantity / Copies<span class="required">*</span></label>
             <input type="number" min="1" value="1" class="form-input" id="qtyInput">
 
+            <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
+            <select class="form-select" id="paymentMethodSelect">
+              <option value="" selected disabled>Select payment method</option>
+              <option value="cash">Cash</option>
+              <option value="gcash">GCash</option>
+            </select>
+
             <label for="notes">Additional Instructions / Edit Request</label>
             <textarea class="form-textarea" id="notes"></textarea>
           </div>
@@ -183,6 +201,11 @@ try {
         <div class="summary-row">
           <span>QUANTITY:</span>
           <strong id="summaryQty">1</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>PAYMENT:</span>
+          <strong id="summaryPayment">Not Selected</strong>
         </div>
 
         <div class="summary-divider"></div>

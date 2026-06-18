@@ -177,6 +177,17 @@ function rush_price(array $pricing, string $key): string {
       transform: translateY(-2px);
     }
 
+    body.customer-page--custo2 .order-summary-panel .form-actions {
+      flex-direction: row !important;
+      margin: 0 !important;
+      max-width: none !important;
+    }
+
+    body.customer-page--custo2 .order-summary-panel .form-actions .btn-back,
+    body.customer-page--custo2 .order-summary-panel .form-actions .btn-next {
+      width: auto !important;
+    }
+
     @media (max-width: 720px) {
       body.customer-page--custo2 .form-actions .btn-back,
       body.customer-page--custo2 .form-actions .btn-next {
@@ -215,6 +226,13 @@ function rush_price(array $pricing, string $key): string {
               <option value="package4" data-price="<?= rush_price($rushPricing, "package4") ?>">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package4") ?></option>
               <option value="package5" data-price="<?= rush_price($rushPricing, "package5") ?>">Package 5: Passport size (4pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package5") ?></option>
               <option value="package6" data-price="<?= rush_price($rushPricing, "package6") ?>">Package 6: 1x1 (10pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package6") ?></option>
+            </select>
+
+            <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
+            <select class="form-select" id="paymentMethodSelect">
+              <option value="" selected disabled>Select payment method</option>
+              <option value="cash">Cash</option>
+              <option value="gcash">GCash</option>
             </select>
 
             <div class="two-col-fields">
@@ -284,6 +302,11 @@ function rush_price(array $pricing, string $key): string {
         <div class="summary-row">
           <span>QUANTITY:</span>
           <strong id="summaryQty">1</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>PAYMENT:</span>
+          <strong id="summaryPayment">Not Selected</strong>
         </div>
 
         <div class="summary-divider"></div>
