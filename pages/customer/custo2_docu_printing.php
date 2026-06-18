@@ -428,7 +428,7 @@ if (is_array($sessionPrintDraft)) {
       min-width: 7.5rem;
     }
 
-    .printing-page .summary-total strong.is-computing {
+    .printing-page .summary-total strong.is-pending-total {
       color: var(--printing-text-soft);
       font-size: 1rem;
     }
@@ -610,7 +610,7 @@ if (is_array($sessionPrintDraft)) {
 
         <div class="summary-total">
           <span>Estimated Total:</span>
-          <strong id="summaryTotal" class="is-computing">&mdash;</strong>
+          <strong id="summaryTotal" class="is-pending-total">&mdash;</strong>
         </div>
       </aside>
 
@@ -630,13 +630,13 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260611-queue-success"></script>
+<script src="/assets/js/main.js?v=20260619-doc-summary-skip"></script>
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260619-stable-summary"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260619-single-total-gate"></script>
 </body>
 </html>
 
