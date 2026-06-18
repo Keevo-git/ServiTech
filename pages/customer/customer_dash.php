@@ -66,7 +66,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     body.customer-layout.customer-page--dashboard .dashboard-content {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
     }
 
     body.customer-layout.customer-page--dashboard .customer-dashboard.cards-row {
@@ -324,8 +324,10 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .customer-hero__inner.hero-container {
       width: 100%;
+      height: auto;
+      min-height: unset;
       margin: 0;
-      padding: 20px 24px;
+      padding: clamp(24px, 3vw, 44px);
       box-sizing: border-box;
       border-radius: 16px;
       background:
@@ -337,9 +339,9 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .customer-hero__layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
+      grid-template-columns: minmax(0, 1.1fr) minmax(380px, 0.9fr);
       align-items: center;
-      gap: 24px;
+      gap: 28px;
       width: 100%;
     }
 
@@ -362,6 +364,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       line-height: 1.12;
       letter-spacing: 0;
       overflow-wrap: anywhere;
+      word-break: normal;
       text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
@@ -787,15 +790,21 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       color: #4f6485;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
       body.customer-layout.customer-page--dashboard .customer-hero__layout {
         grid-template-columns: 1fr;
         align-items: stretch;
-        gap: 0;
+        gap: 20px;
       }
 
       body.customer-layout.customer-page--dashboard .customer-hero__availability {
-        margin-top: 18px;
+        margin-top: 0;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body.customer-layout.customer-page--dashboard .customer-hero__layout {
+        gap: 18px;
       }
 
       body.customer-layout.customer-page--dashboard .quick-grid.quick-access-grid {
@@ -942,6 +951,16 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       .queue-item__meta {
         min-height: 20px;
         line-height: 20px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body.customer-layout.customer-page--dashboard .customer-hero__availability-details {
+        grid-template-columns: 1fr;
+      }
+
+      body.customer-layout.customer-page--dashboard .customer-hero__availability-details div:last-child {
+        grid-column: auto;
       }
     }
   </style>
