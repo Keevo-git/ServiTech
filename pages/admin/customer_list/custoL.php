@@ -57,7 +57,6 @@ function customer_code_from_id(int $id): string {
   <main class="admin-container cl-main">
     <div class="cl-wrap">
       <div class="cl-head">
-        <h2 class="cl-title">Customer List</h2>
         <a class="cl-btn cl-btn--maroon" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">View Queue</a>
       </div>
 

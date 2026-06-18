@@ -9,7 +9,7 @@
   box-shadow:0 16px 34px rgba(19,45,75,.12);
   padding:18px 18px 16px;
 }
-.ms-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.ms-head{ display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
 .ms-head h2{ margin:0; color:var(--maroon); font-weight:900; }
 .ms-head p{ margin:4px 0 0; color:#444; font-weight:600; font-size:13px; }
 

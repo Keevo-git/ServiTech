@@ -28,8 +28,10 @@
 .cl-head{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  margin-bottom: 16px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom: 18px;
 }
 
 .cl-title{
@@ -1099,7 +1101,7 @@
 @media (max-width: 900px){
   .cl-head{
     flex-direction:column;
-    align-items:flex-start;
+    align-items:flex-end;
     gap:10px;
   }
 
@@ -1142,6 +1144,16 @@
     grid-template-columns: 1fr;
   }
 
+}
+
+@media (max-width: 560px){
+  .cl-head{
+    align-items:stretch;
+  }
+
+  .cl-head .cl-btn{
+    width:100%;
+  }
 }
 
 @media (max-width: 560px){

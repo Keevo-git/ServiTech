@@ -123,10 +123,6 @@ require __DIR__ . "/../_includes/admin_header.php";
 <div class="ms-wrap">
   <div class="ms-card">
     <div class="ms-head">
-      <div>
-        <h2>Manage Services</h2>
-        <p>Manage and update services shown on the landing page</p>
-      </div>
       <button class="ms-add" id="msAdd">+ Add Services</button>
     </div>
 

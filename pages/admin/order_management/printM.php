@@ -122,9 +122,6 @@ require __DIR__ . "/../_includes/admin_header.php";
 <main class="admin-container">
   <div class="page-frame">
     <div class="page-inner">
-      <h2>Order Management</h2>
-      <p>View and manage all orders across services.</p>
-
       <div class="card-panel">
         <div class="panel-heading">
           <div class="panel-heading__copy">
