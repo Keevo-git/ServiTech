@@ -5478,3 +5478,59 @@ body.auth-page--register .agreement-row__error:not(:empty) {
   cursor: not-allowed !important;
 }
 
+/* Login options typography lock: keep Remember me and Forgot Password identical. */
+body.auth-page--login .auth-login-options {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  width: 100% !important;
+  margin: 2px 0 0 !important;
+}
+
+body.auth-page--login .remember-me-control,
+body.auth-page--login .remember-me-control span,
+body.auth-page--login .auth-login-options .forgot-link {
+  margin: 0 !important;
+  color: #6b2a1a !important;
+  font-family: inherit !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+}
+
+body.auth-page--login .remember-me-control {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+body.auth-page--login .remember-me-control input[type="checkbox"] {
+  margin: 0 !important;
+}
+
+body.auth-page--login .auth-login-options .forgot-link {
+  align-self: center !important;
+}
+
+body.auth-page--login .auth-login-options .forgot-link:hover,
+body.auth-page--login .auth-login-options .forgot-link:focus-visible {
+  color: #7f3420 !important;
+  opacity: 0.94 !important;
+  text-decoration: none !important;
+}
+
+@media (max-width: 420px) {
+  body.auth-page--login .auth-login-options {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  body.auth-page--login .auth-login-options .forgot-link {
+    align-self: flex-end !important;
+  }
+}
+
