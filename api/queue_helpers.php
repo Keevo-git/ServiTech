@@ -173,12 +173,186 @@ function servitech_generate_queue_code(PDO $pdo, string $prefix): string {
   return servitech_generate_queue_identity($pdo, $prefix)["queue_code"];
 }
 
+function servitech_notification_normalize_status_label(string $status): string {
+  $status = strtoupper(trim($status));
+  $status = preg_replace('/[\s_]+/', ' ', $status);
+
+  return match ($status) {
+    "FOR PICK UP", "FOR PICKUP" => "FOR PICK-UP",
+    "CANCELED" => "CANCELLED",
+    default => $status,
+  };
+}
+
+function servitech_notification_status_regex(string $status): string {
+  return match (servitech_notification_normalize_status_label($status)) {
+    "APPROVED" => "APPROVED",
+    "ONGOING" => "ONGOING",
+    "FOR PICK-UP" => "FOR[[:space:]-]+PICK[[:space:]-]*UP",
+    "DONE" => "DONE",
+    "CANCELLED" => "CANCELLED|CANCELED",
+    default => "",
+  };
+}
+
+function servitech_notification_status_event_from_message(string $message): ?array {
+  $message = trim($message);
+  if ($message === "") {
+    return null;
+  }
+
+  if (!preg_match('/\bis\s+now\s+(APPROVED|ONGOING|FOR\s+PICK-?UP|DONE|CANCELLED|CANCELED)\b/i', $message, $matches)) {
+    return null;
+  }
+
+  $status = servitech_notification_normalize_status_label((string)$matches[1]);
+  if (servitech_notification_status_regex($status) === "") {
+    return null;
+  }
+
+  $shortPattern = '/^\s*Your\s+[^()]+\s+\([^)]+\)\s+is\s+now\s+'
+    . '(APPROVED|ONGOING|FOR\s+PICK-?UP|DONE|CANCELLED|CANCELED)\.?\s*$/i';
+
+  return [
+    "status" => $status,
+    "is_full" => preg_match('/\(Queue ID:\s*[^)]+\)/i', $message) === 1,
+    "is_short" => preg_match($shortPattern, $message) === 1,
+  ];
+}
+
+function servitech_notification_target_is_customer(PDO $pdo, int $userId): bool {
+  if ($userId <= 0) {
+    return false;
+  }
+
+  static $cache = [];
+  if (array_key_exists($userId, $cache)) {
+    return $cache[$userId];
+  }
+
+  $stmt = $pdo->prepare("
+    SELECT LOWER(TRIM(COALESCE(NULLIF(role, ''), 'customer'))) <> 'admin'
+    FROM users
+    WHERE id = :id
+    LIMIT 1
+  ");
+  $stmt->execute([":id" => $userId]);
+  $cache[$userId] = (bool)$stmt->fetchColumn();
+
+  return $cache[$userId];
+}
+
+function servitech_customer_status_notification_has_fuller(PDO $pdo, int $userId, ?int $referenceId, string $status): bool {
+  if ($userId <= 0 || !$referenceId || $referenceId <= 0) {
+    return false;
+  }
+
+  $statusRegex = servitech_notification_status_regex($status);
+  if ($statusRegex === "") {
+    return false;
+  }
+
+  $stmt = $pdo->prepare("
+    SELECT EXISTS (
+      SELECT 1
+      FROM notifications
+      WHERE user_id = :user_id
+        AND COALESCE(reference_id, 0) = :reference_id
+        AND deleted_at IS NULL
+        AND message ~* :full_status_regex
+      LIMIT 1
+    )
+  ");
+  $stmt->execute([
+    ":user_id" => $userId,
+    ":reference_id" => $referenceId,
+    ":full_status_regex" => "\\(Queue ID:[[:space:]]*[^)]+\\)[[:space:]]+is[[:space:]]+now[[:space:]]+({$statusRegex})\\.",
+  ]);
+
+  return (bool)$stmt->fetchColumn();
+}
+
+function servitech_customer_status_notification_duplicate_conditions(array $statuses): array {
+  $conditions = [];
+  $parameters = [];
+
+  foreach (array_values(array_unique(array_map("servitech_notification_normalize_status_label", $statuses))) as $index => $status) {
+    $statusRegex = servitech_notification_status_regex($status);
+    if ($statusRegex === "") {
+      continue;
+    }
+
+    $fullKey = ":full_status_regex_" . $index;
+    $shortKey = ":short_status_regex_" . $index;
+    $conditions[] = "(keeper.message ~* {$fullKey} AND redundant.message ~* {$shortKey})";
+    $parameters[$fullKey] = "\\(Queue ID:[[:space:]]*[^)]+\\)[[:space:]]+is[[:space:]]+now[[:space:]]+({$statusRegex})\\.";
+    $parameters[$shortKey] = "^Your[[:space:]]+[^()]+[[:space:]]+\\([^)]+\\)[[:space:]]+is[[:space:]]+now[[:space:]]+({$statusRegex})\\.?[[:space:]]*$";
+  }
+
+  return [$conditions, $parameters];
+}
+
+function servitech_cleanup_customer_status_notification_duplicates(PDO $pdo, int $userId, ?int $referenceId = null, string $status = ""): void {
+  if ($userId <= 0 || !servitech_notification_target_is_customer($pdo, $userId)) {
+    return;
+  }
+
+  $statuses = trim($status) !== ""
+    ? [servitech_notification_normalize_status_label($status)]
+    : ["APPROVED", "ONGOING", "FOR PICK-UP", "DONE", "CANCELLED"];
+  [$statusConditions, $statusParameters] = servitech_customer_status_notification_duplicate_conditions($statuses);
+  if ($statusConditions === []) {
+    return;
+  }
+
+  $referenceClause = "";
+  $parameters = [":user_id" => $userId];
+  if ($referenceId !== null && $referenceId > 0) {
+    $referenceClause = "AND COALESCE(redundant.reference_id, 0) = :reference_id";
+    $parameters[":reference_id"] = $referenceId;
+  }
+
+  try {
+    $stmt = $pdo->prepare("
+      UPDATE notifications AS redundant
+      SET deleted_at = NOW()
+      FROM notifications AS keeper
+      WHERE redundant.user_id = :user_id
+        {$referenceClause}
+        AND redundant.deleted_at IS NULL
+        AND keeper.deleted_at IS NULL
+        AND keeper.user_id = redundant.user_id
+        AND COALESCE(keeper.reference_id, 0) = COALESCE(redundant.reference_id, 0)
+        AND keeper.id <> redundant.id
+        AND LOWER(TRIM(COALESCE(keeper.type, 'queue'))) IN ('status_update', 'queue_cancelled')
+        AND redundant.message !~* '\\(Queue ID:'
+        AND (" . implode(" OR ", $statusConditions) . ")
+    ");
+    $stmt->execute(array_merge($parameters, $statusParameters));
+  } catch (Throwable $exception) {
+    error_log("customer notification status dedupe cleanup failed: " . $exception->getMessage());
+  }
+}
+
 function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $referenceId, string $message, string $eventKey = "", bool $dedupeDeleted = false): void {
   $type = trim($type) !== "" ? trim($type) : "queue";
   $message = trim($message);
   $eventKey = trim($eventKey);
   if ($userId <= 0 || $message === "") {
     return;
+  }
+
+  $statusEvent = servitech_notification_status_event_from_message($message);
+  $isCustomerStatusEvent = $statusEvent !== null
+    && $referenceId !== null
+    && $referenceId > 0
+    && servitech_notification_target_is_customer($pdo, $userId);
+  if ($isCustomerStatusEvent && !empty($statusEvent["is_short"])) {
+    $status = (string)$statusEvent["status"];
+    if (servitech_customer_status_notification_has_fuller($pdo, $userId, $referenceId, $status)) {
+      servitech_cleanup_customer_status_notification_duplicates($pdo, $userId, $referenceId, $status);
+      return;
+    }
   }
 
   $rlsEnforced = function_exists("servitech_supabase_env_bool")
@@ -197,6 +371,9 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
       ":event_key" => $eventKey,
       ":dedupe_deleted" => $dedupeDeleted,
     ]);
+    if ($isCustomerStatusEvent) {
+      servitech_cleanup_customer_status_notification_duplicates($pdo, $userId, $referenceId, (string)$statusEvent["status"]);
+    }
     return;
   }
 
@@ -253,6 +430,10 @@ function servitech_add_notification(PDO $pdo, int $userId, string $type, ?int $r
     ":event_key" => $eventKey,
     ":dedupe_deleted" => $dedupeDeleted ? 1 : 0,
   ]);
+
+  if ($isCustomerStatusEvent) {
+    servitech_cleanup_customer_status_notification_duplicates($pdo, $userId, $referenceId, (string)$statusEvent["status"]);
+  }
 }
 
 function servitech_notify_admins(PDO $pdo, string $type, ?int $referenceId, string $message, string $eventKey = "", bool $dedupeDeleted = false): void {

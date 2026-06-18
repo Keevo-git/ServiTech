@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../api/queue_helpers.php";
 
 if (!function_exists("servitech_notification_bool")) {
     function servitech_notification_bool($value): bool
@@ -61,6 +62,7 @@ if (!function_exists("servitech_notification_fetch_all")) {
     function servitech_notification_fetch_all(PDO $pdo, int $userId, int $limit = 20): array
     {
         $limit = max(1, min($limit, 100));
+        servitech_cleanup_customer_status_notification_duplicates($pdo, $userId);
 
         $stmt = $pdo->prepare("
             WITH ranked_notifications AS (
@@ -107,6 +109,8 @@ if (!function_exists("servitech_notification_fetch_all")) {
 if (!function_exists("servitech_notification_unread_count")) {
     function servitech_notification_unread_count(PDO $pdo, int $userId): int
     {
+        servitech_cleanup_customer_status_notification_duplicates($pdo, $userId);
+
         $stmt = $pdo->prepare("
             WITH ranked_notifications AS (
                 SELECT
