@@ -149,7 +149,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-system-hide') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-actions-fix') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -242,7 +242,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                             data-recycle-action="permanent_delete"
                             data-id="<?= (int)$row["id"] ?>"
                             data-code="<?= htmlspecialchars((string)$row["queue_code"], ENT_QUOTES, "UTF-8") ?>"
-                          >Remove Permanently</button>
+                          >Delete</button>
                         </div>
                       </td>
                     </tr>
@@ -262,7 +262,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($schemaReady): ?>
-  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-recycle-system-hide') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-recycle-actions-fix') ?>" defer></script>
 <?php endif; ?>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>

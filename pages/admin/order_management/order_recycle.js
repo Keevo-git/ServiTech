@@ -26,9 +26,9 @@
       submit: "Restore Order",
     },
     permanent_delete: {
-      title: "Remove Permanently?",
+      title: "Permanently delete order?",
       message: "This order will be permanently removed from the system view, but the database record will remain stored.",
-      submit: "Remove Permanently",
+      submit: "Delete Permanently",
     },
   };
 
