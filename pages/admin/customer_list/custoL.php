@@ -37,7 +37,7 @@ function customer_code_from_id(int $id): string {
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260619-details-action') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260619-row-details') ?>">
 </head>
 
 <body>
@@ -63,10 +63,6 @@ function customer_code_from_id(int $id): string {
 
   <main class="admin-container cl-main">
     <div class="cl-wrap">
-      <div class="cl-head">
-        <a class="cl-btn cl-btn--maroon" href="<?= admin_url('/pages/admin/customer_list/customer_details.php?') ?>">View Details</a>
-      </div>
-
       <div class="cl-card">
         <div class="cl-toolbar">
           <div class="cl-search">
@@ -115,7 +111,10 @@ function customer_code_from_id(int $id): string {
                     <td class="cl-email"><?= htmlspecialchars($email) ?></td>
                     <td class="cl-contact"><?= htmlspecialchars($contact) ?></td>
                     <td>
-                      <button class="cl-btn cl-btn--message" type="button" data-message-customer>Message</button>
+                      <div class="cl-row-actions">
+                        <button class="cl-btn cl-btn--message" type="button" data-message-customer>Message</button>
+                        <a class="cl-btn cl-btn--details" href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, "UTF-8") ?>">View Details</a>
+                      </div>
                     </td>
                   </tr>
                 <?php endforeach; ?>
