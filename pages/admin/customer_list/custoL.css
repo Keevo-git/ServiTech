@@ -29,6 +29,7 @@
   display:flex;
   align-items:center;
   justify-content:flex-end;
+  width:100%;
   flex-wrap:wrap;
   gap:12px;
   margin-bottom: 18px;
@@ -1100,8 +1101,9 @@
 
 @media (max-width: 900px){
   .cl-head{
-    flex-direction:column;
+    flex-direction:row;
     align-items:flex-end;
+    justify-content:flex-end;
     gap:10px;
   }
 
@@ -1149,6 +1151,7 @@
 @media (max-width: 560px){
   .cl-head{
     align-items:stretch;
+    justify-content:stretch;
   }
 
   .cl-head .cl-btn{

@@ -102,7 +102,7 @@ require __DIR__ . "/../_includes/admin_header.php";
     </div>
     <div class="admin-hero-actions" aria-label="Order Management actions">
       <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
-      <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/order_management/recycle_bin.php') ?>">Recycle Bin</a>
+      <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Queue Management</a>
     </div>
   </section>
 

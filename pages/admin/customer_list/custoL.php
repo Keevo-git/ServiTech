@@ -37,7 +37,7 @@ function customer_code_from_id(int $id): string {
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260607-message-modal-premium') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260619-details-action') ?>">
 </head>
 
 <body>
@@ -64,7 +64,7 @@ function customer_code_from_id(int $id): string {
   <main class="admin-container cl-main">
     <div class="cl-wrap">
       <div class="cl-head">
-        <a class="cl-btn cl-btn--maroon" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">View Queue</a>
+        <a class="cl-btn cl-btn--maroon" href="<?= admin_url('/pages/admin/customer_list/customer_details.php?') ?>">View Details</a>
       </div>
 
       <div class="cl-card">

@@ -103,7 +103,7 @@ function ms_display_service_name($name): string {
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260614-matching-tabs') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260619-actions-left-add') ?>">
 </head>
 <body>
 
@@ -121,6 +121,8 @@ require __DIR__ . "/../_includes/admin_header.php";
     </div>
     <div class="admin-hero-actions" aria-label="Edit Services actions">
       <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
+      <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">View Queue</a>
+      <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">View Orders</a>
     </div>
   </section>
 
