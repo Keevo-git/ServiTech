@@ -1461,12 +1461,12 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
     .password-field input {
       width: 100%;
-      padding-right: 42px;
+      padding-right: 44px;
     }
 
     .password-toggle {
       position: absolute;
-      right: 6px;
+      right: 8px;
       top: 50%;
       transform: translateY(-50%);
       width: 34px;
@@ -1482,6 +1482,9 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       padding: 0;
       margin: 0;
       line-height: 1;
+      z-index: 4;
+      opacity: 1;
+      visibility: visible;
     }
 
     .password-field input::-ms-reveal,
@@ -1498,12 +1501,28 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
     .password-toggle svg,
     .password-toggle i {
-      display: block;
+      display: none;
       width: 18px;
       height: 18px;
       line-height: 1;
       margin: 0;
       pointer-events: none;
+    }
+
+    .password-toggle::before {
+      content: "";
+      display: block;
+      width: 18px;
+      height: 18px;
+      background-color: currentColor;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center / contain no-repeat;
+      pointer-events: none;
+    }
+
+    .password-toggle.is-password-visible::before {
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 2l20 20'/%3E%3Cpath d='M10.6 10.6a2 2 0 0 0 2.8 2.8'/%3E%3Cpath d='M9.5 4.3A10.8 10.8 0 0 1 12 4c5 0 9 4.5 10 8a11.8 11.8 0 0 1-2 3.5'/%3E%3Cpath d='M6.1 6.1A11.8 11.8 0 0 0 2 12c1 3.5 5 8 10 8a10.8 10.8 0 0 0 4.1-.8'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 2l20 20'/%3E%3Cpath d='M10.6 10.6a2 2 0 0 0 2.8 2.8'/%3E%3Cpath d='M9.5 4.3A10.8 10.8 0 0 1 12 4c5 0 9 4.5 10 8a11.8 11.8 0 0 1-2 3.5'/%3E%3Cpath d='M6.1 6.1A11.8 11.8 0 0 0 2 12c1 3.5 5 8 10 8a10.8 10.8 0 0 0 4.1-.8'/%3E%3C/svg%3E");
     }
 
     .password-toggle:hover,
@@ -1637,7 +1656,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
 
       .password-toggle {
-        right: 6px;
+        right: 8px;
       }
     }
     .profile-summary {
@@ -1825,12 +1844,12 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     body.customer-page--profile .password-field input {
-      padding-right: 42px !important;
+      padding-right: 44px !important;
     }
 
     body.customer-page--profile .password-toggle {
       position: absolute !important;
-      right: 6px !important;
+      right: 8px !important;
       top: 50% !important;
       transform: translateY(-50%) !important;
       width: 34px;
@@ -1839,6 +1858,20 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       min-height: 0;
       line-height: 1;
       white-space: normal;
+      z-index: 4 !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      color: #111111 !important;
+    }
+
+    body.customer-page--profile .password-toggle::before {
+      display: block !important;
+      flex: 0 0 auto;
+    }
+
+    body.customer-page--profile .password-toggle svg,
+    body.customer-page--profile .password-toggle i {
+      display: none !important;
     }
 
     @media (max-width: 1100px) {
@@ -1996,7 +2029,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
 
       body.customer-page--profile .password-field input {
-        padding-right: 42px !important;
+        padding-right: 44px !important;
       }
 
       body.customer-page--profile .action-buttons {
