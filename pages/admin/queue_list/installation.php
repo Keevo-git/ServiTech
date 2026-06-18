@@ -79,7 +79,7 @@ require __DIR__ . "/../_includes/admin_header.php";
     <div class="page-inner">
       <div class="panel">
         <div class="tabs" role="tablist">
-          <a class="tab" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Printing</a>
+          <a class="tab" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Print</a>
           <a class="tab" href="<?= admin_url('/pages/admin/queue_list/repair.php') ?>">Repair</a>
           <a class="tab active" href="<?= admin_url('/pages/admin/queue_list/installation.php') ?>">Installation</a>
         </div>

@@ -692,7 +692,7 @@ if ($isConfirmed) {
               </div>
               <div class="print-payment-meta-row">
                 <span>Service</span>
-                <strong>Document Printing</strong>
+                <strong>Document Print</strong>
               </div>
             </div>
           </div>

@@ -119,7 +119,7 @@ require __DIR__ . "/../_includes/admin_header.php";
         <div class="orders-scroll-wrapper">
           <div class="orders-content">
             <div class="order-tabs">
-              <a class="tab" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
+              <a class="tab" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Print</a>
               <a class="tab" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
               <a class="tab active" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
             </div>

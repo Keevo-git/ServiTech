@@ -69,18 +69,22 @@ function om_service_label(array $details, string $fallback): string
 {
     $label = om_detail_value($details, ["service_label", "service", "service_type", "installation_type", "repair_type"], $fallback);
     $legacyPrintingLabels = [
+        "document printing",
+        "document print",
         "online print order",
         "online document printing",
+        "online document print",
         "online printing",
         "walk-in printing",
         "walk-in document printing",
+        "walk-in document print",
         "walkin printing",
         "print walk-in",
         "print online",
     ];
 
     return in_array(strtolower(trim($label)), $legacyPrintingLabels, true)
-        ? "Document Printing"
+        ? "Document Print"
         : $label;
 }
 
@@ -88,7 +92,7 @@ function om_category_label(string $serviceType, string $serviceLabel): string
 {
     $combined = strtolower(trim($serviceType . " " . $serviceLabel));
     if (str_contains($combined, "print") || str_contains($combined, "xerox") || str_contains($combined, "laminat") || str_contains($combined, "rush id")) {
-        return "Printing";
+        return "Print";
     }
     if (str_contains($combined, "installation")) {
         return "Installation";
@@ -149,8 +153,8 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
     $payment = servitech_queue_payment_values($row);
     $serviceLabel = om_service_label($details, $fallbackService);
     $categoryLabel = om_category_label($serviceType, $serviceLabel);
-    if ($categoryLabel === "Printing" && in_array(strtolower(trim($serviceLabel)), ["online", "walk-in", "walk in", "walkin"], true)) {
-        $serviceLabel = "Document Printing";
+    if ($categoryLabel === "Print" && in_array(strtolower(trim($serviceLabel)), ["online", "walk-in", "walk in", "walkin"], true)) {
+        $serviceLabel = "Document Print";
     }
 
     return [

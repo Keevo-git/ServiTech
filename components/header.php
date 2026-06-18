@@ -449,7 +449,7 @@ $notificationRoutes = [
                   <span>All</span><strong data-notification-filter-count="all">0</strong>
                 </button>
                 <button type="button" class="notification-filter" data-notification-filter="printing">
-                  <span>Printing</span>
+                  <span>Print</span>
                 </button>
                 <button type="button" class="notification-filter" data-notification-filter="repair">
                   <span>Repair</span>
@@ -1563,7 +1563,7 @@ $notificationRoutes = [
       }
 
       function categoryLabel(category) {
-        if (category === "printing") return "Printing";
+        if (category === "printing") return "Print";
         if (category === "repair") return "Repair";
         if (category === "installation") return "Installation";
         return "Update";

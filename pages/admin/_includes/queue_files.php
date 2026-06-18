@@ -189,8 +189,8 @@ function admin_notification_category_label(string $category): string
 {
     $category = strtolower(trim($category));
     return match ($category) {
-        "online_printorder", "printing_online" => "Printing",
-        "printing", "walkin", "printing_walkin" => "Printing",
+        "online_printorder", "printing_online" => "Print",
+        "printing", "walkin", "printing_walkin" => "Print",
         "repair" => "Repair",
         "installation" => "Installation",
         default => $category !== "" ? ucwords(str_replace(["_", "-"], " ", $category)) : "Admin Update",
@@ -204,16 +204,20 @@ function admin_notification_service_label(array $queue): string
     if ($service !== "") {
         $normalized = strtolower($service);
         if (in_array($normalized, [
+            "document printing",
+            "document print",
             "online document printing",
+            "online document print",
             "online print order",
             "online printing",
             "walk-in document printing",
+            "walk-in document print",
             "walk-in printing",
             "walkin printing",
             "print walk-in",
             "print online",
         ], true)) {
-            return "Printing";
+            return "Document Print";
         }
         return $service;
     }

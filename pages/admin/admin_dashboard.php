@@ -77,7 +77,7 @@ require __DIR__ . "/_includes/admin_header.php";
       >
         <?= $onlineOrders ?>
       </div>
-      <p class="stat-note">Document printing requests</p>
+      <p class="stat-note">Document print requests</p>
     </div>
 
     <div class="stat stat--queue">

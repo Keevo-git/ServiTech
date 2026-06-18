@@ -1143,7 +1143,7 @@ if (!function_exists("admin_notification_render_center")) {
                 <?php
                 $serviceFilters = [
                     "all" => "All Services",
-                    "printing" => "Printing",
+                    "printing" => "Print",
                     "repair" => "Repair",
                     "installation" => "Installation",
                 ];

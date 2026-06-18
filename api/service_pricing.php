@@ -11,7 +11,14 @@ function servitech_pricing_service_kind(string $category, string $serviceLabel):
   $category = strtolower(trim($category));
   $label = strtolower(servitech_pricing_clean_service_label($serviceLabel));
 
-  if ($category === "online_printorder" || $label === "document printing" || $label === "online print order") {
+  if (
+    $category === "online_printorder"
+    || $label === "document printing"
+    || $label === "document print"
+    || $label === "online document printing"
+    || $label === "online document print"
+    || $label === "online print order"
+  ) {
     return "document_printing";
   }
   if ($label === "xerox") return "xerox";
@@ -328,7 +335,7 @@ function servitech_pricing_validate_admin_catalog(string $category, string $name
   if ($kind === "document_printing") {
     foreach (["long", "short", "a4"] as $paper) {
       if ($validated[$paper . "Full"] < $validated[$paper . "Half"]) {
-        throw new DomainException("Document Printing full-color prices cannot be lower than half-color prices.");
+        throw new DomainException("Document Print full-color prices cannot be lower than half-color prices.");
       }
     }
   }

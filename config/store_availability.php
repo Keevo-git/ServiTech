@@ -203,13 +203,13 @@ function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = nul
 
     $messages = [
         "open" => "We are open today. Queue requests are accepted until " . servitech_store_format_time($cutoff) . ".",
-        "closed" => "Regular queue requests are unavailable right now. Online Document Printing is still available.",
-        "paused" => "Queue requests are temporarily paused. Online Document Printing is still available.",
-        "fully_booked" => "We are fully booked today. Online Document Printing is still available.",
-        "holiday" => "We are closed today" . ($todayHoliday ? " for " . trim((string)$todayHoliday["title"]) : "") . ". Online Document Printing is still available.",
-        "closed_today" => "We are closed today. Online Document Printing is still available.",
-        "outside_hours" => "Regular queue requests are outside today's shop hours. Online Document Printing is still available.",
-        "past_cutoff" => "Regular queue is closed for today. Online Document Printing is still available.",
+        "closed" => "Regular queue requests are unavailable right now. Online Document Print is still available.",
+        "paused" => "Queue requests are temporarily paused. Online Document Print is still available.",
+        "fully_booked" => "We are fully booked today. Online Document Print is still available.",
+        "holiday" => "We are closed today" . ($todayHoliday ? " for " . trim((string)$todayHoliday["title"]) : "") . ". Online Document Print is still available.",
+        "closed_today" => "We are closed today. Online Document Print is still available.",
+        "outside_hours" => "Regular queue requests are outside today's shop hours. Online Document Print is still available.",
+        "past_cutoff" => "Regular queue is closed for today. Online Document Print is still available.",
     ];
 
     $todayHours = empty($hours["is_open"])
@@ -265,7 +265,9 @@ function servitech_store_is_document_printing(string $category, string $serviceL
     $label = strtolower(trim((string)preg_replace('/\s+/', ' ', $serviceLabel)));
     return $category === "online_printorder"
         || $label === "document printing"
+        || $label === "document print"
         || $label === "online document printing"
+        || $label === "online document print"
         || $label === "online print order";
 }
 

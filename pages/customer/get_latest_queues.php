@@ -46,7 +46,7 @@ function queue_status_tone($status) {
 function queue_category_meta(string $categoryKey): array {
   return match ($categoryKey) {
     "printing" => [
-      "label" => "Printing",
+      "label" => "Print",
       "sql" => "(q.category IN (:category_printing, :category_online_printorder, :category_printing_online, :category_walkin, :category_printing_walkin) OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%')",
       "params" => [
         ":category_printing" => "printing",
@@ -73,12 +73,16 @@ function normalize_service_label(string $serviceLabel, string $fallbackLabel): s
   $serviceLabel = trim($serviceLabel);
   if ($serviceLabel === "") return $fallbackLabel;
   if (in_array(strtolower($serviceLabel), [
+    "document printing",
+    "document print",
     "online print order",
     "online printing",
     "online document printing",
+    "online document print",
     "walk-in printing",
     "walk-in document printing",
-  ], true)) return "Document Printing";
+    "walk-in document print",
+  ], true)) return "Document Print";
   return $serviceLabel;
 }
 

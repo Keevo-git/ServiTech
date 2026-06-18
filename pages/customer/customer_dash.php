@@ -971,7 +971,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
             <dd><?= htmlspecialchars($storeAvailability["queue_cutoff_label"], ENT_QUOTES, "UTF-8") ?></dd>
           </div>
           <div>
-            <dt>Online Document Printing</dt>
+            <dt>Online Document Print</dt>
             <dd>Available</dd>
           </div>
         </dl>
@@ -993,8 +993,8 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
         </span>
-        <span class="queue-service-card__label">Printing</span>
-        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note">Online Document Printing is available.</span><?php endif; ?>
+        <span class="queue-service-card__label">Print</span>
+        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note">Online Document Print is available.</span><?php endif; ?>
       </a>
 
       <a href="<?= $storeAvailability["regular_queue_allowed"] ? "/pages/customer/custo1_repair_option.php" : "#" ?>"

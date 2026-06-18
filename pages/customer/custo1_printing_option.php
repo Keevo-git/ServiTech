@@ -13,7 +13,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ServiTech: Printing Options</title>
+  <title>ServiTech: Print Options</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
@@ -39,7 +39,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
 
       <select id="serviceType" class="form-select">
         <option value="" selected disabled>Select A Service</option>
-        <option value="document-printing">Document Printing</option>
+        <option value="document-printing">Document Print</option>
         <option value="xerox" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Xerox<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>
         <option value="rush-id" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Rush ID<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>
         <option value="laminating" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Laminating<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>

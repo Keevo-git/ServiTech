@@ -22,18 +22,22 @@ function queue_ui_normalize_service_label(string $serviceLabel): string
 {
     $normalized = strtolower(trim($serviceLabel));
     $legacyPrintingLabels = [
+        "document printing",
+        "document print",
         "online print order",
         "online document printing",
+        "online document print",
         "online printing",
         "walk-in printing",
         "walk-in document printing",
+        "walk-in document print",
         "walkin printing",
         "print walk-in",
         "print online",
     ];
 
     return in_array($normalized, $legacyPrintingLabels, true)
-        ? "Document Printing"
+        ? "Document Print"
         : trim($serviceLabel);
 }
 
@@ -44,9 +48,9 @@ function queue_ui_category_label(array $row, string $serviceLabel): string
 
     if (
         in_array($category, ["printing", "online_printorder", "printing_online", "walkin", "printing_walkin", "xerox", "rush-id", "laminating"], true)
-        || in_array($normalizedService, ["document printing", "xerox", "rush id", "laminating"], true)
+        || in_array($normalizedService, ["document print", "xerox", "rush id", "laminating"], true)
     ) {
-        return "Printing";
+        return "Print";
     }
     if ($category === "installation" || str_contains($normalizedService, "installation")) {
         return "Installation";
@@ -134,8 +138,8 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
     $payment = servitech_queue_payment_values($row);
     $serviceLabel = queue_ui_normalize_service_label($serviceLabel);
     $categoryLabel = queue_ui_category_label($row, $serviceLabel);
-    if ($categoryLabel === "Printing" && in_array(strtolower($serviceLabel), ["online", "walk-in", "walk in", "walkin"], true)) {
-        $serviceLabel = "Document Printing";
+    if ($categoryLabel === "Print" && in_array(strtolower($serviceLabel), ["online", "walk-in", "walk in", "walkin"], true)) {
+        $serviceLabel = "Document Print";
     }
 
     return [

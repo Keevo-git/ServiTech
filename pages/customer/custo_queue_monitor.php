@@ -35,7 +35,7 @@ function qm_status_tone($status): string {
 function qm_category_meta(string $categoryKey): array {
   return match ($categoryKey) {
     "printing" => [
-      "label" => "Printing",
+      "label" => "Print",
       "sql" => "(q.category IN (:category_printing, :category_online_printorder, :category_printing_online, :category_walkin, :category_printing_walkin) OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%')",
       "params" => [
         ":category_printing" => "printing",
@@ -62,11 +62,15 @@ function qm_normalize_service_label(string $serviceLabel, string $fallbackLabel)
   $serviceLabel = trim($serviceLabel);
   if ($serviceLabel === "") return $fallbackLabel;
   if (in_array(strtolower($serviceLabel), [
+    "document printing",
+    "document print",
     "online print order",
     "online printing",
     "online document printing",
+    "online document print",
     "walk-in printing",
     "walk-in document printing",
+    "walk-in document print",
     "walkin printing",
     "print walk-in",
     "print online",
@@ -74,7 +78,7 @@ function qm_normalize_service_label(string $serviceLabel, string $fallbackLabel)
     "walk-in",
     "walk in",
     "walkin",
-  ], true)) return "Document Printing";
+  ], true)) return "Document Print";
   return $serviceLabel;
 }
 

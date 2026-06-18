@@ -40,7 +40,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
           <span class="queue-service-card__media">
             <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
           </span>
-          <span class="queue-service-card__label">Printing</span>
+          <span class="queue-service-card__label">Print</span>
         </button>
 
         <button type="button" class="queue-service-card" data-service="repair" aria-pressed="false"

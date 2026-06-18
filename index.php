@@ -124,12 +124,12 @@ try {
         data-service-modal="printing"
         role="button"
         tabindex="0"
-        aria-label="Open Printing Service details"
+        aria-label="Open Print Service details"
         onclick="openServiceModal('printing')"
         onkeydown="handleServiceCardKeydown(event, 'printing')"
       >
-        <img src="/assets/images/CARD_PRINTING.png" alt="Printing Service">
-        <h3>Printing Service</h3>
+        <img src="/assets/images/CARD_PRINTING.png" alt="Print Service">
+        <h3>Print Service</h3>
       </div>
 
       <div
@@ -190,7 +190,7 @@ try {
         </div>
 
         <div class="landing-store-detail landing-store-detail--printing">
-          <span class="landing-store-detail__label">Online Document Printing</span>
+          <span class="landing-store-detail__label">Online Document Print</span>
           <strong>Available</strong>
         </div>
 

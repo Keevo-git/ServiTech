@@ -37,7 +37,7 @@ function rb_service_label(array $row): string
     $details = admin_queue_details_array($row["details"] ?? null);
 
     if (in_array($category, ["online_printorder", "printing_online", "printing", "walkin", "printing_walkin"], true)) {
-        return om_service_label($details, "Document Printing");
+        return om_service_label($details, "Document Print");
     }
 
     return om_service_label($details, match ($category) {

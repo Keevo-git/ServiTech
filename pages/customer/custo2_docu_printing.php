@@ -5,7 +5,7 @@ servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
-$documentPrintingLabel = "Document Printing";
+$documentPrintingLabel = "Document Print";
 $printDraft = [];
 $printPricing = [
   "long_full_price" => 10.0,
@@ -73,7 +73,7 @@ try {
     $halfPrice = document_printing_extract_price($description, "Half") ?? $defaultPrice;
     $fullPrice = document_printing_extract_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($halfPrice, $defaultPrice));
 
-    // Document Printing uses fixed color prices across supported paper sizes.
+    // Document Print uses fixed color prices across supported paper sizes.
   }
 } catch (Throwable $e) {
   // Keep the order form usable if the service table is unavailable.
@@ -496,7 +496,7 @@ if (is_array($sessionPrintDraft)) {
             </div>
 
             <div id="paymentSection" class="payment-section printing-field">
-              <span class="payment-section__label">Document Printing Payment</span>
+              <span class="payment-section__label">Document Print Payment</span>
               <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
               <select class="form-select" id="paymentMethodSelect">
                 <option value="" selected>Select payment method</option>

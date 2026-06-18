@@ -1416,7 +1416,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
           <span class="status-filter-label">Category</span>
           <select id="categoryFilter" class="status-filter-control">
             <option value="">All Categories</option>
-            <option value="printing">Printing</option>
+            <option value="printing">Print</option>
             <option value="repair">Repair</option>
             <option value="installation">Installation</option>
           </select>
@@ -1729,13 +1729,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (/^(online|walk-?in)\s+(document\s+)?printing$/i.test(raw)
       || /^online\s+print\s*order$/i.test(raw)
       || /^(online_printorder|printing_online|printing_walkin|walkin)$/i.test(raw)) {
-      return /print\s*order|document/i.test(raw) ? "Document Printing" : "Printing";
+      return /print\s*order|document/i.test(raw) ? "Document Print" : "Print";
     }
 
     return raw
       .replace(/print\s*order/ig, "Print Order")
       .replace(/printorder/ig, "Print Order")
-      .replace(/document\s*printing/ig, "Document Printing")
+      .replace(/document\s*printing/ig, "Document Print")
       .replace(/rush\s*id/ig, "Rush ID");
   }
 
@@ -1758,14 +1758,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const compact = normalizedRaw.replace(/[^a-z0-9]/gi, "").toLowerCase();
     const knownLabels = {
       printorder: "Print Order",
-      documentprinting: "Document Printing",
-      onlineprintorder: "Document Printing",
-      onlineprinting: "Document Printing",
-      onlinedocumentprinting: "Document Printing",
-      walkinprinting: "Document Printing",
-      walkindocumentprinting: "Document Printing",
-      printwalkin: "Document Printing",
-      printonline: "Document Printing",
+      documentprinting: "Document Print",
+      onlineprintorder: "Document Print",
+      onlineprinting: "Document Print",
+      onlinedocumentprinting: "Document Print",
+      walkinprinting: "Document Print",
+      walkindocumentprinting: "Document Print",
+      printwalkin: "Document Print",
+      printonline: "Document Print",
       rushid: "Rush ID",
       openlinesamsungiphone: "Openline Samsung & iPhone",
       bypassgoogleaccount: "Bypass Google Account",
@@ -2805,8 +2805,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       </div>
       <hr class="queue-card__divider">
       <p class="queue-card__meta">
-        <strong>${esc(isDocumentPrinting(q) ? "Document Printing" : formatServiceLabel(q.service_label || "Service"))}</strong>
-        <small>${esc(isDocumentPrinting(q) ? "Printing" : formatLabel(q.category || ""))}</small>
+        <strong>${esc(isDocumentPrinting(q) ? "Document Print" : formatServiceLabel(q.service_label || "Service"))}</strong>
+        <small>${esc(isDocumentPrinting(q) ? "Print" : formatLabel(q.category || ""))}</small>
       </p>
     `;
 
@@ -3207,10 +3207,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (modalTitleText) modalTitleText.textContent = card.dataset.queue ? `Queue ${card.dataset.queue}` : "Queue Details";
     document.getElementById("modalQueueRef").textContent = card.dataset.queue || "Not available";
     document.getElementById("modalType").textContent = isDocumentPrinting(queueData)
-      ? "Printing"
+      ? "Print"
       : formatLabel(card.dataset.type || "");
     document.getElementById("modalService").textContent = isDocumentPrinting(queueData)
-      ? "Document Printing"
+      ? "Document Print"
       : (card.dataset.service || "");
     document.getElementById("modalSubmittedAt").textContent = formatDateTime(queueData.created_at);
     const completedRow = document.getElementById("modalCompletedAtRow");

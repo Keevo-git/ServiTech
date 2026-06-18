@@ -14,7 +14,7 @@
 
       if (typeof window.openQueueSuccessModal === "function") {
         window.openQueueSuccessModal(queueCode, {
-          service: "Document Printing",
+          service: "Document Print",
           note: "Your payment details were submitted. You can check your queue status while the shop reviews your order."
         });
       } else {

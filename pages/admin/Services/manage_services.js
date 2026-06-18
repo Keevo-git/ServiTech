@@ -206,13 +206,13 @@
 
     if (fPriceHint) {
       fPriceHint.textContent = enabled
-        ? "Document Printing uses fixed color prices for Long Bond, Short Bond, and A4."
+        ? "Document Print uses fixed color prices for Long Bond, Short Bond, and A4."
         : "Choose Full or Half when editing print price lines inside the description.";
     }
     if (fDescriptionHint) {
       fDescriptionHint.textContent = enabled
         ? "The customer page keeps the paper/color groups fixed and uses these price fields."
-        : "Use newline-separated entries. For Document Printing, paper and color groups are fixed on the customer page.";
+        : "Use newline-separated entries. For Document Print, paper and color groups are fixed on the customer page.";
     }
 
     if (!enabled) return;

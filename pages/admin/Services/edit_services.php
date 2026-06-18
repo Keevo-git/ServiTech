@@ -10,8 +10,8 @@ try {
   
   if ($count === 0) {
     $seedData = [
-      // Printing Services
-      ['printing', 'Document Printing', "Short Bond Paper (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nShort Bond Paper (B&W)\n₱5.00\n\nA4 (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nA4 (B&W)\n₱5.00", 5.00, 1, 0],
+      // Print Services
+      ['printing', 'Document Print', "Short Bond Paper (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nShort Bond Paper (B&W)\n₱5.00\n\nA4 (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nA4 (B&W)\n₱5.00", 5.00, 1, 0],
       ['printing', 'Xerox', "Long Bond Paper: ₱5\nShort Bond Paper: ₱3\nA4: ₱3", 3.00, 1, 1],
       ['printing', 'Rush ID', "Choose between packages 1-6.\nPrice varies by selected package.", 30.00, 1, 2],
       ['printing', 'Laminating', "Manipis / Thin: ₱20\nMakapal / Thick: ₱30", 20.00, 1, 3],
@@ -127,7 +127,7 @@ require __DIR__ . "/../_includes/admin_header.php";
     </div>
 
     <div class="ms-tabs">
-      <a class="ms-tab <?= $tab==="printing"?"active":"" ?>" href="?tab=printing">Printing</a>
+      <a class="ms-tab <?= $tab==="printing"?"active":"" ?>" href="?tab=printing">Print</a>
       <a class="ms-tab <?= $tab==="repair"?"active":"" ?>" href="?tab=repair">Repair</a>
       <a class="ms-tab <?= $tab==="installation"?"active":"" ?>" href="?tab=installation">Installation</a>
     </div>
@@ -197,7 +197,7 @@ require __DIR__ . "/../_includes/admin_header.php";
         <div class="ms-field">
           <label>Category</label>
           <select id="ms_category">
-            <option value="printing">Printing</option>
+            <option value="printing">Print</option>
             <option value="repair">Repair</option>
             <option value="installation">Installation</option>
           </select>
@@ -213,13 +213,13 @@ require __DIR__ . "/../_includes/admin_header.php";
 
       <div class="ms-field">
         <label>Service Name</label>
-        <input id="ms_name" type="text" placeholder="e.g., Document Printing">
+        <input id="ms_name" type="text" placeholder="e.g., Document Print">
       </div>
 
       <div class="ms-field">
         <label>Description</label>
         <textarea id="ms_description" placeholder="Short Bond Paper (Colored)\nFull - 10.00\nHalf - 5.00\n\nShort Bond Paper (B&W)\n5.00"></textarea>
-        <small id="ms_description_hint">Use newline-separated entries. For Document Printing, paper and color groups are fixed on the customer page.</small>
+        <small id="ms_description_hint">Use newline-separated entries. For Document Print, paper and color groups are fixed on the customer page.</small>
       </div>
 
       <div class="ms-field">

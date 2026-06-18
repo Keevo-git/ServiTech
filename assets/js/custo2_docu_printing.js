@@ -987,7 +987,7 @@
       var fileNames = currentFileNames();
       return {
         category: "printing",
-        service_label: "Document Printing",
+        service_label: "Document Print",
         paper_size: paperSizeSelect.value || null,
         quantity: getEnteredQuantity(),
         color_option: getSelectedColor(),
@@ -1029,7 +1029,7 @@
       }
 
       if (!payload.payment_method) {
-        errors.push("Select a payment method for Document Printing.");
+        errors.push("Select a payment method for Document Print.");
         setFieldInvalid(paymentMethodSelect, true);
       }
 
@@ -1094,7 +1094,7 @@
       if (!queueModal || !modalQueueNo) return;
       if (typeof window.openQueueSuccessModal === "function") {
         window.openQueueSuccessModal(queueCode, {
-          service: "Document Printing"
+          service: "Document Print"
         });
         return;
       }

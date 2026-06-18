@@ -250,7 +250,7 @@ $adminHeaderVariant = "special";
         </strong>
       </article>
       <article class="availability-result-card">
-        <span class="availability-result-card__label">Online Document Printing Available</span>
+        <span class="availability-result-card__label">Online Document Print Available</span>
         <strong class="availability-yesno availability-yesno--<?= !empty($availability["can_accept_online_printing"]) ? "yes" : "no" ?>">
           <?= !empty($availability["can_accept_online_printing"]) ? "Yes" : "No" ?>
         </strong>
@@ -333,7 +333,7 @@ $adminHeaderVariant = "special";
     <section class="settings-panel settings-panel--status">
       <div class="settings-panel__heading">
         <div><span>2</span><h2>Store Status Settings</h2></div>
-        <p>This status overrides the regular schedule. Online Document Printing remains available in every state.</p>
+        <p>This status overrides the regular schedule. Online Document Print remains available in every state.</p>
       </div>
       <div class="status-options">
         <?php
@@ -380,7 +380,7 @@ $adminHeaderVariant = "special";
     <section class="settings-panel">
       <div class="settings-panel__heading">
         <div><span>4</span><h2>Queue Cutoff Rules</h2></div>
-        <p>After this time, regular walk-in and service queue requests stop for the day. Online Document Printing stays available.</p>
+        <p>After this time, regular walk-in and service queue requests stop for the day. Online Document Print stays available.</p>
       </div>
       <label class="cutoff-field">Stop accepting regular queue requests after
         <input type="time" name="queue_cutoff_time" value="<?= store_admin_h($snapshot["queue_cutoff_time"]) ?>" required>

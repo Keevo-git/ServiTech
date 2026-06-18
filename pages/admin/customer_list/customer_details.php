@@ -52,11 +52,11 @@ function cd_details_array($details): array {
 function cd_category_label(string $category): string {
   $category = strtolower(trim($category));
   return match ($category) {
-    "online_printorder" => "Printing",
-    "printing" => "Printing",
+    "online_printorder" => "Print",
+    "printing" => "Print",
     "repair" => "Repair",
     "installation" => "Installation",
-    "walkin", "printing_walkin" => "Printing",
+    "walkin", "printing_walkin" => "Print",
     default => $category !== "" ? ucwords(str_replace("_", " ", $category)) : "-",
   };
 }
@@ -75,9 +75,14 @@ function cd_service_type(array $row): string {
   $category = strtolower(trim((string)($row["category"] ?? "")));
   $normalizedLabel = strtolower(trim(preg_replace('/[\s_-]+/', ' ', $label)));
   $legacyPrintingLabels = [
+    "document printing",
+    "document print",
     "online print order",
     "online document printing",
+    "online document print",
     "online printing",
+    "walk in document printing",
+    "walk in document print",
     "walk in printing",
     "walkin printing",
   ];
@@ -86,7 +91,7 @@ function cd_service_type(array $row): string {
     in_array($normalizedLabel, $legacyPrintingLabels, true)
     || in_array($category, ["online_printorder", "walkin", "printing_walkin"], true)
   ) {
-    return "Document Printing";
+    return "Document Print";
   }
 
   return $label !== "" ? $label : cd_category_label($category);

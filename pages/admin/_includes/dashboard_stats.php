@@ -75,7 +75,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
                 'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin'
             )
                 OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
-                THEN 'Printing'
+                THEN 'Print'
             ELSE COALESCE(
                 NULLIF(TRIM(details->>'service_label'), ''),
                 CASE
@@ -105,8 +105,8 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
             CASE
                 WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('online_printorder', 'printing_online')
                     OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
-                    THEN 'Printing'
-                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('printing', 'walkin', 'printing_walkin') THEN 'Printing'
+                    THEN 'Print'
+                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('printing', 'walkin', 'printing_walkin') THEN 'Print'
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'repair' THEN 'Repair'
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'installation' THEN 'Installation'
                 ELSE 'Other'

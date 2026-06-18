@@ -97,7 +97,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Order Management - Printing</title>
+  <title>Order Management - Print</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
@@ -138,13 +138,13 @@ require __DIR__ . "/../_includes/admin_header.php";
         <div class="orders-scroll-wrapper">
           <div class="orders-content">
             <div class="order-tabs">
-              <a class="tab active" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Printing</a>
+              <a class="tab active" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">Print</a>
               <a class="tab" href="<?= admin_url('/pages/admin/order_management/repairM.php') ?>">Repair</a>
               <a class="tab" href="<?= admin_url('/pages/admin/order_management/installationM.php') ?>">Installation</a>
             </div>
 
             <div class="table-section">
-              <div class="section-title-small">Printing - Document printing requests</div>
+              <div class="section-title-small">Print - Document print requests</div>
               <?php om_render_filter_toolbar("onlineOrdersTable", true, $online); ?>
               <div class="table-scroll-wrapper">
                 <table id="onlineOrdersTable" class="orders table-content order-table order-table--online">
@@ -191,7 +191,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                                 class="btn-primary view-order-btn"
                                 type="button"
                                 data-id="<?= (int)$r["id"] ?>"
-                                data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true, "allowApproved" => true]), "Printing", "Document Printing") ?>"
+                                data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true, "allowApproved" => true]), "Print", "Document Print") ?>"
                               >View</button>
                               <?php if ($orderRecycleReady): ?>
                                 <button class="delete-order-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>">Move to Bin</button>

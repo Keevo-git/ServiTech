@@ -46,12 +46,12 @@ function servitech_get_print_order_queue_meta(string $orderType): array {
     "online" => [
       "category" => "printing",
       "prefix" => "P",
-      "label" => "Document Printing",
+      "label" => "Document Print",
     ],
     "walkin" => [
       "category" => "printing",
       "prefix" => "P",
-      "label" => "Document Printing",
+      "label" => "Document Print",
     ],
     default => [
       "category" => "",

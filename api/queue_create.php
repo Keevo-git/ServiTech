@@ -64,8 +64,9 @@ if ($payment_method === "gcash" && !preg_match('/^\d{13}$/', $reference_number))
 
 $prefix = servitech_get_queue_prefix_for_category($category);
 
-// Document Printing always uses the unified printing queue.
-if ($service_label === "Document Printing" || $category === "online_printorder") {
+// Document Print always uses the unified print queue. Keep the stored label compatible with existing records.
+$normalizedServiceLabel = strtolower(trim((string)preg_replace('/\s+/', ' ', $service_label)));
+if (in_array($normalizedServiceLabel, ["document printing", "document print", "online document printing", "online document print"], true) || $category === "online_printorder") {
   $category = "printing";
   $prefix = "P";
   $service_label = "Document Printing";
@@ -76,11 +77,11 @@ $isDocumentPrinting = $category === "printing"
 $serviceKind = servitech_pricing_service_kind($category, $service_label);
 $supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
 if ($isDocumentPrinting && $payment_method === "") {
-  echo json_encode(["ok" => false, "error" => "Select a payment method for Document Printing."]);
+  echo json_encode(["ok" => false, "error" => "Select a payment method for Document Print."]);
   exit();
 }
 if ($payment_method !== "" && !$isDocumentPrinting) {
-  echo json_encode(["ok" => false, "error" => "Payment options are only available for Document Printing."]);
+  echo json_encode(["ok" => false, "error" => "Payment options are only available for Document Print."]);
   exit();
 }
 

@@ -263,11 +263,11 @@ function closeModal(id) {
 const serviceModalData = {
   printing: {
     category: "printing",
-    title: "Printing Service",
-    description: "Review printing options, available sizes, packages, and pricing details.",
+    title: "Print Service",
+    description: "Review print options, available sizes, packages, and pricing details.",
     cards: [
       {
-        title: "Document Printing",
+        title: "Document Print",
         icon: "print",
         lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
         detailKey: "documentPrinting",
@@ -313,7 +313,7 @@ let serviceDataLoadPromise = null;
 
 const serviceModalDetailData = {
   documentPrinting: {
-    title: "Document Printing",
+    title: "Document Print",
     cards: [
       { title: "Long Bond Paper (Colored)", lines: ["Full – ₱10.00", "Half – ₱5.00"] },
       { title: "Long Bond Paper (B&W)", lines: ["₱5.00"] },
@@ -385,6 +385,13 @@ function bindServiceDetailCards(bodyEl) {
       }
     });
   });
+}
+
+function displayServiceName(name) {
+  return String(name || "")
+    .replace(/\bDocument\s+Printing\b/gi, "Document Print")
+    .replace(/\bPrinting\s+Service\b/gi, "Print Service")
+    .replace(/\bPrinting\b/g, "Print");
 }
 
 async function openServiceModal(sectionId) {
@@ -460,10 +467,10 @@ function escCloseServiceDetailModal(e) {
   if (e.key === "Escape") closeServiceDetailModal();
 }
 
-serviceModalData.printing.description = "Review printing options, available sizes, packages, and pricing details.";
+serviceModalData.printing.description = "Review print options, available sizes, packages, and pricing details.";
 serviceModalData.printing.cards = [
   {
-    title: "Document Printing",
+    title: "Document Print",
     icon: "print",
     lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
     detailKey: "documentPrinting",
@@ -508,7 +515,7 @@ serviceModalData.installation.cards = [
 ];
 
 serviceModalDetailData.documentPrinting.description = "Review document formats, print styles, and price ranges.";
-serviceModalDetailData.documentPrinting.title = "Document Printing Price Ranges";
+serviceModalDetailData.documentPrinting.title = "Document Print Price Ranges";
 serviceModalDetailData.documentPrinting.cards = [
   { title: "Long Bond Paper (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
   { title: "Long Bond Paper (B&W)", icon: "print", lines: ["\u20B15.00"] },
@@ -595,7 +602,7 @@ function getServiceCardFallbackLine(category, serviceName) {
   const normalizedName = String(serviceName || "").toLowerCase();
 
   if (category === "printing") {
-    if (normalizedName.includes("document printing")) return "Print documents using common paper sizes and color options.";
+    if (normalizedName.includes("document print")) return "Print documents using common paper sizes and color options.";
     if (normalizedName.includes("xerox")) return "Photocopy service for common paper sizes.";
     if (normalizedName.includes("rush id")) return "ID photo packages for common size requirements.";
     if (normalizedName.includes("laminat")) return "Protect documents with thin or thick laminating options.";
@@ -659,7 +666,7 @@ async function loadServicesFromDatabase() {
         }
 
         return {
-          title: service.name,
+          title: displayServiceName(service.name),
           icon: getServiceIconKey(category, service.name),
           lines: lines.length > 0 ? lines : [service.description || ""],
           priceLabel: formatServicePrice(service.price),
@@ -1098,7 +1105,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const title = (document.title || "").toLowerCase();
 
-    if (title.includes("document printing")) serviceLabel = "Document Printing";
+    if (title.includes("document print")) serviceLabel = "Document Print";
     if (title.includes("xerox")) serviceLabel = "Xerox";
     if (title.includes("laminating")) serviceLabel = "Laminating";
     if (title.includes("rush id")) serviceLabel = "Rush ID";

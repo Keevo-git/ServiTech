@@ -24,10 +24,14 @@ function status_class($status): string {
 
 function service_label($category, $details = null): string {
   $legacyPrintingLabels = [
+    "document printing",
+    "document print",
     "online document printing",
+    "online document print",
     "online print order",
     "online printing",
     "walk-in document printing",
+    "walk-in document print",
     "walk-in printing",
     "walkin printing",
     "print walk-in",
@@ -38,19 +42,19 @@ function service_label($category, $details = null): string {
     $decoded = json_decode($details, true);
     if (is_array($decoded) && trim((string)($decoded["service_label"] ?? "")) !== "") {
       $label = trim((string)$decoded["service_label"]);
-      return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Printing" : $label;
+      return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Print" : $label;
     }
   } elseif (is_array($details) && trim((string)($details["service_label"] ?? "")) !== "") {
     $label = trim((string)$details["service_label"]);
-    return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Printing" : $label;
+    return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Print" : $label;
   }
 
   $map = [
-    "printing" => "Document Printing",
-    "online_printorder" => "Document Printing",
-    "printing_online" => "Document Printing",
-    "walkin" => "Document Printing",
-    "printing_walkin" => "Document Printing",
+    "printing" => "Document Print",
+    "online_printorder" => "Document Print",
+    "printing_online" => "Document Print",
+    "walkin" => "Document Print",
+    "printing_walkin" => "Document Print",
     "xerox" => "Xerox",
     "rush-id" => "Rush ID",
     "laminating" => "Laminating",
@@ -115,7 +119,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Queue Management - Printing</title>
+  <title>Queue Management - Print</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
@@ -140,7 +144,7 @@ require __DIR__ . "/../_includes/admin_header.php";
     <div class="page-inner">
       <div class="panel">
         <div class="tabs" role="tablist">
-          <a class="tab active" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Printing</a>
+          <a class="tab active" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">Print</a>
           <a class="tab" href="<?= admin_url('/pages/admin/queue_list/repair.php') ?>">Repair</a>
           <a class="tab" href="<?= admin_url('/pages/admin/queue_list/installation.php') ?>">Installation</a>
         </div>
@@ -161,7 +165,7 @@ require __DIR__ . "/../_includes/admin_header.php";
             <tbody>
             <?php if (!$rows): ?>
               <tr>
-                <td colspan="6" style="text-align:center;padding:18px;color:#666;">No printing queues yet.</td>
+                <td colspan="6" style="text-align:center;padding:18px;color:#666;">No print queues yet.</td>
               </tr>
             <?php else: ?>
               <?php foreach ($rows as $r): ?>

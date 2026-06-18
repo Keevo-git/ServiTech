@@ -263,7 +263,7 @@ try {
     $paymentMethod = strtolower(trim((string)($data["payment_method"] ?? ($currentDetails["payment_method"] ?? ""))));
     $referenceNumber = trim((string)($data["reference_number"] ?? ""));
     if (!in_array($paymentMethod, ["cash", "gcash"], true)) {
-      throw new DomainException("Payment method is required for Document Printing.");
+      throw new DomainException("Payment method is required for Document Print.");
     }
     if ($paymentMethod === "gcash" && $referenceNumber === "") {
       throw new DomainException("Reference number is required for GCash payments.");
