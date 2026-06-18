@@ -5633,3 +5633,33 @@ body.auth-page--login .auth-login-options .forgot-link {
   }
 }
 
+/* Final shared text class for login option labels. */
+body.auth-page--login .auth-login-options .login-option-text,
+body.auth-page--login .auth-login-options .remember-me-control .login-option-text,
+body.auth-page--login .auth-login-options a.login-option-text.forgot-link {
+  color: #6b1a1a !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-stretch: normal !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-decoration: none !important;
+  text-size-adjust: 100% !important;
+  text-transform: none !important;
+  transform: none !important;
+  zoom: 1 !important;
+  -webkit-text-size-adjust: 100% !important;
+}
+
+body.auth-page--login .auth-login-options a.login-option-text.forgot-link:hover,
+body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-visible {
+  color: #8a2a1f !important;
+  text-decoration: none !important;
+  transform: none !important;
+}
+

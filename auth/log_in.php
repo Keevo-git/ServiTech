@@ -11,7 +11,7 @@ $csrfToken = servitech_csrf_token();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Login</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260618-remember-mobile-row") ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260618-login-option-text") ?>">
 </head>
 <body class="auth-page auth-page--login">
 
@@ -59,9 +59,9 @@ $csrfToken = servitech_csrf_token();
           <div class="auth-login-options">
             <label class="remember-me-control" for="rememberMe">
               <input id="rememberMe" name="remember_me" type="checkbox" value="1">
-              <span>Remember me</span>
+              <span class="login-option-text">Remember me</span>
             </label>
-            <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link">Forgot Password?</a>
+            <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link login-option-text">Forgot Password?</a>
           </div>
         </div>
 
