@@ -425,6 +425,12 @@ if (is_array($sessionPrintDraft)) {
     .printing-page .summary-total strong {
       color: var(--printing-accent);
       font-size: 1.18rem;
+      min-width: 7.5rem;
+    }
+
+    .printing-page .summary-total strong.is-computing {
+      color: var(--printing-text-soft);
+      font-size: 1rem;
     }
 
     .printing-page .summary-divider {
@@ -597,14 +603,14 @@ if (is_array($sessionPrintDraft)) {
 
         <div class="summary-row">
           <span>PRICE / PAGE:</span>
-          <strong id="summaryPricePerPage">&#8369;0.00</strong>
+          <strong id="summaryPricePerPage">&mdash;</strong>
         </div>
 
         <div class="summary-divider"></div>
 
         <div class="summary-total">
           <span>Estimated Total:</span>
-          <strong id="summaryTotal">&#8369;0.00</strong>
+          <strong id="summaryTotal" class="is-computing">&mdash;</strong>
         </div>
       </aside>
 
@@ -630,7 +636,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260614-document-printing-prices"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260619-stable-summary"></script>
 </body>
 </html>
 

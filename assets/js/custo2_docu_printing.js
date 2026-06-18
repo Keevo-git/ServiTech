@@ -137,7 +137,6 @@
       }
 
       state.price_per_page = pricePerPage;
-      state.estimated_total = Math.max(0, Number(state.total_pages) || 0) * pricePerPage * getQuantity();
     }
 
     function getQuantity() {
@@ -267,7 +266,7 @@
       fileUpload.files = dt.files;
     }
 
-    function renderSummary() {
+    function updateOrderSummary() {
       syncClientPricing();
       var size = paperSizeSelect.value || "";
       var color = getSelectedColor();
@@ -275,6 +274,13 @@
       var hasValidQty = Number.isFinite(qty) && qty > 0;
       var hasReadyPages = (Number(state.total_pages) || 0) > 0;
       var hasRequiredInputs = !!size && !!color && hasValidQty && hasAnyFiles();
+      var canShowFinalTotal = hasRequiredInputs && hasReadyPages && !isAnalyzingFiles;
+      var finalTotal = canShowFinalTotal
+        ? qty * (Number(state.total_pages) || 0) * (Number(state.price_per_page) || 0)
+        : 0;
+
+      state.estimated_total = canShowFinalTotal ? finalTotal : 0;
+
       if (summaryPaperSize) {
         summaryPaperSize.textContent = size ? size : "Not Selected";
       }
@@ -283,11 +289,12 @@
       }
       if (summaryQty) summaryQty.textContent = hasValidQty ? String(qty) : "0";
       if (summaryTotalPages) summaryTotalPages.textContent = String(state.total_pages || 0);
-      if (summaryPricePerPage) summaryPricePerPage.textContent = size && color ? toPeso(state.price_per_page || 0) : toPeso(0);
+      if (summaryPricePerPage) summaryPricePerPage.textContent = size && color ? toPeso(state.price_per_page || 0) : "\u2014";
       if (summaryTotal) {
+        summaryTotal.classList.toggle("is-computing", !canShowFinalTotal);
         summaryTotal.textContent = isAnalyzingFiles && hasRequiredInputs
           ? "Computing..."
-          : (hasRequiredInputs && hasReadyPages ? toPeso(state.estimated_total || 0) : toPeso(0));
+          : (canShowFinalTotal ? toPeso(finalTotal) : "\u2014");
       }
     }
 
@@ -547,7 +554,7 @@
       }
 
       renderList();
-      renderSummary();
+      updateOrderSummary();
     }
 
     async function analyzeSelectedFiles() {
@@ -586,7 +593,7 @@
         });
         renderList();
       }
-      renderSummary();
+      updateOrderSummary();
 
       var formData = new FormData();
       formData.append("paper_size", requestPaperSize);
@@ -677,7 +684,7 @@
         });
         resetAnalysis(true);
         isAnalyzingFiles = false;
-        renderSummary();
+        updateOrderSummary();
         setFeedback("", "error");
       } catch (err) {
         if (requestSeq !== analysisRequestSeq || requestAnalysisKey !== analysisKey(pendingFiles)) {
@@ -693,7 +700,7 @@
         });
         resetAnalysis(true);
         isAnalyzingFiles = false;
-        renderSummary();
+        updateOrderSummary();
         setFeedback(state.error, "error");
       }
     }
@@ -819,7 +826,7 @@
 
       refreshSavedFileTotals();
       renderList();
-      renderSummary();
+      updateOrderSummary();
     }
 
     function removeSelectedByIndex(index) {
@@ -1255,7 +1262,7 @@
     }
 
     var debouncedPricingUpdate = debounce(function () {
-      renderSummary();
+      updateOrderSummary();
     }, 80);
 
     fileUpload.addEventListener("change", function (e) {
@@ -1302,12 +1309,12 @@
       state.error = "";
       syncFileInput();
       renderList();
-      renderSummary();
+      updateOrderSummary();
     });
 
     restoreDraft();
     resetAnalysis(true);
-    renderSummary();
+    updateOrderSummary();
     updatePaymentUi();
   });
 })();
