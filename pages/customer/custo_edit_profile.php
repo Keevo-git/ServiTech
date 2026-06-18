@@ -825,18 +825,20 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       position: absolute;
       top: 0.9rem;
       right: 0.9rem;
-      width: 38px;
-      height: 38px;
-      display: grid;
-      place-items: center;
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border: 1px solid rgba(122, 47, 0, 0.12);
-      border-radius: 12px;
+      border-radius: 14px;
       background: #fff7ec;
       color: #7a2f00;
       cursor: pointer;
       font-size: 1.25rem;
       font-weight: 800;
       line-height: 1;
+      padding: 0;
       transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
@@ -846,6 +848,14 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14);
       outline: none;
       transform: translateY(-1px);
+    }
+
+    .confirm-modal__close span,
+    .confirm-modal__close svg,
+    .confirm-modal__close i {
+      display: block;
+      line-height: 1;
+      margin: 0;
     }
 
     .confirm-modal__header {
@@ -1425,25 +1435,42 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 
     .password-field {
       position: relative;
-      display: flex;
-      align-items: center;
+      display: block;
     }
 
     .password-field input {
-      padding-right: 5rem;
+      width: 100%;
+      padding-right: 48px;
     }
 
     .password-toggle {
       position: absolute;
-      right: 0.75rem;
+      right: 14px;
       top: 50%;
       transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border: 0;
       background: transparent;
       color: #a14b10;
       font-weight: 700;
       cursor: pointer;
-      padding: 0.25rem 0.35rem;
+      padding: 0;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .password-toggle svg,
+    .password-toggle i {
+      display: block;
+      width: 18px;
+      height: 18px;
+      line-height: 1;
+      margin: 0;
+      pointer-events: none;
     }
 
     .password-toggle:hover,
@@ -1577,7 +1604,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
 
       .password-toggle {
-        right: 0.65rem;
+        right: 14px;
       }
     }
     .profile-summary {
@@ -1765,14 +1792,16 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     body.customer-page--profile .password-field input {
-      padding-right: 4.6rem;
+      padding-right: 48px;
     }
 
     body.customer-page--profile .password-toggle {
-      max-width: 4rem;
-      min-height: 38px;
+      width: 34px;
+      height: 34px;
+      max-width: none;
+      min-height: 0;
       line-height: 1;
-      white-space: nowrap;
+      white-space: normal;
     }
 
     @media (max-width: 1100px) {
@@ -1930,7 +1959,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       }
 
       body.customer-page--profile .password-field input {
-        padding-right: 4.45rem;
+        padding-right: 48px;
       }
 
       body.customer-page--profile .action-buttons {
@@ -2386,7 +2415,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
           aria-describedby="profileConfirmMessage"
           <?php echo $openConfirmModal ? "" : "hidden"; ?>
         >
-          <button id="profileConfirmClose" class="confirm-modal__close" type="button" aria-label="Close confirmation">&times;</button>
+          <button id="profileConfirmClose" class="confirm-modal__close" type="button" aria-label="Close confirmation"><span aria-hidden="true">&times;</span></button>
           <div class="confirm-modal__header">
             <span class="section-kicker">Secure Confirmation</span>
             <h2 id="profileConfirmTitle">Confirm Profile Update</h2>
@@ -2431,7 +2460,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
           aria-describedby="passwordModalMessage"
           <?php echo $openPasswordModal ? "" : "hidden"; ?>
         >
-          <button id="passwordModalClose" class="confirm-modal__close" type="button" aria-label="Close password change">&times;</button>
+          <button id="passwordModalClose" class="confirm-modal__close" type="button" aria-label="Close password change"><span aria-hidden="true">&times;</span></button>
           <div class="confirm-modal__header">
             <span class="section-kicker">Password</span>
             <h2 id="passwordModalTitle">Change Password</h2>
@@ -2627,6 +2656,16 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       });
     });
 
+    function setPasswordToggleIcon(button, isVisible) {
+      const icon = isVisible
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.5 4.3A10.8 10.8 0 0 1 12 4c5 0 9 4.5 10 8a11.8 11.8 0 0 1-2 3.5"></path><path d="M6.1 6.1A11.8 11.8 0 0 0 2 12c1 3.5 5 8 10 8a10.8 10.8 0 0 0 4.1-.8"></path></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+
+      button.innerHTML = icon;
+      button.classList.toggle("is-password-visible", isVisible);
+      button.setAttribute("aria-pressed", isVisible ? "true" : "false");
+    }
+
     function resetPasswordFields() {
       ["new_password", "confirm_password"].forEach(function (key) {
         if (fields[key]) {
@@ -2637,7 +2676,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       });
 
       document.querySelectorAll("[data-toggle-password='new_password'], [data-toggle-password='confirm_password']").forEach(function (button) {
-        button.textContent = "Show";
+        setPasswordToggleIcon(button, false);
         button.setAttribute("aria-label", "Show " + button.getAttribute("data-toggle-password").replace(/_/g, " "));
       });
     }
@@ -2929,10 +2968,12 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
         return;
       }
 
+      setPasswordToggleIcon(toggleButton, targetInput.type !== "password");
+
       toggleButton.addEventListener("click", function () {
         const shouldShow = targetInput.type === "password";
         targetInput.type = shouldShow ? "text" : "password";
-        toggleButton.textContent = shouldShow ? "Hide" : "Show";
+        setPasswordToggleIcon(toggleButton, shouldShow);
         toggleButton.setAttribute("aria-label", (shouldShow ? "Hide " : "Show ") + targetInput.name.replace(/_/g, " "));
       });
     });
