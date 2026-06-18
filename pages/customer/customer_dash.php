@@ -410,11 +410,12 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       margin-top: 0;
       min-width: 0;
       padding: 16px 18px;
-      border: 1px solid rgba(255, 255, 255, 0.28);
+      border: 1px solid rgba(120, 53, 15, 0.12);
       border-radius: 14px;
-      background: rgba(91, 36, 4, 0.15);
+      background: rgba(255, 248, 237, 0.92);
       backdrop-filter: blur(6px);
       box-sizing: border-box;
+      color: #3B2A1F;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-head {
@@ -427,6 +428,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-head strong {
+      color: #7C2D12;
       font-size: 13px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -510,14 +512,14 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details dt {
-      color: rgba(255, 255, 255, 0.74);
+      color: #9A3412;
       font-size: 11px;
       font-weight: 700;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details dd {
       margin: 2px 0 0;
-      color: #ffffff;
+      color: #7C2D12;
       font-size: clamp(12.5px, 1vw, 13.5px);
       font-weight: 800;
       line-height: 1.25;
@@ -533,7 +535,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-message {
       margin-top: 11px !important;
-      color: rgba(255, 255, 255, 0.93) !important;
+      color: #3B2A1F !important;
       font-size: 12.5px;
       line-height: 1.35;
     }
