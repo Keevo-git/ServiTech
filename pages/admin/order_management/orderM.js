@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const sendBackErrorEl = document.getElementById("orderSendBackError");
   const sendBackSubmitBtn = document.getElementById("orderSendBackSubmit");
   let currentOrder = null;
+  let currentOrderRow = null;
   let initialPayment = { price: "0.00", paidAmount: "0.00" };
   let previousStatusSelection = "";
   let cancellationInProgress = false;
@@ -104,6 +105,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function money(value) {
     return `PHP ${amount(value).toFixed(2)}`;
+  }
+
+  function paymentSummary(order) {
+    const method = String(order?.paymentMethod || "").trim();
+    const price = amount(order?.price);
+    const total = price > 0 ? money(price) : "";
+    if (method && total) return `${method}: ${total}`;
+    return method || total;
   }
 
   function paymentChanged() {
@@ -448,8 +457,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     closeSendBackModal();
     window.servitechAdminToast?.persist("Sent back to customer for editing.");
-    unlockPageScroll();
-    location.reload();
+    currentOrder.customerEditRequired = true;
+    sendBackInProgress = false;
+    syncSendBackButton();
+    syncCurrentRow();
   }
 
   async function postAction(id, action, notes = "") {
@@ -497,6 +508,30 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     } else {
       syncPaymentPreview(newStatus);
+    }
+  }
+
+  function syncCurrentRow() {
+    if (!currentOrderRow || !currentOrder) return;
+
+    const currentStatus = normalizeStatus(currentOrder.status);
+    currentOrderRow.dataset.status = currentStatus;
+
+    const badge = currentOrderRow.querySelector(".status-cell .status-badge");
+    if (badge) {
+      badge.className = `status-badge ${statusClass(currentStatus)}`;
+      badge.textContent = statusLabels[currentStatus] || currentStatus;
+    }
+
+    const cells = currentOrderRow.querySelectorAll("td");
+    if (cells[3]) {
+      const summary = paymentSummary(currentOrder);
+      if (summary) cells[3].textContent = summary;
+    }
+
+    const viewButton = currentOrderRow.querySelector(".view-order-btn");
+    if (viewButton) {
+      viewButton.dataset.order = JSON.stringify(currentOrder);
     }
   }
 
@@ -561,11 +596,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const paymentOk = !paymentTried || paymentResult.ok;
     const statusOk = !statusTried || statusResult.ok;
 
+    if (!paymentTried && !statusTried) {
+      window.servitechAdminToast?.success("No changes to update.");
+      return false;
+    }
+
     if (paymentTried && statusTried && paymentOk && statusOk) {
       window.servitechAdminToast?.persist("Status and payment updated successfully.");
-      unlockPageScroll();
-      location.reload();
-      return true;
+      syncCurrentRow();
+      return false;
     }
 
     if (paymentTried && statusTried && !paymentOk && !statusOk) {
@@ -576,9 +615,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if ((statusTried || paymentTried) && statusOk && paymentOk) {
       const message = statusTried ? (statusResult.message || "Order status updated successfully.") : "Payment details saved successfully.";
       window.servitechAdminToast?.persist(message);
-      unlockPageScroll();
-      location.reload();
-      return true;
+      syncCurrentRow();
+      return false;
     }
 
     if (statusTried && !statusOk) window.servitechAdminToast?.error(statusResult.error || "Unable to update the order status.");
@@ -586,6 +624,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (paymentTried && !paymentOk) window.servitechAdminToast?.error(paymentResult.error || "Unable to update payment details.");
     if (paymentTried && paymentOk) window.servitechAdminToast?.success(paymentResult.message || "Payment details saved successfully.");
 
+    if ((statusTried && statusOk) || (paymentTried && paymentOk)) syncCurrentRow();
     return false;
   }
 
@@ -627,8 +666,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     window.servitechAdminToast?.persist(actionMessages.cancel);
-    unlockPageScroll();
-    location.reload();
+    applyStatusResult(out);
+    syncCurrentRow();
+    cancellationInProgress = false;
+    updateSaveButton();
   }
 
   function openFromButton(button) {
@@ -645,6 +686,7 @@ document.addEventListener("DOMContentLoaded", function () {
     order.status = order.status || "PENDING";
     order.serviceType = order.serviceType || "Order Details";
     order.serviceLabel = order.serviceLabel || "Service";
+    currentOrderRow = button.closest(".order-data-row");
     openModal(order);
   }
 
@@ -741,7 +783,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const paymentResult = await savePayment();
     const statusResult = await saveStatus(action, notes);
-    if (showUpdateResultToasts(paymentResult, statusResult)) return;
+    showUpdateResultToasts(paymentResult, statusResult);
 
     updateInProgress = false;
     updateSaveButton();

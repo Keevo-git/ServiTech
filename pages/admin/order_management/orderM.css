@@ -2073,3 +2073,118 @@ body.modal-open {
     font-size: 15px !important;
   }
 }
+
+/* Final order-modal overrides: keep hover effects aligned and scrolling internal. */
+.order-modal,
+.order-sendback-modal {
+  max-height: min(88dvh, calc(100vh - 32px));
+}
+
+.order-modal .modal-body {
+  min-height: 0;
+  overscroll-behavior: contain;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.order-modal *,
+.order-sendback-modal * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.order-modal .close-modal,
+.order-sendback-modal .close-modal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.order-modal .om-btn,
+.order-modal .order-modal-message,
+.order-sendback-modal .om-btn,
+.order-file-actions a,
+.view-order-btn,
+.btn-primary.view-order-btn,
+.delete-order-btn {
+  text-decoration: none;
+  transform: translateY(0);
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  will-change: transform;
+}
+
+.order-modal .close-modal:hover,
+.order-sendback-modal .close-modal:hover {
+  background: #f4e8e8;
+  color: #7f1d1d;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(127, 29, 29, 0.14);
+}
+
+.order-modal .om-btn:hover:not(:disabled),
+.order-modal .order-modal-message:hover,
+.order-sendback-modal .om-btn:hover:not(:disabled),
+.view-order-btn:hover:not(:disabled),
+.btn-primary.view-order-btn:hover:not(:disabled),
+.delete-order-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.14);
+  text-decoration: none;
+}
+
+.order-modal .om-btn--primary:hover:not(:disabled),
+.order-sendback-modal .om-btn--primary:hover:not(:disabled),
+.view-order-btn:hover:not(:disabled),
+.btn-primary.view-order-btn:hover:not(:disabled) {
+  background: #e99816;
+}
+
+.order-modal .om-btn--secondary:hover:not(:disabled) {
+  background: #1c437b;
+}
+
+.order-modal .om-btn--light:hover:not(:disabled),
+.order-sendback-modal .om-btn--light:hover:not(:disabled) {
+  background: #dfe7f2;
+}
+
+.order-modal .order-modal-message:hover {
+  background: #183f73;
+}
+
+.order-file-actions a:hover {
+  background: #dbeafe;
+  color: #153e75;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(15, 61, 118, 0.12);
+  text-decoration: none;
+}
+
+.order-modal .om-btn:disabled,
+.order-sendback-modal .om-btn:disabled {
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 768px), (max-height: 620px) {
+  .order-modal {
+    width: min(100%, calc(100vw - 20px)) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+  }
+
+  .order-modal .modal-body {
+    max-height: none !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
