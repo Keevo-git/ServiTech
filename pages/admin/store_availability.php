@@ -173,7 +173,7 @@ if (!empty($availability["today_hours_raw"]["is_open"]) && !empty($availability[
             $availabilityWarnings[] = "Queue cutoff is after today's closing time. This is allowed, but the store closing time will block regular services first.";
         }
     } catch (Throwable $exception) {
-        // Ignore debug-only datetime parsing failures.
+        // Ignore preview-only datetime parsing failures.
     }
 }
 $holidays = [];
@@ -223,38 +223,65 @@ $adminHeaderVariant = "special";
   <?php if ($notice !== ""): ?><div class="store-alert store-alert--success"><?= store_admin_h($notice) ?></div><?php endif; ?>
   <?php if ($error !== ""): ?><div class="store-alert store-alert--error"><?= store_admin_h($error) ?></div><?php endif; ?>
 
-  <section class="settings-panel availability-debug-panel" aria-labelledby="availabilityDebugTitle">
-    <div class="settings-panel__heading">
-      <div><span>&#9432;</span><h2 id="availabilityDebugTitle">Current Availability Check</h2></div>
-      <p>This summary uses the same Store Availability helper that controls customer displays and queue submissions.</p>
-    </div>
-    <dl class="availability-debug-grid">
+  <section class="settings-panel availability-preview-panel" aria-labelledby="availabilityPreviewTitle">
+    <div class="availability-preview-head">
       <div>
-        <dt>Current shop date</dt>
+        <span class="availability-preview-kicker">Current Availability Check</span>
+        <h2 id="availabilityPreviewTitle">Live Availability Preview</h2>
+        <p>This preview uses the same rules that control the customer dashboard, landing page, service buttons, and queue submissions.</p>
+      </div>
+      <span class="availability-status-badge availability-status-badge--<?= store_admin_h($availability["effective_status"] ?? "closed") ?>">
+        <?= store_admin_h($availability["status_label"] ?? "Closed") ?>
+      </span>
+    </div>
+
+    <div class="availability-result-cards" aria-label="Current availability result">
+      <article class="availability-result-card availability-result-card--primary">
+        <span>Current Store Result</span>
+        <strong><?= store_admin_h($availability["status_label"] ?? "Closed") ?></strong>
+        <small>Reason: <?= store_admin_h(str_replace("_", " ", (string)($availability["reason"] ?? "closed"))) ?></small>
+      </article>
+      <article class="availability-result-card">
+        <span>Regular Queue Available</span>
+        <strong class="availability-yesno availability-yesno--<?= !empty($availability["can_accept_regular_queue"]) ? "yes" : "no" ?>">
+          <?= !empty($availability["can_accept_regular_queue"]) ? "Yes" : "No" ?>
+        </strong>
+      </article>
+      <article class="availability-result-card">
+        <span>Online Document Printing Available</span>
+        <strong class="availability-yesno availability-yesno--<?= !empty($availability["can_accept_online_printing"]) ? "yes" : "no" ?>">
+          <?= !empty($availability["can_accept_online_printing"]) ? "Yes" : "No" ?>
+        </strong>
+      </article>
+    </div>
+
+    <dl class="availability-info-grid">
+      <div>
+        <dt>Current Shop Date</dt>
         <dd><?= store_admin_h(date("M j, Y", strtotime($availability["current_date"] ?? "now"))) ?></dd>
       </div>
       <div>
-        <dt>Current day</dt>
+        <dt>Current Day</dt>
         <dd><?= store_admin_h($availability["current_day"] ?? "-") ?></dd>
       </div>
       <div>
-        <dt>Current system time</dt>
-        <dd><?= store_admin_h(date("M j, Y, g:i:s A", strtotime($availability["current_datetime"] ?? "now"))) ?></dd>
+        <dt>Current System Time</dt>
+        <dd><?= store_admin_h(date("g:i:s A", strtotime($availability["current_datetime"] ?? "now"))) ?></dd>
       </div>
       <div>
-        <dt>Shop timezone</dt>
+        <dt>Shop Timezone</dt>
         <dd><?= store_admin_h($availability["shop_timezone"] ?? "Asia/Manila") ?></dd>
       </div>
       <div>
-        <dt>Today's opening time</dt>
+        <dt>Today's Opening Time</dt>
         <dd><?= store_admin_h(servitech_store_format_time($availability["today_hours_raw"]["opens_at"] ?? null)) ?></dd>
       </div>
       <div>
-        <dt>Today's closing time</dt>
+        <dt>Today's Closing Time</dt>
         <dd><?= store_admin_h(servitech_store_format_time($availability["today_hours_raw"]["closes_at"] ?? null)) ?></dd>
       </div>
       <div>
-        <dt>Queue cutoff</dt>
+        <dt>Queue Cutoff</dt>
         <dd>
           <?= store_admin_h($availability["queue_cutoff_label"] ?? "Not set") ?>
           <?php if (!empty($availability["cutoff_datetime"])): ?>
@@ -263,11 +290,11 @@ $adminHeaderVariant = "special";
         </dd>
       </div>
       <div>
-        <dt>Manual status</dt>
+        <dt>Selected Store Status</dt>
         <dd><?= store_admin_h(servitech_store_status_label((string)($availability["configured_status"] ?? "open"))) ?></dd>
       </div>
       <div>
-        <dt>Holiday match</dt>
+        <dt>Holiday Today</dt>
         <dd>
           <?php if (is_array($availability["today_holiday"] ?? null)): ?>
             <?= store_admin_h(($availability["today_holiday"]["title"] ?? "Closed date") . " (" . ($availability["today_holiday"]["holiday_date"] ?? "") . ")") ?>
@@ -276,24 +303,17 @@ $adminHeaderVariant = "special";
           <?php endif; ?>
         </dd>
       </div>
-      <div>
-        <dt>Final result</dt>
-        <dd><?= store_admin_h($availability["status_label"] ?? "Closed") ?> <small>(<?= store_admin_h($availability["reason"] ?? "closed") ?>)</small></dd>
-      </div>
-      <div>
-        <dt>Can accept regular queue</dt>
-        <dd><?= !empty($availability["can_accept_regular_queue"]) ? "Yes" : "No" ?></dd>
-      </div>
-      <div>
-        <dt>Can accept Online Document Printing</dt>
-        <dd><?= !empty($availability["can_accept_online_printing"]) ? "Yes" : "No" ?></dd>
-      </div>
     </dl>
+
     <?php if ($availabilityWarnings): ?>
-      <div class="availability-debug-warnings" role="note">
-        <?php foreach ($availabilityWarnings as $warning): ?>
-          <p><?= store_admin_h($warning) ?></p>
-        <?php endforeach; ?>
+      <div class="availability-warning-callout" role="note">
+        <span aria-hidden="true">&#9888;</span>
+        <div>
+          <strong>Schedule note</strong>
+          <?php foreach ($availabilityWarnings as $warning): ?>
+            <p><?= store_admin_h($warning) ?></p>
+          <?php endforeach; ?>
+        </div>
       </div>
     <?php endif; ?>
   </section>
@@ -304,7 +324,7 @@ $adminHeaderVariant = "special";
 
     <section class="settings-panel settings-panel--status">
       <div class="settings-panel__heading">
-        <div><span>1</span><h2>Store Status</h2></div>
+        <div><span>2</span><h2>Store Status Settings</h2></div>
         <p>This status overrides the regular schedule. Online Document Printing remains available in every state.</p>
       </div>
       <div class="status-options">
@@ -327,7 +347,7 @@ $adminHeaderVariant = "special";
 
     <section class="settings-panel">
       <div class="settings-panel__heading">
-        <div><span>2</span><h2>Shop Hours</h2></div>
+        <div><span>3</span><h2>Shop Hours</h2></div>
         <p>Set the opening and closing time for each day. Closed days ignore their time fields.</p>
       </div>
       <div class="hours-list">
@@ -351,7 +371,7 @@ $adminHeaderVariant = "special";
 
     <section class="settings-panel">
       <div class="settings-panel__heading">
-        <div><span>3</span><h2>Queue Cutoff</h2></div>
+        <div><span>4</span><h2>Queue Cutoff Rules</h2></div>
         <p>After this time, regular walk-in and service queue requests stop for the day. Online Document Printing stays available.</p>
       </div>
       <label class="cutoff-field">Stop accepting regular queue requests after
@@ -364,7 +384,7 @@ $adminHeaderVariant = "special";
 
   <section class="settings-panel holiday-panel">
     <div class="settings-panel__heading">
-      <div><span>4</span><h2>Holidays &amp; Special Closed Dates</h2></div>
+      <div><span>5</span><h2>Holidays &amp; Special Closed Dates</h2></div>
       <p>Add one-time dates when regular queue requests should be unavailable.</p>
     </div>
 
