@@ -102,7 +102,7 @@ function ms_display_service_name($name): string {
   <title>Manage Services</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260614-matching-tabs') ?>">
 </head>
 <body>
@@ -114,9 +114,14 @@ require __DIR__ . "/../_includes/admin_header.php";
 ?>
 
 <div class="admin-wrapper">
-  <section class="admin-hero">
-    <h1>Manage Services</h1>
-    <p>Manage and update services shown on the landing page.</p>
+  <section class="admin-hero admin-hero--actions">
+    <div class="admin-hero-text">
+      <h1>Manage Services</h1>
+      <p>Manage and update services shown on the landing page.</p>
+    </div>
+    <div class="admin-hero-actions" aria-label="Edit Services actions">
+      <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
+    </div>
   </section>
 
 <main class="admin-container">

@@ -23,6 +23,16 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-controller') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260608-admin-logout-confirm-global') ?>" defer></script>
+<script>
+  function goAdminBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    window.location.href = "<?= admin_url('/pages/admin/admin_dashboard.php') ?>";
+  }
+</script>
 <style>
   .admin-shared-header {
     position: sticky;

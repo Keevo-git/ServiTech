@@ -99,7 +99,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Order Management - Print</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260614-uniform-tabs') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-system-hide') ?>">
@@ -114,9 +114,15 @@ require __DIR__ . "/../_includes/admin_header.php";
 ?>
 
 <div class="admin-wrapper">
-  <section class="admin-hero order-header">
-    <h1>Order Management</h1>
-    <p>Review printing orders and update statuses in real time.</p>
+  <section class="admin-hero admin-hero--actions order-header">
+    <div class="admin-hero-text">
+      <h1>Order Management</h1>
+      <p>Review printing orders and update statuses in real time.</p>
+    </div>
+    <div class="admin-hero-actions" aria-label="Order Management actions">
+      <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
+      <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/order_management/recycle_bin.php') ?>">Recycle Bin</a>
+    </div>
   </section>
 
 <main class="admin-container">

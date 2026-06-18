@@ -36,7 +36,7 @@ function customer_code_from_id(int $id): string {
   <title>Customer List</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260607-message-modal-premium') ?>">
 </head>
 
@@ -49,9 +49,16 @@ function customer_code_from_id(int $id): string {
   ?>
 
   <div class="admin-wrapper">
-    <section class="admin-hero">
-      <h1>Customer List</h1>
-      <p>View registered customers and search account details.</p>
+    <section class="admin-hero admin-hero--actions">
+      <div class="admin-hero-text">
+        <h1>Customer List</h1>
+        <p>View registered customers and search account details.</p>
+      </div>
+      <div class="admin-hero-actions" aria-label="Customer List actions">
+        <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
+        <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/queue_list/printing.php') ?>">View Queue</a>
+        <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/order_management/printM.php') ?>">View Orders</a>
+      </div>
     </section>
 
   <main class="admin-container cl-main">

@@ -39,6 +39,23 @@ body.store-settings-page {
 .store-settings-hero h1 { margin: 7px 0; font-size: clamp(28px, 4vw, 40px); }
 .store-settings-hero p { margin: 0; color: rgba(255,255,255,.84); }
 
+.store-settings-hero-copy {
+  min-width: 0;
+}
+
+.store-settings-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.store-settings-hero-actions .hero-btn {
+  flex: 0 1 auto;
+}
+
 .store-settings-preview {
   display: grid;
   gap: 7px;
@@ -420,6 +437,14 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 
 @media (max-width: 800px) {
   .store-settings-hero { grid-template-columns: 1fr; }
+  .store-settings-hero-actions {
+    width: 100%;
+  }
+  .store-settings-hero-actions .hero-btn {
+    flex: 1 1 160px;
+    width: auto;
+    margin-bottom: 0;
+  }
   .settings-panel__heading { flex-direction: column; gap: 8px; }
   .status-options { grid-template-columns: 1fr; }
   .hours-row { grid-template-columns: 1fr 100px; }
@@ -432,6 +457,13 @@ button:disabled { cursor: not-allowed; opacity: .5; }
   body.store-settings-page .availability-result-cards,
   body.store-settings-page .availability-info-grid { grid-template-columns: 1fr; }
   body.store-settings-page .availability-info-item--wide { grid-column: auto; }
+}
+
+@media (max-width: 420px) {
+  .store-settings-hero-actions .hero-btn {
+    flex-basis: 100%;
+    width: 100%;
+  }
 }
 
 @media (min-width: 801px) and (max-width: 1060px) {

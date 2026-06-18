@@ -200,18 +200,22 @@ $adminHeaderVariant = "special";
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Store Availability</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/store_availability.css?v=20260618-preview-ui') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/store_availability.css?v=20260619-hero-actions') ?>">
 </head>
 <body class="store-settings-page">
 <?php require __DIR__ . "/_includes/admin_header.php"; ?>
 
 <main class="store-settings-shell">
   <header class="store-settings-hero">
-    <div>
+    <div class="store-settings-hero-copy">
       <span>Admin Quick Access</span>
       <h1>Store Availability</h1>
       <p>Manage shop hours, cutoffs, holidays, and service status.</p>
+      <div class="store-settings-hero-actions" aria-label="Store Availability actions">
+        <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
+        <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/announcement.php') ?>">Announcements</a>
+      </div>
     </div>
     <div class="store-settings-preview store-settings-preview--<?= store_admin_h($availability["effective_status"]) ?>">
       <small>Customer view now</small>

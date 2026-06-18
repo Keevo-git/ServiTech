@@ -179,8 +179,8 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Manage Announcement</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260604-admin-mobile-nav') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260619-hero-actions') ?>">
   <style>
     .announcement-item .announcement-actions {
       display: flex;
@@ -357,10 +357,16 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   ?>
 
   <main class="announcement-main">
-    <section class="announcement-hero">
-      <p>Landing Page Notice</p>
-      <h2>Announcement</h2>
-      <span>Publish a short message customers will see at the top of the landing page.</span>
+    <section class="announcement-hero announcement-hero--actions">
+      <div class="announcement-hero-text">
+        <p>Landing Page Notice</p>
+        <h2>Announcement</h2>
+        <span>Publish a short message customers will see at the top of the landing page.</span>
+      </div>
+      <div class="announcement-hero-actions" aria-label="Announcement actions">
+        <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
+        <a class="hero-btn hero-btn-primary" href="<?= admin_url('/pages/admin/store_availability.php') ?>">Store Availability</a>
+      </div>
     </section>
 
     <?php if ($notice !== "" || $error !== ""): ?>
