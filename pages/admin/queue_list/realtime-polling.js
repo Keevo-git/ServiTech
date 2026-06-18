@@ -98,6 +98,11 @@
     }));
   }
 
+  function markRenderedSynced() {
+    lastRecordSignature = recordSignature(renderedRecords());
+    reloadPending = false;
+  }
+
   async function refreshSnapshot() {
     const scope = document.body.dataset.adminRealtimeScope || "";
     if (!scope || requestInFlight || document.hidden) return;
@@ -172,6 +177,7 @@
   window.realtimeQueueAdmin = {
     startPolling,
     stopPolling,
-    refreshSnapshot
+    refreshSnapshot,
+    markRenderedSynced
   };
 })();

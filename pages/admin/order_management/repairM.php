@@ -70,8 +70,8 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260616-recycle-bin') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260608-profile-sync') ?>" defer></script>
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-modal-stays-open') ?>">
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260618-modal-stays-open') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_repair">
 
@@ -190,7 +190,7 @@ require __DIR__ . "/../_includes/admin_header.php";
   <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260616-safe-schema') ?>" defer></script>
 <?php endif; ?>
 
-<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260608-profile-sync') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260618-modal-stays-open') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

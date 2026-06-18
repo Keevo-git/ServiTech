@@ -2169,6 +2169,27 @@ body.modal-open {
   text-decoration: none;
 }
 
+.order-update-feedback {
+  min-height: 20px;
+  margin: 4px 0 0;
+  color: #2f5f3e;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.order-update-feedback:not(.is-visible) {
+  visibility: hidden;
+}
+
+.order-update-feedback--error {
+  color: #b4233d;
+}
+
+.order-update-feedback--info {
+  color: #385a85;
+}
+
 .order-modal .om-btn:disabled,
 .order-sendback-modal .om-btn:disabled {
   transform: none;

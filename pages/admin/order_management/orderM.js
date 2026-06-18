@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const currentStatusEl = document.getElementById("omCurrentStatus");
   const statusEl = document.getElementById("omStatus");
   const statusHelpEl = document.getElementById("omStatusHelp");
+  const updateFeedbackEl = document.getElementById("omUpdateFeedback");
   const messageBtn = document.getElementById("orderModalMessage");
   const saveBtn = document.getElementById("omSave");
   const actionUrl = document.body?.dataset.orderActionUrl || "";
@@ -93,9 +94,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function showError(message, notify = true) {
     if (notify) window.servitechAdminToast?.error(message);
+    showUpdateFeedback(message, "error");
   }
 
   function clearError() {
+    showUpdateFeedback("");
+  }
+
+  function showUpdateFeedback(message = "", type = "success") {
+    if (!updateFeedbackEl) return;
+    updateFeedbackEl.textContent = String(message || "");
+    updateFeedbackEl.className = `order-update-feedback${message ? " is-visible" : ""} order-update-feedback--${type}`;
   }
 
   function amount(value) {
@@ -456,7 +465,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     closeSendBackModal();
-    window.servitechAdminToast?.persist("Sent back to customer for editing.");
+    showUpdateFeedback("Sent back to customer for editing.", "success");
+    window.servitechAdminToast?.success("Sent back to customer for editing.");
     currentOrder.customerEditRequired = true;
     sendBackInProgress = false;
     syncSendBackButton();
@@ -533,6 +543,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (viewButton) {
       viewButton.dataset.order = JSON.stringify(currentOrder);
     }
+
+    window.realtimeQueueAdmin?.markRenderedSynced?.();
   }
 
   async function savePayment() {
@@ -597,12 +609,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const statusOk = !statusTried || statusResult.ok;
 
     if (!paymentTried && !statusTried) {
-      window.servitechAdminToast?.success("No changes to update.");
+      showUpdateFeedback("No changes to update.", "info");
       return false;
     }
 
     if (paymentTried && statusTried && paymentOk && statusOk) {
-      window.servitechAdminToast?.persist("Status and payment updated successfully.");
+      showUpdateFeedback("Status and payment updated successfully.", "success");
+      window.servitechAdminToast?.success("Status and payment updated successfully.");
       syncCurrentRow();
       return false;
     }
@@ -614,7 +627,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if ((statusTried || paymentTried) && statusOk && paymentOk) {
       const message = statusTried ? (statusResult.message || "Order status updated successfully.") : "Payment details saved successfully.";
-      window.servitechAdminToast?.persist(message);
+      showUpdateFeedback(message, "success");
+      window.servitechAdminToast?.success(message);
       syncCurrentRow();
       return false;
     }
@@ -665,7 +679,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    window.servitechAdminToast?.persist(actionMessages.cancel);
+    showUpdateFeedback(actionMessages.cancel, "success");
+    window.servitechAdminToast?.success(actionMessages.cancel);
     applyStatusResult(out);
     syncCurrentRow();
     cancellationInProgress = false;
@@ -718,6 +733,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("orderModalClose")?.addEventListener("click", closeModal);
   document.getElementById("omCancel")?.addEventListener("click", closeModal);
+  modal?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
   document.getElementById("orderSendBackClose")?.addEventListener("click", closeSendBackModal);
   document.getElementById("orderSendBackCancel")?.addEventListener("click", closeSendBackModal);
   sendBackOverlay?.addEventListener("click", closeSendBackModal);
@@ -760,7 +779,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  document.getElementById("omSave")?.addEventListener("click", async () => {
+  document.getElementById("omSave")?.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!currentOrder?.id || updateInProgress) return;
 
     const action = actionMap[statusEl.value];
@@ -780,13 +801,18 @@ document.addEventListener("DOMContentLoaded", function () {
     updateInProgress = true;
     updateSaveButton();
     clearError();
+    window.realtimeQueueAdmin?.stopPolling?.();
 
-    const paymentResult = await savePayment();
-    const statusResult = await saveStatus(action, notes);
-    showUpdateResultToasts(paymentResult, statusResult);
-
-    updateInProgress = false;
-    updateSaveButton();
+    try {
+      const paymentResult = await savePayment();
+      const statusResult = await saveStatus(action, notes);
+      showUpdateResultToasts(paymentResult, statusResult);
+      window.realtimeQueueAdmin?.markRenderedSynced?.();
+    } finally {
+      window.realtimeQueueAdmin?.startPolling?.();
+      updateInProgress = false;
+      updateSaveButton();
+    }
   });
 
   function debounce(callback, delay = 350) {

@@ -64,6 +64,7 @@
           </label>
 
           <p class="order-status-help" id="omStatusHelp"></p>
+          <p class="order-update-feedback" id="omUpdateFeedback" role="status" aria-live="polite"></p>
         </section>
 
         <div class="order-modal-action-stack">

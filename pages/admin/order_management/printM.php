@@ -102,9 +102,9 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260614-uniform-tabs') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260616-recycle-bin') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-modal-stays-open') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260608-profile-sync') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260618-modal-stays-open') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_printing">
 
@@ -224,7 +224,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 <?php endif; ?>
 <?php require_once __DIR__ . "/../queue_list/_queue_message_modal.php"; ?>
 
-<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260608-profile-sync') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260618-modal-stays-open') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>
