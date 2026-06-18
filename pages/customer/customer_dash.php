@@ -438,10 +438,10 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
       gap: 8px;
       max-width: 100%;
       min-height: 30px;
-      padding: 7px 13px;
+      padding: 7px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(45, 24, 12, 0.42);
       color: #ffffff;
       cursor: default;
       font-size: clamp(0.72rem, 1vw, 0.85rem);
@@ -463,19 +463,19 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status--open::before {
-      background: #22C55E;
+      background: #4ADE80;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status--closed::before {
-      background: #EF4444;
+      background: #F87171;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status--paused::before {
-      background: #F59E0B;
+      background: #FBBF24;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__status--fully-booked::before {
-      background: #A855F7;
+      background: #C084FC;
     }
 
     body.customer-layout.customer-page--dashboard .customer-hero__availability-details {
