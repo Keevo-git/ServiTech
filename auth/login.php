@@ -17,6 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $email = strtolower(trim($_POST["email"] ?? ""));
 $password = (string)($_POST["password"] ?? "");
+$rememberMe = isset($_POST["remember_me"]) && (string)$_POST["remember_me"] === "1";
 
 if ($email === "" || $password === "") {
     header("Location: " . servitech_url("/auth/log_in.php?login=required"));
@@ -102,6 +103,8 @@ if (servitech_supabase_auth_enabled()) {
 
         servitech_login_throttle_clear($privilegedPdo, $email);
         $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        $_SESSION["remember_me"] = $rememberMe;
+        servitech_apply_session_cookie_lifetime($rememberMe);
         header("Location: " . servitech_url(
             ($profile["role"] ?? "customer") === "admin"
                 ? "/pages/admin/admin_dashboard.php"
@@ -188,6 +191,8 @@ try {
         session_regenerate_id(true);
         $_SESSION["user_id"] = (int)$user["id"];
         $_SESSION["role"] = strtolower((string)($user["role"] ?? "customer"));
+        $_SESSION["remember_me"] = $rememberMe;
+        servitech_apply_session_cookie_lifetime($rememberMe);
 
         if ($_SESSION["role"] === "admin") {
             $_SESSION["admin_logged_in"] = true;

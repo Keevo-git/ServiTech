@@ -16,7 +16,7 @@ session_name("SERVITECHSESSID");
 $secure = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off");
 
 session_set_cookie_params([
-    "lifetime" => $sessionLifetime,
+    "lifetime" => 0,
     "path" => servitech_cookie_path(),
     "httponly" => true,
     "samesite" => "Lax",
@@ -50,15 +50,40 @@ if (!empty($_SESSION["user_id"]) && (int)$_SESSION["user_id"] > 0) {
     unset($_SESSION["role"], $_SESSION["admin_logged_in"], $_SESSION["admin_email"]);
 }
 
-// Sliding expiration: refresh cookie expiry on each request while active.
+if (!function_exists("servitech_session_cookie_options")) {
+    function servitech_session_cookie_options(int $expires): array
+    {
+        $secure = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off");
+        return [
+            "expires" => $expires,
+            "path" => servitech_cookie_path(),
+            "httponly" => true,
+            "samesite" => "Lax",
+            "secure" => $secure,
+        ];
+    }
+}
+
+if (!function_exists("servitech_apply_session_cookie_lifetime")) {
+    function servitech_apply_session_cookie_lifetime(?bool $remember = null): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE || session_id() === "") {
+            return;
+        }
+
+        $lifetimeEnv = getenv("SESSION_LIFETIME_SECONDS");
+        $sessionLifetime = (is_string($lifetimeEnv) && ctype_digit($lifetimeEnv) && (int)$lifetimeEnv > 0)
+            ? (int)$lifetimeEnv
+            : 60 * 60 * 24 * 30;
+        $shouldRemember = $remember ?? !empty($_SESSION["remember_me"]);
+        $expires = $shouldRemember ? (time() + $sessionLifetime) : 0;
+        setcookie(session_name(), session_id(), servitech_session_cookie_options($expires));
+    }
+}
+
+// Sliding expiration: persistent only when the user explicitly chose Remember me.
 if (session_id() !== "") {
-    setcookie(session_name(), session_id(), [
-        "expires" => time() + $sessionLifetime,
-        "path" => servitech_cookie_path(),
-        "httponly" => true,
-        "samesite" => "Lax",
-        "secure" => $secure,
-    ]);
+    servitech_apply_session_cookie_lifetime();
 }
 
 require_once __DIR__ . "/csrf.php";
