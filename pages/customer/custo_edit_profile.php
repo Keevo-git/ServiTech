@@ -2300,6 +2300,61 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       z-index: 20120 !important;
       pointer-events: auto;
     }
+
+    html.customer-profile-page-root {
+      height: auto;
+      min-height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    body.customer-page--profile {
+      height: auto;
+      min-height: 100dvh;
+      overflow-x: hidden !important;
+      overflow-y: visible;
+      overscroll-behavior-y: auto;
+    }
+
+    body.customer-page--profile.modal-open {
+      overflow: hidden;
+    }
+
+    body.customer-page--profile .profile-edit-page {
+      flex: 0 0 auto;
+      height: auto;
+      min-height: 0;
+      max-height: none;
+      overflow-y: visible;
+      padding-top: calc(2rem + var(--profile-header-extra-offset, 0px));
+    }
+
+    body.customer-page--profile .profile-shell {
+      height: auto;
+      min-height: 0;
+      max-height: none;
+      overflow: visible;
+    }
+
+    body.customer-page--profile .profile-summary,
+    body.customer-page--profile .profile-panel,
+    body.customer-page--profile .profile-form,
+    body.customer-page--profile .form-section {
+      min-height: 0;
+      max-height: none;
+    }
+
+    @media (max-width: 900px) {
+      body.customer-page--profile .profile-edit-page {
+        padding-top: calc(1.25rem + var(--profile-header-extra-offset, 0px));
+      }
+    }
+
+    @media (max-width: 560px) {
+      body.customer-page--profile .profile-edit-page {
+        padding-top: calc(1rem + var(--profile-header-extra-offset, 0px));
+      }
+    }
   </style>
 </head>
 <body class="customer-layout customer-page--profile<?php echo ($openConfirmModal || $openPasswordModal) ? " modal-open" : ""; ?>">
@@ -2588,6 +2643,55 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
 <?php include __DIR__ . "/../../components/footer.php"; ?>
 
 <script>
+  (function () {
+    if (!document.body || !document.body.classList.contains("customer-page--profile")) {
+      return;
+    }
+
+    document.documentElement.classList.add("customer-profile-page-root");
+
+    const header = document.querySelector(".customer-shared-header");
+    if (!header) {
+      return;
+    }
+
+    let pendingFrame = 0;
+
+    function readFixedHeaderOffset() {
+      const offset = window.getComputedStyle(document.body).getPropertyValue("--fixed-site-header-offset");
+      const parsedOffset = Number.parseFloat(offset);
+      return Number.isFinite(parsedOffset) ? parsedOffset : 0;
+    }
+
+    function syncProfileHeaderOffset() {
+      if (pendingFrame) {
+        window.cancelAnimationFrame(pendingFrame);
+      }
+
+      pendingFrame = window.requestAnimationFrame(function () {
+        pendingFrame = 0;
+        const headerHeight = header.getBoundingClientRect().height;
+        const missingOffset = Math.max(0, Math.ceil(headerHeight - readFixedHeaderOffset()));
+        document.body.style.setProperty("--profile-header-extra-offset", missingOffset + "px");
+      });
+    }
+
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(syncProfileHeaderOffset).observe(header);
+    }
+
+    if ("MutationObserver" in window) {
+      new MutationObserver(syncProfileHeaderOffset).observe(header, {
+        attributes: true,
+        attributeFilter: ["class", "style"]
+      });
+    }
+
+    window.addEventListener("resize", syncProfileHeaderOffset, { passive: true });
+    window.addEventListener("orientationchange", syncProfileHeaderOffset, { passive: true });
+    syncProfileHeaderOffset();
+  })();
+
   (function () {
     const form = document.getElementById("editProfileForm");
     const submitButton = document.getElementById("saveProfileBtn");
