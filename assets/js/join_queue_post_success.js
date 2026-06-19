@@ -39,12 +39,27 @@
     return !!(history.state && history.state.servitechJoinQueueCompleted);
   }
 
+  function newRequestWasStarted() {
+    return window.SERVITECH_JOIN_QUEUE_NEW_REQUEST === true
+      || window.SERVITECH_JOIN_QUEUE_NEW_REQUEST === "1";
+  }
+
   function clearCompletion() {
     try {
       window.sessionStorage.removeItem(storageKey);
     } catch (error) {
       // The server-side completion marker still protects stale form revisits.
     }
+  }
+
+  function clearCompletionHistoryState() {
+    if (!history.state || !history.state.servitechJoinQueueCompleted) {
+      return;
+    }
+
+    var state = Object.assign({}, history.state);
+    delete state.servitechJoinQueueCompleted;
+    history.replaceState(state, "", window.location.href);
   }
 
   function goToChooseService() {
@@ -106,6 +121,12 @@
     markComplete: markComplete,
     safeUrl: safeUrl
   };
+
+  if (newRequestWasStarted()) {
+    clearCompletion();
+    clearCompletionHistoryState();
+    window.SERVITECH_JOIN_QUEUE_NEW_REQUEST = false;
+  }
 
   if (hasCompletion() || historyEntryIsComplete()) {
     goToChooseService();

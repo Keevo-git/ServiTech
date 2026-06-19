@@ -1097,7 +1097,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     </div>
 
     <div class="queue-service-options dashboard-service-options" role="group" aria-label="Choose a service">
-      <a href="/pages/customer/custo1_printing_option.php" class="queue-service-card">
+      <a href="/pages/customer/custo1_printing_option.php?new_queue=1" class="queue-service-card">
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
         </span>
@@ -1105,7 +1105,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
         <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note">Online Document Print is available.</span><?php endif; ?>
       </a>
 
-      <a href="/pages/customer/custo1_repair_option.php" class="queue-service-card">
+      <a href="/pages/customer/custo1_repair_option.php?new_queue=1" class="queue-service-card">
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
         </span>
@@ -1113,7 +1113,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
         <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
       </a>
 
-      <a href="/pages/customer/custo1_installation_option.php" class="queue-service-card">
+      <a href="/pages/customer/custo1_installation_option.php?new_queue=1" class="queue-service-card">
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
         </span>

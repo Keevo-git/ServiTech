@@ -84,7 +84,10 @@ $storeAvailability = servitech_store_current_availability($pdo);
     window.location.href = routes[service] || "custo1_printing_option.php";
   });
 </script>
-<script src="/assets/js/join_queue_post_success.js?v=20260611b"></script>
+<?php if (servitech_consume_new_join_queue_started()): ?>
+<script>window.SERVITECH_JOIN_QUEUE_NEW_REQUEST = true;</script>
+<?php endif; ?>
+<script src="/assets/js/join_queue_post_success.js?v=20260619-new-request"></script>
 
 </body>
 </html>

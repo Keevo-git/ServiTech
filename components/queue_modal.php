@@ -26,5 +26,13 @@
     </div>
   </div>
 </div>
+<?php
+if (!isset($servitechJoinQueueNewRequestStarted) && function_exists("servitech_consume_new_join_queue_started")) {
+  $servitechJoinQueueNewRequestStarted = servitech_consume_new_join_queue_started();
+}
+?>
+<?php if (!empty($servitechJoinQueueNewRequestStarted)): ?>
+<script>window.SERVITECH_JOIN_QUEUE_NEW_REQUEST = true;</script>
+<?php endif; ?>
 <script src="/assets/js/queue_modal.js?v=20260611-post-success"></script>
-<script src="/assets/js/join_queue_post_success.js?v=20260611b"></script>
+<script src="/assets/js/join_queue_post_success.js?v=20260619-new-request"></script>

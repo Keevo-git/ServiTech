@@ -2,6 +2,7 @@
 require_once __DIR__ . "/session_check.php";
 
 const SERVITECH_JOIN_QUEUE_COMPLETION_KEY = "join_queue_completion";
+const SERVITECH_JOIN_QUEUE_NEW_REQUEST_KEY = "join_queue_new_request_started";
 
 if (!function_exists("servitech_mark_join_queue_completed")) {
     function servitech_mark_join_queue_completed(string $queueCode): void
@@ -47,6 +48,23 @@ if (!function_exists("servitech_clear_join_queue_completion")) {
     }
 }
 
+if (!function_exists("servitech_mark_new_join_queue_started")) {
+    function servitech_mark_new_join_queue_started(): void
+    {
+        $_SESSION[SERVITECH_JOIN_QUEUE_NEW_REQUEST_KEY] = time();
+    }
+}
+
+if (!function_exists("servitech_consume_new_join_queue_started")) {
+    function servitech_consume_new_join_queue_started(): bool
+    {
+        $startedAt = (int)($_SESSION[SERVITECH_JOIN_QUEUE_NEW_REQUEST_KEY] ?? 0);
+        unset($_SESSION[SERVITECH_JOIN_QUEUE_NEW_REQUEST_KEY]);
+
+        return $startedAt > 0 && $startedAt >= time() - 120;
+    }
+}
+
 if (!function_exists("servitech_start_new_join_queue_if_requested")) {
     function servitech_start_new_join_queue_if_requested(): void
     {
@@ -55,6 +73,7 @@ if (!function_exists("servitech_start_new_join_queue_if_requested")) {
         }
 
         servitech_clear_join_queue_completion();
+        servitech_mark_new_join_queue_started();
 
         $requestUri = (string)($_SERVER["REQUEST_URI"] ?? "");
         $path = (string)(parse_url($requestUri, PHP_URL_PATH) ?: "/");

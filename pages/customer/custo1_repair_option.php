@@ -93,7 +93,10 @@ $storeAvailability = servitech_store_current_availability($pdo);
 </section>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
-<?php include __DIR__ . "/../../components/queue_modal.php"; ?>
+<?php
+$servitechJoinQueueNewRequestStarted = servitech_consume_new_join_queue_started();
+include __DIR__ . "/../../components/queue_modal.php";
+?>
 <?php
 $joinQueueBackUrl = "/pages/customer/customer_dash.php";
 include __DIR__ . "/../../components/join_queue_leave_guard.php";
