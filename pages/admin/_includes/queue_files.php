@@ -253,6 +253,43 @@ function admin_notifications_cleanup_duplicates(PDO $pdo): void
         ");
 
         $pdo->exec("
+            WITH gcash_new_order_pairs AS (
+                SELECT
+                    review.id AS review_id,
+                    generic.id AS generic_id,
+                    COALESCE(generic.is_read, FALSE) = FALSE AS generic_unread
+                FROM notifications review
+                JOIN notifications generic
+                  ON generic.user_id = review.user_id
+                 AND COALESCE(generic.reference_id, 0) = COALESCE(review.reference_id, 0)
+                 AND generic.deleted_at IS NULL
+                 AND LOWER(TRIM(COALESCE(generic.type, 'queue'))) = 'admin_new_order'
+                WHERE review.deleted_at IS NULL
+                  AND LOWER(TRIM(COALESCE(review.type, 'queue'))) IN ('admin_payment_review', 'admin_new_order_payment_review')
+                  AND LOWER(COALESCE(review.message, '')) LIKE '%gcash%'
+                  AND review.user_id IN (
+                      SELECT id
+                      FROM users
+                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                  )
+            ),
+            preserved_review_notifications AS (
+                UPDATE notifications review
+                SET is_read = FALSE
+                FROM gcash_new_order_pairs pairs
+                WHERE review.id = pairs.review_id
+                  AND pairs.generic_unread
+                  AND COALESCE(review.is_read, FALSE) = TRUE
+                RETURNING review.id
+            )
+            UPDATE notifications generic
+            SET deleted_at = NOW()
+            FROM gcash_new_order_pairs pairs
+            WHERE generic.id = pairs.generic_id
+              AND generic.deleted_at IS NULL
+        ");
+
+        $pdo->exec("
             WITH ranked_admin_notifications AS (
                 SELECT
                     n.id,

@@ -36,7 +36,7 @@ if (!function_exists("admin_notification_event_category")) {
         if (
             $isTodaysNotification
             && (
-                in_array($type, ["admin_new_order", "admin_payment_review"], true)
+                in_array($type, ["admin_new_order", "admin_payment_review", "admin_new_order_payment_review"], true)
                 || str_contains($message, "new customer")
                 || str_contains($message, "new gcash")
                 || str_contains($message, "new order")
@@ -113,8 +113,8 @@ if (!function_exists("admin_notification_type_label")) {
     function admin_notification_type_label(array $row): string
     {
         $type = admin_notification_type_key((string)($row["type"] ?? ""));
-        if ($type === "admin_payment_review") {
-            return "Payment Review";
+        if ($type === "admin_payment_review" || $type === "admin_new_order_payment_review") {
+            return "New Order: Review Payment";
         }
         if ($type === "admin_new_order") {
             return "New Order";

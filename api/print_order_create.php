@@ -186,21 +186,22 @@ try {
 
   $paymentLabel = $payment_method === "gcash" ? "GCash payment details submitted" : "Cash payment selected";
   servitech_add_notification($pdo, $user_id, $printMeta["category"], $queue_id, "Queue {$queue_code}: {$paymentLabel}.");
-  servitech_notify_admins(
-    $pdo,
-    "admin_new_order",
-    $queue_id,
-    "Queue {$queue_code}: New print order submitted.",
-    "admin_new_order:{$queue_id}",
-    true
-  );
   if ($payment_method === "gcash") {
     servitech_notify_admins(
       $pdo,
-      "admin_payment_review",
+      "admin_new_order_payment_review",
       $queue_id,
-      "Queue {$queue_code}: New GCash print order submitted. Review the order and update its status.",
-      "admin_payment_review:{$queue_id}",
+      "Queue {$queue_code}: New print order submitted. GCash payment: Review the order and update its status.",
+      "admin_new_order_payment_review:{$queue_id}",
+      true
+    );
+  } else {
+    servitech_notify_admins(
+      $pdo,
+      "admin_new_order",
+      $queue_id,
+      "Queue {$queue_code}: New print order submitted.",
+      "admin_new_order:{$queue_id}",
       true
     );
   }
