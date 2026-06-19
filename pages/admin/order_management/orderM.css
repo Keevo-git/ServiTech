@@ -2465,6 +2465,18 @@ body.order-confirm-open {
   }
 }
 
+@media (max-width: 768px) {
+  .order-modal {
+    top: 10px !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 50% !important;
+    height: calc(100dvh - 20px) !important;
+    margin: 0 !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
 /* Premium circular close buttons for Order Management modals. */
 .order-modal .modal-header,
 .order-sendback-head {
