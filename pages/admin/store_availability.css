@@ -407,6 +407,110 @@ body.store-settings-page .availability-warning-callout p {
 .store-danger-btn { color: #9d1d28; background: #fee8e9; }
 button:disabled { cursor: not-allowed; opacity: .5; }
 
+html.store-confirm-open,
+body.store-confirm-open {
+  overflow: hidden;
+}
+
+.store-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 16000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(15, 28, 48, .62);
+  backdrop-filter: blur(3px);
+}
+
+.store-confirm-overlay.is-open {
+  display: flex;
+}
+
+.store-confirm-overlay[hidden] {
+  display: none;
+}
+
+.store-confirm-dialog {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 26px;
+  border: 1px solid #dbe5f1;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 28px 75px rgba(15, 23, 42, .28);
+}
+
+.store-confirm-dialog:focus {
+  outline: none;
+}
+
+.store-confirm-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  background: #eef4fb;
+  color: #355578;
+  cursor: pointer;
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.store-confirm-close:hover,
+.store-confirm-close:focus-visible {
+  background: #dfeaf6;
+  color: #173760;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.store-confirm-kicker {
+  display: inline-flex;
+  margin: 0 44px 7px 0;
+  color: #1d4f8f;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.store-confirm-dialog h2 {
+  margin: 0 44px 10px 0;
+  color: #173760;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.store-confirm-dialog p {
+  margin: 0;
+  color: #5d728c;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.store-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.store-confirm-actions .store-primary-btn,
+.store-confirm-actions .store-secondary-btn {
+  min-width: 128px;
+}
+
 .holiday-panel { margin-top: 22px; }
 .holiday-form {
   display: grid;
@@ -453,6 +557,17 @@ button:disabled { cursor: not-allowed; opacity: .5; }
   .holiday-note-field, .holiday-form__actions { grid-column: 1; }
   .holiday-item { grid-template-columns: 1fr; }
   .holiday-item__actions { justify-content: flex-start; }
+  .store-confirm-dialog {
+    padding: 24px;
+  }
+  .store-confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .store-confirm-actions .store-primary-btn,
+  .store-confirm-actions .store-secondary-btn {
+    width: 100%;
+  }
   body.store-settings-page .availability-preview-head { flex-direction: column; }
   body.store-settings-page .availability-result-cards,
   body.store-settings-page .availability-info-grid { grid-template-columns: 1fr; }

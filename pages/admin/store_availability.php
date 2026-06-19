@@ -19,6 +19,25 @@ function store_admin_valid_date(string $value): bool
 $dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 $notice = "";
 $error = "";
+$toastType = "";
+$toastMessage = "";
+
+function store_admin_failure_message(string $action, Throwable $exception): string
+{
+    $reason = $exception instanceof RuntimeException ? trim($exception->getMessage()) : "";
+    if ($reason === "") {
+        $reason = "Please try again.";
+    }
+
+    if ($action === "save_settings") {
+        return "Failed to save availability settings. " . $reason;
+    }
+    if ($action === "save_holiday") {
+        return "Failed to save closed date. " . $reason;
+    }
+
+    return $reason;
+}
 
 if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
     servitech_enforce_same_origin(false);
@@ -86,7 +105,9 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 ]);
             }
             $pdo->commit();
-            $notice = "Store availability settings saved.";
+            $notice = "Store availability and cutoff settings saved successfully.";
+            $toastType = "success";
+            $toastMessage = $notice;
         } elseif ($action === "save_holiday") {
             $holidayId = (int)($_POST["holiday_id"] ?? 0);
             $holidayDate = trim((string)($_POST["holiday_date"] ?? ""));
@@ -131,7 +152,7 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 if ($stmt->rowCount() < 1) {
                     throw new RuntimeException("Closed date not found.");
                 }
-                $notice = "Closed date updated.";
+                $notice = "Closed date updated successfully.";
             } else {
                 $stmt = $pdo->prepare("
                     INSERT INTO store_holidays (holiday_date, title, note, created_by)
@@ -143,8 +164,10 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                     ":note" => $note,
                     ":created_by" => (int)($_SESSION["user_id"] ?? 0) ?: null,
                 ]);
-                $notice = "Closed date added.";
+                $notice = "Closed date added successfully.";
             }
+            $toastType = "success";
+            $toastMessage = $notice;
         } elseif ($action === "delete_holiday") {
             $holidayId = (int)($_POST["holiday_id"] ?? 0);
             if ($holidayId <= 0) {
@@ -158,7 +181,11 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        $error = $exception->getMessage();
+        $error = store_admin_failure_message($action, $exception);
+        if (in_array($action, ["save_settings", "save_holiday"], true)) {
+            $toastType = "error";
+            $toastMessage = $error;
+        }
     }
 }
 
@@ -201,7 +228,7 @@ $adminHeaderVariant = "special";
   <title>Store Availability</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/store_availability.css?v=20260619-hero-actions') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/store_availability.css?v=20260619-confirm-toasts') ?>">
 </head>
 <body class="store-settings-page">
 <?php require __DIR__ . "/_includes/admin_header.php"; ?>
@@ -330,7 +357,7 @@ $adminHeaderVariant = "special";
     <?php endif; ?>
   </section>
 
-  <form method="post" class="store-settings-form">
+  <form method="post" class="store-settings-form" data-store-confirm="availability">
     <input type="hidden" name="csrf_token" value="<?= store_admin_h($csrfToken) ?>">
     <input type="hidden" name="action" value="save_settings">
 
@@ -400,7 +427,7 @@ $adminHeaderVariant = "special";
       <p>Add one-time dates when regular queue requests should be unavailable.</p>
     </div>
 
-    <form method="post" class="holiday-form" id="holidayForm">
+    <form method="post" class="holiday-form" id="holidayForm" data-store-confirm="holiday">
       <input type="hidden" name="csrf_token" value="<?= store_admin_h($csrfToken) ?>">
       <input type="hidden" name="action" value="save_holiday">
       <input type="hidden" name="holiday_id" id="holidayId" value="0">
@@ -441,8 +468,29 @@ $adminHeaderVariant = "special";
   </section>
 </main>
 
+<div class="store-confirm-overlay" id="storeConfirmOverlay" aria-hidden="true" hidden>
+  <div class="store-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="storeConfirmTitle" aria-describedby="storeConfirmMessage" tabindex="-1">
+    <button class="store-confirm-close" type="button" data-store-confirm-cancel aria-label="Close confirmation">&times;</button>
+    <span class="store-confirm-kicker">Confirm action</span>
+    <h2 id="storeConfirmTitle">Confirm Availability Update</h2>
+    <p id="storeConfirmMessage">Are you sure you want to save these availability settings?</p>
+    <div class="store-confirm-actions">
+      <button class="store-secondary-btn" type="button" data-store-confirm-cancel>Cancel</button>
+      <button class="store-primary-btn" type="button" data-store-confirm-submit>Confirm Save</button>
+    </div>
+  </div>
+</div>
+
 <?php require __DIR__ . "/_includes/admin_footer.php"; ?>
 <script>
+const storeAvailabilityToast = {
+  type: <?= json_encode($toastType) ?>,
+  message: <?= json_encode($toastMessage) ?>
+};
+if (storeAvailabilityToast.message && window.servitechAdminToast) {
+  window.servitechAdminToast.show(storeAvailabilityToast.message, storeAvailabilityToast.type || "info");
+}
+
 document.querySelectorAll("[data-day-toggle]").forEach((toggle) => {
   const row = toggle.closest(".hours-row");
   const sync = () => row.querySelectorAll("[data-day-time]").forEach((input) => input.disabled = !toggle.checked);
@@ -456,6 +504,59 @@ const holidayDate = document.getElementById("holidayDate");
 const holidayTitle = document.getElementById("holidayTitle");
 const holidayNote = document.getElementById("holidayNote");
 const cancelHolidayEdit = document.getElementById("cancelHolidayEdit");
+const storeConfirmOverlay = document.getElementById("storeConfirmOverlay");
+const storeConfirmDialog = storeConfirmOverlay?.querySelector(".store-confirm-dialog");
+const storeConfirmTitle = document.getElementById("storeConfirmTitle");
+const storeConfirmMessage = document.getElementById("storeConfirmMessage");
+const storeConfirmSubmit = storeConfirmOverlay?.querySelector("[data-store-confirm-submit]");
+let storeConfirmPendingForm = null;
+let storeConfirmTrigger = null;
+
+const storeConfirmContent = {
+  availability: {
+    title: "Confirm Availability Update",
+    message: "Are you sure you want to save these availability settings?",
+  },
+  holiday: {
+    title: "Confirm Closed Date",
+    message: "Are you sure you want to save this closed date?",
+  },
+};
+
+function closeStoreConfirm() {
+  if (!storeConfirmOverlay) return;
+  storeConfirmOverlay.hidden = true;
+  storeConfirmOverlay.classList.remove("is-open");
+  storeConfirmOverlay.setAttribute("aria-hidden", "true");
+  document.documentElement.classList.remove("store-confirm-open");
+  document.body.classList.remove("store-confirm-open");
+  if (storeConfirmSubmit) {
+    storeConfirmSubmit.disabled = false;
+    storeConfirmSubmit.textContent = "Confirm Save";
+  }
+  storeConfirmTrigger?.focus();
+  storeConfirmPendingForm = null;
+  storeConfirmTrigger = null;
+}
+
+function openStoreConfirm(form, submitter) {
+  if (!storeConfirmOverlay || !storeConfirmTitle || !storeConfirmMessage || !storeConfirmSubmit) return false;
+  const type = form.dataset.storeConfirm || "availability";
+  const content = storeConfirmContent[type] || storeConfirmContent.availability;
+  storeConfirmPendingForm = form;
+  storeConfirmTrigger = submitter || document.activeElement;
+  storeConfirmTitle.textContent = content.title;
+  storeConfirmMessage.textContent = content.message;
+  storeConfirmSubmit.textContent = "Confirm Save";
+  storeConfirmSubmit.disabled = false;
+  storeConfirmOverlay.hidden = false;
+  storeConfirmOverlay.classList.add("is-open");
+  storeConfirmOverlay.setAttribute("aria-hidden", "false");
+  document.documentElement.classList.add("store-confirm-open");
+  document.body.classList.add("store-confirm-open");
+  storeConfirmDialog?.focus();
+  return true;
+}
 
 function resetHolidayForm() {
   holidayForm.reset();
@@ -475,6 +576,43 @@ document.querySelectorAll("[data-edit-holiday]").forEach((button) => {
   });
 });
 cancelHolidayEdit.addEventListener("click", resetHolidayForm);
+
+document.querySelectorAll("form[data-store-confirm]").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    if (form.dataset.storeConfirmAccepted === "true") {
+      delete form.dataset.storeConfirmAccepted;
+      return;
+    }
+
+    event.preventDefault();
+    openStoreConfirm(form, event.submitter);
+  });
+});
+
+storeConfirmSubmit?.addEventListener("click", () => {
+  if (!storeConfirmPendingForm) return;
+  storeConfirmSubmit.disabled = true;
+  storeConfirmSubmit.textContent = "Saving...";
+  storeConfirmPendingForm.dataset.storeConfirmAccepted = "true";
+  if (typeof storeConfirmPendingForm.requestSubmit === "function") {
+    storeConfirmPendingForm.requestSubmit();
+  } else {
+    storeConfirmPendingForm.submit();
+  }
+});
+
+storeConfirmOverlay?.querySelectorAll("[data-store-confirm-cancel]").forEach((button) => {
+  button.addEventListener("click", closeStoreConfirm);
+});
+storeConfirmOverlay?.addEventListener("click", (event) => {
+  if (event.target === storeConfirmOverlay) closeStoreConfirm();
+});
+storeConfirmDialog?.addEventListener("click", (event) => event.stopPropagation());
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && storeConfirmOverlay?.classList.contains("is-open")) {
+    closeStoreConfirm();
+  }
+});
 </script>
 </body>
 </html>
