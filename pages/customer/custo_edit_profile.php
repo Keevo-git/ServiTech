@@ -2345,6 +2345,28 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
     }
 
     @media (max-width: 900px) {
+      body.customer-page--profile .profile-shell {
+        grid-auto-rows: auto;
+        align-items: start;
+        overflow: visible !important;
+      }
+
+      body.customer-page--profile .profile-summary {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        align-self: start !important;
+        position: static !important;
+        overflow: visible !important;
+        overflow-y: visible !important;
+        overscroll-behavior: auto !important;
+        -webkit-overflow-scrolling: auto;
+      }
+
+      body.customer-page--profile .profile-summary::after {
+        inset: auto 0.35rem 0.35rem auto;
+      }
+
       body.customer-page--profile .profile-edit-page {
         padding-top: calc(1.25rem + var(--profile-header-extra-offset, 0px));
       }
