@@ -133,6 +133,19 @@ if (!function_exists("admin_notification_type_label")) {
     }
 }
 
+if (!function_exists("admin_notification_message_label")) {
+    function admin_notification_message_label($message): string
+    {
+        $message = (string)($message ?? "New notification");
+        $replacements = [
+            "New customer request submitted for" => "New request submitted for",
+            "New customer print order submitted" => "New print order submitted",
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $message);
+    }
+}
+
 if (!function_exists("admin_notification_target_url")) {
     function admin_notification_target_url(array $row): string
     {
@@ -1194,6 +1207,7 @@ if (!function_exists("admin_notification_render_center")) {
                 $createdDate = admin_notification_filter_date((string)($notification["created_at"] ?? ""));
                 $cancelNote = trim((string)($notification["cancel_note"] ?? ""));
                 $targetUrl = admin_notification_target_url($notification);
+                $messageLabel = admin_notification_message_label($notification["message"] ?? "New notification");
               ?>
               <article
                 class="admin-notification-item<?= $isRead ? "" : " is-unread" ?>"
@@ -1214,7 +1228,7 @@ if (!function_exists("admin_notification_render_center")) {
                       <span class="admin-notification-item__category admin-notification-item__category--<?= admin_notification_h($eventCategory) ?>"><?= admin_notification_h($typeLabel) ?></span>
                       <span class="admin-notification-item__time"><?= admin_notification_h($createdLabel) ?></span>
                     </span>
-                    <span class="admin-notification-item__message"><?= admin_notification_h($notification["message"] ?? "New notification") ?></span>
+                    <span class="admin-notification-item__message"><?= admin_notification_h($messageLabel) ?></span>
                     <span class="admin-notification-item__details">
                       <?php if ($queueCode !== ""): ?><span><strong>Queue ID: </strong><?= admin_notification_h($queueCode) ?></span><?php endif; ?>
                       <?php if ($service !== ""): ?><span><strong>Service: </strong><?= admin_notification_h($service) ?></span><?php endif; ?>

@@ -186,7 +186,7 @@ try {
     $pdo,
     "admin_new_order",
     $queue_id,
-    "Queue {$queue_code}: New customer request submitted for {$service_label}.",
+    "Queue {$queue_code}: New request submitted for {$service_label}.",
     "admin_new_order:{$queue_id}",
     true
   );

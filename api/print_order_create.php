@@ -190,7 +190,7 @@ try {
     $pdo,
     "admin_new_order",
     $queue_id,
-    "Queue {$queue_code}: New customer print order submitted.",
+    "Queue {$queue_code}: New print order submitted.",
     "admin_new_order:{$queue_id}",
     true
   );
