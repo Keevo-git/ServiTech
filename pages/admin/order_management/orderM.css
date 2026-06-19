@@ -2473,6 +2473,10 @@ body.order-confirm-open {
     left: 50% !important;
     height: calc(100dvh - 20px) !important;
     margin: 0 !important;
+    border: 1px solid #d7e2f0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 24px 54px rgba(10, 24, 44, 0.26) !important;
+    overflow: hidden !important;
     transform: translateX(-50%) !important;
   }
 }

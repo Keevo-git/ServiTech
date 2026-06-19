@@ -58,7 +58,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260614-queue-modal-sizing') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260619-rounded-mobile-modal') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
 <body class="admin-dashboard" data-admin-realtime-scope="queue_installation">

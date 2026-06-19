@@ -102,7 +102,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260614-uniform-tabs') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260619-view-centered') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260619-rounded-mobile-modal') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260619-view-overlay') ?>" defer></script>
 </head>

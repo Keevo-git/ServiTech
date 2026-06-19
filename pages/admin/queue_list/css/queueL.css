@@ -1697,6 +1697,36 @@ td.actions button.btn-message:hover {
   }
 }
 
+@media (max-width: 768px), (max-height: 620px) {
+  .queue-details-modal {
+    width: min(100%, calc(100vw - 20px)) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+  }
+
+  .queue-details-body {
+    max-height: none !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .queue-details-modal {
+    top: 10px !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 50% !important;
+    height: calc(100dvh - 20px) !important;
+    margin: 0 !important;
+    border: 1px solid #d7e2f0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 24px 54px rgba(10, 24, 44, 0.26) !important;
+    overflow: hidden !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
 @media (max-width: 380px) {
   .queue-details-head h3 {
     font-size: 16px;
