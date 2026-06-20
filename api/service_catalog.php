@@ -138,7 +138,107 @@ function servitech_catalog_fetch_service(PDO $pdo, int $serviceId, bool $activeO
   return is_array($service) ? $service : null;
 }
 
+/**
+ * Last-resort data repair for deployments where catalog code was released
+ * before the Laminating migration. It never reactivates an existing record.
+ */
+function servitech_catalog_ensure_laminating(PDO $pdo): void {
+  static $attempted = false;
+  if ($attempted) return;
+  $attempted = true;
+
+  $lockAcquired = false;
+  $ownsTransaction = false;
+  $savepoint = false;
+
+  try {
+    $pdo->query("SELECT pg_advisory_lock(hashtext('servitech:ensure_laminating_catalog'))");
+    $lockAcquired = true;
+
+    $existingStmt = $pdo->query("
+      SELECT id FROM services
+      WHERE category = 'printing' AND LOWER(name) LIKE '%laminat%'
+      ORDER BY active DESC, sort_order ASC, id ASC
+      LIMIT 1
+    ");
+    if ((int)$existingStmt->fetchColumn() > 0) return;
+
+    if ($pdo->inTransaction()) {
+      $pdo->exec("SAVEPOINT servitech_ensure_laminating");
+      $savepoint = true;
+    } else {
+      $pdo->beginTransaction();
+      $ownsTransaction = true;
+    }
+
+    $insertStmt = $pdo->query("
+      INSERT INTO services (
+        category, name, description, price, price_range, pricing_json, active, sort_order
+      ) VALUES (
+        'printing', 'Laminating',
+        'Laminating service with thin and thick options.',
+        20, 'PHP 20.00 - PHP 30.00', '{}'::jsonb, TRUE, 3
+      ) RETURNING id
+    ");
+    $serviceId = (int)$insertStmt->fetchColumn();
+    if ($serviceId <= 0) throw new RuntimeException("Unable to create the Laminating service.");
+
+    servitech_catalog_upsert($pdo, $serviceId, [
+      "groups" => [[
+        "group_key" => "lamination_type",
+        "name" => "Lamination Type",
+        "active" => 1,
+        "sort_order" => 0,
+        "values" => [
+          ["value_key" => "thin", "label" => "Thin / Manipis", "active" => 1, "sort_order" => 0],
+          ["value_key" => "thick", "label" => "Thick / Makapal", "active" => 1, "sort_order" => 1],
+        ],
+      ]],
+      "rules" => [
+        [
+          "rule_key" => "thin",
+          "option_value_keys" => ["lamination_type" => "thin"],
+          "label" => "Thin / Manipis",
+          "price" => 20,
+          "price_type" => "fixed",
+          "active" => 1,
+          "sort_order" => 0,
+        ],
+        [
+          "rule_key" => "thick",
+          "option_value_keys" => ["lamination_type" => "thick"],
+          "label" => "Thick / Makapal",
+          "price" => 30,
+          "price_type" => "fixed",
+          "active" => 1,
+          "sort_order" => 1,
+        ],
+      ],
+    ]);
+
+    if ($savepoint) $pdo->exec("RELEASE SAVEPOINT servitech_ensure_laminating");
+    if ($ownsTransaction) $pdo->commit();
+  } catch (Throwable $e) {
+    if ($savepoint && $pdo->inTransaction()) {
+      $pdo->exec("ROLLBACK TO SAVEPOINT servitech_ensure_laminating");
+      $pdo->exec("RELEASE SAVEPOINT servitech_ensure_laminating");
+    } elseif ($ownsTransaction && $pdo->inTransaction()) {
+      $pdo->rollBack();
+    }
+    error_log("Laminating catalog fallback failed: " . $e->getMessage());
+  } finally {
+    if ($lockAcquired) {
+      try {
+        $pdo->query("SELECT pg_advisory_unlock(hashtext('servitech:ensure_laminating_catalog'))");
+      } catch (Throwable $e) {
+        error_log("Laminating catalog fallback unlock failed: " . $e->getMessage());
+      }
+    }
+  }
+}
+
 function servitech_catalog_fetch_service_by_kind(PDO $pdo, string $kind, bool $activeOnly = true): ?array {
+  if ($kind === "laminating") servitech_catalog_ensure_laminating($pdo);
   $activeSql = $activeOnly ? "AND active = TRUE AND archived_at IS NULL" : "";
   $where = match ($kind) {
     'document_printing' => "category = 'printing' AND LOWER(name) LIKE '%document%' AND (LOWER(name) LIKE '%printing%' OR LOWER(name) LIKE '%print%')",

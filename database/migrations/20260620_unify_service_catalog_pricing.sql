@@ -117,14 +117,14 @@ BEGIN
   UPDATE services SET active = TRUE, name = 'Rush ID', description = 'Rush ID packages.', updated_at = NOW() WHERE id = rush_id;
 
   INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
-  SELECT 'printing', 'Laminating', 'Laminating priced by lamination type.', 20, 'PHP 20 - PHP 30', '{}'::jsonb, TRUE, 3
+  SELECT 'printing', 'Laminating', 'Laminating service with thin and thick options.', 20, 'PHP 20.00 - PHP 30.00', '{}'::jsonb, TRUE, 3
   WHERE NOT EXISTS (
     SELECT 1 FROM services WHERE category = 'printing' AND LOWER(name) LIKE '%laminat%'
   );
   SELECT id INTO lamination_id FROM services
   WHERE category = 'printing' AND LOWER(name) LIKE '%laminat%'
   ORDER BY active DESC, sort_order ASC, id ASC LIMIT 1;
-  UPDATE services SET active = TRUE, name = 'Laminating', description = 'Laminating priced by lamination type.', updated_at = NOW() WHERE id = lamination_id;
+  UPDATE services SET active = TRUE, name = 'Laminating', description = 'Laminating service with thin and thick options.', updated_at = NOW() WHERE id = lamination_id;
 
   INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
   SELECT 'repair', 'Device Repair', 'Repair priced by device type and repair type.', NULL, 'For assessment', '{}'::jsonb, TRUE, 0

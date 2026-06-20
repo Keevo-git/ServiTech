@@ -17,7 +17,7 @@ BEGIN
     INSERT INTO services (
       category, name, description, price, price_range, pricing_json, active, sort_order
     ) VALUES (
-      'printing', 'Laminating', 'Laminating priced by lamination type.',
+      'printing', 'Laminating', 'Laminating service with thin and thick options.',
       20, 'PHP 20.00 - PHP 30.00', '{}'::jsonb, TRUE, 3
     ) RETURNING id INTO laminating_id;
   ELSE
@@ -29,7 +29,7 @@ BEGIN
               'lamination priced by lamination type.',
               'choose thin or thick lamination.'
             )
-          THEN 'Laminating priced by lamination type.'
+          THEN 'Laminating service with thin and thick options.'
           ELSE description
         END,
         updated_at = NOW()
