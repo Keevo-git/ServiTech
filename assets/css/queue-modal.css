@@ -30,22 +30,24 @@ body.customer-layout .queue-success-modal__close {
   align-items: center;
   background: #fff7f3;
   border: 1px solid rgba(95, 14, 15, 0.15);
-  border-radius: 999px;
+  border-radius: 50%;
+  box-sizing: border-box;
   color: #5f0e0f;
   cursor: pointer;
   display: inline-flex;
   font-family: Arial, sans-serif;
-  font-size: 25px;
-  font-weight: 700;
-  height: 38px;
+  font-size: 22px;
+  font-weight: 800;
+  height: 48px;
   justify-content: center;
   line-height: 1;
-  padding: 0 0 2px;
+  padding: 0;
   position: absolute;
   right: 16px;
+  text-align: center;
   top: 16px;
   transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
-  width: 38px;
+  width: 48px;
 }
 
 body.customer-layout .queue-success-modal__close:hover,
