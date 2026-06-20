@@ -816,7 +816,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const noResultsRow = document.createElement("tr");
     noResultsRow.className = "order-no-results-row";
     noResultsRow.hidden = true;
-    noResultsRow.innerHTML = '<td colspan="6">No results found</td>';
+    noResultsRow.innerHTML = `<td colspan="${table.tHead?.rows?.[0]?.cells?.length || 6}">No results found</td>`;
     tbody.appendChild(noResultsRow);
 
     function isTerminalStatus(status) {

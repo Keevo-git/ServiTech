@@ -70,8 +70,8 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260619-rounded-mobile-modal') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260619-view-overlay') ?>" defer></script>
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260620-bulk-select') ?>">
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260620-bulk-select') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_repair">
 
@@ -116,14 +116,27 @@ require __DIR__ . "/../_includes/admin_header.php";
             <div class="table-section">
               <div class="walkin-title">Repair Queue - Manage and update order statuses</div>
               <?php om_render_filter_toolbar("repairOrdersTable"); ?>
+              <?php if ($orderRecycleReady && $rows): ?>
+                <div class="order-bulk-toolbar" data-order-bulk-toolbar data-table-id="repairOrdersTable">
+                  <span data-order-bulk-count>No orders selected</span>
+                  <button type="button" class="delete-order-btn order-bulk-delete" data-order-bulk-delete disabled>Move Selected to Bin</button>
+                </div>
+              <?php endif; ?>
               <div class="table-scroll-wrapper">
-                <table id="repairOrdersTable" class="orders table-content order-table order-table--simple">
+                <table id="repairOrdersTable" class="orders table-content order-table order-table--simple order-table--selectable">
                   <thead>
-                    <tr><th>Order ID</th><th>Customer Name</th><th class="status-cell">Status</th><th>Payment</th><th>Submitted Date</th><th class="action-cell">Action</th></tr>
+                    <tr>
+                      <?php if ($orderRecycleReady): ?>
+                        <th class="select-cell">
+                          <input type="checkbox" data-order-select-all aria-label="Select visible orders">
+                        </th>
+                      <?php endif; ?>
+                      <th>Order ID</th><th>Customer Name</th><th class="status-cell">Status</th><th>Payment</th><th>Submitted Date</th><th class="action-cell">Action</th>
+                    </tr>
                   </thead>
                   <tbody>
                     <?php if (!$rows): ?>
-                      <tr><td colspan="6" style="color:#777;padding:14px;">No repair queues yet.</td></tr>
+                      <tr><td colspan="<?= $orderRecycleReady ? 7 : 6 ?>" style="color:#777;padding:14px;">No repair queues yet.</td></tr>
                     <?php else: ?>
                       <?php foreach ($rows as $r): ?>
                         <?php $cls = status_class($r["status"]); ?>
@@ -138,6 +151,17 @@ require __DIR__ . "/../_includes/admin_header.php";
                           data-submitted-date="<?= htmlspecialchars(om_order_filter_date($r["created_at"]), ENT_QUOTES, "UTF-8") ?>"
                           data-submitted-at="<?= htmlspecialchars((string)$r["created_at"], ENT_QUOTES, "UTF-8") ?>"
                         >
+                          <?php if ($orderRecycleReady): ?>
+                            <td class="select-cell">
+                              <input
+                                type="checkbox"
+                                data-order-select
+                                data-id="<?= (int)$r["id"] ?>"
+                                data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>"
+                                aria-label="Select order <?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>"
+                              >
+                            </td>
+                          <?php endif; ?>
                           <td><?= htmlspecialchars($r["queue_code"]) ?></td>
                           <td>
                             <span class="order-customer-stack">
@@ -190,7 +214,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($orderRecycleReady): ?>
-  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-recycle-system-hide') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260620-bulk-select') ?>" defer></script>
 <?php endif; ?>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260618-modal-stays-open') ?>" defer></script>
