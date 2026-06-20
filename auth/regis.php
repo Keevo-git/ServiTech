@@ -12,7 +12,7 @@ $csrfToken = servitech_csrf_token();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Register</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260613-password-toggle-fix") ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260621-register-checkbox") ?>">
 </head>
 <body class="auth-page auth-page--register">
 
@@ -93,7 +93,6 @@ $csrfToken = servitech_csrf_token();
           <div class="consent-card">
             <label class="agreement-row" for="privacyConsent">
               <input id="privacyConsent" class="agreement-row__native" name="privacy_consent" type="checkbox" value="1" required>
-              <span class="agreement-row__box" aria-hidden="true"></span>
               <span class="agreement-row__text">I agree to the <button type="button" class="text-link" data-doc-trigger="privacy">Data Privacy Policy</button> and <button type="button" class="text-link" data-doc-trigger="terms">Terms &amp; Conditions</button>.</span>
             </label>
             <p class="field-error agreement-row__error" id="privacyConsentError" aria-live="polite"></p>
