@@ -17,7 +17,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
   <title>ServiTech: Repair Option</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-step1-inline-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-step1-actions">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms" data-service="repair">
@@ -84,7 +84,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
     </div>
 
 
-    <div class="customer-form-actions is-inline">
+    <div class="customer-form-actions customer-step-actions">
       <a href="/pages/customer/customer_dash.php" class="btn-back">Back</a>
       <button type="button" class="btn-next btn-primary-action" id="joinQueueBtn" <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled data-availability-locked="true"' ?>>Join Queue</button>
       <?php if (!$storeAvailability["regular_queue_allowed"]): ?><p class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></p><?php endif; ?>
