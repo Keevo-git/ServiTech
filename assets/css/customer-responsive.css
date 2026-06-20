@@ -1956,3 +1956,76 @@ body.customer-layout .form-page--order-summary .order-summary-panel .form-action
     width: 100% !important;
   }
 }
+
+/* Shared action layout for every customer service form. */
+body.customer-layout.customer-page--forms .service-form-actions {
+  align-items: stretch !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 14px !important;
+  justify-content: flex-start !important;
+  margin: 22px auto 0;
+  max-width: 860px;
+  min-width: 0;
+  width: 100%;
+}
+
+body.customer-layout.customer-page--forms .service-form-actions .service-back-btn,
+body.customer-layout.customer-page--forms .service-form-actions .service-submit-btn {
+  align-items: center !important;
+  border-radius: 12px !important;
+  box-sizing: border-box;
+  display: inline-flex !important;
+  font-size: 16px;
+  font-weight: 800;
+  justify-content: center !important;
+  line-height: 1.2;
+  min-height: 52px !important;
+  min-width: 0 !important;
+  padding: 14px 24px !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+body.customer-layout.customer-page--forms .service-form-actions .service-back-btn {
+  background: #000 !important;
+  border: 1px solid #000 !important;
+  color: #fff !important;
+  flex: 0 0 140px !important;
+  width: 140px !important;
+}
+
+body.customer-layout.customer-page--forms .service-form-actions .service-submit-btn {
+  background: #fbbf24 !important;
+  border: 1px solid #000 !important;
+  color: #1f1300 !important;
+  flex: 1 1 240px !important;
+  width: auto !important;
+}
+
+body.customer-layout.customer-page--forms .service-form-actions .service-back-btn:hover,
+body.customer-layout.customer-page--forms .service-form-actions .service-submit-btn:hover {
+  text-decoration: none !important;
+  transform: translateY(-1px);
+}
+
+body.customer-layout.customer-page--forms .service-form-actions .queue-unavailable-note {
+  flex: 1 0 100%;
+  margin: 0;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  body.customer-layout.customer-page--forms .service-form-actions {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  body.customer-layout.customer-page--forms .service-form-actions .service-back-btn,
+  body.customer-layout.customer-page--forms .service-form-actions .service-submit-btn {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+  }
+}

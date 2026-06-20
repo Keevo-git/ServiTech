@@ -107,7 +107,7 @@ if (is_array($sessionPrintDraft)) {
   <title>ServiTech: <?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-scroll-root">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-service-actions">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>
     .printing-page {
@@ -615,9 +615,9 @@ if (is_array($sessionPrintDraft)) {
         </div>
       </aside>
 
-      <div class="form-actions">
-        <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
-        <button type="button" class="btn-next" id="joinQueueBtn">Join Queue</button>
+      <div class="form-actions service-form-actions">
+        <a href="/pages/customer/custo1_printing_option.php" class="btn-back service-back-btn">Back</a>
+        <button type="button" class="btn-next service-submit-btn" id="joinQueueBtn">Join Queue</button>
       </div>
     </div>
   </div>

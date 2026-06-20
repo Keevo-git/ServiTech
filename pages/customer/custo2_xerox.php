@@ -62,7 +62,7 @@ try {
   <title>ServiTech: Photocopy</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260612-sticky-scroll-root">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-service-actions">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
   <style>
     body.customer-page--custo2 .form-actions {
@@ -217,9 +217,9 @@ try {
         </div>
       </aside>
 
-      <div class="form-actions">
-        <a href="/pages/customer/custo1_printing_option.php" class="btn-back">Back</a>
-        <button type="button" class="btn-next" id="joinQueueBtn" <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled data-availability-locked="true"' ?>>Join Queue</button>
+      <div class="form-actions service-form-actions">
+        <a href="/pages/customer/custo1_printing_option.php" class="btn-back service-back-btn">Back</a>
+        <button type="button" class="btn-next service-submit-btn" id="joinQueueBtn" <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled data-availability-locked="true"' ?>>Join Queue</button>
         <?php if (!$storeAvailability["regular_queue_allowed"]): ?><p class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></p><?php endif; ?>
       </div>
     </div>
