@@ -131,7 +131,34 @@
       return "";
     }
 
+    function getSelectedPaperKey() {
+      var selected = paperSizeSelect.options[paperSizeSelect.selectedIndex];
+      return selected && selected.dataset ? (selected.dataset.valueKey || "") : "";
+    }
+
+    function getSelectedColorKey() {
+      var checked = document.querySelector('input[name="color"]:checked');
+      return checked && checked.dataset ? (checked.dataset.valueKey || "") : "";
+    }
+
+    function findSelectedCatalogRule() {
+      var rules = Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : [];
+      var paperKey = getSelectedPaperKey();
+      var colorKey = getSelectedColorKey();
+      if (!paperKey || !colorKey) return null;
+      return rules.find(function (rule) {
+        var keys = rule && rule.option_value_keys ? rule.option_value_keys : {};
+        return keys.paper_size === paperKey && keys.color_option === colorKey && Number(rule.active) !== 0;
+      }) || null;
+    }
+
     function getClientPricePerPage() {
+      var rule = findSelectedCatalogRule();
+      if (rule) {
+        if (rule.price_type === "assessment") return 0;
+        var catalogPrice = Number(rule.price);
+        return Number.isFinite(catalogPrice) && catalogPrice > 0 ? catalogPrice : 0;
+      }
       var paperKey = normalizePaperKey(paperSizeSelect.value || "");
       var colorKey = normalizeColorKey(getSelectedColor());
       var catalogPricing = window.servitechDocumentPrintPricing && typeof window.servitechDocumentPrintPricing === "object"
@@ -159,15 +186,19 @@
     }
 
     function updateColorPriceLabels() {
-      var paperKey = normalizePaperKey(paperSizeSelect.value || "") || "letter";
-      var catalogPricing = window.servitechDocumentPrintPricing && typeof window.servitechDocumentPrintPricing === "object"
-        ? window.servitechDocumentPrintPricing
-        : {};
-      ["full", "half", "bw"].forEach(function (colorKey) {
-        var el = document.querySelector('[data-doc-color-price="' + colorKey + '"]');
+      var rules = Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : [];
+      var paperKey = getSelectedPaperKey();
+      document.querySelectorAll("[data-doc-color-key]").forEach(function (el) {
+        var colorKey = el.dataset.docColorKey || "";
+        var rule = rules.find(function (item) {
+          var keys = item && item.option_value_keys ? item.option_value_keys : {};
+          return keys.paper_size === paperKey && keys.color_option === colorKey && Number(item.active) !== 0;
+        });
         if (!el) return;
-        var price = Number(catalogPricing[paperKey + "_" + colorKey + "_price"]);
-        el.textContent = Number.isFinite(price) && price > 0 ? toPeso(price) : "Price to be confirmed";
+        var price = Number(rule && rule.price);
+        el.textContent = rule && rule.price_type !== "assessment" && Number.isFinite(price)
+          ? toPeso(price)
+          : "For assessment";
       });
     }
 
@@ -1081,6 +1112,7 @@
         category: "printing",
         service_label: "Document Print",
         catalog_service_id: Number(document.body && document.body.dataset ? document.body.dataset.catalogServiceId : 0) || null,
+        catalog_pricing_rule_id: findSelectedCatalogRule() ? Number(findSelectedCatalogRule().id) || null : null,
         paper_size: paperSizeSelect.value || null,
         quantity: getEnteredQuantity(),
         color_option: getSelectedColor(),
@@ -1113,6 +1145,12 @@
 
       if (!payload.color_option) {
         errors.push("Select a color option.");
+        setRadioInvalid("color", true);
+      }
+
+      if (payload.paper_size && payload.color_option && !findSelectedCatalogRule()) {
+        errors.push("The selected paper/color combination is currently unavailable.");
+        setFieldInvalid(paperSizeSelect, true);
         setRadioInvalid("color", true);
       }
 

@@ -119,6 +119,8 @@ $details = [
   "estimated_total" => isset($draft["estimated_total"]) ? max(0, (float)$draft["estimated_total"]) : 0,
   "file_analysis" => isset($draft["file_analysis"]) && is_array($draft["file_analysis"]) ? $draft["file_analysis"] : [],
   "uploaded_files" => isset($draft["uploaded_files"]) && is_array($draft["uploaded_files"]) ? $draft["uploaded_files"] : [],
+  "catalog_service_id" => isset($draft["catalog_service_id"]) ? max(0, (int)$draft["catalog_service_id"]) : null,
+  "catalog_pricing_rule_id" => isset($draft["catalog_pricing_rule_id"]) ? max(0, (int)$draft["catalog_pricing_rule_id"]) : null,
 ];
 
 foreach ($details as $key => $value) {

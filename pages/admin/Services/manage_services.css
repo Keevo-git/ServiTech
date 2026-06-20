@@ -131,6 +131,92 @@
 .ms-btn.ghost{ background:#637692; color:#fff; }
 .ms-btn.primary{ background:var(--maroon); color:#fff; }
 
+.ms-catalog-editor{
+  border:1px solid rgba(95,14,15,.16);
+  border-radius:12px;
+  margin-top:12px;
+  padding:12px;
+  background:#fffaf8;
+}
+.ms-catalog-block h4{
+  margin:0 0 6px;
+  color:var(--maroon);
+  font-size:14px;
+}
+.ms-catalog-hint{
+  color:#666;
+  font-size:12px;
+  margin:0 0 10px;
+}
+.ms-catalog-group{
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:10px;
+  margin:10px 0;
+  padding:10px;
+}
+.ms-catalog-group__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.ms-catalog-group__head button,
+.ms-catalog-block > button{
+  border:1px solid var(--maroon);
+  border-radius:999px;
+  background:#fff;
+  color:var(--maroon);
+  cursor:pointer;
+  font-weight:900;
+  padding:6px 10px;
+}
+.ms-catalog-value,
+.ms-catalog-rule{
+  align-items:center;
+  display:grid;
+  gap:8px;
+  grid-template-columns:minmax(140px,1fr) auto 80px;
+  margin-top:8px;
+}
+.ms-catalog-rule{
+  grid-template-columns:repeat(2,minmax(130px,1fr)) minmax(90px,.6fr) minmax(120px,.8fr) auto 70px;
+}
+.ms-catalog-value input,
+.ms-catalog-value select,
+.ms-catalog-rule input,
+.ms-catalog-rule select,
+.ms-catalog-matrix input,
+.ms-catalog-matrix select{
+  border:1px solid rgba(0,0,0,.14);
+  border-radius:8px;
+  padding:8px;
+  width:100%;
+}
+.ms-catalog-matrix{
+  border-collapse:separate;
+  border-spacing:0;
+  display:block;
+  margin-top:12px;
+  overflow:auto;
+  width:100%;
+}
+.ms-catalog-matrix th,
+.ms-catalog-matrix td{
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  min-width:170px;
+  padding:8px;
+  text-align:left;
+  vertical-align:top;
+}
+.ms-catalog-matrix th{
+  background:#f8ece8;
+  color:var(--maroon);
+  font-size:12px;
+}
+
 @media (max-height: 720px) {
   .ms-overlay{ align-items:flex-start; }
   .ms-modal{ max-height:calc(100vh - 24px); }
@@ -143,6 +229,11 @@
   }
 
   .ms-row2{
+    grid-template-columns:1fr;
+  }
+
+  .ms-catalog-value,
+  .ms-catalog-rule{
     grid-template-columns:1fr;
   }
 }

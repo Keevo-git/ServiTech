@@ -103,7 +103,7 @@ function ms_display_service_name($name): string {
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260619-actions-left-add') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260620-catalog-editor') ?>">
 </head>
 <body>
 
@@ -251,6 +251,10 @@ require __DIR__ . "/../_includes/admin_header.php";
       </div>
       <div class="ms-field">
         <small id="ms_price_hint">Choose Full or Half when editing print price lines inside the description.</small>
+      </div>
+
+      <div class="ms-field">
+        <div id="ms_catalogEditor" class="ms-catalog-editor"></div>
       </div>
 
       <div class="ms-row2">

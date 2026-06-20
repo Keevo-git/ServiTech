@@ -3,30 +3,27 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
-$repairServices = [];
+$repairServiceId = 0;
+$repairDeviceOptions = [];
+$repairRules = [];
 try {
-  $stmt = $pdo->prepare("
-    SELECT id, name, price, price_range
-    FROM services
-    WHERE category = 'repair'
-      AND active = TRUE
-    ORDER BY sort_order ASC, id ASC
-  ");
-  $stmt->execute();
-  $repairServices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $repairService = servitech_catalog_fetch_service_by_kind($pdo, "repair", true);
+  if (is_array($repairService)) {
+    $repairServiceId = (int)$repairService["id"];
+    $catalog = servitech_catalog_fetch($pdo, $repairServiceId, true);
+    foreach ($catalog["groups"] as $group) {
+      if (($group["group_key"] ?? "") === "device_type") $repairDeviceOptions = $group["values"] ?? [];
+    }
+    $repairRules = $catalog["rules"] ?? [];
+  }
 } catch (Throwable $e) {
-  $repairServices = [];
-}
-
-function repair_price_range_label(array $service): string {
-  $range = trim((string)($service["price_range"] ?? ""));
-  if ($range !== "") return $range;
-  if (isset($service["price"]) && is_numeric($service["price"])) return "PHP " . number_format((float)$service["price"], 2);
-  return "For assessment";
+  $repairDeviceOptions = [];
+  $repairRules = [];
 }
 ?>
 
@@ -59,16 +56,7 @@ function repair_price_range_label(array $service): string {
         <div>
           <label for="repairServiceSelect">Select Service<span class="required">*</span></label>
           <select class="form-select" id="repairServiceSelect">
-            <option value="" selected disabled>Select Repair Service</option>
-            <?php foreach ($repairServices as $service):
-              $priceRange = repair_price_range_label($service);
-            ?>
-              <option value="<?= htmlspecialchars((string)$service["name"], ENT_QUOTES, "UTF-8") ?>"
-                      data-catalog-id="<?= (int)$service["id"] ?>"
-                      data-price-range="<?= htmlspecialchars($priceRange, ENT_QUOTES, "UTF-8") ?>">
-                <?= htmlspecialchars((string)$service["name"], ENT_QUOTES, "UTF-8") ?>
-              </option>
-            <?php endforeach; ?>
+            <option value="" selected disabled>Select a device first</option>
           </select>
         </div>
 
@@ -89,9 +77,12 @@ function repair_price_range_label(array $service): string {
           <label for="deviceTypeSelect">Select Device Type<span class="required">*</span></label>
           <select class="form-select" id="deviceTypeSelect">
             <option value="" selected disabled>Select Device</option>
-            <option>Phone</option>
-            <option>Laptop</option>
-            <option>Desktop</option>
+            <?php foreach ($repairDeviceOptions as $option): ?>
+              <option value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                      data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
+                <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
+              </option>
+            <?php endforeach; ?>
           </select>
 
           <label for="repairNotes">Additional Information/Other Request:</label>
@@ -124,6 +115,10 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
+<script>
+  window.servitechCatalogServiceId = <?= (int)$repairServiceId ?>;
+  window.servitechCatalogRules = <?= json_encode($repairRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+</script>
 <script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 
 </body>

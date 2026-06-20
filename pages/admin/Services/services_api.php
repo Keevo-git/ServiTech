@@ -3,6 +3,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../../../api/service_pricing.php";
+require_once __DIR__ . "/../../../api/service_catalog.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -105,7 +106,28 @@ if ($action === "list") {
       ORDER BY category ASC, sort_order ASC, id ASC
     ");
     $stmt->execute($params);
-    respond(["ok" => true, "services" => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($services as &$service) {
+        try {
+            $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], false);
+        } catch (Throwable $e) {
+            $service["catalog"] = null;
+        }
+    }
+    unset($service);
+    respond(["ok" => true, "services" => $services]);
+}
+
+if ($action === "catalog") {
+    $id = (int)($_GET["id"] ?? $_POST["id"] ?? 0);
+    if ($id <= 0) {
+        respond(["ok" => false, "error" => "Invalid service id"]);
+    }
+    try {
+        respond(["ok" => true, "catalog" => servitech_catalog_fetch($pdo, $id, false)]);
+    } catch (Throwable $e) {
+        respond(["ok" => false, "error" => "Catalog not found"]);
+    }
 }
 
 if ($action === "save") {
@@ -116,8 +138,10 @@ if ($action === "save") {
     $priceRaw = trim((string)($_POST["price"] ?? ""));
     $priceRange = trim((string)($_POST["price_range"] ?? ""));
     $pricingJsonRaw = trim((string)($_POST["pricing_json"] ?? ""));
+    $catalogJsonRaw = trim((string)($_POST["catalog_json"] ?? ""));
     $pricingJson = null;
     $decodedPricing = null;
+    $catalogData = null;
     $active = isset($_POST["active"]) ? (int)($_POST["active"]) : 1;
     $sort_order = isset($_POST["sort_order"]) ? (int)($_POST["sort_order"]) : 0;
 
@@ -142,6 +166,13 @@ if ($action === "save") {
             respond(["ok" => false, "error" => "Invalid pricing data"]);
         }
         $pricingJson = json_encode($decodedPricing, JSON_UNESCAPED_UNICODE);
+    }
+
+    if ($catalogJsonRaw !== "") {
+        $catalogData = json_decode($catalogJsonRaw, true);
+        if (!is_array($catalogData)) {
+            respond(["ok" => false, "error" => "Invalid catalog data"]);
+        }
     }
 
     try {
@@ -175,6 +206,9 @@ if ($action === "save") {
             ":sort_order" => $sort_order,
             ":id" => $id,
         ]);
+        if (is_array($catalogData)) {
+            servitech_catalog_upsert($pdo, $id, $catalogData);
+        }
         respond(["ok" => true, "id" => $id]);
     }
 
@@ -194,6 +228,9 @@ if ($action === "save") {
         ":sort_order" => $sort_order,
     ]);
     $newId = (int)($stmt->fetchColumn() ?: 0);
+    if (is_array($catalogData) && $newId > 0) {
+        servitech_catalog_upsert($pdo, $newId, $catalogData);
+    }
     respond(["ok" => true, "id" => $newId]);
 }
 

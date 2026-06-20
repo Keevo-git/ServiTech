@@ -5,6 +5,7 @@ servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
 
@@ -17,6 +18,9 @@ $xeroxPricing = [
   "a4Bw" => 3.0,
 ];
 $xeroxCatalogServiceId = 0;
+$xeroxCatalogRules = [];
+$xeroxPaperOptions = [];
+$xeroxColorOptions = [];
 
 function xerox_extract_line_price(string $description, string $label): ?float {
   $pattern = "/" . preg_quote($label, "/") . "\\s*:?\\s*\\x{20B1}?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
@@ -28,20 +32,16 @@ function xerox_extract_line_price(string $description, string $label): ?float {
 }
 
 try {
-  $xeroxStmt = $pdo->prepare("
-    SELECT id, description, price, pricing_json::text AS pricing_json
-    FROM services
-    WHERE category = 'printing'
-      AND (LOWER(name) LIKE '%xerox%' OR LOWER(name) LIKE '%photocopy%')
-      AND active = TRUE
-    ORDER BY sort_order ASC, id ASC
-    LIMIT 1
-  ");
-  $xeroxStmt->execute();
-  $xeroxService = $xeroxStmt->fetch(PDO::FETCH_ASSOC);
+  $xeroxService = servitech_catalog_fetch_service_by_kind($pdo, "photocopy", true);
 
   if (is_array($xeroxService)) {
     $xeroxCatalogServiceId = (int)($xeroxService["id"] ?? 0);
+    $catalog = servitech_catalog_fetch($pdo, $xeroxCatalogServiceId, true);
+    foreach ($catalog["groups"] as $group) {
+      if (($group["group_key"] ?? "") === "paper_size") $xeroxPaperOptions = $group["values"] ?? [];
+      if (($group["group_key"] ?? "") === "color_option") $xeroxColorOptions = $group["values"] ?? [];
+    }
+    $xeroxCatalogRules = $catalog["rules"] ?? [];
     $description = (string)($xeroxService["description"] ?? "");
     $storedPricing = json_decode((string)($xeroxService["pricing_json"] ?? ""), true);
     $fallbackPrice = isset($xeroxService["price"]) ? max(0, (float)$xeroxService["price"]) : 3.0;
@@ -57,6 +57,20 @@ try {
   }
 } catch (Throwable $e) {
   // Keep the photocopy form usable if service pricing cannot be loaded.
+}
+
+if (empty($xeroxPaperOptions)) {
+  $xeroxPaperOptions = [
+    ["value_key" => "letter", "label" => "Letter"],
+    ["value_key" => "8_5x13", "label" => "8.5x13"],
+    ["value_key" => "a4", "label" => "A4"],
+  ];
+}
+if (empty($xeroxColorOptions)) {
+  $xeroxColorOptions = [
+    ["value_key" => "colored", "label" => "Colored"],
+    ["value_key" => "black_and_white", "label" => "Black and White"],
+  ];
 }
 ?>
 
@@ -94,15 +108,24 @@ try {
             <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
               <select class="form-select" id="paperSizeSelect">
                 <option value="" selected disabled>Select paper size</option>
-                <option>Letter</option>
-                <option>8.5x13</option>
-                <option>A4</option>
+                <?php foreach ($xeroxPaperOptions as $option): ?>
+                  <option value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                          data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
+                    <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
+                  </option>
+                <?php endforeach; ?>
               </select>
 
             <label>Color Option<span class="required">*</span></label>
             <div class="radio-group">
-              <label><input type="radio" name="color" value="Colored"> Colored</label>
-              <label><input type="radio" name="color" value="Black & White"> Black &amp; White</label>
+              <?php foreach ($xeroxColorOptions as $option): ?>
+                <label>
+                  <input type="radio" name="color"
+                         value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                         data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
+                  <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
+                </label>
+              <?php endforeach; ?>
             </div>
 
             <label for="qtyInput">Quantity / Copies<span class="required">*</span></label>
@@ -180,6 +203,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script src="/assets/js/csrf.js"></script>
 <script>
   window.servitechXeroxPricing = <?= json_encode($xeroxPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  window.servitechCatalogRules = <?= json_encode($xeroxCatalogRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 

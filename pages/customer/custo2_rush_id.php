@@ -5,6 +5,7 @@ servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
 
@@ -17,23 +18,15 @@ $rushPricing = [
   "package6" => 50.0,
 ];
 $rushCatalogServiceId = 0;
+$rushCatalogRules = [];
 
 try {
-  $rushStmt = $pdo->prepare("
-    SELECT id, price, pricing_json::text AS pricing_json
-    FROM services
-    WHERE category = 'printing'
-      AND LOWER(name) LIKE '%rush%'
-      AND LOWER(name) LIKE '%id%'
-      AND active = TRUE
-    ORDER BY sort_order ASC, id ASC
-    LIMIT 1
-  ");
-  $rushStmt->execute();
-  $rushService = $rushStmt->fetch(PDO::FETCH_ASSOC);
+  $rushService = servitech_catalog_fetch_service_by_kind($pdo, "rush_id", true);
 
   if (is_array($rushService)) {
     $rushCatalogServiceId = (int)($rushService["id"] ?? 0);
+    $catalog = servitech_catalog_fetch($pdo, $rushCatalogServiceId, true);
+    $rushCatalogRules = $catalog["rules"] ?? [];
     $storedPricing = json_decode((string)($rushService["pricing_json"] ?? ""), true);
     if (is_array($storedPricing)) {
       foreach ($rushPricing as $key => $fallback) {
@@ -45,6 +38,29 @@ try {
   }
 } catch (Throwable $e) {
   // Keep the Rush ID form usable if service pricing cannot be loaded.
+}
+
+if (empty($rushCatalogRules)) {
+  foreach ($rushPricing as $key => $price) {
+    $num = (int)str_replace("package", "", $key);
+    $rushCatalogRules[] = [
+      "id" => 0,
+      "rule_key" => $key,
+      "label" => "Package " . $num,
+      "description" => match ($num) {
+        1 => "1x1 (4pcs), 2x2 (2pcs)",
+        2 => "1x1 (6pcs)",
+        3 => "2x2 (4pcs)",
+        4 => "2x2 (4pcs), 1x1 (4pcs)",
+        5 => "Passport size (4pcs)",
+        default => "1x1 (10pcs)",
+      },
+      "price" => $price,
+      "price_type" => "fixed",
+      "active" => 1,
+      "option_value_keys" => ["package" => $key],
+    ];
+  }
 }
 
 function rush_price(array $pricing, string $key): string {
@@ -158,12 +174,18 @@ function rush_price(array $pricing, string $key): string {
             <label for="packageSelect">Select Package<span class="required">*</span></label>
             <select id="packageSelect" class="form-select">
               <option value="" selected disabled>Select a Package</option>
-              <option value="package1" data-price="<?= rush_price($rushPricing, "package1") ?>">Package 1: 1x1 (4pcs.), 2x2 (2pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package1") ?></option>
-              <option value="package2" data-price="<?= rush_price($rushPricing, "package2") ?>">Package 2: 1x1 (6pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package2") ?></option>
-              <option value="package3" data-price="<?= rush_price($rushPricing, "package3") ?>">Package 3: 2x2 (4pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package3") ?></option>
-              <option value="package4" data-price="<?= rush_price($rushPricing, "package4") ?>">Package 4: 2x2 (4pcs.), 1x1 (4pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package4") ?></option>
-              <option value="package5" data-price="<?= rush_price($rushPricing, "package5") ?>">Package 5: Passport size (4pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package5") ?></option>
-              <option value="package6" data-price="<?= rush_price($rushPricing, "package6") ?>">Package 6: 1x1 (10pcs.) &mdash; &#8369;<?= rush_price($rushPricing, "package6") ?></option>
+              <?php foreach ($rushCatalogRules as $rule):
+                $price = ($rule["price_type"] ?? "") === "fixed" ? (float)($rule["price"] ?? 0) : 0;
+                $priceLabel = ($rule["price_type"] ?? "") === "fixed" ? "&#8369;" . htmlspecialchars(number_format($price, 2), ENT_QUOTES, "UTF-8") : "For assessment";
+              ?>
+                <option value="<?= htmlspecialchars((string)$rule["rule_key"], ENT_QUOTES, "UTF-8") ?>"
+                        data-rule-id="<?= (int)($rule["id"] ?? 0) ?>"
+                        data-price="<?= htmlspecialchars(number_format($price, 2, ".", ""), ENT_QUOTES, "UTF-8") ?>">
+                  <?= htmlspecialchars((string)($rule["label"] ?? "Package"), ENT_QUOTES, "UTF-8") ?>:
+                  <?= htmlspecialchars((string)($rule["description"] ?? ""), ENT_QUOTES, "UTF-8") ?>
+                  &mdash; <?= $priceLabel ?>
+                </option>
+              <?php endforeach; ?>
             </select>
 
             <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>

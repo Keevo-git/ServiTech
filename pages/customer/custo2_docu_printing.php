@@ -4,6 +4,7 @@ require_once __DIR__ . "/../../config/join_queue_flow.php";
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/../../api/service_catalog.php";
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $documentPrintingLabel = "Document Print";
@@ -20,6 +21,10 @@ $printPricing = [
   "a4_bw_price" => 5.0,
 ];
 $documentCatalogServiceId = 0;
+$documentCatalog = null;
+$documentPaperOptions = [];
+$documentColorOptions = [];
+$documentRules = [];
 
 function document_printing_extract_price(string $description, string $option): ?float {
   $pattern = "/\\b" . preg_quote($option, "/") . "\\s*[-\\x{2013}\\x{2014}]?\\s*₱?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
@@ -58,21 +63,16 @@ function document_printing_extract_price_range(string $priceRange): array {
 }
 
 try {
-  $serviceStmt = $pdo->prepare("
-    SELECT id, description, price, price_range, pricing_json::text AS pricing_json
-    FROM services
-    WHERE category = 'printing'
-      AND LOWER(name) LIKE '%document%'
-      AND (LOWER(name) LIKE '%printing%' OR LOWER(name) LIKE '%print%')
-      AND active = TRUE
-    ORDER BY sort_order ASC, id ASC
-    LIMIT 1
-  ");
-  $serviceStmt->execute();
-  $documentPrintingService = $serviceStmt->fetch(PDO::FETCH_ASSOC);
+  $documentPrintingService = servitech_catalog_fetch_service_by_kind($pdo, "document_printing", true);
 
   if (is_array($documentPrintingService)) {
     $documentCatalogServiceId = (int)($documentPrintingService["id"] ?? 0);
+    $documentCatalog = servitech_catalog_fetch($pdo, $documentCatalogServiceId, true);
+    foreach ($documentCatalog["groups"] as $group) {
+      if (($group["group_key"] ?? "") === "paper_size") $documentPaperOptions = $group["values"] ?? [];
+      if (($group["group_key"] ?? "") === "color_option") $documentColorOptions = $group["values"] ?? [];
+    }
+    $documentRules = $documentCatalog["rules"] ?? [];
     $description = (string)($documentPrintingService["description"] ?? "");
     $storedPricing = json_decode((string)($documentPrintingService["pricing_json"] ?? ""), true);
     $rangePrices = document_printing_extract_price_range((string)($documentPrintingService["price_range"] ?? ""));
@@ -94,6 +94,21 @@ try {
   }
 } catch (Throwable $e) {
   // Keep the order form usable if the service table is unavailable.
+}
+
+if (empty($documentPaperOptions)) {
+  $documentPaperOptions = [
+    ["value_key" => "letter", "label" => "Letter"],
+    ["value_key" => "8_5x13", "label" => "8.5x13"],
+    ["value_key" => "a4", "label" => "A4"],
+  ];
+}
+if (empty($documentColorOptions)) {
+  $documentColorOptions = [
+    ["value_key" => "half_colored", "label" => "Half Colored"],
+    ["value_key" => "full_colored", "label" => "Full Colored"],
+    ["value_key" => "black_and_white", "label" => "Black and White"],
+  ];
 }
 
 if (is_array($sessionPrintDraft)) {
@@ -525,9 +540,12 @@ if (is_array($sessionPrintDraft)) {
               <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
               <select class="form-select" id="paperSizeSelect">
                 <option value="" selected>Select paper size</option>
-                <option>Letter</option>
-                <option>8.5x13</option>
-                <option>A4</option>
+                <?php foreach ($documentPaperOptions as $option): ?>
+                  <option value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                          data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
+                    <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
+                  </option>
+                <?php endforeach; ?>
               </select>
             </div>
 
@@ -545,18 +563,16 @@ if (is_array($sessionPrintDraft)) {
           <div>
             <label>Color Option<span class="required">*</span></label>
             <div class="radio-group">
-              <label>
-                <span class="color-option-left"><input type="radio" name="color" value="Black & White"><span>Black &amp; White</span></span>
-                <span class="color-option-price" data-doc-color-price="bw">&#8369;<?= htmlspecialchars(number_format((float)$printPricing["letter_bw_price"], 2), ENT_QUOTES, "UTF-8") ?></span>
-              </label>
-              <label>
-                <span class="color-option-left"><input type="radio" name="color" value="Full Colored"><span>Full Colored</span></span>
-                <span class="color-option-price" data-doc-color-price="full">&#8369;<?= htmlspecialchars(number_format((float)$printPricing["letter_full_price"], 2), ENT_QUOTES, "UTF-8") ?></span>
-              </label>
-              <label>
-                <span class="color-option-left"><input type="radio" name="color" value="Half Colored"><span>Half Colored</span></span>
-                <span class="color-option-price" data-doc-color-price="half">&#8369;<?= htmlspecialchars(number_format((float)$printPricing["letter_half_price"], 2), ENT_QUOTES, "UTF-8") ?></span>
-              </label>
+              <?php foreach ($documentColorOptions as $option): ?>
+                <label>
+                  <span class="color-option-left">
+                    <input type="radio" name="color" value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                           data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
+                    <span><?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?></span>
+                  </span>
+                  <span class="color-option-price" data-doc-color-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">Price to be confirmed</span>
+                </label>
+              <?php endforeach; ?>
             </div>
           </div>
         </div>
@@ -644,6 +660,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  window.servitechCatalogRules = <?= json_encode($documentRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="/assets/js/custo2_docu_printing.js?v=20260620-service-catalog"></script>
 </body>

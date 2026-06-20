@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/service_catalog.php";
 
 header("Content-Type: application/json; charset=utf-8");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -36,6 +37,24 @@ if ($action === "list" && $category) {
         ");
         $stmt->execute([":category" => $category]);
         $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($services as &$service) {
+            try {
+                $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+                $service["catalog_price_range"] = (string)($service["catalog"]["service"]["catalog_price_range"] ?? "");
+            } catch (Throwable $e) {
+                $service["catalog"] = null;
+                $service["catalog_price_range"] = "";
+            }
+        }
+        unset($service);
+
+        try {
+            $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+            $service["catalog_price_range"] = (string)($service["catalog"]["service"]["catalog_price_range"] ?? "");
+        } catch (Throwable $e) {
+            $service["catalog"] = null;
+            $service["catalog_price_range"] = "";
+        }
 
         respond([
             "ok" => true,

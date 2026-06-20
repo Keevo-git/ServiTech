@@ -131,6 +131,35 @@ function normalizeCatalogColor(value) {
   return color;
 }
 
+function servitechCatalogRules() {
+  return Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : [];
+}
+
+function selectedOptionValueKey(select) {
+  const option = select?.options?.[select.selectedIndex];
+  return option && option.dataset ? (option.dataset.valueKey || "") : "";
+}
+
+function checkedValueKey(name) {
+  const checked = document.querySelector(`input[name="${name}"]:checked`);
+  return checked && checked.dataset ? (checked.dataset.valueKey || "") : "";
+}
+
+function findCatalogRuleByKeys(keys) {
+  const entries = Object.entries(keys).filter(([, value]) => String(value || "") !== "");
+  if (!entries.length) return null;
+  return servitechCatalogRules().find((rule) => {
+    const ruleKeys = rule?.option_value_keys || {};
+    return Number(rule?.active) !== 0 && entries.every(([key, value]) => String(ruleKeys[key] || "") === String(value));
+  }) || null;
+}
+
+function formatCatalogRuleDisplayPrice(rule) {
+  if (!rule || rule.price_type === "assessment") return "For assessment";
+  const price = Number(rule.price);
+  return Number.isFinite(price) ? formatPesoPrice(price) : "For assessment";
+}
+
 function getDocumentBlockPrice(description, blockName, option) {
   const blocks = String(description || "").split(/\r?\n\s*\r?\n/);
   const block = blocks.find((item) => item.toLowerCase().includes(blockName.toLowerCase()));
@@ -246,6 +275,55 @@ function buildLaminatingCardLines(service) {
     `Manipis / Thin: ${formatPesoPrice(prices.thin)}`,
     `Makapal / Thick: ${formatPesoPrice(prices.thick)}`,
   ];
+}
+
+function catalogRulesFor(service) {
+  return Array.isArray(service?.catalog?.rules) ? service.catalog.rules : [];
+}
+
+function formatCatalogRulePrice(rule) {
+  if (!rule || rule.price_type === "assessment") return "For assessment";
+  return formatPesoPrice(rule.price);
+}
+
+function buildCatalogMatrixCards(service, rowGroupKey, colGroupKey) {
+  const rows = new Map();
+  catalogRulesFor(service).forEach((rule) => {
+    const row = rule.option_labels?.[rowGroupKey] || "";
+    const col = rule.option_labels?.[colGroupKey] || "";
+    if (!row || !col) return;
+    if (!rows.has(row)) rows.set(row, []);
+    rows.get(row).push(`${col}: ${formatCatalogRulePrice(rule)}`);
+  });
+  return Array.from(rows.entries()).map(([title, lines]) => ({
+    title,
+    icon: getServiceIconKey(service.category, service.name),
+    lines,
+  }));
+}
+
+function buildCatalogRuleCards(service, groupKey) {
+  return catalogRulesFor(service).map((rule) => ({
+    title: rule.option_labels?.[groupKey] || rule.label || "Option",
+    icon: getServiceIconKey(service.category, service.name),
+    price: formatCatalogRulePrice(rule),
+    lines: [rule.description || ""].filter(Boolean),
+  }));
+}
+
+function buildRepairCatalogCards(service) {
+  const rows = new Map();
+  catalogRulesFor(service).forEach((rule) => {
+    const device = rule.option_labels?.device_type || "Device";
+    const repair = rule.option_labels?.repair_type || rule.label || "Repair";
+    if (!rows.has(device)) rows.set(device, []);
+    rows.get(device).push(`${repair}: ${formatCatalogRulePrice(rule)}`);
+  });
+  return Array.from(rows.entries()).map(([title, lines]) => ({
+    title,
+    icon: "repair",
+    lines,
+  }));
 }
 
 function openModal(id) {
@@ -550,15 +628,16 @@ serviceModalDetailData.rushId.cards = [
 ];
 
 function getServiceDetailKey(category, serviceName) {
-  if (category !== "printing") return undefined;
-
   const normalizedName = String(serviceName || "")
     .trim()
     .toLowerCase()
     .replace(/[\s_-]+/g, " ");
 
-  if (normalizedName.includes("document") && (normalizedName.includes("printing") || normalizedName.includes("print"))) return "documentPrinting";
-  if (normalizedName.includes("rush") && normalizedName.includes("id")) return "rushId";
+  if (category === "printing" && normalizedName.includes("document") && (normalizedName.includes("printing") || normalizedName.includes("print"))) return "documentPrinting";
+  if (category === "printing" && (normalizedName.includes("photocopy") || normalizedName.includes("xerox"))) return "photocopy";
+  if (category === "printing" && normalizedName.includes("rush") && normalizedName.includes("id")) return "rushId";
+  if (category === "repair") return "repairCatalog";
+  if (category === "installation") return "installationCatalog";
   return undefined;
 }
 
@@ -669,9 +748,31 @@ async function loadServicesFromDatabase() {
 
         const detailKey = getServiceDetailKey(category, service.name);
         if (detailKey === "documentPrinting") {
-          serviceModalDetailData.documentPrinting.cards = buildDocumentPrintingDetailCards(service);
+          serviceModalDetailData.documentPrinting.cards = service.catalog
+            ? buildCatalogMatrixCards(service, "paper_size", "color_option")
+            : buildDocumentPrintingDetailCards(service);
+        } else if (detailKey === "photocopy") {
+          serviceModalDetailData.photocopy = {
+            title: "Photocopy Price Table",
+            description: "Review photocopy paper size and color pricing.",
+            cards: buildCatalogMatrixCards(service, "paper_size", "color_option"),
+          };
         } else if (detailKey === "rushId") {
-          serviceModalDetailData.rushId.cards = buildRushIdDetailCards(service);
+          serviceModalDetailData.rushId.cards = service.catalog
+            ? buildCatalogRuleCards(service, "package")
+            : buildRushIdDetailCards(service);
+        } else if (detailKey === "repairCatalog") {
+          serviceModalDetailData.repairCatalog = {
+            title: "Repair Services",
+            description: "Review repair types by device.",
+            cards: buildRepairCatalogCards(service),
+          };
+        } else if (detailKey === "installationCatalog") {
+          serviceModalDetailData.installationCatalog = {
+            title: "Installation Services",
+            description: "Review installation service types.",
+            cards: buildCatalogRuleCards(service, "installation_type"),
+          };
         }
 
         const serviceName = String(service.name || "").toLowerCase();
@@ -684,7 +785,7 @@ async function loadServicesFromDatabase() {
           icon: getServiceIconKey(category, service.name),
           lines: lines.length > 0 ? lines : [service.description || ""],
           priceLabel: formatServicePrice(service.price),
-          priceRange: service.price_range || "",
+          priceRange: service.catalog_price_range || service.price_range || "",
           detailKey,
         };
       });
@@ -966,6 +1067,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const paperSizeSelect = document.getElementById("paperSizeSelect");
   const lamTypeSelect = document.getElementById("lamTypeSelect");
   const packageSelect = document.getElementById("packageSelect");
+  const repairServiceSelect = document.getElementById("repairServiceSelect");
+  const deviceTypeSelect = document.getElementById("deviceTypeSelect");
   const paymentMethodSelect = document.getElementById("paymentMethodSelect");
   const colorRadios = document.querySelectorAll('input[name="color"]');
 
@@ -981,6 +1084,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const isXerox = svc === "xerox";
 
   const xeroxPriceMap = getXeroxPriceMap();
+
+  function priceLabelForRule(rule) {
+    if (!rule || rule.price_type === "assessment") return "For assessment";
+    const price = Number(rule.price);
+    return Number.isFinite(price) ? formatPesoPrice(price) : "For assessment";
+  }
+
+  function populateRepairTypeOptions() {
+    if (!deviceTypeSelect || !repairServiceSelect) return;
+    const deviceKey = selectedOptionValueKey(deviceTypeSelect);
+    repairServiceSelect.innerHTML = '<option value="" selected disabled>Select Repair Service</option>';
+    if (!deviceKey) return;
+    servitechCatalogRules()
+      .filter((rule) => rule?.option_value_keys?.device_type === deviceKey && Number(rule.active) !== 0)
+      .forEach((rule) => {
+        const option = document.createElement("option");
+        const label = rule.option_labels?.repair_type || rule.label || "Repair Service";
+        option.value = label;
+        option.textContent = `${label} - ${priceLabelForRule(rule)}`;
+        option.dataset.ruleId = String(rule.id || 0);
+        option.dataset.catalogId = String(window.servitechCatalogServiceId || document.body?.dataset?.catalogServiceId || 0);
+        option.dataset.priceRange = priceLabelForRule(rule);
+        repairServiceSelect.appendChild(option);
+      });
+  }
 
   function getSelectedColor() {
     const checked = document.querySelector('input[name="color"]:checked');
@@ -1035,7 +1163,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (isXerox && paperSizeSelect) {
       const size = paperSizeSelect.value;
       const color = normalizeCatalogColor(getSelectedColor() || "colored");
-      const price = xeroxPriceMap[size]?.[color];
+      const rule = findCatalogRuleByKeys({
+        paper_size: selectedOptionValueKey(paperSizeSelect),
+        color_option: checkedValueKey("color"),
+      });
+      const price = rule && rule.price_type !== "assessment" ? Number(rule.price) : xeroxPriceMap[size]?.[color];
       canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(price);
       pricePerItem = canCompute ? price : 0;
     } else {
@@ -1050,11 +1182,52 @@ document.addEventListener("DOMContentLoaded", () => {
   if (paperSizeSelect) paperSizeSelect.addEventListener("change", updateSummary);
   if (lamTypeSelect) lamTypeSelect.addEventListener("change", updateSummary);
   if (packageSelect) packageSelect.addEventListener("change", updateSummary);
+  if (deviceTypeSelect) deviceTypeSelect.addEventListener("change", () => {
+    populateRepairTypeOptions();
+    initServiceFormPriceCard("repairServiceSelect", "repairPriceRange", "Choose a repair service");
+  });
+  if (repairServiceSelect) repairServiceSelect.addEventListener("change", updateSummary);
   if (paymentMethodSelect) paymentMethodSelect.addEventListener("change", updateSummary);
   qtyInput.addEventListener("input", updateSummary);
   colorRadios.forEach((r) => r.addEventListener("change", updateSummary));
 
+  populateRepairTypeOptions();
   updateSummary();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const deviceTypeSelect = document.getElementById("deviceTypeSelect");
+  const repairServiceSelect = document.getElementById("repairServiceSelect");
+  const repairPriceRange = document.getElementById("repairPriceRange");
+  if (!deviceTypeSelect || !repairServiceSelect) return;
+
+  function populateRepairTypeOptions() {
+    const deviceKey = selectedOptionValueKey(deviceTypeSelect);
+    repairServiceSelect.innerHTML = '<option value="" selected disabled>Select Repair Service</option>';
+    if (repairPriceRange) repairPriceRange.textContent = "Choose a repair service";
+    if (!deviceKey) return;
+
+    servitechCatalogRules()
+      .filter((rule) => rule?.option_value_keys?.device_type === deviceKey && Number(rule.active) !== 0)
+      .forEach((rule) => {
+        const option = document.createElement("option");
+        const label = rule.option_labels?.repair_type || rule.label || "Repair Service";
+        const priceLabel = formatCatalogRuleDisplayPrice(rule);
+        option.value = label;
+        option.textContent = `${label} - ${priceLabel}`;
+        option.dataset.ruleId = String(rule.id || 0);
+        option.dataset.catalogId = String(window.servitechCatalogServiceId || document.body?.dataset?.catalogServiceId || 0);
+        option.dataset.priceRange = priceLabel;
+        repairServiceSelect.appendChild(option);
+      });
+  }
+
+  deviceTypeSelect.addEventListener("change", populateRepairTypeOptions);
+  repairServiceSelect.addEventListener("change", () => {
+    const option = repairServiceSelect.options[repairServiceSelect.selectedIndex];
+    if (repairPriceRange) repairPriceRange.textContent = option?.dataset?.priceRange || "For assessment";
+  });
+  populateRepairTypeOptions();
 });
 
 /* ==============================
@@ -1225,15 +1398,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (refs.repairServiceSelect) {
       const selectedOption = refs.repairServiceSelect.options[refs.repairServiceSelect.selectedIndex];
       payload.catalog_service_id = Number(selectedOption?.dataset?.catalogId || 0) || payload.catalog_service_id;
+      payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
     }
 
     if (refs.installationTypeSelect) {
       const selectedOption = refs.installationTypeSelect.options[refs.installationTypeSelect.selectedIndex];
       payload.catalog_service_id = Number(selectedOption?.dataset?.catalogId || 0) || payload.catalog_service_id;
+      payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
     }
 
     if (refs.packageSelect) {
       payload.service_option_key = refs.packageSelect.value || null;
+      const selectedOption = refs.packageSelect.options[refs.packageSelect.selectedIndex];
+      payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
     }
 
     if (refs.lamTypeSelect) {
@@ -1242,7 +1419,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isXerox && refs.paperSizeSelect) {
       const color = normalizeCatalogColor(payload.color_option || "colored");
-      const price = xeroxPriceMap[payload.paper_size]?.[color] ?? 0;
+      const rule = findCatalogRuleByKeys({
+        paper_size: selectedOptionValueKey(refs.paperSizeSelect),
+        color_option: checkedValueKey("color"),
+      });
+      const price = rule && rule.price_type !== "assessment"
+        ? Number(rule.price)
+        : (xeroxPriceMap[payload.paper_size]?.[color] ?? 0);
+      payload.catalog_pricing_rule_id = Number(rule?.id || 0) || payload.catalog_pricing_rule_id || null;
       payload.service_option_key = `${payload.paper_size || ""}_${color}`;
       payload.price_per_page = price;
       payload.estimated_total = price * payload.quantity;
@@ -1322,6 +1506,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (hasColorOptions && !payload.color_option) {
       errors.push("Select a color option.");
       setRadioInvalid("color", true);
+    }
+
+    if (isXerox && refs.paperSizeSelect && payload.paper_size && payload.color_option) {
+      const rule = findCatalogRuleByKeys({
+        paper_size: selectedOptionValueKey(refs.paperSizeSelect),
+        color_option: checkedValueKey("color"),
+      });
+      if (!rule) {
+        errors.push("The selected photocopy combination is currently unavailable.");
+        setFieldInvalid(refs.paperSizeSelect, true);
+        setRadioInvalid("color", true);
+      }
     }
 
 

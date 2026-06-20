@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/upload_helpers.php";
+require_once __DIR__ . "/service_catalog.php";
 
 function servitech_pricing_clean_service_label(string $label): string {
   $label = trim($label);
@@ -342,7 +343,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   $cleanLabel = servitech_pricing_clean_service_label($serviceLabel);
 
   try {
-    $service = servitech_pricing_fetch_active_service($pdo, $kind, $serviceLabel);
+  $service = servitech_pricing_fetch_active_service($pdo, $kind, $serviceLabel);
   } finally {
     unset($GLOBALS["servitech_requested_catalog_service_id"]);
   }
@@ -351,6 +352,81 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   $details["catalog_service_id"] = (int)$service["id"];
   $details["catalog_service_name"] = (string)$service["name"];
   $details["pricing_calculated_at"] = date(DATE_ATOM);
+
+  $catalogRuleId = isset($details["catalog_pricing_rule_id"]) ? (int)$details["catalog_pricing_rule_id"] : 0;
+  if ($catalogRuleId > 0) {
+    $catalog = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+    $rule = servitech_catalog_find_rule($catalog, $catalogRuleId);
+    if (!$rule) {
+      throw new DomainException("The selected service option is currently unavailable.");
+    }
+
+    $ruleLabel = servitech_catalog_rule_display_label($rule);
+    $priceType = (string)($rule["price_type"] ?? "assessment");
+    $fixedPrice = ($priceType === "fixed" && isset($rule["price"]) && is_numeric($rule["price"]))
+      ? max(0, (float)$rule["price"])
+      : null;
+    $pricingStatus = $fixedPrice !== null ? "fixed" : "for_assessment";
+
+    $paperLabel = servitech_catalog_option_label($rule, "paper_size");
+    $colorLabel = servitech_catalog_option_label($rule, "color_option");
+    $packageLabel = servitech_catalog_option_label($rule, "package");
+    $deviceLabel = servitech_catalog_option_label($rule, "device_type");
+    $repairLabel = servitech_catalog_option_label($rule, "repair_type");
+    $installationLabel = servitech_catalog_option_label($rule, "installation_type");
+
+    if ($paperLabel !== "") $details["paper_size"] = $paperLabel;
+    if ($colorLabel !== "") $details["color_option"] = $colorLabel;
+    if ($packageLabel !== "") $details["package_label"] = trim($packageLabel . " - " . (string)($rule["description"] ?? ""), " -");
+    if ($deviceLabel !== "") $details["device_type"] = $deviceLabel;
+    if ($repairLabel !== "") $details["repair_type"] = $repairLabel;
+    if ($installationLabel !== "") $details["installation_type"] = $installationLabel;
+
+    if (servitech_pricing_is_other_request($ruleLabel) || servitech_pricing_is_other_request($repairLabel) || servitech_pricing_is_other_request($installationLabel)) {
+      $notes = trim((string)($details["notes"] ?? ""));
+      if ($notes === "") {
+        throw new DomainException("Please describe your request when selecting Others.");
+      }
+    }
+
+    $details["service_label"] = (string)$service["name"];
+    $details["pricing_source"] = "service_catalog";
+    $details["catalog_pricing_rule_id"] = $catalogRuleId;
+
+    if ($kind === "document_printing") {
+      if ($fixedPrice === null) {
+        throw new DomainException("The selected print option is marked for assessment and cannot be submitted with online pricing.");
+      }
+      $details = array_merge($details, servitech_pricing_analyze_saved_uploads($pdo, (array)($details["uploaded_files"] ?? [])));
+      $details["price_per_page"] = $fixedPrice;
+      $details["estimated_total"] = servitech_pricing_round($fixedPrice * $quantity * (int)$details["total_pages"]);
+    } elseif (in_array($kind, ["xerox", "rush_id", "laminating"], true)) {
+      if ($fixedPrice === null) {
+        unset($details["price_per_page"], $details["estimated_total"]);
+      } else {
+        $details["price_per_page"] = $fixedPrice;
+        $details["estimated_total"] = servitech_pricing_round($fixedPrice * $quantity);
+      }
+    } else {
+      unset($details["price_per_page"], $details["estimated_total"]);
+      if ($fixedPrice !== null) {
+        $details["estimated_total"] = servitech_pricing_round($fixedPrice * $quantity);
+      }
+      if ($pricingStatus === "for_assessment") {
+        $details["price_range"] = "For assessment";
+      }
+    }
+
+    return servitech_pricing_apply_snapshot(
+      $details,
+      $service,
+      (string)$catalogRuleId,
+      $ruleLabel,
+      $fixedPrice,
+      $pricingStatus,
+      trim(implode(" / ", array_filter([$paperLabel, $colorLabel, $packageLabel, $deviceLabel, $repairLabel, $installationLabel])))
+    );
+  }
 
   if ($kind === "document_printing") {
     $paper = servitech_pricing_normalize_paper((string)($details["paper_size"] ?? ""));

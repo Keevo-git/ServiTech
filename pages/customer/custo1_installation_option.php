@@ -3,30 +3,22 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
-$installationServices = [];
+$installationServiceId = 0;
+$installationRules = [];
 try {
-  $stmt = $pdo->prepare("
-    SELECT id, name, price, price_range
-    FROM services
-    WHERE category = 'installation'
-      AND active = TRUE
-    ORDER BY sort_order ASC, id ASC
-  ");
-  $stmt->execute();
-  $installationServices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $installationService = servitech_catalog_fetch_service_by_kind($pdo, "installation", true);
+  if (is_array($installationService)) {
+    $installationServiceId = (int)$installationService["id"];
+    $catalog = servitech_catalog_fetch($pdo, $installationServiceId, true);
+    $installationRules = $catalog["rules"] ?? [];
+  }
 } catch (Throwable $e) {
-  $installationServices = [];
-}
-
-function installation_price_range_label(array $service): string {
-  $range = trim((string)($service["price_range"] ?? ""));
-  if ($range !== "") return $range;
-  if (isset($service["price"]) && is_numeric($service["price"])) return "PHP " . number_format((float)$service["price"], 2);
-  return "For assessment";
+  $installationRules = [];
 }
 ?>
 
@@ -60,13 +52,17 @@ function installation_price_range_label(array $service): string {
           <label for="installationTypeSelect">Select Installation Type<span class="required">*</span></label>
           <select id="installationTypeSelect" class="form-select">
             <option value="" selected disabled>Select Installation/Software Service</option>
-            <?php foreach ($installationServices as $service):
-              $priceRange = installation_price_range_label($service);
+            <?php foreach ($installationRules as $rule):
+              $label = (string)($rule["option_labels"]["installation_type"] ?? $rule["label"] ?? "Installation Type");
+              $priceRange = ($rule["price_type"] ?? "") === "fixed" && isset($rule["price"]) && is_numeric($rule["price"])
+                ? "PHP " . number_format((float)$rule["price"], 2)
+                : "For assessment";
             ?>
-              <option value="<?= htmlspecialchars((string)$service["name"], ENT_QUOTES, "UTF-8") ?>"
-                      data-catalog-id="<?= (int)$service["id"] ?>"
+              <option value="<?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?>"
+                      data-catalog-id="<?= (int)$installationServiceId ?>"
+                      data-rule-id="<?= (int)($rule["id"] ?? 0) ?>"
                       data-price-range="<?= htmlspecialchars($priceRange, ENT_QUOTES, "UTF-8") ?>">
-                <?= htmlspecialchars((string)$service["name"], ENT_QUOTES, "UTF-8") ?>
+                <?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -134,6 +130,10 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 </script>
 
 <script src="/assets/js/csrf.js"></script>
+<script>
+  window.servitechCatalogServiceId = <?= (int)$installationServiceId ?>;
+  window.servitechCatalogRules = <?= json_encode($installationRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+</script>
 <script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 
 </body>

@@ -113,6 +113,8 @@ $draft = [
   "estimated_total" => isset($data["estimated_total"]) ? max(0, (float)$data["estimated_total"]) : 0,
   "file_analysis" => isset($data["file_analysis"]) && is_array($data["file_analysis"]) ? $data["file_analysis"] : [],
   "uploaded_files" => $uploaded_files,
+  "catalog_service_id" => isset($data["catalog_service_id"]) ? max(0, (int)$data["catalog_service_id"]) : null,
+  "catalog_pricing_rule_id" => isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : null,
   "created_at" => date(DATE_ATOM),
 ];
 $draft = servitech_upload_apply_metadata_to_details($draft, $uploaded_files);
