@@ -16,7 +16,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
   <title>ServiTech: Print Options</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-step1-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-step1-equal-actions">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms">

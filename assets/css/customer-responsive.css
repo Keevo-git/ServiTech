@@ -2044,12 +2044,7 @@ body.customer-layout.customer-page--forms .customer-step-actions {
   flex-wrap: wrap;
 }
 
-body.customer-layout.customer-page--forms .customer-step-actions .btn-back {
-  width: 150px !important;
-  min-height: 52px;
-  max-height: 56px;
-}
-
+body.customer-layout.customer-page--forms .customer-step-actions .btn-back,
 body.customer-layout.customer-page--forms .customer-step-actions .btn-primary-action {
   width: 280px !important;
   min-height: 52px;
