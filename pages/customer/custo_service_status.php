@@ -1954,35 +1954,81 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return services.find((item) => cleanServiceLabel(item?.name).toLowerCase() === label) || null;
   }
 
-  function pricingMap(queueData, fallback){
+  function labelKey(value){
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "");
+  }
+
+  function catalogGroups(service){
+    return Array.isArray(service?.catalog?.groups) ? service.catalog.groups : [];
+  }
+
+  function catalogRules(service){
+    return Array.isArray(service?.catalog?.rules) ? service.catalog.rules : [];
+  }
+
+  function catalogGroupValues(service, groupKey){
+    const group = catalogGroups(service).find((item) => String(item?.group_key || "") === groupKey);
+    return Array.isArray(group?.values) ? group.values : [];
+  }
+
+  function catalogRuleLabel(rule){
+    const direct = String(rule?.label || "").trim();
+    if (direct) return direct;
+    const labels = Object.values(rule?.option_labels || {}).map((item) => String(item || "").trim()).filter(Boolean);
+    return labels.join(" / ") || "Selected option";
+  }
+
+  function catalogRulePrice(rule, quantity = 1, multiplier = 1){
+    if (!rule || rule.price_type === "assessment") return null;
+    const price = toNumber(rule.price);
+    if (price === null) return null;
+    return price * Math.max(1, Number(quantity) || 1) * Math.max(1, Number(multiplier) || 1);
+  }
+
+  function selectedCatalogRuleForEdit(queueData){
     const service = findCatalogService(queueData);
-    let stored = {};
-    try {
-      stored = JSON.parse(String(service?.pricing_json || "{}"));
-    } catch (_error) {
-      stored = {};
+    const rules = catalogRules(service);
+    if (!rules.length) return null;
+
+    const explicitId = Number(inputValue("catalog_pricing_rule_id") || 0);
+    if (explicitId > 0) {
+      const rule = rules.find((item) => Number(item?.id || 0) === explicitId);
+      if (rule) return rule;
     }
-    return Object.fromEntries(Object.entries(fallback).map(([key, value]) => {
-      const parsed = toNumber(stored[key]);
-      return [key, parsed !== null && parsed >= 0 ? parsed : value];
-    }));
-  }
 
-  function normalizePaperKey(value){
-    const text = String(value || "").trim().toLowerCase();
-    if (text.includes("letter") || text.includes("short bond") || text.includes("8.5 x 11")) return "letter";
-    if (text.includes("8.5x13") || text.includes("long bond") || text.includes("8.5 x 13")) return "long";
-    if (text === "a4") return "a4";
-    return "";
-  }
+    const serviceName = serviceKey(queueData);
+    const paper = labelKey(inputValue("paper_size") || queueData.paper_size || queueDetails(queueData).paper_size);
+    const color = labelKey(inputValue("color_option") || queueData.color_option || queueDetails(queueData).color_option);
+    const device = labelKey(inputValue("device_type") || queueData.device_type || queueDetails(queueData).device_type);
+    const repair = labelKey(inputValue("repair_type") || queueData.repair_type || queueDetails(queueData).repair_type);
+    const installation = labelKey(inputValue("installation_type") || queueData.installation_type || queueDetails(queueData).installation_type);
+    const lamination = labelKey(inputValue("lamination_type") || queueData.lamination_type || queueDetails(queueData).lamination_type);
+    const packageLabel = labelKey(inputValue("package_label") || queueData.package_label || queueDetails(queueData).package_label);
 
-  function normalizeColorKey(value){
-    const text = String(value || "").trim().toLowerCase();
-    if (["black & white", "black and white", "bw"].includes(text)) return "bw";
-    if (["full colored", "colored full", "colored - full", "colored (full)"].includes(text)) return "full";
-    if (["half colored", "colored half", "colored - half", "colored (half)"].includes(text)) return "half";
-    if (["colored", "color"].includes(text)) return "colored";
-    return "";
+    return rules.find((rule) => {
+      const labels = rule?.option_labels || {};
+      if (isDocumentPrinting(queueData) || serviceName === "xerox") {
+        return labelKey(labels.paper_size) === paper && labelKey(labels.color_option) === color;
+      }
+      if (serviceName === "rushid") {
+        const optionLabel = labelKey(labels.package);
+        return optionLabel && (optionLabel === packageLabel || packageLabel.startsWith(optionLabel));
+      }
+      if (serviceName === "laminating") {
+        return labelKey(labels.lamination_type) === lamination;
+      }
+      if (filterCategoryKey(queueData) === "repair") {
+        return labelKey(labels.device_type) === device && labelKey(labels.repair_type) === repair;
+      }
+      if (filterCategoryKey(queueData) === "installation") {
+        return labelKey(labels.installation_type) === installation;
+      }
+      return false;
+    }) || null;
   }
 
   function inputValue(name){
@@ -2277,19 +2323,17 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const rows = [];
     const notes = [];
     let total = null;
-    let totalLabel = "To be assessed";
+    let totalLabel = "For assessment";
+    const rule = selectedCatalogRuleForEdit(queueData);
+    const unitPrice = rule && rule.price_type !== "assessment" ? toNumber(rule.price) : null;
+
+    if (!rule) {
+      rows.push(["Selected option", "Unavailable or incomplete"]);
+      notes.push("Choose an active service option from the current service catalog.");
+      return { totalLabel, rows, notes };
+    }
 
     if (isDocumentPrinting(queueData)) {
-      const paperKey = normalizePaperKey(inputValue("paper_size") || queueData.paper_size || details.paper_size);
-      const colorKey = normalizeColorKey(inputValue("color_option") || queueData.color_option || details.color_option);
-      const prices = pricingMap(queueData, {
-        letterFull: 10, letterHalf: 5, letterBw: 5,
-        longFull: 10, longHalf: 5, longBw: 5,
-        a4Full: 10, a4Half: 5, a4Bw: 5,
-      });
-      const suffix = colorKey === "full" ? "Full" : (colorKey === "half" ? "Half" : "Bw");
-      const unitKey = paperKey && colorKey ? `${paperKey}${suffix}` : "";
-      const unitPrice = toNumber(prices[unitKey]) ?? (toNumber(queueData.price_per_page ?? details.price_per_page) ?? 0);
       let totalPages = keptFiles.reduce((sum, file) => sum + fileAnalysisCount(file), 0);
       if (!totalPages && keptFiles.length === existingEditFiles(queueData).length && !editRemovedFileTokens.size && !editRemovedFileIndexes.size) {
         totalPages = toNumber(queueData.total_pages ?? details.total_pages) ?? 0;
@@ -2298,50 +2342,55 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         totalPages += addedFiles.length;
         notes.push("New files are estimated as 1 page each here and will be recalculated after saving.");
       }
-      total = unitPrice * quantity * Math.max(0, totalPages);
-      totalLabel = toPeso(total);
-      rows.push(["Price per page", toPeso(unitPrice)]);
+      if (unitPrice !== null) {
+        total = unitPrice * quantity * Math.max(0, totalPages);
+        totalLabel = toPeso(total);
+      }
+      rows.push(["Catalog option", catalogRuleLabel(rule)]);
+      rows.push(["Price per page", unitPrice !== null ? toPeso(unitPrice) : "For assessment"]);
       rows.push(["Pages / files", `${totalPages} page${totalPages === 1 ? "" : "s"} from ${keptFiles.length + addedFiles.length} file${keptFiles.length + addedFiles.length === 1 ? "" : "s"}`]);
       rows.push(["Copies", quantity]);
     } else if (service === "xerox") {
-      const paperKey = normalizePaperKey(inputValue("paper_size") || queueData.paper_size || details.paper_size);
-      const colorKey = normalizeColorKey(inputValue("color_option") || queueData.color_option || details.color_option || "Colored");
-      const prices = pricingMap(queueData, {
-        letterColored: 3, letterBw: 3,
-        longColored: 5, longBw: 5,
-        a4Colored: 3, a4Bw: 3,
-      });
-      const unitPrice = toNumber(prices[`${paperKey}${colorKey === "bw" ? "Bw" : "Colored"}`]) ?? 0;
-      total = unitPrice * quantity;
-      totalLabel = toPeso(total);
-      rows.push(["Price per copy", toPeso(unitPrice)]);
-      rows.push(["Color", colorKey === "bw" ? "Black and White" : "Colored"]);
+      if (unitPrice !== null) {
+        total = unitPrice * quantity;
+        totalLabel = toPeso(total);
+      }
+      rows.push(["Catalog option", catalogRuleLabel(rule)]);
+      rows.push(["Price per copy", unitPrice !== null ? toPeso(unitPrice) : "For assessment"]);
       rows.push(["Copies", quantity]);
     } else if (service === "rushid") {
-      const packageLabel = inputValue("package_label") || queueData.package_label || details.package_label || "";
-      const match = String(packageLabel).match(/package\s*([1-6])/i);
-      const prices = pricingMap(queueData, {
-        package1: 40, package2: 30, package3: 30,
-        package4: 50, package5: 30, package6: 50,
-      });
-      const unitPrice = match ? (toNumber(prices[`package${match[1]}`]) ?? 0) : 0;
-      total = unitPrice * quantity;
-      totalLabel = toPeso(total);
-      rows.push(["Package price", toPeso(unitPrice)]);
+      const addonIds = Array.from(statusEditFields?.querySelectorAll('[name="catalog_addon_rule_ids"]:checked') || [])
+        .map((input) => Number(input.value || 0));
+      const addonRules = catalogRules(findCatalogService(queueData)).filter((item) => addonIds.includes(Number(item.id || 0)));
+      const addonPrices = addonRules.map((item) => item.price_type === "assessment" ? null : toNumber(item.price));
+      const addonsFixed = addonPrices.every((price) => price !== null);
+      const combinedPrice = unitPrice !== null && addonsFixed
+        ? unitPrice + addonPrices.reduce((sum, price) => sum + price, 0)
+        : null;
+      if (combinedPrice !== null) {
+        total = combinedPrice * quantity;
+        totalLabel = toPeso(total);
+      }
+      rows.push(["Package", catalogRuleLabel(rule)]);
+      rows.push(["Package price", unitPrice !== null ? toPeso(unitPrice) : "For assessment"]);
+      rows.push(["Add-Ons", addonRules.length ? addonRules.map((item) => item.option_labels?.addon || item.label).join(", ") : "None"]);
       rows.push(["Quantity", quantity]);
       rows.push(["Photos attached", `${keptFiles.length + addedFiles.length}`]);
     } else if (service === "laminating") {
-      const type = String(inputValue("lamination_type") || queueData.lamination_type || details.lamination_type || "").toLowerCase();
-      const prices = pricingMap(queueData, { thin: 20, thick: 30 });
-      const unitPrice = toNumber(prices[type]) ?? 0;
-      total = unitPrice * quantity;
-      totalLabel = toPeso(total);
-      rows.push(["Price per item", toPeso(unitPrice)]);
+      if (unitPrice !== null) {
+        total = unitPrice * quantity;
+        totalLabel = toPeso(total);
+      }
+      rows.push(["Lamination", catalogRuleLabel(rule)]);
+      rows.push(["Price per item", unitPrice !== null ? toPeso(unitPrice) : "For assessment"]);
       rows.push(["Quantity", quantity]);
     } else {
-      const catalog = findCatalogService(queueData);
-      const range = String(catalog?.price_range || details.price_range || "").trim();
-      totalLabel = range || getQueuePriceLabel(queueData);
+      const ruleTotal = catalogRulePrice(rule, quantity);
+      if (ruleTotal !== null) {
+        total = ruleTotal;
+        totalLabel = toPeso(total);
+      }
+      rows.push(["Catalog option", catalogRuleLabel(rule)]);
       rows.push(["Estimate", totalLabel]);
     }
 
@@ -2351,6 +2400,23 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
 
     return { totalLabel, rows, notes };
+  }
+
+  function editCheckboxes(name, label, options, selectedIds = []){
+    const selected = new Set((selectedIds || []).map((id) => String(id)));
+    return `
+      <fieldset class="status-edit-field status-edit-field--full">
+        <legend class="status-edit-label">${esc(label)}</legend>
+        <div class="radio-vertical">
+          ${options.map((option) => `
+            <label>
+              <input type="checkbox" name="${esc(name)}" value="${esc(option.id)}"${selected.has(String(option.id)) ? " checked" : ""}>
+              ${esc(option.label)} - ${esc(option.price)}
+            </label>
+          `).join("") || "<span>No active add-ons available.</span>"}
+        </div>
+      </fieldset>
+    `;
   }
 
   function renderEditPriceCard(queueData){
@@ -2383,50 +2449,61 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (!statusEditFields) return;
     const details = queueDetails(queueData);
     const service = serviceKey(queueData);
-    const category = categoryKey(queueData);
+    const category = filterCategoryKey(queueData);
+    const catalogCategory = serviceCatalogCategory(queueData);
+    if (catalogCategory && !Object.prototype.hasOwnProperty.call(serviceCatalogCache, catalogCategory)) {
+      statusEditFields.innerHTML = '<p class="status-edit-existing-files__empty">Loading current service options...</p>';
+      ensureServiceCatalog(queueData).then(() => {
+        if (currentDetailQueue && currentDetailQueue.id === queueData.id) {
+          renderEditForm(currentDetailQueue);
+        }
+      });
+      return;
+    }
+    const catalogService = findCatalogService(queueData);
+    const currentRule = selectedCatalogRuleForEdit(queueData);
+    const currentRuleId = currentRule ? String(currentRule.id || "") : String(details.catalog_pricing_rule_id || "");
+    const groupOptions = (groupKey) => catalogGroupValues(catalogService, groupKey)
+      .map((value) => [String(value.label || ""), String(value.label || "")])
+      .filter(([value]) => value !== "");
+    const ruleOptions = (groupKey) => catalogRules(catalogService).map((rule) => {
+      const optionLabel = String(rule?.option_labels?.[groupKey] || catalogRuleLabel(rule)).trim();
+      const detailsText = String(rule?.description || "").trim();
+      const price = rule.price_type === "assessment" || toNumber(rule.price) === null ? "For assessment" : toPeso(rule.price);
+      const label = [optionLabel, detailsText, price].filter(Boolean).join(" - ");
+      return [String(rule.id || ""), label];
+    }).filter(([value]) => value !== "");
     const rows = [];
 
     if (isDocumentPrinting(queueData)) {
-      rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, [
-        "Letter",
-        "8.5x13",
-        "A4",
-      ]));
+      rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, groupOptions("paper_size")));
       rows.push(editField("quantity", "Quantity / Copies", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
-      rows.push(editSelect("color_option", "Color Option", queueData.color_option ?? details.color_option, [
-        "Black & White",
-        "Full Colored",
-        "Half Colored",
-      ]));
+      rows.push(editSelect("color_option", "Color Option", queueData.color_option ?? details.color_option, groupOptions("color_option")));
     } else if (service === "rushid") {
-      rows.push(editSelect("package_label", "Package", queueData.package_label ?? details.package_label, [
-        "Package 1 - PHP 40",
-        "Package 2 - PHP 30",
-        "Package 3 - PHP 30",
-        "Package 4 - PHP 50",
-        "Package 5 - PHP 30",
-        "Package 6 - PHP 50",
-      ]));
+      rows.push(editSelect("catalog_pricing_rule_id", "Package", currentRuleId, ruleOptions("package")));
+      rows.push(editCheckboxes(
+        "catalog_addon_rule_ids",
+        "Optional Add-Ons",
+        catalogRules(catalogService).filter((rule) => rule?.option_labels?.addon).map((rule) => ({
+          id: rule.id,
+          label: rule.option_labels.addon,
+          price: rule.price_type === "assessment" ? "For assessment" : toPeso(rule.price),
+        })),
+        details.catalog_addon_rule_ids || []
+      ));
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
     } else if (service === "xerox") {
-      rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, [
-        "Letter",
-        "8.5x13",
-        "A4",
-      ]));
-      rows.push(editSelect("color_option", "Color Option", queueData.color_option ?? details.color_option ?? "Colored", [
-        "Colored",
-        "Black & White",
-      ]));
+      rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, groupOptions("paper_size")));
+      rows.push(editSelect("color_option", "Color Option", queueData.color_option ?? details.color_option, groupOptions("color_option")));
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
     } else if (service === "laminating") {
-      rows.push(editSelect("lamination_type", "Lamination", queueData.lamination_type ?? details.lamination_type, [
-        ["thin", "Thin"],
-        ["thick", "Thick"],
-      ]));
+      rows.push(editSelect("catalog_pricing_rule_id", "Lamination", currentRuleId, ruleOptions("lamination_type")));
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
-    } else if (category === "repair" || category === "installation") {
-      rows.push(editField("device_type", "Device", queueData.device_type ?? details.device_type ?? ""));
+    } else if (category === "repair") {
+      rows.push(editSelect("device_type", "Device", queueData.device_type ?? details.device_type, groupOptions("device_type")));
+      rows.push(editSelect("repair_type", "Repair Type", queueData.repair_type ?? details.repair_type, groupOptions("repair_type")));
+    } else if (category === "installation") {
+      rows.push(editSelect("installation_type", "Installation Type", queueData.installation_type ?? details.installation_type, groupOptions("installation_type")));
     }
 
     if (isOnlineDocumentPrinting(queueData)) {
@@ -2442,13 +2519,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     rows.push('<section id="statusEditPriceCard" class="status-edit-price-card" aria-live="polite"></section>');
     statusEditFields.innerHTML = rows.join("");
     editUploadTasks = {};
+    statusEditFields.querySelectorAll("input, select, textarea").forEach((field) => {
+      field.addEventListener("change", () => refreshEditComputedUI(queueData));
+      field.addEventListener("input", () => refreshEditComputedUI(queueData));
+    });
     renderEditUploadProgress();
     refreshEditComputedUI(queueData);
-    ensureServiceCatalog(queueData).then(() => {
-      if (currentDetailQueue && currentDetailQueue.id === queueData.id) {
-        renderEditPriceCard(currentDetailQueue);
-      }
-    });
     if (statusEditHelp) {
       statusEditHelp.textContent = supportsFileUpload(queueData)
         ? "Existing files stay attached unless you remove them. New uploads are added to the kept files."
@@ -2582,12 +2658,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       uploadedFiles = await uploadEditFiles(statusEditFields?.querySelector('[name="files"]'), currentDetailQueue);
       const payload = {
         queue_id: currentDetailQueue.id,
+        catalog_pricing_rule_id: selectedCatalogRuleForEdit(currentDetailQueue) ? Number(selectedCatalogRuleForEdit(currentDetailQueue).id) || null : null,
+        catalog_addon_rule_ids: Array.from(statusEditFields?.querySelectorAll('[name="catalog_addon_rule_ids"]:checked') || [])
+          .map((input) => Number(input.value || 0))
+          .filter((id) => id > 0),
         paper_size: inputValue("paper_size"),
         quantity: inputValue("quantity"),
         color_option: inputValue("color_option"),
         package_label: inputValue("package_label"),
         lamination_type: inputValue("lamination_type"),
         device_type: inputValue("device_type"),
+        repair_type: inputValue("repair_type"),
+        installation_type: inputValue("installation_type"),
         notes: inputValue("notes"),
         payment_method: inputValue("payment_method"),
         reference_number: inputValue("reference_number"),
@@ -2658,6 +2740,10 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     if (service === "rushid") {
       add("Package", queueData.package_label ?? details.package_label);
+      const addOns = Array.isArray(details.add_ons_snapshot)
+        ? details.add_ons_snapshot.map((item) => item?.name || "").filter(Boolean).join(", ")
+        : "";
+      add("Add-Ons", addOns);
       add("Quantity", queueData.quantity ?? details.quantity);
       return rows;
     }
@@ -2676,6 +2762,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     if (category === "repair" || category === "installation") {
       add("Device", queueData.device_type ?? details.device_type);
+      add("Repair Type", queueData.repair_type ?? details.repair_type);
+      add("Installation Type", queueData.installation_type ?? details.installation_type);
       return rows;
     }
 
@@ -2685,6 +2773,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     add("Package", queueData.package_label ?? details.package_label);
     add("Lamination", queueData.lamination_type ?? details.lamination_type);
     add("Device", queueData.device_type ?? details.device_type);
+    add("Repair Type", queueData.repair_type ?? details.repair_type);
+    add("Installation Type", queueData.installation_type ?? details.installation_type);
     return rows;
   }
 
@@ -2822,25 +2912,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return div;
   }
 
-  function getInstallationPriceLabel(serviceLabel){
-    const normalized = (serviceLabel || "").toString().trim().toLowerCase();
-    if (!normalized) return "";
-
-    const ranges = [
-      ["reprogram service", [1000, 4000]],
-      ["hang logo fix service", [1000, 3500]],
-      ["boot loop fix service", [1000, 5000]],
-      ["openline samsung & iphone", [3500, 6000]],
-      ["bypass google account", [500, 2000]],
-      ["bypass password", [1000, 3000]],
-    ];
-
-    const match = ranges.find(([label]) => normalized.includes(label));
-    if (!match) return "";
-
-    return `${toPeso(match[1][0])} - ${toPeso(match[1][1])}`;
-  }
-
   function getQueuePriceLabel(queueData){
     const details = queueData && typeof queueData.details === "object" && queueData.details
       ? queueData.details
@@ -2874,33 +2945,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return toPeso(totalPages * pricePerPage * quantity);
     }
 
-    const serviceLabel = (queueData.service_label || details.service_label || "").toString();
-    const serviceLower = serviceLabel.toLowerCase();
-    const packageLabel = (queueData.package_label || details.package_label || "").toString();
-    const paperSize = (queueData.paper_size || details.paper_size || "").toString();
-    const laminationType = (queueData.lamination_type || details.lamination_type || "").toString().toLowerCase();
     const snapshotPrice = toNumber(details.price_snapshot);
-    if ((serviceLower.includes("xerox") || serviceLower.includes("photocopy")) && snapshotPrice !== null) {
+    if (snapshotPrice !== null) {
       return toPeso(snapshotPrice * quantity);
-    }
-
-    if (serviceLower.includes("laminating")) {
-      const laminationPrice = laminationType === "thin" ? 20 : laminationType === "thick" ? 30 : null;
-      if (laminationPrice !== null) {
-        return toPeso(laminationPrice * quantity);
-      }
-    }
-
-    if (serviceLower.includes("rush id") || packageLabel) {
-      const match = packageLabel.match(/(?:\u20B1|PHP\s*)([0-9]+(?:\.[0-9]{1,2})?)/i);
-      if (match) {
-        return toPeso(Number(match[1]) * quantity);
-      }
-    }
-
-    const installationRange = getInstallationPriceLabel(serviceLabel);
-    if (installationRange) {
-      return installationRange;
     }
 
     return "To be assessed";

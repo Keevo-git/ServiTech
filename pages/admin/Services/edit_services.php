@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/../../../api/service_catalog.php";
 
 
 $tab = $_GET["tab"] ?? "printing";
@@ -11,17 +12,31 @@ $stmt = $pdo->prepare("
   SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
          CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
   FROM services
-  WHERE category=:cat
+  WHERE category=:cat AND archived_at IS NULL
   ORDER BY sort_order ASC, id ASC
 ");
 $stmt->execute([":cat"=>$tab]);
 $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, "UTF-8"); }
+function ms_supported_catalog_service(array $service): bool {
+  $category = strtolower(trim((string)($service["category"] ?? "")));
+  $name = strtolower(trim((string)($service["name"] ?? "")));
+  if ($category === "printing") {
+    return (str_contains($name, "document") && str_contains($name, "print"))
+      || str_contains($name, "photocopy")
+      || str_contains($name, "xerox")
+      || (str_contains($name, "rush") && str_contains($name, "id"))
+      || str_contains($name, "laminat");
+  }
+  return in_array($category, ["repair", "installation"], true);
+}
 function ms_display_service_name($name): string {
   $name = trim((string)$name);
   return strcasecmp($name, "xerox") === 0 ? "Photocopy" : $name;
 }
+$unsupportedServiceCount = count(array_filter($services, static fn($service) => !ms_supported_catalog_service($service)));
+$services = array_values(array_filter($services, "ms_supported_catalog_service"));
 ?>
 <!doctype html>
 <html lang="en">
@@ -32,7 +47,7 @@ function ms_display_service_name($name): string {
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260620-catalog-editor') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260620-friendly-catalog') ?>">
 </head>
 <body>
 
@@ -58,33 +73,24 @@ require __DIR__ . "/../_includes/admin_header.php";
 <main class="admin-container">
 <div class="ms-wrap">
   <div class="ms-card">
-    <div class="ms-head">
-      <button class="ms-add" id="msAdd">+ Add Services</button>
-    </div>
-
     <div class="ms-tabs">
       <a class="ms-tab <?= $tab==="printing"?"active":"" ?>" href="?tab=printing">Print</a>
       <a class="ms-tab <?= $tab==="repair"?"active":"" ?>" href="?tab=repair">Repair</a>
       <a class="ms-tab <?= $tab==="installation"?"active":"" ?>" href="?tab=installation">Installation</a>
     </div>
 
-    <div class="ms-tableWrap table-scroll-wrapper">
-      <table class="ms-table table-content">
-        <thead>
-          <tr>
-            <th style="width:220px">Services</th>
-            <th>Description</th>
-            <th style="width:150px">Price Range</th>
-            <th style="width:90px">Base Price</th>
-            <th style="width:90px">Active</th>
-            <th style="width:140px">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div class="ms-service-grid">
         <?php if (!$services): ?>
-          <tr><td colspan="6" style="padding:14px;color:#666;font-weight:800;">No services yet. Click &ldquo;+ Add Services&rdquo;.</td></tr>
+          <div class="ms-empty">No configured services were found. Run the service catalog migration first.</div>
         <?php else: ?>
           <?php foreach($services as $s):
+            $catalogPriceRange = (string)($s["price_range"] ?? "");
+            try {
+              $catalog = servitech_catalog_fetch($pdo, (int)$s["id"], true);
+              $catalogPriceRange = (string)($catalog["service"]["catalog_price_range"] ?? $catalogPriceRange);
+            } catch (Throwable $e) {
+              // Keep the stored display range if the catalog is not available yet.
+            }
             $payload = [
               "id" => (int)$s["id"],
               "category" => (string)$s["category"],
@@ -97,22 +103,28 @@ require __DIR__ . "/../_includes/admin_header.php";
               "sort_order" => (int)$s["sort_order"],
             ];
           ?>
-            <tr>
-              <td><?= h(ms_display_service_name($s["name"])) ?></td>
-              <td><?= h($s["description"]) ?></td>
-              <td><?= h($s["price_range"] ?: "Not set") ?></td>
-              <td><?= $s["price"]===null ? "&mdash;" : "&#8369;".h(number_format((float)$s["price"],2)) ?></td>
-              <td><span class="ms-pill <?= (int)$s["active"] ? "on":"off" ?>"><?= (int)$s["active"] ? "ON":"OFF" ?></span></td>
-              <td class="ms-actions">
-                <button class="edit" type="button" data-ms-edit='<?= h(json_encode($payload)) ?>'>Edit</button>
-                <button class="del" type="button" data-ms-del="<?= (int)$s["id"] ?>">Archive</button>
-              </td>
-            </tr>
+            <article class="ms-service-card">
+              <div class="ms-service-card__head">
+                <div>
+                  <span class="ms-service-card__category"><?= h(ucfirst($tab)) ?></span>
+                  <h2><?= h(ms_display_service_name($s["name"])) ?></h2>
+                </div>
+                <span class="ms-pill <?= (int)$s["active"] ? "on":"off" ?>"><?= (int)$s["active"] ? "Active":"Inactive" ?></span>
+              </div>
+              <p><?= h($s["description"]) ?></p>
+              <div class="ms-service-card__foot">
+                <span><strong>Customer price:</strong> <?= h($catalogPriceRange ?: "For assessment") ?></span>
+                <button class="ms-edit-button" type="button" data-ms-edit='<?= h(json_encode($payload)) ?>'>Edit prices and options</button>
+              </div>
+            </article>
           <?php endforeach; ?>
         <?php endif; ?>
-        </tbody>
-      </table>
     </div>
+    <?php if ($unsupportedServiceCount > 0): ?>
+      <div class="ms-legacy-note">
+        <?= (int)$unsupportedServiceCount ?> legacy service record<?= $unsupportedServiceCount === 1 ? "" : "s" ?> remain unchanged because this editor only manages the configured service structures.
+      </div>
+    <?php endif; ?>
   </div>
 </div>
 </main>
@@ -123,75 +135,43 @@ require __DIR__ . "/../_includes/admin_header.php";
     <button class="ms-x" id="msX" type="button" aria-label="Close">&times;</button>
 
     <div class="ms-mhead">
-      <h3 id="msModalTitle">Add Service</h3>
+      <div>
+        <span class="ms-modal-eyebrow">Manage Service</span>
+        <h3 id="msModalTitle">Edit Service</h3>
+        <p id="msModalHelp" class="ms-modal-help"></p>
+      </div>
     </div>
     <div class="ms-accent"></div>
 
     <div class="ms-body">
       <input type="hidden" id="ms_id" value="">
-      <div class="ms-row2">
+      <input type="hidden" id="ms_category">
+      <input type="hidden" id="ms_name">
+      <input type="hidden" id="ms_price">
+      <input type="hidden" id="ms_price_range">
+      <input type="hidden" id="ms_sort">
+
+      <div class="ms-service-status">
+        <div>
+          <strong>Available to customers</strong>
+          <span>Turn this off to hide the entire service from the landing page and queue forms.</span>
+        </div>
+        <label class="ms-switch">
+          <input id="ms_active" type="checkbox">
+          <span aria-hidden="true"></span>
+          <em>Available</em>
+        </label>
+      </div>
+
+      <details class="ms-service-details">
+        <summary>Customer-facing service description</summary>
         <div class="ms-field">
-          <label>Category</label>
-          <select id="ms_category">
-            <option value="printing">Print</option>
-            <option value="repair">Repair</option>
-            <option value="installation">Installation</option>
-          </select>
+          <textarea id="ms_description" placeholder="Short customer-facing note for this service"></textarea>
+          <small>This text appears with the service on customer-facing pages.</small>
         </div>
-        <div class="ms-field">
-          <label>Active</label>
-          <select id="ms_active">
-            <option value="1">ON</option>
-            <option value="0">OFF</option>
-          </select>
-        </div>
-      </div>
+      </details>
 
-      <div class="ms-field">
-        <label>Service Name</label>
-        <input id="ms_name" type="text" placeholder="e.g., Document Print">
-      </div>
-
-      <div class="ms-field">
-        <label>Description</label>
-        <textarea id="ms_description" placeholder="Short customer-facing note for this service"></textarea>
-        <small id="ms_description_hint">Use the catalog editor for selectable options and pricing.</small>
-      </div>
-
-      <div class="ms-field">
-        <label>Price Range</label>
-        <input id="ms_price_range" type="text" placeholder="e.g., PHP 1000 - PHP 5000">
-        <small>This appears on the landing page service card.</small>
-      </div>
-
-      <div class="ms-row2">
-        <div class="ms-field" id="ms_priceModeField">
-          <label>Price Mode</label>
-          <select id="ms_priceMode">
-            <option value="default">Default price</option>
-            <option value="full">Full price</option>
-            <option value="half">Half price</option>
-          </select>
-        </div>
-        <div class="ms-field" id="ms_priceField">
-          <label id="ms_priceLabel">Price (optional)</label>
-          <input id="ms_price" type="text" placeholder="e.g., 10.00">
-        </div>
-      </div>
-      <div class="ms-field">
-        <small id="ms_price_hint">Use the catalog editor below for dynamic service pricing.</small>
-      </div>
-
-      <div class="ms-field">
-        <div id="ms_catalogEditor" class="ms-catalog-editor"></div>
-      </div>
-
-      <div class="ms-row2">
-        <div class="ms-field">
-          <label>Sort order</label>
-          <input id="ms_sort" type="number" value="0">
-        </div>
-      </div>
+      <div id="ms_catalogEditor" class="ms-catalog-editor"></div>
 
       <div class="ms-err" id="msErr"></div>
     </div>
@@ -208,7 +188,7 @@ require __DIR__ . "/../_includes/admin_header.php";
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260620-dynamic-catalog') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260620-friendly-catalog') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

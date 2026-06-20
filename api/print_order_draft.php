@@ -41,8 +41,8 @@ $uploaded_files = isset($data["uploaded_files"]) && is_array($data["uploaded_fil
 $catalog_pricing_rule_id = isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : 0;
 
 $errors = [];
-if ($catalog_pricing_rule_id <= 0 && !in_array($paper_size, ["Letter", "8.5x13", "Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
-  $errors[] = "Select a valid paper size.";
+if ($paper_size === "") {
+  $errors[] = "Select a paper size.";
 }
 if ($quantity < 1) {
   $errors[] = "Quantity must be at least 1.";

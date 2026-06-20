@@ -102,6 +102,9 @@ $details = [
   "uploaded_files" => isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : null,
   "catalog_service_id" => isset($data["catalog_service_id"]) ? max(0, (int)$data["catalog_service_id"]) : null,
   "catalog_pricing_rule_id" => isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : null,
+  "catalog_addon_rule_ids" => isset($data["catalog_addon_rule_ids"]) && is_array($data["catalog_addon_rule_ids"])
+    ? array_values($data["catalog_addon_rule_ids"])
+    : [],
   "service_option_key" => isset($data["service_option_key"]) ? trim((string)$data["service_option_key"]) : null,
 ];
 

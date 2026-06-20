@@ -31,23 +31,6 @@ function servitech_pricing_service_kind(string $category, string $serviceLabel):
   return "";
 }
 
-function servitech_pricing_numeric_map(array $stored, array $fallback, string $serviceName): array {
-  $result = [];
-  foreach ($fallback as $key => $default) {
-    $value = array_key_exists($key, $stored) ? $stored[$key] : $default;
-    if (!is_numeric($value) || (float)$value < 0) {
-      throw new DomainException("{$serviceName} pricing is invalid. Ask an admin to review the service catalog.");
-    }
-    $result[$key] = (float)$value;
-  }
-  return $result;
-}
-
-function servitech_pricing_decode_map(array $service): array {
-  $stored = json_decode((string)($service["pricing_json"] ?? ""), true);
-  return is_array($stored) ? $stored : [];
-}
-
 function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $serviceLabel): array {
   $requestedId = isset($GLOBALS["servitech_requested_catalog_service_id"])
     ? (int)$GLOBALS["servitech_requested_catalog_service_id"]
@@ -58,6 +41,7 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
       FROM services
       WHERE id = :id
         AND active = TRUE
+        AND archived_at IS NULL
       LIMIT 1
     ");
     $stmt->execute([":id" => $requestedId]);
@@ -87,6 +71,7 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
     FROM services
     WHERE {$where}
       AND active = TRUE
+      AND archived_at IS NULL
     ORDER BY sort_order ASC, id ASC
     LIMIT 1
   ");
@@ -100,77 +85,6 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
     throw new DomainException("The selected service is currently unavailable.");
   }
   return $service;
-}
-
-function servitech_pricing_normalize_paper(string $paper): string {
-  $value = strtolower(trim($paper));
-  if (str_contains($value, "letter") || str_contains($value, "short bond") || str_contains($value, "8.5 x 11")) return "letter";
-  if (str_contains($value, "8.5x13") || str_contains($value, "8.5 x 13") || str_contains($value, "long bond")) return "long";
-  if ($value === "a4") return "a4";
-  if ($value === "a3") return "a3";
-  return "";
-}
-
-function servitech_pricing_normalize_color(string $color): string {
-  $value = strtolower(trim($color));
-  if (in_array($value, ["black & white", "black and white", "bw"], true)) return "bw";
-  if (in_array($value, ["full colored", "colored full", "colored - full", "colored (full)"], true)) return "full";
-  if (in_array($value, ["half colored", "colored half", "colored - half", "colored (half)"], true)) return "half";
-  if (in_array($value, ["colored", "full color", "color"], true)) return "colored";
-  return "";
-}
-
-function servitech_pricing_document_prices(array $service): array {
-  $stored = servitech_pricing_decode_map($service);
-  $legacyLetterFull = $stored["letterFull"] ?? $stored["shortFull"] ?? null;
-  $legacyLetterHalf = $stored["letterHalf"] ?? $stored["shortHalf"] ?? null;
-  $legacyLetterBw = $stored["letterBw"] ?? $stored["shortBw"] ?? $stored["letterHalf"] ?? $stored["shortHalf"] ?? null;
-
-  return servitech_pricing_numeric_map($stored + [
-    "letterFull" => $legacyLetterFull,
-    "letterHalf" => $legacyLetterHalf,
-    "letterBw" => $legacyLetterBw,
-    "longBw" => $stored["longBw"] ?? $stored["longHalf"] ?? null,
-    "a4Bw" => $stored["a4Bw"] ?? $stored["a4Half"] ?? null,
-  ], [
-    "letterFull" => 10.0, "letterHalf" => 5.0, "letterBw" => 5.0,
-    "longFull" => 10.0, "longHalf" => 5.0, "longBw" => 5.0,
-    "a4Full" => 10.0, "a4Half" => 5.0, "a4Bw" => 5.0,
-  ], "Document Printing");
-}
-
-function servitech_pricing_xerox_prices(array $service): array {
-  $stored = servitech_pricing_decode_map($service);
-  return servitech_pricing_numeric_map($stored + [
-    "letterColored" => $stored["letterColored"] ?? $stored["shortColored"] ?? $stored["short"] ?? null,
-    "letterBw" => $stored["letterBw"] ?? $stored["shortBw"] ?? $stored["short"] ?? null,
-    "longColored" => $stored["longColored"] ?? $stored["long"] ?? null,
-    "longBw" => $stored["longBw"] ?? $stored["long"] ?? null,
-    "a4Colored" => $stored["a4Colored"] ?? $stored["a4"] ?? null,
-    "a4Bw" => $stored["a4Bw"] ?? $stored["a4"] ?? null,
-  ], [
-    "letterColored" => 3.0, "letterBw" => 3.0,
-    "longColored" => 5.0, "longBw" => 5.0,
-    "a4Colored" => 3.0, "a4Bw" => 3.0,
-  ], "Photocopy");
-}
-
-function servitech_pricing_rush_id_prices(array $service): array {
-  return servitech_pricing_numeric_map(servitech_pricing_decode_map($service), [
-    "package1" => 40.0,
-    "package2" => 30.0,
-    "package3" => 30.0,
-    "package4" => 50.0,
-    "package5" => 30.0,
-    "package6" => 50.0,
-  ], "Rush ID");
-}
-
-function servitech_pricing_laminating_prices(array $service): array {
-  return servitech_pricing_numeric_map(servitech_pricing_decode_map($service), [
-    "thin" => 20.0,
-    "thick" => 30.0,
-  ], "Laminating");
 }
 
 function servitech_pricing_count_pdf_pages(string $path): int {
@@ -295,25 +209,6 @@ function servitech_pricing_round(float $amount): float {
   return round($amount, 2);
 }
 
-function servitech_pricing_paper_label(string $paper): string {
-  return match ($paper) {
-    "letter" => "Letter",
-    "long" => "8.5x13",
-    "a4" => "A4",
-    default => strtoupper($paper),
-  };
-}
-
-function servitech_pricing_color_label(string $color): string {
-  return match ($color) {
-    "full" => "Full Colored",
-    "half" => "Half Colored",
-    "bw" => "Black and White",
-    "colored" => "Colored",
-    default => $color,
-  };
-}
-
 function servitech_pricing_is_other_request(string $label): bool {
   return (bool)preg_match('/\b(other|others)\b/i', $label);
 }
@@ -354,6 +249,10 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   $details["pricing_calculated_at"] = date(DATE_ATOM);
 
   $catalogRuleId = isset($details["catalog_pricing_rule_id"]) ? (int)$details["catalog_pricing_rule_id"] : 0;
+  $catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "repair", "installation"];
+  if ($catalogRuleId <= 0 && in_array($kind, $catalogManagedKinds, true)) {
+    throw new DomainException("Select a valid active service option from the service catalog.");
+  }
   if ($catalogRuleId > 0) {
     $catalog = servitech_catalog_fetch($pdo, (int)$service["id"], true);
     $rule = servitech_catalog_find_rule($catalog, $catalogRuleId);
@@ -367,6 +266,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
       ? max(0, (float)$rule["price"])
       : null;
     $pricingStatus = $fixedPrice !== null ? "fixed" : "for_assessment";
+    $snapshotPrice = $fixedPrice;
 
     $paperLabel = servitech_catalog_option_label($rule, "paper_size");
     $colorLabel = servitech_catalog_option_label($rule, "color_option");
@@ -383,6 +283,50 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
     if ($repairLabel !== "") $details["repair_type"] = $repairLabel;
     if ($installationLabel !== "") $details["installation_type"] = $installationLabel;
     if ($laminationLabel !== "") $details["lamination_type"] = $laminationLabel;
+
+    if ($kind === "rush_id") {
+      if ($packageLabel === "") throw new DomainException("Select a valid Rush ID package.");
+      $addonIds = isset($details["catalog_addon_rule_ids"]) && is_array($details["catalog_addon_rule_ids"])
+        ? $details["catalog_addon_rule_ids"]
+        : [];
+      $addonIds = array_values(array_unique(array_filter(array_map("intval", $addonIds), static fn($id) => $id > 0)));
+      if (count($addonIds) > 10) throw new DomainException("Too many Rush ID add-ons were selected.");
+
+      $addonSnapshots = [];
+      $addonTotal = 0.0;
+      $addonHasAssessment = false;
+      foreach ($addonIds as $addonId) {
+        $addonRule = servitech_catalog_find_rule($catalog, $addonId);
+        $addonLabel = $addonRule ? servitech_catalog_option_label($addonRule, "addon") : "";
+        if (!$addonRule || $addonLabel === "" || servitech_catalog_option_label($addonRule, "package") !== "") {
+          throw new DomainException("A selected Rush ID add-on is currently unavailable.");
+        }
+        $addonPrice = (($addonRule["price_type"] ?? "") === "fixed" && isset($addonRule["price"]) && is_numeric($addonRule["price"]))
+          ? max(0, (float)$addonRule["price"])
+          : null;
+        if ($addonPrice === null) {
+          $addonHasAssessment = true;
+        } else {
+          $addonTotal += $addonPrice;
+        }
+        $addonSnapshots[] = [
+          "rule_id" => $addonId,
+          "name" => $addonLabel,
+          "price" => $addonPrice,
+          "price_type" => $addonPrice === null ? "for_assessment" : "fixed",
+        ];
+      }
+      $details["catalog_addon_rule_ids"] = $addonIds;
+      $details["add_ons_snapshot"] = $addonSnapshots;
+      $details["add_ons_price_snapshot"] = $addonHasAssessment ? null : servitech_pricing_round($addonTotal);
+      $details["selected_option_ids"] = array_merge([$catalogRuleId], $addonIds);
+      if ($fixedPrice === null || $addonHasAssessment) {
+        $snapshotPrice = null;
+        $pricingStatus = "for_assessment";
+      } else {
+        $snapshotPrice = servitech_pricing_round($fixedPrice + $addonTotal);
+      }
+    }
 
     if (servitech_pricing_is_other_request($ruleLabel) || servitech_pricing_is_other_request($repairLabel) || servitech_pricing_is_other_request($installationLabel)) {
       $notes = trim((string)($details["notes"] ?? ""));
@@ -403,11 +347,12 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
       $details["price_per_page"] = $fixedPrice;
       $details["estimated_total"] = servitech_pricing_round($fixedPrice * $quantity * (int)$details["total_pages"]);
     } elseif (in_array($kind, ["xerox", "rush_id", "laminating"], true)) {
-      if ($fixedPrice === null) {
+      $effectivePrice = $kind === "rush_id" ? $snapshotPrice : $fixedPrice;
+      if ($effectivePrice === null) {
         unset($details["price_per_page"], $details["estimated_total"]);
       } else {
-        $details["price_per_page"] = $fixedPrice;
-        $details["estimated_total"] = servitech_pricing_round($fixedPrice * $quantity);
+        $details["price_per_page"] = $effectivePrice;
+        $details["estimated_total"] = servitech_pricing_round($effectivePrice * $quantity);
       }
     } else {
       unset($details["price_per_page"], $details["estimated_total"]);
@@ -424,99 +369,18 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
       $service,
       (string)$catalogRuleId,
       $ruleLabel,
-      $fixedPrice,
+      $snapshotPrice,
       $pricingStatus,
       trim(implode(" / ", array_filter([$paperLabel, $colorLabel, $packageLabel, $deviceLabel, $repairLabel, $installationLabel, $laminationLabel])))
     );
   }
 
-  if ($kind === "document_printing") {
-    $paper = servitech_pricing_normalize_paper((string)($details["paper_size"] ?? ""));
-    $color = servitech_pricing_normalize_color((string)($details["color_option"] ?? ""));
-    if ($paper === "" || $paper === "a3") throw new DomainException("Select a valid paper size.");
-    if (!in_array($color, ["full", "half", "bw"], true)) throw new DomainException("Select a valid color option.");
-    $details = array_merge($details, servitech_pricing_analyze_saved_uploads($pdo, (array)($details["uploaded_files"] ?? [])));
-    $prices = servitech_pricing_document_prices($service);
-    $suffix = match ($color) {
-      "full" => "Full",
-      "half" => "Half",
-      "bw" => "Bw",
-    };
-    $unitPrice = $prices[$paper . $suffix];
-    $details["price_per_page"] = $unitPrice;
-    $details["estimated_total"] = servitech_pricing_round($unitPrice * $quantity * (int)$details["total_pages"]);
-    $optionName = servitech_pricing_paper_label($paper) . " / " . servitech_pricing_color_label($color);
-    $details = servitech_pricing_apply_snapshot($details, $service, $paper . "_" . $color, $optionName, $unitPrice, "fixed", $optionName);
-    return $details;
-  }
-
-  if ($kind === "xerox") {
-    $paper = servitech_pricing_normalize_paper((string)($details["paper_size"] ?? ""));
-    $color = servitech_pricing_normalize_color((string)($details["color_option"] ?? "colored"));
-    if ($paper === "" || $paper === "a3") throw new DomainException("Select a valid photocopy paper size.");
-    if (!in_array($color, ["colored", "bw"], true)) throw new DomainException("Select a valid photocopy color option.");
-    $prices = servitech_pricing_xerox_prices($service);
-    $unitPrice = $prices[$paper . ($color === "colored" ? "Colored" : "Bw")];
-    $optionName = servitech_pricing_paper_label($paper) . " / " . servitech_pricing_color_label($color);
-  } elseif ($kind === "rush_id") {
-    if (!preg_match('/package\s*([1-6])/i', (string)($details["package_label"] ?? ""), $matches)) {
-      throw new DomainException("Select a valid Rush ID package.");
-    }
-    $unitPrice = servitech_pricing_rush_id_prices($service)["package" . $matches[1]];
-    $optionName = "Package " . $matches[1];
-  } elseif ($kind === "laminating") {
-    $type = strtolower(trim((string)($details["lamination_type"] ?? "")));
-    if (!in_array($type, ["thin", "thick"], true)) throw new DomainException("Select a valid lamination type.");
-    $unitPrice = servitech_pricing_laminating_prices($service)[$type];
-    $optionName = ucfirst($type);
-  } else {
-    unset($details["price_per_page"], $details["estimated_total"]);
-    $details["service_label"] = (string)$service["name"];
-    $notes = trim((string)($details["notes"] ?? ""));
-    if (servitech_pricing_is_other_request((string)$service["name"]) && $notes === "") {
-      throw new DomainException("Please describe your request when selecting Others.");
-    }
-    if (trim((string)($service["price_range"] ?? "")) !== "") {
-      $details["price_range"] = (string)$service["price_range"];
-    }
-    $fixedPrice = isset($service["price"]) && is_numeric($service["price"]) ? max(0, (float)$service["price"]) : null;
-    $status = $fixedPrice !== null ? "fixed" : "for_assessment";
-    $details["pricing_source"] = $status === "fixed" ? "service_catalog" : "manual_assessment";
-    $details = servitech_pricing_apply_snapshot($details, $service, "service", (string)$service["name"], $fixedPrice, $status, (string)($service["price_range"] ?? ""));
-    return $details;
-  }
-
-  $details["service_label"] = (string)$service["name"];
-  $details["price_per_page"] = $unitPrice;
-  $details["estimated_total"] = servitech_pricing_round($unitPrice * $quantity);
-  $details = servitech_pricing_apply_snapshot($details, $service, strtolower((string)($details["service_option_key"] ?? $optionName)), $optionName, $unitPrice, "fixed", $optionName);
-  return $details;
+  throw new DomainException("Select a valid active service option from the service catalog.");
 }
 
 function servitech_pricing_validate_admin_catalog(string $category, string $name, ?float $price, ?array $pricing): void {
   if ($price !== null && $price < 0) throw new DomainException("Price cannot be negative.");
-  if ($pricing === null) return;
-
-  $kind = servitech_pricing_service_kind($category, $name);
-  $validated = match ($kind) {
-    "document_printing" => servitech_pricing_numeric_map($pricing, array_fill_keys([
-      "letterFull", "letterHalf", "letterBw", "longFull", "longHalf", "longBw", "a4Full", "a4Half", "a4Bw",
-    ], null), "Document Printing"),
-    "xerox" => servitech_pricing_numeric_map($pricing, array_fill_keys([
-      "letterColored", "letterBw", "longColored", "longBw", "a4Colored", "a4Bw",
-    ], null), "Photocopy"),
-    "rush_id" => servitech_pricing_numeric_map($pricing, array_fill_keys([
-      "package1", "package2", "package3", "package4", "package5", "package6",
-    ], null), "Rush ID"),
-    "laminating" => servitech_pricing_numeric_map($pricing, array_fill_keys(["thin", "thick"], null), "Laminating"),
-    default => [],
-  };
-
-  if ($kind === "document_printing") {
-    foreach (["letter", "long", "a4"] as $paper) {
-      if ($validated[$paper . "Full"] < $validated[$paper . "Half"]) {
-        throw new DomainException("Document Print full-color prices cannot be lower than half-color prices.");
-      }
-    }
+  if ($pricing !== null && $pricing !== []) {
+    throw new DomainException("Legacy pricing_json is no longer accepted. Use the service catalog editor.");
   }
 }

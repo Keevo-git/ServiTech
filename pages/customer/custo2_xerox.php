@@ -9,27 +9,10 @@ require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
 
-$xeroxPricing = [
-  "letterColored" => 3.0,
-  "letterBw" => 3.0,
-  "longColored" => 5.0,
-  "longBw" => 5.0,
-  "a4Colored" => 3.0,
-  "a4Bw" => 3.0,
-];
 $xeroxCatalogServiceId = 0;
 $xeroxCatalogRules = [];
 $xeroxPaperOptions = [];
 $xeroxColorOptions = [];
-
-function xerox_extract_line_price(string $description, string $label): ?float {
-  $pattern = "/" . preg_quote($label, "/") . "\\s*:?\\s*\\x{20B1}?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
-  if (preg_match($pattern, $description, $matches)) {
-    return max(0, (float)$matches[1]);
-  }
-
-  return null;
-}
 
 try {
   $xeroxService = servitech_catalog_fetch_service_by_kind($pdo, "photocopy", true);
@@ -42,18 +25,6 @@ try {
       if (($group["group_key"] ?? "") === "color_option") $xeroxColorOptions = $group["values"] ?? [];
     }
     $xeroxCatalogRules = $catalog["rules"] ?? [];
-    $description = (string)($xeroxService["description"] ?? "");
-    $storedPricing = json_decode((string)($xeroxService["pricing_json"] ?? ""), true);
-    $fallbackPrice = isset($xeroxService["price"]) ? max(0, (float)$xeroxService["price"]) : 3.0;
-
-    $xeroxPricing = [
-      "letterColored" => isset($storedPricing["letterColored"]) ? (float)$storedPricing["letterColored"] : (isset($storedPricing["short"]) ? (float)$storedPricing["short"] : (xerox_extract_line_price($description, "Short Bond Paper") ?? $fallbackPrice)),
-      "letterBw" => isset($storedPricing["letterBw"]) ? (float)$storedPricing["letterBw"] : (isset($storedPricing["short"]) ? (float)$storedPricing["short"] : (xerox_extract_line_price($description, "Short Bond Paper") ?? $fallbackPrice)),
-      "longColored" => isset($storedPricing["longColored"]) ? (float)$storedPricing["longColored"] : (isset($storedPricing["long"]) ? (float)$storedPricing["long"] : (xerox_extract_line_price($description, "Long Bond Paper") ?? 5.0)),
-      "longBw" => isset($storedPricing["longBw"]) ? (float)$storedPricing["longBw"] : (isset($storedPricing["long"]) ? (float)$storedPricing["long"] : (xerox_extract_line_price($description, "Long Bond Paper") ?? 5.0)),
-      "a4Colored" => isset($storedPricing["a4Colored"]) ? (float)$storedPricing["a4Colored"] : (isset($storedPricing["a4"]) ? (float)$storedPricing["a4"] : (xerox_extract_line_price($description, "A4") ?? $fallbackPrice)),
-      "a4Bw" => isset($storedPricing["a4Bw"]) ? (float)$storedPricing["a4Bw"] : (isset($storedPricing["a4"]) ? (float)$storedPricing["a4"] : (xerox_extract_line_price($description, "A4") ?? $fallbackPrice)),
-    ];
   }
 } catch (Throwable $e) {
   // Keep the photocopy form usable if service pricing cannot be loaded.
@@ -195,14 +166,10 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script>
-  window.servitechXeroxPricing = <?= json_encode($xeroxPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-  window.servitechCatalogRules = <?= json_encode($xeroxCatalogRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.servitechCatalogRules = <?= json_encode($xeroxCatalogRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
 
 </body>
 </html>
-
-
-
 

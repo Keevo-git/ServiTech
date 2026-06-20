@@ -10,7 +10,8 @@ servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
 
 $rushCatalogServiceId = 0;
-$rushCatalogRules = [];
+$rushPackageRules = [];
+$rushAddonRules = [];
 
 try {
   $rushService = servitech_catalog_fetch_service_by_kind($pdo, "rush_id", true);
@@ -18,7 +19,10 @@ try {
   if (is_array($rushService)) {
     $rushCatalogServiceId = (int)($rushService["id"] ?? 0);
     $catalog = servitech_catalog_fetch($pdo, $rushCatalogServiceId, true);
-    $rushCatalogRules = $catalog["rules"] ?? [];
+    foreach (($catalog["rules"] ?? []) as $rule) {
+      if (!empty($rule["option_value_keys"]["package"])) $rushPackageRules[] = $rule;
+      if (!empty($rule["option_value_keys"]["addon"])) $rushAddonRules[] = $rule;
+    }
   }
 } catch (Throwable $e) {
   // Keep the Rush ID form usable if service pricing cannot be loaded.
@@ -106,6 +110,29 @@ try {
       padding: 0.3rem 0.75rem;
     }
 
+    .rush-addon-list {
+      display: grid;
+      gap: 0.55rem;
+      margin: 0.5rem 0 1rem;
+    }
+
+    .rush-addon-option {
+      align-items: center;
+      border: 1px solid rgba(95, 14, 15, 0.14);
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      gap: 0.7rem;
+      padding: 0.75rem 0.85rem;
+    }
+
+    .rush-addon-option span {
+      display: flex;
+      flex: 1;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
   </style>
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="Rush ID" data-catalog-service-id="<?= (int)$rushCatalogServiceId ?>">
@@ -131,7 +158,7 @@ try {
             <label for="packageSelect">Select Package<span class="required">*</span></label>
             <select id="packageSelect" class="form-select">
               <option value="" selected disabled>Select a Package</option>
-              <?php foreach ($rushCatalogRules as $rule):
+              <?php foreach ($rushPackageRules as $rule):
                 $price = ($rule["price_type"] ?? "") === "fixed" && isset($rule["price"]) && is_numeric($rule["price"]) ? (float)$rule["price"] : null;
                 $priceLabel = $price !== null ? "&#8369;" . htmlspecialchars(number_format($price, 2), ENT_QUOTES, "UTF-8") : "For assessment";
               ?>
@@ -143,10 +170,33 @@ try {
                   &mdash; <?= $priceLabel ?>
                 </option>
               <?php endforeach; ?>
-              <?php if (!$rushCatalogRules): ?>
+              <?php if (!$rushPackageRules): ?>
                 <option value="" disabled>No active Rush ID packages available</option>
               <?php endif; ?>
             </select>
+
+            <label>Optional Add-Ons</label>
+            <div class="rush-addon-list" id="rushAddonList">
+              <?php foreach ($rushAddonRules as $rule):
+                $addonPrice = ($rule["price_type"] ?? "") === "fixed" && isset($rule["price"]) && is_numeric($rule["price"])
+                  ? (float)$rule["price"]
+                  : null;
+              ?>
+                <label class="rush-addon-option">
+                  <input type="checkbox" name="rushAddon"
+                         value="<?= htmlspecialchars((string)($rule["rule_key"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
+                         data-rule-id="<?= (int)($rule["id"] ?? 0) ?>"
+                         data-price="<?= $addonPrice !== null ? htmlspecialchars(number_format($addonPrice, 2, ".", ""), ENT_QUOTES, "UTF-8") : "" ?>">
+                  <span>
+                    <strong><?= htmlspecialchars((string)($rule["option_labels"]["addon"] ?? $rule["label"] ?? "Add-On"), ENT_QUOTES, "UTF-8") ?></strong>
+                    <em><?= $addonPrice !== null ? "&#8369;" . htmlspecialchars(number_format($addonPrice, 2), ENT_QUOTES, "UTF-8") : "For assessment" ?></em>
+                  </span>
+                </label>
+              <?php endforeach; ?>
+              <?php if (!$rushAddonRules): ?>
+                <p class="field-hint">No add-ons are currently available.</p>
+              <?php endif; ?>
+            </div>
 
             <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
             <select class="form-select" id="paymentMethodSelect">
@@ -154,26 +204,6 @@ try {
               <option value="cash">Cash</option>
               <option value="gcash">GCash</option>
             </select>
-
-            <div class="two-col-fields">
-              <div>
-                <label>Additional Edit 1</label>
-                <p class="field-hint">Provide the name in the additional instructions box</p>
-                <div class="radio-vertical">
-                  <label><input type="radio" name="edit1"> With name</label>
-                  <label><input type="radio" name="edit1"> With no name</label>
-                </div>
-              </div>
-
-              <div>
-                <label>Additional Edit 2</label>
-                <p class="field-hint">Staffs will edit your picture to be in formal attire</p>
-                <div class="radio-vertical">
-                  <label><input type="radio" name="edit2"> Formal Attire</label>
-                  <label><input type="radio" name="edit2"> No Formal Attire</label>
-                </div>
-              </div>
-            </div>
 
             <label for="notes">Additional Instructions / Edit Request</label>
             <textarea class="form-textarea" id="notes"></textarea>
@@ -220,6 +250,11 @@ try {
         </div>
 
         <div class="summary-row">
+          <span>ADD-ONS:</span>
+          <strong id="summaryAddons">None</strong>
+        </div>
+
+        <div class="summary-row">
           <span>QUANTITY:</span>
           <strong id="summaryQty">1</strong>
         </div>
@@ -256,7 +291,11 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script src="/assets/js/rush_id_upload.js?v=20260612-upload-limits"></script>
-<script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
+<script>
+window.servitechCatalogServiceId = <?= (int)$rushCatalogServiceId ?>;
+window.servitechCatalogRules = <?= json_encode(array_merge($rushPackageRules, $rushAddonRules), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+</script>
+<script src="/assets/js/main.js?v=20260620-rush-addons"></script>
 
 </body>
 </html>

@@ -160,12 +160,14 @@ function buildCatalogMatrixCards(service, rowGroupKey, colGroupKey) {
 }
 
 function buildCatalogRuleCards(service, groupKey) {
-  return catalogRulesFor(service).map((rule) => ({
-    title: rule.option_labels?.[groupKey] || rule.label || "Option",
-    icon: getServiceIconKey(service.category, service.name),
-    price: formatCatalogRulePrice(rule),
-    lines: [rule.description || ""].filter(Boolean),
-  }));
+  return catalogRulesFor(service)
+    .filter((rule) => rule.option_labels?.[groupKey])
+    .map((rule) => ({
+      title: rule.option_labels?.[groupKey] || rule.label || "Option",
+      icon: getServiceIconKey(service.category, service.name),
+      price: formatCatalogRulePrice(rule),
+      lines: [rule.description || ""].filter(Boolean),
+    }));
 }
 
 function buildRepairCatalogCards(service) {
@@ -499,9 +501,15 @@ async function loadServicesFromDatabase() {
             cards: buildCatalogMatrixCards(service, "paper_size", "color_option"),
           };
         } else if (detailKey === "rushId") {
-          serviceModalDetailData.rushId.cards = service.catalog
-            ? buildCatalogRuleCards(service, "package")
-            : [];
+          const packageCards = service.catalog ? buildCatalogRuleCards(service, "package") : [];
+          const addonRules = catalogRulesFor(service).filter((rule) => rule.option_labels?.addon);
+          serviceModalDetailData.rushId.cards = packageCards;
+          if (addonRules.length) {
+            serviceModalDetailData.rushId.cards.push({
+              title: "Optional Add-Ons",
+              lines: addonRules.map((rule) => `${rule.option_labels.addon}: ${formatCatalogRulePrice(rule)}`),
+            });
+          }
         } else if (detailKey === "laminationCatalog") {
           serviceModalDetailData.laminationCatalog = {
             title: "Lamination Types",
@@ -818,15 +826,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const deviceTypeSelect = document.getElementById("deviceTypeSelect");
   const paymentMethodSelect = document.getElementById("paymentMethodSelect");
   const colorRadios = document.querySelectorAll('input[name="color"]');
+  const rushAddonInputs = Array.from(document.querySelectorAll('input[name="rushAddon"]'));
 
   const summaryPaperSize = document.getElementById("summaryPaperSize");
   const summaryPackage = document.getElementById("summaryPackage");
   const summaryLamType = document.getElementById("summaryLamType");
   const summaryPayment = document.getElementById("summaryPayment");
+  const summaryAddons = document.getElementById("summaryAddons");
   const summaryQty = document.getElementById("summaryQty");
   const summaryTotal = document.getElementById("summaryTotal");
 
-  const defaultPrice = 5;
   const svc = document.body?.dataset?.service || "";
   const isXerox = svc === "xerox";
 
@@ -893,6 +902,13 @@ document.addEventListener("DOMContentLoaded", () => {
       summaryPayment.textContent = value === "gcash" ? "GCash" : (value === "cash" ? "Cash" : "Not Selected");
     }
 
+    const selectedAddons = rushAddonInputs.filter((input) => input.checked);
+    if (summaryAddons) {
+      summaryAddons.textContent = selectedAddons.length
+        ? selectedAddons.map((input) => input.closest("label")?.querySelector("strong")?.textContent?.trim() || "Add-On").join(", ")
+        : "None";
+    }
+
     let pricePerItem = 0;
     let canCompute = qty > 0;
     let assessmentPrice = false;
@@ -906,9 +922,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (packageSelect) {
       const opt = packageSelect.options[packageSelect.selectedIndex];
       const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : NaN;
-      assessmentPrice = !!packageSelect.value && !opt?.disabled && !Number.isFinite(p);
-      canCompute = canCompute && !!packageSelect.value && !opt?.disabled && Number.isFinite(p);
-      pricePerItem = canCompute ? p : 0;
+      const addonPrices = selectedAddons.map((input) => input.dataset.price ? Number(input.dataset.price) : NaN);
+      assessmentPrice = (!!packageSelect.value && !opt?.disabled && !Number.isFinite(p))
+        || addonPrices.some((price) => !Number.isFinite(price));
+      canCompute = canCompute && !!packageSelect.value && !opt?.disabled && Number.isFinite(p) && !assessmentPrice;
+      pricePerItem = canCompute ? p + addonPrices.reduce((sum, price) => sum + price, 0) : 0;
     } else if (isXerox && paperSizeSelect) {
       const size = paperSizeSelect.value;
       const rule = findCatalogRuleByKeys({
@@ -919,7 +937,8 @@ document.addEventListener("DOMContentLoaded", () => {
       canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(price);
       pricePerItem = canCompute ? price : 0;
     } else {
-      pricePerItem = defaultPrice;
+      canCompute = false;
+      assessmentPrice = true;
     }
 
     if (summaryTotal) {
@@ -930,6 +949,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (paperSizeSelect) paperSizeSelect.addEventListener("change", updateSummary);
   if (lamTypeSelect) lamTypeSelect.addEventListener("change", updateSummary);
   if (packageSelect) packageSelect.addEventListener("change", updateSummary);
+  rushAddonInputs.forEach((input) => input.addEventListener("change", updateSummary));
   if (deviceTypeSelect) deviceTypeSelect.addEventListener("change", () => {
     populateRepairTypeOptions();
     initServiceFormPriceCard("repairServiceSelect", "repairPriceRange", "Choose a repair service");
@@ -1005,6 +1025,7 @@ document.addEventListener("DOMContentLoaded", () => {
     deviceTypeSelect: document.getElementById("deviceTypeSelect"),
     installationTypeSelect: document.getElementById("installationTypeSelect"),
     fileUpload: document.getElementById("fileUpload"),
+    rushAddonInputs: Array.from(document.querySelectorAll('input[name="rushAddon"]')),
   };
   const svc = (document.body?.dataset?.service || "").toLowerCase();
   const isXerox = svc === "xerox";
@@ -1140,6 +1161,10 @@ document.addEventListener("DOMContentLoaded", () => {
       uploaded_files: printState && Array.isArray(printState.uploaded_files)
         ? printState.uploaded_files
         : null,
+      catalog_addon_rule_ids: refs.rushAddonInputs
+        .filter((input) => input.checked)
+        .map((input) => Number(input.dataset.ruleId || 0))
+        .filter((id) => id > 0),
     };
 
     if (refs.repairServiceSelect) {
@@ -1185,9 +1210,13 @@ document.addEventListener("DOMContentLoaded", () => {
       payload.estimated_total = Number.isFinite(price) ? price * payload.quantity : null;
     } else if (refs.packageSelect) {
       const selectedOption = refs.packageSelect.options[refs.packageSelect.selectedIndex];
-      const price = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : 0;
-      payload.price_per_page = price;
-      payload.estimated_total = price * payload.quantity;
+      const packagePrice = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : NaN;
+      const addonPrices = refs.rushAddonInputs.filter((input) => input.checked)
+        .map((input) => input.dataset.price ? Number(input.dataset.price) : NaN);
+      const canPrice = Number.isFinite(packagePrice) && addonPrices.every((price) => Number.isFinite(price));
+      const unitPrice = canPrice ? packagePrice + addonPrices.reduce((sum, price) => sum + price, 0) : null;
+      payload.price_per_page = unitPrice;
+      payload.estimated_total = Number.isFinite(unitPrice) ? unitPrice * payload.quantity : null;
     }
 
     return payload;

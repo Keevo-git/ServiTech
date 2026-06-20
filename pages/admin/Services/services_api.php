@@ -22,8 +22,10 @@ if ($action === "list") {
     $params = [];
     $where = "";
     if ($cat === "printing" || $cat === "repair" || $cat === "installation") {
-        $where = "WHERE category = :cat";
+        $where = "WHERE category = :cat AND archived_at IS NULL";
         $params[":cat"] = $cat;
+    } else {
+        $where = "WHERE archived_at IS NULL";
     }
     $stmt = $pdo->prepare("
       SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
@@ -72,12 +74,7 @@ if ($action === "save") {
     $active = isset($_POST["active"]) ? (int)($_POST["active"]) : 1;
     $sort_order = isset($_POST["sort_order"]) ? (int)($_POST["sort_order"]) : 0;
 
-    if (!in_array($category, ["printing", "repair", "installation"], true)) {
-        respond(["ok" => false, "error" => "Invalid category"]);
-    }
-    if ($name === "") {
-        respond(["ok" => false, "error" => "Service name required"]);
-    }
+    if ($id <= 0) respond(["ok" => false, "error" => "New top-level services cannot be added here. Edit one of the configured services instead."]);
 
     $price = null;
     if ($priceRaw !== "") {
@@ -108,7 +105,29 @@ if ($action === "save") {
         respond(["ok" => false, "error" => $e->getMessage()]);
     }
 
-    if ($id > 0) {
+    try {
+        $existingStmt = $pdo->prepare("
+          SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
+                 CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
+          FROM services
+          WHERE id = :id AND archived_at IS NULL
+          LIMIT 1
+        ");
+        $existingStmt->execute([":id" => $id]);
+        $existing = $existingStmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($existing)) throw new DomainException("Service not found.");
+
+        $category = (string)$existing["category"];
+        $name = (string)$existing["name"];
+        if (!is_array($catalogData)) throw new DomainException("Service options are required.");
+        $catalogData = servitech_catalog_normalize_admin_payload($existing, $catalogData);
+        $activeRules = array_values(array_filter($catalogData["rules"], static fn($rule) => !empty($rule["active"])));
+        if (servitech_catalog_service_kind($existing) === "rush_id") {
+            $activeRules = array_values(array_filter($activeRules, static fn($rule) => isset($rule["option_value_keys"]["package"])));
+        }
+        $priceRange = servitech_catalog_price_range_from_rules($activeRules);
+
+        $pdo->beginTransaction();
         $stmt = $pdo->prepare("
           UPDATE services
           SET category=:category,
@@ -116,8 +135,9 @@ if ($action === "save") {
               description=:description,
               price=:price,
               price_range=:price_range,
-              pricing_json=CAST(:pricing_json AS jsonb),
+              pricing_json='{}'::jsonb,
               active=:active,
+              archived_at=CASE WHEN :reactivate THEN NULL ELSE archived_at END,
               sort_order=:sort_order,
               updated_at=NOW()
           WHERE id=:id
@@ -128,37 +148,22 @@ if ($action === "save") {
             ":description" => $description,
             ":price" => $price,
             ":price_range" => $priceRange,
-            ":pricing_json" => $pricingJson,
             ":active" => ($active ? true : false),
-            ":sort_order" => $sort_order,
+            ":reactivate" => ($active ? true : false),
+            ":sort_order" => (int)$existing["sort_order"],
             ":id" => $id,
         ]);
-        if (is_array($catalogData)) {
-            servitech_catalog_upsert($pdo, $id, $catalogData);
-        }
-        respond(["ok" => true, "id" => $id]);
+        servitech_catalog_upsert($pdo, $id, $catalogData);
+        $pdo->commit();
+        respond(["ok" => true, "id" => $id, "message" => $name . " updated successfully."]);
+    } catch (DomainException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        respond(["ok" => false, "error" => $e->getMessage()]);
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log("services_api save error: " . $e->getMessage());
+        respond(["ok" => false, "error" => "Failed to save changes. Please try again."]);
     }
-
-    $stmt = $pdo->prepare("
-      INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
-      VALUES (:category, :name, :description, :price, :price_range, CAST(:pricing_json AS jsonb), :active, :sort_order)
-      RETURNING id
-    ");
-    $stmt->execute([
-        ":category" => $category,
-        ":name" => $name,
-        ":description" => $description,
-        ":price" => $price,
-        ":price_range" => $priceRange,
-        ":pricing_json" => $pricingJson,
-        ":active" => ($active ? true : false),
-        ":sort_order" => $sort_order,
-    ]);
-    $newId = (int)($stmt->fetchColumn() ?: 0);
-    if (is_array($catalogData) && $newId > 0) {
-        servitech_catalog_upsert($pdo, $newId, $catalogData);
-    }
-    respond(["ok" => true, "id" => $newId]);
 }
 
 if ($action === "delete") {

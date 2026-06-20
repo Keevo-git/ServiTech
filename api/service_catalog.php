@@ -29,6 +29,100 @@ function servitech_catalog_price_range_from_rules(array $rules): string {
   return servitech_catalog_money_label($low) . ' - ' . servitech_catalog_money_label($high);
 }
 
+function servitech_catalog_service_kind(array $service): string {
+  $category = strtolower(trim((string)($service["category"] ?? "")));
+  $name = strtolower(trim((string)($service["name"] ?? "")));
+  if ($category === "printing" && str_contains($name, "document") && str_contains($name, "print")) return "document_printing";
+  if ($category === "printing" && (str_contains($name, "photocopy") || str_contains($name, "xerox"))) return "photocopy";
+  if ($category === "printing" && str_contains($name, "rush") && str_contains($name, "id")) return "rush_id";
+  if ($category === "printing" && str_contains($name, "laminat")) return "laminating";
+  if ($category === "repair") return "repair";
+  if ($category === "installation") return "installation";
+  return "";
+}
+
+function servitech_catalog_group_contract(string $kind): array {
+  return match ($kind) {
+    "document_printing", "photocopy" => [
+      "paper_size" => "Paper Size",
+      "color_option" => "Color Option",
+    ],
+    "rush_id" => [
+      "package" => "Package",
+      "addon" => "Add-Ons",
+    ],
+    "laminating" => ["lamination_type" => "Type"],
+    "repair" => [
+      "device_type" => "Devices",
+      "repair_type" => "Service Type",
+    ],
+    "installation" => ["installation_type" => "Installation Type"],
+    default => [],
+  };
+}
+
+function servitech_catalog_expected_rule_groups(string $kind, array $keys): bool {
+  $groups = array_values(array_unique(array_map("strval", array_keys($keys))));
+  sort($groups);
+  $allowed = match ($kind) {
+    "document_printing", "photocopy" => [["color_option", "paper_size"]],
+    "rush_id" => [["addon"], ["package"]],
+    "laminating" => [["lamination_type"]],
+    "repair" => [["device_type", "repair_type"]],
+    "installation" => [["installation_type"]],
+    default => [],
+  };
+  return in_array($groups, $allowed, true);
+}
+
+function servitech_catalog_normalize_admin_payload(array $service, array $catalog): array {
+  $kind = servitech_catalog_service_kind($service);
+  $contract = servitech_catalog_group_contract($kind);
+  if (!$contract) throw new DomainException("This service does not support catalog editing.");
+
+  $submittedGroups = isset($catalog["groups"]) && is_array($catalog["groups"]) ? $catalog["groups"] : [];
+  $groupsByKey = [];
+  foreach ($submittedGroups as $group) {
+    $key = servitech_catalog_slug((string)($group["group_key"] ?? ""));
+    if (!isset($contract[$key])) throw new DomainException("Unsupported option group for this service.");
+    $group["group_key"] = $key;
+    $group["name"] = $contract[$key];
+    $group["active"] = 1;
+    $group["sort_order"] = array_search($key, array_keys($contract), true);
+    $groupsByKey[$key] = $group;
+  }
+  foreach ($contract as $key => $name) {
+    if (!isset($groupsByKey[$key])) {
+      $groupsByKey[$key] = [
+        "group_key" => $key,
+        "name" => $name,
+        "active" => 1,
+        "sort_order" => array_search($key, array_keys($contract), true),
+        "values" => [],
+      ];
+    }
+  }
+
+  $rules = isset($catalog["rules"]) && is_array($catalog["rules"]) ? $catalog["rules"] : [];
+  foreach ($rules as &$rule) {
+    $keys = isset($rule["option_value_keys"]) && is_array($rule["option_value_keys"])
+      ? $rule["option_value_keys"]
+      : [];
+    foreach (array_keys($keys) as $key) {
+      if (!isset($contract[$key])) throw new DomainException("A pricing rule uses an unsupported option group.");
+    }
+    if (!servitech_catalog_expected_rule_groups($kind, $keys)) {
+      throw new DomainException("A pricing rule does not match this service's pricing structure.");
+    }
+  }
+  unset($rule);
+
+  return [
+    "groups" => array_values($groupsByKey),
+    "rules" => $rules,
+  ];
+}
+
 function servitech_catalog_fetch_service(PDO $pdo, int $serviceId, bool $activeOnly = true): ?array {
   if ($serviceId <= 0) return null;
   $activeSql = $activeOnly ? "AND active = TRUE AND archived_at IS NULL" : "";
@@ -127,17 +221,32 @@ function servitech_catalog_fetch(PDO $pdo, int $serviceId, bool $activeOnly = tr
     $rule["option_value_ids"] = $ids;
     $rule["option_labels"] = [];
     $rule["option_value_keys"] = [];
+    $missingActiveOption = false;
     foreach ($ids as $groupKey => $valueId) {
       $value = $valueLookup[(int)$valueId] ?? null;
       if ($value) {
         $rule["option_labels"][$groupKey] = (string)$value["label"];
         $rule["option_value_keys"][$groupKey] = (string)$value["value_key"];
+      } elseif ($activeOnly) {
+        $missingActiveOption = true;
       }
     }
+    $rule["_missing_active_option"] = $missingActiveOption;
+  }
+  unset($rule);
+  if ($activeOnly) {
+    $rules = array_values(array_filter($rules, static fn($rule) => empty($rule["_missing_active_option"])));
+  }
+  foreach ($rules as &$rule) {
+    unset($rule["_missing_active_option"]);
   }
   unset($rule);
 
-  $service["catalog_price_range"] = servitech_catalog_price_range_from_rules($rules);
+  $rangeRules = $rules;
+  if (servitech_catalog_service_kind($service) === "rush_id") {
+    $rangeRules = array_values(array_filter($rules, static fn($rule) => isset($rule["option_value_keys"]["package"])));
+  }
+  $service["catalog_price_range"] = servitech_catalog_price_range_from_rules($rangeRules);
   return [
     "service" => $service,
     "groups" => $groups,

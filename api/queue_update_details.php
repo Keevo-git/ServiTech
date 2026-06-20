@@ -178,7 +178,7 @@ try {
     $details["color_option"] = trim((string)($data["color_option"] ?? ""));
   } elseif ($serviceKind === "xerox") {
     $details["paper_size"] = trim((string)($data["paper_size"] ?? ""));
-    $details["color_option"] = trim((string)($data["color_option"] ?? ($currentDetails["color_option"] ?? "Colored")));
+    $details["color_option"] = trim((string)($data["color_option"] ?? ($currentDetails["color_option"] ?? "")));
     unset($details["payment_method"], $details["reference_number"]);
   } elseif ($serviceKind === "rush_id") {
     $details["package_label"] = trim((string)($data["package_label"] ?? ""));
@@ -186,11 +186,27 @@ try {
   } elseif ($serviceKind === "laminating") {
     $details["lamination_type"] = strtolower(trim((string)($data["lamination_type"] ?? "")));
     unset($details["paper_size"], $details["color_option"], $details["payment_method"], $details["reference_number"]);
-  } elseif (in_array($serviceKind, ["repair", "installation"], true)) {
+  } elseif ($serviceKind === "repair") {
     $details["device_type"] = trim((string)($data["device_type"] ?? ""));
-    unset($details["paper_size"], $details["color_option"], $details["package_label"], $details["lamination_type"], $details["payment_method"], $details["reference_number"]);
+    $details["repair_type"] = trim((string)($data["repair_type"] ?? ""));
+    unset($details["paper_size"], $details["color_option"], $details["package_label"], $details["lamination_type"], $details["installation_type"], $details["payment_method"], $details["reference_number"]);
+  } elseif ($serviceKind === "installation") {
+    $details["installation_type"] = trim((string)($data["installation_type"] ?? ""));
+    unset($details["paper_size"], $details["color_option"], $details["package_label"], $details["lamination_type"], $details["device_type"], $details["repair_type"], $details["payment_method"], $details["reference_number"]);
   } else {
     throw new DomainException("Unsupported service.");
+  }
+
+  $catalogRuleId = isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : 0;
+  if ($catalogRuleId > 0) {
+    $details["catalog_pricing_rule_id"] = $catalogRuleId;
+  } else {
+    unset($details["catalog_pricing_rule_id"]);
+  }
+  if ($serviceKind === "rush_id") {
+    $details["catalog_addon_rule_ids"] = isset($data["catalog_addon_rule_ids"]) && is_array($data["catalog_addon_rule_ids"])
+      ? array_values($data["catalog_addon_rule_ids"])
+      : [];
   }
 
   $uploadedInput = isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [];

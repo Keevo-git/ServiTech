@@ -159,19 +159,7 @@
         var catalogPrice = Number(rule.price);
         return Number.isFinite(catalogPrice) && catalogPrice > 0 ? catalogPrice : 0;
       }
-      var paperKey = normalizePaperKey(paperSizeSelect.value || "");
-      var colorKey = normalizeColorKey(getSelectedColor());
-      var catalogPricing = window.servitechDocumentPrintPricing && typeof window.servitechDocumentPrintPricing === "object"
-        ? window.servitechDocumentPrintPricing
-        : {};
-
-      if (!paperKey || !colorKey) {
-        return 0;
-      }
-
-      var key = paperKey + "_" + colorKey + "_price";
-      var price = Number(catalogPricing[key]);
-      return Number.isFinite(price) && price > 0 ? price : 0;
+      return 0;
     }
 
     function syncClientPricing() {
@@ -692,6 +680,7 @@
       var formData = new FormData();
       formData.append("paper_size", requestPaperSize);
       formData.append("color_option", requestColor);
+      formData.append("catalog_pricing_rule_id", String(findSelectedCatalogRule() ? Number(findSelectedCatalogRule().id) || 0 : 0));
       formData.append("quantity", String(requestQuantity));
 
       pendingFiles.forEach(function (file) {
@@ -1242,7 +1231,7 @@
       var restoredPaperSize = draftState.paper_size || "";
       if (restoredPaperSize === "Short Bond (8.5 x 11)") restoredPaperSize = "Letter";
       if (restoredPaperSize === "Long Bond (8.5 x 13)") restoredPaperSize = "8.5x13";
-      paperSizeSelect.value = ["Letter", "8.5x13", "A4"].indexOf(restoredPaperSize) !== -1 ? restoredPaperSize : "";
+      paperSizeSelect.value = Array.from(paperSizeSelect.options).some((option) => option.value === restoredPaperSize) ? restoredPaperSize : "";
       qtyInput.value = String(Math.max(1, parseInt(draftState.quantity, 10) || 1));
       if (notesInput) {
         notesInput.value = draftState.notes || "";

@@ -3,6 +3,7 @@ require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/upload_helpers.php";
+require_once __DIR__ . "/service_catalog.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -57,115 +58,6 @@ function normalize_uploaded_files(?array $uploaded): array {
   }
 
   return $files;
-}
-
-function normalize_paper_size(string $paper): string {
-  $v = strtolower(trim($paper));
-  if ($v === "") return "";
-  if (strpos($v, "letter") !== false || strpos($v, "short bond") !== false || strpos($v, "8.5 x 11") !== false) return "letter";
-  if (strpos($v, "8.5x13") !== false || strpos($v, "8.5 x 13") !== false || strpos($v, "long bond") !== false) return "long";
-  if ($v === "a4") return "a4";
-  return "";
-}
-
-function normalize_color_option(string $color): string {
-  $v = strtolower(trim($color));
-  if ($v === "") return "";
-
-  if ($v === "black & white" || $v === "black and white" || $v === "bw") return "bw";
-  if ($v === "full colored" || $v === "colored full" || $v === "colored - full" || $v === "colored (full)") return "full";
-  if ($v === "half colored" || $v === "colored half" || $v === "colored - half" || $v === "colored (half)") return "half";
-
-  return "";
-}
-
-function extract_document_printing_price(string $description, string $option): ?float {
-  $pattern = "/\\b" . preg_quote($option, "/") . "\\s*[-\\x{2013}\\x{2014}]?\\s*₱?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
-  if (preg_match($pattern, $description, $matches)) {
-    return max(0, (float)$matches[1]);
-  }
-
-  return null;
-}
-
-function extract_document_printing_block_price(string $description, string $blockName, string $option): ?float {
-  $blocks = preg_split("/\\r?\\n\\s*\\r?\\n/", $description) ?: [];
-  foreach ($blocks as $block) {
-    if (stripos($block, $blockName) === false) {
-      continue;
-    }
-
-    $pattern = "/\\b" . preg_quote($option, "/") . "\\s*(?:\\/\\s*B&W)?\\s*[-\\x{2013}\\x{2014}]?\\s*\\x{20B1}?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
-    if (preg_match($pattern, $block, $matches)) {
-      return max(0, (float)$matches[1]);
-    }
-  }
-
-  return null;
-}
-
-function extract_document_printing_price_range(string $priceRange): array {
-  if (!preg_match_all("/[0-9]+(?:\\.[0-9]+)?/", $priceRange, $matches) || empty($matches[0])) {
-    return [];
-  }
-
-  $prices = array_map(static fn($value) => max(0, (float)$value), $matches[0]);
-  sort($prices, SORT_NUMERIC);
-
-  return $prices;
-}
-
-function fetch_document_printing_prices(PDO $pdo): array {
-  $prices = [
-    "letter_full" => 10.0,
-    "letter_half" => 5.0,
-    "letter_bw" => 5.0,
-    "long_full" => 10.0,
-    "long_half" => 5.0,
-    "long_bw" => 5.0,
-    "a4_full" => 10.0,
-    "a4_half" => 5.0,
-    "a4_bw" => 5.0,
-  ];
-
-  try {
-    $stmt = $pdo->prepare("
-      SELECT description, price, price_range, pricing_json::text AS pricing_json
-      FROM services
-      WHERE category = 'printing'
-        AND LOWER(name) LIKE '%document%'
-        AND (LOWER(name) LIKE '%printing%' OR LOWER(name) LIKE '%print%')
-        AND active = TRUE
-      ORDER BY sort_order ASC, id ASC
-      LIMIT 1
-    ");
-    $stmt->execute();
-    $service = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!is_array($service)) {
-      return $prices;
-    }
-
-    $description = (string)($service["description"] ?? "");
-    $storedPricing = json_decode((string)($service["pricing_json"] ?? ""), true);
-    $rangePrices = extract_document_printing_price_range((string)($service["price_range"] ?? ""));
-    $default = $rangePrices[0] ?? (isset($service["price"]) ? max(0, (float)$service["price"]) : $prices["short_half"]);
-    $half = extract_document_printing_price($description, "Half") ?? $default;
-    $full = extract_document_printing_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($half, $default));
-
-    return [
-      "long_full" => isset($storedPricing["longFull"]) ? (float)$storedPricing["longFull"] : (extract_document_printing_block_price($description, "Long Bond", "Full") ?? $full),
-      "long_half" => isset($storedPricing["longHalf"]) ? (float)$storedPricing["longHalf"] : (extract_document_printing_block_price($description, "Long Bond", "Half") ?? $half),
-      "long_bw" => isset($storedPricing["longBw"]) ? (float)$storedPricing["longBw"] : (isset($storedPricing["longHalf"]) ? (float)$storedPricing["longHalf"] : (extract_document_printing_block_price($description, "Long Bond", "Half") ?? $half)),
-      "letter_full" => isset($storedPricing["letterFull"]) ? (float)$storedPricing["letterFull"] : (isset($storedPricing["shortFull"]) ? (float)$storedPricing["shortFull"] : (extract_document_printing_block_price($description, "Short Bond", "Full") ?? $full)),
-      "letter_half" => isset($storedPricing["letterHalf"]) ? (float)$storedPricing["letterHalf"] : (isset($storedPricing["shortHalf"]) ? (float)$storedPricing["shortHalf"] : (extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half)),
-      "letter_bw" => isset($storedPricing["letterBw"]) ? (float)$storedPricing["letterBw"] : (isset($storedPricing["shortHalf"]) ? (float)$storedPricing["shortHalf"] : (extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half)),
-      "a4_full" => isset($storedPricing["a4Full"]) ? (float)$storedPricing["a4Full"] : (extract_document_printing_block_price($description, "A4", "Full") ?? $full),
-      "a4_half" => isset($storedPricing["a4Half"]) ? (float)$storedPricing["a4Half"] : (extract_document_printing_block_price($description, "A4", "Half") ?? $half),
-      "a4_bw" => isset($storedPricing["a4Bw"]) ? (float)$storedPricing["a4Bw"] : (isset($storedPricing["a4Half"]) ? (float)$storedPricing["a4Half"] : (extract_document_printing_block_price($description, "A4", "Half") ?? $half)),
-    ];
-  } catch (Throwable $e) {
-    return $prices;
-  }
 }
 
 function count_pdf_pages(string $path): int {
@@ -261,20 +153,26 @@ function estimate_ppt_slides(string $path): int {
   return max(1, (int)ceil(($size ?: 1) / (150 * 1024)));
 }
 
-function compute_print_pricing(PDO $pdo, string $paperRaw, string $colorRaw, int $quantity, int $totalPages): array {
-  $paper = normalize_paper_size($paperRaw);
-  if ($paper === "") {
-    return ["ok" => false, "error" => "Select a valid paper size."];
+function compute_print_pricing(PDO $pdo, int $catalogPricingRuleId, int $quantity, int $totalPages): array {
+  if ($catalogPricingRuleId <= 0) {
+    return ["ok" => false, "error" => "Select a valid active print option."];
   }
 
-  $color = normalize_color_option($colorRaw);
-  if ($color === "") {
-    return ["ok" => false, "error" => "Select a valid color option."];
+  $service = servitech_catalog_fetch_service_by_kind($pdo, "document_printing", true);
+  if (!$service) {
+    return ["ok" => false, "error" => "Document Printing is currently unavailable."];
   }
 
-  $prices = fetch_document_printing_prices($pdo);
-  $priceKey = $paper . "_" . $color;
-  $pricePerPage = isset($prices[$priceKey]) ? max(0, (float)$prices[$priceKey]) : 0.0;
+  $catalog = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+  $rule = servitech_catalog_find_rule($catalog, $catalogPricingRuleId);
+  if (!$rule) {
+    return ["ok" => false, "error" => "The selected print option is currently unavailable."];
+  }
+  if (($rule["price_type"] ?? "") !== "fixed" || !isset($rule["price"]) || !is_numeric($rule["price"])) {
+    return ["ok" => false, "error" => "The selected print option is marked for assessment."];
+  }
+
+  $pricePerPage = max(0, (float)$rule["price"]);
   if ($pricePerPage <= 0) {
     return ["ok" => false, "error" => "The selected paper/color price is unavailable."];
   }
@@ -286,11 +184,15 @@ function compute_print_pricing(PDO $pdo, string $paperRaw, string $colorRaw, int
     "ok" => true,
     "price_per_page" => $pricePerPage,
     "estimated_total" => (float)$estimatedTotal,
+    "catalog_pricing_rule_id" => $catalogPricingRuleId,
+    "paper_size" => servitech_catalog_option_label($rule, "paper_size"),
+    "color_option" => servitech_catalog_option_label($rule, "color_option"),
   ];
 }
 
 $paper_size = trim((string)($_POST["paper_size"] ?? ""));
 $color_option = trim((string)($_POST["color_option"] ?? ""));
+$catalog_pricing_rule_id = isset($_POST["catalog_pricing_rule_id"]) ? max(0, (int)$_POST["catalog_pricing_rule_id"]) : 0;
 $quantity = max(1, (int)($_POST["quantity"] ?? 1));
 
 $provided_total_pages = isset($_POST["total_pages"]) ? max(0, (int)$_POST["total_pages"]) : null;
@@ -452,7 +354,7 @@ if ($total_pages < 1) {
   ], 422);
 }
 
-$pricing = compute_print_pricing($pdo, $paper_size, $color_option, $quantity, $total_pages);
+$pricing = compute_print_pricing($pdo, $catalog_pricing_rule_id, $quantity, $total_pages);
 if (!$pricing["ok"]) {
   printing_json_exit([
     "ok" => false,
@@ -473,7 +375,8 @@ printing_json_exit([
   "total_pages" => $total_pages,
   "price_per_page" => $pricing["price_per_page"],
   "estimated_total" => $pricing["estimated_total"],
-  "paper_size" => $paper_size,
-  "color_option" => $color_option,
+  "catalog_pricing_rule_id" => $pricing["catalog_pricing_rule_id"],
+  "paper_size" => $pricing["paper_size"] ?: $paper_size,
+  "color_option" => $pricing["color_option"] ?: $color_option,
   "quantity" => $quantity,
 ]);

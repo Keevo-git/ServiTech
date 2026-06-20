@@ -159,6 +159,8 @@ try {
       "package_label" => $details["package_label"] ?? null,
       "lamination_type" => $details["lamination_type"] ?? null,
       "device_type" => $details["device_type"] ?? null,
+      "repair_type" => $details["repair_type"] ?? null,
+      "installation_type" => $details["installation_type"] ?? null,
       "notes" => $details["notes"] ?? null,
       "file_name" => $details["file_name"] ?? null,
       "file_href" => queue_list_upload_url((string)($details["file_name"] ?? "")),

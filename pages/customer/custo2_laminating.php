@@ -51,7 +51,7 @@ try {
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-price-per-page="20" data-service-label="Laminating" data-catalog-service-id="<?= (int)$laminatingCatalogServiceId ?>">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="Laminating" data-catalog-service-id="<?= (int)$laminatingCatalogServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 

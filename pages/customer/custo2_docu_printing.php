@@ -9,58 +9,11 @@ require_once __DIR__ . "/../../api/service_catalog.php";
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $documentPrintingLabel = "Document Print";
 $printDraft = [];
-$printPricing = [
-  "letter_full_price" => 10.0,
-  "letter_half_price" => 5.0,
-  "letter_bw_price" => 5.0,
-  "long_full_price" => 10.0,
-  "long_half_price" => 5.0,
-  "long_bw_price" => 5.0,
-  "a4_full_price" => 10.0,
-  "a4_half_price" => 5.0,
-  "a4_bw_price" => 5.0,
-];
 $documentCatalogServiceId = 0;
 $documentCatalog = null;
 $documentPaperOptions = [];
 $documentColorOptions = [];
 $documentRules = [];
-
-function document_printing_extract_price(string $description, string $option): ?float {
-  $pattern = "/\\b" . preg_quote($option, "/") . "\\s*[-\\x{2013}\\x{2014}]?\\s*₱?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
-  if (preg_match($pattern, $description, $matches)) {
-    return max(0, (float)$matches[1]);
-  }
-
-  return null;
-}
-
-function document_printing_extract_block_price(string $description, string $blockName, string $option): ?float {
-  $blocks = preg_split("/\\r?\\n\\s*\\r?\\n/", $description) ?: [];
-  foreach ($blocks as $block) {
-    if (stripos($block, $blockName) === false) {
-      continue;
-    }
-
-    $pattern = "/\\b" . preg_quote($option, "/") . "\\s*(?:\\/\\s*B&W)?\\s*[-\\x{2013}\\x{2014}]?\\s*\\x{20B1}?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
-    if (preg_match($pattern, $block, $matches)) {
-      return max(0, (float)$matches[1]);
-    }
-  }
-
-  return null;
-}
-
-function document_printing_extract_price_range(string $priceRange): array {
-  if (!preg_match_all("/[0-9]+(?:\\.[0-9]+)?/", $priceRange, $matches) || empty($matches[0])) {
-    return [];
-  }
-
-  $prices = array_map(static fn($value) => max(0, (float)$value), $matches[0]);
-  sort($prices, SORT_NUMERIC);
-
-  return $prices;
-}
 
 try {
   $documentPrintingService = servitech_catalog_fetch_service_by_kind($pdo, "document_printing", true);
@@ -73,24 +26,6 @@ try {
       if (($group["group_key"] ?? "") === "color_option") $documentColorOptions = $group["values"] ?? [];
     }
     $documentRules = $documentCatalog["rules"] ?? [];
-    $description = (string)($documentPrintingService["description"] ?? "");
-    $storedPricing = json_decode((string)($documentPrintingService["pricing_json"] ?? ""), true);
-    $rangePrices = document_printing_extract_price_range((string)($documentPrintingService["price_range"] ?? ""));
-    $defaultPrice = $rangePrices[0] ?? (isset($documentPrintingService["price"]) ? max(0, (float)$documentPrintingService["price"]) : 5.0);
-    $halfPrice = document_printing_extract_price($description, "Half") ?? $defaultPrice;
-    $fullPrice = document_printing_extract_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($halfPrice, $defaultPrice));
-
-    if (is_array($storedPricing)) {
-      $printPricing["letter_full_price"] = isset($storedPricing["letterFull"]) ? max(0, (float)$storedPricing["letterFull"]) : (isset($storedPricing["shortFull"]) ? max(0, (float)$storedPricing["shortFull"]) : $fullPrice);
-      $printPricing["letter_half_price"] = isset($storedPricing["letterHalf"]) ? max(0, (float)$storedPricing["letterHalf"]) : (isset($storedPricing["shortHalf"]) ? max(0, (float)$storedPricing["shortHalf"]) : $halfPrice);
-      $printPricing["letter_bw_price"] = isset($storedPricing["letterBw"]) ? max(0, (float)$storedPricing["letterBw"]) : $printPricing["letter_half_price"];
-      $printPricing["long_full_price"] = isset($storedPricing["longFull"]) ? max(0, (float)$storedPricing["longFull"]) : (document_printing_extract_block_price($description, "Long Bond", "Full") ?? $fullPrice);
-      $printPricing["long_half_price"] = isset($storedPricing["longHalf"]) ? max(0, (float)$storedPricing["longHalf"]) : (document_printing_extract_block_price($description, "Long Bond", "Half") ?? $halfPrice);
-      $printPricing["long_bw_price"] = isset($storedPricing["longBw"]) ? max(0, (float)$storedPricing["longBw"]) : $printPricing["long_half_price"];
-      $printPricing["a4_full_price"] = isset($storedPricing["a4Full"]) ? max(0, (float)$storedPricing["a4Full"]) : (document_printing_extract_block_price($description, "A4", "Full") ?? $fullPrice);
-      $printPricing["a4_half_price"] = isset($storedPricing["a4Half"]) ? max(0, (float)$storedPricing["a4Half"]) : (document_printing_extract_block_price($description, "A4", "Half") ?? $halfPrice);
-      $printPricing["a4_bw_price"] = isset($storedPricing["a4Bw"]) ? max(0, (float)$storedPricing["a4Bw"]) : $printPricing["a4_half_price"];
-    }
   }
 } catch (Throwable $e) {
   // Keep the order form usable if the service table is unavailable.
@@ -650,11 +585,8 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-  window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-  window.servitechCatalogRules = <?= json_encode($documentRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.servitechCatalogRules = <?= json_encode($documentRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="/assets/js/custo2_docu_printing.js?v=20260620-service-catalog"></script>
 </body>
 </html>
-
-

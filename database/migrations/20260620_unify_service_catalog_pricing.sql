@@ -67,6 +67,7 @@ DECLARE
   paper_group BIGINT;
   color_group BIGINT;
   package_group BIGINT;
+  addon_group BIGINT;
   lamination_group BIGINT;
   device_group BIGINT;
   repair_group BIGINT;
@@ -82,6 +83,7 @@ DECLARE
   laptop_id BIGINT;
   desktop_id BIGINT;
   package_id BIGINT;
+  addon_id BIGINT;
   value_id BIGINT;
 BEGIN
   INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
@@ -267,6 +269,45 @@ BEGIN
       value_id - 1
     )
     ON CONFLICT (service_id, rule_key) DO UPDATE SET option_value_ids = EXCLUDED.option_value_ids, label = EXCLUDED.label, description = EXCLUDED.description, price = EXCLUDED.price, price_type = EXCLUDED.price_type, active = TRUE, archived_at = NULL, sort_order = EXCLUDED.sort_order, updated_at = NOW();
+  END LOOP;
+
+  INSERT INTO service_option_groups (service_id, group_key, name, sort_order)
+  VALUES (rush_id, 'addon', 'Add-Ons', 1)
+  ON CONFLICT (service_id, group_key) DO UPDATE
+    SET name = EXCLUDED.name, active = TRUE, archived_at = NULL,
+        sort_order = EXCLUDED.sort_order, updated_at = NOW()
+  RETURNING id INTO addon_group;
+
+  INSERT INTO service_option_values (group_id, value_key, label, description, active, sort_order) VALUES
+    (addon_group, 'formal_attire', 'Formal Attire', 'Edit the customer photo into formal attire.', FALSE, 0),
+    (addon_group, 'name_at_bottom', 'Name in the bottom of picture', 'Add the customer name at the bottom of the picture.', FALSE, 1)
+  ON CONFLICT (group_id, value_key) DO UPDATE
+    SET label = EXCLUDED.label, description = EXCLUDED.description, updated_at = NOW();
+
+  FOR addon_id IN
+    SELECT id FROM service_option_values WHERE group_id = addon_group ORDER BY sort_order, id
+  LOOP
+    INSERT INTO service_pricing_rules (
+      service_id, rule_key, option_value_ids, label, description,
+      price, price_type, active, sort_order
+    )
+    SELECT
+      rush_id,
+      'addon_' || value_key,
+      jsonb_build_object('addon', id),
+      label,
+      description,
+      NULL::numeric,
+      'assessment',
+      FALSE,
+      sort_order
+    FROM service_option_values
+    WHERE id = addon_id
+    ON CONFLICT (service_id, rule_key) DO UPDATE
+      SET option_value_ids = EXCLUDED.option_value_ids,
+          label = EXCLUDED.label,
+          description = EXCLUDED.description,
+          updated_at = NOW();
   END LOOP;
 
   INSERT INTO service_option_groups (service_id, group_key, name, sort_order)

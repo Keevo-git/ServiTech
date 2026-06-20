@@ -1,648 +1,529 @@
-(function(){
-  const qs = (s, el=document)=>el.querySelector(s);
-  const qsa = (s, el=document)=>Array.from(el.querySelectorAll(s));
+(function () {
+  const qs = (selector, root = document) => root.querySelector(selector);
+  const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
-  const msApiUrl = window.MS_API_URL || "/pages/admin/Services/services_api.php";
+  const apiUrl = window.MS_API_URL || "/pages/admin/Services/services_api.php";
 
   const overlay = qs("#msOverlay");
-  const modalTitle = qs("#msModalTitle");
-  const errBox = qs("#msErr");
+  const editor = qs("#ms_catalogEditor");
+  const errorBox = qs("#msErr");
+  const fields = {
+    id: qs("#ms_id"),
+    category: qs("#ms_category"),
+    name: qs("#ms_name"),
+    description: qs("#ms_description"),
+    price: qs("#ms_price"),
+    priceRange: qs("#ms_price_range"),
+    active: qs("#ms_active"),
+    sort: qs("#ms_sort"),
+  };
 
-  const fId = qs("#ms_id");
-  const fCat = qs("#ms_category");
-  const fName = qs("#ms_name");
-  const fDesc = qs("#ms_description");
-  const fPrice = qs("#ms_price");
-  const fPriceRange = qs("#ms_price_range");
-  const fActive = qs("#ms_active");
-  const fSort = qs("#ms_sort");
-  const fPriceModeField = qs("#ms_priceModeField");
-  const fPriceField = qs("#ms_priceField");
-  const fPriceLabel = qs("#ms_priceLabel");
-  const fPriceHint = qs("#ms_price_hint");
-  const fDescriptionHint = qs("#ms_description_hint");
-  const catalogEditor = qs("#ms_catalogEditor");
-  let currentCatalog = null;
-  let originalCatalogSnapshot = "";
+  let catalog = null;
+  let originalSnapshot = "";
+  let currentKind = "";
 
-  function showErr(msg){
-    errBox.textContent = msg;
-    errBox.style.display="block";
-    window.servitechAdminToast?.error(msg);
-  }
-  function hideErr(){ errBox.textContent=""; errBox.style.display="none"; }
+  const contracts = {
+    document_printing: {
+      groups: { paper_size: "Paper Size", color_option: "Color Option" },
+      title: "Edit Document Printing Prices",
+      help: "Set prices for each paper size and color option. These prices appear on the landing page and customer queue form.",
+    },
+    photocopy: {
+      groups: { paper_size: "Paper Size", color_option: "Color Option" },
+      title: "Edit Photocopy Prices",
+      help: "Manage paper sizes, color options, and the official price for every valid combination.",
+    },
+    rush_id: {
+      groups: { package: "Package", addon: "Add-Ons" },
+      title: "Edit Rush ID Packages and Add-Ons",
+      help: "Set package base prices and optional add-on prices. Customer totals are calculated from these active records.",
+    },
+    laminating: {
+      groups: { lamination_type: "Type" },
+      title: "Edit Lamination Types",
+      help: "Manage available lamination types and their official prices.",
+    },
+    repair: {
+      groups: { device_type: "Devices", repair_type: "Service Type" },
+      title: "Edit Repair Services",
+      help: "Choose a device section, then manage its repair services, prices, and availability.",
+    },
+    installation: {
+      groups: { installation_type: "Installation Type" },
+      title: "Edit Installation Services",
+      help: "Manage installation types and mark each price as fixed or for assessment.",
+    },
+  };
 
-  function displayServiceName(name) {
-    const value = String(name || "").trim();
-    return value.toLowerCase() === "xerox" ? "Photocopy" : value;
-  }
-
-  function getFPriceMode() {
-    return qs("#ms_priceMode");
-  }
-
-  function extractOptionPrice(description, option) {
-    if (!description) return null;
-    const match = description.match(new RegExp(`${option}\\s*(?:/\\s*B&W)?\\s*[-\\u2013\\u2014]?\\s*\\u20B1?\\s*([0-9]+(?:\\.[0-9]+)?)`, "i"));
-    return match ? match[1] : null;
-  }
-
-  function replaceOptionPrice(description, option, newPrice) {
-    const normalizedDescription = description || "";
-    const regex = new RegExp(`(${option}\\s*[-\\u2013\\u2014]?\\s*)\\u20B1?\\s*[0-9]+(?:\\.[0-9]+)?`, "i");
-    if (regex.test(normalizedDescription)) {
-      return normalizedDescription.replace(regex, `$1${newPrice}`);
-    }
-
-    if (!newPrice) return normalizedDescription;
-    const line = `${option} - ${newPrice}`;
-    if (normalizedDescription.trim() === "") return line;
-    return normalizedDescription.trimEnd() + "\n" + line;
-  }
-
-  function setPriceForMode(mode, description, defaultPrice) {
-    if (!fPrice) return;
-    const normalizedMode = (mode || "default").toLowerCase();
-    if (normalizedMode === "full") {
-      fPrice.value = extractOptionPrice(description, "Full") || defaultPrice || "";
-    } else if (normalizedMode === "half") {
-      fPrice.value = extractOptionPrice(description, "Half") || defaultPrice || "";
-    } else {
-      fPrice.value = defaultPrice || "";
-    }
-  }
-
-  function syncPriceMode(description, defaultPrice) {
-    const priceMode = getFPriceMode();
-    if (!priceMode) return;
-    if (fPriceModeField) fPriceModeField.style.display = "";
-    if (!["full", "half", "default"].includes(priceMode.value)) {
-      priceMode.value = "default";
-    }
-    setPriceForMode(priceMode.value, description, defaultPrice ?? "");
-  }
-
-  function catalogKind(category, name) {
-    const cat = String(category || "").toLowerCase();
-    const label = String(name || "").toLowerCase();
-    if (cat === "printing" && label.includes("document")) return "document_matrix";
-    if (cat === "printing" && (label.includes("photocopy") || label.includes("xerox"))) return "photocopy_matrix";
-    if (cat === "printing" && label.includes("rush") && label.includes("id")) return "package_list";
-    if (cat === "printing" && label.includes("laminat")) return "lamination_list";
-    if (cat === "repair") return "repair_matrix";
-    if (cat === "installation") return "installation_list";
-    return "";
-  }
-
-  function moneyOrBlank(value) {
-    const number = Number(value);
-    return Number.isFinite(number) ? String(number) : "";
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
+    }[char]));
   }
 
   function slug(value) {
-    return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "option";
+    return String(value || "").trim().toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "option";
   }
 
-  function emptyCatalog(kind) {
-    if (kind === "document_matrix") {
-      return {
-        groups: [
-          { group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [
-          ] },
-          { group_key: "color_option", name: "Color Option", active: 1, sort_order: 1, values: [
-          ] },
-        ],
-        rules: [],
-      };
-    }
-    if (kind === "photocopy_matrix") {
-      return {
-        groups: [
-          { group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [
-          ] },
-          { group_key: "color_option", name: "Color Option", active: 1, sort_order: 1, values: [
-          ] },
-        ],
-        rules: [],
-      };
-    }
-    if (kind === "package_list") {
-      return { groups: [{ group_key: "package", name: "Package", active: 1, sort_order: 0, values: [] }], rules: [] };
-    }
-    if (kind === "lamination_list") {
-      return { groups: [{ group_key: "lamination_type", name: "Lamination Type", active: 1, sort_order: 0, values: [] }], rules: [] };
-    }
-    if (kind === "repair_matrix") {
-      return {
-        groups: [
-          { group_key: "device_type", name: "Device Type", active: 1, sort_order: 0, values: [
-          ] },
-          { group_key: "repair_type", name: "Repair Type", active: 1, sort_order: 1, values: [] },
-        ],
-        rules: [],
-      };
-    }
-    if (kind === "installation_list") {
-      return { groups: [{ group_key: "installation_type", name: "Installation Type", active: 1, sort_order: 0, values: [] }], rules: [] };
-    }
-    return { groups: [], rules: [] };
+  function serviceKind(category, name) {
+    const cat = String(category || "").toLowerCase();
+    const label = String(name || "").toLowerCase();
+    if (cat === "printing" && label.includes("document")) return "document_printing";
+    if (cat === "printing" && (label.includes("photocopy") || label.includes("xerox"))) return "photocopy";
+    if (cat === "printing" && label.includes("rush") && label.includes("id")) return "rush_id";
+    if (cat === "printing" && label.includes("laminat")) return "laminating";
+    if (cat === "repair") return "repair";
+    if (cat === "installation") return "installation";
+    return "";
   }
 
-  function normalizeCatalog(catalog, kind) {
-    const source = catalog && catalog.groups ? catalog : emptyCatalog(kind);
-    const normalized = {
-      groups: JSON.parse(JSON.stringify(source.groups || [])),
-      rules: JSON.parse(JSON.stringify(source.rules || [])),
+  function showError(message) {
+    errorBox.textContent = message;
+    errorBox.style.display = "block";
+    window.servitechAdminToast?.error(message);
+  }
+
+  function hideError() {
+    errorBox.textContent = "";
+    errorBox.style.display = "none";
+  }
+
+  function group(key) {
+    return (catalog?.groups || []).find((item) => item.group_key === key);
+  }
+
+  function groupValue(groupKey, valueKey) {
+    return (group(groupKey)?.values || []).find((item) => item.value_key === valueKey);
+  }
+
+  function rulesForGroup(groupKey) {
+    return (catalog?.rules || [])
+      .filter((rule) => Object.prototype.hasOwnProperty.call(rule.option_value_keys || {}, groupKey))
+      .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+  }
+
+  function findRule(keys) {
+    return (catalog?.rules || []).find((rule) => {
+      const ruleKeys = rule.option_value_keys || {};
+      return Object.keys(keys).length === Object.keys(ruleKeys).length
+        && Object.entries(keys).every(([key, value]) => String(ruleKeys[key]) === String(value));
+    }) || null;
+  }
+
+  function ensureRule(keys, label, order, priceType = "fixed") {
+    let rule = findRule(keys);
+    if (rule) return rule;
+    rule = {
+      rule_key: slug(Object.entries(keys).map(([key, value]) => `${key}_${value}`).join("_")),
+      option_value_keys: { ...keys },
+      label,
+      description: "",
+      price: "",
+      price_type: priceType,
+      active: 1,
+      sort_order: order,
     };
-    if (!normalized.groups.length) return emptyCatalog(kind);
-    normalized.groups.forEach((group, groupIndex) => {
-      group.group_key = group.group_key || slug(group.name || `group_${groupIndex}`);
-      group.name = group.name || group.group_key;
-      group.active = Number(group.active ?? 1);
-      group.sort_order = Number(group.sort_order ?? groupIndex);
-      group.values = Array.isArray(group.values) ? group.values : [];
-      group.values.forEach((value, valueIndex) => {
-        value.value_key = value.value_key || slug(value.label || `option_${valueIndex}`);
-        value.label = value.label || value.value_key;
+    catalog.rules.push(rule);
+    return rule;
+  }
+
+  function normalizeCatalog(source) {
+    const contract = contracts[currentKind];
+    const normalized = {
+      groups: JSON.parse(JSON.stringify(source?.groups || [])),
+      rules: JSON.parse(JSON.stringify(source?.rules || [])),
+    };
+    Object.entries(contract.groups).forEach(([key, name], index) => {
+      let item = normalized.groups.find((candidate) => candidate.group_key === key);
+      if (!item) {
+        item = { group_key: key, name, active: 1, sort_order: index, values: [] };
+        normalized.groups.push(item);
+      }
+      item.name = name;
+      item.active = 1;
+      item.sort_order = index;
+      item.values = Array.isArray(item.values) ? item.values : [];
+      item.values.forEach((value, valueIndex) => {
+        value.value_key = value.value_key || slug(value.label);
         value.description = value.description || "";
         value.active = Number(value.active ?? 1);
         value.sort_order = Number(value.sort_order ?? valueIndex);
       });
     });
-    normalized.rules.forEach((rule, ruleIndex) => {
+    normalized.groups = normalized.groups.filter((item) => contract.groups[item.group_key]);
+    normalized.rules.forEach((rule, index) => {
       rule.option_value_keys = rule.option_value_keys || {};
       rule.rule_key = rule.rule_key || slug(Object.values(rule.option_value_keys).join("_"));
-      rule.label = rule.label || "";
       rule.description = rule.description || "";
       rule.price_type = rule.price_type === "assessment" ? "assessment" : "fixed";
       rule.active = Number(rule.active ?? 1);
-      rule.sort_order = Number(rule.sort_order ?? ruleIndex);
+      rule.sort_order = Number(rule.sort_order ?? index);
     });
     return normalized;
   }
 
-  function groupByKey(key) {
-    return (currentCatalog?.groups || []).find((group) => group.group_key === key) || { values: [] };
+  function toggleControl(checked, label = "Active") {
+    return `<label class="ms-switch ms-switch--compact">
+      <input data-rule-active type="checkbox" ${checked ? "checked" : ""}>
+      <span aria-hidden="true"></span><em>${label}</em>
+    </label>`;
   }
 
-  function findRuleFor(keys) {
-    return (currentCatalog?.rules || []).find((rule) => {
-      return Object.keys(keys).every((groupKey) => String(rule.option_value_keys?.[groupKey] || "") === String(keys[groupKey]));
-    }) || null;
+  function movementButtons(groupKey, valueKey, index, total) {
+    return `<div class="ms-order-actions" aria-label="Display order">
+      <button type="button" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up">&uarr;</button>
+      <button type="button" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down">&darr;</button>
+    </div>`;
   }
 
-  function ensureRule(keys, fallbackLabel, sortOrder) {
-    let rule = findRuleFor(keys);
-    if (rule) return rule;
-    rule = {
-      rule_key: slug(Object.values(keys).join("_")),
-      option_value_keys: { ...keys },
-      label: fallbackLabel,
-      description: "",
-      price: "",
-      price_type: "fixed",
-      active: 1,
-      sort_order: sortOrder,
-    };
-    currentCatalog.rules.push(rule);
-    return rule;
-  }
-
-  function renderGroupEditor(group) {
-    return `
-      <div class="ms-catalog-group" data-group-key="${group.group_key}">
-        <div class="ms-catalog-group__head">
-          <input data-group-name value="${escapeHtml(group.name)}" aria-label="Option group name">
-          <label><input type="checkbox" data-group-active ${Number(group.active ?? 1) ? "checked" : ""}> Active</label>
-          <button type="button" data-catalog-add-value="${group.group_key}">+ Add</button>
-        </div>
-        <div class="ms-catalog-values">
-          ${(group.values || []).map((value, index) => `
-            <div class="ms-catalog-value" data-value-index="${index}">
-              <input data-value-label value="${escapeHtml(value.label)}" aria-label="${group.name} label">
-              <label><input type="checkbox" data-value-active ${Number(value.active) ? "checked" : ""}> Active</label>
-              <input type="number" data-value-sort value="${Number(value.sort_order ?? index)}" aria-label="${group.name} sort order">
-            </div>
-          `).join("")}
-        </div>
+  function valueManager(groupKey, title, addLabel) {
+    const values = group(groupKey)?.values || [];
+    return `<section class="ms-option-section">
+      <div class="ms-section-head">
+        <div><h4>${escapeHtml(title)}</h4><p>Edit names, availability, and display order.</p></div>
       </div>
-    `;
+      <div class="ms-value-list">
+        ${values.map((value, index) => `<div class="ms-value-row ${Number(value.active) ? "" : "is-inactive"}"
+          data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
+          <input data-value-label value="${escapeHtml(value.label)}" aria-label="${escapeHtml(title)} name">
+          <label class="ms-switch ms-switch--compact">
+            <input data-value-active type="checkbox" ${Number(value.active) ? "checked" : ""}>
+            <span aria-hidden="true"></span><em>${Number(value.active) ? "Active" : "Inactive"}</em>
+          </label>
+          ${movementButtons(groupKey, value.value_key, index, values.length)}
+          <button class="ms-text-action danger" type="button" data-archive-value="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">Archive</button>
+        </div>`).join("")}
+      </div>
+      <div class="ms-inline-add">
+        <input data-new-value="${groupKey}" placeholder="${escapeHtml(addLabel)}">
+        <button type="button" data-add-value="${groupKey}">Add</button>
+      </div>
+    </section>`;
   }
 
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;",
-    }[char]));
+  function priceCell(rule) {
+    return `<div class="ms-price-cell" data-rule-key="${escapeHtml(rule.rule_key)}">
+      <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
+      <select data-rule-price-type aria-label="Price type">
+        <option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option>
+        <option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option>
+      </select>
+      ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
+    </div>`;
   }
 
-  function renderMatrixEditor(kind) {
-    const paper = groupByKey("paper_size");
-    const color = groupByKey("color_option");
-    const rows = paper.values || [];
-    const cols = color.values || [];
+  function matrixEditor() {
+    const papers = group("paper_size")?.values || [];
+    const colors = group("color_option")?.values || [];
     let order = 0;
-    const table = `
-      <table class="ms-catalog-matrix">
-        <thead>
-          <tr><th>Paper Size</th>${cols.map((col) => `<th>${escapeHtml(col.label)}</th>`).join("")}</tr>
-        </thead>
-        <tbody>
-          ${rows.map((row) => `
-            <tr>
-              <th>${escapeHtml(row.label)}</th>
-              ${cols.map((col) => {
-                const rule = ensureRule({ paper_size: row.value_key, color_option: col.value_key }, `${row.label} / ${col.label}`, order++);
-                return `
-                  <td data-rule-key="${escapeHtml(rule.rule_key)}">
-                    <input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(moneyOrBlank(rule.price))}" placeholder="Price">
-                    <select data-rule-price-type>
-                      <option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed</option>
-                      <option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For assessment</option>
-                    </select>
-                    <label><input type="checkbox" data-rule-active ${Number(rule.active) ? "checked" : ""}> Active</label>
-                  </td>
-                `;
+    const activePapers = papers.filter((item) => Number(item.active));
+    const activeColors = colors.filter((item) => Number(item.active));
+    return `${valueManager("paper_size", "Paper Sizes", "New paper size")}
+      ${valueManager("color_option", "Color Options", "New color option")}
+      <section class="ms-pricing-section">
+        <div class="ms-section-head"><div><h4>Price Matrix</h4><p>Each cell controls one paper size and color combination.</p></div></div>
+        ${activePapers.length && activeColors.length ? `<div class="ms-matrix-wrap"><table class="ms-catalog-matrix">
+          <thead><tr><th>Paper Size</th>${activeColors.map((color) => `<th>${escapeHtml(color.label)}</th>`).join("")}</tr></thead>
+          <tbody>${activePapers.map((paper) => `<tr><th>${escapeHtml(paper.label)}</th>${activeColors.map((color) => {
+            const rule = ensureRule(
+              { paper_size: paper.value_key, color_option: color.value_key },
+              `${paper.label} / ${color.label}`,
+              order++
+            );
+            return `<td>${priceCell(rule)}</td>`;
+          }).join("")}</tr>`).join("")}</tbody>
+        </table></div>` : `<p class="ms-empty-inline">Activate at least one paper size and color option to edit prices.</p>`}
+      </section>`;
+  }
+
+  function simpleRuleRows(groupKey, title, addLabel, options = {}) {
+    const values = group(groupKey)?.values || [];
+    values.forEach((value, index) => ensureRule({ [groupKey]: value.value_key }, value.label, index, options.defaultType || "fixed"));
+    return `<section class="ms-pricing-section">
+      <div class="ms-section-head"><div><h4>${escapeHtml(title)}</h4><p>${escapeHtml(options.help || "Edit names, prices, and availability.")}</p></div></div>
+      <div class="ms-rule-table">
+        <div class="ms-rule-table__head"><span>${escapeHtml(options.nameLabel || "Name")}</span>${options.description ? "<span>Details</span>" : ""}<span>Price</span><span>Price Type</span><span>Status</span><span>Actions</span></div>
+        ${values.map((value, index) => {
+          const rule = findRule({ [groupKey]: value.value_key });
+          return `<div class="ms-rule-row ${Number(value.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(rule.rule_key)}" data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
+            <input data-value-label value="${escapeHtml(value.label)}" aria-label="${escapeHtml(options.nameLabel || "Name")}">
+            ${options.description ? `<input data-rule-description value="${escapeHtml(rule.description || value.description || "")}" placeholder="Details shown to customers">` : ""}
+            <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
+            ${options.fixedOnly ? '<input type="hidden" data-rule-price-type value="fixed"><span class="ms-fixed-label">Fixed Price</span>' : `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>`}
+            ${toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive")}
+            <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, index, values.length)}<button class="ms-text-action danger" type="button" data-archive-value="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">Archive</button></div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="ms-inline-add"><input data-new-value="${groupKey}" placeholder="${escapeHtml(addLabel)}"><button type="button" data-add-value="${groupKey}">Add</button></div>
+    </section>`;
+  }
+
+  function rushEditor() {
+    return `${simpleRuleRows("package", "Packages", "New package name", {
+      nameLabel: "Package Name", description: true, help: "Base price for each Rush ID package.",
+    })}
+    ${simpleRuleRows("addon", "Optional Add-Ons", "New add-on name", {
+      nameLabel: "Add-On Name", description: true, fixedOnly: true,
+      help: "Additional price added to the selected package. Activate only after setting a price.",
+    })}`;
+  }
+
+  function repairEditor() {
+    const devices = group("device_type")?.values || [];
+    return `${valueManager("device_type", "Devices", "New device")}
+      <section class="ms-pricing-section">
+        <div class="ms-section-head"><div><h4>Repair Services by Device</h4><p>Each device has its own available service types and prices.</p></div></div>
+        <div class="ms-device-stack">${devices.filter((device) => Number(device.active)).map((device) => {
+          const rules = (catalog.rules || []).filter((rule) => rule.option_value_keys?.device_type === device.value_key)
+            .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+          return `<details class="ms-device-card" open>
+            <summary><strong>${escapeHtml(device.label)}</strong><span>${rules.filter((rule) => Number(rule.active)).length} active services</span></summary>
+            <div class="ms-device-card__body">
+              ${rules.map((rule) => {
+                const value = groupValue("repair_type", rule.option_value_keys?.repair_type);
+                if (!value) return "";
+                return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
+                  <input data-value-label data-group-key="repair_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}">
+                  <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
+                  <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
+                  ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
+                  <button class="ms-text-action danger" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}">Archive</button>
+                </div>`;
               }).join("")}
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    `;
-    return `
-      <div class="ms-catalog-block" data-catalog-kind="${kind}">
-        <h4>${kind === "document_matrix" ? "Document Printing Price Matrix" : "Photocopy Price Matrix"}</h4>
-        <p class="ms-catalog-hint">Rows and columns are editable option groups. Each cell saves its own price, price type, active state, and sort order.</p>
-        ${renderGroupEditor(paper)}
-        ${renderGroupEditor(color)}
-        ${table}
-      </div>
-    `;
-  }
-
-  function renderRuleList(kind, groupKey, title) {
-    const group = groupByKey(groupKey);
-    const values = group.values || [];
-    values.forEach((value, index) => ensureRule({ [groupKey]: value.value_key }, value.label, index));
-    return `
-      <div class="ms-catalog-block" data-catalog-kind="${kind}">
-        <h4>${title}</h4>
-        ${renderGroupEditor(group)}
-        <div class="ms-catalog-rule-list">
-          ${values.map((value, index) => {
-            const rule = ensureRule({ [groupKey]: value.value_key }, value.label, index);
-            return `
-              <div class="ms-catalog-rule" data-rule-key="${escapeHtml(rule.rule_key)}">
-                <strong>${escapeHtml(value.label)}</strong>
-                <input data-rule-description value="${escapeHtml(rule.description || value.description || "")}" placeholder="Details / description">
-                <input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(moneyOrBlank(rule.price))}" placeholder="Price">
-                <select data-rule-price-type>
-                  <option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed</option>
-                  <option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For assessment</option>
-                </select>
-                <label><input type="checkbox" data-rule-active ${Number(rule.active) ? "checked" : ""}> Active</label>
-                <input data-rule-sort type="number" value="${Number(rule.sort_order ?? index)}" aria-label="Sort order">
-              </div>
-            `;
-          }).join("")}
-        </div>
-      </div>
-    `;
-  }
-
-  function renderRepairEditor() {
-    const device = groupByKey("device_type");
-    const repair = groupByKey("repair_type");
-    return `
-      <div class="ms-catalog-block" data-catalog-kind="repair_matrix">
-        <h4>Repair Device + Type Pricing</h4>
-        <p class="ms-catalog-hint">Each rule connects one device type with one repair type. Use For assessment for diagnosis-based repairs.</p>
-        ${renderGroupEditor(device)}
-        ${renderGroupEditor(repair)}
-        <button type="button" data-catalog-add-rule="repair">+ Add Device/Repair Price Rule</button>
-        <div class="ms-catalog-rule-list">
-          ${(currentCatalog.rules || []).map((rule, index) => `
-            <div class="ms-catalog-rule" data-rule-key="${escapeHtml(rule.rule_key)}">
-              <select data-rule-group="device_type">
-                ${(device.values || []).map((value) => `<option value="${escapeHtml(value.value_key)}" ${rule.option_value_keys?.device_type === value.value_key ? "selected" : ""}>${escapeHtml(value.label)}</option>`).join("")}
-              </select>
-              <select data-rule-group="repair_type">
-                ${(repair.values || []).map((value) => `<option value="${escapeHtml(value.value_key)}" ${rule.option_value_keys?.repair_type === value.value_key ? "selected" : ""}>${escapeHtml(value.label)}</option>`).join("")}
-              </select>
-              <input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(moneyOrBlank(rule.price))}" placeholder="Price">
-              <select data-rule-price-type>
-                <option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed</option>
-                <option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For assessment</option>
-              </select>
-              <label><input type="checkbox" data-rule-active ${Number(rule.active) ? "checked" : ""}> Active</label>
-              <input data-rule-sort type="number" value="${Number(rule.sort_order ?? index)}" aria-label="Sort order">
+              <div class="ms-inline-add"><input data-new-repair="${escapeHtml(device.value_key)}" placeholder="New repair service"><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Repair Type</button></div>
             </div>
-          `).join("")}
-        </div>
-      </div>
-    `;
+          </details>`;
+        }).join("")}</div>
+      </section>`;
   }
 
-  function renderCatalogEditor(kind, catalog) {
-    if (!catalogEditor) return;
-    if (!kind) {
-      catalogEditor.innerHTML = "";
-      currentCatalog = null;
-      originalCatalogSnapshot = "";
-      return;
-    }
-    currentCatalog = normalizeCatalog(catalog, kind);
-    originalCatalogSnapshot = JSON.stringify(currentCatalog);
-    if (kind === "document_matrix" || kind === "photocopy_matrix") {
-      catalogEditor.innerHTML = renderMatrixEditor(kind);
-    } else if (kind === "package_list") {
-      catalogEditor.innerHTML = renderRuleList(kind, "package", "Rush ID Packages");
-    } else if (kind === "lamination_list") {
-      catalogEditor.innerHTML = renderRuleList(kind, "lamination_type", "Lamination Types");
-    } else if (kind === "repair_matrix") {
-      catalogEditor.innerHTML = renderRepairEditor();
-    } else if (kind === "installation_list") {
-      catalogEditor.innerHTML = renderRuleList(kind, "installation_type", "Installation Types");
-    } else {
-      catalogEditor.innerHTML = "";
-    }
+  function render() {
+    if (!catalog || !currentKind) return;
+    if (currentKind === "document_printing" || currentKind === "photocopy") editor.innerHTML = matrixEditor();
+    else if (currentKind === "rush_id") editor.innerHTML = rushEditor();
+    else if (currentKind === "laminating") editor.innerHTML = simpleRuleRows("lamination_type", "Lamination Types", "New lamination type", { nameLabel: "Type" });
+    else if (currentKind === "repair") editor.innerHTML = repairEditor();
+    else if (currentKind === "installation") editor.innerHTML = simpleRuleRows("installation_type", "Installation Types", "New installation type", { nameLabel: "Installation Type" });
   }
 
-  async function fetchCatalog(serviceId) {
-    if (!serviceId) return null;
-    try {
-      const url = `${msApiUrl}?action=catalog&id=${encodeURIComponent(serviceId)}`;
-      const res = await fetch(url, { credentials: "same-origin", cache: "no-store" });
-      const out = await res.json();
-      return out.ok ? out.catalog : null;
-    } catch (err) {
-      return null;
-    }
-  }
-
-  function syncCatalogFromDom() {
-    if (!currentCatalog || !catalogEditor) return null;
-
-    catalogEditor.querySelectorAll(".ms-catalog-group").forEach((groupEl) => {
-      const groupKey = groupEl.dataset.groupKey;
-      const group = groupByKey(groupKey);
-      group.name = groupEl.querySelector("[data-group-name]")?.value.trim() || group.name;
-      group.active = groupEl.querySelector("[data-group-active]")?.checked ? 1 : 0;
-      groupEl.querySelectorAll(".ms-catalog-value").forEach((valueEl, index) => {
-        const value = group.values[index];
-        if (!value) return;
-        const label = valueEl.querySelector("[data-value-label]")?.value.trim() || value.label;
-        value.label = label;
-        value.value_key = value.value_key || slug(label);
-        value.active = valueEl.querySelector("[data-value-active]")?.checked ? 1 : 0;
-        value.sort_order = Number(valueEl.querySelector("[data-value-sort]")?.value || index);
-      });
+  function syncFromDom() {
+    qsa("[data-group-key][data-value-key]", editor).forEach((row) => {
+      const value = groupValue(row.dataset.groupKey, row.dataset.valueKey);
+      if (!value) return;
+      const labelInput = qs("[data-value-label]", row);
+      const activeInput = qs("[data-value-active]", row);
+      if (labelInput) value.label = labelInput.value.trim() || value.label;
+      if (activeInput) value.active = activeInput.checked ? 1 : 0;
     });
-
-    catalogEditor.querySelectorAll("[data-rule-key]").forEach((ruleEl, index) => {
-      const ruleKey = ruleEl.dataset.ruleKey;
-      const rule = (currentCatalog.rules || []).find((item) => item.rule_key === ruleKey);
+    qsa("[data-value-label][data-group-key][data-value-key]", editor).forEach((input) => {
+      const value = groupValue(input.dataset.groupKey, input.dataset.valueKey);
+      if (value) value.label = input.value.trim() || value.label;
+    });
+    qsa("[data-rule-key]", editor).forEach((row) => {
+      const rule = (catalog.rules || []).find((item) => item.rule_key === row.dataset.ruleKey);
       if (!rule) return;
-      rule.price = ruleEl.querySelector("[data-rule-price]")?.value.trim() || "";
-      rule.price_type = ruleEl.querySelector("[data-rule-price-type]")?.value || "fixed";
-      rule.active = ruleEl.querySelector("[data-rule-active]")?.checked ? 1 : 0;
-      rule.sort_order = Number(ruleEl.querySelector("[data-rule-sort]")?.value || rule.sort_order || index);
-      rule.description = ruleEl.querySelector("[data-rule-description]")?.value.trim() || rule.description || "";
-      ruleEl.querySelectorAll("[data-rule-group]").forEach((select) => {
-        rule.option_value_keys = rule.option_value_keys || {};
-        rule.option_value_keys[select.dataset.ruleGroup] = select.value;
-      });
-      const labels = Object.keys(rule.option_value_keys || {}).map((groupKey) => {
-        const group = groupByKey(groupKey);
-        const value = (group.values || []).find((item) => item.value_key === rule.option_value_keys[groupKey]);
-        return value?.label || "";
-      }).filter(Boolean);
-      rule.label = labels.join(" / ") || rule.label;
-      rule.rule_key = slug(Object.values(rule.option_value_keys || {}).join("_"));
+      const price = qs("[data-rule-price]", row);
+      const priceType = qs("[data-rule-price-type]", row);
+      const active = qs("[data-rule-active]", row);
+      const description = qs("[data-rule-description]", row);
+      if (price) rule.price = price.value.trim();
+      if (priceType) rule.price_type = priceType.value;
+      if (active) rule.active = active.checked ? 1 : 0;
+      if (active && row.dataset.groupKey && row.dataset.valueKey) {
+        const value = groupValue(row.dataset.groupKey, row.dataset.valueKey);
+        if (value) value.active = active.checked ? 1 : 0;
+      }
+      if (description) rule.description = description.value.trim();
+      const labels = Object.entries(rule.option_value_keys || {}).map(([key, valueKey]) => groupValue(key, valueKey)?.label || "").filter(Boolean);
+      rule.label = labels.join(" / ");
     });
-
-    return currentCatalog;
+    (catalog.groups || []).forEach((item) => {
+      (item.values || []).forEach((value, index) => { value.sort_order = index; });
+    });
+    return catalog;
   }
 
-  function setCatalogManagedUi(kind) {
-    const managed = Boolean(kind);
-    if (fPriceModeField) fPriceModeField.style.display = managed ? "none" : "";
-    if (fPriceField) fPriceField.style.display = managed ? "none" : "";
-    if (fPriceHint) {
-      fPriceHint.textContent = managed
-        ? "Prices, options, packages, and combinations are managed in the catalog editor below."
-        : "Choose Full or Half when editing print price lines inside the description.";
+  function addValue(groupKey, label) {
+    const item = group(groupKey);
+    const valueKey = slug(label);
+    const existing = (item.values || []).find((value) => value.value_key === valueKey);
+    if (existing) {
+      existing.active = 1;
+      existing.label = label;
+      return existing;
     }
-    if (fDescriptionHint) {
-      fDescriptionHint.textContent = managed
-        ? "Use the description for customer-facing notes only. Official selectable options and prices come from the catalog editor."
-        : "Use newline-separated entries for simple service notes.";
-    }
+    const value = { value_key: valueKey, label, description: "", active: 1, sort_order: item.values.length };
+    item.values.push(value);
+    return value;
   }
 
-  function catalogHasPricingChanges(catalog) {
-    if (!originalCatalogSnapshot || !catalog) return false;
-    let original;
-    try {
-      original = JSON.parse(originalCatalogSnapshot);
-    } catch (err) {
-      return false;
-    }
-    const keyFor = (rule) => JSON.stringify(rule.option_value_keys || rule.rule_key || "");
-    const originalRules = new Map((original.rules || []).map((rule) => [keyFor(rule), rule]));
-    return (catalog.rules || []).some((rule) => {
-      const before = originalRules.get(keyFor(rule));
-      if (!before) return true;
-      return String(before.price ?? "") !== String(rule.price ?? "")
-        || String(before.price_type ?? "") !== String(rule.price_type ?? "")
-        || Number(before.active ?? 1) !== Number(rule.active ?? 1);
+  function archiveValue(groupKey, valueKey) {
+    const value = groupValue(groupKey, valueKey);
+    if (!value) return;
+    value.active = 0;
+    (catalog.rules || []).forEach((rule) => {
+      if (rule.option_value_keys?.[groupKey] === valueKey) rule.active = 0;
     });
   }
 
-  catalogEditor?.addEventListener("click", (event) => {
-    const addValueBtn = event.target.closest("[data-catalog-add-value]");
-    if (addValueBtn && currentCatalog) {
-      syncCatalogFromDom();
-      const group = groupByKey(addValueBtn.dataset.catalogAddValue);
-      const label = prompt(`New ${group.name}`);
-      if (!label || !label.trim()) return;
-      group.values.push({
-        value_key: slug(label),
-        label: label.trim(),
-        description: "",
-        active: 1,
-        sort_order: group.values.length,
-      });
-      renderCatalogEditor(catalogKind(fCat.value, fName.value), currentCatalog);
+  editor.addEventListener("click", (event) => {
+    const addButton = event.target.closest("[data-add-value]");
+    if (addButton) {
+      syncFromDom();
+      const groupKey = addButton.dataset.addValue;
+      const input = qs(`[data-new-value="${groupKey}"]`, editor);
+      const label = input?.value.trim() || "";
+      if (!label) return showError("Enter a name before adding the option.");
+      addValue(groupKey, label);
+      render();
+      window.servitechAdminToast?.success?.(`${contracts[currentKind].groups[groupKey]} option added.`);
       return;
     }
 
-    const addRuleBtn = event.target.closest("[data-catalog-add-rule]");
-    if (addRuleBtn && currentCatalog) {
-      syncCatalogFromDom();
-      const device = groupByKey("device_type").values?.[0];
-      const repair = groupByKey("repair_type").values?.[0];
-      if (!device || !repair) {
-        showErr("Add at least one device type and repair type first.");
-        return;
+    const repairButton = event.target.closest("[data-add-repair]");
+    if (repairButton) {
+      syncFromDom();
+      const deviceKey = repairButton.dataset.addRepair;
+      const input = qs(`[data-new-repair="${deviceKey}"]`, editor);
+      const label = input?.value.trim() || "";
+      if (!label) return showError("Enter a repair service name first.");
+      const value = addValue("repair_type", label);
+      ensureRule({ device_type: deviceKey, repair_type: value.value_key }, `${groupValue("device_type", deviceKey)?.label || "Device"} / ${value.label}`, catalog.rules.length, "assessment");
+      render();
+      window.servitechAdminToast?.success?.("Repair type added.");
+      return;
+    }
+
+    const archiveButton = event.target.closest("[data-archive-value]");
+    if (archiveButton) {
+      syncFromDom();
+      if (!window.confirm("Archive this option? It will disappear from customer pages, but old queue and order snapshots will remain readable.")) return;
+      const archivedGroup = contracts[currentKind].groups[archiveButton.dataset.archiveValue] || "Option";
+      archiveValue(archiveButton.dataset.archiveValue, archiveButton.dataset.valueKey);
+      render();
+      window.servitechAdminToast?.success?.(`${archivedGroup} archived.`);
+      return;
+    }
+
+    const archiveRuleButton = event.target.closest("[data-archive-rule]");
+    if (archiveRuleButton) {
+      syncFromDom();
+      if (!window.confirm("Archive this service option? Customers will no longer be able to select it.")) return;
+      const rule = catalog.rules.find((item) => item.rule_key === archiveRuleButton.dataset.archiveRule);
+      if (rule) rule.active = 0;
+      render();
+      return;
+    }
+
+    const moveButton = event.target.closest("[data-move-value]");
+    if (moveButton) {
+      syncFromDom();
+      const values = group(moveButton.dataset.moveValue)?.values || [];
+      const index = values.findIndex((value) => value.value_key === moveButton.dataset.valueKey);
+      const target = index + Number(moveButton.dataset.direction);
+      if (index >= 0 && target >= 0 && target < values.length) {
+        [values[index], values[target]] = [values[target], values[index]];
+        render();
       }
-      currentCatalog.rules.push({
-        rule_key: slug(`${device.value_key}_${repair.value_key}_${Date.now()}`),
-        option_value_keys: { device_type: device.value_key, repair_type: repair.value_key },
-        label: `${device.label} / ${repair.label}`,
-        price: "",
-        price_type: "assessment",
-        active: 1,
-        sort_order: currentCatalog.rules.length,
-      });
-      renderCatalogEditor("repair_matrix", currentCatalog);
     }
   });
 
-  async function openModal(mode, data){
-    hideErr();
-    overlay.style.display="flex";
-    modalTitle.textContent = (mode === "edit") ? "Edit Service" : "Add Service";
-
-    fId.value = data?.id || "";
-    fCat.value = data?.category || window.MS_ACTIVE_TAB || "printing";
-    fName.value = displayServiceName(data?.name || "");
-    fDesc.value = data?.description || "";
-    if (fPriceRange) fPriceRange.value = data?.price_range || "";
-    fActive.value = (data?.active ?? 1) ? "1" : "0";
-    fSort.value = data?.sort_order ?? 0;
-
-    const priceValue = (data?.price ?? "") === null ? "" : (data?.price ?? "");
-    fPrice.value = priceValue;
-    const kind = catalogKind(fCat.value, fName.value);
-    setCatalogManagedUi(kind);
-    if (!kind) syncPriceMode(fDesc.value, priceValue);
-    const catalog = data?.catalog || await fetchCatalog(data?.id || 0);
-    renderCatalogEditor(kind, catalog);
-  }
-
-  function closeModal(){ overlay.style.display="none"; hideErr(); }
-
-  qs("#msX")?.addEventListener("click", closeModal);
-  qs("#msCancel")?.addEventListener("click", closeModal);
-  overlay?.addEventListener("click", (e)=>{ if(e.target === overlay) closeModal(); });
-  document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeModal(); });
-
-  qs("#msAdd")?.addEventListener("click", ()=>openModal("add", null));
-
-  qsa("[data-ms-edit]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const raw = btn.getAttribute("data-ms-edit");
-      const data = raw ? JSON.parse(raw) : {};
-      openModal("edit", data);
-    });
+  editor.addEventListener("change", (event) => {
+    if ((event.target.matches("[data-rule-active]") || event.target.matches("[data-value-active]"))
+      && !event.target.checked
+      && !window.confirm("Deactivate this option? It will no longer appear on the landing page or customer queue forms.")) {
+      event.target.checked = true;
+    }
   });
 
-  qsa("[data-ms-del]").forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
-      const id = btn.getAttribute("data-ms-del");
-      if(!id) return;
-      if(!confirm("Archive this service? Existing queue and order records will keep their saved service snapshot, but customers will no longer see this option.")) return;
+  async function fetchCatalog(id) {
+    const response = await fetch(`${apiUrl}?action=catalog&id=${encodeURIComponent(id)}`, { credentials: "same-origin", cache: "no-store" });
+    const data = await response.json();
+    if (!response.ok || !data.ok) throw new Error(data.error || "Unable to load service options.");
+    return data.catalog;
+  }
 
-      const fd = new FormData();
-      fd.append("action","delete");
-      fd.append("id", id);
+  async function openEditor(data) {
+    hideError();
+    fields.id.value = data.id;
+    fields.category.value = data.category;
+    fields.name.value = data.name;
+    fields.description.value = data.description || "";
+    fields.price.value = data.price ?? "";
+    fields.priceRange.value = data.price_range || "";
+    fields.sort.value = data.sort_order || 0;
+    fields.active.checked = Number(data.active) === 1;
+    currentKind = serviceKind(data.category, data.name);
+    const contract = contracts[currentKind];
+    qs("#msModalTitle").textContent = contract?.title || `Edit ${data.name}`;
+    qs("#msModalHelp").textContent = contract?.help || "";
+    overlay.style.display = "flex";
+    editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
+    try {
+      catalog = normalizeCatalog(await fetchCatalog(data.id));
+      originalSnapshot = JSON.stringify(catalog);
+      render();
+    } catch (error) {
+      showError(error.message || "Unable to load service options.");
+    }
+  }
 
-      let txt;
-      try {
-        const res = await fetch(msApiUrl, {
-          method:"POST",
-          body:fd,
-          credentials:"same-origin",
-          headers: {"X-CSRF-Token": csrf()}
-        });
-        txt = await res.text();
-      } catch (e) {
-        window.servitechAdminToast?.error("Unable to archive the service.");
-        return;
-      }
-      let out; try{ out = JSON.parse(txt); }catch(e){ window.servitechAdminToast?.error("Server returned an invalid response."); return; }
-      if(!out.ok){ window.servitechAdminToast?.error(out.error || "Archive failed"); return; }
-      window.servitechAdminToast?.persist("Service archived successfully.");
+  function closeEditor() {
+    overlay.style.display = "none";
+    catalog = null;
+    hideError();
+  }
+
+  qsa("[data-ms-edit]").forEach((button) => button.addEventListener("click", () => {
+    const data = JSON.parse(button.getAttribute("data-ms-edit") || "{}");
+    openEditor(data);
+  }));
+  qs("#msX")?.addEventListener("click", closeEditor);
+  qs("#msCancel")?.addEventListener("click", closeEditor);
+  overlay?.addEventListener("click", (event) => { if (event.target === overlay) closeEditor(); });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape" && overlay?.style.display === "flex") closeEditor(); });
+
+  qs("#msSave")?.addEventListener("click", async () => {
+    hideError();
+    const payload = syncFromDom();
+    const invalidRule = (payload.rules || []).find((rule) =>
+      Number(rule.active) && rule.price_type === "fixed" && (rule.price === "" || !Number.isFinite(Number(rule.price)))
+    );
+    if (invalidRule) return showError(`Enter a valid price for ${invalidRule.label || "the active option"}, or mark it For Assessment.`);
+
+    const changed = JSON.stringify(payload) !== originalSnapshot;
+    if (changed && !window.confirm("Save these option and price changes? New customer submissions will use the updated catalog. Old records keep their saved snapshots.")) return;
+    if (!fields.active.checked && !window.confirm("Deactivate this entire service? It will be hidden from the landing page and queue forms.")) return;
+
+    const form = new FormData();
+    form.append("action", "save");
+    form.append("id", fields.id.value);
+    form.append("category", fields.category.value);
+    form.append("name", fields.name.value);
+    form.append("description", fields.description.value.trim());
+    form.append("price", "");
+    form.append("price_range", "");
+    form.append("pricing_json", "");
+    form.append("catalog_json", JSON.stringify(payload));
+    form.append("active", fields.active.checked ? "1" : "0");
+    form.append("sort_order", fields.sort.value || "0");
+
+    qs("#msSave").disabled = true;
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST", body: form, credentials: "same-origin",
+        headers: { "X-CSRF-Token": csrf() },
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.error || "Failed to save changes. Please try again.");
+      window.servitechAdminToast?.persist(data.message || `${fields.name.value} updated successfully.`);
       location.reload();
-    });
-  });
-
-  document.addEventListener("change", (event) => {
-    if (event.target && event.target.id === "ms_priceMode") {
-      if (catalogKind(fCat.value, fName.value)) return;
-      syncPriceMode(fDesc.value, fPrice.value);
+    } catch (error) {
+      showError(error.message || "Failed to save changes. Please try again.");
+    } finally {
+      qs("#msSave").disabled = false;
     }
-
-    if (event.target && (event.target.id === "ms_category" || event.target.id === "ms_name")) {
-      const kind = catalogKind(fCat.value, fName.value);
-      setCatalogManagedUi(kind);
-      renderCatalogEditor(kind, currentCatalog);
-    }
-  });
-
-  qs("#msSave")?.addEventListener("click", async ()=>{
-    hideErr();
-
-    const priceMode = getFPriceMode();
-    let descriptionValue = fDesc.value.trim();
-    const kind = catalogKind(fCat.value, fName.value);
-    let catalogPayload = null;
-
-    if (kind) {
-      catalogPayload = syncCatalogFromDom();
-      const invalidFixedRule = (catalogPayload?.rules || []).some((rule) => {
-        return Number(rule.active ?? 1) && rule.price_type === "fixed" && (rule.price === "" || !Number.isFinite(Number(rule.price)));
-      });
-      if (invalidFixedRule) {
-        showErr("Active fixed-price catalog rules must have a valid price, or set them to For assessment.");
-        return;
-      }
-      if (catalogHasPricingChanges(catalogPayload) && !confirm("Save catalog pricing changes? New customer submissions will use the updated prices, while old queue/order records keep their saved snapshots.")) {
-        return;
-      }
-      if (fId.value && fActive.value === "0" && !confirm("Deactivate this service? Customers will no longer see it, but old queue/order records will remain readable.")) {
-        return;
-      }
-    } else if (priceMode?.value === "full") {
-      descriptionValue = replaceOptionPrice(descriptionValue, "Full", fPrice.value.trim());
-    } else if (priceMode?.value === "half") {
-      descriptionValue = replaceOptionPrice(descriptionValue, "Half", fPrice.value.trim());
-    }
-
-    const fd = new FormData();
-    fd.append("action","save");
-    if(fId.value) fd.append("id", fId.value);
-    fd.append("category", fCat.value);
-    fd.append("name", fName.value.trim());
-    fd.append("description", descriptionValue);
-    fd.append("price", fPrice.value.trim());
-    fd.append("price_range", fPriceRange ? fPriceRange.value.trim() : "");
-    if (catalogPayload) {
-      fd.append("catalog_json", JSON.stringify(catalogPayload));
-    }
-    fd.append("active", fActive.value);
-    fd.append("sort_order", fSort.value);
-
-    let txt;
-    try {
-      const res = await fetch(msApiUrl, {
-        method:"POST",
-        body:fd,
-        credentials:"same-origin",
-        headers: {"X-CSRF-Token": csrf()}
-      });
-      txt = await res.text();
-    } catch (e) {
-      showErr("Unable to save the service.");
-      return;
-    }
-    let out; try{ out = JSON.parse(txt); }catch(e){ showErr("Server returned non-JSON: "+txt); return; }
-    if(!out.ok){ showErr(out.error || "Save failed"); return; }
-    window.servitechAdminToast?.persist(fId.value ? "Service updated successfully." : "Service added successfully.");
-    location.reload();
   });
 })();
