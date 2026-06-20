@@ -178,7 +178,8 @@ try {
     $details["color_option"] = trim((string)($data["color_option"] ?? ""));
   } elseif ($serviceKind === "xerox") {
     $details["paper_size"] = trim((string)($data["paper_size"] ?? ""));
-    unset($details["color_option"], $details["payment_method"], $details["reference_number"]);
+    $details["color_option"] = trim((string)($data["color_option"] ?? ($currentDetails["color_option"] ?? "Colored")));
+    unset($details["payment_method"], $details["reference_number"]);
   } elseif ($serviceKind === "rush_id") {
     $details["package_label"] = trim((string)($data["package_label"] ?? ""));
     unset($details["paper_size"], $details["color_option"], $details["payment_method"], $details["reference_number"]);

@@ -107,12 +107,28 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function getXeroxPriceMap() {
+  const pricing = window.servitechXeroxPricing || {};
   return {
-    "Long Bond (8.5 x 13)": Number(window.servitechXeroxPricing?.long) || 5,
-    "Short Bond (8.5 x 11)": Number(window.servitechXeroxPricing?.short) || 3,
-    A4: Number(window.servitechXeroxPricing?.a4) || 3,
-    A3: Number(window.servitechXeroxPricing?.a3) || 5,
+    Letter: {
+      colored: Number(pricing.letterColored ?? pricing.short ?? 3) || 3,
+      bw: Number(pricing.letterBw ?? pricing.short ?? 3) || 3,
+    },
+    "8.5x13": {
+      colored: Number(pricing.longColored ?? pricing.long ?? 5) || 5,
+      bw: Number(pricing.longBw ?? pricing.long ?? 5) || 5,
+    },
+    A4: {
+      colored: Number(pricing.a4Colored ?? pricing.a4 ?? 3) || 3,
+      bw: Number(pricing.a4Bw ?? pricing.a4 ?? 3) || 3,
+    },
   };
+}
+
+function normalizeCatalogColor(value) {
+  const color = String(value || "").trim().toLowerCase();
+  if (["black & white", "black and white", "bw"].includes(color)) return "bw";
+  if (["colored", "color"].includes(color)) return "colored";
+  return color;
 }
 
 function getDocumentBlockPrice(description, blockName, option) {
@@ -141,14 +157,15 @@ function getDocumentPrintingPrices(service) {
   const highPrice = rangePrices[rangePrices.length - 1] ?? Math.max(defaultPrice, 10);
 
   return {
+    letterFull: storedPrices?.letterFull ?? storedPrices?.shortFull ?? getDocumentBlockPrice(description, "Short Bond", "Full") ?? highPrice,
+    letterHalf: storedPrices?.letterHalf ?? storedPrices?.shortHalf ?? getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
+    letterBw: storedPrices?.letterBw ?? storedPrices?.shortHalf ?? getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
     longFull: storedPrices?.longFull ?? getDocumentBlockPrice(description, "Long Bond", "Full") ?? highPrice,
     longHalf: storedPrices?.longHalf ?? getDocumentBlockPrice(description, "Long Bond", "Half") ?? defaultPrice,
-    shortFull: storedPrices?.shortFull ?? getDocumentBlockPrice(description, "Short Bond", "Full") ?? highPrice,
-    shortHalf: storedPrices?.shortHalf ?? getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
+    longBw: storedPrices?.longBw ?? storedPrices?.longHalf ?? getDocumentBlockPrice(description, "Long Bond", "Half") ?? defaultPrice,
     a4Full: storedPrices?.a4Full ?? getDocumentBlockPrice(description, "A4", "Full") ?? highPrice,
     a4Half: storedPrices?.a4Half ?? getDocumentBlockPrice(description, "A4", "Half") ?? defaultPrice,
-    a3Full: storedPrices?.a3Full ?? getDocumentBlockPrice(description, "A3", "Full") ?? highPrice,
-    a3Half: storedPrices?.a3Half ?? getDocumentBlockPrice(description, "A3", "Half") ?? defaultPrice,
+    a4Bw: storedPrices?.a4Bw ?? storedPrices?.a4Half ?? getDocumentBlockPrice(description, "A4", "Half") ?? defaultPrice,
   };
 }
 
@@ -156,22 +173,18 @@ function buildDocumentPrintingDetailCards(service) {
   const prices = getDocumentPrintingPrices(service);
   const longFullLine = `Full - ${formatPesoPrice(prices.longFull)}`;
   const longHalfLine = `Half - ${formatPesoPrice(prices.longHalf)}`;
-  const shortFullLine = `Full - ${formatPesoPrice(prices.shortFull)}`;
-  const shortHalfLine = `Half - ${formatPesoPrice(prices.shortHalf)}`;
+  const letterFullLine = `Full Colored - ${formatPesoPrice(prices.letterFull)}`;
+  const letterHalfLine = `Half Colored - ${formatPesoPrice(prices.letterHalf)}`;
+  const letterBwLine = `Black and White - ${formatPesoPrice(prices.letterBw)}`;
+  const longBwLine = `Black and White - ${formatPesoPrice(prices.longBw)}`;
   const a4FullLine = `Full - ${formatPesoPrice(prices.a4Full)}`;
   const a4HalfLine = `Half - ${formatPesoPrice(prices.a4Half)}`;
-  const a3FullLine = `Full - ${formatPesoPrice(prices.a3Full)}`;
-  const a3HalfLine = `Half - ${formatPesoPrice(prices.a3Half)}`;
+  const a4BwLine = `Black and White - ${formatPesoPrice(prices.a4Bw)}`;
 
   return [
-    { title: "Long Bond Paper (Colored)", icon: "print", lines: [longFullLine, longHalfLine] },
-    { title: "Long Bond Paper (B&W)", icon: "print", lines: [formatPesoPrice(prices.longHalf)] },
-    { title: "Short Bond Paper (Colored)", icon: "print", lines: [shortFullLine, shortHalfLine] },
-    { title: "Short Bond Paper (B&W)", icon: "print", lines: [formatPesoPrice(prices.shortHalf)] },
-    { title: "A4 (Colored)", icon: "print", lines: [a4FullLine, a4HalfLine] },
-    { title: "A4 (B&W)", icon: "print", lines: [formatPesoPrice(prices.a4Half)] },
-    { title: "A3 (Colored)", icon: "print", lines: [a3FullLine, a3HalfLine] },
-    { title: "A3 (B&W)", icon: "print", lines: [formatPesoPrice(prices.a3Half)] },
+    { title: "Letter", icon: "print", lines: [letterFullLine, letterHalfLine, letterBwLine] },
+    { title: "8.5x13", icon: "print", lines: [longFullLine, longHalfLine, longBwLine] },
+    { title: "A4", icon: "print", lines: [a4FullLine, a4HalfLine, a4BwLine] },
   ];
 }
 
@@ -969,6 +982,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const xeroxPriceMap = getXeroxPriceMap();
 
+  function getSelectedColor() {
+    const checked = document.querySelector('input[name="color"]:checked');
+    return checked ? checked.value : "";
+  }
+
   function readQuantityValue() {
     const raw = String(qtyInput.value || "").trim();
     if (raw === "") return NaN;
@@ -1016,8 +1034,10 @@ document.addEventListener("DOMContentLoaded", () => {
       pricePerItem = canCompute ? p : 0;
     } else if (isXerox && paperSizeSelect) {
       const size = paperSizeSelect.value;
-      canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(xeroxPriceMap[size]);
-      pricePerItem = canCompute ? xeroxPriceMap[size] : 0;
+      const color = normalizeCatalogColor(getSelectedColor() || "colored");
+      const price = xeroxPriceMap[size]?.[color];
+      canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(price);
+      pricePerItem = canCompute ? price : 0;
     } else {
       pricePerItem = defaultPrice;
     }
@@ -1108,6 +1128,7 @@ document.addEventListener("DOMContentLoaded", () => {
       refs.deviceTypeSelect,
       refs.installationTypeSelect,
       refs.fileUpload,
+      refs.notesEl,
     ].forEach((el) => setFieldInvalid(el, false));
     setRadioInvalid("color", false);
     setFeedback("", "error");
@@ -1165,6 +1186,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const payload = {
       category: (document.body?.dataset?.service || "general").toLowerCase(),
       service_label: buildServiceLabel(),
+      catalog_service_id: Number(document.body?.dataset?.catalogServiceId || 0) || null,
       paper_size: refs.paperSizeSelect ? refs.paperSizeSelect.value : null,
       quantity: readQuantityValue(),
       color_option: getSelectedColor(),
@@ -1200,8 +1222,28 @@ document.addEventListener("DOMContentLoaded", () => {
         : null,
     };
 
+    if (refs.repairServiceSelect) {
+      const selectedOption = refs.repairServiceSelect.options[refs.repairServiceSelect.selectedIndex];
+      payload.catalog_service_id = Number(selectedOption?.dataset?.catalogId || 0) || payload.catalog_service_id;
+    }
+
+    if (refs.installationTypeSelect) {
+      const selectedOption = refs.installationTypeSelect.options[refs.installationTypeSelect.selectedIndex];
+      payload.catalog_service_id = Number(selectedOption?.dataset?.catalogId || 0) || payload.catalog_service_id;
+    }
+
+    if (refs.packageSelect) {
+      payload.service_option_key = refs.packageSelect.value || null;
+    }
+
+    if (refs.lamTypeSelect) {
+      payload.service_option_key = refs.lamTypeSelect.value || null;
+    }
+
     if (isXerox && refs.paperSizeSelect) {
-      const price = xeroxPriceMap[payload.paper_size] ?? 0;
+      const color = normalizeCatalogColor(payload.color_option || "colored");
+      const price = xeroxPriceMap[payload.paper_size]?.[color] ?? 0;
+      payload.service_option_key = `${payload.paper_size || ""}_${color}`;
       payload.price_per_page = price;
       payload.estimated_total = price * payload.quantity;
     } else if (refs.lamTypeSelect) {
@@ -1264,6 +1306,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (refs.installationTypeSelect && (!refs.installationTypeSelect.value || refs.installationTypeSelect.selectedOptions[0]?.disabled)) {
       errors.push("Select installation type.");
       setFieldInvalid(refs.installationTypeSelect, true);
+    }
+
+    const selectedServiceText = (
+      refs.repairServiceSelect?.selectedOptions?.[0]?.textContent ||
+      refs.installationTypeSelect?.selectedOptions?.[0]?.textContent ||
+      ""
+    ).trim();
+    if (/\bothers?\b/i.test(selectedServiceText) && !String(payload.notes || "").trim()) {
+      errors.push("Please describe your request when selecting Others.");
+      setFieldInvalid(refs.notesEl, true);
     }
 
     const hasColorOptions = document.querySelectorAll('input[name="color"]').length > 0;

@@ -139,28 +139,40 @@
     grid.id = "ms_documentPriceGrid";
     grid.innerHTML = `
       <div class="ms-field">
-        <label>Long Bond Full Price</label>
-        <input id="ms_long_full_price" type="text" value="10.00" readonly>
+        <label>Letter Full Colored Price</label>
+        <input id="ms_letter_full_price" type="text" value="10.00">
       </div>
       <div class="ms-field">
-        <label>Long Bond Half / B&W Price</label>
-        <input id="ms_long_half_price" type="text" value="5.00" readonly>
+        <label>Letter Half Colored Price</label>
+        <input id="ms_letter_half_price" type="text" value="5.00">
       </div>
       <div class="ms-field">
-        <label>Short Bond Full Price</label>
-        <input id="ms_short_full_price" type="text" value="10.00" readonly>
+        <label>Letter Black and White Price</label>
+        <input id="ms_letter_bw_price" type="text" value="5.00">
       </div>
       <div class="ms-field">
-        <label>Short Bond Half / B&W Price</label>
-        <input id="ms_short_half_price" type="text" value="5.00" readonly>
+        <label>8.5x13 Full Colored Price</label>
+        <input id="ms_long_full_price" type="text" value="10.00">
       </div>
       <div class="ms-field">
-        <label>A4 Full Price</label>
-        <input id="ms_a4_full_price" type="text" value="10.00" readonly>
+        <label>8.5x13 Half Colored Price</label>
+        <input id="ms_long_half_price" type="text" value="5.00">
       </div>
       <div class="ms-field">
-        <label>A4 Half / B&W Price</label>
-        <input id="ms_a4_half_price" type="text" value="5.00" readonly>
+        <label>8.5x13 Black and White Price</label>
+        <input id="ms_long_bw_price" type="text" value="5.00">
+      </div>
+      <div class="ms-field">
+        <label>A4 Full Colored Price</label>
+        <input id="ms_a4_full_price" type="text" value="10.00">
+      </div>
+      <div class="ms-field">
+        <label>A4 Half Colored Price</label>
+        <input id="ms_a4_half_price" type="text" value="5.00">
+      </div>
+      <div class="ms-field">
+        <label>A4 Black and White Price</label>
+        <input id="ms_a4_bw_price" type="text" value="5.00">
       </div>
     `;
     fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
@@ -173,24 +185,42 @@
   }
 
   function getDocumentPrices(data) {
+    let storedPrices = null;
+    if (data?.pricing_json) {
+      try {
+        storedPrices = typeof data.pricing_json === "string"
+          ? JSON.parse(data.pricing_json)
+          : data.pricing_json;
+      } catch (err) {
+        storedPrices = null;
+      }
+    }
+
+    const stored = storedPrices || {};
     return {
-      longFull: "10.00",
-      longHalf: "5.00",
-      shortFull: "10.00",
-      shortHalf: "5.00",
-      a4Full: "10.00",
-      a4Half: "5.00",
+      letterFull: stored.letterFull ?? stored.shortFull ?? "10.00",
+      letterHalf: stored.letterHalf ?? stored.shortHalf ?? "5.00",
+      letterBw: stored.letterBw ?? stored.shortHalf ?? "5.00",
+      longFull: stored.longFull ?? "10.00",
+      longHalf: stored.longHalf ?? "5.00",
+      longBw: stored.longBw ?? stored.longHalf ?? "5.00",
+      a4Full: stored.a4Full ?? "10.00",
+      a4Half: stored.a4Half ?? "5.00",
+      a4Bw: stored.a4Bw ?? stored.a4Half ?? "5.00",
     };
   }
 
   function getDocumentPriceValues() {
     return {
+      letterFull: getDocumentPriceInput("#ms_letter_full_price")?.value.trim() || "",
+      letterHalf: getDocumentPriceInput("#ms_letter_half_price")?.value.trim() || "",
+      letterBw: getDocumentPriceInput("#ms_letter_bw_price")?.value.trim() || "",
       longFull: getDocumentPriceInput("#ms_long_full_price")?.value.trim() || "",
       longHalf: getDocumentPriceInput("#ms_long_half_price")?.value.trim() || "",
-      shortFull: getDocumentPriceInput("#ms_short_full_price")?.value.trim() || "",
-      shortHalf: getDocumentPriceInput("#ms_short_half_price")?.value.trim() || "",
+      longBw: getDocumentPriceInput("#ms_long_bw_price")?.value.trim() || "",
       a4Full: getDocumentPriceInput("#ms_a4_full_price")?.value.trim() || "",
       a4Half: getDocumentPriceInput("#ms_a4_half_price")?.value.trim() || "",
+      a4Bw: getDocumentPriceInput("#ms_a4_bw_price")?.value.trim() || "",
     };
   }
 
@@ -226,16 +256,19 @@
     const inputMap = {
       "#ms_long_full_price": prices.longFull,
       "#ms_long_half_price": prices.longHalf,
-      "#ms_short_full_price": prices.shortFull,
-      "#ms_short_half_price": prices.shortHalf,
+      "#ms_long_bw_price": prices.longBw,
+      "#ms_letter_full_price": prices.letterFull,
+      "#ms_letter_half_price": prices.letterHalf,
+      "#ms_letter_bw_price": prices.letterBw,
       "#ms_a4_full_price": prices.a4Full,
       "#ms_a4_half_price": prices.a4Half,
+      "#ms_a4_bw_price": prices.a4Bw,
     };
     Object.keys(inputMap).forEach((selector) => {
       const input = getDocumentPriceInput(selector);
       if (input) input.value = inputMap[selector];
     });
-    if (fPrice) fPrice.value = prices.shortHalf;
+    if (fPrice) fPrice.value = prices.letterBw;
     syncDocumentPriceRange();
   }
 
@@ -249,20 +282,28 @@
     grid.id = "ms_xeroxPriceGrid";
     grid.innerHTML = `
       <div class="ms-field">
-        <label>Long Bond Price</label>
-        <input id="ms_xerox_long_price" type="text" placeholder="e.g., 5.00">
+        <label>Letter Colored Price</label>
+        <input id="ms_xerox_letter_colored_price" type="text" placeholder="e.g., 3.00">
       </div>
       <div class="ms-field">
-        <label>Short Bond Price</label>
-        <input id="ms_xerox_short_price" type="text" placeholder="e.g., 3.00">
+        <label>Letter Black and White Price</label>
+        <input id="ms_xerox_letter_bw_price" type="text" placeholder="e.g., 3.00">
       </div>
       <div class="ms-field">
-        <label>A4 Price</label>
-        <input id="ms_xerox_a4_price" type="text" placeholder="e.g., 3.00">
+        <label>8.5x13 Colored Price</label>
+        <input id="ms_xerox_long_colored_price" type="text" placeholder="e.g., 5.00">
       </div>
       <div class="ms-field">
-        <label>A3 Price</label>
-        <input id="ms_xerox_a3_price" type="text" placeholder="e.g., 5.00">
+        <label>8.5x13 Black and White Price</label>
+        <input id="ms_xerox_long_bw_price" type="text" placeholder="e.g., 5.00">
+      </div>
+      <div class="ms-field">
+        <label>A4 Colored Price</label>
+        <input id="ms_xerox_a4_colored_price" type="text" placeholder="e.g., 3.00">
+      </div>
+      <div class="ms-field">
+        <label>A4 Black and White Price</label>
+        <input id="ms_xerox_a4_bw_price" type="text" placeholder="e.g., 3.00">
       </div>
     `;
     fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
@@ -297,19 +338,23 @@
     };
 
     return {
-      long: storedPrices?.long ?? linePrice("Long Bond Paper") ?? high,
-      short: storedPrices?.short ?? linePrice("Short Bond Paper") ?? low,
-      a4: storedPrices?.a4 ?? linePrice("A4") ?? low,
-      a3: storedPrices?.a3 ?? linePrice("A3") ?? high,
+      letterColored: storedPrices?.letterColored ?? storedPrices?.short ?? linePrice("Short Bond Paper") ?? low,
+      letterBw: storedPrices?.letterBw ?? storedPrices?.short ?? linePrice("Short Bond Paper") ?? low,
+      longColored: storedPrices?.longColored ?? storedPrices?.long ?? linePrice("Long Bond Paper") ?? high,
+      longBw: storedPrices?.longBw ?? storedPrices?.long ?? linePrice("Long Bond Paper") ?? high,
+      a4Colored: storedPrices?.a4Colored ?? storedPrices?.a4 ?? linePrice("A4") ?? low,
+      a4Bw: storedPrices?.a4Bw ?? storedPrices?.a4 ?? linePrice("A4") ?? low,
     };
   }
 
   function getXeroxPriceValues() {
     return {
-      long: getXeroxPriceInput("#ms_xerox_long_price")?.value.trim() || "",
-      short: getXeroxPriceInput("#ms_xerox_short_price")?.value.trim() || "",
-      a4: getXeroxPriceInput("#ms_xerox_a4_price")?.value.trim() || "",
-      a3: getXeroxPriceInput("#ms_xerox_a3_price")?.value.trim() || "",
+      letterColored: getXeroxPriceInput("#ms_xerox_letter_colored_price")?.value.trim() || "",
+      letterBw: getXeroxPriceInput("#ms_xerox_letter_bw_price")?.value.trim() || "",
+      longColored: getXeroxPriceInput("#ms_xerox_long_colored_price")?.value.trim() || "",
+      longBw: getXeroxPriceInput("#ms_xerox_long_bw_price")?.value.trim() || "",
+      a4Colored: getXeroxPriceInput("#ms_xerox_a4_colored_price")?.value.trim() || "",
+      a4Bw: getXeroxPriceInput("#ms_xerox_a4_bw_price")?.value.trim() || "",
     };
   }
 
@@ -333,16 +378,18 @@
 
     const prices = getXeroxPrices(data || {});
     const inputMap = {
-      "#ms_xerox_long_price": prices.long,
-      "#ms_xerox_short_price": prices.short,
-      "#ms_xerox_a4_price": prices.a4,
-      "#ms_xerox_a3_price": prices.a3,
+      "#ms_xerox_letter_colored_price": prices.letterColored,
+      "#ms_xerox_letter_bw_price": prices.letterBw,
+      "#ms_xerox_long_colored_price": prices.longColored,
+      "#ms_xerox_long_bw_price": prices.longBw,
+      "#ms_xerox_a4_colored_price": prices.a4Colored,
+      "#ms_xerox_a4_bw_price": prices.a4Bw,
     };
     Object.keys(inputMap).forEach((selector) => {
       const input = getXeroxPriceInput(selector);
       if (input) input.value = inputMap[selector];
     });
-    if (fPrice) fPrice.value = prices.short;
+    if (fPrice) fPrice.value = prices.letterBw;
     syncXeroxPriceRange();
   }
 
@@ -567,7 +614,7 @@
     btn.addEventListener("click", async ()=>{
       const id = btn.getAttribute("data-ms-del");
       if(!id) return;
-      if(!confirm("Delete this service?")) return;
+      if(!confirm("Archive this service? Existing queue and order records will keep their saved service snapshot, but customers will no longer see this option.")) return;
 
       const fd = new FormData();
       fd.append("action","delete");
@@ -583,12 +630,12 @@
         });
         txt = await res.text();
       } catch (e) {
-        window.servitechAdminToast?.error("Unable to delete the service.");
+        window.servitechAdminToast?.error("Unable to archive the service.");
         return;
       }
       let out; try{ out = JSON.parse(txt); }catch(e){ window.servitechAdminToast?.error("Server returned an invalid response."); return; }
-      if(!out.ok){ window.servitechAdminToast?.error(out.error || "Delete failed"); return; }
-      window.servitechAdminToast?.persist("Service deleted successfully.");
+      if(!out.ok){ window.servitechAdminToast?.error(out.error || "Archive failed"); return; }
+      window.servitechAdminToast?.persist("Service archived successfully.");
       location.reload();
     });
   });
@@ -619,22 +666,27 @@
     if (!event.target) return;
 
     if (isDocumentPrinting && [
+      "ms_letter_full_price",
+      "ms_letter_half_price",
+      "ms_letter_bw_price",
       "ms_long_full_price",
       "ms_long_half_price",
-      "ms_short_full_price",
-      "ms_short_half_price",
+      "ms_long_bw_price",
       "ms_a4_full_price",
       "ms_a4_half_price",
+      "ms_a4_bw_price",
     ].includes(event.target.id)) {
       syncDocumentPriceRange();
       return;
     }
 
     if (isXerox && [
-      "ms_xerox_long_price",
-      "ms_xerox_short_price",
-      "ms_xerox_a4_price",
-      "ms_xerox_a3_price",
+      "ms_xerox_letter_colored_price",
+      "ms_xerox_letter_bw_price",
+      "ms_xerox_long_colored_price",
+      "ms_xerox_long_bw_price",
+      "ms_xerox_a4_colored_price",
+      "ms_xerox_a4_bw_price",
     ].includes(event.target.id)) {
       syncXeroxPriceRange();
       return;
@@ -666,31 +718,31 @@
       const prices = getDocumentPriceValues();
       const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
       if (invalid) {
-        showErr("Enter valid Long Bond, Short Bond, and A4 prices.");
+        showErr("Enter valid Letter, 8.5x13, and A4 prices.");
         return;
       }
 
       if (
+        Number(prices.letterFull) < Number(prices.letterHalf) ||
         Number(prices.longFull) < Number(prices.longHalf) ||
-        Number(prices.shortFull) < Number(prices.shortHalf) ||
         Number(prices.a4Full) < Number(prices.a4Half)
       ) {
-        showErr("Full prices should be greater than or equal to Half / B&W prices.");
+        showErr("Full Colored prices should be greater than or equal to Half Colored prices.");
         return;
       }
 
       syncDocumentPriceRange();
-      fPrice.value = prices.shortHalf;
+      fPrice.value = prices.letterBw;
     } else if (isXerox) {
       const prices = getXeroxPriceValues();
       const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
       if (invalid) {
-        showErr("Enter valid photocopy prices for Long Bond, Short Bond, A4, and A3.");
+        showErr("Enter valid photocopy prices for Letter, 8.5x13, and A4.");
         return;
       }
 
       syncXeroxPriceRange();
-      fPrice.value = prices.short;
+      fPrice.value = prices.letterBw;
     } else if (isRushId) {
       const prices = getRushPackageValues();
       const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));

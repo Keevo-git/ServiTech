@@ -1970,18 +1970,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
   function normalizePaperKey(value){
     const text = String(value || "").trim().toLowerCase();
-    if (text.includes("short bond") || text.includes("8.5 x 11")) return "short";
-    if (text.includes("long bond") || text.includes("8.5 x 13")) return "long";
+    if (text.includes("letter") || text.includes("short bond") || text.includes("8.5 x 11")) return "letter";
+    if (text.includes("8.5x13") || text.includes("long bond") || text.includes("8.5 x 13")) return "long";
     if (text === "a4") return "a4";
-    if (text === "a3") return "a3";
     return "";
   }
 
   function normalizeColorKey(value){
     const text = String(value || "").trim().toLowerCase();
     if (["black & white", "black and white", "bw"].includes(text)) return "bw";
-    if (["colored full", "colored - full", "colored (full)"].includes(text)) return "full";
-    if (["colored half", "colored - half", "colored (half)"].includes(text)) return "half";
+    if (["full colored", "colored full", "colored - full", "colored (full)"].includes(text)) return "full";
+    if (["half colored", "colored half", "colored - half", "colored (half)"].includes(text)) return "half";
+    if (["colored", "color"].includes(text)) return "colored";
     return "";
   }
 
@@ -2283,12 +2283,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       const paperKey = normalizePaperKey(inputValue("paper_size") || queueData.paper_size || details.paper_size);
       const colorKey = normalizeColorKey(inputValue("color_option") || queueData.color_option || details.color_option);
       const prices = pricingMap(queueData, {
-        longFull: 10, longHalf: 5,
-        shortFull: 10, shortHalf: 5,
-        a4Full: 10, a4Half: 5,
-        a3Full: 10, a3Half: 5,
+        letterFull: 10, letterHalf: 5, letterBw: 5,
+        longFull: 10, longHalf: 5, longBw: 5,
+        a4Full: 10, a4Half: 5, a4Bw: 5,
       });
-      const unitKey = paperKey && colorKey ? `${paperKey}${colorKey === "full" ? "Full" : "Half"}` : "";
+      const suffix = colorKey === "full" ? "Full" : (colorKey === "half" ? "Half" : "Bw");
+      const unitKey = paperKey && colorKey ? `${paperKey}${suffix}` : "";
       const unitPrice = toNumber(prices[unitKey]) ?? (toNumber(queueData.price_per_page ?? details.price_per_page) ?? 0);
       let totalPages = keptFiles.reduce((sum, file) => sum + fileAnalysisCount(file), 0);
       if (!totalPages && keptFiles.length === existingEditFiles(queueData).length && !editRemovedFileTokens.size && !editRemovedFileIndexes.size) {
@@ -2305,11 +2305,17 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rows.push(["Copies", quantity]);
     } else if (service === "xerox") {
       const paperKey = normalizePaperKey(inputValue("paper_size") || queueData.paper_size || details.paper_size);
-      const prices = pricingMap(queueData, { long: 5, short: 3, a4: 3, a3: 5 });
-      const unitPrice = toNumber(prices[paperKey]) ?? 0;
+      const colorKey = normalizeColorKey(inputValue("color_option") || queueData.color_option || details.color_option || "Colored");
+      const prices = pricingMap(queueData, {
+        letterColored: 3, letterBw: 3,
+        longColored: 5, longBw: 5,
+        a4Colored: 3, a4Bw: 3,
+      });
+      const unitPrice = toNumber(prices[`${paperKey}${colorKey === "bw" ? "Bw" : "Colored"}`]) ?? 0;
       total = unitPrice * quantity;
       totalLabel = toPeso(total);
       rows.push(["Price per copy", toPeso(unitPrice)]);
+      rows.push(["Color", colorKey === "bw" ? "Black and White" : "Colored"]);
       rows.push(["Copies", quantity]);
     } else if (service === "rushid") {
       const packageLabel = inputValue("package_label") || queueData.package_label || details.package_label || "";
@@ -2382,16 +2388,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     if (isDocumentPrinting(queueData)) {
       rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, [
-        "Long Bond (8.5 x 13)",
-        "Short Bond (8.5 x 11)",
+        "Letter",
+        "8.5x13",
         "A4",
-        "A3",
       ]));
       rows.push(editField("quantity", "Quantity / Copies", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
       rows.push(editSelect("color_option", "Color Option", queueData.color_option ?? details.color_option, [
         "Black & White",
-        "Colored Full",
-        "Colored Half",
+        "Full Colored",
+        "Half Colored",
       ]));
     } else if (service === "rushid") {
       rows.push(editSelect("package_label", "Package", queueData.package_label ?? details.package_label, [
@@ -2405,10 +2410,13 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
     } else if (service === "xerox") {
       rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, [
-        "Long Bond (8.5 x 13)",
-        "Short Bond (8.5 x 11)",
+        "Letter",
+        "8.5x13",
         "A4",
-        "A3",
+      ]));
+      rows.push(editSelect("color_option", "Color Option", queueData.color_option ?? details.color_option ?? "Colored", [
+        "Colored",
+        "Black & White",
       ]));
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
     } else if (service === "laminating") {
@@ -2871,15 +2879,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const packageLabel = (queueData.package_label || details.package_label || "").toString();
     const paperSize = (queueData.paper_size || details.paper_size || "").toString();
     const laminationType = (queueData.lamination_type || details.lamination_type || "").toString().toLowerCase();
-    const xeroxPriceMap = {
-      "Long Bond (8.5 x 13)": 5,
-      "Short Bond (8.5 x 11)": 3,
-      "A4": 3,
-      "A3": 5,
-    };
-
-    if ((serviceLower.includes("xerox") || serviceLower.includes("photocopy")) && xeroxPriceMap[paperSize]) {
-      return toPeso(xeroxPriceMap[paperSize] * quantity);
+    const snapshotPrice = toNumber(details.price_snapshot);
+    if ((serviceLower.includes("xerox") || serviceLower.includes("photocopy")) && snapshotPrice !== null) {
+      return toPeso(snapshotPrice * quantity);
     }
 
     if (serviceLower.includes("laminating")) {

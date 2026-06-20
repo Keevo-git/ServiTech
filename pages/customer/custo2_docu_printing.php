@@ -9,13 +9,17 @@ $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $documentPrintingLabel = "Document Print";
 $printDraft = [];
 $printPricing = [
+  "letter_full_price" => 10.0,
+  "letter_half_price" => 5.0,
+  "letter_bw_price" => 5.0,
   "long_full_price" => 10.0,
   "long_half_price" => 5.0,
-  "short_full_price" => 10.0,
-  "short_half_price" => 5.0,
+  "long_bw_price" => 5.0,
   "a4_full_price" => 10.0,
   "a4_half_price" => 5.0,
+  "a4_bw_price" => 5.0,
 ];
+$documentCatalogServiceId = 0;
 
 function document_printing_extract_price(string $description, string $option): ?float {
   $pattern = "/\\b" . preg_quote($option, "/") . "\\s*[-\\x{2013}\\x{2014}]?\\s*₱?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
@@ -55,10 +59,11 @@ function document_printing_extract_price_range(string $priceRange): array {
 
 try {
   $serviceStmt = $pdo->prepare("
-    SELECT description, price, price_range, pricing_json::text AS pricing_json
+    SELECT id, description, price, price_range, pricing_json::text AS pricing_json
     FROM services
     WHERE category = 'printing'
-      AND LOWER(name) LIKE '%document%printing%'
+      AND LOWER(name) LIKE '%document%'
+      AND (LOWER(name) LIKE '%printing%' OR LOWER(name) LIKE '%print%')
       AND active = TRUE
     ORDER BY sort_order ASC, id ASC
     LIMIT 1
@@ -67,6 +72,7 @@ try {
   $documentPrintingService = $serviceStmt->fetch(PDO::FETCH_ASSOC);
 
   if (is_array($documentPrintingService)) {
+    $documentCatalogServiceId = (int)($documentPrintingService["id"] ?? 0);
     $description = (string)($documentPrintingService["description"] ?? "");
     $storedPricing = json_decode((string)($documentPrintingService["pricing_json"] ?? ""), true);
     $rangePrices = document_printing_extract_price_range((string)($documentPrintingService["price_range"] ?? ""));
@@ -74,7 +80,17 @@ try {
     $halfPrice = document_printing_extract_price($description, "Half") ?? $defaultPrice;
     $fullPrice = document_printing_extract_price($description, "Full") ?? ($rangePrices[count($rangePrices) - 1] ?? max($halfPrice, $defaultPrice));
 
-    // Document Print uses fixed color prices across supported paper sizes.
+    if (is_array($storedPricing)) {
+      $printPricing["letter_full_price"] = isset($storedPricing["letterFull"]) ? max(0, (float)$storedPricing["letterFull"]) : (isset($storedPricing["shortFull"]) ? max(0, (float)$storedPricing["shortFull"]) : $fullPrice);
+      $printPricing["letter_half_price"] = isset($storedPricing["letterHalf"]) ? max(0, (float)$storedPricing["letterHalf"]) : (isset($storedPricing["shortHalf"]) ? max(0, (float)$storedPricing["shortHalf"]) : $halfPrice);
+      $printPricing["letter_bw_price"] = isset($storedPricing["letterBw"]) ? max(0, (float)$storedPricing["letterBw"]) : $printPricing["letter_half_price"];
+      $printPricing["long_full_price"] = isset($storedPricing["longFull"]) ? max(0, (float)$storedPricing["longFull"]) : (document_printing_extract_block_price($description, "Long Bond", "Full") ?? $fullPrice);
+      $printPricing["long_half_price"] = isset($storedPricing["longHalf"]) ? max(0, (float)$storedPricing["longHalf"]) : (document_printing_extract_block_price($description, "Long Bond", "Half") ?? $halfPrice);
+      $printPricing["long_bw_price"] = isset($storedPricing["longBw"]) ? max(0, (float)$storedPricing["longBw"]) : $printPricing["long_half_price"];
+      $printPricing["a4_full_price"] = isset($storedPricing["a4Full"]) ? max(0, (float)$storedPricing["a4Full"]) : (document_printing_extract_block_price($description, "A4", "Full") ?? $fullPrice);
+      $printPricing["a4_half_price"] = isset($storedPricing["a4Half"]) ? max(0, (float)$storedPricing["a4Half"]) : (document_printing_extract_block_price($description, "A4", "Half") ?? $halfPrice);
+      $printPricing["a4_bw_price"] = isset($storedPricing["a4Bw"]) ? max(0, (float)$storedPricing["a4Bw"]) : $printPricing["a4_half_price"];
+    }
   }
 } catch (Throwable $e) {
   // Keep the order form usable if the service table is unavailable.
@@ -472,7 +488,7 @@ if (is_array($sessionPrintDraft)) {
     }
   </style>
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary printing-page" data-service="printing">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary printing-page" data-service="printing" data-catalog-service-id="<?= (int)$documentCatalogServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -509,8 +525,8 @@ if (is_array($sessionPrintDraft)) {
               <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
               <select class="form-select" id="paperSizeSelect">
                 <option value="" selected>Select paper size</option>
-                <option>Short Bond (8.5 x 11)</option>
-                <option>Long Bond (8.5 x 13)</option>
+                <option>Letter</option>
+                <option>8.5x13</option>
                 <option>A4</option>
               </select>
             </div>
@@ -531,15 +547,15 @@ if (is_array($sessionPrintDraft)) {
             <div class="radio-group">
               <label>
                 <span class="color-option-left"><input type="radio" name="color" value="Black & White"><span>Black &amp; White</span></span>
-                <span class="color-option-price">&#8369;5.00</span>
+                <span class="color-option-price" data-doc-color-price="bw">&#8369;<?= htmlspecialchars(number_format((float)$printPricing["letter_bw_price"], 2), ENT_QUOTES, "UTF-8") ?></span>
               </label>
               <label>
-                <span class="color-option-left"><input type="radio" name="color" value="Colored (Full)"><span>Colored (Full)</span></span>
-                <span class="color-option-price">&#8369;10.00</span>
+                <span class="color-option-left"><input type="radio" name="color" value="Full Colored"><span>Full Colored</span></span>
+                <span class="color-option-price" data-doc-color-price="full">&#8369;<?= htmlspecialchars(number_format((float)$printPricing["letter_full_price"], 2), ENT_QUOTES, "UTF-8") ?></span>
               </label>
               <label>
-                <span class="color-option-left"><input type="radio" name="color" value="Colored (Half)"><span>Colored (Half)</span></span>
-                <span class="color-option-price">&#8369;5.00</span>
+                <span class="color-option-left"><input type="radio" name="color" value="Half Colored"><span>Half Colored</span></span>
+                <span class="color-option-price" data-doc-color-price="half">&#8369;<?= htmlspecialchars(number_format((float)$printPricing["letter_half_price"], 2), ENT_QUOTES, "UTF-8") ?></span>
               </label>
             </div>
           </div>
@@ -623,13 +639,13 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260619-doc-summary-skip"></script>
+<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechDocumentPrintPricing = <?= json_encode($printPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260619-single-total-gate"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260620-service-catalog"></script>
 </body>
 </html>
 

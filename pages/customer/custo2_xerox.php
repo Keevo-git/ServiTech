@@ -9,11 +9,14 @@ servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
 
 $xeroxPricing = [
-  "long" => 5.0,
-  "short" => 3.0,
-  "a4" => 3.0,
-  "a3" => 5.0,
+  "letterColored" => 3.0,
+  "letterBw" => 3.0,
+  "longColored" => 5.0,
+  "longBw" => 5.0,
+  "a4Colored" => 3.0,
+  "a4Bw" => 3.0,
 ];
+$xeroxCatalogServiceId = 0;
 
 function xerox_extract_line_price(string $description, string $label): ?float {
   $pattern = "/" . preg_quote($label, "/") . "\\s*:?\\s*\\x{20B1}?\\s*([0-9]+(?:\\.[0-9]+)?)/iu";
@@ -26,7 +29,7 @@ function xerox_extract_line_price(string $description, string $label): ?float {
 
 try {
   $xeroxStmt = $pdo->prepare("
-    SELECT description, price, pricing_json::text AS pricing_json
+    SELECT id, description, price, pricing_json::text AS pricing_json
     FROM services
     WHERE category = 'printing'
       AND (LOWER(name) LIKE '%xerox%' OR LOWER(name) LIKE '%photocopy%')
@@ -38,15 +41,18 @@ try {
   $xeroxService = $xeroxStmt->fetch(PDO::FETCH_ASSOC);
 
   if (is_array($xeroxService)) {
+    $xeroxCatalogServiceId = (int)($xeroxService["id"] ?? 0);
     $description = (string)($xeroxService["description"] ?? "");
     $storedPricing = json_decode((string)($xeroxService["pricing_json"] ?? ""), true);
     $fallbackPrice = isset($xeroxService["price"]) ? max(0, (float)$xeroxService["price"]) : 3.0;
 
     $xeroxPricing = [
-      "long" => isset($storedPricing["long"]) ? (float)$storedPricing["long"] : (xerox_extract_line_price($description, "Long Bond Paper") ?? 5.0),
-      "short" => isset($storedPricing["short"]) ? (float)$storedPricing["short"] : (xerox_extract_line_price($description, "Short Bond Paper") ?? $fallbackPrice),
-      "a4" => isset($storedPricing["a4"]) ? (float)$storedPricing["a4"] : (xerox_extract_line_price($description, "A4") ?? $fallbackPrice),
-      "a3" => isset($storedPricing["a3"]) ? (float)$storedPricing["a3"] : (xerox_extract_line_price($description, "A3") ?? 5.0),
+      "letterColored" => isset($storedPricing["letterColored"]) ? (float)$storedPricing["letterColored"] : (isset($storedPricing["short"]) ? (float)$storedPricing["short"] : (xerox_extract_line_price($description, "Short Bond Paper") ?? $fallbackPrice)),
+      "letterBw" => isset($storedPricing["letterBw"]) ? (float)$storedPricing["letterBw"] : (isset($storedPricing["short"]) ? (float)$storedPricing["short"] : (xerox_extract_line_price($description, "Short Bond Paper") ?? $fallbackPrice)),
+      "longColored" => isset($storedPricing["longColored"]) ? (float)$storedPricing["longColored"] : (isset($storedPricing["long"]) ? (float)$storedPricing["long"] : (xerox_extract_line_price($description, "Long Bond Paper") ?? 5.0)),
+      "longBw" => isset($storedPricing["longBw"]) ? (float)$storedPricing["longBw"] : (isset($storedPricing["long"]) ? (float)$storedPricing["long"] : (xerox_extract_line_price($description, "Long Bond Paper") ?? 5.0)),
+      "a4Colored" => isset($storedPricing["a4Colored"]) ? (float)$storedPricing["a4Colored"] : (isset($storedPricing["a4"]) ? (float)$storedPricing["a4"] : (xerox_extract_line_price($description, "A4") ?? $fallbackPrice)),
+      "a4Bw" => isset($storedPricing["a4Bw"]) ? (float)$storedPricing["a4Bw"] : (isset($storedPricing["a4"]) ? (float)$storedPricing["a4"] : (xerox_extract_line_price($description, "A4") ?? $fallbackPrice)),
     ];
   }
 } catch (Throwable $e) {
@@ -65,7 +71,7 @@ try {
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="xerox" data-service-label="Photocopy">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="xerox" data-service-label="Photocopy" data-catalog-service-id="<?= (int)$xeroxCatalogServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -86,13 +92,18 @@ try {
             <p class="static-text">Photocopy</p>
 
             <label for="paperSizeSelect">Paper Size<span class="required">*</span></label>
-            <select class="form-select" id="paperSizeSelect">
-              <option value="" selected disabled>Select paper size</option>
-              <option>Short Bond (8.5 x 11)</option>
-              <option>Long Bond (8.5 x 13)</option>
-              <option>A4</option>
-              <option>A3</option>
-            </select>
+              <select class="form-select" id="paperSizeSelect">
+                <option value="" selected disabled>Select paper size</option>
+                <option>Letter</option>
+                <option>8.5x13</option>
+                <option>A4</option>
+              </select>
+
+            <label>Color Option<span class="required">*</span></label>
+            <div class="radio-group">
+              <label><input type="radio" name="color" value="Colored"> Colored</label>
+              <label><input type="radio" name="color" value="Black & White"> Black &amp; White</label>
+            </div>
 
             <label for="qtyInput">Quantity / Copies<span class="required">*</span></label>
             <input type="number" min="1" value="1" class="form-input" id="qtyInput">
@@ -110,7 +121,7 @@ try {
 
           <div>
             <p class="form-note">
-              Service uses default photocopy settings &mdash; no color choice needed.
+              Photocopy pricing is based on paper size and color option.
             </p>
           </div>
         </div>
@@ -170,7 +181,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script>
   window.servitechXeroxPricing = <?= json_encode($xeroxPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260611-queue-success"></script>
+<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 
 </body>
 </html>

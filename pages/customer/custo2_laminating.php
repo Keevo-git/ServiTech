@@ -12,6 +12,7 @@ $laminatingPricing = [
   "thin" => 20.0,
   "thick" => 30.0,
 ];
+$laminatingCatalogServiceId = 0;
 
 function laminating_price(array $pricing, string $key): string {
   return number_format((float)($pricing[$key] ?? 0), 2, ".", "");
@@ -19,7 +20,7 @@ function laminating_price(array $pricing, string $key): string {
 
 try {
   $laminatingStmt = $pdo->prepare("
-    SELECT price, pricing_json::text AS pricing_json
+    SELECT id, price, pricing_json::text AS pricing_json
     FROM services
     WHERE category = 'printing'
       AND LOWER(name) LIKE '%laminat%'
@@ -31,6 +32,7 @@ try {
   $laminatingService = $laminatingStmt->fetch(PDO::FETCH_ASSOC);
 
   if (is_array($laminatingService)) {
+    $laminatingCatalogServiceId = (int)($laminatingService["id"] ?? 0);
     $storedPricing = json_decode((string)($laminatingService["pricing_json"] ?? ""), true);
     if (is_array($storedPricing)) {
       foreach ($laminatingPricing as $key => $fallback) {
@@ -56,7 +58,7 @@ try {
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-price-per-page="20" data-service-label="Laminating">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-price-per-page="20" data-service-label="Laminating" data-catalog-service-id="<?= (int)$laminatingCatalogServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -153,7 +155,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260611-queue-success"></script>
+<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 
 </body>
 </html>

@@ -16,10 +16,11 @@ $rushPricing = [
   "package5" => 30.0,
   "package6" => 50.0,
 ];
+$rushCatalogServiceId = 0;
 
 try {
   $rushStmt = $pdo->prepare("
-    SELECT price, pricing_json::text AS pricing_json
+    SELECT id, price, pricing_json::text AS pricing_json
     FROM services
     WHERE category = 'printing'
       AND LOWER(name) LIKE '%rush%'
@@ -32,6 +33,7 @@ try {
   $rushService = $rushStmt->fetch(PDO::FETCH_ASSOC);
 
   if (is_array($rushService)) {
+    $rushCatalogServiceId = (int)($rushService["id"] ?? 0);
     $storedPricing = json_decode((string)($rushService["pricing_json"] ?? ""), true);
     if (is_array($storedPricing)) {
       foreach ($rushPricing as $key => $fallback) {
@@ -133,7 +135,7 @@ function rush_price(array $pricing, string $key): string {
 
   </style>
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="Rush ID">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="Rush ID" data-catalog-service-id="<?= (int)$rushCatalogServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -272,7 +274,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script src="/assets/js/rush_id_upload.js?v=20260612-upload-limits"></script>
-<script src="/assets/js/main.js?v=20260611-queue-success"></script>
+<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 
 </body>
 </html>

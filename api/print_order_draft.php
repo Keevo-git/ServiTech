@@ -40,7 +40,7 @@ $payment_method = strtolower(trim((string)($data["payment_method"] ?? "")));
 $uploaded_files = isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [];
 
 $errors = [];
-if (!in_array($paper_size, ["Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
+if (!in_array($paper_size, ["Letter", "8.5x13", "Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
   $errors[] = "Select a valid paper size.";
 }
 if ($quantity < 1) {

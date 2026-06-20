@@ -100,6 +100,8 @@ $details = [
   "estimated_total" => isset($data["estimated_total"]) ? max(0, (float)$data["estimated_total"]) : null,
   "file_analysis" => isset($data["file_analysis"]) && is_array($data["file_analysis"]) ? $data["file_analysis"] : null,
   "uploaded_files" => isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : null,
+  "catalog_service_id" => isset($data["catalog_service_id"]) ? max(0, (int)$data["catalog_service_id"]) : null,
+  "service_option_key" => isset($data["service_option_key"]) ? trim((string)$data["service_option_key"]) : null,
 ];
 
 foreach ($details as $key => $value) {

@@ -176,7 +176,7 @@ require __DIR__ . "/../_includes/admin_header.php";
               <td><span class="ms-pill <?= (int)$s["active"] ? "on":"off" ?>"><?= (int)$s["active"] ? "ON":"OFF" ?></span></td>
               <td class="ms-actions">
                 <button class="edit" type="button" data-ms-edit='<?= h(json_encode($payload)) ?>'>Edit</button>
-                <button class="del" type="button" data-ms-del="<?= (int)$s["id"] ?>">Delete</button>
+                <button class="del" type="button" data-ms-del="<?= (int)$s["id"] ?>">Archive</button>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -275,7 +275,7 @@ require __DIR__ . "/../_includes/admin_header.php";
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260614-document-printing-prices') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260620-service-catalog') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

@@ -62,8 +62,8 @@ function normalize_uploaded_files(?array $uploaded): array {
 function normalize_paper_size(string $paper): string {
   $v = strtolower(trim($paper));
   if ($v === "") return "";
-  if (strpos($v, "short bond") !== false || strpos($v, "8.5 x 11") !== false) return "short";
-  if (strpos($v, "long bond") !== false || strpos($v, "8.5 x 13") !== false) return "long";
+  if (strpos($v, "letter") !== false || strpos($v, "short bond") !== false || strpos($v, "8.5 x 11") !== false) return "letter";
+  if (strpos($v, "8.5x13") !== false || strpos($v, "8.5 x 13") !== false || strpos($v, "long bond") !== false) return "long";
   if ($v === "a4") return "a4";
   return "";
 }
@@ -73,8 +73,8 @@ function normalize_color_option(string $color): string {
   if ($v === "") return "";
 
   if ($v === "black & white" || $v === "black and white" || $v === "bw") return "bw";
-  if ($v === "colored full" || $v === "colored - full" || $v === "colored (full)") return "full";
-  if ($v === "colored half" || $v === "colored - half" || $v === "colored (half)") return "half";
+  if ($v === "full colored" || $v === "colored full" || $v === "colored - full" || $v === "colored (full)") return "full";
+  if ($v === "half colored" || $v === "colored half" || $v === "colored - half" || $v === "colored (half)") return "half";
 
   return "";
 }
@@ -117,12 +117,15 @@ function extract_document_printing_price_range(string $priceRange): array {
 
 function fetch_document_printing_prices(PDO $pdo): array {
   $prices = [
+    "letter_full" => 10.0,
+    "letter_half" => 5.0,
+    "letter_bw" => 5.0,
     "long_full" => 10.0,
     "long_half" => 5.0,
-    "short_full" => 10.0,
-    "short_half" => 5.0,
+    "long_bw" => 5.0,
     "a4_full" => 10.0,
     "a4_half" => 5.0,
+    "a4_bw" => 5.0,
   ];
 
   try {
@@ -130,7 +133,8 @@ function fetch_document_printing_prices(PDO $pdo): array {
       SELECT description, price, price_range, pricing_json::text AS pricing_json
       FROM services
       WHERE category = 'printing'
-        AND LOWER(name) LIKE '%document%printing%'
+        AND LOWER(name) LIKE '%document%'
+        AND (LOWER(name) LIKE '%printing%' OR LOWER(name) LIKE '%print%')
         AND active = TRUE
       ORDER BY sort_order ASC, id ASC
       LIMIT 1
@@ -151,10 +155,13 @@ function fetch_document_printing_prices(PDO $pdo): array {
     return [
       "long_full" => isset($storedPricing["longFull"]) ? (float)$storedPricing["longFull"] : (extract_document_printing_block_price($description, "Long Bond", "Full") ?? $full),
       "long_half" => isset($storedPricing["longHalf"]) ? (float)$storedPricing["longHalf"] : (extract_document_printing_block_price($description, "Long Bond", "Half") ?? $half),
-      "short_full" => isset($storedPricing["shortFull"]) ? (float)$storedPricing["shortFull"] : (extract_document_printing_block_price($description, "Short Bond", "Full") ?? $full),
-      "short_half" => isset($storedPricing["shortHalf"]) ? (float)$storedPricing["shortHalf"] : (extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half),
+      "long_bw" => isset($storedPricing["longBw"]) ? (float)$storedPricing["longBw"] : (isset($storedPricing["longHalf"]) ? (float)$storedPricing["longHalf"] : (extract_document_printing_block_price($description, "Long Bond", "Half") ?? $half)),
+      "letter_full" => isset($storedPricing["letterFull"]) ? (float)$storedPricing["letterFull"] : (isset($storedPricing["shortFull"]) ? (float)$storedPricing["shortFull"] : (extract_document_printing_block_price($description, "Short Bond", "Full") ?? $full)),
+      "letter_half" => isset($storedPricing["letterHalf"]) ? (float)$storedPricing["letterHalf"] : (isset($storedPricing["shortHalf"]) ? (float)$storedPricing["shortHalf"] : (extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half)),
+      "letter_bw" => isset($storedPricing["letterBw"]) ? (float)$storedPricing["letterBw"] : (isset($storedPricing["shortHalf"]) ? (float)$storedPricing["shortHalf"] : (extract_document_printing_block_price($description, "Short Bond", "Half") ?? $half)),
       "a4_full" => isset($storedPricing["a4Full"]) ? (float)$storedPricing["a4Full"] : (extract_document_printing_block_price($description, "A4", "Full") ?? $full),
       "a4_half" => isset($storedPricing["a4Half"]) ? (float)$storedPricing["a4Half"] : (extract_document_printing_block_price($description, "A4", "Half") ?? $half),
+      "a4_bw" => isset($storedPricing["a4Bw"]) ? (float)$storedPricing["a4Bw"] : (isset($storedPricing["a4Half"]) ? (float)$storedPricing["a4Half"] : (extract_document_printing_block_price($description, "A4", "Half") ?? $half)),
     ];
   } catch (Throwable $e) {
     return $prices;
@@ -265,10 +272,12 @@ function compute_print_pricing(PDO $pdo, string $paperRaw, string $colorRaw, int
     return ["ok" => false, "error" => "Select a valid color option."];
   }
 
-  $pricePerPage = match ($color) {
-    "full" => 10.0,
-    "half", "bw" => 5.0,
-  };
+  $prices = fetch_document_printing_prices($pdo);
+  $priceKey = $paper . "_" . $color;
+  $pricePerPage = isset($prices[$priceKey]) ? max(0, (float)$prices[$priceKey]) : 0.0;
+  if ($pricePerPage <= 0) {
+    return ["ok" => false, "error" => "The selected paper/color price is unavailable."];
+  }
   $safeQty = max(1, $quantity);
   $safePages = max(0, $totalPages);
   $estimatedTotal = $safePages * $pricePerPage * $safeQty;

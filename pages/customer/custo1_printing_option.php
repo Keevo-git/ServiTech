@@ -7,6 +7,33 @@ servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
+$printingServices = [];
+try {
+  $stmt = $pdo->prepare("
+    SELECT id, name
+    FROM services
+    WHERE category = 'printing'
+      AND active = TRUE
+    ORDER BY sort_order ASC, id ASC
+  ");
+  $stmt->execute();
+  $printingServices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+  $printingServices = [];
+}
+
+function printing_service_route(string $name): string {
+  $label = strtolower(trim($name));
+  if (str_contains($label, "document") && (str_contains($label, "print") || str_contains($label, "printing"))) return "custo2_docu_printing.php";
+  if (str_contains($label, "photocopy") || str_contains($label, "xerox")) return "custo2_photocopy.php";
+  if (str_contains($label, "rush") && str_contains($label, "id")) return "custo2_rush_id.php";
+  if (str_contains($label, "laminat")) return "custo2_laminating.php";
+  return "";
+}
+
+function printing_service_display_name(string $name): string {
+  return strcasecmp(trim($name), "xerox") === 0 ? "Photocopy" : $name;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,10 +66,16 @@ $storeAvailability = servitech_store_current_availability($pdo);
 
       <select id="serviceType" class="form-select">
         <option value="" selected disabled>Select A Service</option>
-        <option value="document-printing">Document Print</option>
-        <option value="xerox" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Photocopy<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>
-        <option value="rush-id" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Rush ID<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>
-        <option value="laminating" <?= $storeAvailability["regular_queue_allowed"] ? "" : "disabled" ?>>Laminating<?= $storeAvailability["regular_queue_allowed"] ? "" : " - unavailable now" ?></option>
+        <?php foreach ($printingServices as $service):
+          $route = printing_service_route((string)$service["name"]);
+          if ($route === "") continue;
+          $requiresRegularQueue = !str_contains(strtolower((string)$service["name"]), "document");
+          $disabled = $requiresRegularQueue && !$storeAvailability["regular_queue_allowed"];
+        ?>
+          <option value="<?= htmlspecialchars($route, ENT_QUOTES, "UTF-8") ?>" <?= $disabled ? "disabled" : "" ?>>
+            <?= htmlspecialchars(printing_service_display_name((string)$service["name"]), ENT_QUOTES, "UTF-8") ?><?= $disabled ? " - unavailable now" : "" ?>
+          </option>
+        <?php endforeach; ?>
       </select>
       <?php if (!$storeAvailability["regular_queue_allowed"]): ?>
         <p class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></p>
@@ -67,21 +100,14 @@ $storeAvailability = servitech_store_current_availability($pdo);
   });
 
   nextBtn.addEventListener("click", () => {
-    const service = serviceSelect.value;
-    if (!service) {
+    const route = serviceSelect.value;
+    if (!route) {
       alert("Please select a service first.");
       serviceSelect.focus();
       return;
     }
 
-    const routes = {
-      "document-printing": "custo2_docu_printing.php",
-      "xerox": "custo2_photocopy.php",
-      "rush-id": "custo2_rush_id.php",
-      "laminating": "custo2_laminating.php"
-    };
-
-    window.location.href = routes[service] || "custo1_printing_option.php";
+    window.location.href = route || "custo1_printing_option.php";
   });
 </script>
 <?php if (servitech_consume_new_join_queue_started()): ?>

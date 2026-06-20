@@ -115,17 +115,36 @@
       return checked ? checked.value : "";
     }
 
-    function getClientPricePerPage() {
-      var paperSize = (paperSizeSelect.value || "").trim().toLowerCase();
-      var colorOption = getSelectedColor().trim().toLowerCase();
+    function normalizePaperKey(value) {
+      var paper = (value || "").trim().toLowerCase();
+      if (paper.indexOf("letter") !== -1 || paper.indexOf("short bond") !== -1 || paper.indexOf("8.5 x 11") !== -1) return "letter";
+      if (paper.indexOf("8.5x13") !== -1 || paper.indexOf("8.5 x 13") !== -1 || paper.indexOf("long bond") !== -1) return "long";
+      if (paper === "a4") return "a4";
+      return "";
+    }
 
-      if (!paperSize) {
+    function normalizeColorKey(value) {
+      var color = (value || "").trim().toLowerCase();
+      if (color === "black & white" || color === "black and white" || color === "bw") return "bw";
+      if (color === "full colored" || color === "colored full" || color === "colored (full)") return "full";
+      if (color === "half colored" || color === "colored half" || color === "colored (half)") return "half";
+      return "";
+    }
+
+    function getClientPricePerPage() {
+      var paperKey = normalizePaperKey(paperSizeSelect.value || "");
+      var colorKey = normalizeColorKey(getSelectedColor());
+      var catalogPricing = window.servitechDocumentPrintPricing && typeof window.servitechDocumentPrintPricing === "object"
+        ? window.servitechDocumentPrintPricing
+        : {};
+
+      if (!paperKey || !colorKey) {
         return 0;
       }
 
-      if (colorOption === "colored full" || colorOption === "colored (full)") return 10;
-      if (colorOption === "colored half" || colorOption === "colored (half)" || colorOption === "black & white") return 5;
-      return 0;
+      var key = paperKey + "_" + colorKey + "_price";
+      var price = Number(catalogPricing[key]);
+      return Number.isFinite(price) && price > 0 ? price : 0;
     }
 
     function syncClientPricing() {
@@ -137,6 +156,19 @@
       }
 
       state.price_per_page = pricePerPage;
+    }
+
+    function updateColorPriceLabels() {
+      var paperKey = normalizePaperKey(paperSizeSelect.value || "") || "letter";
+      var catalogPricing = window.servitechDocumentPrintPricing && typeof window.servitechDocumentPrintPricing === "object"
+        ? window.servitechDocumentPrintPricing
+        : {};
+      ["full", "half", "bw"].forEach(function (colorKey) {
+        var el = document.querySelector('[data-doc-color-price="' + colorKey + '"]');
+        if (!el) return;
+        var price = Number(catalogPricing[paperKey + "_" + colorKey + "_price"]);
+        el.textContent = Number.isFinite(price) && price > 0 ? toPeso(price) : "Price to be confirmed";
+      });
     }
 
     function setEstimatedTotalDisplay(value, displayState) {
@@ -282,6 +314,7 @@
     }
 
     function updateOrderSummary() {
+      updateColorPriceLabels();
       syncClientPricing();
       var size = paperSizeSelect.value || "";
       var color = getSelectedColor();
@@ -1047,6 +1080,7 @@
       return {
         category: "printing",
         service_label: "Document Print",
+        catalog_service_id: Number(document.body && document.body.dataset ? document.body.dataset.catalogServiceId : 0) || null,
         paper_size: paperSizeSelect.value || null,
         quantity: getEnteredQuantity(),
         color_option: getSelectedColor(),
@@ -1168,11 +1202,9 @@
 
       paymentMethodSelect.value = draftState.payment_method || "";
       var restoredPaperSize = draftState.paper_size || "";
-      paperSizeSelect.value = [
-        "Short Bond (8.5 x 11)",
-        "Long Bond (8.5 x 13)",
-        "A4"
-      ].indexOf(restoredPaperSize) !== -1 ? restoredPaperSize : "";
+      if (restoredPaperSize === "Short Bond (8.5 x 11)") restoredPaperSize = "Letter";
+      if (restoredPaperSize === "Long Bond (8.5 x 13)") restoredPaperSize = "8.5x13";
+      paperSizeSelect.value = ["Letter", "8.5x13", "A4"].indexOf(restoredPaperSize) !== -1 ? restoredPaperSize : "";
       qtyInput.value = String(Math.max(1, parseInt(draftState.quantity, 10) || 1));
       if (notesInput) {
         notesInput.value = draftState.notes || "";

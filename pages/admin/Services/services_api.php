@@ -202,12 +202,21 @@ if ($action === "delete") {
     if ($id <= 0) {
         respond(["ok" => false, "error" => "Invalid id"]);
     }
-    $stmt = $pdo->prepare("
-      UPDATE services
-      SET active = FALSE, updated_at = NOW()
-      WHERE id = :id
-    ");
-    $stmt->execute([":id" => $id]);
+    try {
+        $stmt = $pdo->prepare("
+          UPDATE services
+          SET active = FALSE, archived_at = COALESCE(archived_at, NOW()), updated_at = NOW()
+          WHERE id = :id
+        ");
+        $stmt->execute([":id" => $id]);
+    } catch (Throwable $e) {
+        $stmt = $pdo->prepare("
+          UPDATE services
+          SET active = FALSE, updated_at = NOW()
+          WHERE id = :id
+        ");
+        $stmt->execute([":id" => $id]);
+    }
     respond(["ok" => true, "archived" => true]);
 }
 

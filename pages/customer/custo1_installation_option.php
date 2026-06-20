@@ -7,6 +7,27 @@ servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
+$installationServices = [];
+try {
+  $stmt = $pdo->prepare("
+    SELECT id, name, price, price_range
+    FROM services
+    WHERE category = 'installation'
+      AND active = TRUE
+    ORDER BY sort_order ASC, id ASC
+  ");
+  $stmt->execute();
+  $installationServices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+  $installationServices = [];
+}
+
+function installation_price_range_label(array $service): string {
+  $range = trim((string)($service["price_range"] ?? ""));
+  if ($range !== "") return $range;
+  if (isset($service["price"]) && is_numeric($service["price"])) return "PHP " . number_format((float)$service["price"], 2);
+  return "For assessment";
+}
 ?>
 
 <!DOCTYPE html>
@@ -39,13 +60,15 @@ $storeAvailability = servitech_store_current_availability($pdo);
           <label for="installationTypeSelect">Select Installation Type<span class="required">*</span></label>
           <select id="installationTypeSelect" class="form-select">
             <option value="" selected disabled>Select Installation/Software Service</option>
-            <option value="reprogram" data-min="1000" data-max="4000">Reprogram Service</option>
-            <option value="hang_logo_fix" data-min="1000" data-max="3500">Hang Logo Fix Service</option>
-            <option value="boot_loop_fix" data-min="1000" data-max="5000">Boot Loop Fix Service</option>
-            <option value="openline" data-min="3500" data-max="6000">Openline Samsung & iPhone</option>
-            <option value="bypass_google" data-min="500" data-max="2000">Bypass Google Account</option>
-            <option value="bypass_password" data-min="1000" data-max="3000">Bypass Password</option>
-            <option value="other_installation_request" data-price-range="Price to be assessed">Other Installation Request</option>
+            <?php foreach ($installationServices as $service):
+              $priceRange = installation_price_range_label($service);
+            ?>
+              <option value="<?= htmlspecialchars((string)$service["name"], ENT_QUOTES, "UTF-8") ?>"
+                      data-catalog-id="<?= (int)$service["id"] ?>"
+                      data-price-range="<?= htmlspecialchars($priceRange, ENT_QUOTES, "UTF-8") ?>">
+                <?= htmlspecialchars((string)$service["name"], ENT_QUOTES, "UTF-8") ?>
+              </option>
+            <?php endforeach; ?>
           </select>
         </div>
 
@@ -111,7 +134,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 </script>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260611-queue-success"></script>
+<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 
 </body>
 </html>

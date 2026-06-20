@@ -76,7 +76,7 @@ $_SESSION["print_order_form"] = [
 ];
 
 $errors = [];
-if (!in_array($paper_size, ["Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
+if (!in_array($paper_size, ["Letter", "8.5x13", "Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
   $errors[] = "Select a valid paper size.";
 }
 if ($quantity < 1) {

@@ -7,6 +7,27 @@ servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
+$repairServices = [];
+try {
+  $stmt = $pdo->prepare("
+    SELECT id, name, price, price_range
+    FROM services
+    WHERE category = 'repair'
+      AND active = TRUE
+    ORDER BY sort_order ASC, id ASC
+  ");
+  $stmt->execute();
+  $repairServices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+  $repairServices = [];
+}
+
+function repair_price_range_label(array $service): string {
+  $range = trim((string)($service["price_range"] ?? ""));
+  if ($range !== "") return $range;
+  if (isset($service["price"]) && is_numeric($service["price"])) return "PHP " . number_format((float)$service["price"], 2);
+  return "For assessment";
+}
 ?>
 
 <!DOCTYPE html>
@@ -39,14 +60,15 @@ $storeAvailability = servitech_store_current_availability($pdo);
           <label for="repairServiceSelect">Select Service<span class="required">*</span></label>
           <select class="form-select" id="repairServiceSelect">
             <option value="" selected disabled>Select Repair Service</option>
-            <option value="LCD Replacement" data-min="1200" data-max="5500">LCD Replacement</option>
-            <option value="Battery Replacement" data-min="700" data-max="2500">Battery Replacement</option>
-            <option value="Charging Pin Replacement" data-min="800" data-max="4000">Charging Pin Replacement</option>
-            <option value="Speaker / Mouthpiece Replacement" data-min="700" data-max="1500">Speaker / Mouthpiece Replacement</option>
-            <option value="Power Button Repair" data-min="500" data-max="2000">Power Button Repair</option>
-            <option value="Volume Repair" data-min="1000" data-max="2000">Volume Repair</option>
-            <option value="Part(s) Upgrade" data-min="1500" data-max="5000">Part(s) Upgrade</option>
-            <option value="Other Repair Request" data-price-range="Price to be assessed">Other Repair Request</option>
+            <?php foreach ($repairServices as $service):
+              $priceRange = repair_price_range_label($service);
+            ?>
+              <option value="<?= htmlspecialchars((string)$service["name"], ENT_QUOTES, "UTF-8") ?>"
+                      data-catalog-id="<?= (int)$service["id"] ?>"
+                      data-price-range="<?= htmlspecialchars($priceRange, ENT_QUOTES, "UTF-8") ?>">
+                <?= htmlspecialchars((string)$service["name"], ENT_QUOTES, "UTF-8") ?>
+              </option>
+            <?php endforeach; ?>
           </select>
         </div>
 
@@ -67,10 +89,9 @@ $storeAvailability = servitech_store_current_availability($pdo);
           <label for="deviceTypeSelect">Select Device Type<span class="required">*</span></label>
           <select class="form-select" id="deviceTypeSelect">
             <option value="" selected disabled>Select Device</option>
-            <option>Mobile Phone / Tablet</option>
+            <option>Phone</option>
             <option>Laptop</option>
             <option>Desktop</option>
-            <option>Other</option>
           </select>
 
           <label for="repairNotes">Additional Information/Other Request:</label>
@@ -103,7 +124,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260611-queue-success"></script>
+<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
 
 </body>
 </html>
