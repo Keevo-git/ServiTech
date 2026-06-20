@@ -23,6 +23,7 @@
   const fDescriptionHint = qs("#ms_description_hint");
   const catalogEditor = qs("#ms_catalogEditor");
   let currentCatalog = null;
+  let originalCatalogSnapshot = "";
 
   function showErr(msg){
     errBox.textContent = msg;
@@ -31,52 +32,9 @@
   }
   function hideErr(){ errBox.textContent=""; errBox.style.display="none"; }
 
-  function isDocumentPrintingService(category, name) {
-    const normalizedCategory = String(category || "").trim().toLowerCase();
-    const normalizedName = String(name || "").trim().toLowerCase();
-    return normalizedCategory === "printing" && normalizedName.includes("document") && normalizedName.includes("printing");
-  }
-
   function displayServiceName(name) {
     const value = String(name || "").trim();
     return value.toLowerCase() === "xerox" ? "Photocopy" : value;
-  }
-
-  function isXeroxService(category, name) {
-    const normalizedCategory = String(category || "").trim().toLowerCase();
-    const normalizedName = String(name || "").trim().toLowerCase();
-    return normalizedCategory === "printing" && (normalizedName.includes("xerox") || normalizedName.includes("photocopy"));
-  }
-
-  function isRushIdService(category, name) {
-    const normalizedCategory = String(category || "").trim().toLowerCase();
-    const normalizedName = String(name || "").trim().toLowerCase();
-    return normalizedCategory === "printing" && normalizedName.includes("rush") && normalizedName.includes("id");
-  }
-
-  function isLaminatingService(category, name) {
-    const normalizedCategory = String(category || "").trim().toLowerCase();
-    const normalizedName = String(name || "").trim().toLowerCase();
-    return normalizedCategory === "printing" && normalizedName.includes("laminat");
-  }
-
-  function parseMoneyValues(value) {
-    const matches = String(value || "").match(/[0-9]+(?:\.[0-9]+)?/g);
-    if (!matches) return [];
-    return matches
-      .map((item) => Number(item))
-      .filter((item) => Number.isFinite(item) && item >= 0)
-      .sort((a, b) => a - b);
-  }
-
-  function formatPlainPrice(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) return "";
-    return number.toFixed(2).replace(/\.00$/, "");
-  }
-
-  function formatPesoRange(low, high) {
-    return `\u20B1${formatPlainPrice(low)} - \u20B1${formatPlainPrice(high)}`;
   }
 
   function getFPriceMode() {
@@ -87,13 +45,6 @@
     if (!description) return null;
     const match = description.match(new RegExp(`${option}\\s*(?:/\\s*B&W)?\\s*[-\\u2013\\u2014]?\\s*\\u20B1?\\s*([0-9]+(?:\\.[0-9]+)?)`, "i"));
     return match ? match[1] : null;
-  }
-
-  function extractBlockPrice(description, blockName, option) {
-    const blocks = String(description || "").split(/\r?\n\s*\r?\n/);
-    const block = blocks.find((item) => item.toLowerCase().includes(blockName.toLowerCase()));
-    if (!block) return null;
-    return extractOptionPrice(block, option);
   }
 
   function replaceOptionPrice(description, option, newPrice) {
@@ -131,450 +82,13 @@
     setPriceForMode(priceMode.value, description, defaultPrice ?? "");
   }
 
-  function ensureDocumentPriceGrid() {
-    let grid = qs("#ms_documentPriceGrid");
-    if (grid) return grid;
-    if (!fPriceField || !fPriceField.parentNode || !fPriceField.parentNode.parentNode) return null;
-
-    grid = document.createElement("div");
-    grid.className = "ms-row2";
-    grid.id = "ms_documentPriceGrid";
-    grid.innerHTML = `
-      <div class="ms-field">
-        <label>Letter Full Colored Price</label>
-        <input id="ms_letter_full_price" type="text" value="10.00">
-      </div>
-      <div class="ms-field">
-        <label>Letter Half Colored Price</label>
-        <input id="ms_letter_half_price" type="text" value="5.00">
-      </div>
-      <div class="ms-field">
-        <label>Letter Black and White Price</label>
-        <input id="ms_letter_bw_price" type="text" value="5.00">
-      </div>
-      <div class="ms-field">
-        <label>8.5x13 Full Colored Price</label>
-        <input id="ms_long_full_price" type="text" value="10.00">
-      </div>
-      <div class="ms-field">
-        <label>8.5x13 Half Colored Price</label>
-        <input id="ms_long_half_price" type="text" value="5.00">
-      </div>
-      <div class="ms-field">
-        <label>8.5x13 Black and White Price</label>
-        <input id="ms_long_bw_price" type="text" value="5.00">
-      </div>
-      <div class="ms-field">
-        <label>A4 Full Colored Price</label>
-        <input id="ms_a4_full_price" type="text" value="10.00">
-      </div>
-      <div class="ms-field">
-        <label>A4 Half Colored Price</label>
-        <input id="ms_a4_half_price" type="text" value="5.00">
-      </div>
-      <div class="ms-field">
-        <label>A4 Black and White Price</label>
-        <input id="ms_a4_bw_price" type="text" value="5.00">
-      </div>
-    `;
-    fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
-    return grid;
-  }
-
-  function getDocumentPriceInput(selector) {
-    ensureDocumentPriceGrid();
-    return qs(selector);
-  }
-
-  function getDocumentPrices(data) {
-    let storedPrices = null;
-    if (data?.pricing_json) {
-      try {
-        storedPrices = typeof data.pricing_json === "string"
-          ? JSON.parse(data.pricing_json)
-          : data.pricing_json;
-      } catch (err) {
-        storedPrices = null;
-      }
-    }
-
-    const stored = storedPrices || {};
-    return {
-      letterFull: stored.letterFull ?? stored.shortFull ?? "10.00",
-      letterHalf: stored.letterHalf ?? stored.shortHalf ?? "5.00",
-      letterBw: stored.letterBw ?? stored.shortHalf ?? "5.00",
-      longFull: stored.longFull ?? "10.00",
-      longHalf: stored.longHalf ?? "5.00",
-      longBw: stored.longBw ?? stored.longHalf ?? "5.00",
-      a4Full: stored.a4Full ?? "10.00",
-      a4Half: stored.a4Half ?? "5.00",
-      a4Bw: stored.a4Bw ?? stored.a4Half ?? "5.00",
-    };
-  }
-
-  function getDocumentPriceValues() {
-    return {
-      letterFull: getDocumentPriceInput("#ms_letter_full_price")?.value.trim() || "",
-      letterHalf: getDocumentPriceInput("#ms_letter_half_price")?.value.trim() || "",
-      letterBw: getDocumentPriceInput("#ms_letter_bw_price")?.value.trim() || "",
-      longFull: getDocumentPriceInput("#ms_long_full_price")?.value.trim() || "",
-      longHalf: getDocumentPriceInput("#ms_long_half_price")?.value.trim() || "",
-      longBw: getDocumentPriceInput("#ms_long_bw_price")?.value.trim() || "",
-      a4Full: getDocumentPriceInput("#ms_a4_full_price")?.value.trim() || "",
-      a4Half: getDocumentPriceInput("#ms_a4_half_price")?.value.trim() || "",
-      a4Bw: getDocumentPriceInput("#ms_a4_bw_price")?.value.trim() || "",
-    };
-  }
-
-  function syncDocumentPriceRange() {
-    if (!fPriceRange) return;
-    const values = Object.values(getDocumentPriceValues()).map(Number).filter((value) => Number.isFinite(value));
-    if (!values.length) return;
-    fPriceRange.value = formatPesoRange(Math.min(...values), Math.max(...values));
-  }
-
-  function setDocumentPrintingUi(enabled, data) {
-    const grid = ensureDocumentPriceGrid();
-
-    if (fPriceModeField) fPriceModeField.style.display = enabled ? "none" : "";
-    if (fPriceField) fPriceField.style.display = enabled ? "none" : "";
-    if (grid) grid.style.display = enabled ? "" : "none";
-    if (fPriceLabel) fPriceLabel.textContent = "Price (optional)";
-
-    if (fPriceHint) {
-      fPriceHint.textContent = enabled
-        ? "Document Print uses fixed color prices for Long Bond, Short Bond, and A4."
-        : "Choose Full or Half when editing print price lines inside the description.";
-    }
-    if (fDescriptionHint) {
-      fDescriptionHint.textContent = enabled
-        ? "The customer page keeps the paper/color groups fixed and uses these price fields."
-        : "Use newline-separated entries. For Document Print, paper and color groups are fixed on the customer page.";
-    }
-
-    if (!enabled) return;
-
-    const prices = getDocumentPrices(data || {});
-    const inputMap = {
-      "#ms_long_full_price": prices.longFull,
-      "#ms_long_half_price": prices.longHalf,
-      "#ms_long_bw_price": prices.longBw,
-      "#ms_letter_full_price": prices.letterFull,
-      "#ms_letter_half_price": prices.letterHalf,
-      "#ms_letter_bw_price": prices.letterBw,
-      "#ms_a4_full_price": prices.a4Full,
-      "#ms_a4_half_price": prices.a4Half,
-      "#ms_a4_bw_price": prices.a4Bw,
-    };
-    Object.keys(inputMap).forEach((selector) => {
-      const input = getDocumentPriceInput(selector);
-      if (input) input.value = inputMap[selector];
-    });
-    if (fPrice) fPrice.value = prices.letterBw;
-    syncDocumentPriceRange();
-  }
-
-  function ensureXeroxPriceGrid() {
-    let grid = qs("#ms_xeroxPriceGrid");
-    if (grid) return grid;
-    if (!fPriceField || !fPriceField.parentNode || !fPriceField.parentNode.parentNode) return null;
-
-    grid = document.createElement("div");
-    grid.className = "ms-row2";
-    grid.id = "ms_xeroxPriceGrid";
-    grid.innerHTML = `
-      <div class="ms-field">
-        <label>Letter Colored Price</label>
-        <input id="ms_xerox_letter_colored_price" type="text" placeholder="e.g., 3.00">
-      </div>
-      <div class="ms-field">
-        <label>Letter Black and White Price</label>
-        <input id="ms_xerox_letter_bw_price" type="text" placeholder="e.g., 3.00">
-      </div>
-      <div class="ms-field">
-        <label>8.5x13 Colored Price</label>
-        <input id="ms_xerox_long_colored_price" type="text" placeholder="e.g., 5.00">
-      </div>
-      <div class="ms-field">
-        <label>8.5x13 Black and White Price</label>
-        <input id="ms_xerox_long_bw_price" type="text" placeholder="e.g., 5.00">
-      </div>
-      <div class="ms-field">
-        <label>A4 Colored Price</label>
-        <input id="ms_xerox_a4_colored_price" type="text" placeholder="e.g., 3.00">
-      </div>
-      <div class="ms-field">
-        <label>A4 Black and White Price</label>
-        <input id="ms_xerox_a4_bw_price" type="text" placeholder="e.g., 3.00">
-      </div>
-    `;
-    fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
-    return grid;
-  }
-
-  function getXeroxPriceInput(selector) {
-    ensureXeroxPriceGrid();
-    return qs(selector);
-  }
-
-  function getXeroxPrices(data) {
-    let storedPrices = null;
-    if (data?.pricing_json) {
-      try {
-        storedPrices = typeof data.pricing_json === "string"
-          ? JSON.parse(data.pricing_json)
-          : data.pricing_json;
-      } catch (err) {
-        storedPrices = null;
-      }
-    }
-
-    const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
-    const description = String(data?.description || fDesc?.value || "");
-    const low = rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : (data?.price || fPrice?.value || "3");
-    const high = rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "5";
-    const linePrice = (label) => {
-      const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const match = description.match(new RegExp(`${escaped}\\s*:?\\s*\\u20B1?\\s*([0-9]+(?:\\.[0-9]+)?)`, "i"));
-      return match ? match[1] : null;
-    };
-
-    return {
-      letterColored: storedPrices?.letterColored ?? storedPrices?.short ?? linePrice("Short Bond Paper") ?? low,
-      letterBw: storedPrices?.letterBw ?? storedPrices?.short ?? linePrice("Short Bond Paper") ?? low,
-      longColored: storedPrices?.longColored ?? storedPrices?.long ?? linePrice("Long Bond Paper") ?? high,
-      longBw: storedPrices?.longBw ?? storedPrices?.long ?? linePrice("Long Bond Paper") ?? high,
-      a4Colored: storedPrices?.a4Colored ?? storedPrices?.a4 ?? linePrice("A4") ?? low,
-      a4Bw: storedPrices?.a4Bw ?? storedPrices?.a4 ?? linePrice("A4") ?? low,
-    };
-  }
-
-  function getXeroxPriceValues() {
-    return {
-      letterColored: getXeroxPriceInput("#ms_xerox_letter_colored_price")?.value.trim() || "",
-      letterBw: getXeroxPriceInput("#ms_xerox_letter_bw_price")?.value.trim() || "",
-      longColored: getXeroxPriceInput("#ms_xerox_long_colored_price")?.value.trim() || "",
-      longBw: getXeroxPriceInput("#ms_xerox_long_bw_price")?.value.trim() || "",
-      a4Colored: getXeroxPriceInput("#ms_xerox_a4_colored_price")?.value.trim() || "",
-      a4Bw: getXeroxPriceInput("#ms_xerox_a4_bw_price")?.value.trim() || "",
-    };
-  }
-
-  function syncXeroxPriceRange() {
-    if (!fPriceRange) return;
-    const values = Object.values(getXeroxPriceValues()).map(Number).filter((value) => Number.isFinite(value));
-    if (!values.length) return;
-    fPriceRange.value = formatPesoRange(Math.min(...values), Math.max(...values));
-  }
-
-  function setXeroxUi(enabled, data) {
-    const grid = ensureXeroxPriceGrid();
-
-    if (grid) grid.style.display = enabled ? "" : "none";
-    if (!enabled) return;
-
-    if (fPriceModeField) fPriceModeField.style.display = "none";
-    if (fPriceField) fPriceField.style.display = "none";
-    if (fPriceHint) fPriceHint.textContent = "Photocopy uses one full price per paper size.";
-    if (fDescriptionHint) fDescriptionHint.textContent = "Description is optional. Paper prices are saved from the fields below.";
-
-    const prices = getXeroxPrices(data || {});
-    const inputMap = {
-      "#ms_xerox_letter_colored_price": prices.letterColored,
-      "#ms_xerox_letter_bw_price": prices.letterBw,
-      "#ms_xerox_long_colored_price": prices.longColored,
-      "#ms_xerox_long_bw_price": prices.longBw,
-      "#ms_xerox_a4_colored_price": prices.a4Colored,
-      "#ms_xerox_a4_bw_price": prices.a4Bw,
-    };
-    Object.keys(inputMap).forEach((selector) => {
-      const input = getXeroxPriceInput(selector);
-      if (input) input.value = inputMap[selector];
-    });
-    if (fPrice) fPrice.value = prices.letterBw;
-    syncXeroxPriceRange();
-  }
-
-  function ensureRushPackageGrid() {
-    let grid = qs("#ms_rushPackageGrid");
-    if (grid) return grid;
-    if (!fPriceField || !fPriceField.parentNode || !fPriceField.parentNode.parentNode) return null;
-
-    grid = document.createElement("div");
-    grid.className = "ms-row2";
-    grid.id = "ms_rushPackageGrid";
-    grid.innerHTML = [1, 2, 3, 4, 5, 6].map((number) => `
-      <div class="ms-field">
-        <label>Package ${number} Price</label>
-        <input id="ms_rush_package_${number}" type="text" placeholder="e.g., ${number === 1 ? "40.00" : "30.00"}">
-      </div>
-    `).join("");
-    fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
-    return grid;
-  }
-
-  function getRushPackageInput(number) {
-    ensureRushPackageGrid();
-    return qs(`#ms_rush_package_${number}`);
-  }
-
-  function getRushPackagePrices(data) {
-    let storedPrices = null;
-    if (data?.pricing_json) {
-      try {
-        storedPrices = typeof data.pricing_json === "string"
-          ? JSON.parse(data.pricing_json)
-          : data.pricing_json;
-      } catch (err) {
-        storedPrices = null;
-      }
-    }
-
-    const defaults = { package1: 40, package2: 30, package3: 30, package4: 50, package5: 30, package6: 50 };
-    const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
-    const low = rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : (data?.price || fPrice?.value || "30");
-    const high = rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "50";
-
-    return {
-      package1: storedPrices?.package1 ?? defaults.package1 ?? high,
-      package2: storedPrices?.package2 ?? defaults.package2 ?? low,
-      package3: storedPrices?.package3 ?? defaults.package3 ?? low,
-      package4: storedPrices?.package4 ?? defaults.package4 ?? high,
-      package5: storedPrices?.package5 ?? defaults.package5 ?? low,
-      package6: storedPrices?.package6 ?? defaults.package6 ?? high,
-    };
-  }
-
-  function getRushPackageValues() {
-    return {
-      package1: getRushPackageInput(1)?.value.trim() || "",
-      package2: getRushPackageInput(2)?.value.trim() || "",
-      package3: getRushPackageInput(3)?.value.trim() || "",
-      package4: getRushPackageInput(4)?.value.trim() || "",
-      package5: getRushPackageInput(5)?.value.trim() || "",
-      package6: getRushPackageInput(6)?.value.trim() || "",
-    };
-  }
-
-  function syncRushPackageRange() {
-    if (!fPriceRange) return;
-    const values = Object.values(getRushPackageValues()).map(Number).filter((value) => Number.isFinite(value));
-    if (!values.length) return;
-    fPriceRange.value = formatPesoRange(Math.min(...values), Math.max(...values));
-  }
-
-  function setRushIdUi(enabled, data) {
-    const grid = ensureRushPackageGrid();
-
-    if (grid) grid.style.display = enabled ? "" : "none";
-    if (!enabled) return;
-
-    if (fPriceModeField) fPriceModeField.style.display = "none";
-    if (fPriceField) fPriceField.style.display = "none";
-    if (fPriceHint) fPriceHint.textContent = "Rush ID package names stay fixed. Only package prices change.";
-    if (fDescriptionHint) fDescriptionHint.textContent = "Description is optional. Package prices are saved from the fields below.";
-
-    const prices = getRushPackagePrices(data || {});
-    [1, 2, 3, 4, 5, 6].forEach((number) => {
-      const input = getRushPackageInput(number);
-      if (input) input.value = prices[`package${number}`];
-    });
-    if (fPrice) fPrice.value = prices.package2;
-    syncRushPackageRange();
-  }
-
-  function ensureLaminatingPriceGrid() {
-    let grid = qs("#ms_laminatingPriceGrid");
-    if (grid) return grid;
-    if (!fPriceField || !fPriceField.parentNode || !fPriceField.parentNode.parentNode) return null;
-
-    grid = document.createElement("div");
-    grid.className = "ms-row2";
-    grid.id = "ms_laminatingPriceGrid";
-    grid.innerHTML = `
-      <div class="ms-field">
-        <label>Thin Price</label>
-        <input id="ms_laminating_thin_price" type="text" placeholder="e.g., 20.00">
-      </div>
-      <div class="ms-field">
-        <label>Thick Price</label>
-        <input id="ms_laminating_thick_price" type="text" placeholder="e.g., 30.00">
-      </div>
-    `;
-    fPriceField.parentNode.parentNode.insertBefore(grid, fPriceField.parentNode);
-    return grid;
-  }
-
-  function getLaminatingPriceInput(selector) {
-    ensureLaminatingPriceGrid();
-    return qs(selector);
-  }
-
-  function getLaminatingPrices(data) {
-    let storedPrices = null;
-    if (data?.pricing_json) {
-      try {
-        storedPrices = typeof data.pricing_json === "string"
-          ? JSON.parse(data.pricing_json)
-          : data.pricing_json;
-      } catch (err) {
-        storedPrices = null;
-      }
-    }
-
-    const rangeValues = parseMoneyValues(data?.price_range || fPriceRange?.value || "");
-    const description = String(data?.description || fDesc?.value || "");
-    const linePrice = (label) => {
-      const match = description.match(new RegExp(`${label}[^0-9]*([0-9]+(?:\\.[0-9]+)?)`, "i"));
-      return match ? match[1] : null;
-    };
-
-    return {
-      thin: storedPrices?.thin ?? linePrice("Thin") ?? linePrice("Manipis") ?? (rangeValues[0] !== undefined ? formatPlainPrice(rangeValues[0]) : (data?.price || fPrice?.value || "20")),
-      thick: storedPrices?.thick ?? linePrice("Thick") ?? linePrice("Makapal") ?? (rangeValues[rangeValues.length - 1] !== undefined ? formatPlainPrice(rangeValues[rangeValues.length - 1]) : "30"),
-    };
-  }
-
-  function getLaminatingPriceValues() {
-    return {
-      thin: getLaminatingPriceInput("#ms_laminating_thin_price")?.value.trim() || "",
-      thick: getLaminatingPriceInput("#ms_laminating_thick_price")?.value.trim() || "",
-    };
-  }
-
-  function syncLaminatingPriceRange() {
-    if (!fPriceRange) return;
-    const values = Object.values(getLaminatingPriceValues()).map(Number).filter((value) => Number.isFinite(value));
-    if (!values.length) return;
-    fPriceRange.value = formatPesoRange(Math.min(...values), Math.max(...values));
-  }
-
-  function setLaminatingUi(enabled, data) {
-    const grid = ensureLaminatingPriceGrid();
-
-    if (grid) grid.style.display = enabled ? "" : "none";
-    if (!enabled) return;
-
-    if (fPriceModeField) fPriceModeField.style.display = "none";
-    if (fPriceField) fPriceField.style.display = "none";
-    if (fPriceHint) fPriceHint.textContent = "Laminating uses one price for Thin and one price for Thick.";
-    if (fDescriptionHint) fDescriptionHint.textContent = "Description is optional. Thin/Thick prices are saved from the fields below.";
-
-    const prices = getLaminatingPrices(data || {});
-    const thinInput = getLaminatingPriceInput("#ms_laminating_thin_price");
-    const thickInput = getLaminatingPriceInput("#ms_laminating_thick_price");
-    if (thinInput) thinInput.value = prices.thin;
-    if (thickInput) thickInput.value = prices.thick;
-    if (fPrice) fPrice.value = prices.thin;
-    syncLaminatingPriceRange();
-  }
-
   function catalogKind(category, name) {
     const cat = String(category || "").toLowerCase();
     const label = String(name || "").toLowerCase();
     if (cat === "printing" && label.includes("document")) return "document_matrix";
     if (cat === "printing" && (label.includes("photocopy") || label.includes("xerox"))) return "photocopy_matrix";
     if (cat === "printing" && label.includes("rush") && label.includes("id")) return "package_list";
+    if (cat === "printing" && label.includes("laminat")) return "lamination_list";
     if (cat === "repair") return "repair_matrix";
     if (cat === "installation") return "installation_list";
     return "";
@@ -594,14 +108,8 @@
       return {
         groups: [
           { group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [
-            { value_key: "letter", label: "Letter", active: 1, sort_order: 0 },
-            { value_key: "8_5x13", label: "8.5x13", active: 1, sort_order: 1 },
-            { value_key: "a4", label: "A4", active: 1, sort_order: 2 },
           ] },
           { group_key: "color_option", name: "Color Option", active: 1, sort_order: 1, values: [
-            { value_key: "half_colored", label: "Half Colored", active: 1, sort_order: 0 },
-            { value_key: "full_colored", label: "Full Colored", active: 1, sort_order: 1 },
-            { value_key: "black_and_white", label: "Black and White", active: 1, sort_order: 2 },
           ] },
         ],
         rules: [],
@@ -611,13 +119,8 @@
       return {
         groups: [
           { group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [
-            { value_key: "letter", label: "Letter", active: 1, sort_order: 0 },
-            { value_key: "8_5x13", label: "8.5x13", active: 1, sort_order: 1 },
-            { value_key: "a4", label: "A4", active: 1, sort_order: 2 },
           ] },
           { group_key: "color_option", name: "Color Option", active: 1, sort_order: 1, values: [
-            { value_key: "colored", label: "Colored", active: 1, sort_order: 0 },
-            { value_key: "black_and_white", label: "Black and White", active: 1, sort_order: 1 },
           ] },
         ],
         rules: [],
@@ -626,13 +129,13 @@
     if (kind === "package_list") {
       return { groups: [{ group_key: "package", name: "Package", active: 1, sort_order: 0, values: [] }], rules: [] };
     }
+    if (kind === "lamination_list") {
+      return { groups: [{ group_key: "lamination_type", name: "Lamination Type", active: 1, sort_order: 0, values: [] }], rules: [] };
+    }
     if (kind === "repair_matrix") {
       return {
         groups: [
           { group_key: "device_type", name: "Device Type", active: 1, sort_order: 0, values: [
-            { value_key: "phone", label: "Phone", active: 1, sort_order: 0 },
-            { value_key: "laptop", label: "Laptop", active: 1, sort_order: 1 },
-            { value_key: "desktop", label: "Desktop", active: 1, sort_order: 2 },
           ] },
           { group_key: "repair_type", name: "Repair Type", active: 1, sort_order: 1, values: [] },
         ],
@@ -709,7 +212,8 @@
     return `
       <div class="ms-catalog-group" data-group-key="${group.group_key}">
         <div class="ms-catalog-group__head">
-          <strong>${group.name}</strong>
+          <input data-group-name value="${escapeHtml(group.name)}" aria-label="Option group name">
+          <label><input type="checkbox" data-group-active ${Number(group.active ?? 1) ? "checked" : ""}> Active</label>
           <button type="button" data-catalog-add-value="${group.group_key}">+ Add</button>
         </div>
         <div class="ms-catalog-values">
@@ -847,13 +351,17 @@
     if (!kind) {
       catalogEditor.innerHTML = "";
       currentCatalog = null;
+      originalCatalogSnapshot = "";
       return;
     }
     currentCatalog = normalizeCatalog(catalog, kind);
+    originalCatalogSnapshot = JSON.stringify(currentCatalog);
     if (kind === "document_matrix" || kind === "photocopy_matrix") {
       catalogEditor.innerHTML = renderMatrixEditor(kind);
     } else if (kind === "package_list") {
       catalogEditor.innerHTML = renderRuleList(kind, "package", "Rush ID Packages");
+    } else if (kind === "lamination_list") {
+      catalogEditor.innerHTML = renderRuleList(kind, "lamination_type", "Lamination Types");
     } else if (kind === "repair_matrix") {
       catalogEditor.innerHTML = renderRepairEditor();
     } else if (kind === "installation_list") {
@@ -881,6 +389,8 @@
     catalogEditor.querySelectorAll(".ms-catalog-group").forEach((groupEl) => {
       const groupKey = groupEl.dataset.groupKey;
       const group = groupByKey(groupKey);
+      group.name = groupEl.querySelector("[data-group-name]")?.value.trim() || group.name;
+      group.active = groupEl.querySelector("[data-group-active]")?.checked ? 1 : 0;
       groupEl.querySelectorAll(".ms-catalog-value").forEach((valueEl, index) => {
         const value = group.values[index];
         if (!value) return;
@@ -915,6 +425,41 @@
     });
 
     return currentCatalog;
+  }
+
+  function setCatalogManagedUi(kind) {
+    const managed = Boolean(kind);
+    if (fPriceModeField) fPriceModeField.style.display = managed ? "none" : "";
+    if (fPriceField) fPriceField.style.display = managed ? "none" : "";
+    if (fPriceHint) {
+      fPriceHint.textContent = managed
+        ? "Prices, options, packages, and combinations are managed in the catalog editor below."
+        : "Choose Full or Half when editing print price lines inside the description.";
+    }
+    if (fDescriptionHint) {
+      fDescriptionHint.textContent = managed
+        ? "Use the description for customer-facing notes only. Official selectable options and prices come from the catalog editor."
+        : "Use newline-separated entries for simple service notes.";
+    }
+  }
+
+  function catalogHasPricingChanges(catalog) {
+    if (!originalCatalogSnapshot || !catalog) return false;
+    let original;
+    try {
+      original = JSON.parse(originalCatalogSnapshot);
+    } catch (err) {
+      return false;
+    }
+    const keyFor = (rule) => JSON.stringify(rule.option_value_keys || rule.rule_key || "");
+    const originalRules = new Map((original.rules || []).map((rule) => [keyFor(rule), rule]));
+    return (catalog.rules || []).some((rule) => {
+      const before = originalRules.get(keyFor(rule));
+      if (!before) return true;
+      return String(before.price ?? "") !== String(rule.price ?? "")
+        || String(before.price_type ?? "") !== String(rule.price_type ?? "")
+        || Number(before.active ?? 1) !== Number(rule.active ?? 1);
+    });
   }
 
   catalogEditor?.addEventListener("click", (event) => {
@@ -972,17 +517,9 @@
 
     const priceValue = (data?.price ?? "") === null ? "" : (data?.price ?? "");
     fPrice.value = priceValue;
-    const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
-    const isXerox = isXeroxService(fCat.value, fName.value);
-    const isRushId = isRushIdService(fCat.value, fName.value);
-    const isLaminating = isLaminatingService(fCat.value, fName.value);
-    setDocumentPrintingUi(isDocumentPrinting, data);
-    setXeroxUi(isXerox, data);
-    setRushIdUi(isRushId, data);
-    setLaminatingUi(isLaminating, data);
-    if (!isDocumentPrinting && !isXerox && !isRushId && !isLaminating) syncPriceMode(fDesc.value, priceValue);
-
     const kind = catalogKind(fCat.value, fName.value);
+    setCatalogManagedUi(kind);
+    if (!kind) syncPriceMode(fDesc.value, priceValue);
     const catalog = data?.catalog || await fetchCatalog(data?.id || 0);
     renderCatalogEditor(kind, catalog);
   }
@@ -1036,67 +573,14 @@
 
   document.addEventListener("change", (event) => {
     if (event.target && event.target.id === "ms_priceMode") {
-      if (isDocumentPrintingService(fCat.value, fName.value)) return;
+      if (catalogKind(fCat.value, fName.value)) return;
       syncPriceMode(fDesc.value, fPrice.value);
     }
 
     if (event.target && (event.target.id === "ms_category" || event.target.id === "ms_name")) {
-      const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
-      const isXerox = isXeroxService(fCat.value, fName.value);
-      const isRushId = isRushIdService(fCat.value, fName.value);
-      const isLaminating = isLaminatingService(fCat.value, fName.value);
-      setDocumentPrintingUi(isDocumentPrinting);
-      setXeroxUi(isXerox);
-      setRushIdUi(isRushId);
-      setLaminatingUi(isLaminating);
-      renderCatalogEditor(catalogKind(fCat.value, fName.value), currentCatalog);
-    }
-  });
-
-  document.addEventListener("input", (event) => {
-    const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
-    const isXerox = isXeroxService(fCat.value, fName.value);
-    const isRushId = isRushIdService(fCat.value, fName.value);
-    const isLaminating = isLaminatingService(fCat.value, fName.value);
-    if (!event.target) return;
-
-    if (isDocumentPrinting && [
-      "ms_letter_full_price",
-      "ms_letter_half_price",
-      "ms_letter_bw_price",
-      "ms_long_full_price",
-      "ms_long_half_price",
-      "ms_long_bw_price",
-      "ms_a4_full_price",
-      "ms_a4_half_price",
-      "ms_a4_bw_price",
-    ].includes(event.target.id)) {
-      syncDocumentPriceRange();
-      return;
-    }
-
-    if (isXerox && [
-      "ms_xerox_letter_colored_price",
-      "ms_xerox_letter_bw_price",
-      "ms_xerox_long_colored_price",
-      "ms_xerox_long_bw_price",
-      "ms_xerox_a4_colored_price",
-      "ms_xerox_a4_bw_price",
-    ].includes(event.target.id)) {
-      syncXeroxPriceRange();
-      return;
-    }
-
-    if (isRushId && /^ms_rush_package_[1-6]$/.test(event.target.id)) {
-      syncRushPackageRange();
-      return;
-    }
-
-    if (isLaminating && [
-      "ms_laminating_thin_price",
-      "ms_laminating_thick_price",
-    ].includes(event.target.id)) {
-      syncLaminatingPriceRange();
+      const kind = catalogKind(fCat.value, fName.value);
+      setCatalogManagedUi(kind);
+      renderCatalogEditor(kind, currentCatalog);
     }
   });
 
@@ -1105,59 +589,24 @@
 
     const priceMode = getFPriceMode();
     let descriptionValue = fDesc.value.trim();
-    const isDocumentPrinting = isDocumentPrintingService(fCat.value, fName.value);
-    const isXerox = isXeroxService(fCat.value, fName.value);
-    const isRushId = isRushIdService(fCat.value, fName.value);
-    const isLaminating = isLaminatingService(fCat.value, fName.value);
-    if (isDocumentPrinting) {
-      const prices = getDocumentPriceValues();
-      const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
-      if (invalid) {
-        showErr("Enter valid Letter, 8.5x13, and A4 prices.");
+    const kind = catalogKind(fCat.value, fName.value);
+    let catalogPayload = null;
+
+    if (kind) {
+      catalogPayload = syncCatalogFromDom();
+      const invalidFixedRule = (catalogPayload?.rules || []).some((rule) => {
+        return Number(rule.active ?? 1) && rule.price_type === "fixed" && (rule.price === "" || !Number.isFinite(Number(rule.price)));
+      });
+      if (invalidFixedRule) {
+        showErr("Active fixed-price catalog rules must have a valid price, or set them to For assessment.");
         return;
       }
-
-      if (
-        Number(prices.letterFull) < Number(prices.letterHalf) ||
-        Number(prices.longFull) < Number(prices.longHalf) ||
-        Number(prices.a4Full) < Number(prices.a4Half)
-      ) {
-        showErr("Full Colored prices should be greater than or equal to Half Colored prices.");
+      if (catalogHasPricingChanges(catalogPayload) && !confirm("Save catalog pricing changes? New customer submissions will use the updated prices, while old queue/order records keep their saved snapshots.")) {
         return;
       }
-
-      syncDocumentPriceRange();
-      fPrice.value = prices.letterBw;
-    } else if (isXerox) {
-      const prices = getXeroxPriceValues();
-      const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
-      if (invalid) {
-        showErr("Enter valid photocopy prices for Letter, 8.5x13, and A4.");
+      if (fId.value && fActive.value === "0" && !confirm("Deactivate this service? Customers will no longer see it, but old queue/order records will remain readable.")) {
         return;
       }
-
-      syncXeroxPriceRange();
-      fPrice.value = prices.letterBw;
-    } else if (isRushId) {
-      const prices = getRushPackageValues();
-      const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
-      if (invalid) {
-        showErr("Enter valid prices for Rush ID packages 1-6.");
-        return;
-      }
-
-      syncRushPackageRange();
-      fPrice.value = prices.package2;
-    } else if (isLaminating) {
-      const prices = getLaminatingPriceValues();
-      const invalid = Object.values(prices).some((value) => value === "" || !Number.isFinite(Number(value)));
-      if (invalid) {
-        showErr("Enter valid Thin and Thick laminating prices.");
-        return;
-      }
-
-      syncLaminatingPriceRange();
-      fPrice.value = prices.thin;
     } else if (priceMode?.value === "full") {
       descriptionValue = replaceOptionPrice(descriptionValue, "Full", fPrice.value.trim());
     } else if (priceMode?.value === "half") {
@@ -1172,16 +621,6 @@
     fd.append("description", descriptionValue);
     fd.append("price", fPrice.value.trim());
     fd.append("price_range", fPriceRange ? fPriceRange.value.trim() : "");
-    if (isDocumentPrinting) {
-      fd.append("pricing_json", JSON.stringify(getDocumentPriceValues()));
-    } else if (isXerox) {
-      fd.append("pricing_json", JSON.stringify(getXeroxPriceValues()));
-    } else if (isRushId) {
-      fd.append("pricing_json", JSON.stringify(getRushPackageValues()));
-    } else if (isLaminating) {
-      fd.append("pricing_json", JSON.stringify(getLaminatingPriceValues()));
-    }
-    const catalogPayload = syncCatalogFromDom();
     if (catalogPayload) {
       fd.append("catalog_json", JSON.stringify(catalogPayload));
     }

@@ -9,14 +9,6 @@ require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
 
-$rushPricing = [
-  "package1" => 40.0,
-  "package2" => 30.0,
-  "package3" => 30.0,
-  "package4" => 50.0,
-  "package5" => 30.0,
-  "package6" => 50.0,
-];
 $rushCatalogServiceId = 0;
 $rushCatalogRules = [];
 
@@ -27,44 +19,9 @@ try {
     $rushCatalogServiceId = (int)($rushService["id"] ?? 0);
     $catalog = servitech_catalog_fetch($pdo, $rushCatalogServiceId, true);
     $rushCatalogRules = $catalog["rules"] ?? [];
-    $storedPricing = json_decode((string)($rushService["pricing_json"] ?? ""), true);
-    if (is_array($storedPricing)) {
-      foreach ($rushPricing as $key => $fallback) {
-        if (isset($storedPricing[$key]) && is_numeric($storedPricing[$key])) {
-          $rushPricing[$key] = max(0, (float)$storedPricing[$key]);
-        }
-      }
-    }
   }
 } catch (Throwable $e) {
   // Keep the Rush ID form usable if service pricing cannot be loaded.
-}
-
-if (empty($rushCatalogRules)) {
-  foreach ($rushPricing as $key => $price) {
-    $num = (int)str_replace("package", "", $key);
-    $rushCatalogRules[] = [
-      "id" => 0,
-      "rule_key" => $key,
-      "label" => "Package " . $num,
-      "description" => match ($num) {
-        1 => "1x1 (4pcs), 2x2 (2pcs)",
-        2 => "1x1 (6pcs)",
-        3 => "2x2 (4pcs)",
-        4 => "2x2 (4pcs), 1x1 (4pcs)",
-        5 => "Passport size (4pcs)",
-        default => "1x1 (10pcs)",
-      },
-      "price" => $price,
-      "price_type" => "fixed",
-      "active" => 1,
-      "option_value_keys" => ["package" => $key],
-    ];
-  }
-}
-
-function rush_price(array $pricing, string $key): string {
-  return number_format((float)($pricing[$key] ?? 0), 2, ".", "");
 }
 ?>
 
@@ -175,17 +132,20 @@ function rush_price(array $pricing, string $key): string {
             <select id="packageSelect" class="form-select">
               <option value="" selected disabled>Select a Package</option>
               <?php foreach ($rushCatalogRules as $rule):
-                $price = ($rule["price_type"] ?? "") === "fixed" ? (float)($rule["price"] ?? 0) : 0;
-                $priceLabel = ($rule["price_type"] ?? "") === "fixed" ? "&#8369;" . htmlspecialchars(number_format($price, 2), ENT_QUOTES, "UTF-8") : "For assessment";
+                $price = ($rule["price_type"] ?? "") === "fixed" && isset($rule["price"]) && is_numeric($rule["price"]) ? (float)$rule["price"] : null;
+                $priceLabel = $price !== null ? "&#8369;" . htmlspecialchars(number_format($price, 2), ENT_QUOTES, "UTF-8") : "For assessment";
               ?>
                 <option value="<?= htmlspecialchars((string)$rule["rule_key"], ENT_QUOTES, "UTF-8") ?>"
                         data-rule-id="<?= (int)($rule["id"] ?? 0) ?>"
-                        data-price="<?= htmlspecialchars(number_format($price, 2, ".", ""), ENT_QUOTES, "UTF-8") ?>">
+                        data-price="<?= $price !== null ? htmlspecialchars(number_format($price, 2, ".", ""), ENT_QUOTES, "UTF-8") : "" ?>">
                   <?= htmlspecialchars((string)($rule["label"] ?? "Package"), ENT_QUOTES, "UTF-8") ?>:
                   <?= htmlspecialchars((string)($rule["description"] ?? ""), ENT_QUOTES, "UTF-8") ?>
                   &mdash; <?= $priceLabel ?>
                 </option>
               <?php endforeach; ?>
+              <?php if (!$rushCatalogRules): ?>
+                <option value="" disabled>No active Rush ID packages available</option>
+              <?php endif; ?>
             </select>
 
             <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
@@ -296,10 +256,11 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script src="/assets/js/rush_id_upload.js?v=20260612-upload-limits"></script>
-<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
+<script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
 
 </body>
 </html>
+
 
 
 

@@ -89,7 +89,7 @@
 }
 .ms-modal{
   width:90%;
-  max-width:400px;
+  max-width:1080px;
   margin:auto;
   max-height:calc(100vh - 36px);
   background:#fff; border-radius:14px; overflow:hidden;
@@ -162,6 +162,10 @@
   gap:10px;
   margin-bottom:8px;
 }
+.ms-catalog-group__head input[data-group-name]{
+  flex:1;
+  min-width:160px;
+}
 .ms-catalog-group__head button,
 .ms-catalog-block > button{
   border:1px solid var(--maroon);
@@ -181,7 +185,7 @@
   margin-top:8px;
 }
 .ms-catalog-rule{
-  grid-template-columns:repeat(2,minmax(130px,1fr)) minmax(90px,.6fr) minmax(120px,.8fr) auto 70px;
+  grid-template-columns:repeat(2,minmax(130px,1fr)) minmax(90px,.6fr) minmax(120px,.8fr) auto 80px;
 }
 .ms-catalog-value input,
 .ms-catalog-value select,
@@ -246,7 +250,7 @@
 
 @media (max-width: 600px) {
   .ms-card,
-  .ms-modal{
+  .ms-card{
     padding:15px;
   }
 

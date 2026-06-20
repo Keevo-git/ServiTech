@@ -3,77 +3,6 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
 
-try {
-  // Seed default services if table is empty
-  $countStmt = $pdo->query("SELECT COUNT(*) FROM services");
-  $count = (int)($countStmt->fetchColumn() ?: 0);
-  
-  if ($count === 0) {
-    $seedData = [
-      // Print Services
-      ['printing', 'Document Print', "Short Bond Paper (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nShort Bond Paper (B&W)\n₱5.00\n\nA4 (Colored)\nFull – ₱10.00\nHalf – ₱5.00\n\nA4 (B&W)\n₱5.00", 5.00, 1, 0],
-      ['printing', 'Photocopy', "Long Bond Paper: ₱5\nShort Bond Paper: ₱3\nA4: ₱3", 3.00, 1, 1],
-      ['printing', 'Rush ID', "Choose between packages 1-6.\nPrice varies by selected package.", 30.00, 1, 2],
-      ['printing', 'Laminating', "Manipis / Thin: ₱20\nMakapal / Thick: ₱30", 20.00, 1, 3],
-      // Repair Services
-      ['repair', 'LCD Replacement', "For mobile phones and laptops.\nPrice range: ₱1200 – ₱5500", 1200.00, 1, 0],
-      ['repair', 'Battery Replacement', "For mobile phones and laptops.\nPrice range: ₱700 – ₱2500", 700.00, 1, 1],
-      ['repair', 'Charging Pin Replacement', "For mobile phones and laptops.\nPrice range: ₱800 – ₱4000", 800.00, 1, 2],
-      ['repair', 'Speaker / Mouthpiece Replacement', "For mobile phones and laptops.\nPrice range: ₱700 – ₱1500", 700.00, 1, 3],
-      ['repair', 'Power Button Repair', "For mobile phones and laptops.\nPrice range: ₱500 – ₱2000", 500.00, 1, 4],
-      ['repair', 'Volume Repair', "For mobile phones and laptops.\nPrice range: ₱1000 – ₱2000", 1000.00, 1, 5],
-      ['repair', 'Camera Repair', "For mobile phones and laptops.\nPrice range: ₱1500 – ₱5000", 1500.00, 1, 6],
-      // Installation Services
-      ['installation', 'Reprogram Service', 'Price range: ₱1000 – ₱4000', 1000.00, 1, 0],
-      ['installation', 'Hang Logo Fix Service', 'Price range: ₱1000 – ₱3500', 1000.00, 1, 1],
-      ['installation', 'Boot Loop Fix Service', 'Price range: ₱1000 – ₱5000', 1000.00, 1, 2],
-      ['installation', 'Openline Samsung & iPhone', 'Price range: ₱3500 – ₱6000', 3500.00, 1, 3],
-      ['installation', 'Bypass Google Account', 'Price range: ₱500 – ₱2000', 500.00, 1, 4],
-      ['installation', 'Bypass Password', 'Price range: ₱1000 – ₱3000', 1000.00, 1, 5],
-    ];
-    
-    $insertStmt = $pdo->prepare("
-      INSERT INTO services (category, name, description, price, price_range, active, sort_order)
-      VALUES (:category, :name, :description, :price, :price_range, :active, :sort_order)
-    ");
-    
-    foreach ($seedData as [$category, $name, $description, $price, $active, $sort_order]) {
-      $insertStmt->execute([
-        ':category' => $category,
-        ':name' => $name,
-        ':description' => $description,
-        ':price' => $price,
-        ':price_range' => '',
-        ':active' => $active,
-        ':sort_order' => $sort_order,
-      ]);
-    }
-  }
-  $pdo->exec("
-    UPDATE services
-    SET price_range = CASE
-      WHEN category = 'printing' AND LOWER(name) LIKE '%document%printing%' THEN '₱5 – ₱10'
-      WHEN category = 'printing' AND (LOWER(name) LIKE '%xerox%' OR LOWER(name) LIKE '%photocopy%') THEN '₱3 – ₱5'
-      WHEN category = 'printing' AND LOWER(name) LIKE '%rush%id%' THEN '₱30 – ₱50'
-      WHEN category = 'printing' AND LOWER(name) LIKE '%laminat%' THEN '₱20 – ₱30'
-      WHEN category = 'repair' AND LOWER(name) LIKE '%lcd%' THEN '₱1200 – ₱5500'
-      WHEN category = 'repair' AND LOWER(name) LIKE '%battery%' THEN '₱700 – ₱2500'
-      WHEN category = 'repair' AND LOWER(name) LIKE '%charging%' THEN '₱800 – ₱4000'
-      WHEN category = 'repair' AND (LOWER(name) LIKE '%speaker%' OR LOWER(name) LIKE '%mouthpiece%') THEN '₱700 – ₱1500'
-      WHEN category = 'repair' AND LOWER(name) LIKE '%power%' THEN '₱500 – ₱2000'
-      WHEN category = 'repair' AND LOWER(name) LIKE '%volume%' THEN '₱1000 – ₱2000'
-      WHEN category = 'repair' AND LOWER(name) LIKE '%camera%' THEN '₱1500 – ₱5000'
-      WHEN category = 'installation' AND LOWER(name) LIKE '%reprogram%' THEN '₱1000 – ₱4000'
-      WHEN category = 'installation' AND LOWER(name) LIKE '%hang logo%' THEN '₱1000 – ₱3500'
-      WHEN category = 'installation' AND LOWER(name) LIKE '%boot%' THEN '₱1000 – ₱5000'
-      WHEN category = 'installation' AND LOWER(name) LIKE '%openline%' THEN '₱3500 – ₱6000'
-      WHEN category = 'installation' AND LOWER(name) LIKE '%google%' THEN '₱500 – ₱2000'
-      WHEN category = 'installation' AND LOWER(name) LIKE '%password%' THEN '₱1000 – ₱3000'
-      ELSE price_range
-    END
-    WHERE price_range = ''
-  ");
-} catch (Throwable $e) {}
 
 $tab = $_GET["tab"] ?? "printing";
 if (!in_array($tab, ["printing","repair","installation"], true)) $tab = "printing";
@@ -225,13 +154,13 @@ require __DIR__ . "/../_includes/admin_header.php";
 
       <div class="ms-field">
         <label>Description</label>
-        <textarea id="ms_description" placeholder="Short Bond Paper (Colored)\nFull - 10.00\nHalf - 5.00\n\nShort Bond Paper (B&W)\n5.00"></textarea>
-        <small id="ms_description_hint">Use newline-separated entries. For Document Print, paper and color groups are fixed on the customer page.</small>
+        <textarea id="ms_description" placeholder="Short customer-facing note for this service"></textarea>
+        <small id="ms_description_hint">Use the catalog editor for selectable options and pricing.</small>
       </div>
 
       <div class="ms-field">
         <label>Price Range</label>
-        <input id="ms_price_range" type="text" placeholder="e.g., ₱1000 – ₱5000">
+        <input id="ms_price_range" type="text" placeholder="e.g., PHP 1000 - PHP 5000">
         <small>This appears on the landing page service card.</small>
       </div>
 
@@ -250,7 +179,7 @@ require __DIR__ . "/../_includes/admin_header.php";
         </div>
       </div>
       <div class="ms-field">
-        <small id="ms_price_hint">Choose Full or Half when editing print price lines inside the description.</small>
+        <small id="ms_price_hint">Use the catalog editor below for dynamic service pricing.</small>
       </div>
 
       <div class="ms-field">
@@ -279,11 +208,12 @@ require __DIR__ . "/../_includes/admin_header.php";
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260620-service-catalog') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260620-dynamic-catalog') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
 </html>
+
 
 

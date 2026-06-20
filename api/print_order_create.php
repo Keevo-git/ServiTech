@@ -70,13 +70,14 @@ $color_option = trim((string)($draft["color_option"] ?? ""));
 $file_name = trim((string)($draft["file_name"] ?? ""));
 $payment_method = strtolower(trim((string)($draft["payment_method"] ?? "")));
 $reference_number = trim((string)($_POST["reference_number"] ?? ""));
+$catalog_pricing_rule_id = isset($draft["catalog_pricing_rule_id"]) ? max(0, (int)$draft["catalog_pricing_rule_id"]) : 0;
 
 $_SESSION["print_order_form"] = [
   "reference_number" => $reference_number,
 ];
 
 $errors = [];
-if (!in_array($paper_size, ["Letter", "8.5x13", "Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
+if ($catalog_pricing_rule_id <= 0 && !in_array($paper_size, ["Letter", "8.5x13", "Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
   $errors[] = "Select a valid paper size.";
 }
 if ($quantity < 1) {
@@ -120,7 +121,7 @@ $details = [
   "file_analysis" => isset($draft["file_analysis"]) && is_array($draft["file_analysis"]) ? $draft["file_analysis"] : [],
   "uploaded_files" => isset($draft["uploaded_files"]) && is_array($draft["uploaded_files"]) ? $draft["uploaded_files"] : [],
   "catalog_service_id" => isset($draft["catalog_service_id"]) ? max(0, (int)$draft["catalog_service_id"]) : null,
-  "catalog_pricing_rule_id" => isset($draft["catalog_pricing_rule_id"]) ? max(0, (int)$draft["catalog_pricing_rule_id"]) : null,
+  "catalog_pricing_rule_id" => $catalog_pricing_rule_id ?: null,
 ];
 
 foreach ($details as $key => $value) {

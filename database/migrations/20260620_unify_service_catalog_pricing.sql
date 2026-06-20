@@ -61,11 +61,13 @@ DECLARE
   document_id BIGINT;
   photocopy_id BIGINT;
   rush_id BIGINT;
+  lamination_id BIGINT;
   repair_id BIGINT;
   installation_id BIGINT;
   paper_group BIGINT;
   color_group BIGINT;
   package_group BIGINT;
+  lamination_group BIGINT;
   device_group BIGINT;
   repair_group BIGINT;
   install_group BIGINT;
@@ -112,10 +114,15 @@ BEGIN
   ORDER BY active DESC, sort_order ASC, id ASC LIMIT 1;
   UPDATE services SET active = TRUE, name = 'Rush ID', description = 'Rush ID packages.', updated_at = NOW() WHERE id = rush_id;
 
-  UPDATE services
-  SET active = FALSE, archived_at = COALESCE(archived_at, NOW()), updated_at = NOW()
-  WHERE category = 'printing'
-    AND LOWER(name) LIKE '%laminat%';
+  INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
+  SELECT 'printing', 'Lamination', 'Lamination priced by lamination type.', 20, 'PHP 20 - PHP 30', '{}'::jsonb, TRUE, 3
+  WHERE NOT EXISTS (
+    SELECT 1 FROM services WHERE category = 'printing' AND LOWER(name) LIKE '%laminat%'
+  );
+  SELECT id INTO lamination_id FROM services
+  WHERE category = 'printing' AND LOWER(name) LIKE '%laminat%'
+  ORDER BY active DESC, sort_order ASC, id ASC LIMIT 1;
+  UPDATE services SET active = TRUE, name = 'Lamination', description = 'Lamination priced by lamination type.', updated_at = NOW() WHERE id = lamination_id;
 
   INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
   SELECT 'repair', 'Device Repair', 'Repair priced by device type and repair type.', NULL, 'For assessment', '{}'::jsonb, TRUE, 0
@@ -261,6 +268,25 @@ BEGIN
     )
     ON CONFLICT (service_id, rule_key) DO UPDATE SET option_value_ids = EXCLUDED.option_value_ids, label = EXCLUDED.label, description = EXCLUDED.description, price = EXCLUDED.price, price_type = EXCLUDED.price_type, active = TRUE, archived_at = NULL, sort_order = EXCLUDED.sort_order, updated_at = NOW();
   END LOOP;
+
+  INSERT INTO service_option_groups (service_id, group_key, name, sort_order)
+  VALUES (lamination_id, 'lamination_type', 'Lamination Type', 0)
+  ON CONFLICT (service_id, group_key) DO UPDATE SET name = EXCLUDED.name, active = TRUE, archived_at = NULL, sort_order = EXCLUDED.sort_order, updated_at = NOW()
+  RETURNING id INTO lamination_group;
+
+  INSERT INTO service_option_values (group_id, value_key, label, sort_order) VALUES
+    (lamination_group, 'thin', 'Thin', 0),
+    (lamination_group, 'thick', 'Thick', 1)
+  ON CONFLICT (group_id, value_key) DO UPDATE SET label = EXCLUDED.label, active = TRUE, archived_at = NULL, sort_order = EXCLUDED.sort_order, updated_at = NOW();
+
+  INSERT INTO service_pricing_rules (service_id, rule_key, option_value_ids, label, price, price_type, sort_order)
+  SELECT lamination_id, value_key, jsonb_build_object('lamination_type', id), label,
+         CASE value_key WHEN 'thin' THEN COALESCE((SELECT (pricing_json->>'thin')::numeric FROM services WHERE id = lamination_id), 20) ELSE COALESCE((SELECT (pricing_json->>'thick')::numeric FROM services WHERE id = lamination_id), 30) END,
+         'fixed',
+         sort_order
+  FROM service_option_values
+  WHERE group_id = lamination_group
+  ON CONFLICT (service_id, rule_key) DO UPDATE SET option_value_ids = EXCLUDED.option_value_ids, label = EXCLUDED.label, price = EXCLUDED.price, price_type = EXCLUDED.price_type, active = TRUE, archived_at = NULL, sort_order = EXCLUDED.sort_order, updated_at = NOW();
 
   INSERT INTO service_option_groups (service_id, group_key, name, sort_order)
   VALUES (repair_id, 'device_type', 'Device Type', 0)

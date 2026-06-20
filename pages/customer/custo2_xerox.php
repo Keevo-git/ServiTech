@@ -59,19 +59,6 @@ try {
   // Keep the photocopy form usable if service pricing cannot be loaded.
 }
 
-if (empty($xeroxPaperOptions)) {
-  $xeroxPaperOptions = [
-    ["value_key" => "letter", "label" => "Letter"],
-    ["value_key" => "8_5x13", "label" => "8.5x13"],
-    ["value_key" => "a4", "label" => "A4"],
-  ];
-}
-if (empty($xeroxColorOptions)) {
-  $xeroxColorOptions = [
-    ["value_key" => "colored", "label" => "Colored"],
-    ["value_key" => "black_and_white", "label" => "Black and White"],
-  ];
-}
 ?>
 
 <!DOCTYPE html>
@@ -114,6 +101,9 @@ if (empty($xeroxColorOptions)) {
                     <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
                   </option>
                 <?php endforeach; ?>
+                <?php if (!$xeroxPaperOptions): ?>
+                  <option value="" disabled>No active paper sizes available</option>
+                <?php endif; ?>
               </select>
 
             <label>Color Option<span class="required">*</span></label>
@@ -126,6 +116,9 @@ if (empty($xeroxColorOptions)) {
                   <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
                 </label>
               <?php endforeach; ?>
+              <?php if (!$xeroxColorOptions): ?>
+                <p class="form-note">No active color options available.</p>
+              <?php endif; ?>
             </div>
 
             <label for="qtyInput">Quantity / Copies<span class="required">*</span></label>
@@ -205,10 +198,11 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechXeroxPricing = <?= json_encode($xeroxPricing, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.servitechCatalogRules = <?= json_encode($xeroxCatalogRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
+<script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
 
 </body>
 </html>
+
 
 
 

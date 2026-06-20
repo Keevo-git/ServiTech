@@ -5,42 +5,35 @@ servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
 
-$laminatingPricing = [
-  "thin" => 20.0,
-  "thick" => 30.0,
-];
 $laminatingCatalogServiceId = 0;
+$laminatingCatalogRules = [];
 
-function laminating_price(array $pricing, string $key): string {
-  return number_format((float)($pricing[$key] ?? 0), 2, ".", "");
+function laminating_rule_price_attr(array $rule): string {
+  if (($rule["price_type"] ?? "") === "assessment" || !isset($rule["price"]) || !is_numeric($rule["price"])) {
+    return "";
+  }
+  return number_format(max(0, (float)$rule["price"]), 2, ".", "");
+}
+
+function laminating_rule_option_value(array $rule): string {
+  return (string)($rule["option_value_keys"]["lamination_type"] ?? $rule["rule_key"] ?? "");
+}
+
+function laminating_rule_label(array $rule): string {
+  $label = trim((string)($rule["option_labels"]["lamination_type"] ?? $rule["label"] ?? ""));
+  return $label !== "" ? $label : "Lamination option";
 }
 
 try {
-  $laminatingStmt = $pdo->prepare("
-    SELECT id, price, pricing_json::text AS pricing_json
-    FROM services
-    WHERE category = 'printing'
-      AND LOWER(name) LIKE '%laminat%'
-      AND active = TRUE
-    ORDER BY sort_order ASC, id ASC
-    LIMIT 1
-  ");
-  $laminatingStmt->execute();
-  $laminatingService = $laminatingStmt->fetch(PDO::FETCH_ASSOC);
-
-  if (is_array($laminatingService)) {
+  $laminatingService = servitech_catalog_fetch_service_by_kind($pdo, "laminating", true);
+  if ($laminatingService) {
     $laminatingCatalogServiceId = (int)($laminatingService["id"] ?? 0);
-    $storedPricing = json_decode((string)($laminatingService["pricing_json"] ?? ""), true);
-    if (is_array($storedPricing)) {
-      foreach ($laminatingPricing as $key => $fallback) {
-        if (isset($storedPricing[$key]) && is_numeric($storedPricing[$key])) {
-          $laminatingPricing[$key] = max(0, (float)$storedPricing[$key]);
-        }
-      }
-    }
+    $catalog = servitech_catalog_fetch($pdo, $laminatingCatalogServiceId, true);
+    $laminatingCatalogRules = $catalog["rules"] ?? [];
   }
 } catch (Throwable $e) {
   // Keep the Laminating form usable if service pricing cannot be loaded.
@@ -81,8 +74,18 @@ try {
             <label for="lamTypeSelect">Lamination Type<span class="required">*</span></label>
             <select class="form-select" id="lamTypeSelect">
               <option value="" selected disabled>Select lamination type</option>
-              <option value="thin" data-price="<?= laminating_price($laminatingPricing, "thin") ?>">Thin (Manipis) &mdash; &#8369;<?= laminating_price($laminatingPricing, "thin") ?></option>
-              <option value="thick" data-price="<?= laminating_price($laminatingPricing, "thick") ?>">Thick (Makapal) &mdash; &#8369;<?= laminating_price($laminatingPricing, "thick") ?></option>
+              <?php foreach ($laminatingCatalogRules as $rule): ?>
+                <?php
+                  $ruleValue = laminating_rule_option_value($rule);
+                  $rulePrice = laminating_rule_price_attr($rule);
+                  $ruleText = laminating_rule_label($rule);
+                  $priceLabel = $rulePrice !== "" ? ("PHP " . $rulePrice) : "For assessment";
+                ?>
+                <option value="<?= htmlspecialchars($ruleValue, ENT_QUOTES, "UTF-8") ?>" data-rule-id="<?= (int)($rule["id"] ?? 0) ?>" data-price="<?= htmlspecialchars($rulePrice, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($ruleText . " - " . $priceLabel, ENT_QUOTES, "UTF-8") ?></option>
+              <?php endforeach; ?>
+              <?php if (!$laminatingCatalogRules): ?>
+                <option value="" disabled>No active lamination options available</option>
+              <?php endif; ?>
             </select>
 
             <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
@@ -155,10 +158,11 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
+<script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
 
 </body>
 </html>
+
 
 
 

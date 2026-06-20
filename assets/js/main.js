@@ -61,14 +61,6 @@ function formatServicePriceRange(priceRange) {
   return /^price\s*range\s*:/i.test(value) ? value : `Price Range: ${value}`;
 }
 
-function parseServiceMoneyValues(value) {
-  return String(value || "")
-    .match(/\d+(?:\.\d+)?/g)
-    ?.map((item) => Number(item))
-    .filter((item) => Number.isFinite(item) && item >= 0)
-    .sort((a, b) => a - b) || [];
-}
-
 function formatPesoPrice(value) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "";
@@ -106,31 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initServiceFormPriceCard("installationTypeSelect", "installationPriceRange", "Choose an installation service");
 });
 
-function getXeroxPriceMap() {
-  const pricing = window.servitechXeroxPricing || {};
-  return {
-    Letter: {
-      colored: Number(pricing.letterColored ?? pricing.short ?? 3) || 3,
-      bw: Number(pricing.letterBw ?? pricing.short ?? 3) || 3,
-    },
-    "8.5x13": {
-      colored: Number(pricing.longColored ?? pricing.long ?? 5) || 5,
-      bw: Number(pricing.longBw ?? pricing.long ?? 5) || 5,
-    },
-    A4: {
-      colored: Number(pricing.a4Colored ?? pricing.a4 ?? 3) || 3,
-      bw: Number(pricing.a4Bw ?? pricing.a4 ?? 3) || 3,
-    },
-  };
-}
-
-function normalizeCatalogColor(value) {
-  const color = String(value || "").trim().toLowerCase();
-  if (["black & white", "black and white", "bw"].includes(color)) return "bw";
-  if (["colored", "color"].includes(color)) return "colored";
-  return color;
-}
-
 function servitechCatalogRules() {
   return Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : [];
 }
@@ -160,121 +127,11 @@ function formatCatalogRuleDisplayPrice(rule) {
   return Number.isFinite(price) ? formatPesoPrice(price) : "For assessment";
 }
 
-function getDocumentBlockPrice(description, blockName, option) {
-  const blocks = String(description || "").split(/\r?\n\s*\r?\n/);
-  const block = blocks.find((item) => item.toLowerCase().includes(blockName.toLowerCase()));
-  if (!block) return null;
-  const match = block.match(new RegExp(`\\b${option}\\s*(?:/\\s*B&W)?\\s*[-\\u2013\\u2014]?\\s*\\u20B1?\\s*(\\d+(?:\\.\\d+)?)`, "i"));
-  return match ? Number(match[1]) : null;
-}
-
-function getDocumentPrintingPrices(service) {
-  let storedPrices = null;
-  if (service?.pricing_json) {
-    try {
-      storedPrices = typeof service.pricing_json === "string"
-        ? JSON.parse(service.pricing_json)
-        : service.pricing_json;
-    } catch (error) {
-      storedPrices = null;
-    }
-  }
-
-  const rangePrices = parseServiceMoneyValues(service?.price_range);
-  const description = String(service?.description || "");
-  const defaultPrice = rangePrices[0] ?? Number(service?.price) ?? 5;
-  const highPrice = rangePrices[rangePrices.length - 1] ?? Math.max(defaultPrice, 10);
-
-  return {
-    letterFull: storedPrices?.letterFull ?? storedPrices?.shortFull ?? getDocumentBlockPrice(description, "Short Bond", "Full") ?? highPrice,
-    letterHalf: storedPrices?.letterHalf ?? storedPrices?.shortHalf ?? getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
-    letterBw: storedPrices?.letterBw ?? storedPrices?.shortHalf ?? getDocumentBlockPrice(description, "Short Bond", "Half") ?? defaultPrice,
-    longFull: storedPrices?.longFull ?? getDocumentBlockPrice(description, "Long Bond", "Full") ?? highPrice,
-    longHalf: storedPrices?.longHalf ?? getDocumentBlockPrice(description, "Long Bond", "Half") ?? defaultPrice,
-    longBw: storedPrices?.longBw ?? storedPrices?.longHalf ?? getDocumentBlockPrice(description, "Long Bond", "Half") ?? defaultPrice,
-    a4Full: storedPrices?.a4Full ?? getDocumentBlockPrice(description, "A4", "Full") ?? highPrice,
-    a4Half: storedPrices?.a4Half ?? getDocumentBlockPrice(description, "A4", "Half") ?? defaultPrice,
-    a4Bw: storedPrices?.a4Bw ?? storedPrices?.a4Half ?? getDocumentBlockPrice(description, "A4", "Half") ?? defaultPrice,
-  };
-}
-
-function buildDocumentPrintingDetailCards(service) {
-  const prices = getDocumentPrintingPrices(service);
-  const longFullLine = `Full - ${formatPesoPrice(prices.longFull)}`;
-  const longHalfLine = `Half - ${formatPesoPrice(prices.longHalf)}`;
-  const letterFullLine = `Full Colored - ${formatPesoPrice(prices.letterFull)}`;
-  const letterHalfLine = `Half Colored - ${formatPesoPrice(prices.letterHalf)}`;
-  const letterBwLine = `Black and White - ${formatPesoPrice(prices.letterBw)}`;
-  const longBwLine = `Black and White - ${formatPesoPrice(prices.longBw)}`;
-  const a4FullLine = `Full - ${formatPesoPrice(prices.a4Full)}`;
-  const a4HalfLine = `Half - ${formatPesoPrice(prices.a4Half)}`;
-  const a4BwLine = `Black and White - ${formatPesoPrice(prices.a4Bw)}`;
-
-  return [
-    { title: "Letter", icon: "print", lines: [letterFullLine, letterHalfLine, letterBwLine] },
-    { title: "8.5x13", icon: "print", lines: [longFullLine, longHalfLine, longBwLine] },
-    { title: "A4", icon: "print", lines: [a4FullLine, a4HalfLine, a4BwLine] },
-  ];
-}
-
-function getRushIdPackagePrices(service) {
-  let storedPrices = null;
-  if (service?.pricing_json) {
-    try {
-      storedPrices = typeof service.pricing_json === "string"
-        ? JSON.parse(service.pricing_json)
-        : service.pricing_json;
-    } catch (error) {
-      storedPrices = null;
-    }
-  }
-
-  return {
-    package1: storedPrices?.package1 ?? 40,
-    package2: storedPrices?.package2 ?? 30,
-    package3: storedPrices?.package3 ?? 30,
-    package4: storedPrices?.package4 ?? 50,
-    package5: storedPrices?.package5 ?? 30,
-    package6: storedPrices?.package6 ?? 50,
-  };
-}
-
-function buildRushIdDetailCards(service) {
-  const prices = getRushIdPackagePrices(service);
-  return [
-    { title: "Package 1", icon: "id", price: formatPesoPrice(prices.package1), lines: ["1x1 (4pcs)", "2x2 (2pcs)"] },
-    { title: "Package 2", icon: "id", price: formatPesoPrice(prices.package2), lines: ["1x1 (6pcs)"] },
-    { title: "Package 3", icon: "id", price: formatPesoPrice(prices.package3), lines: ["2x2 (4pcs)"] },
-    { title: "Package 4", icon: "id", price: formatPesoPrice(prices.package4), lines: ["2x2 (4pcs)", "1x1 (4pcs)"] },
-    { title: "Package 5", icon: "id", price: formatPesoPrice(prices.package5), lines: ["Passport size (4pcs)"] },
-    { title: "Package 6", icon: "id", price: formatPesoPrice(prices.package6), lines: ["1x1 (10pcs)"] },
-  ];
-}
-
-function getLaminatingPrices(service) {
-  let storedPrices = null;
-  if (service?.pricing_json) {
-    try {
-      storedPrices = typeof service.pricing_json === "string"
-        ? JSON.parse(service.pricing_json)
-        : service.pricing_json;
-    } catch (error) {
-      storedPrices = null;
-    }
-  }
-
-  return {
-    thin: storedPrices?.thin ?? 20,
-    thick: storedPrices?.thick ?? 30,
-  };
-}
-
 function buildLaminatingCardLines(service) {
-  const prices = getLaminatingPrices(service);
-  return [
-    `Manipis / Thin: ${formatPesoPrice(prices.thin)}`,
-    `Makapal / Thick: ${formatPesoPrice(prices.thick)}`,
-  ];
+  return catalogRulesFor(service).map((rule) => {
+    const label = rule.option_labels?.lamination_type || rule.label || "Lamination option";
+    return `${label}: ${formatCatalogRulePrice(rule)}`;
+  });
 }
 
 function catalogRulesFor(service) {
@@ -355,76 +212,26 @@ const serviceModalData = {
   printing: {
     category: "printing",
     title: "Print Service",
-    description: "Review print options, available sizes, packages, and pricing details.",
-    cards: [
-      {
-        title: "Document Print",
-        icon: "print",
-        lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
-        detailKey: "documentPrinting",
-      },
-      { title: "Photocopy", lines: ["Long Bond Paper: ₱5", "Short Bond Paper: ₱3", "A4: ₱3"] },
-      {
-        title: "Rush ID",
-        icon: "id",
-        lines: ["Choose between packages 1–6.", "Price varies by selected package."],
-        detailKey: "rushId",
-      },
-      { title: "Laminating", lines: ["Manipis / Thin: ₱20", "Makapal / Thick: ₱30"] },
-    ],
+    description: "Review active print options, available sizes, packages, and pricing details.",
+    cards: [],
   },
   repair: {
     category: "repair",
     title: "Device Repair Service",
-    cards: [
-      { title: "LCD Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱1200 – ₱5500"] },
-      { title: "Battery Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱700 – ₱2500"] },
-      { title: "Charging Pin Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱800 – ₱4000"] },
-      { title: "Speaker / Mouthpiece Replacement", lines: ["For mobile phones and laptops.", "Price range: ₱700 – ₱1500"] },
-      { title: "Power Button Repair", lines: ["For mobile phones and laptops.", "Price range: ₱500 – ₱2000"] },
-      { title: "Volume Repair", lines: ["For mobile phones and laptops.", "Price range: ₱1000 – ₱2000"] },
-      { title: "Camera Repair", lines: ["For mobile phones and laptops.", "Price range: ₱1500 – ₱5000"] },
-    ],
+    cards: [],
   },
   installation: {
     category: "installation",
     title: "Installation / Software",
-    cards: [
-      { title: "Reprogram Service", lines: ["Price range: ₱1000 – ₱4000"] },
-      { title: "Hang Logo Fix Service", lines: ["Price range: ₱1000 – ₱3500"] },
-      { title: "Boot Loop Fix Service", lines: ["Price range: ₱1000 – ₱5000"] },
-      { title: "Openline Samsung & iPhone", lines: ["Price range: ₱3500 – ₱6000"] },
-      { title: "Bypass Google Account", lines: ["Price range: ₱500 – ₱2000"] },
-      { title: "Bypass Password", lines: ["Price range: ₱1000 – ₱3000"] },
-    ],
+    cards: [],
   },
 };
 
 let serviceDataLoadPromise = null;
 
 const serviceModalDetailData = {
-  documentPrinting: {
-    title: "Document Print",
-    cards: [
-      { title: "Long Bond Paper (Colored)", lines: ["Full – ₱10.00", "Half – ₱5.00"] },
-      { title: "Long Bond Paper (B&W)", lines: ["₱5.00"] },
-      { title: "Short Bond Paper (Colored)", lines: ["Full – ₱10.00", "Half – ₱5.00"] },
-      { title: "Short Bond Paper (B&W)", lines: ["₱5.00"] },
-      { title: "A4 (Colored)", lines: ["Full – ₱10.00", "Half – ₱5.00"] },
-      { title: "A4 (B&W)", lines: ["₱5.00"] },
-    ],
-  },
-  rushId: {
-    title: "Rush ID Packages",
-    cards: [
-      { title: "Package 1", lines: ["₱40.00", "1x1 (4pcs), 2x2 (2pcs)"] },
-      { title: "Package 2", lines: ["₱30.00", "1x1 (6pcs)"] },
-      { title: "Package 3", lines: ["₱30.00", "2x2 (4pcs)"] },
-      { title: "Package 4", lines: ["₱50.00", "2x2 (4pcs), 1x1 (4pcs)"] },
-      { title: "Package 5", lines: ["₱30.00", "Passport size (4pcs)"] },
-      { title: "Package 6", lines: ["₱50.00", "1x1 (10pcs)"] },
-    ],
-  },
+  documentPrinting: { title: "Document Print", cards: [] },
+  rushId: { title: "Rush ID Packages", cards: [] },
 };
 
 function renderServiceModalBody(service) {
@@ -559,74 +366,7 @@ function escCloseServiceDetailModal(e) {
   if (e.key === "Escape") closeServiceDetailModal();
 }
 
-serviceModalData.printing.description = "Review print options, available sizes, packages, and pricing details.";
-serviceModalData.printing.cards = [
-  {
-    title: "Document Print",
-    icon: "print",
-    lines: ["Long Bond Paper, Short Bond Paper, A4", "Price varies by paper size and color option."],
-    detailKey: "documentPrinting",
-  },
-  {
-    title: "Rush ID",
-    icon: "id",
-    lines: ["Choose between packages 1-6.", "Price varies by selected package."],
-    detailKey: "rushId",
-  },
-  {
-    title: "Photocopy",
-    icon: "copy",
-    lines: ["Long Bond Paper: PHP 5", "Short Bond Paper: PHP 3", "A4: PHP 3"],
-  },
-  {
-    title: "Laminating",
-    icon: "laminate",
-    lines: ["Manipis / Thin: PHP 20", "Makapal / Thick: PHP 30"],
-  },
-];
-
-serviceModalData.repair.description = "Explore common hardware repairs for mobile phones and laptops with estimated price ranges.";
-serviceModalData.repair.cards = [
-  { title: "LCD Replacement", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 1200 - PHP 5500"] },
-  { title: "Battery Replacement", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 700 - PHP 2500"] },
-  { title: "Charging Pin Replacement", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 800 - PHP 4000"] },
-  { title: "Speaker / Mouthpiece Replacement", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 700 - PHP 1500"] },
-  { title: "Power Button Repair", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 500 - PHP 2000"] },
-  { title: "Volume Repair", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 1000 - PHP 2000"] },
-  { title: "Camera Repair", icon: "repair", lines: ["For mobile phones and laptops.", "Price range: PHP 1500 - PHP 5000"] },
-];
-
-serviceModalData.installation.description = "Browse software fixes and setup services for device recovery, unlocking, and account bypass.";
-serviceModalData.installation.cards = [
-  { title: "Reprogram Service", icon: "install", lines: ["Price range: PHP 1000 - PHP 4000"] },
-  { title: "Hang Logo Fix Service", icon: "install", lines: ["Price range: PHP 1000 - PHP 3500"] },
-  { title: "Boot Loop Fix Service", icon: "install", lines: ["Price range: PHP 1000 - PHP 5000"] },
-  { title: "Openline Samsung & iPhone", icon: "install", lines: ["Price range: PHP 3500 - PHP 6000"] },
-  { title: "Bypass Google Account", icon: "install", lines: ["Price range: PHP 500 - PHP 2000"] },
-  { title: "Bypass Password", icon: "install", lines: ["Price range: PHP 1000 - PHP 3000"] },
-];
-
-serviceModalDetailData.documentPrinting.description = "Review document formats, print styles, and price ranges.";
-serviceModalDetailData.documentPrinting.title = "Document Print Price Ranges";
-serviceModalDetailData.documentPrinting.cards = [
-  { title: "Long Bond Paper (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
-  { title: "Long Bond Paper (B&W)", icon: "print", lines: ["\u20B15.00"] },
-  { title: "Short Bond Paper (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
-  { title: "Short Bond Paper (B&W)", icon: "print", lines: ["\u20B15.00"] },
-  { title: "A4 (Colored)", icon: "print", lines: ["Full - \u20B110.00", "Half - \u20B15.00"] },
-  { title: "A4 (B&W)", icon: "print", lines: ["\u20B15.00"] },
-];
-
-serviceModalDetailData.rushId.description = "Compare the available Rush ID package combinations and included photo sizes.";
-serviceModalDetailData.rushId.cards = [
-  { title: "Package 1", icon: "id", price: "\u20B140.00", lines: ["1x1 (4pcs)", "2x2 (2pcs)"] },
-  { title: "Package 2", icon: "id", price: "\u20B130.00", lines: ["1x1 (6pcs)"] },
-  { title: "Package 3", icon: "id", price: "\u20B130.00", lines: ["2x2 (4pcs)"] },
-  { title: "Package 4", icon: "id", price: "\u20B150.00", lines: ["2x2 (4pcs)", "1x1 (4pcs)"] },
-  { title: "Package 5", icon: "id", price: "\u20B130.00", lines: ["Passport size (4pcs)"] },
-  { title: "Package 6", icon: "id", price: "\u20B150.00", lines: ["1x1 (10pcs)"] },
-];
-
+// Service cards and detail cards are populated from /api/services_public.php.
 function getServiceDetailKey(category, serviceName) {
   const normalizedName = String(serviceName || "")
     .trim()
@@ -636,6 +376,7 @@ function getServiceDetailKey(category, serviceName) {
   if (category === "printing" && normalizedName.includes("document") && (normalizedName.includes("printing") || normalizedName.includes("print"))) return "documentPrinting";
   if (category === "printing" && (normalizedName.includes("photocopy") || normalizedName.includes("xerox"))) return "photocopy";
   if (category === "printing" && normalizedName.includes("rush") && normalizedName.includes("id")) return "rushId";
+  if (category === "printing" && normalizedName.includes("laminat")) return "laminationCatalog";
   if (category === "repair") return "repairCatalog";
   if (category === "installation") return "installationCatalog";
   return undefined;
@@ -750,7 +491,7 @@ async function loadServicesFromDatabase() {
         if (detailKey === "documentPrinting") {
           serviceModalDetailData.documentPrinting.cards = service.catalog
             ? buildCatalogMatrixCards(service, "paper_size", "color_option")
-            : buildDocumentPrintingDetailCards(service);
+            : [];
         } else if (detailKey === "photocopy") {
           serviceModalDetailData.photocopy = {
             title: "Photocopy Price Table",
@@ -760,7 +501,13 @@ async function loadServicesFromDatabase() {
         } else if (detailKey === "rushId") {
           serviceModalDetailData.rushId.cards = service.catalog
             ? buildCatalogRuleCards(service, "package")
-            : buildRushIdDetailCards(service);
+            : [];
+        } else if (detailKey === "laminationCatalog") {
+          serviceModalDetailData.laminationCatalog = {
+            title: "Lamination Types",
+            description: "Review active lamination types and pricing.",
+            cards: buildCatalogRuleCards(service, "lamination_type"),
+          };
         } else if (detailKey === "repairCatalog") {
           serviceModalDetailData.repairCatalog = {
             title: "Repair Services",
@@ -776,7 +523,7 @@ async function loadServicesFromDatabase() {
         }
 
         const serviceName = String(service.name || "").toLowerCase();
-        if (category === "printing" && serviceName.includes("laminat")) {
+        if (category === "printing" && serviceName.includes("laminat") && catalogRulesFor(service).length > 0) {
           lines.splice(0, lines.length, ...buildLaminatingCardLines(service));
         }
 
@@ -798,7 +545,7 @@ async function loadServicesFromDatabase() {
       }
     } catch (error) {
       console.error(`Error loading services for category ${category}:`, error);
-      // Fallback to hardcoded data already set in serviceModalData
+      // Keep this category empty if the catalog API cannot be loaded.
     }
   }
 }
@@ -1010,7 +757,7 @@ function handleServiceCardKeydown(event, sectionId) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Load services from database (with fallback to hardcoded data)
+  // Load services from the database-backed catalog before opening modals.
   serviceDataLoadPromise = loadServicesFromDatabase();
 
   document.querySelectorAll(".service-type-card[data-service-modal]").forEach((card) => {
@@ -1083,7 +830,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const svc = document.body?.dataset?.service || "";
   const isXerox = svc === "xerox";
 
-  const xeroxPriceMap = getXeroxPriceMap();
 
   function priceLabelForRule(rule) {
     if (!rule || rule.price_type === "assessment") return "For assessment";
@@ -1149,25 +895,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let pricePerItem = 0;
     let canCompute = qty > 0;
+    let assessmentPrice = false;
 
     if (lamTypeSelect) {
       const opt = lamTypeSelect.options[lamTypeSelect.selectedIndex];
       const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : NaN;
+      assessmentPrice = !!lamTypeSelect.value && !opt?.disabled && !Number.isFinite(p);
       canCompute = canCompute && !!lamTypeSelect.value && !opt?.disabled && Number.isFinite(p);
       pricePerItem = canCompute ? p : 0;
     } else if (packageSelect) {
       const opt = packageSelect.options[packageSelect.selectedIndex];
       const p = opt?.dataset?.price ? parseFloat(opt.dataset.price) : NaN;
+      assessmentPrice = !!packageSelect.value && !opt?.disabled && !Number.isFinite(p);
       canCompute = canCompute && !!packageSelect.value && !opt?.disabled && Number.isFinite(p);
       pricePerItem = canCompute ? p : 0;
     } else if (isXerox && paperSizeSelect) {
       const size = paperSizeSelect.value;
-      const color = normalizeCatalogColor(getSelectedColor() || "colored");
       const rule = findCatalogRuleByKeys({
         paper_size: selectedOptionValueKey(paperSizeSelect),
         color_option: checkedValueKey("color"),
       });
-      const price = rule && rule.price_type !== "assessment" ? Number(rule.price) : xeroxPriceMap[size]?.[color];
+      const price = rule && rule.price_type !== "assessment" ? Number(rule.price) : NaN;
       canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(price);
       pricePerItem = canCompute ? price : 0;
     } else {
@@ -1175,7 +923,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (summaryTotal) {
-      summaryTotal.textContent = canCompute ? `\u20B1${(qty * pricePerItem).toFixed(2)}` : "\u20B10.00";
+      summaryTotal.textContent = assessmentPrice ? "For assessment" : (canCompute ? `\u20B1${(qty * pricePerItem).toFixed(2)}` : "\u20B10.00");
     }
   }
 
@@ -1260,7 +1008,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const svc = (document.body?.dataset?.service || "").toLowerCase();
   const isXerox = svc === "xerox";
-  const xeroxPriceMap = getXeroxPriceMap();
 
   function readQuantityValue() {
     if (!refs.qtyInput) return 1;
@@ -1415,26 +1162,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (refs.lamTypeSelect) {
       payload.service_option_key = refs.lamTypeSelect.value || null;
+      const selectedOption = refs.lamTypeSelect.options[refs.lamTypeSelect.selectedIndex];
+      payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
     }
 
     if (isXerox && refs.paperSizeSelect) {
-      const color = normalizeCatalogColor(payload.color_option || "colored");
       const rule = findCatalogRuleByKeys({
         paper_size: selectedOptionValueKey(refs.paperSizeSelect),
         color_option: checkedValueKey("color"),
       });
       const price = rule && rule.price_type !== "assessment"
         ? Number(rule.price)
-        : (xeroxPriceMap[payload.paper_size]?.[color] ?? 0);
+        : null;
       payload.catalog_pricing_rule_id = Number(rule?.id || 0) || payload.catalog_pricing_rule_id || null;
-      payload.service_option_key = `${payload.paper_size || ""}_${color}`;
-      payload.price_per_page = price;
-      payload.estimated_total = price * payload.quantity;
+      payload.service_option_key = rule?.rule_key || null;
+      payload.price_per_page = Number.isFinite(price) ? price : null;
+      payload.estimated_total = Number.isFinite(price) ? price * payload.quantity : null;
     } else if (refs.lamTypeSelect) {
       const selectedOption = refs.lamTypeSelect.options[refs.lamTypeSelect.selectedIndex];
-      const price = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : 0;
-      payload.price_per_page = price;
-      payload.estimated_total = price * payload.quantity;
+      const price = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : null;
+      payload.price_per_page = Number.isFinite(price) ? price : null;
+      payload.estimated_total = Number.isFinite(price) ? price * payload.quantity : null;
     } else if (refs.packageSelect) {
       const selectedOption = refs.packageSelect.options[refs.packageSelect.selectedIndex];
       const price = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : 0;
@@ -1668,3 +1416,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+

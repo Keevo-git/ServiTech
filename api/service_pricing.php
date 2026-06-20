@@ -374,6 +374,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
     $deviceLabel = servitech_catalog_option_label($rule, "device_type");
     $repairLabel = servitech_catalog_option_label($rule, "repair_type");
     $installationLabel = servitech_catalog_option_label($rule, "installation_type");
+    $laminationLabel = servitech_catalog_option_label($rule, "lamination_type");
 
     if ($paperLabel !== "") $details["paper_size"] = $paperLabel;
     if ($colorLabel !== "") $details["color_option"] = $colorLabel;
@@ -381,6 +382,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
     if ($deviceLabel !== "") $details["device_type"] = $deviceLabel;
     if ($repairLabel !== "") $details["repair_type"] = $repairLabel;
     if ($installationLabel !== "") $details["installation_type"] = $installationLabel;
+    if ($laminationLabel !== "") $details["lamination_type"] = $laminationLabel;
 
     if (servitech_pricing_is_other_request($ruleLabel) || servitech_pricing_is_other_request($repairLabel) || servitech_pricing_is_other_request($installationLabel)) {
       $notes = trim((string)($details["notes"] ?? ""));
@@ -424,7 +426,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
       $ruleLabel,
       $fixedPrice,
       $pricingStatus,
-      trim(implode(" / ", array_filter([$paperLabel, $colorLabel, $packageLabel, $deviceLabel, $repairLabel, $installationLabel])))
+      trim(implode(" / ", array_filter([$paperLabel, $colorLabel, $packageLabel, $deviceLabel, $repairLabel, $installationLabel, $laminationLabel])))
     );
   }
 

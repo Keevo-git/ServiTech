@@ -38,9 +38,10 @@ $quantity = max(0, (int)($data["quantity"] ?? 0));
 $color_option = trim((string)($data["color_option"] ?? ""));
 $payment_method = strtolower(trim((string)($data["payment_method"] ?? "")));
 $uploaded_files = isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [];
+$catalog_pricing_rule_id = isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : 0;
 
 $errors = [];
-if (!in_array($paper_size, ["Letter", "8.5x13", "Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
+if ($catalog_pricing_rule_id <= 0 && !in_array($paper_size, ["Letter", "8.5x13", "Short Bond (8.5 x 11)", "Long Bond (8.5 x 13)", "A4"], true)) {
   $errors[] = "Select a valid paper size.";
 }
 if ($quantity < 1) {
@@ -114,7 +115,7 @@ $draft = [
   "file_analysis" => isset($data["file_analysis"]) && is_array($data["file_analysis"]) ? $data["file_analysis"] : [],
   "uploaded_files" => $uploaded_files,
   "catalog_service_id" => isset($data["catalog_service_id"]) ? max(0, (int)$data["catalog_service_id"]) : null,
-  "catalog_pricing_rule_id" => isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : null,
+  "catalog_pricing_rule_id" => $catalog_pricing_rule_id ?: null,
   "created_at" => date(DATE_ATOM),
 ];
 $draft = servitech_upload_apply_metadata_to_details($draft, $uploaded_files);

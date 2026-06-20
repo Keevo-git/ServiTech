@@ -31,7 +31,7 @@ function servitech_catalog_price_range_from_rules(array $rules): string {
 
 function servitech_catalog_fetch_service(PDO $pdo, int $serviceId, bool $activeOnly = true): ?array {
   if ($serviceId <= 0) return null;
-  $activeSql = $activeOnly ? "AND active = TRUE" : "";
+  $activeSql = $activeOnly ? "AND active = TRUE AND archived_at IS NULL" : "";
   $stmt = $pdo->prepare("
     SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
            CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
@@ -45,11 +45,12 @@ function servitech_catalog_fetch_service(PDO $pdo, int $serviceId, bool $activeO
 }
 
 function servitech_catalog_fetch_service_by_kind(PDO $pdo, string $kind, bool $activeOnly = true): ?array {
-  $activeSql = $activeOnly ? "AND active = TRUE" : "";
+  $activeSql = $activeOnly ? "AND active = TRUE AND archived_at IS NULL" : "";
   $where = match ($kind) {
     'document_printing' => "category = 'printing' AND LOWER(name) LIKE '%document%' AND (LOWER(name) LIKE '%printing%' OR LOWER(name) LIKE '%print%')",
     'photocopy' => "category = 'printing' AND (LOWER(name) LIKE '%photocopy%' OR LOWER(name) LIKE '%xerox%')",
     'rush_id' => "category = 'printing' AND LOWER(name) LIKE '%rush%' AND LOWER(name) LIKE '%id%'",
+    'laminating' => "category = 'printing' AND LOWER(name) LIKE '%laminat%'",
     'repair' => "category = 'repair' AND (LOWER(name) LIKE '%repair%' OR LOWER(name) LIKE '%device%')",
     'installation' => "category = 'installation' AND (LOWER(name) LIKE '%installation%' OR LOWER(name) LIKE '%software%')",
     default => "1 = 0",
@@ -173,7 +174,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
     VALUES (:service_id, :group_key, :name, :active, :sort_order)
     ON CONFLICT (service_id, group_key)
     DO UPDATE SET name = EXCLUDED.name, active = EXCLUDED.active, sort_order = EXCLUDED.sort_order,
-                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE service_option_groups.archived_at END,
+                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE COALESCE(service_option_groups.archived_at, NOW()) END,
                   updated_at = NOW()
     RETURNING id
   ");
@@ -183,7 +184,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
     ON CONFLICT (group_id, value_key)
     DO UPDATE SET label = EXCLUDED.label, description = EXCLUDED.description, active = EXCLUDED.active,
                   sort_order = EXCLUDED.sort_order,
-                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE service_option_values.archived_at END,
+                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE COALESCE(service_option_values.archived_at, NOW()) END,
                   updated_at = NOW()
     RETURNING id
   ");
@@ -221,12 +222,12 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
 
   $ruleStmt = $pdo->prepare("
     INSERT INTO service_pricing_rules (service_id, rule_key, option_value_ids, label, description, price, price_type, active, sort_order)
-    VALUES (:service_id, :rule_key, :option_value_ids::jsonb, :label, :description, :price, :price_type, :active, :sort_order)
+    VALUES (:service_id, :rule_key, CAST(:option_value_ids AS jsonb), :label, :description, :price, :price_type, :active, :sort_order)
     ON CONFLICT (service_id, rule_key)
     DO UPDATE SET option_value_ids = EXCLUDED.option_value_ids, label = EXCLUDED.label,
                   description = EXCLUDED.description, price = EXCLUDED.price, price_type = EXCLUDED.price_type,
                   active = EXCLUDED.active, sort_order = EXCLUDED.sort_order,
-                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE service_pricing_rules.archived_at END,
+                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE COALESCE(service_pricing_rules.archived_at, NOW()) END,
                   updated_at = NOW()
   ");
 

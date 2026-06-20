@@ -32,7 +32,7 @@ if ($action === "list" && $category) {
           SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
-          WHERE category = :category AND active = TRUE
+          WHERE category = :category AND active = TRUE AND archived_at IS NULL
           ORDER BY sort_order ASC, id ASC
         ");
         $stmt->execute([":category" => $category]);
@@ -47,14 +47,6 @@ if ($action === "list" && $category) {
             }
         }
         unset($service);
-
-        try {
-            $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);
-            $service["catalog_price_range"] = (string)($service["catalog"]["service"]["catalog_price_range"] ?? "");
-        } catch (Throwable $e) {
-            $service["catalog"] = null;
-            $service["catalog_price_range"] = "";
-        }
 
         respond([
             "ok" => true,
@@ -82,7 +74,7 @@ if ($action === "detail" && $category) {
           SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
-          WHERE category = :category AND name = :name AND active = TRUE
+          WHERE category = :category AND name = :name AND active = TRUE AND archived_at IS NULL
           LIMIT 1
         ");
         $stmt->execute([
@@ -93,6 +85,14 @@ if ($action === "detail" && $category) {
 
         if (!$service) {
             respond(["ok" => false, "error" => "Service not found"]);
+        }
+
+        try {
+            $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+            $service["catalog_price_range"] = (string)($service["catalog"]["service"]["catalog_price_range"] ?? "");
+        } catch (Throwable $e) {
+            $service["catalog"] = null;
+            $service["catalog_price_range"] = "";
         }
 
         respond([

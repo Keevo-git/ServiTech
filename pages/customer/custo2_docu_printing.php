@@ -96,21 +96,6 @@ try {
   // Keep the order form usable if the service table is unavailable.
 }
 
-if (empty($documentPaperOptions)) {
-  $documentPaperOptions = [
-    ["value_key" => "letter", "label" => "Letter"],
-    ["value_key" => "8_5x13", "label" => "8.5x13"],
-    ["value_key" => "a4", "label" => "A4"],
-  ];
-}
-if (empty($documentColorOptions)) {
-  $documentColorOptions = [
-    ["value_key" => "half_colored", "label" => "Half Colored"],
-    ["value_key" => "full_colored", "label" => "Full Colored"],
-    ["value_key" => "black_and_white", "label" => "Black and White"],
-  ];
-}
-
 if (is_array($sessionPrintDraft)) {
   $printDraft = [
     "paper_size" => trim((string)($sessionPrintDraft["paper_size"] ?? "")),
@@ -546,6 +531,9 @@ if (is_array($sessionPrintDraft)) {
                     <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
                   </option>
                 <?php endforeach; ?>
+                <?php if (!$documentPaperOptions): ?>
+                  <option value="" disabled>No active paper sizes available</option>
+                <?php endif; ?>
               </select>
             </div>
 
@@ -573,6 +561,9 @@ if (is_array($sessionPrintDraft)) {
                   <span class="color-option-price" data-doc-color-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">Price to be confirmed</span>
                 </label>
               <?php endforeach; ?>
+              <?php if (!$documentColorOptions): ?>
+                <p class="form-note">No active color options available.</p>
+              <?php endif; ?>
             </div>
           </div>
         </div>
@@ -655,7 +646,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
+<script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
@@ -665,4 +656,5 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script src="/assets/js/custo2_docu_printing.js?v=20260620-service-catalog"></script>
 </body>
 </html>
+
 
