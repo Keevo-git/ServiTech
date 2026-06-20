@@ -25,6 +25,16 @@
       message: "The checked orders will be removed from Order Management but can still be restored from the Recycle Bin within 30 days.",
       submit: "Move Selected to Bin",
     },
+    bulk_restore: {
+      title: "Restore Selected Orders?",
+      message: "The checked orders will return to their proper Order Management page.",
+      submit: "Restore Selected",
+    },
+    bulk_permanent_delete: {
+      title: "Delete Selected Orders?",
+      message: "The checked orders will be removed from the system view, but the database records will remain stored.",
+      submit: "Delete Selected",
+    },
     restore: {
       title: "Restore order?",
       message: "This order will return to its proper Order Management page.",
@@ -53,16 +63,37 @@
     pending = { action, id, code, items };
     trigger = source;
     title.textContent = config.title;
-    message.textContent = action === "bulk_soft_delete"
-      ? `${items.length} ${items.length === 1 ? "order" : "orders"} will be moved to the Recycle Bin.`
+    message.textContent = action.startsWith("bulk_")
+      ? bulkConfirmMessage(action, items.length)
       : config.message;
     submitButton.textContent = config.submit;
-    submitButton.classList.toggle("order-confirm-submit--restore", action === "restore");
+    submitButton.classList.toggle("order-confirm-submit--restore", action === "restore" || action === "bulk_restore");
     overlay.classList.add("is-open");
     overlay.setAttribute("aria-hidden", "false");
     document.documentElement.classList.add("order-confirm-open");
     document.body.classList.add("order-confirm-open");
     cancelButton?.focus();
+  }
+
+  function bulkConfirmMessage(action, count) {
+    const label = `${count} ${count === 1 ? "order" : "orders"}`;
+    if (action === "bulk_restore") return `${label} will be restored to Order Management.`;
+    if (action === "bulk_permanent_delete") return `${label} will be deleted from the Recycle Bin view.`;
+    return `${label} will be moved to the Recycle Bin.`;
+  }
+
+  function singleActionForBulk(action) {
+    if (action === "bulk_restore") return "restore";
+    if (action === "bulk_permanent_delete") return "permanent_delete";
+    if (action === "bulk_soft_delete") return "soft_delete";
+    return action;
+  }
+
+  function bulkSuccessMessage(action, count) {
+    const label = `${count} ${count === 1 ? "order" : "orders"}`;
+    if (action === "bulk_restore") return `${label} restored successfully.`;
+    if (action === "bulk_permanent_delete") return `${label} deleted from the Recycle Bin view.`;
+    return `${label} moved to the Recycle Bin.`;
   }
 
   async function postRecycleAction(id, action) {
@@ -87,24 +118,25 @@
     let result = { ok: false, error: "Unable to update this order." };
 
     try {
-      if (pending.action === "bulk_soft_delete") {
+      if (pending.action.startsWith("bulk_")) {
         const items = Array.isArray(pending.items) ? pending.items : [];
         let movedCount = 0;
         let firstError = "";
+        const singleAction = singleActionForBulk(pending.action);
 
         for (const item of items) {
-          submitButton.textContent = `Moving ${movedCount + 1} of ${items.length}...`;
-          const itemResult = await postRecycleAction(item.id, "soft_delete");
+          submitButton.textContent = `Processing ${movedCount + 1} of ${items.length}...`;
+          const itemResult = await postRecycleAction(item.id, singleAction);
           if (!itemResult.ok) {
-            firstError = itemResult.error || "Unable to move one of the selected orders.";
+            firstError = itemResult.error || "Unable to update one of the selected orders.";
             break;
           }
           movedCount += 1;
         }
 
         result = movedCount === items.length
-          ? { ok: true, message: `${movedCount} ${movedCount === 1 ? "order" : "orders"} moved to the Recycle Bin.` }
-          : { ok: false, error: firstError || "Unable to move all selected orders." };
+          ? { ok: true, message: bulkSuccessMessage(pending.action, movedCount) }
+          : { ok: false, error: firstError || "Unable to update all selected orders." };
       } else {
         result = await postRecycleAction(pending.id, pending.action);
       }
@@ -130,9 +162,9 @@
 
     const selectAll = table.querySelector("[data-order-select-all]");
     const checkboxes = Array.from(table.querySelectorAll("[data-order-select]"));
-    const bulkButton = toolbar.querySelector("[data-order-bulk-delete]");
+    const bulkButtons = Array.from(toolbar.querySelectorAll("[data-order-bulk-delete], [data-order-bulk-action]"));
     const countEl = toolbar.querySelector("[data-order-bulk-count]");
-    if (!selectAll || !checkboxes.length || !bulkButton || !countEl) return;
+    if (!selectAll || !checkboxes.length || !bulkButtons.length || !countEl) return;
 
     function selectedCheckboxes() {
       return checkboxes.filter((checkbox) => checkbox.checked);
@@ -149,7 +181,9 @@
       countEl.textContent = selected.length
         ? `${selected.length} ${selected.length === 1 ? "order" : "orders"} selected`
         : "No orders selected";
-      bulkButton.disabled = selected.length === 0;
+      bulkButtons.forEach((button) => {
+        button.disabled = selected.length === 0;
+      });
       selectAll.checked = visible.length > 0 && selectedVisibleCount === visible.length;
       selectAll.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visible.length;
     }
@@ -163,15 +197,18 @@
 
     checkboxes.forEach((checkbox) => checkbox.addEventListener("change", updateBulkState));
 
-    bulkButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      const items = selectedCheckboxes()
-        .map((checkbox) => ({
-          id: checkbox.dataset.id,
-          code: checkbox.dataset.code || "",
-        }))
-        .filter((item) => item.id);
-      openModal("bulk_soft_delete", "", "", bulkButton, items);
+    bulkButtons.forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        const items = selectedCheckboxes()
+          .map((checkbox) => ({
+            id: checkbox.dataset.id,
+            code: checkbox.dataset.code || "",
+          }))
+          .filter((item) => item.id);
+        const action = button.dataset.orderBulkAction || "bulk_soft_delete";
+        openModal(action, "", "", button, items);
+      });
     });
 
     const observer = new MutationObserver(updateBulkState);

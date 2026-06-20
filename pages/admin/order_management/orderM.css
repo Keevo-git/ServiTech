@@ -2219,6 +2219,113 @@ body.order-confirm-open {
   background: #fff;
 }
 
+.recycle-bin-table--selectable {
+  min-width: 1690px;
+}
+
+.recycle-bin-table--selectable th.select-cell,
+.recycle-bin-table--selectable td.select-cell {
+  width: 52px;
+  min-width: 52px;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.recycle-bin-table--selectable .select-cell input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #214f91;
+  cursor: pointer;
+}
+
+.recycle-bin-table--selectable th:nth-child(2),
+.recycle-bin-table--selectable td:nth-child(2) {
+  width: 130px;
+}
+
+.recycle-bin-table--selectable th:nth-child(3),
+.recycle-bin-table--selectable td:nth-child(3) {
+  width: 190px;
+}
+
+.recycle-bin-table--selectable th:nth-child(4),
+.recycle-bin-table--selectable td:nth-child(4) {
+  width: 180px;
+}
+
+.recycle-bin-table--selectable th:nth-child(5),
+.recycle-bin-table--selectable td:nth-child(5) {
+  width: 135px;
+  text-align: center;
+}
+
+.recycle-bin-table--selectable th:nth-child(6),
+.recycle-bin-table--selectable td:nth-child(6) {
+  width: 130px;
+}
+
+.recycle-bin-table--selectable th:nth-child(7),
+.recycle-bin-table--selectable td:nth-child(7) {
+  width: 150px;
+}
+
+.recycle-bin-table--selectable th:nth-child(8),
+.recycle-bin-table--selectable td:nth-child(8),
+.recycle-bin-table--selectable th:nth-child(9),
+.recycle-bin-table--selectable td:nth-child(9) {
+  width: 165px;
+}
+
+.recycle-bin-table--selectable th:nth-child(10),
+.recycle-bin-table--selectable td:nth-child(10) {
+  position: static;
+  right: auto;
+  z-index: auto;
+  width: 140px;
+  background: transparent;
+  text-align: center;
+}
+
+.recycle-bin-table--selectable th:nth-child(11),
+.recycle-bin-table--selectable td:nth-child(11) {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  width: 245px;
+  background: #fff;
+  text-align: center;
+}
+
+.recycle-bin-table--selectable th:nth-child(11) {
+  z-index: 3;
+  background: #fff;
+}
+
+.recycle-bulk-toolbar {
+  margin-bottom: 14px;
+}
+
+.recycle-bulk-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.recycle-bulk-actions button {
+  min-height: 38px;
+  min-width: 132px;
+}
+
+.recycle-bulk-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 .days-left-pill {
   display: inline-flex;
   align-items: center;

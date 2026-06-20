@@ -149,7 +149,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260618-recycle-actions-fix') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260620-recycle-bulk-select') ?>">
 </head>
 <body class="admin-dashboard">
 
@@ -185,10 +185,20 @@ require __DIR__ . "/../_includes/admin_header.php";
               <p>Orders moved here remain restorable until removed from the system view.</p>
             </div>
           <?php else: ?>
+            <div class="order-bulk-toolbar recycle-bulk-toolbar" data-order-bulk-toolbar data-table-id="recycleBinOrdersTable">
+              <span data-order-bulk-count>No orders selected</span>
+              <div class="recycle-bulk-actions">
+                <button type="button" class="restore-order-btn" data-order-bulk-action="bulk_restore" disabled>Restore Selected</button>
+                <button type="button" class="permanent-delete-btn" data-order-bulk-action="bulk_permanent_delete" disabled>Delete Selected</button>
+              </div>
+            </div>
             <div class="table-scroll-wrapper table-responsive">
-              <table class="orders table-content order-table recycle-bin-table">
+              <table id="recycleBinOrdersTable" class="orders table-content order-table recycle-bin-table recycle-bin-table--selectable">
                 <thead>
                   <tr>
+                    <th class="select-cell">
+                      <input type="checkbox" data-order-select-all aria-label="Select all deleted orders">
+                    </th>
                     <th>Order ID</th>
                     <th>Customer Name</th>
                     <th>Service</th>
@@ -203,7 +213,16 @@ require __DIR__ . "/../_includes/admin_header.php";
                 </thead>
                 <tbody>
                   <?php foreach ($rows as $row): ?>
-                    <tr>
+                    <tr class="order-data-row">
+                      <td class="select-cell">
+                        <input
+                          type="checkbox"
+                          data-order-select
+                          data-id="<?= (int)$row["id"] ?>"
+                          data-code="<?= htmlspecialchars((string)$row["queue_code"], ENT_QUOTES, "UTF-8") ?>"
+                          aria-label="Select deleted order <?= htmlspecialchars((string)$row["queue_code"], ENT_QUOTES, "UTF-8") ?>"
+                        >
+                      </td>
                       <td><?= htmlspecialchars((string)$row["queue_code"], ENT_QUOTES, "UTF-8") ?></td>
                       <td><strong><?= htmlspecialchars((string)$row["fullname"], ENT_QUOTES, "UTF-8") ?></strong></td>
                       <td><?= htmlspecialchars(rb_service_label($row), ENT_QUOTES, "UTF-8") ?></td>
@@ -262,7 +281,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($schemaReady): ?>
-  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260618-recycle-actions-fix') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260620-recycle-bulk-select') ?>" defer></script>
 <?php endif; ?>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
