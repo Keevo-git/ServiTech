@@ -46,6 +46,9 @@ For an existing ServiTech database:
     store status, holiday dates, public read policies, and admin-only writes.
 11. Run `20260616_add_order_recycle_bin.sql` to add soft-delete metadata and
     the Order Management recycle-bin index.
+12. Run `20260620_unify_service_catalog_pricing.sql` if it has not yet been
+    applied, then run `20260621_add_laminating_catalog.sql`. The additive
+    Laminating migration preserves prices and statuses already edited by admins.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on

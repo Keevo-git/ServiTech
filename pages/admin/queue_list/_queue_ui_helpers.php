@@ -36,9 +36,10 @@ function queue_ui_normalize_service_label(string $serviceLabel): string
         "print online",
     ];
 
-    return in_array($normalized, $legacyPrintingLabels, true)
-        ? "Document Print"
-        : (strcasecmp(trim($serviceLabel), "xerox") === 0 ? "Photocopy" : trim($serviceLabel));
+    if (in_array($normalized, $legacyPrintingLabels, true)) return "Document Print";
+    if (strcasecmp(trim($serviceLabel), "xerox") === 0) return "Photocopy";
+    if (strcasecmp(trim($serviceLabel), "lamination") === 0) return "Laminating";
+    return trim($serviceLabel);
 }
 
 function queue_ui_category_label(array $row, string $serviceLabel): string
@@ -107,6 +108,8 @@ function queue_ui_payment_summary(array $row): string
 
 function queue_ui_detail_rows(array $details): array
 {
+    $serviceLabel = strtolower(queue_ui_detail_value($details, ["service_label", "service", "service_type"]));
+    $unitPriceLabel = str_contains($serviceLabel, "laminat") ? "Unit Price" : "Price Per Page";
     $map = [
         "Paper Size" => ["paper_size", "paper"],
         "Quantity / Copies" => ["quantity", "copies"],
@@ -115,14 +118,14 @@ function queue_ui_detail_rows(array $details): array
         "Package" => ["package_label", "package"],
         "Lamination Type" => ["lamination_type"],
         "Total Pages" => ["total_pages", "page_count"],
-        "Price Per Page" => ["price_per_page"],
+        $unitPriceLabel => ["price_per_page", "price_snapshot"],
     ];
 
     $rows = [];
     foreach ($map as $label => $keys) {
         $value = queue_ui_detail_value($details, $keys);
         if ($value !== "") {
-            if ($label === "Price Per Page" && is_numeric($value)) {
+            if (in_array($label, ["Price Per Page", "Unit Price"], true) && is_numeric($value)) {
                 $value = "PHP " . number_format((float)$value, 2);
             }
             $rows[] = ["label" => $label, "value" => $value];

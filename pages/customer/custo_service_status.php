@@ -1767,6 +1767,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       printwalkin: "Document Print",
       printonline: "Document Print",
       xerox: "Photocopy",
+      lamination: "Laminating",
       rushid: "Rush ID",
       openlinesamsungiphone: "Openline Samsung & iPhone",
       bypassgoogleaccount: "Bypass Google Account",

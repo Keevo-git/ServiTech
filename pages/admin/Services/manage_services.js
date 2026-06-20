@@ -40,8 +40,8 @@
     },
     laminating: {
       groups: { lamination_type: "Type" },
-      title: "Edit Lamination Types",
-      help: "Manage available lamination types and their official prices.",
+      title: "Edit Laminating Prices and Options",
+      help: "Manage available laminating types and their official prices.",
     },
     repair: {
       groups: { device_type: "Devices", repair_type: "Service Type" },
@@ -303,7 +303,7 @@
     if (!catalog || !currentKind) return;
     if (currentKind === "document_printing" || currentKind === "photocopy") editor.innerHTML = matrixEditor();
     else if (currentKind === "rush_id") editor.innerHTML = rushEditor();
-    else if (currentKind === "laminating") editor.innerHTML = simpleRuleRows("lamination_type", "Lamination Types", "New lamination type", { nameLabel: "Type" });
+    else if (currentKind === "laminating") editor.innerHTML = simpleRuleRows("lamination_type", "Laminating Options", "New laminating type", { nameLabel: "Type" });
     else if (currentKind === "repair") editor.innerHTML = repairEditor();
     else if (currentKind === "installation") editor.innerHTML = simpleRuleRows("installation_type", "Installation Types", "New installation type", { nameLabel: "Installation Type" });
   }

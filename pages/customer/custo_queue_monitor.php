@@ -80,6 +80,7 @@ function qm_normalize_service_label(string $serviceLabel, string $fallbackLabel)
     "walkin",
   ], true)) return "Document Print";
   if (strcasecmp($serviceLabel, "xerox") === 0) return "Photocopy";
+  if (strcasecmp($serviceLabel, "lamination") === 0) return "Laminating";
   return $serviceLabel;
 }
 

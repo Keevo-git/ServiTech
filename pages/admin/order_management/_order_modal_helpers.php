@@ -83,9 +83,10 @@ function om_service_label(array $details, string $fallback): string
         "print online",
     ];
 
-    return in_array(strtolower(trim($label)), $legacyPrintingLabels, true)
-        ? "Document Print"
-        : (strcasecmp($label, "xerox") === 0 ? "Photocopy" : $label);
+    if (in_array(strtolower(trim($label)), $legacyPrintingLabels, true)) return "Document Print";
+    if (strcasecmp($label, "xerox") === 0) return "Photocopy";
+    if (strcasecmp($label, "lamination") === 0) return "Laminating";
+    return $label;
 }
 
 function om_category_label(string $serviceType, string $serviceLabel): string
@@ -119,6 +120,8 @@ function om_additional_comments(array $details): string
 
 function om_extra_detail_rows(array $details): array
 {
+    $serviceLabel = strtolower(om_detail_value($details, ["service_label", "service", "service_type"]));
+    $unitPriceLabel = str_contains($serviceLabel, "laminat") ? "Unit Price" : "Price Per Page";
     $map = [
         "Paper Size" => ["paper_size", "paper"],
         "Quantity / Copies" => ["quantity", "copies"],
@@ -127,14 +130,14 @@ function om_extra_detail_rows(array $details): array
         "Package" => ["package_label", "package"],
         "Lamination Type" => ["lamination_type"],
         "Total Pages" => ["total_pages", "page_count"],
-        "Price Per Page" => ["price_per_page"],
+        $unitPriceLabel => ["price_per_page", "price_snapshot"],
     ];
 
     $rows = [];
     foreach ($map as $label => $keys) {
         $value = om_detail_value($details, $keys);
         if ($value !== "") {
-            if ($label === "Price Per Page" && is_numeric($value)) {
+            if (in_array($label, ["Price Per Page", "Unit Price"], true) && is_numeric($value)) {
                 $value = "PHP " . number_format((float)$value, 2);
             }
             $rows[] = ["label" => $label, "value" => $value];

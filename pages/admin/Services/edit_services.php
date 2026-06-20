@@ -33,7 +33,9 @@ function ms_supported_catalog_service(array $service): bool {
 }
 function ms_display_service_name($name): string {
   $name = trim((string)$name);
-  return strcasecmp($name, "xerox") === 0 ? "Photocopy" : $name;
+  if (strcasecmp($name, "xerox") === 0) return "Photocopy";
+  if (strcasecmp($name, "lamination") === 0) return "Laminating";
+  return $name;
 }
 $unsupportedServiceCount = count(array_filter($services, static fn($service) => !ms_supported_catalog_service($service)));
 $services = array_values(array_filter($services, "ms_supported_catalog_service"));

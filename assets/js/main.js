@@ -290,6 +290,7 @@ function bindServiceDetailCards(bodyEl) {
 function displayServiceName(name) {
   return String(name || "")
     .replace(/\bXerox\b/gi, "Photocopy")
+    .replace(/\bLamination\b/gi, "Laminating")
     .replace(/\bDocument\s+Printing\b/gi, "Document Print")
     .replace(/\bPrinting\s+Service\b/gi, "Print Service")
     .replace(/\bPrinting\b/g, "Print");
@@ -512,8 +513,8 @@ async function loadServicesFromDatabase() {
           }
         } else if (detailKey === "laminationCatalog") {
           serviceModalDetailData.laminationCatalog = {
-            title: "Lamination Types",
-            description: "Review active lamination types and pricing.",
+            title: "Laminating Options",
+            description: "Review active laminating types and pricing.",
             cards: buildCatalogRuleCards(service, "lamination_type"),
           };
         } else if (detailKey === "repairCatalog") {

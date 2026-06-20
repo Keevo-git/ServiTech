@@ -98,6 +98,10 @@ function cd_service_type(array $row): string {
     return "Photocopy";
   }
 
+  if ($normalizedLabel === "lamination") {
+    return "Laminating";
+  }
+
   return $label !== "" ? $label : cd_category_label($category);
 }
 

@@ -335,7 +335,9 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
       }
     }
 
-    $details["service_label"] = (string)$service["name"];
+    // Keep the public/order value canonical even while an older database is
+    // waiting for the additive Laminating catalog migration.
+    $details["service_label"] = $kind === "laminating" ? "Laminating" : (string)$service["name"];
     $details["pricing_source"] = "service_catalog";
     $details["catalog_pricing_rule_id"] = $catalogRuleId;
 

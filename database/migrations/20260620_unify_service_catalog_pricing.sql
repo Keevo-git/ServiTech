@@ -117,14 +117,14 @@ BEGIN
   UPDATE services SET active = TRUE, name = 'Rush ID', description = 'Rush ID packages.', updated_at = NOW() WHERE id = rush_id;
 
   INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
-  SELECT 'printing', 'Lamination', 'Lamination priced by lamination type.', 20, 'PHP 20 - PHP 30', '{}'::jsonb, TRUE, 3
+  SELECT 'printing', 'Laminating', 'Laminating priced by lamination type.', 20, 'PHP 20 - PHP 30', '{}'::jsonb, TRUE, 3
   WHERE NOT EXISTS (
     SELECT 1 FROM services WHERE category = 'printing' AND LOWER(name) LIKE '%laminat%'
   );
   SELECT id INTO lamination_id FROM services
   WHERE category = 'printing' AND LOWER(name) LIKE '%laminat%'
   ORDER BY active DESC, sort_order ASC, id ASC LIMIT 1;
-  UPDATE services SET active = TRUE, name = 'Lamination', description = 'Lamination priced by lamination type.', updated_at = NOW() WHERE id = lamination_id;
+  UPDATE services SET active = TRUE, name = 'Laminating', description = 'Laminating priced by lamination type.', updated_at = NOW() WHERE id = lamination_id;
 
   INSERT INTO services (category, name, description, price, price_range, pricing_json, active, sort_order)
   SELECT 'repair', 'Device Repair', 'Repair priced by device type and repair type.', NULL, 'For assessment', '{}'::jsonb, TRUE, 0
@@ -316,8 +316,8 @@ BEGIN
   RETURNING id INTO lamination_group;
 
   INSERT INTO service_option_values (group_id, value_key, label, sort_order) VALUES
-    (lamination_group, 'thin', 'Thin', 0),
-    (lamination_group, 'thick', 'Thick', 1)
+    (lamination_group, 'thin', 'Thin / Manipis', 0),
+    (lamination_group, 'thick', 'Thick / Makapal', 1)
   ON CONFLICT (group_id, value_key) DO UPDATE SET label = EXCLUDED.label, active = TRUE, archived_at = NULL, sort_order = EXCLUDED.sort_order, updated_at = NOW();
 
   INSERT INTO service_pricing_rules (service_id, rule_key, option_value_ids, label, price, price_type, sort_order)
