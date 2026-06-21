@@ -109,7 +109,9 @@ function queue_ui_payment_summary(array $row): string
 function queue_ui_detail_rows(array $details): array
 {
     $serviceLabel = strtolower(queue_ui_detail_value($details, ["service_label", "service", "service_type"]));
-    $unitPriceLabel = str_contains($serviceLabel, "laminat") ? "Unit Price" : "Price Per Page";
+    $unitPriceLabel = str_contains($serviceLabel, "scan")
+        ? "Price Per Scan"
+        : (str_contains($serviceLabel, "laminat") ? "Unit Price" : "Price Per Page");
     $map = [
         "Paper Size" => ["paper_size", "paper"],
         "Quantity / Copies" => ["quantity", "copies"],
@@ -127,7 +129,7 @@ function queue_ui_detail_rows(array $details): array
     foreach ($map as $label => $keys) {
         $value = queue_ui_detail_value($details, $keys);
         if ($value !== "") {
-            if (in_array($label, ["Price Per Page", "Unit Price"], true) && is_numeric($value)) {
+            if (in_array($label, ["Price Per Page", "Price Per Scan", "Unit Price"], true) && is_numeric($value)) {
                 $value = "PHP " . number_format((float)$value, 2);
             }
             $rows[] = ["label" => $label, "value" => $value];

@@ -41,6 +41,11 @@
       title: "Edit Laminating Prices and Options",
       help: "Manage available laminating types and their official prices.",
     },
+    scanning: {
+      groups: { paper_size: "Paper Size" },
+      title: "Edit Scanning Prices and Options",
+      help: "Set the official scanning price for each paper size. These prices appear on the landing page and customer queue form.",
+    },
     repair: {
       groups: { device_type: "Devices", repair_type: "Service Type" },
       title: "Edit Repair Services",
@@ -71,6 +76,7 @@
     if (cat === "printing" && (label.includes("photocopy") || label.includes("xerox"))) return "photocopy";
     if (cat === "printing" && label.includes("rush") && label.includes("id")) return "rush_id";
     if (cat === "printing" && label.includes("laminat")) return "laminating";
+    if (cat === "printing" && label.includes("scan")) return "scanning";
     if (cat === "repair") return "repair";
     if (cat === "installation") return "installation";
     return "";
@@ -302,6 +308,7 @@
     if (currentKind === "document_printing" || currentKind === "photocopy") editor.innerHTML = matrixEditor();
     else if (currentKind === "rush_id") editor.innerHTML = rushEditor();
     else if (currentKind === "laminating") editor.innerHTML = simpleRuleRows("lamination_type", "Laminating Options", "New laminating type", { nameLabel: "Type" });
+    else if (currentKind === "scanning") editor.innerHTML = simpleRuleRows("paper_size", "Scanning Paper Sizes", "New paper size", { nameLabel: "Paper Size" });
     else if (currentKind === "repair") editor.innerHTML = repairEditor();
     else if (currentKind === "installation") editor.innerHTML = simpleRuleRows("installation_type", "Installation Types", "New installation type", { nameLabel: "Installation Type" });
   }
@@ -453,7 +460,7 @@
     fields.active.checked = Number(data.active) === 1;
     currentKind = serviceKind(data.category, data.name);
     const serviceNameField = qs("#msServiceNameField");
-    if (serviceNameField) serviceNameField.hidden = currentKind !== "laminating";
+    if (serviceNameField) serviceNameField.hidden = !["laminating", "scanning"].includes(currentKind);
     const contract = contracts[currentKind];
     qs("#msModalTitle").textContent = contract?.title || `Edit ${data.name}`;
     qs("#msModalHelp").textContent = contract?.help || "";

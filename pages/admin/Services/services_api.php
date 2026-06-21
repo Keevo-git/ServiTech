@@ -99,6 +99,12 @@ if ($action === "save") {
                 throw new DomainException("Use Laminating or Lamination as the service name.");
             }
             $name = trim($requestedName);
+        } elseif ($serviceKind === "scanning") {
+            $normalizedRequestedName = strtolower(trim($requestedName));
+            if (!in_array($normalizedRequestedName, ["scanning", "scan"], true)) {
+                throw new DomainException("Use Scanning or Scan as the service name.");
+            }
+            $name = trim($requestedName);
         }
         if (!is_array($catalogData)) throw new DomainException("Service options are required.");
         $catalogData = servitech_catalog_normalize_admin_payload($existing, $catalogData);

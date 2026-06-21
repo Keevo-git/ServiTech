@@ -372,6 +372,7 @@ function getServiceDetailKey(category, serviceName) {
   if (category === "printing" && (normalizedName.includes("photocopy") || normalizedName.includes("xerox"))) return "photocopy";
   if (category === "printing" && normalizedName.includes("rush") && normalizedName.includes("id")) return "rushId";
   if (category === "printing" && normalizedName.includes("laminat")) return "laminationCatalog";
+  if (category === "printing" && normalizedName.includes("scan")) return "scanningCatalog";
   if (category === "repair") return "repairCatalog";
   if (category === "installation") return "installationCatalog";
   return undefined;
@@ -403,6 +404,10 @@ function getServiceIcon(iconKey) {
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M5 4h14v4H5zm1 6h12l2 10H4zm4 2v5h4v-5z"></path>
       </svg>`,
+    scan: `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6 2h12v6H6V2zm-2 8h16a2 2 0 0 1 2 2v7h-4v3H6v-3H2v-7a2 2 0 0 1 2-2zm4 7v3h8v-3H8zm10-4h2v2h-2v-2z"></path>
+      </svg>`,
     default: `
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M12 2 2 7l10 5 10-5zm0 8L2 5v12l10 5 10-5V5z"></path>
@@ -419,6 +424,7 @@ function getServiceIconKey(category, serviceName) {
     if (normalizedName.includes("xerox") || normalizedName.includes("photocopy")) return "copy";
     if (normalizedName.includes("rush id")) return "id";
     if (normalizedName.includes("laminat")) return "laminate";
+    if (normalizedName.includes("scan")) return "scan";
     return "print";
   }
 
@@ -489,6 +495,12 @@ async function loadServicesFromDatabase() {
             title: "Laminating Options",
             description: "Review active laminating types and pricing.",
             cards: buildCatalogRuleCards(service, "lamination_type"),
+          };
+        } else if (detailKey === "scanningCatalog") {
+          serviceModalDetailData.scanningCatalog = {
+            title: "Scanning Paper Sizes",
+            description: "Review active scanning paper sizes and pricing.",
+            cards: buildCatalogRuleCards(service, "paper_size"),
           };
         } else if (detailKey === "repairCatalog") {
           serviceModalDetailData.repairCatalog = {
@@ -810,7 +822,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const summaryTotal = document.getElementById("summaryTotal");
 
   const svc = document.body?.dataset?.service || "";
-  const isXerox = svc === "xerox";
+  const serviceMode = document.body?.dataset?.serviceKind || svc;
+  const isXerox = serviceMode === "xerox";
+  const isScanning = serviceMode === "scanning";
 
 
   function priceLabelForRule(rule) {
@@ -909,6 +923,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const price = rule && rule.price_type !== "assessment" ? Number(rule.price) : NaN;
       canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(price);
       pricePerItem = canCompute ? price : 0;
+    } else if (isScanning && paperSizeSelect) {
+      const size = paperSizeSelect.value;
+      const rule = findCatalogRuleByKeys({ paper_size: selectedOptionValueKey(paperSizeSelect) });
+      const price = rule && rule.price_type !== "assessment" ? Number(rule.price) : NaN;
+      assessmentPrice = !!rule && rule.price_type === "assessment";
+      canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(price);
+      pricePerItem = canCompute ? price : 0;
     } else {
       canCompute = false;
       assessmentPrice = true;
@@ -1001,7 +1022,9 @@ document.addEventListener("DOMContentLoaded", () => {
     rushAddonInputs: Array.from(document.querySelectorAll('input[name="rushAddon"]')),
   };
   const svc = (document.body?.dataset?.service || "").toLowerCase();
-  const isXerox = svc === "xerox";
+  const serviceMode = (document.body?.dataset?.serviceKind || svc).toLowerCase();
+  const isXerox = serviceMode === "xerox";
+  const isScanning = serviceMode === "scanning";
 
   function readQuantityValue() {
     if (!refs.qtyInput) return 1;
@@ -1165,6 +1188,10 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       payload.catalog_pricing_rule_id = Number(rule?.id || 0) || payload.catalog_pricing_rule_id || null;
       payload.service_option_key = rule?.rule_key || null;
+    } else if (isScanning && refs.paperSizeSelect) {
+      const rule = findCatalogRuleByKeys({ paper_size: selectedOptionValueKey(refs.paperSizeSelect) });
+      payload.catalog_pricing_rule_id = Number(rule?.id || 0) || payload.catalog_pricing_rule_id || null;
+      payload.service_option_key = rule?.rule_key || null;
     }
 
     return payload;
@@ -1242,6 +1269,14 @@ document.addEventListener("DOMContentLoaded", () => {
         errors.push("The selected photocopy combination is currently unavailable.");
         setFieldInvalid(refs.paperSizeSelect, true);
         setRadioInvalid("color", true);
+      }
+    }
+
+    if (isScanning && refs.paperSizeSelect && payload.paper_size) {
+      const rule = findCatalogRuleByKeys({ paper_size: selectedOptionValueKey(refs.paperSizeSelect) });
+      if (!rule) {
+        errors.push("The selected scanning paper size is currently unavailable.");
+        setFieldInvalid(refs.paperSizeSelect, true);
       }
     }
 

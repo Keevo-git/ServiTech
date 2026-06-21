@@ -36,6 +36,7 @@ function servitech_catalog_service_kind(array $service): string {
   if ($category === "printing" && (str_contains($name, "photocopy") || str_contains($name, "xerox"))) return "photocopy";
   if ($category === "printing" && str_contains($name, "rush") && str_contains($name, "id")) return "rush_id";
   if ($category === "printing" && str_contains($name, "laminat")) return "laminating";
+  if ($category === "printing" && str_contains($name, "scan")) return "scanning";
   if ($category === "repair") return "repair";
   if ($category === "installation") return "installation";
   return "";
@@ -52,6 +53,7 @@ function servitech_catalog_group_contract(string $kind): array {
       "addon" => "Add-Ons",
     ],
     "laminating" => ["lamination_type" => "Type"],
+    "scanning" => ["paper_size" => "Paper Size"],
     "repair" => [
       "device_type" => "Devices",
       "repair_type" => "Service Type",
@@ -68,6 +70,7 @@ function servitech_catalog_expected_rule_groups(string $kind, array $keys): bool
     "document_printing", "photocopy" => [["color_option", "paper_size"]],
     "rush_id" => [["addon"], ["package"]],
     "laminating" => [["lamination_type"]],
+    "scanning" => [["paper_size"]],
     "repair" => [["device_type", "repair_type"]],
     "installation" => [["installation_type"]],
     default => [],
@@ -145,6 +148,7 @@ function servitech_catalog_fetch_service_by_kind(PDO $pdo, string $kind, bool $a
     'photocopy' => "category = 'printing' AND (LOWER(name) LIKE '%photocopy%' OR LOWER(name) LIKE '%xerox%')",
     'rush_id' => "category = 'printing' AND LOWER(name) LIKE '%rush%' AND LOWER(name) LIKE '%id%'",
     'laminating' => "category = 'printing' AND LOWER(name) LIKE '%laminat%'",
+    'scanning' => "category = 'printing' AND LOWER(name) LIKE '%scan%'",
     'repair' => "category = 'repair' AND (LOWER(name) LIKE '%repair%' OR LOWER(name) LIKE '%device%')",
     'installation' => "category = 'installation' AND (LOWER(name) LIKE '%installation%' OR LOWER(name) LIKE '%software%')",
     default => "1 = 0",

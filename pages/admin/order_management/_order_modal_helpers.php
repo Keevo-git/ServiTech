@@ -121,7 +121,9 @@ function om_additional_comments(array $details): string
 function om_extra_detail_rows(array $details): array
 {
     $serviceLabel = strtolower(om_detail_value($details, ["service_label", "service", "service_type"]));
-    $unitPriceLabel = str_contains($serviceLabel, "laminat") ? "Unit Price" : "Price Per Page";
+    $unitPriceLabel = str_contains($serviceLabel, "scan")
+        ? "Price Per Scan"
+        : (str_contains($serviceLabel, "laminat") ? "Unit Price" : "Price Per Page");
     $map = [
         "Paper Size" => ["paper_size", "paper"],
         "Quantity / Copies" => ["quantity", "copies"],
@@ -139,7 +141,7 @@ function om_extra_detail_rows(array $details): array
     foreach ($map as $label => $keys) {
         $value = om_detail_value($details, $keys);
         if ($value !== "") {
-            if (in_array($label, ["Price Per Page", "Unit Price"], true) && is_numeric($value)) {
+            if (in_array($label, ["Price Per Page", "Price Per Scan", "Unit Price"], true) && is_numeric($value)) {
                 $value = "PHP " . number_format((float)$value, 2);
             }
             $rows[] = ["label" => $label, "value" => $value];

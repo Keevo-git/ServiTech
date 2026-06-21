@@ -30,6 +30,7 @@ function printing_service_route(string $name): string {
   if (str_contains($label, "photocopy") || str_contains($label, "xerox")) return "custo2_photocopy.php";
   if (str_contains($label, "rush") && str_contains($label, "id")) return "custo2_rush_id.php";
   if (str_contains($label, "laminat")) return "custo2_laminating.php";
+  if (str_contains($label, "scan")) return "custo2_scanning.php";
   return "";
 }
 

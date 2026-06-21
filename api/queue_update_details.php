@@ -186,6 +186,9 @@ try {
   } elseif ($serviceKind === "laminating") {
     $details["lamination_type"] = strtolower(trim((string)($data["lamination_type"] ?? "")));
     unset($details["paper_size"], $details["color_option"], $details["payment_method"], $details["reference_number"]);
+  } elseif ($serviceKind === "scanning") {
+    $details["paper_size"] = trim((string)($data["paper_size"] ?? ($currentDetails["paper_size"] ?? "")));
+    unset($details["color_option"], $details["package_label"], $details["lamination_type"], $details["device_type"], $details["repair_type"], $details["installation_type"], $details["payment_method"], $details["reference_number"]);
   } elseif ($serviceKind === "repair") {
     $details["device_type"] = trim((string)($data["device_type"] ?? ""));
     $details["repair_type"] = trim((string)($data["repair_type"] ?? ""));

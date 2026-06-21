@@ -26,7 +26,8 @@ function ms_supported_catalog_service(array $service): bool {
       || str_contains($name, "photocopy")
       || str_contains($name, "xerox")
       || (str_contains($name, "rush") && str_contains($name, "id"))
-      || str_contains($name, "laminat");
+      || str_contains($name, "laminat")
+      || str_contains($name, "scan");
   }
   return in_array($category, ["repair", "installation"], true);
 }

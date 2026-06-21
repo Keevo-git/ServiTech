@@ -25,6 +25,7 @@ function servitech_pricing_service_kind(string $category, string $serviceLabel):
   if ($label === "xerox" || $label === "photocopy") return "xerox";
   if ($label === "rush id") return "rush_id";
   if ($label === "laminating" || $label === "lamination") return "laminating";
+  if ($label === "scanning" || $label === "scan") return "scanning";
   if ($category === "repair") return "repair";
   if ($category === "installation") return "installation";
 
@@ -61,6 +62,7 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
     "xerox" => "category = 'printing' AND (LOWER(name) LIKE '%xerox%' OR LOWER(name) LIKE '%photocopy%')",
     "rush_id" => "category = 'printing' AND LOWER(name) LIKE '%rush%' AND LOWER(name) LIKE '%id%'",
     "laminating" => "category = 'printing' AND LOWER(name) LIKE '%laminat%'",
+    "scanning" => "category = 'printing' AND LOWER(name) LIKE '%scan%'",
     "repair" => "category = 'repair' AND LOWER(TRIM(name)) = LOWER(TRIM(:name))",
     "installation" => "category = 'installation' AND LOWER(TRIM(name)) = LOWER(TRIM(:name))",
     default => throw new DomainException("Unsupported service."),
@@ -251,7 +253,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   $details["pricing_calculated_at"] = date(DATE_ATOM);
 
   $catalogRuleId = isset($details["catalog_pricing_rule_id"]) ? (int)$details["catalog_pricing_rule_id"] : 0;
-  $catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "repair", "installation"];
+  $catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning", "repair", "installation"];
   if ($catalogRuleId <= 0 && in_array($kind, $catalogManagedKinds, true)) {
     throw new DomainException("Select a valid active service option from the service catalog.");
   }
@@ -351,7 +353,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
       $details = array_merge($details, servitech_pricing_analyze_saved_uploads($pdo, (array)($details["uploaded_files"] ?? [])));
       $details["price_per_page"] = $fixedPrice;
       $details["estimated_total"] = servitech_pricing_round($fixedPrice * $quantity * (int)$details["total_pages"]);
-    } elseif (in_array($kind, ["xerox", "rush_id", "laminating"], true)) {
+    } elseif (in_array($kind, ["xerox", "rush_id", "laminating", "scanning"], true)) {
       $effectivePrice = $kind === "rush_id" ? $snapshotPrice : $fixedPrice;
       if ($effectivePrice === null) {
         unset($details["price_per_page"], $details["estimated_total"]);

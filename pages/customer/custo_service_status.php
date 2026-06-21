@@ -1885,7 +1885,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     ];
     const printingCategories = ["printing", "online_printorder", "printing_online", "walkin", "printing_walkin"];
     if (legacyServices.includes(service)) return true;
-    if (["rushid", "photocopy", "xerox", "laminating", "lamination"].includes(service)) return false;
+    if (["rushid", "photocopy", "xerox", "laminating", "lamination", "scanning", "scan"].includes(service)) return false;
     return service === "" && printingCategories.includes(categoryKey(queueData));
   }
 
@@ -1952,6 +1952,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     }
     if (service === "laminating" || service === "lamination") {
       return services.find((item) => /laminat/i.test(String(item?.name || ""))) || null;
+    }
+    if (service === "scanning" || service === "scan") {
+      return services.find((item) => /scan/i.test(String(item?.name || ""))) || null;
     }
 
     return services.find((item) => cleanServiceLabel(item?.name).toLowerCase() === label) || null;
@@ -2023,6 +2026,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       }
       if (serviceName === "laminating" || serviceName === "lamination") {
         return labelKey(labels.lamination_type) === lamination;
+      }
+      if (serviceName === "scanning" || serviceName === "scan") {
+        return labelKey(labels.paper_size) === paper;
       }
       if (filterCategoryKey(queueData) === "repair") {
         return labelKey(labels.device_type) === device && labelKey(labels.repair_type) === repair;
@@ -2387,6 +2393,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rows.push(["Lamination", catalogRuleLabel(rule)]);
       rows.push(["Price per item", unitPrice !== null ? toPeso(unitPrice) : "For assessment"]);
       rows.push(["Quantity", quantity]);
+    } else if (service === "scanning" || service === "scan") {
+      if (unitPrice !== null) {
+        total = unitPrice * quantity;
+        totalLabel = toPeso(total);
+      }
+      rows.push(["Paper Size", catalogRuleLabel(rule)]);
+      rows.push(["Price per scan", unitPrice !== null ? toPeso(unitPrice) : "For assessment"]);
+      rows.push(["Quantity", quantity]);
     } else {
       const ruleTotal = catalogRulePrice(rule, quantity);
       if (ruleTotal !== null) {
@@ -2501,6 +2515,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
     } else if (service === "laminating" || service === "lamination") {
       rows.push(editSelect("catalog_pricing_rule_id", "Lamination", currentRuleId, ruleOptions("lamination_type")));
+      rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
+    } else if (service === "scanning" || service === "scan") {
+      rows.push(editSelect("catalog_pricing_rule_id", "Paper Size", currentRuleId, ruleOptions("paper_size")));
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
     } else if (category === "repair") {
       rows.push(editSelect("device_type", "Device", queueData.device_type ?? details.device_type, groupOptions("device_type")));
@@ -2759,6 +2776,12 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     if (service === "laminating" || service === "lamination") {
       add("Lamination", queueData.lamination_type ?? details.lamination_type);
+      add("Quantity", queueData.quantity ?? details.quantity);
+      return rows;
+    }
+
+    if (service === "scanning" || service === "scan") {
+      add("Paper Size", queueData.paper_size ?? details.paper_size);
       add("Quantity", queueData.quantity ?? details.quantity);
       return rows;
     }

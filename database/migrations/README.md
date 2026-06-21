@@ -48,13 +48,14 @@ For an existing ServiTech database:
     the Order Management recycle-bin index.
 12. Run `20260620_unify_service_catalog_pricing.sql` if it has not yet been
     applied, then run `20260620_add_rush_id_addons.sql`, followed by
-    `20260621_add_laminating_catalog.sql`. The additive migrations preserve
+    `20260621_add_laminating_catalog.sql` and
+    `20260621_add_scanning_catalog.sql`. The additive migrations preserve
     edited prices and non-archived option statuses while adding Rush ID
-    add-ons and restoring a previously archived canonical Laminating row.
+    add-ons and restoring previously archived canonical Printing services.
 
 `20260620_unify_service_catalog_pricing.sql` is a one-time catalog conversion
 and seed migration. Do not rerun it after administrators have edited catalog
-values, prices, statuses, or ordering. The two additive migrations that follow
+values, prices, statuses, or ordering. The additive migrations that follow
 it are safe to rerun and preserve existing administrator edits.
 
 The application runtime must not create or alter database schema. Apply future
