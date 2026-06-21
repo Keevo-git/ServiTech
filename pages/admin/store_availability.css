@@ -533,6 +533,46 @@ body.store-confirm-open {
   box-shadow: 0 10px 22px rgba(127, 29, 29, .16);
 }
 
+/* Match the customer Change Password close-button reference. */
+.store-confirm-close {
+  background: #fff7ec;
+  border: 1px solid rgba(122, 47, 0, 0.12);
+  border-radius: 14px;
+  box-shadow: none;
+  color: #7a2f00;
+  font-size: 0;
+  position: absolute;
+}
+
+.store-confirm-close::before,
+.store-confirm-close::after {
+  background: currentColor;
+  border-radius: 999px;
+  content: "";
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-origin: center;
+  width: 16px;
+}
+
+.store-confirm-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.store-confirm-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.store-confirm-close:hover,
+.store-confirm-close:focus-visible {
+  background: #ffe9d0;
+  border-color: rgba(122, 47, 0, 0.12);
+  box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14);
+  color: #7a2f00;
+}
+
 .holiday-panel { margin-top: 22px; }
 .holiday-form {
   display: grid;

@@ -812,6 +812,34 @@ if (!function_exists("admin_notification_render_styles")) {
     outline-offset: 2px;
   }
 
+  .admin-notification-close {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    flex: 0 0 44px;
+    border: 1px solid rgba(122, 47, 0, 0.12);
+    border-radius: 14px;
+    background: #fff7ec;
+    color: #7a2f00;
+    box-shadow: none;
+  }
+
+  .admin-notification-close::before,
+  .admin-notification-close::after {
+    width: 16px;
+    height: 2px;
+  }
+
+  .admin-notification-close:hover,
+  .admin-notification-close:focus-visible {
+    background: #ffe9d0;
+    border-color: rgba(122, 47, 0, 0.12);
+    color: #7a2f00;
+    box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14);
+    outline: none;
+  }
+
   @media (max-width: 980px) and (min-width: 769px) {
     .admin-notification-overlay-shell {
       padding: 14px;

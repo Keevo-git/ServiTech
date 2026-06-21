@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const BASE_Z_INDEX = 12000;
+  const BASE_Z_INDEX = 2147480000;
   const LAYER_STEP = 10;
   const FOCUSABLE_SELECTOR = [
     "button:not([disabled])",

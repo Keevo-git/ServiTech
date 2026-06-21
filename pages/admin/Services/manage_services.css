@@ -92,3 +92,45 @@ body.ms-modal-open{overflow:hidden}.ms-overlay{box-sizing:border-box;overscroll-
     max-height: none;
   }
 }
+
+/* Match the customer Change Password close-button reference. */
+.ms-x {
+  background: #fff7ec;
+  border: 1px solid rgba(122, 47, 0, 0.12);
+  border-radius: 14px;
+  box-shadow: none;
+  color: #7a2f00;
+  font-size: 0;
+  position: absolute;
+}
+
+.ms-x::before,
+.ms-x::after {
+  background: currentColor;
+  border-radius: 999px;
+  content: "";
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-origin: center;
+  width: 16px;
+}
+
+.ms-x::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.ms-x::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.ms-x:hover,
+.ms-x:focus-visible {
+  background: #ffe9d0;
+  border-color: rgba(122, 47, 0, 0.12);
+  box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14);
+  color: #7a2f00;
+  outline: none;
+  transform: translateY(-1px);
+}

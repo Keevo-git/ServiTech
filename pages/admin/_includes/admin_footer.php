@@ -413,5 +413,5 @@ $adminFooterEmail = servitech_contact_email();
     }
   }
 </style>
-<script src="<?= admin_url('/pages/admin/modal_stack.js?v=20260601-modal-stack') ?>"></script>
+<script src="<?= admin_url('/pages/admin/modal_stack.js?v=20260621-modal-stack-toast') ?>"></script>
 <script src="<?= admin_url('/pages/admin/queue_state_machine.js?v=20260621-gcash-approval') ?>"></script>

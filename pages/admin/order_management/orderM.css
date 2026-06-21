@@ -2766,3 +2766,59 @@ body.order-confirm-open {
   min-width: 44px !important;
   width: 44px !important;
 }
+
+/* Match the customer Change Password close-button reference. */
+.order-modal .close-modal,
+.order-sendback-modal .close-modal,
+.order-confirm-close {
+  background: #fff7ec !important;
+  border: 1px solid rgba(122, 47, 0, 0.12) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  color: #7a2f00 !important;
+  font-size: 0 !important;
+  position: relative !important;
+}
+
+.order-modal .close-modal::before,
+.order-modal .close-modal::after,
+.order-sendback-modal .close-modal::before,
+.order-sendback-modal .close-modal::after,
+.order-confirm-close::before,
+.order-confirm-close::after {
+  background: currentColor;
+  border-radius: 999px;
+  content: "";
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-origin: center;
+  width: 16px;
+}
+
+.order-modal .close-modal::before,
+.order-sendback-modal .close-modal::before,
+.order-confirm-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.order-modal .close-modal::after,
+.order-sendback-modal .close-modal::after,
+.order-confirm-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.order-modal .close-modal:hover,
+.order-modal .close-modal:focus-visible,
+.order-sendback-modal .close-modal:hover,
+.order-sendback-modal .close-modal:focus-visible,
+.order-confirm-close:hover,
+.order-confirm-close:focus-visible {
+  background: #ffe9d0 !important;
+  border-color: rgba(122, 47, 0, 0.12) !important;
+  box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14) !important;
+  color: #7a2f00 !important;
+  outline: none !important;
+  transform: translateY(-1px) !important;
+}

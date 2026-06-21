@@ -18,7 +18,7 @@ $adminNotificationCount = isset($adminNotificationCount)
 $adminHeaderShowHome = $adminHeaderVariant !== "dashboard";
 $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"], true);
 ?>
-<link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260602-admin-toast') ?>">
+<link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260621-modal-stack-toast') ?>">
 <script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-controller') ?>" defer></script>

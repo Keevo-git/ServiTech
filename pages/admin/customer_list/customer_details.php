@@ -1088,6 +1088,58 @@ if ($customer) {
       font-weight:800 !important;
       line-height:1 !important;
     }
+
+    .customer-details-page .cl-modalX,
+    .customer-details-page .cd-detailModalHead .cl-modalX {
+      background:#fff7ec !important;
+      border:1px solid rgba(122,47,0,.12) !important;
+      border-radius:14px !important;
+      box-shadow:none !important;
+      color:#7a2f00 !important;
+      font-size:0 !important;
+      position:relative !important;
+    }
+
+    .customer-details-page .cl-modalX::before,
+    .customer-details-page .cl-modalX::after,
+    .customer-details-page .cd-detailModalHead .cl-modalX::before,
+    .customer-details-page .cd-detailModalHead .cl-modalX::after {
+      background:currentColor;
+      border-radius:999px;
+      content:"";
+      height:2px;
+      left:50%;
+      position:absolute;
+      top:50%;
+      transform-origin:center;
+      width:16px;
+    }
+
+    .customer-details-page .cl-modalX::before,
+    .customer-details-page .cd-detailModalHead .cl-modalX::before {
+      transform:translate(-50%, -50%) rotate(45deg);
+    }
+
+    .customer-details-page .cl-modalX::after,
+    .customer-details-page .cd-detailModalHead .cl-modalX::after {
+      transform:translate(-50%, -50%) rotate(-45deg);
+    }
+
+    .customer-details-page .cl-modalX:hover,
+    .customer-details-page .cl-modalX:focus-visible,
+    .customer-details-page .cd-detailModalHead .cl-modalX:hover,
+    .customer-details-page .cd-detailModalHead .cl-modalX:focus-visible {
+      background:#ffe9d0 !important;
+      border-color:rgba(122,47,0,.12) !important;
+      box-shadow:0 0 0 4px rgba(255,139,44,.14) !important;
+      color:#7a2f00 !important;
+      outline:none !important;
+      transform:translateY(-1px) !important;
+    }
+
+    .customer-details-page .cd-detailModalHead .cl-modalX span {
+      display:none !important;
+    }
   </style>
 </head>
 <body class="customer-details-page">

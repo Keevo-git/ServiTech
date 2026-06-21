@@ -15,7 +15,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260621-global-ui-polish">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
-  <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260607-status-edit-toast">
+  <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260621-modal-stack-toast">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>
     body.customer-layout.customer-page--status {
@@ -1388,6 +1388,40 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
         min-height: 46px;
         box-shadow: 0 7px 14px rgba(0, 0, 0, 0.14);
       }
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close,
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close {
+      background: #fff7ec !important;
+      border-color: rgba(122, 47, 0, 0.12) !important;
+      border-radius: 14px !important;
+      color: #7a2f00 !important;
+      height: 44px !important;
+      max-height: 44px !important;
+      max-width: 44px !important;
+      min-height: 44px !important;
+      min-width: 44px !important;
+      width: 44px !important;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close::before,
+    body.customer-layout.customer-page--status .status-modal .modal-close::after,
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close::before,
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close::after {
+      height: 2px !important;
+      width: 16px !important;
+    }
+
+    body.customer-layout.customer-page--status .status-modal .modal-close:hover,
+    body.customer-layout.customer-page--status .status-modal .modal-close:focus-visible,
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close:hover,
+    body.customer-layout.customer-page--status .status-edit-modal .modal-close:focus-visible {
+      background: #ffe9d0 !important;
+      border-color: rgba(122, 47, 0, 0.12) !important;
+      box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14) !important;
+      color: #7a2f00 !important;
+      outline: none !important;
+      transform: translateY(-1px) !important;
     }
   </style>
 </head>

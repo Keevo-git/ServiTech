@@ -764,10 +764,10 @@ $notificationRoutes = [
     width: 44px;
     height: 44px;
     padding: 0;
-    border: 1px solid #e7cdbd;
+    border: 1px solid rgba(122, 47, 0, 0.12);
     border-radius: 14px;
-    background: #f9efe7;
-    color: #6b0000;
+    background: #fff7ec;
+    color: #7a2f00;
     font-size: 0;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
@@ -779,8 +779,8 @@ $notificationRoutes = [
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 17px;
-    height: 2.5px;
+    width: 16px;
+    height: 2px;
     border-radius: 999px;
     background: currentColor;
   }
@@ -794,10 +794,10 @@ $notificationRoutes = [
   }
 
   .notification-close-btn:hover {
-    border-color: #dfbda9;
-    background: #f4e6dc;
-    box-shadow: 0 8px 18px rgba(74, 5, 5, 0.1);
-    transform: scale(1.02);
+    border-color: rgba(122, 47, 0, 0.12);
+    background: #ffe9d0;
+    box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14);
+    transform: translateY(-1px);
   }
 
   .notification-close-btn:focus-visible,

@@ -28,15 +28,15 @@ body.customer-layout .queue-success-modal {
 
 body.customer-layout .queue-success-modal__close {
   align-items: center;
-  background: #fff7f3;
-  border: 1px solid rgba(95, 14, 15, 0.15);
-  border-radius: 50%;
+  background: #fff7ec;
+  border: 1px solid rgba(122, 47, 0, 0.12);
+  border-radius: 14px;
   box-sizing: border-box;
-  color: #5f0e0f;
+  color: #7a2f00;
   cursor: pointer;
   display: inline-flex;
   font-family: inherit;
-  font-size: 22px;
+  font-size: 0;
   font-weight: 800;
   height: 48px;
   justify-content: center;
@@ -52,10 +52,32 @@ body.customer-layout .queue-success-modal__close {
 
 body.customer-layout .queue-success-modal__close:hover,
 body.customer-layout .queue-success-modal__close:focus-visible {
-  background: #fce7df;
-  box-shadow: 0 0 0 3px rgba(95, 14, 15, 0.14);
+  background: #ffe9d0;
+  border-color: rgba(122, 47, 0, 0.12);
+  box-shadow: 0 0 0 4px rgba(255, 139, 44, 0.14);
   outline: none;
   transform: translateY(-1px);
+}
+
+body.customer-layout .queue-success-modal__close::before,
+body.customer-layout .queue-success-modal__close::after {
+  background: currentColor;
+  border-radius: 999px;
+  content: "";
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-origin: center;
+  width: 16px;
+}
+
+body.customer-layout .queue-success-modal__close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+body.customer-layout .queue-success-modal__close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 body.customer-layout .queue-success-modal__icon {
