@@ -35,10 +35,9 @@ function ms_supported_catalog_service(array $service): bool {
 function ms_display_service_name($name): string {
   $name = trim((string)$name);
   if (strcasecmp($name, "xerox") === 0) return "Photocopy";
-  if (strcasecmp($name, "lamination") === 0) return "Laminating";
   return $name;
 }
-$unsupportedServiceCount = count(array_filter($services, static fn($service) => !ms_supported_catalog_service($service)));
+$unsupportedServices = array_values(array_filter($services, static fn($service) => !ms_supported_catalog_service($service)));
 $services = array_values(array_filter($services, "ms_supported_catalog_service"));
 ?>
 <!doctype html>
@@ -123,9 +122,11 @@ require __DIR__ . "/../_includes/admin_header.php";
           <?php endforeach; ?>
         <?php endif; ?>
     </div>
-    <?php if ($unsupportedServiceCount > 0): ?>
+    <?php if ($unsupportedServices): ?>
       <div class="ms-legacy-note">
-        <?= (int)$unsupportedServiceCount ?> legacy service record<?= $unsupportedServiceCount === 1 ? "" : "s" ?> remain unchanged because this editor only manages the configured service structures.
+        <strong>Legacy service<?= count($unsupportedServices) === 1 ? "" : "s" ?> not managed by this editor:</strong>
+        <?= h(implode(", ", array_map(static fn($service) => ms_display_service_name($service["name"] ?? "Unnamed service"), $unsupportedServices))) ?>.
+        <?= count($unsupportedServices) === 1 ? "This record remains" : "These records remain" ?> unchanged and active/inactive exactly as currently configured. Add a dedicated catalog migration before managing <?= count($unsupportedServices) === 1 ? "it" : "them" ?> in this editor.
       </div>
     <?php endif; ?>
   </div>
@@ -149,7 +150,6 @@ require __DIR__ . "/../_includes/admin_header.php";
     <div class="ms-body">
       <input type="hidden" id="ms_id" value="">
       <input type="hidden" id="ms_category">
-      <input type="hidden" id="ms_name">
       <input type="hidden" id="ms_price">
       <input type="hidden" id="ms_price_range">
       <input type="hidden" id="ms_sort">
@@ -168,6 +168,11 @@ require __DIR__ . "/../_includes/admin_header.php";
 
       <details class="ms-service-details">
         <summary>Customer-facing service description</summary>
+        <div class="ms-field" id="msServiceNameField" hidden>
+          <label for="ms_name">Service name</label>
+          <input id="ms_name" type="text" maxlength="40">
+          <small>Use Laminating or Lamination.</small>
+        </div>
         <div class="ms-field">
           <textarea id="ms_description" placeholder="Short customer-facing note for this service"></textarea>
           <small>This text appears with the service on customer-facing pages.</small>

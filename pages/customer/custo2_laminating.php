@@ -11,6 +11,7 @@ $storeAvailability = servitech_store_current_availability($pdo);
 
 $laminatingCatalogServiceId = 0;
 $laminatingCatalogRules = [];
+$laminatingServiceName = "Laminating";
 
 function laminating_rule_price_attr(array $rule): string {
   if (($rule["price_type"] ?? "") === "assessment" || !isset($rule["price"]) || !is_numeric($rule["price"])) {
@@ -32,6 +33,7 @@ try {
   $laminatingService = servitech_catalog_fetch_service_by_kind($pdo, "laminating", true);
   if ($laminatingService) {
     $laminatingCatalogServiceId = (int)($laminatingService["id"] ?? 0);
+    $laminatingServiceName = trim((string)($laminatingService["name"] ?? "")) ?: "Laminating";
     $catalog = servitech_catalog_fetch($pdo, $laminatingCatalogServiceId, true);
     $laminatingCatalogRules = $catalog["rules"] ?? [];
   }
@@ -45,13 +47,13 @@ try {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ServiTech: Laminating</title>
+  <title>ServiTech: <?= htmlspecialchars($laminatingServiceName, ENT_QUOTES, "UTF-8") ?></title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="Laminating" data-catalog-service-id="<?= (int)$laminatingCatalogServiceId ?>">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="<?= htmlspecialchars($laminatingServiceName, ENT_QUOTES, "UTF-8") ?>" data-catalog-service-id="<?= (int)$laminatingCatalogServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -69,7 +71,7 @@ try {
         <div class="form-grid">
           <div>
             <label>Service Type<span class="required">*</span></label>
-            <p class="static-text">Laminating</p>
+            <p class="static-text"><?= htmlspecialchars($laminatingServiceName, ENT_QUOTES, "UTF-8") ?></p>
 
             <label for="lamTypeSelect">Lamination Type<span class="required">*</span></label>
             <select class="form-select" id="lamTypeSelect">
@@ -115,7 +117,7 @@ try {
 
         <div class="summary-row">
           <span>SERVICE:</span>
-          <strong>LAMINATING</strong>
+          <strong><?= htmlspecialchars(strtoupper($laminatingServiceName), ENT_QUOTES, "UTF-8") ?></strong>
         </div>
 
         <div class="summary-row">

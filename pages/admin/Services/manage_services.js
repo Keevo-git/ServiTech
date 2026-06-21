@@ -456,6 +456,8 @@
     fields.sort.value = data.sort_order || 0;
     fields.active.checked = Number(data.active) === 1;
     currentKind = serviceKind(data.category, data.name);
+    const serviceNameField = qs("#msServiceNameField");
+    if (serviceNameField) serviceNameField.hidden = currentKind !== "laminating";
     const contract = contracts[currentKind];
     qs("#msModalTitle").textContent = contract?.title || `Edit ${data.name}`;
     qs("#msModalHelp").textContent = contract?.help || "";

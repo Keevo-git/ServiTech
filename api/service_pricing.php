@@ -24,7 +24,7 @@ function servitech_pricing_service_kind(string $category, string $serviceLabel):
   }
   if ($label === "xerox" || $label === "photocopy") return "xerox";
   if ($label === "rush id") return "rush_id";
-  if ($label === "laminating") return "laminating";
+  if ($label === "laminating" || $label === "lamination") return "laminating";
   if ($category === "repair") return "repair";
   if ($category === "installation") return "installation";
 
@@ -335,9 +335,8 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
       }
     }
 
-    // Keep the public/order value canonical even while an older database is
-    // waiting for the additive Laminating catalog migration.
-    $details["service_label"] = $kind === "laminating" ? "Laminating" : (string)$service["name"];
+    // Save the configured service name as part of the immutable order snapshot.
+    $details["service_label"] = (string)$service["name"];
     $details["pricing_source"] = "service_catalog";
     $details["catalog_pricing_rule_id"] = $catalogRuleId;
 

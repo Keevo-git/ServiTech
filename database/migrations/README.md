@@ -48,7 +48,8 @@ For an existing ServiTech database:
     the Order Management recycle-bin index.
 12. Run `20260620_unify_service_catalog_pricing.sql` if it has not yet been
     applied, then run `20260621_add_laminating_catalog.sql`. The additive
-    Laminating migration preserves prices and statuses already edited by admins.
+    Laminating migration preserves edited prices and non-archived option
+    statuses, while restoring a previously archived canonical Laminating row.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on

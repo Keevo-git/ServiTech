@@ -3,17 +3,20 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
 $printingServices = [];
 try {
+  servitech_catalog_ensure_laminating($pdo);
   $stmt = $pdo->prepare("
     SELECT id, name
     FROM services
     WHERE category = 'printing'
       AND active = TRUE
+      AND archived_at IS NULL
     ORDER BY sort_order ASC, id ASC
   ");
   $stmt->execute();

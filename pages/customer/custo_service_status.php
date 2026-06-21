@@ -1948,7 +1948,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (service === "xerox") {
       return services.find((item) => /^(xerox|photocopy)$/i.test(String(item?.name || "").trim())) || null;
     }
-    if (service === "laminating") {
+    if (service === "laminating" || service === "lamination") {
       return services.find((item) => /laminat/i.test(String(item?.name || ""))) || null;
     }
 
@@ -2019,7 +2019,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         const optionLabel = labelKey(labels.package);
         return optionLabel && (optionLabel === packageLabel || packageLabel.startsWith(optionLabel));
       }
-      if (serviceName === "laminating") {
+      if (serviceName === "laminating" || serviceName === "lamination") {
         return labelKey(labels.lamination_type) === lamination;
       }
       if (filterCategoryKey(queueData) === "repair") {
@@ -2377,7 +2377,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rows.push(["Add-Ons", addonRules.length ? addonRules.map((item) => item.option_labels?.addon || item.label).join(", ") : "None"]);
       rows.push(["Quantity", quantity]);
       rows.push(["Photos attached", `${keptFiles.length + addedFiles.length}`]);
-    } else if (service === "laminating") {
+    } else if (service === "laminating" || service === "lamination") {
       if (unitPrice !== null) {
         total = unitPrice * quantity;
         totalLabel = toPeso(total);
@@ -2497,7 +2497,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rows.push(editSelect("paper_size", "Paper Size", queueData.paper_size ?? details.paper_size, groupOptions("paper_size")));
       rows.push(editSelect("color_option", "Color Option", queueData.color_option ?? details.color_option, groupOptions("color_option")));
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
-    } else if (service === "laminating") {
+    } else if (service === "laminating" || service === "lamination") {
       rows.push(editSelect("catalog_pricing_rule_id", "Lamination", currentRuleId, ruleOptions("lamination_type")));
       rows.push(editField("quantity", "Quantity", queueData.quantity ?? details.quantity ?? 1, "number", 'min="1" step="1" inputmode="numeric"'));
     } else if (category === "repair") {
@@ -2755,7 +2755,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       return rows;
     }
 
-    if (service === "laminating") {
+    if (service === "laminating" || service === "lamination") {
       add("Lamination", queueData.lamination_type ?? details.lamination_type);
       add("Quantity", queueData.quantity ?? details.quantity);
       return rows;

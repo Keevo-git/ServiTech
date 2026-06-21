@@ -139,8 +139,8 @@ function servitech_catalog_fetch_service(PDO $pdo, int $serviceId, bool $activeO
 }
 
 /**
- * Last-resort data repair for deployments where catalog code was released
- * before the Laminating migration. It never reactivates an existing record.
+ * Last-resort repair for deployments where the Laminating row was archived
+ * before its normalized option catalog was added. Existing IDs and prices win.
  */
 function servitech_catalog_ensure_laminating(PDO $pdo): void {
   static $attempted = false;
@@ -156,12 +156,14 @@ function servitech_catalog_ensure_laminating(PDO $pdo): void {
     $lockAcquired = true;
 
     $existingStmt = $pdo->query("
-      SELECT id FROM services
-      WHERE category = 'printing' AND LOWER(name) LIKE '%laminat%'
-      ORDER BY active DESC, sort_order ASC, id ASC
+      SELECT id, active, archived_at FROM services
+      WHERE LOWER(category) = 'printing' AND LOWER(name) LIKE '%laminat%'
+      ORDER BY EXISTS (
+        SELECT 1 FROM service_option_groups g WHERE g.service_id = services.id
+      ) DESC, active DESC, sort_order ASC, id ASC
       LIMIT 1
     ");
-    if ((int)$existingStmt->fetchColumn() > 0) return;
+    $existing = $existingStmt->fetch(PDO::FETCH_ASSOC);
 
     if ($pdo->inTransaction()) {
       $pdo->exec("SAVEPOINT servitech_ensure_laminating");
@@ -171,50 +173,110 @@ function servitech_catalog_ensure_laminating(PDO $pdo): void {
       $ownsTransaction = true;
     }
 
-    $insertStmt = $pdo->query("
-      INSERT INTO services (
-        category, name, description, price, price_range, pricing_json, active, sort_order
-      ) VALUES (
-        'printing', 'Laminating',
-        'Laminating service with thin and thick options.',
-        20, 'PHP 20.00 - PHP 30.00', '{}'::jsonb, TRUE, 3
-      ) RETURNING id
-    ");
-    $serviceId = (int)$insertStmt->fetchColumn();
+    $wasArchived = is_array($existing) && !empty($existing["archived_at"]);
+    if (is_array($existing)) {
+      $serviceId = (int)$existing["id"];
+      $serviceStmt = $pdo->prepare("
+        UPDATE services
+        SET category = 'printing',
+            name = CASE
+              WHEN LOWER(BTRIM(name)) IN ('laminating', 'lamination') THEN name
+              ELSE 'Laminating'
+            END,
+            description = CASE
+              WHEN description IS NULL OR BTRIM(description) = ''
+                OR LOWER(BTRIM(description)) IN (
+                  'lamination priced by lamination type.',
+                  'choose thin or thick lamination.',
+                  'laminating service with thin and thick options.'
+                )
+              THEN 'Laminating service priced by type.'
+              ELSE description
+            END,
+            active = CASE WHEN archived_at IS NOT NULL THEN TRUE ELSE active END,
+            archived_at = NULL,
+            sort_order = 3,
+            updated_at = NOW()
+        WHERE id = :id
+      ");
+      $serviceStmt->execute([":id" => $serviceId]);
+    } else {
+      $insertStmt = $pdo->query("
+        INSERT INTO services (
+          category, name, description, price, price_range, pricing_json, active, sort_order
+        ) VALUES (
+          'printing', 'Laminating', 'Laminating service priced by type.',
+          20, 'PHP 20.00 - PHP 30.00', '{}'::jsonb, TRUE, 3
+        ) RETURNING id
+      ");
+      $serviceId = (int)$insertStmt->fetchColumn();
+    }
     if ($serviceId <= 0) throw new RuntimeException("Unable to create the Laminating service.");
 
-    servitech_catalog_upsert($pdo, $serviceId, [
-      "groups" => [[
-        "group_key" => "lamination_type",
-        "name" => "Lamination Type",
-        "active" => 1,
-        "sort_order" => 0,
-        "values" => [
-          ["value_key" => "thin", "label" => "Thin / Manipis", "active" => 1, "sort_order" => 0],
-          ["value_key" => "thick", "label" => "Thick / Makapal", "active" => 1, "sort_order" => 1],
-        ],
-      ]],
-      "rules" => [
-        [
-          "rule_key" => "thin",
-          "option_value_keys" => ["lamination_type" => "thin"],
-          "label" => "Thin / Manipis",
-          "price" => 20,
-          "price_type" => "fixed",
-          "active" => 1,
-          "sort_order" => 0,
-        ],
-        [
-          "rule_key" => "thick",
-          "option_value_keys" => ["lamination_type" => "thick"],
-          "label" => "Thick / Makapal",
-          "price" => 30,
-          "price_type" => "fixed",
-          "active" => 1,
-          "sort_order" => 1,
-        ],
-      ],
-    ]);
+    $duplicateStmt = $pdo->prepare("
+      UPDATE services
+      SET active = FALSE, archived_at = COALESCE(archived_at, NOW()), updated_at = NOW()
+      WHERE LOWER(category) = 'printing' AND LOWER(name) LIKE '%laminat%' AND id <> :id
+    ");
+    $duplicateStmt->execute([":id" => $serviceId]);
+
+    $groupStmt = $pdo->prepare("
+      INSERT INTO service_option_groups (service_id, group_key, name, active, sort_order)
+      VALUES (:service_id, 'lamination_type', 'Type', TRUE, 0)
+      ON CONFLICT (service_id, group_key) DO UPDATE
+        SET name = 'Type', active = TRUE, archived_at = NULL, sort_order = 0, updated_at = NOW()
+      RETURNING id
+    ");
+    $groupStmt->execute([":service_id" => $serviceId]);
+    $groupId = (int)$groupStmt->fetchColumn();
+
+    $valueStmt = $pdo->prepare("
+      INSERT INTO service_option_values (group_id, value_key, label, active, sort_order)
+      VALUES (:group_id, :value_key, :label, TRUE, :sort_order)
+      ON CONFLICT (group_id, value_key) DO UPDATE
+        SET active = CASE WHEN CAST(:reactivate_value AS boolean) THEN TRUE ELSE service_option_values.active END,
+            archived_at = CASE WHEN CAST(:unarchive_value AS boolean) THEN NULL ELSE service_option_values.archived_at END,
+            sort_order = EXCLUDED.sort_order,
+            updated_at = NOW()
+      RETURNING id
+    ");
+    $valueIds = [];
+    foreach ([["thick", "Thick", 0], ["thin", "Thin", 1]] as [$key, $label, $order]) {
+      $valueStmt->execute([
+        ":group_id" => $groupId, ":value_key" => $key, ":label" => $label,
+        ":sort_order" => $order,
+        ":reactivate_value" => $wasArchived,
+        ":unarchive_value" => $wasArchived,
+      ]);
+      $valueIds[$key] = (int)$valueStmt->fetchColumn();
+    }
+
+    $ruleStmt = $pdo->prepare("
+      INSERT INTO service_pricing_rules (
+        service_id, rule_key, option_value_ids, label, price, price_type, active, sort_order
+      ) VALUES (
+        :service_id, :rule_key, CAST(:option_value_ids AS jsonb), :label,
+        :price, 'fixed', TRUE, :sort_order
+      )
+      ON CONFLICT (service_id, rule_key) DO UPDATE
+        SET option_value_ids = EXCLUDED.option_value_ids,
+            active = CASE WHEN CAST(:reactivate_rule AS boolean) THEN TRUE ELSE service_pricing_rules.active END,
+            archived_at = CASE WHEN CAST(:unarchive_rule AS boolean) THEN NULL ELSE service_pricing_rules.archived_at END,
+            sort_order = EXCLUDED.sort_order,
+            updated_at = NOW()
+    ");
+    foreach ([["thick", "Thick", 30, 0], ["thin", "Thin", 20, 1]] as [$key, $label, $price, $order]) {
+      $ruleStmt->execute([
+        ":service_id" => $serviceId,
+        ":rule_key" => $key,
+        ":option_value_ids" => json_encode(["lamination_type" => $valueIds[$key]]),
+        ":label" => $label,
+        ":price" => $price,
+        ":sort_order" => $order,
+        ":reactivate_rule" => $wasArchived,
+        ":unarchive_rule" => $wasArchived,
+      ]);
+    }
 
     if ($savepoint) $pdo->exec("RELEASE SAVEPOINT servitech_ensure_laminating");
     if ($ownsTransaction) $pdo->commit();

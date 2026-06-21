@@ -117,8 +117,17 @@ if ($action === "save") {
         $existing = $existingStmt->fetch(PDO::FETCH_ASSOC);
         if (!is_array($existing)) throw new DomainException("Service not found.");
 
+        $requestedName = $name;
         $category = (string)$existing["category"];
         $name = (string)$existing["name"];
+        $serviceKind = servitech_catalog_service_kind($existing);
+        if ($serviceKind === "laminating") {
+            $normalizedRequestedName = strtolower(trim($requestedName));
+            if (!in_array($normalizedRequestedName, ["laminating", "lamination"], true)) {
+                throw new DomainException("Use Laminating or Lamination as the service name.");
+            }
+            $name = trim($requestedName);
+        }
         if (!is_array($catalogData)) throw new DomainException("Service options are required.");
         $catalogData = servitech_catalog_normalize_admin_payload($existing, $catalogData);
         $activeRules = array_values(array_filter($catalogData["rules"], static fn($rule) => !empty($rule["active"])));

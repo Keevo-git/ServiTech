@@ -71,6 +71,7 @@ if ($action === "detail" && $category) {
     }
 
     try {
+        if ($category === "printing") servitech_catalog_ensure_laminating($pdo);
         $stmt = $pdo->prepare("
           SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
