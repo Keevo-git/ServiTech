@@ -7,6 +7,12 @@
   const overlay = qs("#msOverlay");
   const editor = qs("#ms_catalogEditor");
   const errorBox = qs("#msErr");
+  const confirmOverlay = qs("#msConfirmOverlay");
+  const confirmDialog = qs(".ms-confirm-dialog", confirmOverlay);
+  const confirmTitle = qs("#msConfirmTitle");
+  const confirmMessage = qs("#msConfirmMessage");
+  const confirmCancel = qs("#msConfirmCancel");
+  const confirmAccept = qs("#msConfirmAccept");
   const fields = {
     id: qs("#ms_id"),
     category: qs("#ms_category"),
@@ -18,7 +24,11 @@
 
   let catalog = null;
   let originalSnapshot = "";
+  let originalServiceSnapshot = null;
   let currentKind = "";
+  let confirmResolver = null;
+  let confirmReturnFocus = null;
+  let editorReturnFocus = null;
 
   const contracts = {
     document_printing: {
@@ -204,7 +214,7 @@
             <span aria-hidden="true"></span><em>${Number(value.active) ? "Active" : "Inactive"}</em>
           </label>
           ${movementButtons(groupKey, value.value_key, index, values.length)}
-          <button class="ms-text-action danger" type="button" data-archive-value="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">Archive</button>
+          <button class="ms-archive-button" type="button" data-archive-value="${groupKey}" data-value-key="${escapeHtml(value.value_key)}" title="Archive option" aria-label="Archive ${escapeHtml(value.label)}">${archiveIcon()}<span>Archive</span></button>
         </div>`).join("")}
       </div>
       <div class="ms-inline-add">
@@ -264,7 +274,7 @@
             <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
             ${options.fixedOnly ? '<input type="hidden" data-rule-price-type value="fixed"><span class="ms-fixed-label">Fixed Price</span>' : `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>`}
             ${toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive")}
-            <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, index, values.length)}<button class="ms-text-action danger" type="button" data-archive-value="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">Archive</button></div>
+            <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, index, values.length)}<button class="ms-archive-button" type="button" data-archive-value="${groupKey}" data-value-key="${escapeHtml(value.value_key)}" title="Archive option" aria-label="Archive ${escapeHtml(value.label)}">${archiveIcon()}<span>Archive</span></button></div>
           </div>`;
         }).join("")}
       </div>
@@ -279,6 +289,75 @@
         <button type="button" data-add-value="${groupKey}">Add</button>
       </div>
     </section>`;
+  }
+
+  function finishConfirmation(accepted) {
+    if (!confirmResolver) return;
+    const resolve = confirmResolver;
+    const returnFocus = confirmReturnFocus;
+    confirmResolver = null;
+    confirmReturnFocus = null;
+    confirmOverlay.hidden = true;
+    confirmOverlay.setAttribute("aria-hidden", "true");
+    confirmOverlay.dataset.tone = "";
+    overlay?.removeAttribute("inert");
+    if (overlay?.style.display === "flex") overlay.setAttribute("aria-hidden", "false");
+    resolve(accepted);
+    returnFocus?.focus?.();
+  }
+
+  function confirmAction({ title, message, confirmLabel = "Confirm", tone = "primary" }) {
+    if (!confirmOverlay || !confirmDialog) return Promise.resolve(false);
+    if (confirmResolver) finishConfirmation(false);
+    confirmReturnFocus = document.activeElement;
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = message;
+    confirmAccept.textContent = confirmLabel;
+    confirmOverlay.dataset.tone = tone;
+    confirmOverlay.hidden = false;
+    confirmOverlay.setAttribute("aria-hidden", "false");
+    overlay?.setAttribute("aria-hidden", "true");
+    overlay?.setAttribute("inert", "");
+    window.requestAnimationFrame(() => confirmDialog.focus());
+    return new Promise((resolve) => { confirmResolver = resolve; });
+  }
+
+  confirmCancel?.addEventListener("click", () => finishConfirmation(false));
+  confirmAccept?.addEventListener("click", () => finishConfirmation(true));
+  confirmOverlay?.addEventListener("click", (event) => {
+    if (event.target === confirmOverlay) finishConfirmation(false);
+  });
+  confirmOverlay?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      finishConfirmation(false);
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = [confirmCancel, confirmAccept].filter(Boolean);
+    if (!focusable.length) return;
+    const index = focusable.indexOf(document.activeElement);
+    const next = event.shiftKey
+      ? (index <= 0 ? focusable.length - 1 : index - 1)
+      : (index >= focusable.length - 1 ? 0 : index + 1);
+    event.preventDefault();
+    focusable[next].focus();
+  });
+
+  function archiveIcon() {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v4H4V5zm2 6h12v9H6v-9zm4 2v2h4v-2h-4z"></path></svg>`;
+  }
+
+  function optionGroupName(groupKey) {
+    return contracts[currentKind]?.groups?.[groupKey] || "Option";
+  }
+
+  function addConfirmationMessage(groupKey, active) {
+    if (currentKind === "rush_id" && groupKey === "addon") {
+      return "Save this add-on? Its price will be added to the selected RUSH ID package when customers choose it.";
+    }
+    return `Add this new ${optionGroupName(groupKey).toLowerCase()}? It will be available in Manage Services${active ? " and may appear to customers after you save" : " but will remain inactive"}.`;
   }
 
   function rushEditor() {
@@ -311,7 +390,7 @@
                   <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
                   <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
                   ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
-                  <button class="ms-text-action danger" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}">Archive</button>
+                  <button class="ms-archive-button" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}" title="Archive service" aria-label="Archive ${escapeHtml(value.label)}">${archiveIcon()}<span>Archive</span></button>
                 </div>`;
               }).join("")}
               <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Service</button></div>
@@ -341,7 +420,7 @@
                   <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
                   <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
                   ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
-                  <button class="ms-text-action danger" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}">Archive</button>
+                  <button class="ms-archive-button" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}" title="Archive service" aria-label="Archive ${escapeHtml(value.label)}">${archiveIcon()}<span>Archive</span></button>
                 </div>`;
               }).join("")}
               <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(device.value_key)}">Add Service</button></div>
@@ -429,7 +508,7 @@
     });
   }
 
-  editor.addEventListener("click", (event) => {
+  editor.addEventListener("click", async (event) => {
     const addButton = event.target.closest("[data-add-value]");
     if (addButton) {
       syncFromDom();
@@ -447,6 +526,11 @@
       if (priceInput && active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) {
         return showError("Enter a valid price, or choose For Assessment before adding this option.");
       }
+      if (!await confirmAction({
+        title: `Add ${optionGroupName(groupKey)}`,
+        message: addConfirmationMessage(groupKey, active),
+        confirmLabel: "Add Option",
+      })) return;
       const value = addValue(groupKey, label);
       value.active = active ? 1 : 0;
       value.description = descriptionInput?.value.trim() || value.description || "";
@@ -459,9 +543,9 @@
       }
       render();
       if (groupKey === "device_type") {
-        window.servitechAdminToast?.success?.("Device added. Add services available for this device.");
+        window.servitechAdminToast?.success?.("Device added to this draft. Add services available for this device.");
       } else {
-        window.servitechAdminToast?.success?.(`${contracts[currentKind].groups[groupKey]} option added.`);
+        window.servitechAdminToast?.success?.(`${optionGroupName(groupKey)} added to this draft. Save changes to publish it.`);
       }
       return;
     }
@@ -477,13 +561,18 @@
       const priceType = qs(`[data-new-repair-price-type="${deviceKey}"]`, editor)?.value === "assessment" ? "assessment" : "fixed";
       const active = qs(`[data-new-repair-active="${deviceKey}"]`, editor)?.checked !== false;
       if (active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) return showError("Enter a valid price, or choose For Assessment.");
+      if (!await confirmAction({
+        title: "Add Repair Service",
+        message: "Add this repair service? It will appear under the selected device and may become available to customers after you save.",
+        confirmLabel: "Add Service",
+      })) return;
       const value = addValue("repair_type", label);
       const rule = ensureRule({ device_type: deviceKey, repair_type: value.value_key }, `${groupValue("device_type", deviceKey)?.label || "Device"} / ${value.label}`, catalog.rules.length, priceType);
       rule.price = priceType === "fixed" ? price : "";
       rule.price_type = priceType;
       rule.active = active ? 1 : 0;
       render();
-      window.servitechAdminToast?.success?.("Repair service added.");
+      window.servitechAdminToast?.success?.("Repair service added to this draft. Save changes to publish it.");
       return;
     }
 
@@ -498,34 +587,50 @@
       const priceType = qs(`[data-new-installation-price-type="${deviceKey}"]`, editor)?.value === "assessment" ? "assessment" : "fixed";
       const active = qs(`[data-new-installation-active="${deviceKey}"]`, editor)?.checked !== false;
       if (active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) return showError("Enter a valid price, or choose For Assessment.");
+      if (!await confirmAction({
+        title: "Add Installation Service",
+        message: "Add this installation service? It will appear under the selected device and may become available to customers after you save.",
+        confirmLabel: "Add Service",
+      })) return;
       const value = addValue("installation_type", label);
       const rule = ensureRule({ device_type: deviceKey, installation_type: value.value_key }, `${groupValue("device_type", deviceKey)?.label || "Device"} / ${value.label}`, catalog.rules.length, priceType);
       rule.price = priceType === "fixed" ? price : "";
       rule.price_type = priceType;
       rule.active = active ? 1 : 0;
       render();
-      window.servitechAdminToast?.success?.("Installation service added.");
+      window.servitechAdminToast?.success?.("Installation service added to this draft. Save changes to publish it.");
       return;
     }
 
     const archiveButton = event.target.closest("[data-archive-value]");
     if (archiveButton) {
       syncFromDom();
-      if (!window.confirm("Archive this option? It will disappear from customer pages, but old queue and order snapshots will remain readable.")) return;
-      const archivedGroup = contracts[currentKind].groups[archiveButton.dataset.archiveValue] || "Option";
+      if (!await confirmAction({
+        title: "Archive Option",
+        message: "Archive this item? It will be hidden from active service management and customers will no longer be able to select it. Existing submitted records will not be deleted.",
+        confirmLabel: "Archive Option",
+        tone: "warning",
+      })) return;
+      const archivedGroup = optionGroupName(archiveButton.dataset.archiveValue);
       archiveValue(archiveButton.dataset.archiveValue, archiveButton.dataset.valueKey);
       render();
-      window.servitechAdminToast?.success?.(`${archivedGroup} archived.`);
+      window.servitechAdminToast?.success?.(`${archivedGroup} archived in this draft. Save changes to publish it.`);
       return;
     }
 
     const archiveRuleButton = event.target.closest("[data-archive-rule]");
     if (archiveRuleButton) {
       syncFromDom();
-      if (!window.confirm("Archive this service option? Customers will no longer be able to select it.")) return;
+      if (!await confirmAction({
+        title: "Archive Service Option",
+        message: "Archive this item? Customers will no longer be able to select it, but existing submitted records will remain unchanged.",
+        confirmLabel: "Archive Option",
+        tone: "warning",
+      })) return;
       const rule = catalog.rules.find((item) => item.rule_key === archiveRuleButton.dataset.archiveRule);
       if (rule) rule.active = 0;
       render();
+      window.servitechAdminToast?.success?.("Service option archived in this draft. Save changes to publish it.");
       return;
     }
 
@@ -542,21 +647,46 @@
     }
   });
 
-  editor.addEventListener("change", (event) => {
+  editor.addEventListener("change", async (event) => {
     if (event.target.matches("[data-installation-device-mode]")) {
+      const enabled = event.target.checked;
+      if (!await confirmAction({
+        title: enabled ? "Enable Device-Based Installation" : "Use Simple Installation Setup",
+        message: enabled
+          ? "Enable device-based installation setup? Installation services will be grouped by device, similar to Repair Services."
+          : "Disable device-based installation setup? Customers will use the simple installation service list after you save.",
+        confirmLabel: enabled ? "Enable Device Setup" : "Use Simple Setup",
+      })) {
+        event.target.checked = !enabled;
+        return;
+      }
       syncFromDom();
       const deviceGroup = group("device_type");
-      if (deviceGroup) deviceGroup.active = event.target.checked ? 1 : 0;
+      if (deviceGroup) deviceGroup.active = enabled ? 1 : 0;
       render();
-      window.servitechAdminToast?.success?.(event.target.checked
-        ? "Device pricing enabled. Add a device, then add its installation services."
-        : "Simple installation pricing enabled.");
+      window.servitechAdminToast?.success?.(enabled
+        ? "Device pricing enabled in this draft. Add a device, then add its installation services."
+        : "Simple installation pricing enabled in this draft.");
       return;
     }
-    if ((event.target.matches("[data-rule-active]") || event.target.matches("[data-value-active]"))
-      && !event.target.checked
-      && !window.confirm("Deactivate this option? It will no longer appear on the landing page or customer queue forms.")) {
-      event.target.checked = true;
+    if (event.target.matches("[data-rule-active]") || event.target.matches("[data-value-active]")) {
+      const activated = event.target.checked;
+      if (!await confirmAction({
+        title: activated ? "Activate Option" : "Deactivate Option",
+        message: activated
+          ? "Activate this option? Customers will be able to see and select it after you save."
+          : "Deactivate this option? Customers will no longer be able to select it, but old submitted records will remain unchanged.",
+        confirmLabel: activated ? "Activate" : "Deactivate",
+        tone: activated ? "primary" : "warning",
+      })) {
+        event.target.checked = !activated;
+        return;
+      }
+      syncFromDom();
+      render();
+      window.servitechAdminToast?.success?.(activated
+        ? "Option activated in this draft. Save changes to publish it."
+        : "Option deactivated in this draft. Save changes to publish it.");
     }
   });
 
@@ -568,6 +698,7 @@
   }
 
   async function openEditor(data) {
+    editorReturnFocus = document.activeElement;
     hideError();
     fields.id.value = data.id;
     fields.category.value = data.category;
@@ -575,6 +706,11 @@
     fields.description.value = data.description || "";
     fields.sort.value = data.sort_order || 0;
     fields.active.checked = Number(data.active) === 1;
+    originalServiceSnapshot = {
+      name: data.name || "",
+      description: data.description || "",
+      active: Number(data.active) === 1,
+    };
     currentKind = serviceKind(data.category, data.name);
     const serviceNameField = qs("#msServiceNameField");
     if (serviceNameField) serviceNameField.hidden = !["laminating", "scanning"].includes(currentKind);
@@ -582,6 +718,9 @@
     qs("#msModalTitle").textContent = contract?.title || `Edit ${data.name}`;
     qs("#msModalHelp").textContent = contract?.help || "";
     overlay.style.display = "flex";
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("ms-modal-open");
+    window.requestAnimationFrame(() => qs(".ms-modal", overlay)?.focus());
     editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
     try {
       catalog = normalizeCatalog(await fetchCatalog(data.id));
@@ -593,19 +732,44 @@
   }
 
   function closeEditor() {
+    if (confirmResolver) finishConfirmation(false);
     overlay.style.display = "none";
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("ms-modal-open");
     catalog = null;
+    originalServiceSnapshot = null;
     hideError();
+    editorReturnFocus?.focus?.();
+    editorReturnFocus = null;
   }
 
   qsa("[data-ms-edit]").forEach((button) => button.addEventListener("click", () => {
     const data = JSON.parse(button.getAttribute("data-ms-edit") || "{}");
     openEditor(data);
   }));
+  fields.active?.addEventListener("change", async () => {
+    const activated = fields.active.checked;
+    if (!await confirmAction({
+      title: activated ? "Activate Service" : "Deactivate Service",
+      message: activated
+        ? "Activate this service? Customers will be able to see and select its active options after you save."
+        : "Deactivate this service? Customers will no longer be able to select it, but old submitted records will remain unchanged.",
+      confirmLabel: activated ? "Activate Service" : "Deactivate Service",
+      tone: activated ? "primary" : "warning",
+    })) {
+      fields.active.checked = !activated;
+      return;
+    }
+    window.servitechAdminToast?.success?.(activated
+      ? "Service activated in this draft. Save changes to publish it."
+      : "Service deactivated in this draft. Save changes to publish it.");
+  });
   qs("#msX")?.addEventListener("click", closeEditor);
   qs("#msCancel")?.addEventListener("click", closeEditor);
   overlay?.addEventListener("click", (event) => { if (event.target === overlay) closeEditor(); });
-  document.addEventListener("keydown", (event) => { if (event.key === "Escape" && overlay?.style.display === "flex") closeEditor(); });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && overlay?.style.display === "flex" && confirmOverlay?.hidden !== false) closeEditor();
+  });
 
   qs("#msSave")?.addEventListener("click", async () => {
     hideError();
@@ -620,9 +784,23 @@
       if (!hasDeviceService) return showError("Add at least one active installation service under a device before enabling Device Category.");
     }
 
-    const changed = JSON.stringify(payload) !== originalSnapshot;
-    if (changed && !window.confirm("Save these option and price changes? New customer submissions will use the updated catalog. Old records keep their saved snapshots.")) return;
-    if (!fields.active.checked && !window.confirm("Deactivate this entire service? It will be hidden from the landing page and queue forms.")) return;
+    const catalogChanged = JSON.stringify(payload) !== originalSnapshot;
+    const serviceChanged = !originalServiceSnapshot
+      || fields.name.value.trim() !== originalServiceSnapshot.name
+      || fields.description.value.trim() !== originalServiceSnapshot.description
+      || fields.active.checked !== originalServiceSnapshot.active;
+    if (!catalogChanged && !serviceChanged) {
+      window.servitechAdminToast?.show?.("No service changes to save.", "info");
+      return;
+    }
+    const saveMessage = currentKind === "rush_id"
+      ? "Save these RUSH ID package, add-on, and price changes? Add-on prices will be included in future customer totals. Existing submitted orders will keep their original saved details and price."
+      : "Save these option and price changes? Updated names and prices will appear on the landing page and customer queue forms. Existing submitted orders will keep their original saved details and price.";
+    if (!await confirmAction({
+      title: "Save Service Changes",
+      message: saveMessage,
+      confirmLabel: "Save Changes",
+    })) return;
 
     const form = new FormData();
     form.append("action", "save");

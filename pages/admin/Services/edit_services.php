@@ -48,7 +48,7 @@ $services = array_values(array_filter($services, "ms_supported_catalog_service")
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260621-guided-options') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260621-responsive-confirmations') ?>">
 </head>
 <body>
 
@@ -132,8 +132,8 @@ require __DIR__ . "/../_includes/admin_header.php";
 </main>
 </div>
 
-<div class="ms-overlay" id="msOverlay">
-  <div class="ms-modal">
+<div class="ms-overlay" id="msOverlay" aria-hidden="true">
+  <div class="ms-modal" role="dialog" aria-modal="true" aria-labelledby="msModalTitle" tabindex="-1">
     <button class="ms-x" id="msX" type="button" aria-label="Close">&times;</button>
 
     <div class="ms-mhead">
@@ -187,12 +187,26 @@ require __DIR__ . "/../_includes/admin_header.php";
   </div>
 </div>
 
+<div class="ms-confirm-overlay" id="msConfirmOverlay" hidden aria-hidden="true">
+  <div class="ms-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="msConfirmTitle" aria-describedby="msConfirmMessage" tabindex="-1">
+    <div class="ms-confirm-icon" aria-hidden="true">!</div>
+    <div class="ms-confirm-copy">
+      <h3 id="msConfirmTitle">Confirm change</h3>
+      <p id="msConfirmMessage"></p>
+    </div>
+    <div class="ms-confirm-actions">
+      <button class="ms-btn ghost" id="msConfirmCancel" type="button">Cancel</button>
+      <button class="ms-btn primary" id="msConfirmAccept" type="button">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script>
   window.MS_ACTIVE_TAB = <?= json_encode($tab) ?>;
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260621-guided-options') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260621-responsive-confirmations') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
