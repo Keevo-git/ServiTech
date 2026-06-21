@@ -108,11 +108,49 @@ function servitech_ensure_queue_write_schema(PDO $pdo): void {
   $verified = true;
 }
 
+function servitech_ensure_queue_status_history_schema(PDO $pdo): void {
+  static $verified = false;
+  if ($verified) return;
+
+  try {
+    $pdo->exec("
+      ALTER TABLE queue_status_history
+        ADD COLUMN IF NOT EXISTS action_type TEXT NOT NULL DEFAULT 'status_change'
+    ");
+    $pdo->exec("
+      CREATE INDEX IF NOT EXISTS idx_queue_status_history_action_type
+        ON queue_status_history (queue_id, action_type, created_at DESC)
+    ");
+  } catch (Throwable $exception) {
+    error_log("queue status history schema ensure failed: " . $exception->getMessage());
+  }
+
+  $stmt = $pdo->query("
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'queue_status_history'
+  ");
+  $available = array_fill_keys(array_map("strval", $stmt->fetchAll(PDO::FETCH_COLUMN)), true);
+  $requiredColumns = ["queue_id", "category", "old_status", "new_status", "admin_id", "admin_name", "notes", "action_type"];
+  $missing = array_values(array_filter(
+    $requiredColumns,
+    static fn(string $column): bool => !isset($available[$column])
+  ));
+  if ($missing) {
+    throw new RuntimeException(
+      "Required database migrations are missing: queue_status_history." . implode(", queue_status_history.", $missing)
+    );
+  }
+
+  $verified = true;
+}
+
 function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
   static $ensured = false;
   if ($ensured) return;
 
   servitech_ensure_queue_write_schema($pdo);
+  servitech_ensure_queue_status_history_schema($pdo);
   $rlsEnforced = function_exists("servitech_supabase_env_bool")
     && servitech_supabase_env_bool("SERVITECH_DB_ENFORCE_RLS", false);
   $isAdmin = function_exists("servitech_is_admin") && servitech_is_admin();

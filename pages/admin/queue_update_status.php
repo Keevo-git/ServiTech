@@ -34,8 +34,15 @@ try {
 } catch (DomainException $e) {
   http_response_code(422);
   echo json_encode(["ok" => false, "error" => $e->getMessage()]);
+} catch (RuntimeException $e) {
+  error_log("queue_update_status runtime error: id={$id}; action={$action}; status={$status}; " . $e->getMessage());
+  http_response_code(500);
+  $message = servitech_db_raw_env_value("APP_DEBUG") === "1"
+    ? $e->getMessage()
+    : "Unable to update the order status. Please contact the administrator if this keeps happening.";
+  echo json_encode(["ok" => false, "error" => $message]);
 } catch (Throwable $e) {
-  error_log("queue_update_status error: " . $e->getMessage());
+  error_log("queue_update_status error: id={$id}; action={$action}; status={$status}; " . $e->getMessage());
   http_response_code(500);
   echo json_encode(["ok" => false, "error" => "Unable to update order status."]);
 }

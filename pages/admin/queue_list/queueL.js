@@ -69,6 +69,15 @@ document.addEventListener("DOMContentLoaded", function () {
     return paymentReviewLabel(method) !== "";
   }
 
+  function statusUpdateError(action, queue, backendError = "") {
+    const cleanError = String(backendError || "").trim();
+    if (cleanError) return cleanError;
+    if (action === "approved" && usesOnlinePaymentReview(queue?.paymentMethod)) {
+      return `Unable to approve the ${paymentReviewLabel(queue.paymentMethod)} payment. Please try again.`;
+    }
+    return "Unable to update the order status.";
+  }
+
   function esc(value) {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
@@ -355,9 +364,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return {
         attempted: true,
         ok: false,
-        error: action === "approved" && usesOnlinePaymentReview(currentQueue.paymentMethod)
-          ? `Unable to approve the ${paymentReviewLabel(currentQueue.paymentMethod)} payment. Please try again.`
-          : "Unable to update the order status."
+        error: statusUpdateError(action, currentQueue)
       };
     }
 
@@ -365,9 +372,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return {
         attempted: true,
         ok: false,
-        error: action === "approved" && usesOnlinePaymentReview(currentQueue.paymentMethod)
-          ? `Unable to approve the ${paymentReviewLabel(currentQueue.paymentMethod)} payment. Please try again.`
-          : (out.error || "Unable to update the order status.")
+        error: statusUpdateError(action, currentQueue, out.error)
       };
     }
 

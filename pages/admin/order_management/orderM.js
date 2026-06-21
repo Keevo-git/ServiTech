@@ -86,6 +86,15 @@ document.addEventListener("DOMContentLoaded", function () {
     return paymentReviewLabel(method) !== "";
   }
 
+  function statusUpdateError(action, order, backendError = "") {
+    const cleanError = String(backendError || "").trim();
+    if (cleanError) return cleanError;
+    if (action === "approved" && usesOnlinePaymentReview(order?.paymentMethod)) {
+      return `Unable to approve the ${paymentReviewLabel(order.paymentMethod)} payment. Please try again.`;
+    }
+    return "Unable to update the order status.";
+  }
+
   function normalizeStatus(status) {
     const value = String(status || "PENDING").trim().toUpperCase().replace(/[\s_]+/g, " ");
     if (value === "FOR PICK UP" || value === "FOR PICKUP") return "FOR PICK-UP";
@@ -582,18 +591,14 @@ document.addEventListener("DOMContentLoaded", function () {
       return {
         attempted: true,
         ok: false,
-        error: action === "approved" && usesOnlinePaymentReview(currentOrder.paymentMethod)
-          ? `Unable to approve the ${paymentReviewLabel(currentOrder.paymentMethod)} payment. Please try again.`
-          : "Unable to update the order status."
+        error: statusUpdateError(action, currentOrder)
       };
     }
     if (!out.ok) {
       return {
         attempted: true,
         ok: false,
-        error: action === "approved" && usesOnlinePaymentReview(currentOrder.paymentMethod)
-          ? `Unable to approve the ${paymentReviewLabel(currentOrder.paymentMethod)} payment. Please try again.`
-          : (out.error || "Failed to update status.")
+        error: statusUpdateError(action, currentOrder, out.error)
       };
     }
 
