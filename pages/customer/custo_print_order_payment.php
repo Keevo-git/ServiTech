@@ -707,7 +707,7 @@ if ($isConfirmed) {
                 </div>
                 <div class="print-payment-reference">
                   <label for="referenceNumberInput">GCash Reference Number<span class="required">*</span></label>
-                  <input type="text" class="form-input" id="referenceNumberInput" name="reference_number" value="<?= esc_print_order($referenceNumber) ?>" placeholder="Enter your GCash reference number" autocomplete="off" inputmode="numeric" pattern="[0-9]+" maxlength="120" required>
+                  <input type="text" class="form-input" id="referenceNumberInput" name="reference_number" value="<?= esc_print_order($referenceNumber) ?>" placeholder="Enter your GCash reference number" autocomplete="off" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13" required>
                   <p class="print-payment-input-note">Enter the reference number from your GCash receipt.</p>
                 </div>
               </div>

@@ -2547,7 +2547,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
       if (closedStoreDocumentPrinting) {
         rows.push('<p class="status-edit-existing-files__empty">The store is closed, so Document Printing uses GCash payment.</p>');
       }
-      rows.push(editField("reference_number", "GCash Reference", queueData.reference_number || details.reference_number || "", "text", 'maxlength="13" inputmode="numeric"'));
+      rows.push(editField("reference_number", "GCash Reference", queueData.reference_number || details.reference_number || "", "text", 'inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13"'));
     }
 
     rows.push(editFileField(queueData));

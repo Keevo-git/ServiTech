@@ -71,10 +71,10 @@ $pendingReview = [
     "details" => [
         "service_label" => "Repair Services",
         "payment_method" => "gcash",
-        "reference_number" => "000123456789012345",
+        "reference_number" => "0001234567890",
     ],
     "payment_method" => "gcash",
-    "reference_number" => "000123456789012345",
+    "reference_number" => "0001234567890",
     "payment_status" => "WAITING FOR ADMIN REVIEW",
 ];
 gcash_flow_assert(
@@ -132,14 +132,17 @@ gcash_flow_assert(str_contains((string)$paymentPage, 'Complete your GCash Paymen
 gcash_flow_assert(str_contains((string)$paymentPage, 'Assigned after payment submission'), "A draft must not pretend that a queue number already exists.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'Payment details required'), "An incomplete draft must be clearly labelled as incomplete.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'window.openQueueSuccessModal'), "Completed GCash submissions must reuse the existing queue success modal.");
-gcash_flow_assert(str_contains((string)$paymentPage, 'Please enter numbers only for the GCash reference number.'), "Payment page must show digit-only reference validation.");
+gcash_flow_assert(str_contains((string)$paymentPage, 'Please enter a valid 13-digit GCash reference number.'), "Payment page must show exact 13-digit reference validation.");
+gcash_flow_assert(str_contains((string)$paymentPage, 'await fetch(paymentForm.action'), "Payment page must submit payment details without a full-page success redirect.");
+gcash_flow_assert(str_contains((string)$paymentPage, '<?php if ($reviewed): ?>'), "Submitted pending-review GCash payments must not render a standalone success card.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'formaction="<?= service_payment_esc(servitech_url(\'/api/service_payment_cancel.php\')) ?>"'), "The payment page must provide an explicit safe cancellation path.");
 gcash_flow_assert(str_contains((string)$paymentCss, '@media (max-width: 767px)'), "Payment page must provide a mobile layout.");
 gcash_flow_assert(str_contains((string)$paymentCss, 'grid-template-columns: repeat(2'), "Payment page must provide a desktop/tablet summary layout.");
 gcash_flow_assert(substr_count((string)$queueCreate, "admin_new_order_payment_review") === 0, "A GCash draft must not notify the admin before payment details are submitted.");
 gcash_flow_assert(substr_count((string)$paymentSubmit, "admin_new_order_payment_review") === 2, "Completed GCash payment details must create one notification call with one event key.");
 gcash_flow_assert(substr_count((string)$paymentSubmit, "servitech_notify_admins(") === 1, "Completed GCash payment details must create exactly one admin notification.");
-gcash_flow_assert(strpos((string)$paymentSubmit, "preg_match('/^\\d+$/', \$referenceNumber)") < strpos((string)$paymentSubmit, "INSERT INTO queues"), "Reference validation must happen before queue creation.");
+gcash_flow_assert(strpos((string)$paymentSubmit, "preg_match('/^\\d{13}$/', \$referenceNumber)") < strpos((string)$paymentSubmit, "INSERT INTO queues"), "Exact 13-digit reference validation must happen before queue creation.");
+gcash_flow_assert(str_contains((string)$paymentSubmit, "service_payment_json_response"), "Payment submit handler must support same-page JSON success responses.");
 gcash_flow_assert(str_contains((string)$authGuard, "servitech_service_payment_draft_url"), "Customer navigation must return incomplete GCash drafts to the payment page.");
 gcash_flow_assert(str_contains((string)$paymentCancel, "servitech_upload_delete_owned_orphans"), "Cancelling a payment draft must clean up orphaned uploads.");
 

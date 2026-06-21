@@ -63,12 +63,8 @@ if (is_array($existingPaymentDraft)) {
   exit();
 }
 
-if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d+$/', $reference_number)) {
-  echo json_encode(["ok" => false, "error" => "Please enter numbers only for the GCash reference number."]);
-  exit();
-}
-if ($payment_method === "gcash" && strlen($reference_number) > 120) {
-  echo json_encode(["ok" => false, "error" => "GCash reference number cannot exceed 120 digits."]);
+if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d{13}$/', $reference_number)) {
+  echo json_encode(["ok" => false, "error" => "Please enter a valid 13-digit GCash reference number."]);
   exit();
 }
 

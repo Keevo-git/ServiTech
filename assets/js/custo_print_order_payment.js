@@ -71,6 +71,19 @@
       setFeedback(initialFeedback, "error");
     }
 
+    if (referenceInput) {
+      referenceInput.addEventListener("input", function () {
+        var cleaned = referenceInput.value.replace(/\D+/g, "").slice(0, 13);
+        if (referenceInput.value !== cleaned) referenceInput.value = cleaned;
+        setFieldInvalid(referenceInput, false);
+      });
+      referenceInput.addEventListener("paste", function () {
+        window.setTimeout(function () {
+          referenceInput.value = referenceInput.value.replace(/\D+/g, "").slice(0, 13);
+        }, 0);
+      });
+    }
+
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
       if (submitBtn.disabled) {
@@ -83,7 +96,7 @@
       if (paymentMethod === "gcash") {
         var referenceNumber = referenceInput ? referenceInput.value.trim() : "";
         if (referenceInput) {
-          referenceNumber = referenceNumber.replace(/\D+/g, "");
+          referenceNumber = referenceNumber.replace(/\D+/g, "").slice(0, 13);
           referenceInput.value = referenceNumber;
         }
         if (referenceNumber === "") {
@@ -91,14 +104,9 @@
           setFeedback("Reference number is required for GCash payments.", "error");
           return;
         }
-        if (!/^\d+$/.test(referenceNumber)) {
+        if (!/^\d{13}$/.test(referenceNumber)) {
           setFieldInvalid(referenceInput, true);
-          setFeedback("Please enter numbers only for the GCash reference number.", "error");
-          return;
-        }
-        if (referenceNumber.length > 120) {
-          setFieldInvalid(referenceInput, true);
-          setFeedback("GCash reference number cannot exceed 120 digits.", "error");
+          setFeedback("Please enter a valid 13-digit GCash reference number.", "error");
           return;
         }
       }

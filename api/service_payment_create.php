@@ -11,6 +11,19 @@ require_once __DIR__ . "/upload_helpers.php";
 
 servitech_enforce_csrf_token(false);
 
+function service_payment_wants_json(): bool {
+  $accept = strtolower((string)($_SERVER["HTTP_ACCEPT"] ?? ""));
+  $requestedWith = strtolower((string)($_SERVER["HTTP_X_REQUESTED_WITH"] ?? ""));
+  return str_contains($accept, "application/json") || $requestedWith === "xmlhttprequest";
+}
+
+function service_payment_json_response(array $payload, int $status = 200): void {
+  http_response_code($status);
+  header("Content-Type: application/json; charset=utf-8");
+  echo json_encode($payload);
+  exit();
+}
+
 $userId = (int)($_SESSION["user_id"] ?? 0);
 if ($userId <= 0) {
   header("Location: " . servitech_url("/auth/log_in.php"));
@@ -31,8 +44,33 @@ $referenceNumber = trim((string)($_POST["reference_number"] ?? ""));
 $draft = servitech_service_payment_draft();
 
 function service_payment_fail(string $message, string $paymentUrl): void {
+  if (service_payment_wants_json()) {
+    service_payment_json_response(["ok" => false, "error" => $message, "redirect_url" => $paymentUrl], 422);
+  }
   $_SESSION["service_payment_flash_error"] = $message;
   header("Location: " . $paymentUrl);
+  exit();
+}
+
+function service_payment_success(int $queueId, string $queueCode, string $serviceName, string $paymentUrl): void {
+  $_SESSION["service_payment_confirmation"] = [
+    "queue_id" => $queueId,
+    "queue_code" => $queueCode,
+    "created_at" => time(),
+  ];
+  servitech_mark_join_queue_completed($queueCode);
+
+  if (service_payment_wants_json()) {
+    service_payment_json_response([
+      "ok" => true,
+      "queue_id" => $queueId,
+      "queue_code" => $queueCode,
+      "service_name" => $serviceName,
+      "message" => "Your queue has been submitted successfully. Your GCash payment is now waiting for admin review.",
+    ]);
+  }
+
+  header("Location: " . $paymentUrl . (str_contains($paymentUrl, "?") ? "&" : "?") . "submitted=1");
   exit();
 }
 
@@ -40,11 +78,8 @@ $paymentUrl = is_array($draft)
   ? servitech_service_payment_draft_url($draft)
   : servitech_url("/pages/customer/custo_service_payment.php?queue_id=" . $queueId);
 
-if ($referenceNumber === "" || !preg_match('/^\d+$/', $referenceNumber)) {
-  service_payment_fail("Please enter numbers only for the GCash reference number.", $paymentUrl);
-}
-if (strlen($referenceNumber) > 120) {
-  service_payment_fail("GCash reference number cannot exceed 120 digits.", $paymentUrl);
+if (!preg_match('/^\d{13}$/', $referenceNumber)) {
+  service_payment_fail("Please enter a valid 13-digit GCash reference number.", $paymentUrl);
 }
 
 if ($draftToken !== "") {
@@ -133,14 +168,7 @@ if ($draftToken !== "") {
     );
 
     $pdo->commit();
-    $_SESSION["service_payment_confirmation"] = [
-      "queue_id" => $queueId,
-      "queue_code" => $queueCode,
-      "created_at" => time(),
-    ];
-    servitech_mark_join_queue_completed($queueCode);
-    header("Location: " . servitech_url("/pages/customer/custo_service_payment.php?queue_id={$queueId}&submitted=1"));
-    exit();
+    service_payment_success($queueId, $queueCode, $serviceLabel, servitech_url("/pages/customer/custo_service_payment.php?queue_id={$queueId}"));
   } catch (DomainException $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
     service_payment_fail($e->getMessage(), $paymentUrl);
@@ -189,10 +217,8 @@ try {
   $pdo->commit();
 
   $queueCode = trim((string)$queue["queue_code"]);
-  $_SESSION["service_payment_confirmation"] = ["queue_id" => $queueId, "queue_code" => $queueCode, "created_at" => time()];
-  servitech_mark_join_queue_completed($queueCode);
-  header("Location: " . servitech_url("/pages/customer/custo_service_payment.php?queue_id={$queueId}&submitted=1"));
-  exit();
+  $legacyServiceName = trim((string)($details["service_label"] ?? ($details["catalog_service_name"] ?? "Service")));
+  service_payment_success($queueId, $queueCode, $legacyServiceName !== "" ? $legacyServiceName : "Service", servitech_url("/pages/customer/custo_service_payment.php?queue_id={$queueId}"));
 } catch (DomainException $e) {
   if ($pdo->inTransaction()) $pdo->rollBack();
   service_payment_fail($e->getMessage(), $paymentUrl);
