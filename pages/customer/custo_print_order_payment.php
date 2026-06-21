@@ -706,9 +706,9 @@ if ($isConfirmed) {
                   <div class="print-payment-qr-fallback">GCash QR unavailable</div>
                 </div>
                 <div class="print-payment-reference">
-                  <label for="referenceNumberInput">Reference Number<span class="required">*</span></label>
-                  <input type="text" class="form-input" id="referenceNumberInput" name="reference_number" value="<?= esc_print_order($referenceNumber) ?>" placeholder="Enter the 13-digit transaction number" autocomplete="off" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13" required>
-                  <p class="print-payment-input-note">Employees will use this reference when approving the order.</p>
+                  <label for="referenceNumberInput">GCash Reference Number<span class="required">*</span></label>
+                  <input type="text" class="form-input" id="referenceNumberInput" name="reference_number" value="<?= esc_print_order($referenceNumber) ?>" placeholder="Enter your GCash reference number" autocomplete="off" inputmode="numeric" pattern="[0-9]+" maxlength="120" required>
+                  <p class="print-payment-input-note">Enter the reference number from your GCash receipt.</p>
                 </div>
               </div>
             <?php elseif ($paymentMethod === "cash"): ?>
@@ -730,7 +730,7 @@ if ($isConfirmed) {
 <?php include __DIR__ . "/../../components/queue_modal.php"; ?>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
-<script src="/assets/js/custo_print_order_payment.js?v=20260611-post-success"></script>
+<script src="/assets/js/custo_print_order_payment.js?v=20260621-reference-digits"></script>
 </body>
 </html>
 

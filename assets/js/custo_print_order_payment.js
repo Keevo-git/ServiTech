@@ -82,14 +82,23 @@
 
       if (paymentMethod === "gcash") {
         var referenceNumber = referenceInput ? referenceInput.value.trim() : "";
+        if (referenceInput) {
+          referenceNumber = referenceNumber.replace(/\D+/g, "");
+          referenceInput.value = referenceNumber;
+        }
         if (referenceNumber === "") {
           setFieldInvalid(referenceInput, true);
           setFeedback("Reference number is required for GCash payments.", "error");
           return;
         }
-        if (!/^\d{13}$/.test(referenceNumber)) {
+        if (!/^\d+$/.test(referenceNumber)) {
           setFieldInvalid(referenceInput, true);
-          setFeedback("GCash reference number must be exactly 13 digits.", "error");
+          setFeedback("Please enter numbers only for the GCash reference number.", "error");
+          return;
+        }
+        if (referenceNumber.length > 120) {
+          setFieldInvalid(referenceInput, true);
+          setFeedback("GCash reference number cannot exceed 120 digits.", "error");
           return;
         }
       }

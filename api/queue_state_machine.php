@@ -34,24 +34,47 @@ function servitech_queue_payment_method(array $queue): string {
   return strtolower(trim((string)($queue["payment_method"] ?? ($details["payment_method"] ?? ""))));
 }
 
+function servitech_queue_is_online_payment_method(array $queue): bool {
+  $method = preg_replace('/[\s-]+/', '_', servitech_queue_payment_method($queue));
+  return in_array($method, ["gcash", "online", "online_payment"], true);
+}
+
 function servitech_queue_payment_reference(array $queue): string {
   $details = servitech_queue_details_array($queue["details"] ?? null);
   return trim((string)($queue["reference_number"] ?? ($queue["payment_reference_number"] ?? ($details["reference_number"] ?? ""))));
 }
 
+function servitech_queue_payment_review_status(string $status): string {
+  $status = strtoupper(trim($status));
+  return preg_replace('/[\s_]+/', ' ', $status);
+}
+
+function servitech_queue_payment_status_waits_for_review(string $status): bool {
+  return in_array(servitech_queue_payment_review_status($status), [
+    "",
+    "PENDING",
+    "PENDING REVIEW",
+    "WAITING FOR ADMIN REVIEW",
+    "WAITING ADMIN REVIEW",
+    "AWAITING REVIEW",
+    "AWAITING ADMIN REVIEW",
+    "FOR REVIEW",
+  ], true);
+}
+
 function servitech_queue_requires_gcash_review(array $queue): bool {
-  $paymentStatus = strtoupper(trim((string)($queue["payment_status"] ?? "PENDING")));
-  return servitech_queue_payment_method($queue) === "gcash"
-    && $paymentStatus === "PENDING"
+  $paymentStatus = (string)($queue["payment_status"] ?? "PENDING");
+  return servitech_queue_is_online_payment_method($queue)
+    && servitech_queue_payment_status_waits_for_review($paymentStatus)
     && servitech_queue_payment_reference($queue) !== "";
 }
 
 function servitech_queue_allowed_transitions(array $queue): array {
   $status = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
 
-  if (servitech_queue_is_online_print_order($queue) || servitech_queue_payment_method($queue) === "gcash") {
+  if (servitech_queue_is_online_print_order($queue) || servitech_queue_is_online_payment_method($queue)) {
     return match ($status) {
-      "PENDING" => servitech_queue_requires_gcash_review($queue) || servitech_queue_payment_method($queue) !== "gcash"
+      "PENDING" => servitech_queue_requires_gcash_review($queue) || !servitech_queue_is_online_payment_method($queue)
         ? ["APPROVED", "CANCELLED"]
         : ["CANCELLED"],
       "APPROVED" => ["ONGOING"],
@@ -118,7 +141,9 @@ function servitech_queue_customer_status_message(array $queue, string $newStatus
   $statusLead = "Your {$subject} (Queue ID: {$queueCode}) is now {$newStatus}.";
 
   return match ($newStatus) {
-    "APPROVED" => "{$statusLead} Your payment has been approved and your order is waiting to be processed.",
+    "APPROVED" => servitech_queue_is_online_payment_method($queue)
+      ? "Your " . (servitech_queue_payment_method($queue) === "gcash" ? "GCash" : "online") . " payment for Queue {$queueCode} has been approved. Your {$subject} is waiting to be processed."
+      : "{$statusLead} Your payment has been approved and your order is waiting to be processed.",
     "ONGOING" => "{$statusLead} Your request is now being processed.",
     "FOR PICK-UP" => "{$statusLead} Your request is ready for pick-up.",
     "DONE" => "{$statusLead} Your service request has been completed.",
@@ -349,7 +374,7 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
 
     if (!empty($queue["payment_id"])) {
       $paymentStatus = match ($newStatus) {
-        "APPROVED" => servitech_queue_payment_method($queue) === "gcash" ? "APPROVED" : null,
+        "APPROVED" => servitech_queue_is_online_payment_method($queue) ? "APPROVED" : null,
         "DONE" => "PAID",
         "CANCELLED" => "CANCELLED",
         default => null,

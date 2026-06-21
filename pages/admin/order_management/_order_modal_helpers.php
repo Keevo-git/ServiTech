@@ -31,6 +31,9 @@ function om_payment_method_label($value): string
     if ($key === "cash") {
         return "Cash";
     }
+    if (in_array($key, ["online", "online_payment", "online payment"], true)) {
+        return "Online Payment";
+    }
     return "";
 }
 

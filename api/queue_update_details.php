@@ -291,8 +291,11 @@ try {
     if ($paymentMethod === "gcash" && $referenceNumber === "") {
       throw new DomainException("Reference number is required for GCash payments.");
     }
-    if ($paymentMethod === "gcash" && !preg_match('/^\d{13}$/', $referenceNumber)) {
-      throw new DomainException("GCash reference number must be exactly 13 digits.");
+    if ($paymentMethod === "gcash" && !preg_match('/^\d+$/', $referenceNumber)) {
+      throw new DomainException("Please enter numbers only for the GCash reference number.");
+    }
+    if ($paymentMethod === "gcash" && strlen($referenceNumber) > 120) {
+      throw new DomainException("GCash reference number cannot exceed 120 digits.");
     }
     $details["payment_method"] = $paymentMethod;
     $details["reference_number"] = $paymentMethod === "gcash" ? $referenceNumber : null;

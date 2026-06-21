@@ -1,3 +1,5 @@
+ALTER TABLE payments ALTER COLUMN reference_number TYPE TEXT;
+
 UPDATE payments
 SET status = CASE
   WHEN UPPER(TRIM(COALESCE(status, ''))) IN ('APPROVED', 'VERIFIED') THEN 'APPROVED'

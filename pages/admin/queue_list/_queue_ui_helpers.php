@@ -92,6 +92,7 @@ function queue_ui_payment_summary(array $row): string
     $methodLabel = match ($method) {
         "cash" => "Cash",
         "gcash" => "GCash",
+        "online", "online_payment", "online payment" => "Online Payment",
         default => "",
     };
     $amount = $row["amount"] ?? ($details["estimated_total"] ?? null);
@@ -181,6 +182,7 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "paymentMethod" => match (queue_ui_payment_method($row)) {
             "gcash" => "GCash",
             "cash" => "Cash",
+            "online", "online_payment", "online payment" => "Online Payment",
             default => "",
         },
         "paymentStatus" => strtoupper(trim((string)($row["payment_status"] ?? ""))),

@@ -154,7 +154,7 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
-  <link rel="stylesheet" href="/assets/css/customer-payment.css?v=20260621b">
+  <link rel="stylesheet" href="/assets/css/customer-payment.css?v=20260621c">
 </head>
 <body class="customer-layout customer-page--print-order printing-page customer-payment-page">
 <?php include __DIR__ . "/../../components/header.php"; ?>
@@ -223,7 +223,7 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
               <ol>
                 <li>Open GCash and scan the QR code.</li>
                 <li>Send the exact amount shown above.</li>
-                <li>Copy the 13-digit transaction reference number.</li>
+                <li>Copy the transaction reference number.</li>
                 <li>Enter the reference below and submit it for review.</li>
               </ol>
               <?php if ($gcashAccountName !== "" || $gcashAccountNumber !== ""): ?>
@@ -234,8 +234,8 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
               <?php endif; ?>
               <div class="customer-payment-reference">
                 <label for="referenceNumberInput">GCash Reference Number<span class="required">*</span></label>
-                <input class="form-input" id="referenceNumberInput" name="reference_number" type="text" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13" autocomplete="off" value="<?= service_payment_esc($queue["reference_number"] ?? "") ?>" placeholder="Enter the 13-digit transaction number" required>
-                <p class="customer-payment-help">The shop will use this reference to verify your payment.</p>
+                <input class="form-input" id="referenceNumberInput" name="reference_number" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="120" autocomplete="off" value="<?= service_payment_esc($queue["reference_number"] ?? "") ?>" placeholder="Enter your GCash reference number" aria-describedby="referenceNumberHelp" required>
+                <p class="customer-payment-help" id="referenceNumberHelp">Enter the reference number from your GCash receipt.</p>
               </div>
               <p class="customer-payment-reminder"><strong>Important:</strong> <?= $isDraft ? "Your queue will only be created after you submit the required GCash details." : "Your order remains pending until an admin approves the GCash payment." ?></p>
             </div>
@@ -256,5 +256,59 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
   </div>
 </section>
 <?php include __DIR__ . "/../../components/footer.php"; ?>
+<?php include __DIR__ . "/../../components/queue_modal.php"; ?>
+<script>
+(function () {
+  "use strict";
+
+  var referenceInput = document.getElementById("referenceNumberInput");
+  var paymentForm = document.getElementById("servicePaymentForm");
+  var digitsOnlyMessage = "Please enter numbers only for the GCash reference number.";
+
+  function sanitizeReference() {
+    if (!referenceInput) return;
+    var original = referenceInput.value || "";
+    var cleaned = original.replace(/\D+/g, "");
+    if (original !== cleaned) {
+      referenceInput.value = cleaned;
+      referenceInput.setCustomValidity(digitsOnlyMessage);
+      referenceInput.reportValidity();
+    } else {
+      referenceInput.setCustomValidity("");
+    }
+  }
+
+  referenceInput?.addEventListener("input", sanitizeReference);
+  referenceInput?.addEventListener("paste", function () {
+    window.setTimeout(sanitizeReference, 0);
+  });
+  paymentForm?.addEventListener("submit", function (event) {
+    sanitizeReference();
+    if (referenceInput && !/^\d+$/.test(referenceInput.value.trim())) {
+      referenceInput.setCustomValidity(digitsOnlyMessage);
+      referenceInput.reportValidity();
+      event.preventDefault();
+      return;
+    }
+    referenceInput?.setCustomValidity("");
+  });
+
+  <?php if ($submitted): ?>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.servitechJoinQueuePostSuccess) {
+      window.servitechJoinQueuePostSuccess.markComplete(<?= json_encode((string)($queue["queue_code"] ?? "")) ?>);
+    }
+    if (typeof window.openQueueSuccessModal === "function") {
+      window.openQueueSuccessModal(<?= json_encode((string)($queue["queue_code"] ?? "")) ?>, {
+        title: "Queue Successfully Joined",
+        message: "Your queue has been submitted successfully. Your GCash payment is now waiting for admin review.",
+        service: <?= json_encode($serviceName) ?>,
+        note: "You can view your queue while the shop reviews your GCash payment."
+      });
+    }
+  });
+  <?php endif; ?>
+})();
+</script>
 </body>
 </html>

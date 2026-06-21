@@ -58,6 +58,17 @@ document.addEventListener("DOMContentLoaded", function () {
     CANCELLED: "Cancelled",
   };
 
+  function paymentReviewLabel(method) {
+    const value = String(method || "").trim().toLowerCase();
+    if (value === "gcash") return "GCash";
+    if (value === "online payment" || value === "online_payment" || value === "online") return "Online payment";
+    return "";
+  }
+
+  function usesOnlinePaymentReview(method) {
+    return paymentReviewLabel(method) !== "";
+  }
+
   function esc(value) {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
@@ -341,15 +352,34 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       out = await postAction(currentQueue.id, action);
     } catch (error) {
-      return { attempted: true, ok: false, error: "Unable to update the order status." };
+      return {
+        attempted: true,
+        ok: false,
+        error: action === "approved" && usesOnlinePaymentReview(currentQueue.paymentMethod)
+          ? `Unable to approve the ${paymentReviewLabel(currentQueue.paymentMethod)} payment. Please try again.`
+          : "Unable to update the order status."
+      };
     }
 
     if (!out.ok) {
-      return { attempted: true, ok: false, error: out.error || "Unable to update the order status." };
+      return {
+        attempted: true,
+        ok: false,
+        error: action === "approved" && usesOnlinePaymentReview(currentQueue.paymentMethod)
+          ? `Unable to approve the ${paymentReviewLabel(currentQueue.paymentMethod)} payment. Please try again.`
+          : (out.error || "Unable to update the order status.")
+      };
     }
 
     applyStatusResult(out);
-    return { attempted: true, ok: true, message: actionMessages[action] || "Order status updated successfully.", data: out };
+    return {
+      attempted: true,
+      ok: true,
+      message: action === "approved" && usesOnlinePaymentReview(currentQueue.paymentMethod)
+        ? `${paymentReviewLabel(currentQueue.paymentMethod)} payment approved successfully. The queue is now ready for processing.`
+        : (actionMessages[action] || "Order status updated successfully."),
+      data: out
+    };
   }
 
   function showUpdateResultToasts(paymentResult, statusResult) {
@@ -712,9 +742,9 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    if (selectedStatus !== currentStatus && action === "approved" && String(currentQueue.paymentMethod || "").toLowerCase() === "gcash"
+    if (selectedStatus !== currentStatus && action === "approved" && usesOnlinePaymentReview(currentQueue.paymentMethod)
         && typeof window.servitechRequestApprovalConfirmation === "function") {
-      const confirmed = await window.servitechRequestApprovalConfirmation(currentQueue.queueCode || "this queue");
+      const confirmed = await window.servitechRequestApprovalConfirmation(currentQueue.queueCode || "this queue", paymentReviewLabel(currentQueue.paymentMethod));
       if (!confirmed) {
         updateInProgress = false;
         updateBtn.textContent = updateLabel;

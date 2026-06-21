@@ -206,7 +206,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 </script>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260614-queue-modal-fix2') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260614-queue-modal-fix2') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260621-gcash-approval') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

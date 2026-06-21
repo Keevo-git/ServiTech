@@ -40,7 +40,8 @@ foreach ($services as $service) {
     );
     $message = servitech_queue_customer_status_message($base, "APPROVED");
     gcash_flow_assert(
-        str_contains($message, $service["service_label"]) && str_contains($message, "payment has been approved"),
+        str_contains($message, "Your GCash payment for Queue T-001 has been approved.")
+            && str_contains($message, $service["service_label"]),
         $service["service_label"] . " must receive the correct approval notification."
     );
 
@@ -62,6 +63,31 @@ $missingReference = [
 gcash_flow_assert(
     servitech_queue_allowed_transitions($missingReference) === ["CANCELLED"],
     "GCash approval must stay unavailable until payment details are submitted."
+);
+
+$pendingReview = [
+    "status" => "PENDING",
+    "category" => "repair",
+    "details" => [
+        "service_label" => "Repair Services",
+        "payment_method" => "gcash",
+        "reference_number" => "000123456789012345",
+    ],
+    "payment_method" => "gcash",
+    "reference_number" => "000123456789012345",
+    "payment_status" => "WAITING FOR ADMIN REVIEW",
+];
+gcash_flow_assert(
+    servitech_queue_allowed_transitions($pendingReview) === ["APPROVED", "CANCELLED"],
+    "GCash approval must be available for waiting-for-admin-review payments."
+);
+
+$onlinePayment = $pendingReview;
+$onlinePayment["payment_method"] = "online_payment";
+$onlinePayment["details"]["payment_method"] = "online_payment";
+gcash_flow_assert(
+    servitech_queue_allowed_transitions($onlinePayment) === ["APPROVED", "CANCELLED"],
+    "Online Payment queues must use the same pending-review approval rule."
 );
 
 $cash = ["status" => "PENDING", "category" => "repair", "payment_method" => "cash"];
@@ -105,13 +131,15 @@ gcash_flow_assert(str_contains((string)$paymentPage, 'name="viewport"'), "Paymen
 gcash_flow_assert(str_contains((string)$paymentPage, 'Complete your GCash Payment'), "Payment page must show the customer-friendly payment-step title.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'Assigned after payment submission'), "A draft must not pretend that a queue number already exists.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'Payment details required'), "An incomplete draft must be clearly labelled as incomplete.");
+gcash_flow_assert(str_contains((string)$paymentPage, 'window.openQueueSuccessModal'), "Completed GCash submissions must reuse the existing queue success modal.");
+gcash_flow_assert(str_contains((string)$paymentPage, 'Please enter numbers only for the GCash reference number.'), "Payment page must show digit-only reference validation.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'formaction="<?= service_payment_esc(servitech_url(\'/api/service_payment_cancel.php\')) ?>"'), "The payment page must provide an explicit safe cancellation path.");
 gcash_flow_assert(str_contains((string)$paymentCss, '@media (max-width: 767px)'), "Payment page must provide a mobile layout.");
 gcash_flow_assert(str_contains((string)$paymentCss, 'grid-template-columns: repeat(2'), "Payment page must provide a desktop/tablet summary layout.");
 gcash_flow_assert(substr_count((string)$queueCreate, "admin_new_order_payment_review") === 0, "A GCash draft must not notify the admin before payment details are submitted.");
 gcash_flow_assert(substr_count((string)$paymentSubmit, "admin_new_order_payment_review") === 2, "Completed GCash payment details must create one notification call with one event key.");
 gcash_flow_assert(substr_count((string)$paymentSubmit, "servitech_notify_admins(") === 1, "Completed GCash payment details must create exactly one admin notification.");
-gcash_flow_assert(strpos((string)$paymentSubmit, "preg_match('/^\\d{13}$/', \$referenceNumber)") < strpos((string)$paymentSubmit, "INSERT INTO queues"), "Reference validation must happen before queue creation.");
+gcash_flow_assert(strpos((string)$paymentSubmit, "preg_match('/^\\d+$/', \$referenceNumber)") < strpos((string)$paymentSubmit, "INSERT INTO queues"), "Reference validation must happen before queue creation.");
 gcash_flow_assert(str_contains((string)$authGuard, "servitech_service_payment_draft_url"), "Customer navigation must return incomplete GCash drafts to the payment page.");
 gcash_flow_assert(str_contains((string)$paymentCancel, "servitech_upload_delete_owned_orphans"), "Cancelling a payment draft must clean up orphaned uploads.");
 

@@ -284,10 +284,21 @@
   margin-bottom: 0.35rem;
 }
 
+.customer-payment-reference {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 640px;
+  width: 100%;
+}
+
 .customer-payment-reference .form-input {
   border-radius: 14px;
   font-size: 1rem;
+  letter-spacing: 0.02em;
   min-height: 52px;
+  min-width: 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
   width: 100%;
 }
 

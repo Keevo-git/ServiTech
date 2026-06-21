@@ -147,8 +147,9 @@
 (function () {
   "use strict";
 
-  window.servitechRequestApprovalConfirmation = function (queueCode) {
+  window.servitechRequestApprovalConfirmation = function (queueCode, paymentLabel) {
     let overlay = document.getElementById("queueApprovalOverlay");
+    const label = String(paymentLabel || "GCash").trim() || "GCash";
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.className = "queue-cancellation-overlay";
@@ -157,7 +158,7 @@
       overlay.innerHTML = `
         <div class="queue-cancellation-dialog" role="dialog" aria-modal="true" aria-labelledby="queueApprovalTitle">
           <div class="queue-cancellation-head">
-            <div><p>GCash Review</p><h3 id="queueApprovalTitle">Approve GCash payment?</h3></div>
+            <div><p>Payment Review</p><h3 id="queueApprovalTitle">Approve payment?</h3></div>
             <button type="button" class="queue-cancellation-close" data-approval-no aria-label="Close">&times;</button>
           </div>
           <div class="queue-cancellation-body">
@@ -175,8 +176,10 @@
       button.replaceWith(button.cloneNode(true));
     });
     const dialog = overlay.querySelector(".queue-cancellation-dialog");
+    const title = overlay.querySelector("#queueApprovalTitle");
     const message = overlay.querySelector("[data-approval-message]");
-    if (message) message.textContent = `Confirm that you reviewed the GCash reference for ${queueCode} before approving this payment.`;
+    if (title) title.textContent = `Approve this ${label} payment?`;
+    if (message) message.textContent = `Approve this ${label} payment? This will mark the payment as approved and allow the queue to continue processing.`;
     overlay.hidden = false;
     window.servitechAdminModalStack?.open({ overlay, dialog, focus: overlay.querySelector("[data-approval-no]") });
 

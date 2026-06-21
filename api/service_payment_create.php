@@ -40,8 +40,11 @@ $paymentUrl = is_array($draft)
   ? servitech_service_payment_draft_url($draft)
   : servitech_url("/pages/customer/custo_service_payment.php?queue_id=" . $queueId);
 
-if (!preg_match('/^\d{13}$/', $referenceNumber)) {
-  service_payment_fail("Enter the complete 13-digit GCash reference number.", $paymentUrl);
+if ($referenceNumber === "" || !preg_match('/^\d+$/', $referenceNumber)) {
+  service_payment_fail("Please enter numbers only for the GCash reference number.", $paymentUrl);
+}
+if (strlen($referenceNumber) > 120) {
+  service_payment_fail("GCash reference number cannot exceed 120 digits.", $paymentUrl);
 }
 
 if ($draftToken !== "") {
