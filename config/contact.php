@@ -119,6 +119,16 @@ function servitech_contact_facebook_label(): string
     return servitech_contact_env_value("SERVITECH_CONTACT_FACEBOOK_LABEL", "JC Store");
 }
 
+function servitech_gcash_account_name(): string
+{
+    return servitech_contact_env_value("SERVITECH_GCASH_ACCOUNT_NAME");
+}
+
+function servitech_gcash_account_number(): string
+{
+    return servitech_contact_env_value("SERVITECH_GCASH_ACCOUNT_NUMBER");
+}
+
 function servitech_contact_link_html(string $emptyMessage = "Contact email unavailable"): string
 {
     $email = servitech_contact_email();

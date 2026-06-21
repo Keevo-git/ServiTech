@@ -72,6 +72,7 @@ $queueCreate = file_get_contents(__DIR__ . "/../api/queue_create.php");
 $mainJs = file_get_contents(__DIR__ . "/../assets/js/main.js");
 $documentPrintJs = file_get_contents(__DIR__ . "/../assets/js/custo2_docu_printing.js");
 $paymentPage = file_get_contents(__DIR__ . "/../pages/customer/custo_service_payment.php");
+$paymentCss = file_get_contents(__DIR__ . "/../assets/css/customer-payment.css");
 $paymentSubmit = file_get_contents(__DIR__ . "/../api/service_payment_create.php");
 gcash_flow_assert(str_contains((string)$queueCreate, '"redirect_url"'), "GCash queue responses must provide a payment redirect.");
 gcash_flow_assert(str_contains((string)$mainJs, 'result.payment_method === "gcash"'), "Generic join forms must follow the GCash redirect.");
@@ -80,8 +81,9 @@ foreach (["Document", "xerox", "rush", "laminat", "scan", "repair", "installatio
     gcash_flow_assert(stripos((string)$paymentPage, $serviceMarker) !== false, "Payment page is missing {$serviceMarker} service handling.");
 }
 gcash_flow_assert(str_contains((string)$paymentPage, 'name="viewport"'), "Payment page must declare a responsive viewport.");
-gcash_flow_assert(str_contains((string)$paymentPage, '@media(max-width:640px)'), "Payment page must provide a mobile layout.");
-gcash_flow_assert(str_contains((string)$paymentPage, 'grid-template-columns:repeat(2'), "Payment page must provide a desktop/tablet summary layout.");
+gcash_flow_assert(str_contains((string)$paymentPage, 'Complete your GCash Payment'), "Payment page must show the customer-friendly payment-step title.");
+gcash_flow_assert(str_contains((string)$paymentCss, '@media (max-width: 767px)'), "Payment page must provide a mobile layout.");
+gcash_flow_assert(str_contains((string)$paymentCss, 'grid-template-columns: repeat(2'), "Payment page must provide a desktop/tablet summary layout.");
 gcash_flow_assert(substr_count((string)$queueCreate, "admin_new_order_payment_review") === 2, "GCash submission should use one notification call and one event key.");
 gcash_flow_assert(strpos((string)$paymentSubmit, "servitech_notify_admins") === false, "Payment detail submission must not create a duplicate admin notification.");
 
