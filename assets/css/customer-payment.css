@@ -347,6 +347,14 @@
   width: 100%;
 }
 
+.customer-payment-page .form-actions button.btn-back {
+  appearance: none;
+  background: #000;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+
 .customer-payment-page .form-actions .btn-next:hover,
 .customer-payment-page .form-actions .btn-next:focus-visible {
   background: #f5b712;

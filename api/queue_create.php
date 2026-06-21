@@ -52,6 +52,17 @@ if (!in_array($payment_method, ["cash", "gcash"], true)) {
   $payment_method = "";
 }
 
+$existingPaymentDraft = servitech_service_payment_draft();
+if (is_array($existingPaymentDraft)) {
+  http_response_code(409);
+  echo json_encode([
+    "ok" => false,
+    "error" => "Complete or cancel your pending GCash payment before starting another queue request.",
+    "redirect_url" => servitech_service_payment_draft_url($existingPaymentDraft, true),
+  ]);
+  exit();
+}
+
 if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d{13}$/', $reference_number)) {
   echo json_encode(["ok" => false, "error" => "GCash reference number must be exactly 13 digits."]);
   exit();
@@ -140,6 +151,38 @@ try {
     throw new DomainException("GCash is available after the service has a fixed total. Please choose Cash for services that require assessment.");
   }
 
+  if ($payment_method === "gcash") {
+    unset($details["reference_number"]);
+    $draftToken = bin2hex(random_bytes(32));
+    $servicePaymentDraft = [
+      "version" => 1,
+      "token" => $draftToken,
+      "user_id" => $user_id,
+      "category" => $category,
+      "prefix" => $prefix,
+      "service_label" => (string)($details["service_label"] ?? $service_label),
+      "service_kind" => $serviceKind,
+      "payment_method" => "gcash",
+      "details" => $details,
+      "created_at" => time(),
+    ];
+    $pdo->commit();
+    $_SESSION[SERVITECH_SERVICE_PAYMENT_DRAFT_KEY] = $servicePaymentDraft;
+    unset(
+      $_SESSION["service_payment_confirmation"],
+      $_SESSION["service_payment_flash_error"],
+      $_SESSION["service_payment_queue_id"],
+      $_SESSION["service_payment_queue_code"]
+    );
+    echo json_encode([
+      "ok" => true,
+      "draft" => true,
+      "payment_method" => "gcash",
+      "redirect_url" => servitech_service_payment_draft_url($_SESSION[SERVITECH_SERVICE_PAYMENT_DRAFT_KEY]),
+    ]);
+    exit();
+  }
+
   $queueIdentity = servitech_generate_queue_identity($pdo, $prefix);
   $queue_code = $queueIdentity["queue_code"];
   if (!servitech_queue_code_matches_category($queue_code, $category)) {
@@ -182,7 +225,7 @@ try {
     ]);
   }
 
-  $paymentLabel = $payment_method === "gcash" ? "GCash payment is waiting for your payment reference" : ($payment_method === "cash" ? "Cash payment selected" : "Queue submitted");
+  $paymentLabel = $payment_method === "cash" ? "Cash payment selected" : "Queue submitted";
   servitech_add_notification(
     $pdo,
     $user_id,
@@ -192,42 +235,24 @@ try {
     "customer_new_queue:{$queue_id}",
     true
   );
-  if ($payment_method === "gcash") {
-    servitech_notify_admins(
-      $pdo,
-      "admin_new_order_payment_review",
-      $queue_id,
-      "Queue {$queue_code}: New {$service_label} order submitted. GCash payment: Review the order and update its status.",
-      "admin_new_order_payment_review:{$queue_id}",
-      true
-    );
-  } else {
-    servitech_notify_admins(
-      $pdo,
-      "admin_new_order",
-      $queue_id,
-      "Queue {$queue_code}: New request submitted for {$service_label}.",
-      "admin_new_order:{$queue_id}",
-      true
-    );
-  }
+  servitech_notify_admins(
+    $pdo,
+    "admin_new_order",
+    $queue_id,
+    "Queue {$queue_code}: New request submitted for {$service_label}.",
+    "admin_new_order:{$queue_id}",
+    true
+  );
 
   $pdo->commit();
 
-  if ($payment_method === "gcash") {
-    $_SESSION["service_payment_queue_id"] = $queue_id;
-    $_SESSION["service_payment_queue_code"] = $queue_code;
-  } else {
-    servitech_mark_join_queue_completed($queue_code);
-  }
+  servitech_mark_join_queue_completed($queue_code);
   echo json_encode([
     "ok" => true,
     "queue_code" => $queue_code,
     "queue_id" => $queue_id,
     "payment_method" => $payment_method,
-    "redirect_url" => $payment_method === "gcash"
-      ? servitech_url("/pages/customer/custo_service_payment.php?queue_id=" . $queue_id)
-      : null,
+    "redirect_url" => null,
   ]);
   exit();
 } catch (DomainException $e) {

@@ -1296,6 +1296,11 @@
         if (usesGcashPaymentPage) {
           var gcashResult = await createQueue(payload);
           if (!gcashResult.ok) {
+            if (gcashResult.redirect_url) {
+              if (window.servitechJoinQueueLeaveGuard) window.servitechJoinQueueLeaveGuard.disarm();
+              window.location.href = gcashResult.redirect_url;
+              return;
+            }
             if (canCleanupUploads) {
               await cleanupUploadedFiles(payload.uploaded_files);
             }
@@ -1303,14 +1308,14 @@
             return;
           }
 
-          if (!String(gcashResult.queue_code || "").toUpperCase().startsWith("P") || !gcashResult.redirect_url) {
-            setFeedback("Queue saved, but the payment page could not be opened. Please view your queue status.", "error");
+          if (!gcashResult.redirect_url) {
+            setFeedback("Your payment draft was saved, but the payment page could not be opened.", "error");
             return;
           }
 
           if (typeof window.servitechToastForNavigation === "function") {
-            window.servitechToastForNavigation("Print order saved. Complete your GCash payment details.", {
-              tone: "success"
+            window.servitechToastForNavigation("Complete your GCash payment details to submit the print order.", {
+              tone: "info"
             });
           }
           if (window.servitechJoinQueueLeaveGuard) {

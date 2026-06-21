@@ -74,25 +74,52 @@ function service_payment_rows(array $details): array {
   return $rows;
 }
 
-$queueId = (int)($_GET["queue_id"] ?? ($_SESSION["service_payment_queue_id"] ?? 0));
 $userId = (int)($_SESSION["user_id"] ?? 0);
-$stmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.details, q.price, u.fullname,
-    p.payment_method, p.reference_number, p.status AS payment_status, p.amount
-  FROM queues q
-  JOIN users u ON u.id = q.user_id
-  JOIN LATERAL (
-    SELECT payment_method, reference_number, status, amount
-    FROM payments WHERE queue_id = q.id ORDER BY id DESC LIMIT 1
-  ) p ON TRUE
-  WHERE q.id = :queue_id AND q.user_id = :user_id
-  LIMIT 1
-");
-$stmt->execute([":queue_id" => $queueId, ":user_id" => $userId]);
-$queue = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!is_array($queue) || strtolower(trim((string)$queue["payment_method"])) !== "gcash") {
-  header("Location: " . servitech_url("/pages/customer/customer_dash.php"));
+$queueId = (int)($_GET["queue_id"] ?? 0);
+$draftToken = trim((string)($_GET["draft_token"] ?? ""));
+$paymentDraft = servitech_service_payment_draft();
+$isDraft = is_array($paymentDraft);
+
+if ($isDraft && !servitech_service_payment_draft_matches($draftToken, $paymentDraft)) {
+  header("Location: " . servitech_service_payment_draft_url($paymentDraft, (string)($_GET["incomplete"] ?? "") === "1"));
   exit();
+}
+
+if ($isDraft) {
+  $nameStmt = $pdo->prepare("SELECT COALESCE(NULLIF(fullname, ''), email, 'Customer') FROM users WHERE id = :user_id LIMIT 1");
+  $nameStmt->execute([":user_id" => $userId]);
+  $draftDetails = is_array($paymentDraft["details"] ?? null) ? $paymentDraft["details"] : [];
+  $queue = [
+    "id" => 0,
+    "queue_code" => "Assigned after payment submission",
+    "status" => "PENDING PAYMENT DETAILS",
+    "details" => $draftDetails,
+    "price" => $draftDetails["estimated_total"] ?? null,
+    "fullname" => trim((string)($nameStmt->fetchColumn() ?: "Customer")),
+    "payment_method" => "gcash",
+    "reference_number" => "",
+    "payment_status" => "AWAITING DETAILS",
+    "amount" => $draftDetails["estimated_total"] ?? null,
+  ];
+} else {
+  $stmt = $pdo->prepare("
+    SELECT q.id, q.queue_code, q.status, q.details, q.price, u.fullname,
+      p.payment_method, p.reference_number, p.status AS payment_status, p.amount
+    FROM queues q
+    JOIN users u ON u.id = q.user_id
+    JOIN LATERAL (
+      SELECT payment_method, reference_number, status, amount
+      FROM payments WHERE queue_id = q.id ORDER BY id DESC LIMIT 1
+    ) p ON TRUE
+    WHERE q.id = :queue_id AND q.user_id = :user_id
+    LIMIT 1
+  ");
+  $stmt->execute([":queue_id" => $queueId, ":user_id" => $userId]);
+  $queue = $stmt->fetch(PDO::FETCH_ASSOC);
+  if (!is_array($queue) || strtolower(trim((string)$queue["payment_method"])) !== "gcash") {
+    header("Location: " . servitech_url("/pages/customer/customer_dash.php"));
+    exit();
+  }
 }
 
 $details = service_payment_details($queue["details"] ?? null);
@@ -101,12 +128,16 @@ $detailRows = service_payment_rows($details);
 $total = $queue["price"] ?? ($details["estimated_total"] ?? ($queue["amount"] ?? null));
 $flashError = trim((string)($_SESSION["service_payment_flash_error"] ?? ""));
 unset($_SESSION["service_payment_flash_error"]);
+$incompleteRedirect = $isDraft && (string)($_GET["incomplete"] ?? "") === "1";
 $submitted = (string)($_GET["submitted"] ?? "") === "1"
   && is_array($_SESSION["service_payment_confirmation"] ?? null)
   && (int)($_SESSION["service_payment_confirmation"]["queue_id"] ?? 0) === $queueId;
 if ($submitted) unset($_SESSION["service_payment_confirmation"]);
 $paymentStatus = strtoupper(trim((string)($queue["payment_status"] ?? "PENDING")));
 $reviewed = in_array($paymentStatus, ["APPROVED", "PAID", "CANCELLED"], true);
+$paymentDetailsSubmitted = !$isDraft
+  && $paymentStatus === "PENDING"
+  && trim((string)($queue["reference_number"] ?? "")) !== "";
 $paymentCancelled = $paymentStatus === "CANCELLED";
 $gcashAccountName = servitech_gcash_account_name();
 $gcashAccountNumber = servitech_gcash_account_number();
@@ -129,7 +160,7 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
 <?php include __DIR__ . "/../../components/header.php"; ?>
 <section class="form-page form-page--confirmation">
   <div class="form-page-shell">
-  <?php if ($submitted || $reviewed): ?>
+  <?php if ($submitted || $reviewed || $paymentDetailsSubmitted): ?>
     <section class="form-card customer-payment-confirmation">
       <span class="customer-payment-confirmation__icon<?= $paymentCancelled ? ' is-cancelled' : '' ?>" aria-hidden="true"><?= $paymentCancelled ? '&times;' : '&#10003;' ?></span>
       <h2><?= $paymentStatus === "APPROVED" || $paymentStatus === "PAID" ? "GCash Payment Approved" : ($paymentStatus === "CANCELLED" ? "Payment Cancelled" : "GCash Payment Submitted") ?></h2>
@@ -141,15 +172,20 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
       <h1 class="page-title">Complete your GCash Payment</h1>
       <p class="page-subtitle">Review your order, send the exact amount through GCash, then submit your reference number for approval.</p>
     </div>
+    <?php if ($incompleteRedirect): ?><p class="customer-payment-error" role="alert">Complete or cancel this GCash payment before continuing. Your queue has not been joined yet.</p><?php endif; ?>
 
-    <form class="customer-payment-form" method="post" action="<?= service_payment_esc(servitech_url('/api/service_payment_create.php')) ?>">
+    <form id="servicePaymentForm" class="customer-payment-form" method="post" action="<?= service_payment_esc(servitech_url('/api/service_payment_create.php')) ?>">
       <input type="hidden" name="csrf_token" value="<?= service_payment_esc($csrfToken) ?>">
-      <input type="hidden" name="queue_id" value="<?= (int)$queueId ?>">
+      <?php if ($isDraft): ?>
+        <input type="hidden" name="draft_token" value="<?= service_payment_esc($draftToken) ?>">
+      <?php else: ?>
+        <input type="hidden" name="queue_id" value="<?= (int)$queueId ?>">
+      <?php endif; ?>
 
       <div class="form-card customer-payment-card">
         <div class="customer-payment-step">
           <p class="customer-payment-step__label">Payment</p>
-          <span class="customer-payment-status">Waiting for admin review</span>
+          <span class="customer-payment-status"><?= $isDraft ? "Payment details required" : "Waiting for admin review" ?></span>
         </div>
 
         <div class="customer-payment-total">
@@ -201,15 +237,19 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
                 <input class="form-input" id="referenceNumberInput" name="reference_number" type="text" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13" autocomplete="off" value="<?= service_payment_esc($queue["reference_number"] ?? "") ?>" placeholder="Enter the 13-digit transaction number" required>
                 <p class="customer-payment-help">The shop will use this reference to verify your payment.</p>
               </div>
-              <p class="customer-payment-reminder"><strong>Important:</strong> Your order remains pending until an admin approves the GCash payment.</p>
+              <p class="customer-payment-reminder"><strong>Important:</strong> <?= $isDraft ? "Your queue will only be created after you submit the required GCash details." : "Your order remains pending until an admin approves the GCash payment." ?></p>
             </div>
           </div>
         </div>
       </div>
 
       <div class="form-actions form-actions--compact">
-        <a class="btn-back" href="<?= service_payment_esc(servitech_url('/pages/customer/custo_service_status.php')) ?>">Back to Queue Status</a>
-        <button class="btn-next" type="submit">Submit Payment for Review</button>
+        <?php if ($isDraft): ?>
+          <button class="btn-back" type="submit" formaction="<?= service_payment_esc(servitech_url('/api/service_payment_cancel.php')) ?>" formnovalidate>Cancel Payment</button>
+        <?php else: ?>
+          <a class="btn-back" href="<?= service_payment_esc(servitech_url('/pages/customer/custo_service_status.php')) ?>">Back to Queue Status</a>
+        <?php endif; ?>
+        <button class="btn-next" type="submit"><?= $isDraft ? "Submit Payment & Join Queue" : "Submit Payment for Review" ?></button>
       </div>
     </form>
   <?php endif; ?>

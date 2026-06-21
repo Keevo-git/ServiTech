@@ -5,6 +5,7 @@ require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/upload_helpers.php";
+require_once __DIR__ . "/../config/join_queue_flow.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -43,6 +44,15 @@ $catalog_pricing_rule_id = isset($data["catalog_pricing_rule_id"]) ? max(0, (int
 $errors = [];
 if ($paper_size === "") {
   $errors[] = "Select a paper size.";
+}
+
+$pendingServicePayment = servitech_service_payment_draft();
+if (is_array($pendingServicePayment)) {
+  print_order_draft_json([
+    "ok" => false,
+    "error" => "Complete or cancel your pending GCash payment before starting another order.",
+    "redirect_url" => servitech_service_payment_draft_url($pendingServicePayment, true),
+  ], 409);
 }
 if ($quantity < 1) {
   $errors[] = "Quantity must be at least 1.";

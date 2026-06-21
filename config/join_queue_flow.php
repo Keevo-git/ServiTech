@@ -3,6 +3,58 @@ require_once __DIR__ . "/session_check.php";
 
 const SERVITECH_JOIN_QUEUE_COMPLETION_KEY = "join_queue_completion";
 const SERVITECH_JOIN_QUEUE_NEW_REQUEST_KEY = "join_queue_new_request_started";
+const SERVITECH_SERVICE_PAYMENT_DRAFT_KEY = "service_payment_draft";
+const SERVITECH_SERVICE_PAYMENT_DRAFT_TTL = 7200;
+
+if (!function_exists("servitech_service_payment_draft")) {
+    function servitech_service_payment_draft(): ?array
+    {
+        $draft = $_SESSION[SERVITECH_SERVICE_PAYMENT_DRAFT_KEY] ?? null;
+        if (!is_array($draft)) {
+            return null;
+        }
+
+        $createdAt = (int)($draft["created_at"] ?? 0);
+        $userId = (int)($draft["user_id"] ?? 0);
+        $token = trim((string)($draft["token"] ?? ""));
+        $method = strtolower(trim((string)($draft["payment_method"] ?? "")));
+        if (
+            $createdAt <= 0
+            || $createdAt < time() - SERVITECH_SERVICE_PAYMENT_DRAFT_TTL
+            || $userId <= 0
+            || $userId !== (int)($_SESSION["user_id"] ?? 0)
+            || !preg_match('/^[a-f0-9]{64}$/', $token)
+            || $method !== "gcash"
+        ) {
+            unset($_SESSION[SERVITECH_SERVICE_PAYMENT_DRAFT_KEY]);
+            return null;
+        }
+
+        return $draft;
+    }
+}
+
+if (!function_exists("servitech_service_payment_draft_url")) {
+    function servitech_service_payment_draft_url(?array $draft = null, bool $incomplete = false): string
+    {
+        $draft = $draft ?? servitech_service_payment_draft();
+        if (!is_array($draft)) {
+            return servitech_url("/pages/customer/customer_dash.php");
+        }
+        $query = ["draft_token" => (string)$draft["token"]];
+        if ($incomplete) $query["incomplete"] = "1";
+        return servitech_url("/pages/customer/custo_service_payment.php?" . http_build_query($query));
+    }
+}
+
+if (!function_exists("servitech_service_payment_draft_matches")) {
+    function servitech_service_payment_draft_matches(string $token, ?array $draft = null): bool
+    {
+        $draft = $draft ?? servitech_service_payment_draft();
+        $expected = is_array($draft) ? trim((string)($draft["token"] ?? "")) : "";
+        return $expected !== "" && $token !== "" && hash_equals($expected, trim($token));
+    }
+}
 
 if (!function_exists("servitech_mark_join_queue_completed")) {
     function servitech_mark_join_queue_completed(string $queueCode): void

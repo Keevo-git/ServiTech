@@ -80,6 +80,19 @@ $errors = [];
 if ($paper_size === "") {
   $errors[] = "Select a paper size.";
 }
+
+$pendingServicePayment = servitech_service_payment_draft();
+if (is_array($pendingServicePayment)) {
+  if (print_order_wants_json()) {
+    print_order_json_response([
+      "ok" => false,
+      "error" => "Complete or cancel your pending GCash payment before submitting another order.",
+      "redirect_url" => servitech_service_payment_draft_url($pendingServicePayment, true),
+    ], 409);
+  }
+  header("Location: " . servitech_service_payment_draft_url($pendingServicePayment, true));
+  exit();
+}
 if ($quantity < 1) {
   $errors[] = "Quantity must be at least 1.";
 }

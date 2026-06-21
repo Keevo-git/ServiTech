@@ -1382,7 +1382,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     joinBtn.disabled = true;
     joinBtn.setAttribute("aria-busy", "true");
-    setFeedback("Submitting your queue request...", "info");
+    setFeedback(payload.payment_method === "gcash" ? "Preparing your GCash payment..." : "Submitting your queue request...", "info");
 
     try {
       if (typeof window.servitechBeforeQueueSubmit === "function") {
@@ -1398,6 +1398,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await createQueue(payload);
       if (!result.ok) {
+        if (result.redirect_url) {
+          if (window.servitechJoinQueueLeaveGuard) window.servitechJoinQueueLeaveGuard.disarm();
+          if (typeof window.servitechToastForNavigation === "function") {
+            window.servitechToastForNavigation(result.error || "Complete your pending GCash payment first.", { tone: "warning" });
+          }
+          window.location.href = result.redirect_url;
+          return;
+        }
         await cleanupUploadedFiles(payload.uploaded_files);
         setFeedback("Queue not saved: " + (result.error || "Unknown error"), "error");
         return;
@@ -1408,7 +1416,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (result.payment_method === "gcash" && result.redirect_url) {
         if (typeof window.servitechToastForNavigation === "function") {
-          window.servitechToastForNavigation("Queue saved. Complete your GCash payment details.", { tone: "success" });
+          window.servitechToastForNavigation("Complete your GCash payment details to join the queue.", { tone: "info" });
         }
         window.location.href = result.redirect_url;
         return;
