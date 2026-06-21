@@ -145,12 +145,66 @@ function servitech_ensure_queue_status_history_schema(PDO $pdo): void {
   $verified = true;
 }
 
+function servitech_ensure_payment_review_schema(PDO $pdo): void {
+  static $verified = false;
+  if ($verified) return;
+
+  $stmt = $pdo->prepare("
+    SELECT pg_get_constraintdef(c.oid)
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'payments'
+      AND c.conname = 'payments_status_check'
+    LIMIT 1
+  ");
+  $stmt->execute();
+  $constraintDef = strtoupper((string)($stmt->fetchColumn() ?: ""));
+
+  if (str_contains($constraintDef, "APPROVED") && str_contains($constraintDef, "PAID")) {
+    $verified = true;
+    return;
+  }
+
+  try {
+    $pdo->exec("ALTER TABLE payments ALTER COLUMN reference_number TYPE TEXT");
+    $pdo->exec("
+      UPDATE payments
+      SET status = CASE
+        WHEN UPPER(TRIM(COALESCE(status, ''))) IN ('APPROVED', 'VERIFIED') THEN 'APPROVED'
+        WHEN UPPER(TRIM(COALESCE(status, ''))) IN ('PAID', 'COMPLETED', 'SUCCESS') THEN 'PAID'
+        WHEN UPPER(TRIM(COALESCE(status, ''))) IN ('CANCELLED', 'CANCELED', 'REJECTED') THEN 'CANCELLED'
+        ELSE 'PENDING'
+      END
+    ");
+    $pdo->exec("ALTER TABLE payments ALTER COLUMN status SET DEFAULT 'PENDING'");
+    $pdo->exec("ALTER TABLE payments ALTER COLUMN status SET NOT NULL");
+    $pdo->exec("ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_check");
+    $pdo->exec("
+      ALTER TABLE payments ADD CONSTRAINT payments_status_check
+        CHECK (UPPER(TRIM(status)) IN ('PENDING', 'APPROVED', 'PAID', 'CANCELLED')) NOT VALID
+    ");
+    $pdo->exec("
+      CREATE INDEX IF NOT EXISTS idx_payments_gcash_review
+        ON payments (status, queue_id)
+        WHERE LOWER(TRIM(payment_method)) = 'gcash'
+    ");
+  } catch (Throwable $exception) {
+    error_log("payment review schema ensure failed: " . $exception->getMessage());
+    throw new RuntimeException("Payment review database schema is not ready for approval updates.");
+  }
+
+  $verified = true;
+}
+
 function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {
   static $ensured = false;
   if ($ensured) return;
 
   servitech_ensure_queue_write_schema($pdo);
   servitech_ensure_queue_status_history_schema($pdo);
+  servitech_ensure_payment_review_schema($pdo);
   $rlsEnforced = function_exists("servitech_supabase_env_bool")
     && servitech_supabase_env_bool("SERVITECH_DB_ENFORCE_RLS", false);
   $isAdmin = function_exists("servitech_is_admin") && servitech_is_admin();
