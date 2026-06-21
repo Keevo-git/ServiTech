@@ -10,6 +10,7 @@ servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
 $repairServiceId = 0;
 $repairServiceName = "Repair Services";
+servitech_store_redirect_customer_unavailable_service($storeAvailability, $repairServiceName);
 $repairDeviceOptions = [];
 $repairRules = [];
 try {

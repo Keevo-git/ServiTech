@@ -59,6 +59,8 @@ $dashboardRestrictionMessages = [
 ];
 $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability["reason_code"]]
   ?? "Regular queue is unavailable.";
+$customerToast = $_SESSION["servitech_customer_toast"] ?? null;
+unset($_SESSION["servitech_customer_toast"]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -305,6 +307,17 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
     body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card:focus-visible {
       outline: 2px solid #4A0505;
       outline-offset: 4px;
+    }
+
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card[aria-disabled="true"],
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card[aria-disabled="true"]:hover,
+    body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card[aria-disabled="true"]:focus-visible {
+      border-color: #f3dcc2;
+      box-shadow: none;
+      cursor: not-allowed;
+      filter: grayscale(0.55);
+      opacity: 0.62;
+      transform: none;
     }
 
     body.customer-layout.customer-page--dashboard .dashboard-service-options .queue-service-card__media {
@@ -1105,21 +1118,39 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
         <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note">Document Printing is available with GCash.</span><?php endif; ?>
       </a>
 
+      <?php if ($storeAvailability["regular_queue_allowed"]): ?>
       <a href="/pages/customer/custo1_repair_option.php?new_queue=1" class="queue-service-card">
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Repair</span>
-        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
       </a>
+      <?php else: ?>
+      <div class="queue-service-card" aria-disabled="true" title="<?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?>">
+        <span class="queue-service-card__media">
+          <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
+        </span>
+        <span class="queue-service-card__label">Repair</span>
+        <span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span>
+      </div>
+      <?php endif; ?>
 
+      <?php if ($storeAvailability["regular_queue_allowed"]): ?>
       <a href="/pages/customer/custo1_installation_option.php?new_queue=1" class="queue-service-card">
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Installation</span>
-        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span><?php endif; ?>
       </a>
+      <?php else: ?>
+      <div class="queue-service-card" aria-disabled="true" title="<?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?>">
+        <span class="queue-service-card__media">
+          <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
+        </span>
+        <span class="queue-service-card__label">Installation</span>
+        <span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span>
+      </div>
+      <?php endif; ?>
     </div>
   </div>
 </section>
@@ -1163,6 +1194,18 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 </main>
 
 <?php include __DIR__ . "/../../components/footer.php"; ?>
+
+<?php if (is_array($customerToast) && trim((string)($customerToast["message"] ?? "")) !== ""): ?>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (typeof window.servitechToast === "function") {
+      window.servitechToast(<?= json_encode((string)$customerToast["message"]) ?>, {
+        tone: <?= json_encode((string)($customerToast["tone"] ?? "info")) ?>
+      });
+    }
+  });
+</script>
+<?php endif; ?>
 
 <script>
   const customerNowEl = document.getElementById("customerNow");

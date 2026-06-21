@@ -10,6 +10,7 @@ servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
 $installationServiceId = 0;
 $installationServiceName = "Installation Services";
+servitech_store_redirect_customer_unavailable_service($storeAvailability, $installationServiceName);
 $installationRules = [];
 $installationDeviceOptions = [];
 $installationDeviceMode = false;

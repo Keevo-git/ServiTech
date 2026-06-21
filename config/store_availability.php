@@ -277,6 +277,36 @@ function servitech_store_document_printing_requires_gcash(PDO $pdo): bool
     return !empty($availability["document_printing_requires_gcash"]);
 }
 
+function servitech_store_regular_queue_unavailable_message(array $availability, string $serviceLabel = "This service"): string
+{
+    $label = trim($serviceLabel) !== "" ? trim($serviceLabel) : "This service";
+    $message = trim((string)($availability["customer_message"] ?? $availability["message"] ?? ""));
+    if ($message === "") {
+        $message = "Regular queue requests are unavailable right now. Document Printing is still available with GCash payment.";
+    }
+
+    return $label . " is unavailable while the store is closed. " . $message;
+}
+
+function servitech_store_redirect_customer_unavailable_service(array $availability, string $serviceLabel, string $redirectPath = "/pages/customer/customer_dash.php"): void
+{
+    if (!empty($availability["regular_queue_allowed"])) {
+        return;
+    }
+
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+
+    $_SESSION["servitech_customer_toast"] = [
+        "message" => servitech_store_regular_queue_unavailable_message($availability, $serviceLabel),
+        "tone" => "warning",
+    ];
+
+    header("Location: " . servitech_url($redirectPath), true, 302);
+    exit;
+}
+
 function servitech_store_assert_queue_available(PDO $pdo, string $category, string $serviceLabel): void
 {
     if (servitech_store_is_document_printing($category, $serviceLabel)) {

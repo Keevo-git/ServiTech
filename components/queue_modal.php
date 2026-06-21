@@ -34,5 +34,5 @@ if (!isset($servitechJoinQueueNewRequestStarted) && function_exists("servitech_c
 <?php if (!empty($servitechJoinQueueNewRequestStarted)): ?>
 <script>window.SERVITECH_JOIN_QUEUE_NEW_REQUEST = true;</script>
 <?php endif; ?>
-<script src="/assets/js/queue_modal.js?v=20260611-post-success"></script>
+<script src="/assets/js/queue_modal.js?v=20260621-actions"></script>
 <script src="/assets/js/join_queue_post_success.js?v=20260619-new-request"></script>

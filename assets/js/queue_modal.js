@@ -127,6 +127,39 @@
     element.hidden = text === "";
   }
 
+  function basePath() {
+    if (typeof window.SERVITECH_BASE_PATH === "string" && window.SERVITECH_BASE_PATH.trim() !== "") {
+      return window.SERVITECH_BASE_PATH.replace(/\/+$/, "");
+    }
+    return window.location.pathname.indexOf("/ServiTech/") === 0 ? "/ServiTech" : "";
+  }
+
+  function customerUrl(path) {
+    var raw = String(path || "").trim();
+    if (raw === "") raw = "/pages/customer/customer_dash.php";
+
+    try {
+      var parsed = new URL(raw, window.location.origin);
+      if (parsed.origin !== window.location.origin) {
+        return basePath() + "/pages/customer/customer_dash.php";
+      }
+      if (raw.charAt(0) === "/" && basePath() && parsed.pathname.indexOf(basePath() + "/") !== 0) {
+        return basePath() + raw;
+      }
+      return parsed.pathname + parsed.search + parsed.hash;
+    } catch (error) {
+      return basePath() + "/pages/customer/customer_dash.php";
+    }
+  }
+
+  function queueHomeUrl() {
+    return customerUrl((document.body && document.body.dataset.queueHomeUrl) || "/pages/customer/customer_dash.php");
+  }
+
+  function queueStatusUrl() {
+    return customerUrl((document.body && document.body.dataset.queueStatusUrl) || "/pages/customer/custo_service_status.php");
+  }
+
   function openQueueSuccessModal(queueCode, options) {
     var overlay = document.getElementById("queueModal");
     var dialog = overlay && overlay.querySelector(".queue-success-modal");
@@ -196,12 +229,28 @@
   window.servitechHideModalLayer = hideModalLayer;
   window.openQueueSuccessModal = openQueueSuccessModal;
   window.closeQueueSuccessModal = closeQueueSuccessModal;
+  window.servitechQueueSuccessModalUrls = {
+    home: queueHomeUrl,
+    status: queueStatusUrl
+  };
 
   document.addEventListener("keydown", trapQueueModalFocus);
   document.addEventListener("DOMContentLoaded", function () {
     var overlay = document.getElementById("queueModal");
     var closeButton = document.getElementById("queueModalCloseBtn");
+    var goHomeButton = document.getElementById("goHomeBtn");
+    var viewQueueButton = document.getElementById("viewQueueBtn");
     if (closeButton) closeButton.addEventListener("click", closeQueueSuccessModal);
+    if (goHomeButton) {
+      goHomeButton.addEventListener("click", function () {
+        window.location.href = queueHomeUrl();
+      });
+    }
+    if (viewQueueButton) {
+      viewQueueButton.addEventListener("click", function () {
+        window.location.href = queueStatusUrl();
+      });
+    }
     if (overlay) {
       if (overlay.parentElement !== document.body) {
         document.body.appendChild(overlay);
