@@ -9,12 +9,14 @@ servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
 $repairServiceId = 0;
+$repairServiceName = "Repair Services";
 $repairDeviceOptions = [];
 $repairRules = [];
 try {
   $repairService = servitech_catalog_fetch_service_by_kind($pdo, "repair", true);
   if (is_array($repairService)) {
     $repairServiceId = (int)$repairService["id"];
+    $repairServiceName = trim((string)($repairService["name"] ?? "")) ?: $repairServiceName;
     $catalog = servitech_catalog_fetch($pdo, $repairServiceId, true);
     foreach ($catalog["groups"] as $group) {
       if (($group["group_key"] ?? "") === "device_type") $repairDeviceOptions = $group["values"] ?? [];
@@ -47,7 +49,10 @@ try {
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-step1-equal-actions">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
-<body class="customer-layout customer-page--forms" data-service="repair">
+<body class="customer-layout customer-page--forms"
+      data-service="repair"
+      data-service-label="<?= htmlspecialchars($repairServiceName, ENT_QUOTES, "UTF-8") ?>"
+      data-catalog-service-id="<?= (int)$repairServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -59,51 +64,51 @@ try {
     </div>
 
     <div class="form-card">
-      <h3 class="step-title">2. CHOOSE REPAIR SERVICE</h3>
+      <h3 class="step-title">1. CHOOSE DEVICE</h3>
 
       <div class="form-grid">
         <div>
-          <label for="repairServiceSelect">Select Service<span class="required">*</span></label>
-          <select class="form-select" id="repairServiceSelect">
-            <option value="" selected disabled>Select a device first</option>
-          </select>
-        </div>
-
-        <div>
-          <div class="service-form-price-card" aria-live="polite">
-            <span class="service-form-price-card__label">Selected Service Price Range</span>
-            <strong id="repairPriceRange">Choose a repair service</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-card">
-      <h3 class="step-title">3. ENTER SERVICE DETAILS</h3>
-
-      <div class="form-grid">
-        <div>
-          <label for="deviceTypeSelect">Select Device Type<span class="required">*</span></label>
+          <label for="deviceTypeSelect">Device<span class="required">*</span></label>
           <select class="form-select" id="deviceTypeSelect">
-            <option value="" selected disabled>Select Device</option>
+            <option value="" selected disabled>Choose device</option>
             <?php foreach ($repairDeviceOptions as $option): ?>
-              <option value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+              <option value="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>"
                       data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
                 <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
               </option>
             <?php endforeach; ?>
           </select>
-
-          <label for="repairNotes">Additional Information/Other Request:</label>
-          <textarea class="form-textarea" id="repairNotes"></textarea>
-        </div>
-
-        <div>
-          <p class="form-note">Provide as much detail as possible to help our technicians.</p>
         </div>
       </div>
     </div>
 
+    <div class="form-card" id="repairServiceStep" hidden>
+      <h3 class="step-title">2. CHOOSE SERVICE TYPE</h3>
+
+      <div class="form-grid">
+        <div>
+          <label for="repairServiceSelect">Service Type<span class="required">*</span></label>
+          <select class="form-select" id="repairServiceSelect" disabled>
+            <option value="" selected disabled>Choose service type</option>
+          </select>
+          <p class="form-note" id="repairAvailabilityMessage" role="status" hidden>No repair services are available for this device. Please contact the shop or choose Others if available.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card" id="repairPriceStep" hidden>
+      <h3 class="step-title">3. PRICE</h3>
+      <div class="service-form-price-card" aria-live="polite">
+        <span class="service-form-price-card__label">Official Service Price</span>
+        <strong id="repairPriceRange">Choose a repair service</strong>
+      </div>
+    </div>
+
+    <div class="form-card" id="repairIssueCard" hidden>
+      <label for="repairNotes">Describe the issue/request<span class="required">*</span></label>
+      <textarea class="form-textarea" id="repairNotes"></textarea>
+      <p class="form-note">A description is required when you select Others.</p>
+    </div>
 
     <div class="customer-form-actions customer-step-actions">
       <a href="/pages/customer/customer_dash.php" class="btn-back">Back</a>
@@ -128,7 +133,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechCatalogServiceId = <?= (int)$repairServiceId ?>;
   window.servitechCatalogRules = <?= json_encode($repairRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260621-dynamic-device-services"></script>
+<script src="/assets/js/main.js?v=20260621-repair-queue-fix"></script>
 
 </body>
 </html>

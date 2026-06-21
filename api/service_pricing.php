@@ -215,6 +215,22 @@ function servitech_pricing_is_other_request(string $label): bool {
   return (bool)preg_match('/\b(other|others)\b/i', $label);
 }
 
+function servitech_pricing_validate_repair_selection(array $rule, array $details): void {
+  $submittedDeviceKey = trim((string)($details["device_type_key"] ?? ""));
+  $submittedRepairKey = trim((string)($details["repair_type_key"] ?? ""));
+  $ruleDeviceKey = trim((string)($rule["option_value_keys"]["device_type"] ?? ""));
+  $ruleRepairKey = trim((string)($rule["option_value_keys"]["repair_type"] ?? ""));
+
+  if ($submittedDeviceKey === "" || $submittedRepairKey === "") {
+    throw new DomainException("Choose a valid device and repair service type.");
+  }
+  if ($ruleDeviceKey === "" || $ruleRepairKey === ""
+      || !hash_equals($ruleDeviceKey, $submittedDeviceKey)
+      || !hash_equals($ruleRepairKey, $submittedRepairKey)) {
+    throw new DomainException("The selected repair service is not available for that device.");
+  }
+}
+
 function servitech_pricing_apply_snapshot(array $details, array $service, string $optionId, string $optionName, ?float $price, string $status, string $optionDetails = ""): array {
   $serviceId = (int)($service["id"] ?? 0);
   $serviceName = (string)($service["name"] ?? "");
@@ -282,6 +298,10 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
     $installationLabel = servitech_catalog_option_label($rule, "installation_type");
     $laminationLabel = servitech_catalog_option_label($rule, "lamination_type");
 
+    if ($kind === "repair") {
+      servitech_pricing_validate_repair_selection($rule, $details);
+    }
+
     if ($paperLabel !== "") $details["paper_size"] = $paperLabel;
     if ($colorLabel !== "") $details["color_option"] = $colorLabel;
     if ($packageLabel !== "") $details["package_label"] = trim($packageLabel . " - " . (string)($rule["description"] ?? ""), " -");
@@ -339,6 +359,12 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
       if ($notes === "") {
         throw new DomainException("Please describe your request when selecting Others.");
       }
+      if ($kind === "repair") $details["customer_issue_description"] = $notes;
+    }
+
+    if ($kind === "repair") {
+      $details["device_snapshot"] = $deviceLabel;
+      $details["service_type_snapshot"] = $repairLabel;
     }
 
     // Save the configured service name as part of the immutable order snapshot.

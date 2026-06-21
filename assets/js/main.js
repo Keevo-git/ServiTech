@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initServiceFormPriceCard("installationTypeSelect", "installationPriceRange", "Choose an installation service");
 });
 
-function servitechCatalogRules() {
+function getServitechCatalogRules() {
   return Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : [];
 }
 
@@ -108,7 +108,7 @@ function checkedValueKey(name) {
 function findCatalogRuleByKeys(keys) {
   const entries = Object.entries(keys).filter(([, value]) => String(value || "") !== "");
   if (!entries.length) return null;
-  return servitechCatalogRules().find((rule) => {
+  return getServitechCatalogRules().find((rule) => {
     const ruleKeys = rule?.option_value_keys || {};
     return Number(rule?.active) !== 0 && entries.every(([key, value]) => String(ruleKeys[key] || "") === String(value));
   }) || null;
@@ -814,8 +814,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const paperSizeSelect = document.getElementById("paperSizeSelect");
   const lamTypeSelect = document.getElementById("lamTypeSelect");
   const packageSelect = document.getElementById("packageSelect");
-  const repairServiceSelect = document.getElementById("repairServiceSelect");
-  const deviceTypeSelect = document.getElementById("deviceTypeSelect");
   const paymentMethodSelect = document.getElementById("paymentMethodSelect");
   const colorRadios = document.querySelectorAll('input[name="color"]');
   const rushAddonInputs = Array.from(document.querySelectorAll('input[name="rushAddon"]'));
@@ -833,31 +831,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const isXerox = serviceMode === "xerox";
   const isScanning = serviceMode === "scanning";
 
-
-  function priceLabelForRule(rule) {
-    if (!rule || rule.price_type === "assessment") return "For assessment";
-    const price = Number(rule.price);
-    return Number.isFinite(price) ? formatPesoPrice(price) : "For assessment";
-  }
-
-  function populateRepairTypeOptions() {
-    if (!deviceTypeSelect || !repairServiceSelect) return;
-    const deviceKey = selectedOptionValueKey(deviceTypeSelect);
-    repairServiceSelect.innerHTML = '<option value="" selected disabled>Select Repair Service</option>';
-    if (!deviceKey) return;
-    servitechCatalogRules()
-      .filter((rule) => rule?.option_value_keys?.device_type === deviceKey && Number(rule.active) !== 0)
-      .forEach((rule) => {
-        const option = document.createElement("option");
-        const label = rule.option_labels?.repair_type || rule.label || "Repair Service";
-        option.value = label;
-        option.textContent = `${label} - ${priceLabelForRule(rule)}`;
-        option.dataset.ruleId = String(rule.id || 0);
-        option.dataset.catalogId = String(window.servitechCatalogServiceId || document.body?.dataset?.catalogServiceId || 0);
-        option.dataset.priceRange = priceLabelForRule(rule);
-        repairServiceSelect.appendChild(option);
-      });
-  }
 
   function getSelectedColor() {
     const checked = document.querySelector('input[name="color"]:checked');
@@ -951,16 +924,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (lamTypeSelect) lamTypeSelect.addEventListener("change", updateSummary);
   if (packageSelect) packageSelect.addEventListener("change", updateSummary);
   rushAddonInputs.forEach((input) => input.addEventListener("change", updateSummary));
-  if (deviceTypeSelect) deviceTypeSelect.addEventListener("change", () => {
-    populateRepairTypeOptions();
-    initServiceFormPriceCard("repairServiceSelect", "repairPriceRange", "Choose a repair service");
-  });
-  if (repairServiceSelect) repairServiceSelect.addEventListener("change", updateSummary);
   if (paymentMethodSelect) paymentMethodSelect.addEventListener("change", updateSummary);
   qtyInput.addEventListener("input", updateSummary);
   colorRadios.forEach((r) => r.addEventListener("change", updateSummary));
 
-  populateRepairTypeOptions();
   updateSummary();
 });
 
@@ -968,33 +935,67 @@ document.addEventListener("DOMContentLoaded", () => {
   const deviceTypeSelect = document.getElementById("deviceTypeSelect");
   const repairServiceSelect = document.getElementById("repairServiceSelect");
   const repairPriceRange = document.getElementById("repairPriceRange");
+  const repairServiceStep = document.getElementById("repairServiceStep");
+  const repairPriceStep = document.getElementById("repairPriceStep");
+  const repairAvailabilityMessage = document.getElementById("repairAvailabilityMessage");
+  const repairIssueCard = document.getElementById("repairIssueCard");
+  const repairNotes = document.getElementById("repairNotes");
   if (!deviceTypeSelect || !repairServiceSelect) return;
+
+  function resetIssueDescription() {
+    if (repairIssueCard) repairIssueCard.hidden = true;
+    if (repairNotes) {
+      repairNotes.required = false;
+      repairNotes.removeAttribute("aria-required");
+    }
+  }
 
   function populateRepairTypeOptions() {
     const deviceKey = selectedOptionValueKey(deviceTypeSelect);
-    repairServiceSelect.innerHTML = '<option value="" selected disabled>Select Repair Service</option>';
+    repairServiceSelect.innerHTML = '<option value="" selected disabled>Choose service type</option>';
+    repairServiceSelect.disabled = true;
+    if (repairServiceStep) repairServiceStep.hidden = !deviceKey;
+    if (repairPriceStep) repairPriceStep.hidden = true;
+    if (repairAvailabilityMessage) repairAvailabilityMessage.hidden = true;
     if (repairPriceRange) repairPriceRange.textContent = "Choose a repair service";
+    resetIssueDescription();
     if (!deviceKey) return;
 
-    servitechCatalogRules()
-      .filter((rule) => rule?.option_value_keys?.device_type === deviceKey && Number(rule.active) !== 0)
-      .forEach((rule) => {
+    const matchingRules = getServitechCatalogRules()
+      .filter((rule) => rule?.option_value_keys?.device_type === deviceKey && Number(rule.active) !== 0);
+
+    if (!matchingRules.length) {
+      if (repairAvailabilityMessage) repairAvailabilityMessage.hidden = false;
+      return;
+    }
+
+    matchingRules.forEach((rule) => {
         const option = document.createElement("option");
         const label = rule.option_labels?.repair_type || rule.label || "Repair Service";
         const priceLabel = formatCatalogRuleDisplayPrice(rule);
-        option.value = label;
-        option.textContent = `${label} - ${priceLabel}`;
+        option.value = rule.option_value_keys?.repair_type || String(rule.id || "");
+        option.textContent = label;
         option.dataset.ruleId = String(rule.id || 0);
         option.dataset.catalogId = String(window.servitechCatalogServiceId || document.body?.dataset?.catalogServiceId || 0);
         option.dataset.priceRange = priceLabel;
+        option.dataset.serviceLabel = label;
         repairServiceSelect.appendChild(option);
       });
+    repairServiceSelect.disabled = false;
   }
 
   deviceTypeSelect.addEventListener("change", populateRepairTypeOptions);
   repairServiceSelect.addEventListener("change", () => {
     const option = repairServiceSelect.options[repairServiceSelect.selectedIndex];
     if (repairPriceRange) repairPriceRange.textContent = option?.dataset?.priceRange || "For assessment";
+    if (repairPriceStep) repairPriceStep.hidden = !option || option.disabled || !repairServiceSelect.value;
+    const isOthers = /\bothers?\b/i.test(option?.dataset?.serviceLabel || option?.textContent || "");
+    if (repairIssueCard) repairIssueCard.hidden = !isOthers;
+    if (repairNotes) {
+      repairNotes.required = isOthers;
+      if (isOthers) repairNotes.setAttribute("aria-required", "true");
+      else repairNotes.removeAttribute("aria-required");
+    }
   });
   populateRepairTypeOptions();
 });
@@ -1139,7 +1140,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ? (refs.packageSelect.options[refs.packageSelect.selectedIndex]?.textContent || null)
         : null,
       lamination_type: refs.lamTypeSelect ? refs.lamTypeSelect.value : null,
-      device_type: refs.deviceTypeSelect ? refs.deviceTypeSelect.value : null,
+      device_type: refs.deviceTypeSelect
+        ? (refs.deviceTypeSelect.selectedOptions[0]?.textContent?.trim() || null)
+        : null,
+      device_type_key: refs.deviceTypeSelect ? selectedOptionValueKey(refs.deviceTypeSelect) : null,
       notes: refs.notesEl ? refs.notesEl.value : null,
       file_name: fileName,
       file_names: fileNames.length ? fileNames : null,
@@ -1168,6 +1172,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const selectedOption = refs.repairServiceSelect.options[refs.repairServiceSelect.selectedIndex];
       payload.catalog_service_id = Number(selectedOption?.dataset?.catalogId || 0) || payload.catalog_service_id;
       payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
+      payload.repair_type_key = refs.repairServiceSelect.value || null;
     }
 
     if (refs.installationTypeSelect) {
