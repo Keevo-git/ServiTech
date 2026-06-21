@@ -116,7 +116,7 @@ try {
       margin: 0.5rem 0 1rem;
     }
 
-    .rush-addon-option {
+    body.customer-layout .form-card label.rush-addon-option {
       align-items: start;
       border: 1px solid rgba(95, 14, 15, 0.14);
       border-radius: 12px;
@@ -131,28 +131,31 @@ try {
       width: 100%;
     }
 
-    .rush-addon-option input[type="checkbox"] {
+    body.customer-layout .form-card label.rush-addon-option > input[type="checkbox"] {
       align-self: start;
+      grid-column: 1;
       height: 1rem;
       margin: 0.18rem 0 0;
       width: 1rem;
     }
 
-    .rush-addon-copy {
+    body.customer-layout .form-card label.rush-addon-option > .rush-addon-copy {
       display: block;
+      grid-column: 2;
       min-width: 0;
     }
 
-    .rush-addon-copy strong {
+    body.customer-layout .form-card label.rush-addon-option .rush-addon-copy strong {
       display: block;
       overflow-wrap: anywhere;
     }
 
-    .rush-addon-price {
+    body.customer-layout .form-card label.rush-addon-option > .rush-addon-price {
       align-self: end;
       font-size: 0.95rem;
       font-style: italic;
       font-weight: 700;
+      grid-column: 3;
       justify-self: end;
       margin-left: 0.4rem;
       min-width: 5.2rem;
@@ -161,12 +164,12 @@ try {
     }
 
     @media (max-width: 420px) {
-      .rush-addon-option {
+      body.customer-layout .form-card label.rush-addon-option {
         column-gap: 0.6rem;
         padding: 0.7rem 0.75rem;
       }
 
-      .rush-addon-price {
+      body.customer-layout .form-card label.rush-addon-option > .rush-addon-price {
         margin-left: 0.15rem;
         min-width: 4.75rem;
       }
