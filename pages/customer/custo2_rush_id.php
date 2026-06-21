@@ -117,13 +117,18 @@ try {
     }
 
     .rush-addon-option {
+      align-items: start;
       border: 1px solid rgba(95, 14, 15, 0.14);
       border-radius: 12px;
+      box-sizing: border-box;
       cursor: pointer;
       display: grid;
       grid-template-columns: max-content minmax(0, 1fr) max-content;
       column-gap: 0.7rem;
+      line-height: 1.35;
+      margin: 0;
       padding: 0.75rem 0.85rem;
+      width: 100%;
     }
 
     .rush-addon-option input[type="checkbox"] {
@@ -135,7 +140,6 @@ try {
 
     .rush-addon-copy {
       display: block;
-      line-height: 1.35;
       min-width: 0;
     }
 
@@ -150,8 +154,8 @@ try {
       font-style: italic;
       font-weight: 700;
       justify-self: end;
-      line-height: 1.35;
       margin-left: 0.4rem;
+      min-width: 5.2rem;
       text-align: right;
       white-space: nowrap;
     }
@@ -164,6 +168,7 @@ try {
 
       .rush-addon-price {
         margin-left: 0.15rem;
+        min-width: 4.75rem;
       }
     }
 
