@@ -2958,6 +2958,22 @@ select.form-select::-ms-expand {
   line-height: 1.35;
 }
 
+.payment-assessment-note {
+  background: #fffaf4;
+  border: 1px solid rgba(95, 14, 15, 0.12);
+}
+
+.payment-assessment-note .step-title {
+  margin-bottom: 10px;
+}
+
+.payment-assessment-note .form-note {
+  color: #5f0e0f;
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
+}
+
 .radio-group {
   display: flex;
   gap: 20px;

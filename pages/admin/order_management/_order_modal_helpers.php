@@ -179,6 +179,8 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
     if ($categoryLabel === "Print" && in_array(strtolower(trim($serviceLabel)), ["online", "walk-in", "walk in", "walkin"], true)) {
         $serviceLabel = "Document Print";
     }
+    $paymentMethodLabel = om_payment_method_label($paymentMethod);
+    $paymentAssessment = $paymentMethodLabel === "" && in_array($categoryLabel, ["Repair", "Installation"], true);
 
     return [
         "id" => (int)($row["id"] ?? 0),
@@ -194,12 +196,14 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
         "completed" => admin_queue_has_timestamp($row["completed_at"] ?? null)
             ? trim(admin_queue_completed_date($row["completed_at"]) . " " . admin_queue_completed_time($row["completed_at"]))
             : "-",
-        "paymentMethod" => om_payment_method_label($paymentMethod),
+        "paymentMethod" => $paymentMethodLabel,
+        "paymentAssessment" => $paymentAssessment,
+        "paymentSummary" => $paymentAssessment ? "Payment to be assessed after review" : om_payment_summary($row),
         "paymentReference" => trim((string)$referenceNumber),
         "price" => $payment["price"],
         "paidAmount" => $payment["paid_amount"],
         "paidPending" => $payment["paid_pending"],
-        "paymentStatus" => strtoupper(trim((string)($row["payment_status"] ?? ""))),
+        "paymentStatus" => $paymentMethodLabel !== "" ? strtoupper(trim((string)($row["payment_status"] ?? ""))) : "",
         "customerEditRequired" => !empty($row["customer_edit_required"]),
         "sendBackMessage" => trim((string)($row["send_back_message"] ?? "")),
         "files" => admin_queue_file_items($row["details"] ?? null),

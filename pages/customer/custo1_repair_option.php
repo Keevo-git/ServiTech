@@ -45,8 +45,8 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Repair Option</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260621-assessment-payment">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-assessment-payment">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms"
@@ -98,9 +98,9 @@ try {
     </div>
 
     <div class="form-card" id="repairPriceStep" hidden>
-      <h3 class="step-title">3. PRICE</h3>
+      <h3 class="step-title">3. PRICE ASSESSMENT</h3>
       <div class="service-form-price-card" aria-live="polite">
-        <span class="service-form-price-card__label">Official Service Price</span>
+        <span class="service-form-price-card__label">Estimated Service Price</span>
         <strong id="repairPriceRange">Choose a repair service</strong>
       </div>
     </div>
@@ -111,15 +111,9 @@ try {
       <p class="form-note">A description is required when you select Others.</p>
     </div>
 
-    <div class="form-card">
-      <h3 class="step-title">4. PAYMENT</h3>
-      <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
-      <select class="form-select" id="paymentMethodSelect">
-        <option value="" selected disabled>Select payment method</option>
-        <option value="cash">Cash at the shop</option>
-        <option value="gcash">GCash</option>
-      </select>
-      <p class="form-note">GCash is available for fixed-price services. Choose Cash when the final price requires assessment.</p>
+    <div class="form-card payment-assessment-note" aria-live="polite">
+      <h3 class="step-title">PAYMENT TO BE ASSESSED</h3>
+      <p class="form-note">Payment is not required yet. The admin will assess your request first because the final price may vary.</p>
     </div>
 
     <div class="customer-form-actions customer-step-actions">
@@ -146,7 +140,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechCatalogRules = <?= json_encode($repairRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
-<script src="/assets/js/main.js?v=20260621-option-ids"></script>
+<script src="/assets/js/main.js?v=20260621-assessment-payment"></script>
 
 </body>
 </html>

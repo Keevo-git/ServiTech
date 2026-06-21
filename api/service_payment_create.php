@@ -92,6 +92,9 @@ if ($draftToken !== "") {
   $details = is_array($draft["details"] ?? null) ? $draft["details"] : [];
   $serviceLabel = trim((string)($details["service_label"] ?? ($draft["service_label"] ?? "Service")));
   $serviceKind = trim((string)($draft["service_kind"] ?? ""));
+  if (in_array($serviceKind, ["repair", "installation"], true) || in_array($category, ["repair", "installation"], true)) {
+    service_payment_fail("Payment is not required yet for this request. The admin will assess it first.", servitech_url("/pages/customer/customer_dash.php"));
+  }
   if ($category === "" || $prefix === "" || $serviceLabel === "" || empty($details)) {
     service_payment_fail("Your payment draft is incomplete. Please start the queue request again.", servitech_url("/pages/customer/customer_dash.php"));
   }

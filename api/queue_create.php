@@ -52,22 +52,6 @@ if (!in_array($payment_method, ["cash", "gcash"], true)) {
   $payment_method = "";
 }
 
-$existingPaymentDraft = servitech_service_payment_draft();
-if (is_array($existingPaymentDraft)) {
-  http_response_code(409);
-  echo json_encode([
-    "ok" => false,
-    "error" => "Complete or cancel your pending GCash payment before starting another queue request.",
-    "redirect_url" => servitech_service_payment_draft_url($existingPaymentDraft, true),
-  ]);
-  exit();
-}
-
-if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d{13}$/', $reference_number)) {
-  echo json_encode(["ok" => false, "error" => "Please enter a valid 13-digit GCash reference number."]);
-  exit();
-}
-
 $prefix = servitech_get_queue_prefix_for_category($category);
 
 // Document Print always uses the unified print queue. Keep the stored label compatible with existing records.
@@ -87,13 +71,35 @@ $isDocumentPrinting = $category === "printing"
 $serviceKind = servitech_pricing_service_kind($category, $service_label);
 $closedStoreDocumentPrinting = $serviceKind === "document_printing"
   && servitech_store_document_printing_requires_gcash($pdo);
+$paymentNotRequired = in_array($serviceKind, ["repair", "installation"], true);
+if ($paymentNotRequired) {
+  $payment_method = "";
+  $reference_number = "";
+}
 if ($closedStoreDocumentPrinting) {
   $payment_method = "gcash";
   $reference_number = "";
 }
+$existingPaymentDraft = servitech_service_payment_draft();
+if (!$paymentNotRequired && is_array($existingPaymentDraft)) {
+  http_response_code(409);
+  echo json_encode([
+    "ok" => false,
+    "error" => "Complete or cancel your pending GCash payment before starting another queue request.",
+    "redirect_url" => servitech_service_payment_draft_url($existingPaymentDraft, true),
+  ]);
+  exit();
+}
+
+if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d{13}$/', $reference_number)) {
+  echo json_encode(["ok" => false, "error" => "Please enter a valid 13-digit GCash reference number."]);
+  exit();
+}
+
 $supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
 $catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning", "repair", "installation"];
-if (in_array($serviceKind, $catalogManagedKinds, true) && $payment_method === "") {
+$paymentRequiredKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning"];
+if (in_array($serviceKind, $paymentRequiredKinds, true) && $payment_method === "") {
   echo json_encode(["ok" => false, "error" => "Select a payment method."]);
   exit();
 }
@@ -138,6 +144,11 @@ $details = [
     : [],
   "service_option_key" => isset($data["service_option_key"]) ? trim((string)$data["service_option_key"]) : null,
 ];
+
+if ($paymentNotRequired) {
+  unset($details["payment_method"], $details["reference_number"]);
+  $details["payment_assessment_status"] = "to_be_assessed";
+}
 
 foreach ($details as $key => $value) {
   if ($value === null) {
@@ -249,13 +260,20 @@ try {
     ]);
   }
 
+  $assessmentPaymentLabel = trim((string)($details["service_label"] ?? $service_label));
   $paymentLabel = $payment_method === "cash" ? "Cash payment selected" : "Queue submitted";
+  $customerMessage = $paymentNotRequired
+    ? "Your {$assessmentPaymentLabel} request has been submitted. The admin will review it and provide further details."
+    : "Queue {$queue_code}: {$paymentLabel}.";
+  $adminMessage = $paymentNotRequired
+    ? "Queue {$queue_code}: New {$assessmentPaymentLabel} request submitted. Review the request and update its status."
+    : "Queue {$queue_code}: New request submitted for {$service_label}.";
   servitech_add_notification(
     $pdo,
     $user_id,
     $category,
     $queue_id,
-    "Queue {$queue_code}: {$paymentLabel}.",
+    $customerMessage,
     "customer_new_queue:{$queue_id}",
     true
   );
@@ -263,7 +281,7 @@ try {
     $pdo,
     "admin_new_order",
     $queue_id,
-    "Queue {$queue_code}: New request submitted for {$service_label}.",
+    $adminMessage,
     "admin_new_order:{$queue_id}",
     true
   );

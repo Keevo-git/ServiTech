@@ -50,8 +50,8 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ServiTech: Installation Services</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260621-assessment-payment">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-assessment-payment">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms" data-service="installation"
@@ -68,7 +68,7 @@ try {
     </div>
 
     <div class="form-card">
-      <h3 class="step-title">2. CHOOSE INSTALLATION SERVICE</h3>
+      <h3 class="step-title">1. CHOOSE INSTALLATION SERVICE</h3>
 
       <div class="form-grid">
         <div>
@@ -119,7 +119,7 @@ try {
     </div>
 
     <div class="form-card">
-      <h3 class="step-title">3. ENTER SERVICE DETAILS</h3>
+      <h3 class="step-title">2. ENTER SERVICE DETAILS</h3>
 
       <div class="form-grid">
         <div>
@@ -133,15 +133,9 @@ try {
       </div>
     </div>
 
-    <div class="form-card">
-      <h3 class="step-title">4. PAYMENT</h3>
-      <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
-      <select class="form-select" id="paymentMethodSelect">
-        <option value="" selected disabled>Select payment method</option>
-        <option value="cash">Cash at the shop</option>
-        <option value="gcash">GCash</option>
-      </select>
-      <p class="form-note">GCash is available for fixed-price services. Choose Cash when the final price requires assessment.</p>
+    <div class="form-card payment-assessment-note" aria-live="polite">
+      <h3 class="step-title">3. PAYMENT TO BE ASSESSED</h3>
+      <p class="form-note">Payment is not required yet. The admin will assess your request first because the final price may vary.</p>
     </div>
 
 
@@ -218,7 +212,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 </script>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260621-option-ids"></script>
+<script src="/assets/js/main.js?v=20260621-assessment-payment"></script>
 
 </body>
 </html>

@@ -88,6 +88,10 @@ function queue_ui_payment_summary(array $row): string
 {
     $details = queue_ui_details_array($row["details"] ?? null);
     $method = queue_ui_payment_method($row);
+    $category = strtolower(trim((string)($row["category"] ?? "")));
+    if ($method === "" && in_array($category, ["repair", "installation"], true)) {
+        return "Payment to be assessed after review";
+    }
     $methodLabel = match ($method) {
         "cash" => "Cash",
         "gcash" => "GCash",
@@ -184,7 +188,7 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
             "online", "online_payment", "online payment" => "Online Payment",
             default => "",
         },
-        "paymentStatus" => strtoupper(trim((string)($row["payment_status"] ?? ""))),
+        "paymentStatus" => queue_ui_payment_method($row) !== "" ? strtoupper(trim((string)($row["payment_status"] ?? ""))) : "",
         "price" => $payment["price"],
         "paidAmount" => $payment["paid_amount"],
         "paidPending" => $payment["paid_pending"],

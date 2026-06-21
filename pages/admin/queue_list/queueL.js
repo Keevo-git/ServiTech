@@ -636,7 +636,7 @@ document.addEventListener("DOMContentLoaded", function () {
       ...(Array.isArray(queue.details) ? queue.details.map((item) => detailRow(item.label, item.value)) : []),
       fileRows(queue.files),
       detailRow("Payment", queue.payment),
-      detailRow("Payment Status", queue.paymentStatus ? queue.paymentStatus.replaceAll("_", " ") : "-"),
+      queue.paymentStatus ? detailRow("Payment Status", queue.paymentStatus.replaceAll("_", " ")) : "",
       detailRow("Payment Reference", queue.paymentReference),
       detailRow("Submitted Date", queue.submitted),
       detailRow("Completed Date", queue.completed || "-"),

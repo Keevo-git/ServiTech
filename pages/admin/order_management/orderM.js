@@ -127,6 +127,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function paymentSummary(order) {
+    if (order?.paymentAssessment) {
+      return order.paymentSummary || "Payment to be assessed after review";
+    }
     const method = String(order?.paymentMethod || "").trim();
     const price = amount(order?.price);
     const total = price > 0 ? money(price) : "";
@@ -302,9 +305,11 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Service", order.serviceLabel),
       ...(Array.isArray(order.details) ? order.details.map((row) => detailRow(row.label, row.value)) : []),
       fileRows(order.files),
-      detailRow("Payment Method", order.paymentMethod),
-      detailRow("Payment Status", order.paymentStatus ? order.paymentStatus.replaceAll("_", " ") : "-"),
-      detailRow("Payment Reference", order.paymentReference || "-"),
+      order.paymentAssessment
+        ? detailRow("Payment", order.paymentSummary || "Payment to be assessed after review")
+        : detailRow("Payment Method", order.paymentMethod),
+      !order.paymentAssessment && order.paymentStatus ? detailRow("Payment Status", order.paymentStatus.replaceAll("_", " ")) : "",
+      !order.paymentAssessment && order.paymentReference ? detailRow("Payment Reference", order.paymentReference) : "",
       detailRow("Submitted Date", order.submitted),
       detailRow("Completed Date", order.completed || "-"),
       commentsRow(order.comments),

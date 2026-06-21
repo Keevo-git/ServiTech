@@ -16,8 +16,6 @@ $services = [
     ["category" => "printing", "service_label" => "Rush ID"],
     ["category" => "printing", "service_label" => "Laminating"],
     ["category" => "printing", "service_label" => "Scanning"],
-    ["category" => "repair", "service_label" => "Repair Services"],
-    ["category" => "installation", "service_label" => "Installation Services"],
 ];
 
 foreach ($services as $service) {
@@ -96,6 +94,18 @@ gcash_flow_assert(
     "Cash must keep its separate non-review flow."
 );
 
+$repairWithoutPayment = ["status" => "PENDING", "category" => "repair", "details" => ["service_label" => "Repair Services"]];
+gcash_flow_assert(
+    servitech_queue_allowed_transitions($repairWithoutPayment) === ["ONGOING", "CANCELLED"],
+    "Repair queues without payment must move through the normal admin review flow."
+);
+
+$installationWithoutPayment = ["status" => "PENDING", "category" => "installation", "details" => ["service_label" => "Installation Services"]];
+gcash_flow_assert(
+    servitech_queue_allowed_transitions($installationWithoutPayment) === ["ONGOING", "CANCELLED"],
+    "Installation queues without payment must move through the normal admin review flow."
+);
+
 $sessionBeforeDraftTest = $_SESSION;
 $_SESSION["user_id"] = 77;
 $_SESSION[SERVITECH_SERVICE_PAYMENT_DRAFT_KEY] = [
@@ -124,9 +134,12 @@ gcash_flow_assert(str_contains((string)$queueCreate, '"draft" => true'), "GCash 
 gcash_flow_assert(strpos((string)$queueCreate, '"draft" => true') < strpos((string)$queueCreate, '$queueIdentity = servitech_generate_queue_identity'), "GCash must leave queue_create before a queue number is generated.");
 gcash_flow_assert(str_contains((string)$mainJs, 'result.payment_method === "gcash"'), "Generic join forms must follow the GCash redirect.");
 gcash_flow_assert(str_contains((string)$documentPrintJs, 'window.location.href = gcashResult.redirect_url'), "Document Printing must follow the same GCash payment redirect.");
-foreach (["Document", "xerox", "rush", "laminat", "scan", "repair", "installation"] as $serviceMarker) {
+foreach (["Document", "xerox", "rush", "laminat", "scan"] as $serviceMarker) {
     gcash_flow_assert(stripos((string)$paymentPage, $serviceMarker) !== false, "Payment page is missing {$serviceMarker} service handling.");
 }
+gcash_flow_assert(str_contains((string)$queueCreate, '$paymentNotRequired = in_array($serviceKind, ["repair", "installation"], true);'), "Repair and Installation must bypass payment selection in queue_create.");
+gcash_flow_assert(str_contains((string)$queueCreate, 'unset($details["payment_method"], $details["reference_number"]);'), "Repair and Installation must not save submitted payment fields.");
+gcash_flow_assert(str_contains((string)$paymentSubmit, 'in_array($serviceKind, ["repair", "installation"], true)'), "Repair and Installation drafts must not create GCash payments.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'name="viewport"'), "Payment page must declare a responsive viewport.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'Complete your GCash Payment'), "Payment page must show the customer-friendly payment-step title.");
 gcash_flow_assert(str_contains((string)$paymentPage, 'Assigned after payment submission'), "A draft must not pretend that a queue number already exists.");

@@ -1492,7 +1492,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (typeof window.openQueueSuccessModal === "function") {
-        window.openQueueSuccessModal(result.queue_code, { service: buildServiceLabel() });
+        const assessmentPaymentFlow = payload.category === "repair" || payload.category === "installation";
+        window.openQueueSuccessModal(result.queue_code, {
+          service: buildServiceLabel(),
+          message: assessmentPaymentFlow
+            ? "Your queue has been submitted successfully. The admin will review your request and provide further details."
+            : undefined,
+          note: assessmentPaymentFlow
+            ? "Payment is not required yet. The admin will assess your request first because the final price may vary."
+            : undefined,
+        });
       } else {
         modalQueueNo.textContent = result.queue_code;
         queueModal.style.display = "flex";

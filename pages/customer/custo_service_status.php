@@ -1855,6 +1855,11 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     return "Pending review";
   }
 
+  function isAssessmentPaymentQueue(queueData){
+    const category = categoryKey(queueData);
+    return category === "repair" || category === "installation";
+  }
+
   function queueDetails(queueData){
     return queueData && typeof queueData.details === "object" && queueData.details
       ? queueData.details
@@ -3166,6 +3171,26 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
     const reference = String(queueData.reference_number || details.reference_number || "").trim();
     const paymentStatus = String(queueData.payment_status || "Pending").trim();
+    const assessmentPayment = isAssessmentPaymentQueue(queueData) && !method;
+    if (assessmentPayment) {
+      if (!paymentEl) return;
+      paymentEl.innerHTML = `
+        <div class="status-payment-price">
+          <span class="status-detail-label">Price</span>
+          <span class="status-detail-value">${esc(getQueuePriceLabel(queueData))}</span>
+        </div>
+        <div class="status-detail-row">
+          <span class="status-detail-label">Payment</span>
+          <span class="status-detail-value">To be assessed</span>
+        </div>
+        <div class="status-detail-row">
+          <span class="status-detail-label">Note</span>
+          <span class="status-detail-value">The admin will assess your request first because the final price may vary.</span>
+        </div>
+      `;
+      if (paymentQr) paymentQr.classList.remove("is-visible");
+      return;
+    }
     const baseRows = `
       <div class="status-payment-price">
         <span class="status-detail-label">Price</span>
