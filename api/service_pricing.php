@@ -16,9 +16,8 @@ function servitech_pricing_service_kind(string $category, string $serviceLabel):
     $category === "online_printorder"
     || $label === "document printing"
     || $label === "document print"
-    || $label === "online document printing"
-    || $label === "online document print"
-    || $label === "online print order"
+    || (str_contains($label, "document") && str_contains($label, "print"))
+    || (str_contains($label, "print") && str_contains($label, "order"))
   ) {
     return "document_printing";
   }
@@ -423,7 +422,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
 
     if ($kind === "document_printing") {
       if ($fixedPrice === null) {
-        throw new DomainException("The selected print option is marked for assessment and cannot be submitted with online pricing.");
+        throw new DomainException("The selected print option is marked for assessment and cannot be submitted with catalog pricing.");
       }
       $details = array_merge($details, servitech_pricing_analyze_saved_uploads($pdo, (array)($details["uploaded_files"] ?? [])));
       $details["price_per_page"] = $fixedPrice;

@@ -1,5 +1,10 @@
 <?php
 require_once __DIR__ . "/../../components/auth_guard.php";
+require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/../../config/store_availability.php";
+
+$statusStoreAvailability = servitech_store_current_availability($pdo);
+$statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_printing_requires_gcash"]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1588,6 +1593,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
 (async function(){
+  const closedStoreDocumentPrinting = <?= $statusClosedStoreDocumentPrinting ? "true" : "false" ?>;
   const listEl = document.getElementById("queueList");
   const panelEl = document.getElementById("serviceStatusPanel");
   const archiveListEl = document.getElementById("archiveQueueList");
@@ -1725,11 +1731,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
   function formatKnownLabel(value){
     const raw = (value || "").toString().trim();
     if (!raw) return "";
+    const compact = raw.replace(/[^a-z0-9]/gi, "").toLowerCase();
 
-    if (/^(online|walk-?in)\s+(document\s+)?printing$/i.test(raw)
-      || /^online\s+print\s*order$/i.test(raw)
-      || /^(online_printorder|printing_online|printing_walkin|walkin)$/i.test(raw)) {
-      return /print\s*order|document/i.test(raw) ? "Document Print" : "Print";
+    if (
+      (compact.includes("document") && compact.includes("print"))
+      || (compact.includes("print") && compact.includes("order"))
+      || ["printingonline", "printingwalkin", "walkin"].includes(compact)
+    ) {
+      return (compact.includes("document") || compact.includes("order")) ? "Document Print" : "Print";
     }
 
     return raw
@@ -1756,16 +1765,18 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 
     const normalizedRaw = formatKnownLabel(raw);
     const compact = normalizedRaw.replace(/[^a-z0-9]/gi, "").toLowerCase();
+    if (
+      (compact.includes("document") && compact.includes("print"))
+      || (compact.includes("print") && compact.includes("order"))
+    ) {
+      return "Document Print";
+    }
     const knownLabels = {
       printorder: "Print Order",
       documentprinting: "Document Print",
-      onlineprintorder: "Document Print",
-      onlineprinting: "Document Print",
-      onlinedocumentprinting: "Document Print",
       walkinprinting: "Document Print",
       walkindocumentprinting: "Document Print",
       printwalkin: "Document Print",
-      printonline: "Document Print",
       xerox: "Photocopy",
       lamination: "Laminating",
       rushid: "Rush ID",
@@ -1874,35 +1885,19 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return compactKey(queueData?.service_label || details.service_label || "");
   }
 
-  function orderTypeKey(queueData){
-    const details = queueDetails(queueData);
-    return String(queueData?.order_type || details.order_type || "").trim().toLowerCase();
-  }
-
   function isDocumentPrinting(queueData){
     const service = serviceKey(queueData);
     const legacyServices = [
       "documentprinting",
-      "onlineprintorder",
-      "onlineprinting",
-      "onlinedocumentprinting",
       "walkinprinting",
       "walkindocumentprinting",
       "printwalkin",
-      "printonline"
     ];
     const printingCategories = ["printing", "online_printorder", "printing_online", "walkin", "printing_walkin"];
+    if ((service.includes("document") && service.includes("print")) || (service.includes("print") && service.includes("order"))) return true;
     if (legacyServices.includes(service)) return true;
     if (["rushid", "photocopy", "xerox", "laminating", "lamination", "scanning", "scan"].includes(service)) return false;
     return service === "" && printingCategories.includes(categoryKey(queueData));
-  }
-
-  function isOnlineDocumentPrinting(queueData){
-    return isDocumentPrinting(queueData) && (categoryKey(queueData) === "online_printorder" || orderTypeKey(queueData) === "online");
-  }
-
-  function isWalkInDocumentPrinting(queueData){
-    return isDocumentPrinting(queueData) && !isOnlineDocumentPrinting(queueData);
   }
 
   function supportsFileUpload(queueData){
@@ -1949,7 +1944,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const service = serviceKey(queueData);
     const label = cleanServiceLabel(queueData?.service_label || queueDetails(queueData).service_label || "").toLowerCase();
 
-    if (service === "documentprinting" || service === "onlineprintorder") {
+    if (isDocumentPrinting(queueData)) {
       return services.find((item) => /document.*printing/i.test(String(item?.name || ""))) || null;
     }
     if (service === "rushid") {
@@ -2543,11 +2538,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       }
     }
 
-    if (isOnlineDocumentPrinting(queueData)) {
-      rows.push(editSelect("payment_method", "Payment Method", queueData.payment_method || details.payment_method || "cash", [
+    if (isDocumentPrinting(queueData)) {
+      const paymentMethodValue = closedStoreDocumentPrinting ? "gcash" : (queueData.payment_method || details.payment_method || "cash");
+      rows.push(editSelect("payment_method", "Payment Method", paymentMethodValue, [
         ["cash", "Cash / Pay at Store"],
         ["gcash", "GCash"],
       ]));
+      if (closedStoreDocumentPrinting) {
+        rows.push('<p class="status-edit-existing-files__empty">The store is closed, so Document Printing uses GCash payment.</p>');
+      }
       rows.push(editField("reference_number", "GCash Reference", queueData.reference_number || details.reference_number || "", "text", 'maxlength="13" inputmode="numeric"'));
     }
 
@@ -3199,14 +3198,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     `;
 
     if (!paymentEl) return;
-
-    if (isOnlineDocumentPrinting(queueData)) {
-      paymentEl.innerHTML = `
-        ${baseRows}
-      `;
-      if (paymentQr) paymentQr.classList.toggle("is-visible", method === "gcash");
-      return;
-    }
 
     paymentEl.innerHTML = baseRows;
 

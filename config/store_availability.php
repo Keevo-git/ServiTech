@@ -203,13 +203,13 @@ function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = nul
 
     $messages = [
         "open" => "We are open today. Queue requests are accepted until " . servitech_store_format_time($cutoff) . ".",
-        "closed" => "Regular queue requests are unavailable right now. Online Document Print is still available.",
-        "paused" => "Queue requests are temporarily paused. Online Document Print is still available.",
-        "fully_booked" => "We are fully booked today. Online Document Print is still available.",
-        "holiday" => "We are closed today" . ($todayHoliday ? " for " . trim((string)$todayHoliday["title"]) : "") . ". Online Document Print is still available.",
-        "closed_today" => "We are closed today. Online Document Print is still available.",
-        "outside_hours" => "Regular queue requests are outside today's shop hours. Online Document Print is still available.",
-        "past_cutoff" => "Regular queue is closed for today. Online Document Print is still available.",
+        "closed" => "Regular queue requests are unavailable right now. Document Printing is still available with GCash payment.",
+        "paused" => "Queue requests are temporarily paused. Document Printing is still available with GCash payment.",
+        "fully_booked" => "We are fully booked today. Document Printing is still available with GCash payment.",
+        "holiday" => "We are closed today" . ($todayHoliday ? " for " . trim((string)$todayHoliday["title"]) : "") . ". Document Printing is still available with GCash payment.",
+        "closed_today" => "We are closed today. Document Printing is still available with GCash payment.",
+        "outside_hours" => "Regular queue requests are outside today's shop hours. Document Printing is still available with GCash payment.",
+        "past_cutoff" => "Regular queue is closed for today. Document Printing is still available with GCash payment.",
     ];
 
     $todayHours = empty($hours["is_open"])
@@ -224,7 +224,8 @@ function servitech_store_evaluate(array $snapshot, ?DateTimeImmutable $now = nul
         "regular_queue_allowed" => $regularQueueAllowed,
         "can_accept_regular_queue" => $regularQueueAllowed,
         "document_printing_allowed" => true,
-        "can_accept_online_printing" => true,
+        "document_printing_requires_gcash" => !$regularQueueAllowed,
+        "document_printing_payment_method" => $regularQueueAllowed ? "" : "gcash",
         "reason_code" => $reasonCode,
         "reason" => $reasonCode,
         "message" => $messages[$reasonCode] ?? $messages["closed"],
@@ -266,9 +267,14 @@ function servitech_store_is_document_printing(string $category, string $serviceL
     return $category === "online_printorder"
         || $label === "document printing"
         || $label === "document print"
-        || $label === "online document printing"
-        || $label === "online document print"
-        || $label === "online print order";
+        || (str_contains($label, "document") && str_contains($label, "print"))
+        || (str_contains($label, "print") && str_contains($label, "order"));
+}
+
+function servitech_store_document_printing_requires_gcash(PDO $pdo): bool
+{
+    $availability = servitech_store_current_availability($pdo);
+    return !empty($availability["document_printing_requires_gcash"]);
 }
 
 function servitech_store_assert_queue_available(PDO $pdo, string $category, string $serviceLabel): void

@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
+require_once __DIR__ . "/../config/store_availability.php";
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
@@ -71,6 +72,9 @@ $file_name = trim((string)($draft["file_name"] ?? ""));
 $payment_method = strtolower(trim((string)($draft["payment_method"] ?? "")));
 $reference_number = trim((string)($_POST["reference_number"] ?? ""));
 $catalog_pricing_rule_id = isset($draft["catalog_pricing_rule_id"]) ? max(0, (int)$draft["catalog_pricing_rule_id"]) : 0;
+if (servitech_store_document_printing_requires_gcash($pdo)) {
+  $payment_method = "gcash";
+}
 
 $_SESSION["print_order_form"] = [
   "reference_number" => $reference_number,

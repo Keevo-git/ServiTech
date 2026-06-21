@@ -190,7 +190,7 @@ try {
         </div>
 
         <div class="landing-store-detail landing-store-detail--printing">
-          <span class="landing-store-detail__label">Online Document Print</span>
+          <span class="landing-store-detail__label">Document Printing</span>
           <strong>Available</strong>
         </div>
 

@@ -19,7 +19,7 @@ $availabilityTone = $storeAvailability["regular_queue_allowed"]
   <dl class="store-availability-card__details">
     <div><dt>Today's hours</dt><dd><?= $availabilityEsc($storeAvailability["today_hours"] ?? "Closed") ?></dd></div>
     <div><dt>Queue cutoff</dt><dd><?= $availabilityEsc($storeAvailability["queue_cutoff_label"] ?? "Not set") ?></dd></div>
-    <div><dt>Online Document Print</dt><dd>Available</dd></div>
+    <div><dt>Document Printing</dt><dd><?= !empty($storeAvailability["document_printing_allowed"]) ? "Available" : "Unavailable" ?></dd></div>
   </dl>
   <?php if (!empty($storeAvailability["upcoming_holidays"])): ?>
     <div class="store-availability-card__holidays">

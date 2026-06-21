@@ -15,7 +15,7 @@ function servitech_queue_normalize_status(string $status): string {
   };
 }
 
-function servitech_queue_is_online_print_order(array $queue): bool {
+function servitech_queue_is_legacy_print_order(array $queue): bool {
   $category = strtolower(trim((string)($queue["category"] ?? "")));
   $queueCode = strtoupper(trim((string)($queue["queue_code"] ?? "")));
 
@@ -72,7 +72,7 @@ function servitech_queue_requires_gcash_review(array $queue): bool {
 function servitech_queue_allowed_transitions(array $queue): array {
   $status = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
 
-  if (servitech_queue_is_online_print_order($queue) || servitech_queue_is_online_payment_method($queue)) {
+  if (servitech_queue_is_legacy_print_order($queue) || servitech_queue_is_online_payment_method($queue)) {
     return match ($status) {
       "PENDING" => servitech_queue_requires_gcash_review($queue) || !servitech_queue_is_online_payment_method($queue)
         ? ["APPROVED", "CANCELLED"]
@@ -122,7 +122,7 @@ function servitech_queue_customer_subject(array $queue): string {
   if ($serviceLabel !== "") return $serviceLabel . " order";
   $category = strtolower(trim((string)($queue["category"] ?? "")));
 
-  if (servitech_queue_is_online_print_order($queue)) {
+  if (servitech_queue_is_legacy_print_order($queue)) {
     return "print order";
   }
 

@@ -4,10 +4,13 @@ require_once __DIR__ . "/../../config/join_queue_flow.php";
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/../../config/store_availability.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $documentPrintingLabel = "Document Print";
+$storeAvailability = servitech_store_current_availability($pdo);
+$closedStoreDocumentPrinting = !empty($storeAvailability["document_printing_requires_gcash"]);
 $printDraft = [];
 $documentCatalogServiceId = 0;
 $documentCatalog = null;
@@ -53,6 +56,9 @@ if (is_array($sessionPrintDraft)) {
     "file_analysis" => isset($sessionPrintDraft["file_analysis"]) && is_array($sessionPrintDraft["file_analysis"]) ? $sessionPrintDraft["file_analysis"] : [],
     "uploaded_files" => isset($sessionPrintDraft["uploaded_files"]) && is_array($sessionPrintDraft["uploaded_files"]) ? $sessionPrintDraft["uploaded_files"] : [],
   ];
+}
+if ($closedStoreDocumentPrinting) {
+  $printDraft["payment_method"] = "gcash";
 }
 ?>
 <!DOCTYPE html>
@@ -428,7 +434,7 @@ if (is_array($sessionPrintDraft)) {
     }
   </style>
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary printing-page" data-service="printing" data-catalog-service-id="<?= (int)$documentCatalogServiceId ?>">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary printing-page" data-service="printing" data-catalog-service-id="<?= (int)$documentCatalogServiceId ?>" data-closed-store-printing="<?= $closedStoreDocumentPrinting ? "true" : "false" ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -453,12 +459,12 @@ if (is_array($sessionPrintDraft)) {
             <div id="paymentSection" class="payment-section printing-field">
               <span class="payment-section__label">Document Print Payment</span>
               <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
-              <select class="form-select" id="paymentMethodSelect">
-                <option value="" selected>Select payment method</option>
-                <option value="cash">Cash</option>
-                <option value="gcash">GCash</option>
+              <select class="form-select" id="paymentMethodSelect" <?= $closedStoreDocumentPrinting ? "disabled" : "" ?>>
+                <option value="" <?= $closedStoreDocumentPrinting ? "" : "selected" ?>>Select payment method</option>
+                <option value="cash" <?= $closedStoreDocumentPrinting ? "disabled" : "" ?>>Cash</option>
+                <option value="gcash" <?= $closedStoreDocumentPrinting ? "selected" : "" ?>>GCash</option>
               </select>
-              <p id="cashPaymentNote" class="payment-section__hint" hidden>You must go to the store to complete payment before printing.</p>
+              <p id="cashPaymentNote" class="payment-section__hint" <?= $closedStoreDocumentPrinting ? "" : "hidden" ?>><?= $closedStoreDocumentPrinting ? "The store is closed, so Document Printing uses GCash payment." : "You must go to the store to complete payment before printing." ?></p>
             </div>
 
             <div class="printing-field">
@@ -595,8 +601,9 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-window.servitechCatalogRules = <?= json_encode($documentRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  window.servitechCatalogRules = <?= json_encode($documentRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  window.SERVITECH_DOCUMENT_PRINTING_CLOSED_STORE_MODE = <?= $closedStoreDocumentPrinting ? "true" : "false" ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260621-option-ids"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260621-closed-gcash"></script>
 </body>
 </html>

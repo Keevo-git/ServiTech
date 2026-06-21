@@ -1079,7 +1079,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
             <dd><span class="customer-hero__availability-time" data-store-status-queue-until><?= htmlspecialchars($storeAvailability["queue_cutoff_label"], ENT_QUOTES, "UTF-8") ?></span></dd>
           </div>
           <div>
-            <dt>Online Document Print</dt>
+            <dt>Document Printing</dt>
             <dd data-store-status-document-print>Available</dd>
           </div>
         </dl>
@@ -1102,7 +1102,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
           <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Print</span>
-        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note">Online Document Print is available.</span><?php endif; ?>
+        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note">Document Printing is available with GCash.</span><?php endif; ?>
       </a>
 
       <a href="/pages/customer/custo1_repair_option.php?new_queue=1" class="queue-service-card">
@@ -1245,7 +1245,7 @@ $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability[
 
     setStoreStatusText("[data-store-status-today-hours]", statusData.today_hours);
     setStoreStatusText("[data-store-status-queue-until]", statusData.queue_until);
-    setStoreStatusText("[data-store-status-document-print]", statusData.online_document_print);
+    setStoreStatusText("[data-store-status-document-print]", statusData.document_printing);
     setStoreStatusText("[data-store-status-message]", statusData.message);
   }
 

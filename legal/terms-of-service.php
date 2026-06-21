@@ -108,7 +108,7 @@ $effectiveDate = "June 13, 2026";
       <p>By creating an account and using ServiTech, users agree to follow these Terms of Service. Users who do not agree should not create an account or use the platform.</p>
 
       <h2>Service Description</h2>
-      <p>ServiTech provides account registration, login, customer queueing, online print order submission, uploaded file handling, service status tracking, notifications, payment-detail recording, profile editing, and administrator management for printing, repair, installation, laminating, rush ID, and related services.</p>
+      <p>ServiTech provides account registration, login, customer queueing, Document Printing order submission, uploaded file handling, service status tracking, notifications, payment-detail recording, profile editing, and administrator management for printing, repair, installation, laminating, rush ID, and related services.</p>
 
       <h2>Academic and Operational Purpose</h2>
       <p>ServiTech is an academic capstone/project system developed for educational, demonstration, testing, evaluation, and service-management workflows. Users must use the system according to applicable school, project, and service requirements.</p>

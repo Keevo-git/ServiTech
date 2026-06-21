@@ -51,10 +51,10 @@ try {
     "status_class" => servitech_customer_store_status_tone($statusKey),
     "today_hours" => (string)($availability["today_hours"] ?? "Closed"),
     "queue_until" => (string)($availability["queue_cutoff_label"] ?? "Not set"),
-    "online_document_print" => !empty($availability["can_accept_online_printing"]) ? "Available" : "Unavailable",
+    "document_printing" => !empty($availability["document_printing_allowed"]) ? "Available" : "Unavailable",
     "message" => (string)($availability["customer_message"] ?? $availability["message"] ?? ""),
     "regular_queue_allowed" => !empty($availability["regular_queue_allowed"]),
-    "document_printing_allowed" => !empty($availability["can_accept_online_printing"]),
+    "document_printing_allowed" => !empty($availability["document_printing_allowed"]),
     "reason_code" => (string)($availability["reason_code"] ?? $availability["reason"] ?? $statusKey),
   ];
 
@@ -62,7 +62,7 @@ try {
     $payload["status"],
     $payload["today_hours"],
     $payload["queue_until"],
-    $payload["online_document_print"],
+    $payload["document_printing"],
     $payload["message"],
   ]));
 

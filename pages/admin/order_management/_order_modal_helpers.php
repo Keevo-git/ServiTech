@@ -74,19 +74,19 @@ function om_service_label(array $details, string $fallback): string
     $legacyPrintingLabels = [
         "document printing",
         "document print",
-        "online print order",
-        "online document printing",
-        "online document print",
-        "online printing",
         "walk-in printing",
         "walk-in document printing",
         "walk-in document print",
         "walkin printing",
         "print walk-in",
-        "print online",
     ];
 
-    if (in_array(strtolower(trim($label)), $legacyPrintingLabels, true)) return "Document Print";
+    $normalizedLabel = strtolower(trim($label));
+    if (
+        in_array($normalizedLabel, $legacyPrintingLabels, true)
+        || (str_contains($normalizedLabel, "document") && str_contains($normalizedLabel, "print"))
+        || (str_contains($normalizedLabel, "print") && str_contains($normalizedLabel, "order"))
+    ) return "Document Print";
     if (strcasecmp($label, "xerox") === 0) return "Photocopy";
     if (strcasecmp($label, "lamination") === 0) return "Laminating";
     return $label;

@@ -24,19 +24,18 @@ function queue_ui_normalize_service_label(string $serviceLabel): string
     $legacyPrintingLabels = [
         "document printing",
         "document print",
-        "online print order",
-        "online document printing",
-        "online document print",
-        "online printing",
         "walk-in printing",
         "walk-in document printing",
         "walk-in document print",
         "walkin printing",
         "print walk-in",
-        "print online",
     ];
 
-    if (in_array($normalized, $legacyPrintingLabels, true)) return "Document Print";
+    if (
+        in_array($normalized, $legacyPrintingLabels, true)
+        || (str_contains($normalized, "document") && str_contains($normalized, "print"))
+        || (str_contains($normalized, "print") && str_contains($normalized, "order"))
+    ) return "Document Print";
     if (strcasecmp(trim($serviceLabel), "xerox") === 0) return "Photocopy";
     if (strcasecmp(trim($serviceLabel), "lamination") === 0) return "Laminating";
     return trim($serviceLabel);

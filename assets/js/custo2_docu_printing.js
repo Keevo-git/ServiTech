@@ -59,6 +59,8 @@
     if (!fileUpload || !fileListEl || !fileMetaEl || !qtyInput || !paperSizeSelect || !paymentMethodSelect || !joinQueueBtn) {
       return;
     }
+    var closedStorePrintingMode = window.SERVITECH_DOCUMENT_PRINTING_CLOSED_STORE_MODE === true
+      || (body.dataset.closedStorePrinting || "").toLowerCase() === "true";
 
     var ALLOWED_EXT = {
       pdf: true,
@@ -207,6 +209,7 @@
     }
 
     function getPaymentMethod() {
+      if (closedStorePrintingMode) return "gcash";
       return (paymentMethodSelect.value || "").trim().toLowerCase();
     }
 
@@ -1080,8 +1083,15 @@
     }
 
     function updatePaymentUi() {
+      if (closedStorePrintingMode) {
+        paymentMethodSelect.value = "gcash";
+        paymentMethodSelect.disabled = true;
+      }
       paymentSection.hidden = false;
-      cashPaymentNote.hidden = getPaymentMethod() !== "cash";
+      cashPaymentNote.hidden = closedStorePrintingMode ? false : getPaymentMethod() !== "cash";
+      if (closedStorePrintingMode) {
+        cashPaymentNote.textContent = "The store is closed, so Document Printing uses GCash payment.";
+      }
       setFieldInvalid(paymentMethodSelect, false);
       updateOrderSummary();
     }
@@ -1097,7 +1107,7 @@
         paper_size: paperSizeSelect.value || null,
         quantity: getEnteredQuantity(),
         color_option: getSelectedColor(),
-        payment_method: getPaymentMethod() || null,
+        payment_method: closedStorePrintingMode ? "gcash" : (getPaymentMethod() || null),
         notes: notesInput ? notesInput.value.trim() : null,
         file_name: fileNames[0] || null,
         file_names: fileNames.length ? fileNames : null,
@@ -1224,7 +1234,7 @@
         return;
       }
 
-      paymentMethodSelect.value = draftState.payment_method || "";
+      paymentMethodSelect.value = closedStorePrintingMode ? "gcash" : (draftState.payment_method || "");
       var restoredPaperSize = draftState.paper_size || "";
       var restoredOptionIds = draftState.catalog_option_value_ids || {};
       var restoredPaperOption = Array.from(paperSizeSelect.options).find(function (option) {

@@ -43,7 +43,8 @@ $open = servitech_store_evaluate(availability_snapshot(), $mondayBeforeCutoff);
 availability_assert($open["regular_queue_allowed"], "Open store before cutoff should accept regular queues.");
 availability_assert($open["status_label"] === "Open", "Open store should display Open.");
 availability_assert($open["can_accept_regular_queue"], "Open store should expose can_accept_regular_queue=true.");
-availability_assert($open["can_accept_online_printing"], "Online Document Printing should be available while open.");
+availability_assert($open["document_printing_allowed"], "Document Printing should be available while open.");
+availability_assert(!$open["document_printing_requires_gcash"], "Open store should not force GCash for Document Printing.");
 
 $extendedCutoff = availability_snapshot();
 $extendedCutoff["queue_cutoff_time"] = "21:00";
@@ -85,6 +86,7 @@ availability_assert($fivePmMidnightCutoff["regular_queue_allowed"], "5:00 PM sho
 $pastCutoff = servitech_store_evaluate(availability_snapshot(), $mondayPastCutoff);
 availability_assert(!$pastCutoff["regular_queue_allowed"] && $pastCutoff["reason_code"] === "past_cutoff", "Past cutoff should block regular queues.");
 availability_assert($pastCutoff["status_label"] === "Past Cutoff", "Past cutoff should display Past Cutoff.");
+availability_assert($pastCutoff["document_printing_requires_gcash"], "Past cutoff should force GCash for Document Printing.");
 
 $nextDaySnapshot = availability_snapshot();
 $nextDaySnapshot["queue_cutoff_time"] = "16:30";
@@ -104,6 +106,7 @@ foreach (["closed", "paused", "fully_booked"] as $status) {
     $result = servitech_store_evaluate(availability_snapshot($status), $mondayBeforeCutoff);
     availability_assert(!$result["regular_queue_allowed"], ucfirst($status) . " should block regular queues.");
     availability_assert($result["document_printing_allowed"], "Document Printing should remain available while {$status}.");
+    availability_assert($result["document_printing_requires_gcash"], "Document Printing should require GCash while {$status}.");
     availability_assert($result["effective_status"] === $status, ucfirst($status) . " should be the final effective status.");
     availability_assert($result["status_label"] !== "Open", ucfirst($status) . " should not display Open while blocked.");
 }
@@ -117,6 +120,7 @@ $holidaySnapshot["holidays"] = [[
 $holiday = servitech_store_evaluate($holidaySnapshot, $mondayBeforeCutoff);
 availability_assert(!$holiday["regular_queue_allowed"] && $holiday["reason_code"] === "holiday", "Holiday should block regular queues.");
 availability_assert($holiday["document_printing_allowed"], "Document Printing should remain available on holidays.");
+availability_assert($holiday["document_printing_requires_gcash"], "Holiday should force GCash for Document Printing.");
 availability_assert($holiday["status_label"] === "Holiday", "Holiday should display Holiday.");
 
 $holidayBeatsManualOpen = servitech_store_evaluate($holidaySnapshot, $mondayBeforeCutoff);
@@ -128,7 +132,7 @@ $holidayClosedResult = servitech_store_evaluate($holidayBeatsManualClosed, $mond
 availability_assert($holidayClosedResult["reason_code"] === "holiday", "Holiday should be evaluated before manual Closed status.");
 
 availability_assert(servitech_store_is_document_printing("printing", "Document Printing"), "Document Printing label should be exempt.");
-availability_assert(servitech_store_is_document_printing("online_printorder", "Anything"), "Online print orders should be exempt.");
+availability_assert(servitech_store_is_document_printing("online_printorder", "Anything"), "Legacy print orders should remain compatible.");
 availability_assert(!servitech_store_is_document_printing("printing", "Xerox"), "Xerox should not be exempt.");
 
 echo "Store availability tests passed.\n";

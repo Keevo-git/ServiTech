@@ -117,7 +117,7 @@ $effectiveDate = "June 13, 2026";
       </ul>
 
       <h2>Where Information Comes From</h2>
-      <p>ServiTech collects information through registration, login, Google sign-in, email verification, password reset, profile updates, queue and service request forms, upload forms, online print order payment forms, customer notifications, and administrator actions such as status updates, send-back messages, customer messages, payment review, service management, and announcements.</p>
+      <p>ServiTech collects information through registration, login, Google sign-in, email verification, password reset, profile updates, queue and service request forms, upload forms, Document Printing payment forms, customer notifications, and administrator actions such as status updates, send-back messages, customer messages, payment review, service management, and announcements.</p>
 
       <h2>How We Use Information</h2>
       <p>ServiTech uses collected information to create and manage accounts, process service requests, manage queue and order records, review payment details, provide notifications, protect private uploaded files, support customer/admin workflows, troubleshoot issues, and maintain system security.</p>

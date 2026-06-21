@@ -77,10 +77,6 @@ function cd_service_type(array $row): string {
   $legacyPrintingLabels = [
     "document printing",
     "document print",
-    "online print order",
-    "online document printing",
-    "online document print",
-    "online printing",
     "walk in document printing",
     "walk in document print",
     "walk in printing",
@@ -89,6 +85,8 @@ function cd_service_type(array $row): string {
 
   if (
     in_array($normalizedLabel, $legacyPrintingLabels, true)
+    || (str_contains($normalizedLabel, "document") && str_contains($normalizedLabel, "print"))
+    || (str_contains($normalizedLabel, "print") && str_contains($normalizedLabel, "order"))
     || in_array($category, ["online_printorder", "walkin", "printing_walkin"], true)
   ) {
     return "Document Print";

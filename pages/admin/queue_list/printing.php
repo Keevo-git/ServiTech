@@ -26,27 +26,28 @@ function service_label($category, $details = null): string {
   $legacyPrintingLabels = [
     "document printing",
     "document print",
-    "online document printing",
-    "online document print",
-    "online print order",
-    "online printing",
     "walk-in document printing",
     "walk-in document print",
     "walk-in printing",
     "walkin printing",
     "print walk-in",
-    "print online",
   ];
+  $isDocumentPrintLabel = static function (string $label) use ($legacyPrintingLabels): bool {
+    $normalized = strtolower(trim($label));
+    return in_array($normalized, $legacyPrintingLabels, true)
+      || (str_contains($normalized, "document") && str_contains($normalized, "print"))
+      || (str_contains($normalized, "print") && str_contains($normalized, "order"));
+  };
 
   if (is_string($details) && $details !== "") {
     $decoded = json_decode($details, true);
     if (is_array($decoded) && trim((string)($decoded["service_label"] ?? "")) !== "") {
       $label = trim((string)$decoded["service_label"]);
-      return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Print" : (strcasecmp($label, "xerox") === 0 ? "Photocopy" : $label);
+      return $isDocumentPrintLabel($label) ? "Document Print" : (strcasecmp($label, "xerox") === 0 ? "Photocopy" : $label);
     }
   } elseif (is_array($details) && trim((string)($details["service_label"] ?? "")) !== "") {
     $label = trim((string)$details["service_label"]);
-    return in_array(strtolower($label), $legacyPrintingLabels, true) ? "Document Print" : (strcasecmp($label, "xerox") === 0 ? "Photocopy" : $label);
+    return $isDocumentPrintLabel($label) ? "Document Print" : (strcasecmp($label, "xerox") === 0 ? "Photocopy" : $label);
   }
 
   $map = [

@@ -6,6 +6,7 @@ require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/../config/join_queue_flow.php";
+require_once __DIR__ . "/../config/store_availability.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -43,6 +44,10 @@ $catalog_pricing_rule_id = isset($data["catalog_pricing_rule_id"]) ? max(0, (int
 $catalog_option_value_ids = isset($data["catalog_option_value_ids"]) && is_array($data["catalog_option_value_ids"])
   ? $data["catalog_option_value_ids"]
   : [];
+$closedStoreDocumentPrinting = servitech_store_document_printing_requires_gcash($pdo);
+if ($closedStoreDocumentPrinting) {
+  $payment_method = "gcash";
+}
 
 $errors = [];
 if ($paper_size === "") {

@@ -76,7 +76,11 @@ $prefix = servitech_get_queue_prefix_for_category($category);
 
 // Document Print always uses the unified print queue. Keep the stored label compatible with existing records.
 $normalizedServiceLabel = strtolower(trim((string)preg_replace('/\s+/', ' ', $service_label)));
-if (in_array($normalizedServiceLabel, ["document printing", "document print", "online document printing", "online document print"], true) || $category === "online_printorder") {
+if (
+  in_array($normalizedServiceLabel, ["document printing", "document print"], true)
+  || (str_contains($normalizedServiceLabel, "document") && str_contains($normalizedServiceLabel, "print"))
+  || $category === "online_printorder"
+) {
   $category = "printing";
   $prefix = "P";
   $service_label = "Document Printing";
@@ -85,6 +89,12 @@ if (in_array($normalizedServiceLabel, ["document printing", "document print", "o
 $isDocumentPrinting = $category === "printing"
   && $service_label === "Document Printing";
 $serviceKind = servitech_pricing_service_kind($category, $service_label);
+$closedStoreDocumentPrinting = $serviceKind === "document_printing"
+  && servitech_store_document_printing_requires_gcash($pdo);
+if ($closedStoreDocumentPrinting) {
+  $payment_method = "gcash";
+  $reference_number = "";
+}
 $supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
 $catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning", "repair", "installation"];
 if (in_array($serviceKind, $catalogManagedKinds, true) && $payment_method === "") {

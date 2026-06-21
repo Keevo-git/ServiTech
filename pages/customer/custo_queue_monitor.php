@@ -61,24 +61,23 @@ function qm_category_meta(string $categoryKey): array {
 function qm_normalize_service_label(string $serviceLabel, string $fallbackLabel): string {
   $serviceLabel = trim($serviceLabel);
   if ($serviceLabel === "") return $fallbackLabel;
-  if (in_array(strtolower($serviceLabel), [
+  $normalized = strtolower($serviceLabel);
+  if (
+    in_array($normalized, [
     "document printing",
     "document print",
-    "online print order",
-    "online printing",
-    "online document printing",
-    "online document print",
     "walk-in printing",
     "walk-in document printing",
     "walk-in document print",
     "walkin printing",
     "print walk-in",
-    "print online",
-    "online",
     "walk-in",
     "walk in",
     "walkin",
-  ], true)) return "Document Print";
+    ], true)
+    || (str_contains($normalized, "document") && str_contains($normalized, "print"))
+    || (str_contains($normalized, "print") && str_contains($normalized, "order"))
+  ) return "Document Print";
   if (strcasecmp($serviceLabel, "xerox") === 0) return "Photocopy";
   if (strcasecmp($serviceLabel, "lamination") === 0) return "Laminating";
   return $serviceLabel;

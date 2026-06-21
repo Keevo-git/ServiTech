@@ -23,7 +23,7 @@ $csrfToken = servitech_csrf_token();
       <div class="auth-card__header">
         <p class="auth-card__eyebrow">Welcome to ServiTech</p>
         <h1 id="register-title">Create Account</h1>
-        <p class="auth-card__subtitle">Set up your customer account to access queueing, service status updates, and online print orders.</p>
+        <p class="auth-card__subtitle">Set up your customer account to access queueing, service status updates, and Document Printing orders.</p>
       </div>
 
       <div id="serverErrorMessage" class="form-alert form-alert--error" role="alert" hidden></div>
@@ -259,7 +259,7 @@ $csrfToken = servitech_csrf_token();
               <li>Account details: full name, email address, contact number, role, account creation date, and update date.</li>
               <li>Authentication details: password hashes, Google account ID for Google sign-in, email verification tokens and timestamps, password reset tokens and expiry dates, consent date, and consent version.</li>
               <li>Queue and service request details: queue code, service category, service label, order type, paper size, quantity, color option, package label, lamination type, device type, notes, uploaded file references, estimated total, price, paid amount, status, lifecycle stage, creation date, update date, and completion date.</li>
-              <li>Payment transaction details for online print orders: payment method, amount, GCash reference number for GCash payments, payment status, and payment record dates.</li>
+              <li>Payment transaction details for Document Printing orders: payment method, amount, GCash reference number for GCash payments, payment status, and payment record dates.</li>
               <li>Uploaded file records: original file name, private storage key, file extension, MIME type, file size, SHA-256 checksum, upload token, linked queue, upload date, linked date, and deletion date.</li>
               <li>Notification records: message, notification type, related queue or order reference, read status, deletion date, and creation date.</li>
               <li>Login security records: hashed email and hashed IP-based login attempt records used for throttling failed login attempts.</li>
@@ -271,9 +271,9 @@ $csrfToken = servitech_csrf_token();
             <p>ServiTech collects information through these current system flows:</p>
             <ul>
               <li>Registration, login, Google sign-in, email verification, password reset, and profile update forms.</li>
-              <li>Queue, service request, online print order, repair, installation, laminating, rush ID, and document printing forms.</li>
+              <li>Queue, service request, Document Printing, repair, installation, laminating, and rush ID forms.</li>
               <li>File upload forms used for documents, images, presentations, and related service files.</li>
-              <li>Payment selection and GCash reference submission for online print orders.</li>
+              <li>Payment selection and GCash reference submission for Document Printing orders.</li>
               <li>Admin actions for queue status updates, cancellation reasons, price updates, paid amount updates, service management, announcements, and customer record viewing.</li>
               <li>Automatic security checks for sessions, CSRF tokens, failed login throttling, notifications, and queue status history.</li>
             </ul>
@@ -285,9 +285,9 @@ $csrfToken = servitech_csrf_token();
               <li>Create, verify, update, and secure user accounts.</li>
               <li>Authenticate users through email/password login or Google sign-in.</li>
               <li>Create queue numbers and manage service requests from submission to completion or cancellation.</li>
-              <li>Process printing, online print orders, repair, installation, laminating, rush ID, and related service requests.</li>
+              <li>Process Document Printing, repair, installation, laminating, rush ID, and related service requests.</li>
               <li>Store uploaded files and make them available to the file owner and authorized administrators for service processing.</li>
-              <li>Record cash or GCash payment details, price, paid amount, and payment review information for online print orders.</li>
+              <li>Record cash or GCash payment details, price, paid amount, and payment review information for Document Printing orders.</li>
               <li>Send customer and admin notifications about new requests, payment review, price updates, cancellations, and status changes.</li>
               <li>Protect the system through CSRF checks, session controls, role-based access checks, and failed login throttling.</li>
               <li>Support academic evaluation, demonstration, testing, reporting, and system improvement for the ServiTech capstone project.</li>
@@ -366,7 +366,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Service Description</h3>
-            <p>ServiTech provides account registration, login, customer queueing, online print order submission, uploaded file handling, service status tracking, notifications, payment detail recording, profile editing, and administrator management for printing, repair, installation, laminating, rush ID, and related services.</p>
+            <p>ServiTech provides account registration, login, customer queueing, Document Printing order submission, uploaded file handling, service status tracking, notifications, payment detail recording, profile editing, and administrator management for printing, repair, installation, laminating, rush ID, and related services.</p>
           </section>
           <section class="policy-section">
             <h3>Academic Purpose</h3>
@@ -409,7 +409,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Payments and Transaction Details</h3>
-            <p>For online print orders, ServiTech records the selected payment method, order amount, paid amount, and GCash reference number for GCash payments. ServiTech also supports cash selection. Administrators review payment details, update price and paid amount, and approve or continue processing the order through the admin status workflow. ServiTech records transaction details for tracking and review; it does not process payment through an external payment gateway.</p>
+            <p>For Document Printing orders, ServiTech records the selected payment method, order amount, paid amount, and GCash reference number for GCash payments. ServiTech also supports cash selection while regular queues are available. Administrators review payment details, update price and paid amount, and approve or continue processing the order through the admin status workflow. ServiTech records transaction details for tracking and review; it does not process payment through an external payment gateway.</p>
           </section>
           <section class="policy-section">
             <h3>Uploaded Files and User Content</h3>

@@ -6,6 +6,7 @@ require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
 require_once __DIR__ . "/upload_helpers.php";
+require_once __DIR__ . "/../config/store_availability.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -164,12 +165,7 @@ try {
   $details["notes"] = trim((string)($data["notes"] ?? ""));
 
   $serviceKind = servitech_pricing_service_kind($category, (string)$details["service_label"]);
-  $currentOrderType = strtolower(trim((string)($currentDetails["order_type"] ?? "")));
-  $currentPaymentMethod = strtolower(trim((string)($currentDetails["payment_method"] ?? "")));
-  $isDocumentPrintingPaymentFlow = $serviceKind === "document_printing"
-    && ($category === "online_printorder"
-      || $currentOrderType === "online"
-      || in_array($currentPaymentMethod, ["cash", "gcash"], true));
+  $isDocumentPrintingPaymentFlow = $serviceKind === "document_printing";
 
   if ($serviceKind === "document_printing") {
     $details["service_label"] = "Document Printing";
@@ -285,6 +281,9 @@ try {
   if ($isDocumentPrintingPaymentFlow) {
     $paymentMethod = strtolower(trim((string)($data["payment_method"] ?? ($currentDetails["payment_method"] ?? ""))));
     $referenceNumber = trim((string)($data["reference_number"] ?? ""));
+    if (servitech_store_document_printing_requires_gcash($pdo)) {
+      $paymentMethod = "gcash";
+    }
     if (!in_array($paymentMethod, ["cash", "gcash"], true)) {
       throw new DomainException("Payment method is required for Document Print.");
     }

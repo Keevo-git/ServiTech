@@ -203,20 +203,19 @@ function admin_notification_service_label(array $queue): string
     $service = trim((string)($details["service_label"] ?? $details["package_label"] ?? ""));
     if ($service !== "") {
         $normalized = strtolower($service);
-        if (in_array($normalized, [
+        if (
+            in_array($normalized, [
             "document printing",
             "document print",
-            "online document printing",
-            "online document print",
-            "online print order",
-            "online printing",
             "walk-in document printing",
             "walk-in document print",
             "walk-in printing",
             "walkin printing",
             "print walk-in",
-            "print online",
-        ], true)) {
+            ], true)
+            || (str_contains($normalized, "document") && str_contains($normalized, "print"))
+            || (str_contains($normalized, "print") && str_contains($normalized, "order"))
+        ) {
             return "Document Print";
         }
         if ($normalized === "xerox") {
