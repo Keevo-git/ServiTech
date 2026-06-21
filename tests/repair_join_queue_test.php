@@ -10,11 +10,16 @@ function repair_test_assert(bool $condition, string $message): void {
 
 $mainJs = file_get_contents(__DIR__ . "/../assets/js/main.js");
 $repairPage = file_get_contents(__DIR__ . "/../pages/customer/custo1_repair_option.php");
+$installationPage = file_get_contents(__DIR__ . "/../pages/customer/custo1_installation_option.php");
+$documentPrintingPage = file_get_contents(__DIR__ . "/../pages/customer/custo2_docu_printing.php");
 repair_test_assert(is_string($mainJs) && strpos($mainJs, "function getServitechCatalogRules()") !== false, "Catalog rule accessor is missing.");
 repair_test_assert(strpos($mainJs, "function servitechCatalogRules()") === false, "Catalog data is still shadowed by a global function.");
 repair_test_assert(strpos((string)$repairPage, "Choose device") !== false, "Device placeholder is missing.");
 repair_test_assert(strpos((string)$repairPage, "Choose service type") !== false, "Service Type placeholder is missing.");
 repair_test_assert(strpos((string)$repairPage, "No repair services are available for this device.") !== false, "Empty-device guidance is missing.");
+repair_test_assert(strpos((string)$repairPage, "payment-assessment-note") === false, "Repair Join Queue form must not render a payment section.");
+repair_test_assert(strpos((string)$installationPage, "payment-assessment-note") === false, "Installation Join Queue form must not render a payment section.");
+repair_test_assert(strpos((string)$documentPrintingPage, "id=\"paymentSection\"") !== false, "Document Printing payment section must remain available.");
 
 $sampleRule = ["option_value_keys" => ["device_type" => "phone", "repair_type" => "others"]];
 servitech_pricing_validate_repair_selection($sampleRule, ["device_type_key" => "phone", "repair_type_key" => "others"]);

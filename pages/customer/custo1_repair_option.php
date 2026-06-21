@@ -47,7 +47,7 @@ try {
   <title>ServiTech: Repair Option</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260621-assessment-payment">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-assessment-payment">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-join-form-wrap">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms"
@@ -112,11 +112,6 @@ try {
       <p class="form-note">A description is required when you select Others.</p>
     </div>
 
-    <div class="form-card payment-assessment-note" aria-live="polite">
-      <h3 class="step-title">PAYMENT TO BE ASSESSED</h3>
-      <p class="form-note">Payment is not required yet. The admin will assess your request first because the final price may vary.</p>
-    </div>
-
     <div class="customer-form-actions customer-step-actions">
       <a href="/pages/customer/customer_dash.php" class="btn-back">Back</a>
       <button type="button" class="btn-next btn-primary-action" id="joinQueueBtn" <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled data-availability-locked="true"' ?>>Join Queue</button>
@@ -141,7 +136,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechCatalogRules = <?= json_encode($repairRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
-<script src="/assets/js/main.js?v=20260621-assessment-payment"></script>
+<script src="/assets/js/main.js?v=20260621-no-service-payment-ui"></script>
 
 </body>
 </html>

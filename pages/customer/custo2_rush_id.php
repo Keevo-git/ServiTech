@@ -37,7 +37,7 @@ try {
   <title>ServiTech: Rush ID</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-join-form-wrap">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
   <style>

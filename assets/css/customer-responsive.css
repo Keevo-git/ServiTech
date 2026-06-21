@@ -2074,3 +2074,94 @@ body.customer-layout.customer-page--forms .customer-step-actions .queue-unavaila
 .radio-group label.is-unavailable input {
   cursor: not-allowed;
 }
+
+/* Join Queue form text-flow polish */
+body.customer-layout.customer-page--forms .form-page-intro,
+body.customer-layout.customer-page--forms .form-card,
+body.customer-layout.customer-page--forms .form-grid,
+body.customer-layout.customer-page--forms .form-grid > *,
+body.customer-layout.customer-page--forms .service-form-price-card,
+body.customer-layout.customer-page--order-summary .summary-card,
+body.customer-layout.customer-page--order-summary .summary-row,
+body.customer-layout.customer-page--order-summary .summary-total {
+  min-width: 0;
+}
+
+body.customer-layout.customer-page--forms .form-note,
+body.customer-layout.customer-page--forms .field-hint,
+body.customer-layout.customer-page--forms .file-note {
+  max-width: none;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+body.customer-layout.customer-page--forms .step-title,
+body.customer-layout.customer-page--forms .service-form-price-card__label,
+body.customer-layout.customer-page--order-summary .summary-title,
+body.customer-layout.customer-page--order-summary .summary-row span,
+body.customer-layout.customer-page--order-summary .summary-total span {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+body.customer-layout.customer-page--forms .service-form-price-card strong,
+body.customer-layout.customer-page--order-summary .summary-row strong,
+body.customer-layout.customer-page--order-summary .summary-total strong,
+body.customer-layout.customer-page--forms .radio-group label,
+body.customer-layout.customer-page--forms .static-text {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+body.customer-layout.customer-page--order-summary .summary-row,
+body.customer-layout.customer-page--order-summary .summary-total {
+  align-items: center;
+}
+
+body.customer-layout.customer-page--order-summary .summary-row span,
+body.customer-layout.customer-page--order-summary .summary-total span {
+  flex: 0 0 auto;
+}
+
+body.customer-layout.customer-page--order-summary .summary-row strong,
+body.customer-layout.customer-page--order-summary .summary-total strong {
+  flex: 1 1 auto;
+  min-width: 8rem;
+}
+
+@media (min-width: 640px) {
+  body.customer-layout.customer-page--forms .service-form-price-card {
+    align-items: center;
+    display: grid;
+    gap: 10px 18px;
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  body.customer-layout.customer-page--forms .service-form-price-card__label {
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 767px) {
+  body.customer-layout.customer-page--forms .form-note,
+  body.customer-layout.customer-page--forms .field-hint,
+  body.customer-layout.customer-page--forms .file-note,
+  body.customer-layout.customer-page--forms .service-form-price-card strong,
+  body.customer-layout.customer-page--forms .radio-group label,
+  body.customer-layout.customer-page--forms .static-text,
+  body.customer-layout.customer-page--order-summary .summary-row strong,
+  body.customer-layout.customer-page--order-summary .summary-total strong {
+    overflow-wrap: anywhere;
+  }
+
+  body.customer-layout.customer-page--order-summary .summary-row,
+  body.customer-layout.customer-page--order-summary .summary-total {
+    align-items: flex-start;
+  }
+
+  body.customer-layout.customer-page--order-summary .summary-row strong,
+  body.customer-layout.customer-page--order-summary .summary-total strong {
+    min-width: 0;
+  }
+}

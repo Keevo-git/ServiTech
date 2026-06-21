@@ -1492,14 +1492,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (typeof window.openQueueSuccessModal === "function") {
-        const assessmentPaymentFlow = payload.category === "repair" || payload.category === "installation";
+        const assessmentServiceFlow = payload.category === "repair" || payload.category === "installation";
         window.openQueueSuccessModal(result.queue_code, {
           service: buildServiceLabel(),
-          message: assessmentPaymentFlow
+          message: assessmentServiceFlow
             ? "Your queue has been submitted successfully. The admin will review your request and provide further details."
             : undefined,
-          note: assessmentPaymentFlow
-            ? "Payment is not required yet. The admin will assess your request first because the final price may vary."
+          note: assessmentServiceFlow
+            ? "The final service details may vary after review, so please check your queue status for updates."
             : undefined,
         });
       } else {

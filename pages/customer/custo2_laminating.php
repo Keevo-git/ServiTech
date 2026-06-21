@@ -50,7 +50,7 @@ try {
   <title>ServiTech: <?= htmlspecialchars($laminatingServiceName, ENT_QUOTES, "UTF-8") ?></title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-join-form-wrap">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="<?= htmlspecialchars($laminatingServiceName, ENT_QUOTES, "UTF-8") ?>" data-catalog-service-id="<?= (int)$laminatingCatalogServiceId ?>">
