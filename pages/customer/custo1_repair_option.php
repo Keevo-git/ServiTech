@@ -46,7 +46,7 @@ try {
   <title>ServiTech: Repair Option</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-step1-equal-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms"
@@ -73,6 +73,7 @@ try {
             <option value="" selected disabled>Choose device</option>
             <?php foreach ($repairDeviceOptions as $option): ?>
               <option value="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>"
+                      data-value-id="<?= (int)($option["id"] ?? 0) ?>"
                       data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
                 <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
               </option>
@@ -144,7 +145,8 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechCatalogServiceId = <?= (int)$repairServiceId ?>;
   window.servitechCatalogRules = <?= json_encode($repairRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260621-repair-queue-fix"></script>
+<script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
+<script src="/assets/js/main.js?v=20260621-option-ids"></script>
 
 </body>
 </html>

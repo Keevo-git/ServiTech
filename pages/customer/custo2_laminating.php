@@ -50,7 +50,7 @@ try {
   <title>ServiTech: <?= htmlspecialchars($laminatingServiceName, ENT_QUOTES, "UTF-8") ?></title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-label="<?= htmlspecialchars($laminatingServiceName, ENT_QUOTES, "UTF-8") ?>" data-catalog-service-id="<?= (int)$laminatingCatalogServiceId ?>">
@@ -83,7 +83,11 @@ try {
                   $ruleText = laminating_rule_label($rule);
                   $priceLabel = $rulePrice !== "" ? ("PHP " . $rulePrice) : "For assessment";
                 ?>
-                <option value="<?= htmlspecialchars($ruleValue, ENT_QUOTES, "UTF-8") ?>" data-rule-id="<?= (int)($rule["id"] ?? 0) ?>" data-price="<?= htmlspecialchars($rulePrice, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($ruleText . " - " . $priceLabel, ENT_QUOTES, "UTF-8") ?></option>
+                <option value="<?= htmlspecialchars($ruleValue, ENT_QUOTES, "UTF-8") ?>"
+                        data-rule-id="<?= (int)($rule["id"] ?? 0) ?>"
+                        data-value-id="<?= (int)($rule["option_value_ids"]["lamination_type"] ?? 0) ?>"
+                        data-value-key="<?= htmlspecialchars((string)($rule["option_value_keys"]["lamination_type"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
+                        data-price="<?= htmlspecialchars($rulePrice, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($ruleText . " - " . $priceLabel, ENT_QUOTES, "UTF-8") ?></option>
               <?php endforeach; ?>
               <?php if (!$laminatingCatalogRules): ?>
                 <option value="" disabled>No active lamination options available</option>
@@ -160,7 +164,8 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
+<script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
+<script src="/assets/js/main.js?v=20260621-option-ids"></script>
 
 </body>
 </html>

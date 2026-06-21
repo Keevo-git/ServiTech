@@ -26,6 +26,8 @@ try {
       if (($group["group_key"] ?? "") === "color_option") $documentColorOptions = $group["values"] ?? [];
     }
     $documentRules = $documentCatalog["rules"] ?? [];
+    $documentPaperOptions = servitech_catalog_values_used_by_rules($documentPaperOptions, $documentRules, "paper_size");
+    $documentColorOptions = servitech_catalog_values_used_by_rules($documentColorOptions, $documentRules, "color_option");
   }
 } catch (Throwable $e) {
   // Keep the order form usable if the service table is unavailable.
@@ -45,6 +47,9 @@ if (is_array($sessionPrintDraft)) {
     "total_pages" => max(0, (int)($sessionPrintDraft["total_pages"] ?? 0)),
     "price_per_page" => max(0, (float)($sessionPrintDraft["price_per_page"] ?? 0)),
     "estimated_total" => max(0, (float)($sessionPrintDraft["estimated_total"] ?? 0)),
+    "catalog_option_value_ids" => isset($sessionPrintDraft["catalog_option_value_ids"]) && is_array($sessionPrintDraft["catalog_option_value_ids"])
+      ? $sessionPrintDraft["catalog_option_value_ids"]
+      : [],
     "file_analysis" => isset($sessionPrintDraft["file_analysis"]) && is_array($sessionPrintDraft["file_analysis"]) ? $sessionPrintDraft["file_analysis"] : [],
     "uploaded_files" => isset($sessionPrintDraft["uploaded_files"]) && is_array($sessionPrintDraft["uploaded_files"]) ? $sessionPrintDraft["uploaded_files"] : [],
   ];
@@ -58,7 +63,7 @@ if (is_array($sessionPrintDraft)) {
   <title>ServiTech: <?= htmlspecialchars($documentPrintingLabel, ENT_QUOTES, "UTF-8") ?></title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <style>
     .printing-page {
@@ -462,6 +467,7 @@ if (is_array($sessionPrintDraft)) {
                 <option value="" selected>Select paper size</option>
                 <?php foreach ($documentPaperOptions as $option): ?>
                   <option value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                          data-value-id="<?= (int)($option["id"] ?? 0) ?>"
                           data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
                     <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
                   </option>
@@ -490,10 +496,13 @@ if (is_array($sessionPrintDraft)) {
                 <label>
                   <span class="color-option-left">
                     <input type="radio" name="color" value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                           data-value-id="<?= (int)($option["id"] ?? 0) ?>"
                            data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
                     <span><?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?></span>
                   </span>
-                  <span class="color-option-price" data-doc-color-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">Price to be confirmed</span>
+                  <span class="color-option-price"
+                        data-doc-color-id="<?= (int)($option["id"] ?? 0) ?>"
+                        data-doc-color-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">Price to be confirmed</span>
                 </label>
               <?php endforeach; ?>
               <?php if (!$documentColorOptions): ?>
@@ -581,12 +590,13 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
+<script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
+<script src="/assets/js/main.js?v=20260621-option-ids"></script>
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
 <script>
   window.servitechPrintOrderDraft = <?= json_encode($printDraft, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 window.servitechCatalogRules = <?= json_encode($documentRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260620-service-catalog"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260621-option-ids"></script>
 </body>
 </html>

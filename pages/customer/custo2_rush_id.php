@@ -37,7 +37,7 @@ try {
   <title>ServiTech: Rush ID</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
   <style>
@@ -164,6 +164,8 @@ try {
               ?>
                 <option value="<?= htmlspecialchars((string)$rule["rule_key"], ENT_QUOTES, "UTF-8") ?>"
                         data-rule-id="<?= (int)($rule["id"] ?? 0) ?>"
+                        data-value-id="<?= (int)($rule["option_value_ids"]["package"] ?? 0) ?>"
+                        data-value-key="<?= htmlspecialchars((string)($rule["option_value_keys"]["package"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
                         data-price="<?= $price !== null ? htmlspecialchars(number_format($price, 2, ".", ""), ENT_QUOTES, "UTF-8") : "" ?>">
                   <?= htmlspecialchars((string)($rule["label"] ?? "Package"), ENT_QUOTES, "UTF-8") ?>:
                   <?= htmlspecialchars((string)($rule["description"] ?? ""), ENT_QUOTES, "UTF-8") ?>
@@ -186,6 +188,8 @@ try {
                   <input type="checkbox" name="rushAddon"
                          value="<?= htmlspecialchars((string)($rule["rule_key"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
                          data-rule-id="<?= (int)($rule["id"] ?? 0) ?>"
+                         data-value-id="<?= (int)($rule["option_value_ids"]["addon"] ?? 0) ?>"
+                         data-value-key="<?= htmlspecialchars((string)($rule["option_value_keys"]["addon"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
                          data-price="<?= $addonPrice !== null ? htmlspecialchars(number_format($addonPrice, 2, ".", ""), ENT_QUOTES, "UTF-8") : "" ?>">
                   <span>
                     <strong><?= htmlspecialchars((string)($rule["option_labels"]["addon"] ?? $rule["label"] ?? "Add-On"), ENT_QUOTES, "UTF-8") ?></strong>
@@ -295,7 +299,8 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 window.servitechCatalogServiceId = <?= (int)$rushCatalogServiceId ?>;
 window.servitechCatalogRules = <?= json_encode(array_merge($rushPackageRules, $rushAddonRules), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260620-rush-addons"></script>
+<script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
+<script src="/assets/js/main.js?v=20260621-option-ids"></script>
 
 </body>
 </html>

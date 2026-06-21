@@ -36,7 +36,7 @@ try {
   <title>ServiTech: <?= htmlspecialchars($scanningServiceName, ENT_QUOTES, "UTF-8") ?></title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
 <body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary"
@@ -69,6 +69,7 @@ try {
                 if ($label === "") continue;
               ?>
                 <option value="<?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?>"
+                        data-value-id="<?= (int)($rule["option_value_ids"]["paper_size"] ?? 0) ?>"
                         data-value-key="<?= htmlspecialchars((string)$rule["option_value_keys"]["paper_size"], ENT_QUOTES, "UTF-8") ?>">
                   <?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?>
                 </option>
@@ -127,6 +128,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script>
 window.servitechCatalogRules = <?= json_encode($scanningCatalogRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260621-scanning-catalog"></script>
+<script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
+<script src="/assets/js/main.js?v=20260621-option-ids"></script>
 </body>
 </html>

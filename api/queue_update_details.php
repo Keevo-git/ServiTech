@@ -206,6 +206,9 @@ try {
   } else {
     unset($details["catalog_pricing_rule_id"]);
   }
+  if (isset($data["catalog_option_value_ids"]) && is_array($data["catalog_option_value_ids"])) {
+    $details["catalog_option_value_ids"] = $data["catalog_option_value_ids"];
+  }
   if ($serviceKind === "rush_id") {
     $details["catalog_addon_rule_ids"] = isset($data["catalog_addon_rule_ids"]) && is_array($data["catalog_addon_rule_ids"])
       ? array_values($data["catalog_addon_rule_ids"])

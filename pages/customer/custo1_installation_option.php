@@ -9,6 +9,7 @@ servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
 $installationServiceId = 0;
+$installationServiceName = "Installation Services";
 $installationRules = [];
 $installationDeviceOptions = [];
 $installationDeviceMode = false;
@@ -16,6 +17,7 @@ try {
   $installationService = servitech_catalog_fetch_service_by_kind($pdo, "installation", true);
   if (is_array($installationService)) {
     $installationServiceId = (int)$installationService["id"];
+    $installationServiceName = trim((string)($installationService["name"] ?? "")) ?: $installationServiceName;
     $catalog = servitech_catalog_fetch($pdo, $installationServiceId, true);
     $installationRules = $catalog["rules"] ?? [];
     foreach ($catalog["groups"] ?? [] as $group) {
@@ -49,10 +51,12 @@ try {
   <title>ServiTech: Installation Services</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-step1-equal-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
-<body class="customer-layout customer-page--forms" data-service="installation">
+<body class="customer-layout customer-page--forms" data-service="installation"
+      data-service-label="<?= htmlspecialchars($installationServiceName, ENT_QUOTES, "UTF-8") ?>"
+      data-catalog-service-id="<?= (int)$installationServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -74,6 +78,7 @@ try {
             <option value="" selected disabled>Select Device</option>
             <?php foreach ($installationDeviceOptions as $option): ?>
               <option value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                      data-value-id="<?= (int)($option["id"] ?? 0) ?>"
                       data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
                 <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
               </option>
@@ -94,6 +99,8 @@ try {
               <option value="<?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?>"
                       data-catalog-id="<?= (int)$installationServiceId ?>"
                       data-rule-id="<?= (int)($rule["id"] ?? 0) ?>"
+                      data-value-id="<?= (int)($rule["option_value_ids"]["installation_type"] ?? 0) ?>"
+                      data-value-key="<?= htmlspecialchars((string)($rule["option_value_keys"]["installation_type"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
                       data-price-range="<?= htmlspecialchars($priceRange, ENT_QUOTES, "UTF-8") ?>">
                 <?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?>
               </option>
@@ -156,6 +163,7 @@ $joinQueueBackUrl = "/pages/customer/customer_dash.php";
 include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
+<script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
 <script>
   window.servitechCatalogServiceId = <?= (int)$installationServiceId ?>;
   window.servitechCatalogRules = <?= json_encode($installationRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
@@ -173,10 +181,12 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 
     function populateServices() {
       if (!device) return;
-      const deviceKey = device.options[device.selectedIndex]?.dataset?.valueKey || '';
+      const deviceSelection = window.ServitechCatalogClient.selectionMap([
+        window.ServitechCatalogClient.fromSelect(device, 'device_type')
+      ]);
       sel.innerHTML = '<option value="" selected disabled>Select Installation Service</option>';
       (window.servitechCatalogRules || [])
-        .filter((rule) => rule?.option_value_keys?.device_type === deviceKey)
+        .filter((rule) => window.ServitechCatalogClient.ruleMatches(rule, deviceSelection, false))
         .forEach((rule) => {
           const option = document.createElement('option');
           const label = rule?.option_labels?.installation_type || rule?.label || 'Installation Service';
@@ -184,6 +194,8 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
           option.textContent = label;
           option.dataset.catalogId = String(window.servitechCatalogServiceId || 0);
           option.dataset.ruleId = String(rule?.id || 0);
+          option.dataset.valueId = String(rule?.option_value_ids?.installation_type || 0);
+          option.dataset.valueKey = String(rule?.option_value_keys?.installation_type || '');
           option.dataset.priceRange = priceLabel(rule);
           sel.appendChild(option);
         });
@@ -206,7 +218,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 </script>
 
 <script src="/assets/js/csrf.js"></script>
-<script src="/assets/js/main.js?v=20260621-installation-device-mode"></script>
+<script src="/assets/js/main.js?v=20260621-option-ids"></script>
 
 </body>
 </html>

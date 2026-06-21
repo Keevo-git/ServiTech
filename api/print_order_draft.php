@@ -40,6 +40,9 @@ $color_option = trim((string)($data["color_option"] ?? ""));
 $payment_method = strtolower(trim((string)($data["payment_method"] ?? "")));
 $uploaded_files = isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [];
 $catalog_pricing_rule_id = isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : 0;
+$catalog_option_value_ids = isset($data["catalog_option_value_ids"]) && is_array($data["catalog_option_value_ids"])
+  ? $data["catalog_option_value_ids"]
+  : [];
 
 $errors = [];
 if ($paper_size === "") {
@@ -59,6 +62,9 @@ if ($quantity < 1) {
 }
 if ($color_option === "") {
   $errors[] = "Color option is required.";
+}
+if (!$catalog_option_value_ids) {
+  $errors[] = "Please refresh this page and select the service options again.";
 }
 if (!in_array($payment_method, ["cash", "gcash"], true)) {
   $errors[] = "Select a valid payment method.";
@@ -126,6 +132,7 @@ $draft = [
   "uploaded_files" => $uploaded_files,
   "catalog_service_id" => isset($data["catalog_service_id"]) ? max(0, (int)$data["catalog_service_id"]) : null,
   "catalog_pricing_rule_id" => $catalog_pricing_rule_id ?: null,
+  "catalog_option_value_ids" => $catalog_option_value_ids,
   "created_at" => date(DATE_ATOM),
 ];
 $draft = servitech_upload_apply_metadata_to_details($draft, $uploaded_files);

@@ -2693,9 +2693,11 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     let uploadedFiles = [];
     try {
       uploadedFiles = await uploadEditFiles(statusEditFields?.querySelector('[name="files"]'), currentDetailQueue);
+      const selectedRule = selectedCatalogRuleForEdit(currentDetailQueue);
       const payload = {
         queue_id: currentDetailQueue.id,
-        catalog_pricing_rule_id: selectedCatalogRuleForEdit(currentDetailQueue) ? Number(selectedCatalogRuleForEdit(currentDetailQueue).id) || null : null,
+        catalog_pricing_rule_id: selectedRule ? Number(selectedRule.id) || null : null,
+        catalog_option_value_ids: selectedRule?.option_value_ids || {},
         catalog_addon_rule_ids: Array.from(statusEditFields?.querySelectorAll('[name="catalog_addon_rule_ids"]:checked') || [])
           .map((input) => Number(input.value || 0))
           .filter((id) => id > 0),

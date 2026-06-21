@@ -25,6 +25,8 @@ try {
       if (($group["group_key"] ?? "") === "color_option") $xeroxColorOptions = $group["values"] ?? [];
     }
     $xeroxCatalogRules = $catalog["rules"] ?? [];
+    $xeroxPaperOptions = servitech_catalog_values_used_by_rules($xeroxPaperOptions, $xeroxCatalogRules, "paper_size");
+    $xeroxColorOptions = servitech_catalog_values_used_by_rules($xeroxColorOptions, $xeroxCatalogRules, "color_option");
   }
 } catch (Throwable $e) {
   // Keep the photocopy form usable if service pricing cannot be loaded.
@@ -40,10 +42,10 @@ try {
   <title>ServiTech: Photocopy</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
-  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260620-customer-form-actions">
+  <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-catalog-options">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>
-<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="xerox" data-service-label="Photocopy" data-catalog-service-id="<?= (int)$xeroxCatalogServiceId ?>">
+<body class="customer-layout customer-page--forms customer-page--custo2 customer-page--order-summary" data-service="printing" data-service-kind="photocopy" data-service-label="Photocopy" data-catalog-service-id="<?= (int)$xeroxCatalogServiceId ?>">
 
 <?php include __DIR__ . "/../../components/header.php"; ?>
 
@@ -68,6 +70,7 @@ try {
                 <option value="" selected disabled>Select paper size</option>
                 <?php foreach ($xeroxPaperOptions as $option): ?>
                   <option value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                          data-value-id="<?= (int)($option["id"] ?? 0) ?>"
                           data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
                     <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
                   </option>
@@ -83,6 +86,7 @@ try {
                 <label>
                   <input type="radio" name="color"
                          value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                         data-value-id="<?= (int)($option["id"] ?? 0) ?>"
                          data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
                   <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
                 </label>
@@ -168,7 +172,8 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 <script>
 window.servitechCatalogRules = <?= json_encode($xeroxCatalogRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
+<script src="/assets/js/service_catalog_client.js?v=20260621-option-ids"></script>
+<script src="/assets/js/main.js?v=20260621-option-ids"></script>
 
 </body>
 </html>

@@ -95,23 +95,28 @@ function getServitechCatalogRules() {
   return Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : [];
 }
 
-function selectedOptionValueKey(select) {
-  const option = select?.options?.[select.selectedIndex];
-  return option && option.dataset ? (option.dataset.valueKey || "") : "";
+function catalogSelectionFromSelect(select, groupKey) {
+  return window.ServitechCatalogClient?.fromSelect(select, groupKey) || null;
 }
 
-function checkedValueKey(name) {
-  const checked = document.querySelector(`input[name="${name}"]:checked`);
-  return checked && checked.dataset ? (checked.dataset.valueKey || "") : "";
+function catalogSelectionFromChecked(name, groupKey) {
+  return window.ServitechCatalogClient?.fromChecked(name, groupKey, document) || null;
 }
 
-function findCatalogRuleByKeys(keys) {
-  const entries = Object.entries(keys).filter(([, value]) => String(value || "") !== "");
-  if (!entries.length) return null;
-  return getServitechCatalogRules().find((rule) => {
-    const ruleKeys = rule?.option_value_keys || {};
-    return Number(rule?.active) !== 0 && entries.every(([key, value]) => String(ruleKeys[key] || "") === String(value));
-  }) || null;
+function catalogSelectionMap(items) {
+  return window.ServitechCatalogClient?.selectionMap(items) || {};
+}
+
+function selectedOptionValueKey(select, groupKey = "option") {
+  return catalogSelectionFromSelect(select, groupKey)?.value_key || "";
+}
+
+function findCatalogRuleBySelection(selection) {
+  return window.ServitechCatalogClient?.findRule(getServitechCatalogRules(), selection) || null;
+}
+
+function catalogOptionIdMap(selection) {
+  return window.ServitechCatalogClient?.optionIdMap(selection) || {};
 }
 
 function formatCatalogRuleDisplayPrice(rule) {
@@ -828,7 +833,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const svc = document.body?.dataset?.service || "";
   const serviceMode = document.body?.dataset?.serviceKind || svc;
-  const isXerox = serviceMode === "xerox";
+  const isPhotocopy = serviceMode === "photocopy" || serviceMode === "xerox";
   const isScanning = serviceMode === "scanning";
 
 
@@ -841,6 +846,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const raw = String(qtyInput.value || "").trim();
     if (raw === "") return NaN;
     return parseInt(raw, 10);
+  }
+
+  function syncPhotocopyColorAvailability() {
+    if (!isPhotocopy || !paperSizeSelect) return;
+    const paper = catalogSelectionFromSelect(paperSizeSelect, "paper_size");
+    colorRadios.forEach((radio) => {
+      const color = {
+        group_key: "color_option",
+        value_id: Number(radio.dataset.valueId || 0),
+        value_key: radio.dataset.valueKey || radio.value || "",
+        label: radio.value || "",
+      };
+      const rule = paper
+        ? findCatalogRuleBySelection(catalogSelectionMap([paper, color]))
+        : null;
+      radio.disabled = !rule;
+      radio.closest("label")?.classList.toggle("is-unavailable", !rule);
+      if (!rule && radio.checked) radio.checked = false;
+      radio.title = rule ? formatCatalogRuleDisplayPrice(rule) : "No active price setup for this paper size";
+    });
   }
 
   function updateSummary() {
@@ -894,18 +919,21 @@ document.addEventListener("DOMContentLoaded", () => {
         || addonPrices.some((price) => !Number.isFinite(price));
       canCompute = canCompute && !!packageSelect.value && !opt?.disabled && Number.isFinite(p) && !assessmentPrice;
       pricePerItem = canCompute ? p + addonPrices.reduce((sum, price) => sum + price, 0) : 0;
-    } else if (isXerox && paperSizeSelect) {
+    } else if (isPhotocopy && paperSizeSelect) {
       const size = paperSizeSelect.value;
-      const rule = findCatalogRuleByKeys({
-        paper_size: selectedOptionValueKey(paperSizeSelect),
-        color_option: checkedValueKey("color"),
-      });
+      const selection = catalogSelectionMap([
+        catalogSelectionFromSelect(paperSizeSelect, "paper_size"),
+        catalogSelectionFromChecked("color", "color_option"),
+      ]);
+      const rule = findCatalogRuleBySelection(selection);
       const price = rule && rule.price_type !== "assessment" ? Number(rule.price) : NaN;
+      assessmentPrice = !!rule && rule.price_type === "assessment";
       canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(price);
       pricePerItem = canCompute ? price : 0;
     } else if (isScanning && paperSizeSelect) {
       const size = paperSizeSelect.value;
-      const rule = findCatalogRuleByKeys({ paper_size: selectedOptionValueKey(paperSizeSelect) });
+      const selection = catalogSelectionMap([catalogSelectionFromSelect(paperSizeSelect, "paper_size")]);
+      const rule = findCatalogRuleBySelection(selection);
       const price = rule && rule.price_type !== "assessment" ? Number(rule.price) : NaN;
       assessmentPrice = !!rule && rule.price_type === "assessment";
       canCompute = canCompute && !!size && !paperSizeSelect.selectedOptions[0]?.disabled && Number.isFinite(price);
@@ -920,7 +948,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  if (paperSizeSelect) paperSizeSelect.addEventListener("change", updateSummary);
+  if (paperSizeSelect) paperSizeSelect.addEventListener("change", () => {
+    syncPhotocopyColorAvailability();
+    updateSummary();
+  });
   if (lamTypeSelect) lamTypeSelect.addEventListener("change", updateSummary);
   if (packageSelect) packageSelect.addEventListener("change", updateSummary);
   rushAddonInputs.forEach((input) => input.addEventListener("change", updateSummary));
@@ -928,6 +959,7 @@ document.addEventListener("DOMContentLoaded", () => {
   qtyInput.addEventListener("input", updateSummary);
   colorRadios.forEach((r) => r.addEventListener("change", updateSummary));
 
+  syncPhotocopyColorAvailability();
   updateSummary();
 });
 
@@ -951,7 +983,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function populateRepairTypeOptions() {
-    const deviceKey = selectedOptionValueKey(deviceTypeSelect);
+    const deviceSelection = catalogSelectionMap([
+      catalogSelectionFromSelect(deviceTypeSelect, "device_type"),
+    ]);
+    const deviceKey = deviceSelection.device_type?.value_key || "";
     repairServiceSelect.innerHTML = '<option value="" selected disabled>Choose service type</option>';
     repairServiceSelect.disabled = true;
     if (repairServiceStep) repairServiceStep.hidden = !deviceKey;
@@ -962,7 +997,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!deviceKey) return;
 
     const matchingRules = getServitechCatalogRules()
-      .filter((rule) => rule?.option_value_keys?.device_type === deviceKey && Number(rule.active) !== 0);
+      .filter((rule) => window.ServitechCatalogClient?.ruleMatches(rule, deviceSelection, false));
 
     if (!matchingRules.length) {
       if (repairAvailabilityMessage) repairAvailabilityMessage.hidden = false;
@@ -977,6 +1012,8 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = label;
         option.dataset.ruleId = String(rule.id || 0);
         option.dataset.catalogId = String(window.servitechCatalogServiceId || document.body?.dataset?.catalogServiceId || 0);
+        option.dataset.valueId = String(rule.option_value_ids?.repair_type || 0);
+        option.dataset.valueKey = String(rule.option_value_keys?.repair_type || "");
         option.dataset.priceRange = priceLabel;
         option.dataset.serviceLabel = label;
         repairServiceSelect.appendChild(option);
@@ -1031,7 +1068,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const svc = (document.body?.dataset?.service || "").toLowerCase();
   const serviceMode = (document.body?.dataset?.serviceKind || svc).toLowerCase();
-  const isXerox = serviceMode === "xerox";
+  const isPhotocopy = serviceMode === "photocopy" || serviceMode === "xerox";
   const isScanning = serviceMode === "scanning";
 
   function readQuantityValue() {
@@ -1166,44 +1203,67 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter((input) => input.checked)
         .map((input) => Number(input.dataset.ruleId || 0))
         .filter((id) => id > 0),
+      catalog_option_value_ids: {},
     };
 
     if (refs.repairServiceSelect) {
       const selectedOption = refs.repairServiceSelect.options[refs.repairServiceSelect.selectedIndex];
+      const selection = catalogSelectionMap([
+        catalogSelectionFromSelect(refs.deviceTypeSelect, "device_type"),
+        catalogSelectionFromSelect(refs.repairServiceSelect, "repair_type"),
+      ]);
       payload.catalog_service_id = Number(selectedOption?.dataset?.catalogId || 0) || payload.catalog_service_id;
       payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
       payload.repair_type_key = refs.repairServiceSelect.value || null;
+      payload.catalog_option_value_ids = catalogOptionIdMap(selection);
     }
 
     if (refs.installationTypeSelect) {
       const selectedOption = refs.installationTypeSelect.options[refs.installationTypeSelect.selectedIndex];
+      const selection = catalogSelectionMap([
+        catalogSelectionFromSelect(refs.deviceTypeSelect, "device_type"),
+        catalogSelectionFromSelect(refs.installationTypeSelect, "installation_type"),
+      ]);
       payload.catalog_service_id = Number(selectedOption?.dataset?.catalogId || 0) || payload.catalog_service_id;
       payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
+      payload.catalog_option_value_ids = catalogOptionIdMap(selection);
     }
 
     if (refs.packageSelect) {
       payload.service_option_key = refs.packageSelect.value || null;
       const selectedOption = refs.packageSelect.options[refs.packageSelect.selectedIndex];
       payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
+      payload.catalog_option_value_ids = catalogOptionIdMap(catalogSelectionMap([
+        catalogSelectionFromSelect(refs.packageSelect, "package"),
+      ]));
     }
 
     if (refs.lamTypeSelect) {
       payload.service_option_key = refs.lamTypeSelect.value || null;
       const selectedOption = refs.lamTypeSelect.options[refs.lamTypeSelect.selectedIndex];
       payload.catalog_pricing_rule_id = Number(selectedOption?.dataset?.ruleId || 0) || payload.catalog_pricing_rule_id || null;
+      payload.catalog_option_value_ids = catalogOptionIdMap(catalogSelectionMap([
+        catalogSelectionFromSelect(refs.lamTypeSelect, "lamination_type"),
+      ]));
     }
 
-    if (isXerox && refs.paperSizeSelect) {
-      const rule = findCatalogRuleByKeys({
-        paper_size: selectedOptionValueKey(refs.paperSizeSelect),
-        color_option: checkedValueKey("color"),
-      });
+    if (isPhotocopy && refs.paperSizeSelect) {
+      const selection = catalogSelectionMap([
+        catalogSelectionFromSelect(refs.paperSizeSelect, "paper_size"),
+        catalogSelectionFromChecked("color", "color_option"),
+      ]);
+      const rule = findCatalogRuleBySelection(selection);
       payload.catalog_pricing_rule_id = Number(rule?.id || 0) || payload.catalog_pricing_rule_id || null;
       payload.service_option_key = rule?.rule_key || null;
+      payload.catalog_option_value_ids = catalogOptionIdMap(selection);
     } else if (isScanning && refs.paperSizeSelect) {
-      const rule = findCatalogRuleByKeys({ paper_size: selectedOptionValueKey(refs.paperSizeSelect) });
+      const selection = catalogSelectionMap([
+        catalogSelectionFromSelect(refs.paperSizeSelect, "paper_size"),
+      ]);
+      const rule = findCatalogRuleBySelection(selection);
       payload.catalog_pricing_rule_id = Number(rule?.id || 0) || payload.catalog_pricing_rule_id || null;
       payload.service_option_key = rule?.rule_key || null;
+      payload.catalog_option_value_ids = catalogOptionIdMap(selection);
     }
 
     return payload;
@@ -1272,22 +1332,28 @@ document.addEventListener("DOMContentLoaded", () => {
       setRadioInvalid("color", true);
     }
 
-    if (isXerox && refs.paperSizeSelect && payload.paper_size && payload.color_option) {
-      const rule = findCatalogRuleByKeys({
-        paper_size: selectedOptionValueKey(refs.paperSizeSelect),
-        color_option: checkedValueKey("color"),
-      });
+    if (isPhotocopy && refs.paperSizeSelect && payload.paper_size && payload.color_option) {
+      const selection = catalogSelectionMap([
+        catalogSelectionFromSelect(refs.paperSizeSelect, "paper_size"),
+        catalogSelectionFromChecked("color", "color_option"),
+      ]);
+      const rule = findCatalogRuleBySelection(selection);
       if (!rule) {
-        errors.push("The selected photocopy combination is currently unavailable.");
+        errors.push("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
+        window.ServitechCatalogClient?.debugUnavailable("Photocopy", selection, getServitechCatalogRules());
         setFieldInvalid(refs.paperSizeSelect, true);
         setRadioInvalid("color", true);
       }
     }
 
     if (isScanning && refs.paperSizeSelect && payload.paper_size) {
-      const rule = findCatalogRuleByKeys({ paper_size: selectedOptionValueKey(refs.paperSizeSelect) });
+      const selection = catalogSelectionMap([
+        catalogSelectionFromSelect(refs.paperSizeSelect, "paper_size"),
+      ]);
+      const rule = findCatalogRuleBySelection(selection);
       if (!rule) {
-        errors.push("The selected scanning paper size is currently unavailable.");
+        errors.push("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
+        window.ServitechCatalogClient?.debugUnavailable("Scanning", selection, getServitechCatalogRules());
         setFieldInvalid(refs.paperSizeSelect, true);
       }
     }

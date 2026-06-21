@@ -115,41 +115,16 @@
       return checked ? checked.value : "";
     }
 
-    function normalizePaperKey(value) {
-      var paper = (value || "").trim().toLowerCase();
-      if (paper.indexOf("letter") !== -1 || paper.indexOf("short bond") !== -1 || paper.indexOf("8.5 x 11") !== -1) return "letter";
-      if (paper.indexOf("8.5x13") !== -1 || paper.indexOf("8.5 x 13") !== -1 || paper.indexOf("long bond") !== -1) return "long";
-      if (paper === "a4") return "a4";
-      return "";
-    }
-
-    function normalizeColorKey(value) {
-      var color = (value || "").trim().toLowerCase();
-      if (color === "black & white" || color === "black and white" || color === "bw") return "bw";
-      if (color === "full colored" || color === "colored full" || color === "colored (full)") return "full";
-      if (color === "half colored" || color === "colored half" || color === "colored (half)") return "half";
-      return "";
-    }
-
-    function getSelectedPaperKey() {
-      var selected = paperSizeSelect.options[paperSizeSelect.selectedIndex];
-      return selected && selected.dataset ? (selected.dataset.valueKey || "") : "";
-    }
-
-    function getSelectedColorKey() {
-      var checked = document.querySelector('input[name="color"]:checked');
-      return checked && checked.dataset ? (checked.dataset.valueKey || "") : "";
+    function selectedCatalogOptions() {
+      return window.ServitechCatalogClient.selectionMap([
+        window.ServitechCatalogClient.fromSelect(paperSizeSelect, "paper_size"),
+        window.ServitechCatalogClient.fromChecked("color", "color_option", document)
+      ]);
     }
 
     function findSelectedCatalogRule() {
       var rules = Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : [];
-      var paperKey = getSelectedPaperKey();
-      var colorKey = getSelectedColorKey();
-      if (!paperKey || !colorKey) return null;
-      return rules.find(function (rule) {
-        var keys = rule && rule.option_value_keys ? rule.option_value_keys : {};
-        return keys.paper_size === paperKey && keys.color_option === colorKey && Number(rule.active) !== 0;
-      }) || null;
+      return window.ServitechCatalogClient.findRule(rules, selectedCatalogOptions());
     }
 
     function getClientPricePerPage() {
@@ -175,18 +150,32 @@
 
     function updateColorPriceLabels() {
       var rules = Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : [];
-      var paperKey = getSelectedPaperKey();
+      var paper = window.ServitechCatalogClient.fromSelect(paperSizeSelect, "paper_size");
       document.querySelectorAll("[data-doc-color-key]").forEach(function (el) {
-        var colorKey = el.dataset.docColorKey || "";
-        var rule = rules.find(function (item) {
-          var keys = item && item.option_value_keys ? item.option_value_keys : {};
-          return keys.paper_size === paperKey && keys.color_option === colorKey && Number(item.active) !== 0;
+        var color = {
+          group_key: "color_option",
+          value_id: Number(el.dataset.docColorId || 0),
+          value_key: el.dataset.docColorKey || "",
+          label: el.closest("label")?.textContent?.trim() || ""
+        };
+        var rule = window.ServitechCatalogClient.findRule(
+          rules,
+          window.ServitechCatalogClient.selectionMap([paper, color])
+        );
+        var radio = Array.from(document.querySelectorAll('input[name="color"]')).find(function (input) {
+          return Number(input.dataset.valueId || 0) === color.value_id
+            || String(input.dataset.valueKey || "") === color.value_key;
         });
+        if (radio) {
+          radio.disabled = !rule;
+          radio.closest("label")?.classList.toggle("is-unavailable", !rule);
+          if (!rule && radio.checked) radio.checked = false;
+        }
         if (!el) return;
         var price = Number(rule && rule.price);
-        el.textContent = rule && rule.price_type !== "assessment" && Number.isFinite(price)
-          ? toPeso(price)
-          : "For assessment";
+        el.textContent = !rule
+          ? "Unavailable"
+          : (rule.price_type !== "assessment" && Number.isFinite(price) ? toPeso(price) : "For assessment");
       });
     }
 
@@ -406,10 +395,12 @@
       return 0;
     }
 
-    function setSelectedColor(value) {
+    function setSelectedColor(value, valueId) {
       var normalized = (value || "").trim().toLowerCase();
       document.querySelectorAll('input[name="color"]').forEach(function (radio) {
-        radio.checked = radio.value.trim().toLowerCase() === normalized;
+        radio.checked = Number(valueId || 0) > 0
+          ? Number(radio.dataset.valueId || 0) === Number(valueId)
+          : radio.value.trim().toLowerCase() === normalized;
       });
     }
 
@@ -1102,6 +1093,7 @@
         service_label: "Document Print",
         catalog_service_id: Number(document.body && document.body.dataset ? document.body.dataset.catalogServiceId : 0) || null,
         catalog_pricing_rule_id: findSelectedCatalogRule() ? Number(findSelectedCatalogRule().id) || null : null,
+        catalog_option_value_ids: window.ServitechCatalogClient.optionIdMap(selectedCatalogOptions()),
         paper_size: paperSizeSelect.value || null,
         quantity: getEnteredQuantity(),
         color_option: getSelectedColor(),
@@ -1138,7 +1130,12 @@
       }
 
       if (payload.paper_size && payload.color_option && !findSelectedCatalogRule()) {
-        errors.push("The selected paper/color combination is currently unavailable.");
+        errors.push("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
+        window.ServitechCatalogClient.debugUnavailable(
+          "Document Printing",
+          selectedCatalogOptions(),
+          Array.isArray(window.servitechCatalogRules) ? window.servitechCatalogRules : []
+        );
         setFieldInvalid(paperSizeSelect, true);
         setRadioInvalid("color", true);
       }
@@ -1229,14 +1226,18 @@
 
       paymentMethodSelect.value = draftState.payment_method || "";
       var restoredPaperSize = draftState.paper_size || "";
-      if (restoredPaperSize === "Short Bond (8.5 x 11)") restoredPaperSize = "Letter";
-      if (restoredPaperSize === "Long Bond (8.5 x 13)") restoredPaperSize = "8.5x13";
-      paperSizeSelect.value = Array.from(paperSizeSelect.options).some((option) => option.value === restoredPaperSize) ? restoredPaperSize : "";
+      var restoredOptionIds = draftState.catalog_option_value_ids || {};
+      var restoredPaperOption = Array.from(paperSizeSelect.options).find(function (option) {
+        return Number(restoredOptionIds.paper_size || 0) > 0
+          ? Number(option.dataset.valueId || 0) === Number(restoredOptionIds.paper_size)
+          : option.value === restoredPaperSize;
+      });
+      paperSizeSelect.value = restoredPaperOption ? restoredPaperOption.value : "";
       qtyInput.value = String(Math.max(1, parseInt(draftState.quantity, 10) || 1));
       if (notesInput) {
         notesInput.value = draftState.notes || "";
       }
-      setSelectedColor(draftState.color_option || "");
+      setSelectedColor(draftState.color_option || "", restoredOptionIds.color_option || 0);
 
       state.files = Array.isArray(draftState.file_analysis) ? draftState.file_analysis.slice() : [];
       state.file_names = Array.isArray(draftState.file_names) ? draftState.file_names.slice() : [];

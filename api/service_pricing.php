@@ -231,6 +231,51 @@ function servitech_pricing_validate_repair_selection(array $rule, array $details
   }
 }
 
+function servitech_pricing_normalize_option_ids($value): array {
+  if (!is_array($value)) return [];
+  $normalized = [];
+  foreach ($value as $groupKey => $optionId) {
+    $groupKey = servitech_catalog_slug((string)$groupKey);
+    $optionId = (int)$optionId;
+    if ($groupKey !== "" && $optionId > 0) $normalized[$groupKey] = $optionId;
+  }
+  ksort($normalized);
+  return $normalized;
+}
+
+function servitech_pricing_log_catalog_issue(string $reason, array $service, array $details, ?array $rule = null): void {
+  $context = [
+    "reason" => $reason,
+    "service_id" => (int)($service["id"] ?? 0),
+    "service_name" => (string)($service["name"] ?? $details["service_label"] ?? ""),
+    "pricing_rule_id" => (int)($details["catalog_pricing_rule_id"] ?? 0),
+    "selected_option_ids" => servitech_pricing_normalize_option_ids($details["catalog_option_value_ids"] ?? []),
+    "selected_labels" => array_filter([
+      "paper_size" => $details["paper_size"] ?? null,
+      "color_option" => $details["color_option"] ?? null,
+      "package" => $details["package_label"] ?? null,
+      "lamination_type" => $details["lamination_type"] ?? null,
+      "device_type" => $details["device_type"] ?? null,
+    ], static fn($value) => $value !== null && $value !== ""),
+    "expected_option_ids" => servitech_pricing_normalize_option_ids($rule["option_value_ids"] ?? []),
+    "expected_rule_key" => (string)($rule["rule_key"] ?? ""),
+  ];
+  error_log("ServiTech catalog selection failure: " . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+}
+
+function servitech_pricing_validate_catalog_option_ids(array $rule, array $service, array $details): array {
+  $wasSubmitted = array_key_exists("catalog_option_value_ids", $details);
+  $submitted = servitech_pricing_normalize_option_ids($details["catalog_option_value_ids"] ?? []);
+  $expected = servitech_pricing_normalize_option_ids($rule["option_value_ids"] ?? []);
+  // Existing records created before option-ID snapshots can still be repriced from their saved rule ID.
+  if (!$wasSubmitted) return $expected;
+  if ($submitted !== $expected) {
+    servitech_pricing_log_catalog_issue("selected_option_ids_do_not_match_rule", $service, $details, $rule);
+    throw new DomainException("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
+  }
+  return $expected;
+}
+
 function servitech_pricing_apply_snapshot(array $details, array $service, string $optionId, string $optionName, ?float $price, string $status, string $optionDetails = ""): array {
   $serviceId = (int)($service["id"] ?? 0);
   $serviceName = (string)($service["name"] ?? "");
@@ -271,17 +316,21 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   $catalogRuleId = isset($details["catalog_pricing_rule_id"]) ? (int)$details["catalog_pricing_rule_id"] : 0;
   $catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning", "repair", "installation"];
   if ($catalogRuleId <= 0 && in_array($kind, $catalogManagedKinds, true)) {
-    throw new DomainException("Select a valid active service option from the service catalog.");
+    servitech_pricing_log_catalog_issue("pricing_rule_id_missing", $service, $details);
+    throw new DomainException("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
   }
   if ($catalogRuleId > 0) {
     $catalog = servitech_catalog_fetch($pdo, (int)$service["id"], true);
     $rule = servitech_catalog_find_rule($catalog, $catalogRuleId);
     if (!$rule) {
-      throw new DomainException("The selected service option is currently unavailable.");
+      servitech_pricing_log_catalog_issue("active_pricing_rule_not_found", $service, $details);
+      throw new DomainException("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
     }
 
     $ruleLabel = servitech_catalog_rule_display_label($rule);
-    $details["selected_option_value_ids"] = array_values(array_map("intval", $rule["option_value_ids"] ?? []));
+    $validatedOptionIds = servitech_pricing_validate_catalog_option_ids($rule, $service, $details);
+    $details["selected_option_value_ids"] = array_values($validatedOptionIds);
+    $details["selected_option_value_id_map"] = $validatedOptionIds;
     $details["selected_option_labels_snapshot"] = $rule["option_labels"] ?? [];
     $priceType = (string)($rule["price_type"] ?? "assessment");
     $fixedPrice = ($priceType === "fixed" && isset($rule["price"]) && is_numeric($rule["price"]))

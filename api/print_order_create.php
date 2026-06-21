@@ -133,6 +133,9 @@ $details = [
   "uploaded_files" => isset($draft["uploaded_files"]) && is_array($draft["uploaded_files"]) ? $draft["uploaded_files"] : [],
   "catalog_service_id" => isset($draft["catalog_service_id"]) ? max(0, (int)$draft["catalog_service_id"]) : null,
   "catalog_pricing_rule_id" => $catalog_pricing_rule_id ?: null,
+  "catalog_option_value_ids" => isset($draft["catalog_option_value_ids"]) && is_array($draft["catalog_option_value_ids"])
+    ? $draft["catalog_option_value_ids"]
+    : null,
 ];
 
 foreach ($details as $key => $value) {

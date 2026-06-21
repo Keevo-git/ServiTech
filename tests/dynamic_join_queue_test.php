@@ -1,0 +1,74 @@
+<?php
+
+require_once __DIR__ . "/../api/service_pricing.php";
+
+function dynamic_queue_assert(bool $condition, string $message): void {
+  if (!$condition) {
+    fwrite(STDERR, "FAIL: {$message}\n");
+    exit(1);
+  }
+}
+
+$rule = [
+  "id" => 302,
+  "rule_key" => "8_5x13_colored",
+  "option_value_ids" => ["paper_size" => 13, "color_option" => 21],
+];
+$service = ["id" => 7, "name" => "Photocopy"];
+$details = [
+  "catalog_pricing_rule_id" => 302,
+  "catalog_option_value_ids" => ["color_option" => "21", "paper_size" => 13],
+];
+
+$validated = servitech_pricing_validate_catalog_option_ids($rule, $service, $details);
+dynamic_queue_assert($validated === ["color_option" => 21, "paper_size" => 13], "Photocopy option IDs must match regardless of submitted object order.");
+
+$rejected = false;
+try {
+  servitech_pricing_validate_catalog_option_ids($rule, $service, [
+    "catalog_pricing_rule_id" => 302,
+    "catalog_option_value_ids" => ["paper_size" => 12, "color_option" => 21],
+  ]);
+} catch (DomainException $e) {
+  $rejected = str_contains($e->getMessage(), "no active price setup");
+}
+dynamic_queue_assert($rejected, "A manipulated option-ID combination must be rejected with the customer-safe message.");
+
+$zeroIdsRejected = false;
+try {
+  servitech_pricing_validate_catalog_option_ids($rule, $service, [
+    "catalog_pricing_rule_id" => 302,
+    "catalog_option_value_ids" => ["paper_size" => 0, "color_option" => 0],
+  ]);
+} catch (DomainException $e) {
+  $zeroIdsRejected = true;
+}
+dynamic_queue_assert($zeroIdsRejected, "Submitted empty/zero option IDs must not bypass rule validation.");
+
+$legacy = servitech_pricing_validate_catalog_option_ids($rule, $service, []);
+dynamic_queue_assert($legacy === ["color_option" => 21, "paper_size" => 13], "Old records without option-ID maps must remain readable/editable.");
+
+$customerForms = [
+  "custo2_docu_printing.php",
+  "custo2_xerox.php",
+  "custo2_rush_id.php",
+  "custo2_laminating.php",
+  "custo2_scanning.php",
+  "custo1_repair_option.php",
+  "custo1_installation_option.php",
+];
+foreach ($customerForms as $file) {
+  $source = file_get_contents(__DIR__ . "/../pages/customer/{$file}") ?: "";
+  dynamic_queue_assert(str_contains($source, "service_catalog_client.js"), "{$file} must load the shared catalog selection client.");
+  dynamic_queue_assert(str_contains($source, "data-value-id"), "{$file} must render database option IDs.");
+}
+
+$mainSource = file_get_contents(__DIR__ . "/../assets/js/main.js") ?: "";
+dynamic_queue_assert(!str_contains($mainSource, "The selected photocopy combination is currently unavailable."), "The old Photocopy error must be removed.");
+dynamic_queue_assert(str_contains($mainSource, "catalog_option_value_ids"), "Queue payloads must submit option-ID maps.");
+
+$documentSource = file_get_contents(__DIR__ . "/../assets/js/custo2_docu_printing.js") ?: "";
+dynamic_queue_assert(!str_contains($documentSource, "normalizePaperKey"), "Document Printing must not hardcode paper aliases.");
+dynamic_queue_assert(!str_contains($documentSource, "normalizeColorKey"), "Document Printing must not hardcode color aliases.");
+
+echo "Dynamic Join Queue tests passed.\n";

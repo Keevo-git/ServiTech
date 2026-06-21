@@ -395,6 +395,18 @@ function servitech_catalog_option_label(array $rule, string $groupKey): string {
   return trim((string)($rule["option_labels"][$groupKey] ?? ""));
 }
 
+function servitech_catalog_values_used_by_rules(array $values, array $rules, string $groupKey): array {
+  $usedIds = [];
+  foreach ($rules as $rule) {
+    $valueId = (int)($rule["option_value_ids"][$groupKey] ?? 0);
+    if ($valueId > 0) $usedIds[$valueId] = true;
+  }
+  return array_values(array_filter(
+    $values,
+    static fn($value) => isset($usedIds[(int)($value["id"] ?? 0)])
+  ));
+}
+
 function servitech_catalog_rule_display_label(array $rule): string {
   $label = trim((string)($rule["label"] ?? ""));
   if ($label !== "") return $label;

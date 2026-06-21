@@ -82,8 +82,19 @@ $isDocumentPrinting = $category === "printing"
   && $service_label === "Document Printing";
 $serviceKind = servitech_pricing_service_kind($category, $service_label);
 $supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
-if (in_array($serviceKind, ["document_printing", "rush_id", "laminating", "xerox", "scanning", "repair", "installation"], true) && $payment_method === "") {
+$catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning", "repair", "installation"];
+if (in_array($serviceKind, $catalogManagedKinds, true) && $payment_method === "") {
   echo json_encode(["ok" => false, "error" => "Select a payment method."]);
+  exit();
+}
+
+if (in_array($serviceKind, $catalogManagedKinds, true)
+    && (!isset($data["catalog_option_value_ids"]) || !is_array($data["catalog_option_value_ids"]) || !$data["catalog_option_value_ids"])) {
+  http_response_code(422);
+  echo json_encode([
+    "ok" => false,
+    "error" => "Please refresh this page and select the service options again.",
+  ]);
   exit();
 }
 
@@ -109,6 +120,9 @@ $details = [
   "uploaded_files" => isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : null,
   "catalog_service_id" => isset($data["catalog_service_id"]) ? max(0, (int)$data["catalog_service_id"]) : null,
   "catalog_pricing_rule_id" => isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : null,
+  "catalog_option_value_ids" => isset($data["catalog_option_value_ids"]) && is_array($data["catalog_option_value_ids"])
+    ? $data["catalog_option_value_ids"]
+    : [],
   "catalog_addon_rule_ids" => isset($data["catalog_addon_rule_ids"]) && is_array($data["catalog_addon_rule_ids"])
     ? array_values($data["catalog_addon_rule_ids"])
     : [],

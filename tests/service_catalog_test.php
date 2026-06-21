@@ -80,6 +80,13 @@ $photocopyCatalog = servitech_catalog_normalize_admin_payload(
 );
 catalog_test_assert(count($photocopyCatalog["rules"]) === 4, "Photocopy must create its complete paper/color matrix.");
 
+$usedValues = servitech_catalog_values_used_by_rules(
+    [["id" => 11, "label" => "Letter"], ["id" => 12, "label" => "Unconfigured"]],
+    [["option_value_ids" => ["paper_size" => 11]]],
+    "paper_size"
+);
+catalog_test_assert(count($usedValues) === 1 && (int)$usedValues[0]["id"] === 11, "Customer forms must hide option values with no active pricing rule.");
+
 foreach ([
     [["category" => "printing", "name" => "Rush ID"], "package", "package_7", "Package 7"],
     [["category" => "printing", "name" => "Rush ID"], "addon", "retouch", "Photo Retouch"],
