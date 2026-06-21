@@ -102,6 +102,9 @@ body.ms-modal-open{overflow:hidden}.ms-overlay{box-sizing:border-box;overscroll-
   color: #7a2f00;
   font-size: 0;
   position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 4;
 }
 
 .ms-x::before,
@@ -133,4 +136,11 @@ body.ms-modal-open{overflow:hidden}.ms-overlay{box-sizing:border-box;overscroll-
   color: #7a2f00;
   outline: none;
   transform: translateY(-1px);
+}
+
+@media(max-width:640px){
+  .ms-x {
+    right: calc(12px + env(safe-area-inset-right));
+    top: calc(12px + env(safe-area-inset-top));
+  }
 }

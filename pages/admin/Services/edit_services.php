@@ -48,7 +48,7 @@ $services = array_values(array_filter($services, "ms_supported_catalog_service")
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260621-global-ui-polish') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260622-admin-services-toggle') ?>">
 </head>
 <body>
 
@@ -152,13 +152,13 @@ require __DIR__ . "/../_includes/admin_header.php";
 
       <div class="ms-service-status">
         <div>
-          <strong>Available to customers</strong>
-          <span>Turn this off to hide the entire service from the landing page and queue forms.</span>
+          <strong>Service status</strong>
+          <span>Use this Active/Inactive toggle to show or hide the entire service from the landing page and queue forms.</span>
         </div>
         <label class="ms-switch">
           <input id="ms_active" type="checkbox">
           <span aria-hidden="true"></span>
-          <em>Available</em>
+          <em id="ms_active_label">Active</em>
         </label>
       </div>
 
@@ -206,7 +206,7 @@ require __DIR__ . "/../_includes/admin_header.php";
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260621-toggle-only-modal-close') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260622-admin-services-toggle') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

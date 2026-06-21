@@ -164,26 +164,10 @@ if ($action === "save") {
 }
 
 if ($action === "delete") {
-    $id = (int)($_POST["id"] ?? 0);
-    if ($id <= 0) {
-        respond(["ok" => false, "error" => "Invalid id"]);
-    }
-    try {
-        $stmt = $pdo->prepare("
-          UPDATE services
-          SET active = FALSE, archived_at = COALESCE(archived_at, NOW()), updated_at = NOW()
-          WHERE id = :id
-        ");
-        $stmt->execute([":id" => $id]);
-    } catch (Throwable $e) {
-        $stmt = $pdo->prepare("
-          UPDATE services
-          SET active = FALSE, updated_at = NOW()
-          WHERE id = :id
-        ");
-        $stmt->execute([":id" => $id]);
-    }
-    respond(["ok" => true, "archived" => true]);
+    respond([
+        "ok" => false,
+        "error" => "Removing services is no longer supported from this editor. Use the Active/Inactive toggle instead.",
+    ]);
 }
 
 respond(["ok" => false, "error" => "Unknown action"]);

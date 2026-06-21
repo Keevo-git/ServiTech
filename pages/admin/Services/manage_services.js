@@ -19,6 +19,7 @@
     name: qs("#ms_name"),
     description: qs("#ms_description"),
     active: qs("#ms_active"),
+    activeLabel: qs("#ms_active_label"),
     sort: qs("#ms_sort"),
   };
 
@@ -101,6 +102,11 @@
   function hideError() {
     errorBox.textContent = "";
     errorBox.style.display = "none";
+  }
+
+  function syncServiceStatusLabel() {
+    if (!fields.activeLabel || !fields.active) return;
+    fields.activeLabel.textContent = fields.active.checked ? "Active" : "Inactive";
   }
 
   function group(key) {
@@ -658,6 +664,7 @@
     fields.description.value = data.description || "";
     fields.sort.value = data.sort_order || 0;
     fields.active.checked = Number(data.active) === 1;
+    syncServiceStatusLabel();
     originalServiceSnapshot = {
       name: data.name || "",
       description: data.description || "",
@@ -710,8 +717,10 @@
       tone: activated ? "primary" : "warning",
     })) {
       fields.active.checked = !activated;
+      syncServiceStatusLabel();
       return;
     }
+    syncServiceStatusLabel();
     window.servitechAdminToast?.success?.(activated
       ? "Service activated in this draft. Save changes to publish it."
       : "Service deactivated in this draft. Save changes to publish it.");
