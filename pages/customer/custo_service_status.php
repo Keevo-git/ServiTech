@@ -1884,7 +1884,9 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       "printonline"
     ];
     const printingCategories = ["printing", "online_printorder", "printing_online", "walkin", "printing_walkin"];
-    return legacyServices.includes(service) || printingCategories.includes(categoryKey(queueData));
+    if (legacyServices.includes(service)) return true;
+    if (["rushid", "photocopy", "xerox", "laminating", "lamination"].includes(service)) return false;
+    return service === "" && printingCategories.includes(categoryKey(queueData));
   }
 
   function isOnlineDocumentPrinting(queueData){

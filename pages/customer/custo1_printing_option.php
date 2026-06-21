@@ -10,7 +10,6 @@ servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
 $printingServices = [];
 try {
-  servitech_catalog_ensure_laminating($pdo);
   $stmt = $pdo->prepare("
     SELECT id, name
     FROM services

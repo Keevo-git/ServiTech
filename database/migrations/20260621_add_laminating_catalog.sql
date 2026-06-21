@@ -66,7 +66,8 @@ BEGIN
   ON CONFLICT (group_id, value_key) DO UPDATE
     SET active = CASE WHEN was_archived THEN TRUE ELSE service_option_values.active END,
         archived_at = CASE WHEN was_archived THEN NULL ELSE service_option_values.archived_at END,
-        sort_order = EXCLUDED.sort_order, updated_at = NOW()
+        sort_order = CASE WHEN was_archived THEN EXCLUDED.sort_order ELSE service_option_values.sort_order END,
+        updated_at = NOW()
   RETURNING id INTO thin_id;
 
   INSERT INTO service_option_values (group_id, value_key, label, active, sort_order)
@@ -74,7 +75,8 @@ BEGIN
   ON CONFLICT (group_id, value_key) DO UPDATE
     SET active = CASE WHEN was_archived THEN TRUE ELSE service_option_values.active END,
         archived_at = CASE WHEN was_archived THEN NULL ELSE service_option_values.archived_at END,
-        sort_order = EXCLUDED.sort_order, updated_at = NOW()
+        sort_order = CASE WHEN was_archived THEN EXCLUDED.sort_order ELSE service_option_values.sort_order END,
+        updated_at = NOW()
   RETURNING id INTO thick_id;
 
   INSERT INTO service_pricing_rules (
@@ -85,10 +87,9 @@ BEGIN
   )
   ON CONFLICT (service_id, rule_key) DO UPDATE
     SET option_value_ids = EXCLUDED.option_value_ids,
-        label = EXCLUDED.label,
         active = CASE WHEN was_archived THEN TRUE ELSE service_pricing_rules.active END,
         archived_at = CASE WHEN was_archived THEN NULL ELSE service_pricing_rules.archived_at END,
-        sort_order = EXCLUDED.sort_order,
+        sort_order = CASE WHEN was_archived THEN EXCLUDED.sort_order ELSE service_pricing_rules.sort_order END,
         updated_at = NOW();
 
   INSERT INTO service_pricing_rules (
@@ -99,9 +100,8 @@ BEGIN
   )
   ON CONFLICT (service_id, rule_key) DO UPDATE
     SET option_value_ids = EXCLUDED.option_value_ids,
-        label = EXCLUDED.label,
         active = CASE WHEN was_archived THEN TRUE ELSE service_pricing_rules.active END,
         archived_at = CASE WHEN was_archived THEN NULL ELSE service_pricing_rules.archived_at END,
-        sort_order = EXCLUDED.sort_order,
+        sort_order = CASE WHEN was_archived THEN EXCLUDED.sort_order ELSE service_pricing_rules.sort_order END,
         updated_at = NOW();
 END $$;

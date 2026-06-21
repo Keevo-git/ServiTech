@@ -48,13 +48,6 @@ function escapeHtml(value) {
   }[char]));
 }
 
-function formatServicePrice(price) {
-  if (price === null || price === undefined || price === "") return "";
-  const numericPrice = Number(price);
-  if (!Number.isFinite(numericPrice)) return "";
-  return `PHP ${numericPrice.toFixed(2)}`;
-}
-
 function formatServicePriceRange(priceRange) {
   const value = String(priceRange || "").trim();
   if (value === "") return "";
@@ -434,32 +427,13 @@ function getServiceIconKey(category, serviceName) {
   return "default";
 }
 
-function getServiceCardFallbackLine(category, serviceName) {
-  const normalizedName = String(serviceName || "").toLowerCase();
-
-  if (category === "printing") {
-    if (normalizedName.includes("document print")) return "Print documents using common paper sizes and color options.";
-    if (normalizedName.includes("xerox") || normalizedName.includes("photocopy")) return "Photocopy service for common paper sizes.";
-    if (normalizedName.includes("rush id")) return "ID photo packages for common size requirements.";
-    if (normalizedName.includes("laminat")) return "Protect documents with thin or thick laminating options.";
-  }
-
-  if (category === "repair") return "Hardware repair service for supported mobile phones and laptops.";
-  if (category === "installation") return "Software setup and device recovery support.";
-  return "Service information available upon request.";
-}
-
 function isServiceCardPriceLine(line) {
   const value = String(line || "").trim();
   return /(?:^|\s)(?:price|php|\u20b1)\b/i.test(value) || /\u20b1\s*\d/i.test(value);
 }
 
 function getServiceCardLines(service, card) {
-  const category = service.category || "";
-  const lines = (card.lines || []).filter((line) => !isServiceCardPriceLine(line));
-
-  if (lines.length > 0) return lines;
-  return [getServiceCardFallbackLine(category, card.title)];
+  return (card.lines || []).filter((line) => !isServiceCardPriceLine(line));
 }
 
 /* ==============================
@@ -539,8 +513,7 @@ async function loadServicesFromDatabase() {
           title: displayServiceName(service.name),
           icon: getServiceIconKey(category, service.name),
           lines: lines.length > 0 ? lines : [service.description || ""],
-          priceLabel: formatServicePrice(service.price),
-          priceRange: service.catalog_price_range || service.price_range || "",
+          priceRange: service.catalog_price_range || "",
           detailKey,
         };
       });
@@ -1149,12 +1122,6 @@ document.addEventListener("DOMContentLoaded", () => {
       total_pages: printState && Number.isFinite(printState.total_pages)
         ? Number(printState.total_pages)
         : null,
-      price_per_page: printState && Number.isFinite(printState.price_per_page)
-        ? Number(printState.price_per_page)
-        : null,
-      estimated_total: printState && Number.isFinite(printState.estimated_total)
-        ? Number(printState.estimated_total)
-        : null,
       file_analysis: printState && Array.isArray(printState.files)
         ? printState.files
         : null,
@@ -1196,27 +1163,8 @@ document.addEventListener("DOMContentLoaded", () => {
         paper_size: selectedOptionValueKey(refs.paperSizeSelect),
         color_option: checkedValueKey("color"),
       });
-      const price = rule && rule.price_type !== "assessment"
-        ? Number(rule.price)
-        : null;
       payload.catalog_pricing_rule_id = Number(rule?.id || 0) || payload.catalog_pricing_rule_id || null;
       payload.service_option_key = rule?.rule_key || null;
-      payload.price_per_page = Number.isFinite(price) ? price : null;
-      payload.estimated_total = Number.isFinite(price) ? price * payload.quantity : null;
-    } else if (refs.lamTypeSelect) {
-      const selectedOption = refs.lamTypeSelect.options[refs.lamTypeSelect.selectedIndex];
-      const price = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : null;
-      payload.price_per_page = Number.isFinite(price) ? price : null;
-      payload.estimated_total = Number.isFinite(price) ? price * payload.quantity : null;
-    } else if (refs.packageSelect) {
-      const selectedOption = refs.packageSelect.options[refs.packageSelect.selectedIndex];
-      const packagePrice = selectedOption?.dataset?.price ? Number(selectedOption.dataset.price) : NaN;
-      const addonPrices = refs.rushAddonInputs.filter((input) => input.checked)
-        .map((input) => input.dataset.price ? Number(input.dataset.price) : NaN);
-      const canPrice = Number.isFinite(packagePrice) && addonPrices.every((price) => Number.isFinite(price));
-      const unitPrice = canPrice ? packagePrice + addonPrices.reduce((sum, price) => sum + price, 0) : null;
-      payload.price_per_page = unitPrice;
-      payload.estimated_total = Number.isFinite(unitPrice) ? unitPrice * payload.quantity : null;
     }
 
     return payload;

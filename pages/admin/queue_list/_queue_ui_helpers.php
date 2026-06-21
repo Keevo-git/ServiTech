@@ -115,6 +115,8 @@ function queue_ui_detail_rows(array $details): array
         "Quantity / Copies" => ["quantity", "copies"],
         "Color Option" => ["color_option", "color"],
         "Device" => ["device", "device_type", "unit"],
+        "Repair Type" => ["repair_type"],
+        "Installation Type" => ["installation_type"],
         "Package" => ["package_label", "package"],
         "Lamination Type" => ["lamination_type"],
         "Total Pages" => ["total_pages", "page_count"],
@@ -129,6 +131,19 @@ function queue_ui_detail_rows(array $details): array
                 $value = "PHP " . number_format((float)$value, 2);
             }
             $rows[] = ["label" => $label, "value" => $value];
+        }
+    }
+
+    $addOns = $details["add_ons_snapshot"] ?? [];
+    if (is_array($addOns)) {
+        $addOnNames = [];
+        foreach ($addOns as $addOn) {
+            if (is_array($addOn) && trim((string)($addOn["name"] ?? "")) !== "") {
+                $addOnNames[] = trim((string)$addOn["name"]);
+            }
+        }
+        if ($addOnNames !== []) {
+            $rows[] = ["label" => "Add-ons", "value" => implode(", ", $addOnNames)];
         }
     }
 

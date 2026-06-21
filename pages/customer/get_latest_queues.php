@@ -112,6 +112,25 @@ function build_short_details(array $details, bool $includeNotes = true): string 
     $parts[] = trim((string)$details["device_type"]);
   }
 
+  foreach (["repair_type", "installation_type"] as $key) {
+    if (!empty($details[$key])) {
+      $parts[] = trim((string)$details[$key]);
+    }
+  }
+
+  $addOns = $details["add_ons_snapshot"] ?? [];
+  if (is_array($addOns)) {
+    $addOnNames = [];
+    foreach ($addOns as $addOn) {
+      if (is_array($addOn) && trim((string)($addOn["name"] ?? "")) !== "") {
+        $addOnNames[] = trim((string)$addOn["name"]);
+      }
+    }
+    if ($addOnNames !== []) {
+      $parts[] = "Add-ons: " . implode(", ", $addOnNames);
+    }
+  }
+
   if (!empty($details["lamination_type"])) {
     $parts[] = ucfirst(strtolower(trim((string)$details["lamination_type"]))) . " Lamination";
   }
@@ -122,7 +141,7 @@ function build_short_details(array $details, bool $includeNotes = true): string 
 
   if (!count($parts)) return "No extra details";
 
-  $parts = array_slice($parts, 0, 3);
+  $parts = array_slice($parts, 0, 4);
   return implode(" | ", $parts);
 }
 

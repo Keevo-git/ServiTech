@@ -32,10 +32,7 @@ BEGIN
   ) VALUES
     (addon_group, 'formal_attire', 'Formal Attire', 'Edit the customer photo into formal attire.', FALSE, 0),
     (addon_group, 'name_at_bottom', 'Name in the bottom of picture', 'Add the customer name at the bottom of the picture.', FALSE, 1)
-  ON CONFLICT (group_id, value_key) DO UPDATE
-    SET label = EXCLUDED.label,
-        description = EXCLUDED.description,
-        updated_at = NOW();
+  ON CONFLICT (group_id, value_key) DO NOTHING;
 
   INSERT INTO service_pricing_rules (
     service_id, rule_key, option_value_ids, label, description,
@@ -56,8 +53,6 @@ BEGIN
     AND value_key IN ('formal_attire', 'name_at_bottom')
   ON CONFLICT (service_id, rule_key) DO UPDATE
     SET option_value_ids = EXCLUDED.option_value_ids,
-        label = EXCLUDED.label,
-        description = EXCLUDED.description,
         updated_at = NOW();
 END $$;
 

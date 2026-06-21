@@ -7,10 +7,8 @@ require_once __DIR__ . "/../../../api/service_catalog.php";
 
 $tab = $_GET["tab"] ?? "printing";
 if (!in_array($tab, ["printing","repair","installation"], true)) $tab = "printing";
-if ($tab === "printing") servitech_catalog_ensure_laminating($pdo);
-
 $stmt = $pdo->prepare("
-  SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
+  SELECT id, category, name, description,
          CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
   FROM services
   WHERE category=:cat AND archived_at IS NULL
@@ -86,21 +84,20 @@ require __DIR__ . "/../_includes/admin_header.php";
           <div class="ms-empty">No configured services were found. Run the service catalog migration first.</div>
         <?php else: ?>
           <?php foreach($services as $s):
-            $catalogPriceRange = (string)($s["price_range"] ?? "");
-            try {
-              $catalog = servitech_catalog_fetch($pdo, (int)$s["id"], true);
-              $catalogPriceRange = (string)($catalog["service"]["catalog_price_range"] ?? $catalogPriceRange);
-            } catch (Throwable $e) {
-              // Keep the stored display range if the catalog is not available yet.
+            $catalogPriceRange = (int)$s["active"] ? "Catalog unavailable" : "Not shown to customers";
+            if ((int)$s["active"]) {
+              try {
+                $catalog = servitech_catalog_fetch($pdo, (int)$s["id"], true);
+                $catalogPriceRange = (string)($catalog["service"]["catalog_price_range"] ?? "For assessment");
+              } catch (Throwable $e) {
+                // Keep the explicit unavailable state until this service has an active catalog.
+              }
             }
             $payload = [
               "id" => (int)$s["id"],
               "category" => (string)$s["category"],
               "name" => (string)$s["name"],
               "description" => (string)$s["description"],
-              "price" => $s["price"],
-              "price_range" => (string)$s["price_range"],
-              "pricing_json" => (string)($s["pricing_json"] ?? ""),
               "active" => (int)$s["active"],
               "sort_order" => (int)$s["sort_order"],
             ];
@@ -150,8 +147,6 @@ require __DIR__ . "/../_includes/admin_header.php";
     <div class="ms-body">
       <input type="hidden" id="ms_id" value="">
       <input type="hidden" id="ms_category">
-      <input type="hidden" id="ms_price">
-      <input type="hidden" id="ms_price_range">
       <input type="hidden" id="ms_sort">
 
       <div class="ms-service-status">

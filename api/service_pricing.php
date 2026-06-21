@@ -37,7 +37,7 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
     : 0;
   if ($requestedId > 0) {
     $stmt = $pdo->prepare("
-      SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json
+      SELECT id, category, name, description
       FROM services
       WHERE id = :id
         AND active = TRUE
@@ -67,7 +67,7 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
   };
 
   $stmt = $pdo->prepare("
-    SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json
+    SELECT id, category, name, description
     FROM services
     WHERE {$where}
       AND active = TRUE
@@ -219,12 +219,14 @@ function servitech_pricing_apply_snapshot(array $details, array $service, string
   $details["catalog_service_id"] = $serviceId;
   $details["catalog_service_name"] = $serviceName;
   $details["selected_service_id"] = $serviceId;
+  $details["service_id_snapshot"] = $serviceId;
   $details["selected_option_id"] = $optionId;
   $details["service_name_snapshot"] = $serviceName;
   $details["option_name_snapshot"] = $optionName;
   $details["option_details_snapshot"] = $optionDetails !== "" ? $optionDetails : $optionName;
   $details["price_snapshot"] = $price;
   $details["pricing_status"] = $status;
+  $details["price_type_snapshot"] = $status === "fixed" ? "fixed" : "assessment";
   return $details;
 }
 
@@ -261,6 +263,8 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
     }
 
     $ruleLabel = servitech_catalog_rule_display_label($rule);
+    $details["selected_option_value_ids"] = array_values(array_map("intval", $rule["option_value_ids"] ?? []));
+    $details["selected_option_labels_snapshot"] = $rule["option_labels"] ?? [];
     $priceType = (string)($rule["price_type"] ?? "assessment");
     $fixedPrice = ($priceType === "fixed" && isset($rule["price"]) && is_numeric($rule["price"]))
       ? max(0, (float)$rule["price"])
@@ -377,11 +381,4 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   }
 
   throw new DomainException("Select a valid active service option from the service catalog.");
-}
-
-function servitech_pricing_validate_admin_catalog(string $category, string $name, ?float $price, ?array $pricing): void {
-  if ($price !== null && $price < 0) throw new DomainException("Price cannot be negative.");
-  if ($pricing !== null && $pricing !== []) {
-    throw new DomainException("Legacy pricing_json is no longer accepted. Use the service catalog editor.");
-  }
 }

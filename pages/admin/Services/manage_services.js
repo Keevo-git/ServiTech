@@ -12,8 +12,6 @@
     category: qs("#ms_category"),
     name: qs("#ms_name"),
     description: qs("#ms_description"),
-    price: qs("#ms_price"),
-    priceRange: qs("#ms_price_range"),
     active: qs("#ms_active"),
     sort: qs("#ms_sort"),
   };
@@ -451,8 +449,6 @@
     fields.category.value = data.category;
     fields.name.value = data.name;
     fields.description.value = data.description || "";
-    fields.price.value = data.price ?? "";
-    fields.priceRange.value = data.price_range || "";
     fields.sort.value = data.sort_order || 0;
     fields.active.checked = Number(data.active) === 1;
     currentKind = serviceKind(data.category, data.name);
@@ -505,9 +501,6 @@
     form.append("category", fields.category.value);
     form.append("name", fields.name.value);
     form.append("description", fields.description.value.trim());
-    form.append("price", "");
-    form.append("price_range", "");
-    form.append("pricing_json", "");
     form.append("catalog_json", JSON.stringify(payload));
     form.append("active", fields.active.checked ? "1" : "0");
     form.append("sort_order", fields.sort.value || "0");

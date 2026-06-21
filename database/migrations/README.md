@@ -47,9 +47,15 @@ For an existing ServiTech database:
 11. Run `20260616_add_order_recycle_bin.sql` to add soft-delete metadata and
     the Order Management recycle-bin index.
 12. Run `20260620_unify_service_catalog_pricing.sql` if it has not yet been
-    applied, then run `20260621_add_laminating_catalog.sql`. The additive
-    Laminating migration preserves edited prices and non-archived option
-    statuses, while restoring a previously archived canonical Laminating row.
+    applied, then run `20260620_add_rush_id_addons.sql`, followed by
+    `20260621_add_laminating_catalog.sql`. The additive migrations preserve
+    edited prices and non-archived option statuses while adding Rush ID
+    add-ons and restoring a previously archived canonical Laminating row.
+
+`20260620_unify_service_catalog_pricing.sql` is a one-time catalog conversion
+and seed migration. Do not rerun it after administrators have edited catalog
+values, prices, statuses, or ordering. The two additive migrations that follow
+it are safe to rerun and preserve existing administrator edits.
 
 The application runtime must not create or alter database schema. Apply future
 schema changes as new migration files before deploying PHP code that depends on

@@ -87,7 +87,7 @@ function qm_normalize_service_label(string $serviceLabel, string $fallbackLabel)
 function qm_build_short_details(array $details, bool $includeNotes = true): string {
   $parts = [];
 
-  foreach (["paper_size", "color_option", "package_label", "device_type"] as $key) {
+  foreach (["paper_size", "color_option", "package_label", "device_type", "repair_type", "installation_type"] as $key) {
     if (!empty($details[$key])) {
       $parts[] = trim((string)$details[$key]);
     }
@@ -102,12 +102,25 @@ function qm_build_short_details(array $details, bool $includeNotes = true): stri
     $parts[] = ucfirst(strtolower(trim((string)$details["lamination_type"]))) . " Lamination";
   }
 
+  $addOns = $details["add_ons_snapshot"] ?? [];
+  if (is_array($addOns)) {
+    $addOnNames = [];
+    foreach ($addOns as $addOn) {
+      if (is_array($addOn) && trim((string)($addOn["name"] ?? "")) !== "") {
+        $addOnNames[] = trim((string)$addOn["name"]);
+      }
+    }
+    if ($addOnNames !== []) {
+      $parts[] = "Add-ons: " . implode(", ", $addOnNames);
+    }
+  }
+
   if ($includeNotes && !count($parts) && !empty($details["notes"])) {
     $parts[] = trim((string)$details["notes"]);
   }
 
   if (!count($parts)) return "No extra details";
-  return implode(" | ", array_slice($parts, 0, 3));
+  return implode(" | ", array_slice($parts, 0, 4));
 }
 
 function qm_fetch_user_queue_items(PDO $pdo, int $userId, string $categoryKey, int $limit, bool $activeOnly): array {

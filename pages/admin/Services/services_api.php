@@ -2,7 +2,6 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
-require_once __DIR__ . "/../../../api/service_pricing.php";
 require_once __DIR__ . "/../../../api/service_catalog.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -28,7 +27,7 @@ if ($action === "list") {
         $where = "WHERE archived_at IS NULL";
     }
     $stmt = $pdo->prepare("
-      SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
+      SELECT id, category, name, description,
              CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
       FROM services
       $where
@@ -64,33 +63,12 @@ if ($action === "save") {
     $category = trim((string)($_POST["category"] ?? ""));
     $name = trim((string)($_POST["name"] ?? ""));
     $description = trim((string)($_POST["description"] ?? ""));
-    $priceRaw = trim((string)($_POST["price"] ?? ""));
-    $priceRange = trim((string)($_POST["price_range"] ?? ""));
-    $pricingJsonRaw = trim((string)($_POST["pricing_json"] ?? ""));
     $catalogJsonRaw = trim((string)($_POST["catalog_json"] ?? ""));
-    $pricingJson = null;
-    $decodedPricing = null;
     $catalogData = null;
     $active = isset($_POST["active"]) ? (int)($_POST["active"]) : 1;
     $sort_order = isset($_POST["sort_order"]) ? (int)($_POST["sort_order"]) : 0;
 
     if ($id <= 0) respond(["ok" => false, "error" => "New top-level services cannot be added here. Edit one of the configured services instead."]);
-
-    $price = null;
-    if ($priceRaw !== "") {
-        if (!is_numeric($priceRaw)) {
-            respond(["ok" => false, "error" => "Price must be a number"]);
-        }
-        $price = (float)$priceRaw;
-    }
-
-    if ($pricingJsonRaw !== "") {
-        $decodedPricing = json_decode($pricingJsonRaw, true);
-        if (!is_array($decodedPricing)) {
-            respond(["ok" => false, "error" => "Invalid pricing data"]);
-        }
-        $pricingJson = json_encode($decodedPricing, JSON_UNESCAPED_UNICODE);
-    }
 
     if ($catalogJsonRaw !== "") {
         $catalogData = json_decode($catalogJsonRaw, true);
@@ -100,14 +78,8 @@ if ($action === "save") {
     }
 
     try {
-        servitech_pricing_validate_admin_catalog($category, $name, $price, $decodedPricing);
-    } catch (DomainException $e) {
-        respond(["ok" => false, "error" => $e->getMessage()]);
-    }
-
-    try {
         $existingStmt = $pdo->prepare("
-          SELECT id, category, name, description, price, price_range, pricing_json::text AS pricing_json,
+          SELECT id, category, name, description,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
           WHERE id = :id AND archived_at IS NULL
@@ -142,9 +114,8 @@ if ($action === "save") {
           SET category=:category,
               name=:name,
               description=:description,
-              price=:price,
+              price=NULL,
               price_range=:price_range,
-              pricing_json='{}'::jsonb,
               active=:active,
               archived_at=CASE WHEN :reactivate THEN NULL ELSE archived_at END,
               sort_order=:sort_order,
@@ -155,7 +126,6 @@ if ($action === "save") {
             ":category" => $category,
             ":name" => $name,
             ":description" => $description,
-            ":price" => $price,
             ":price_range" => $priceRange,
             ":active" => ($active ? true : false),
             ":reactivate" => ($active ? true : false),
