@@ -20,6 +20,15 @@ try {
       if (($group["group_key"] ?? "") === "device_type") $repairDeviceOptions = $group["values"] ?? [];
     }
     $repairRules = $catalog["rules"] ?? [];
+    $devicesWithServices = [];
+    foreach ($repairRules as $rule) {
+      $deviceKey = trim((string)($rule["option_value_keys"]["device_type"] ?? ""));
+      if ($deviceKey !== "") $devicesWithServices[$deviceKey] = true;
+    }
+    $repairDeviceOptions = array_values(array_filter(
+      $repairDeviceOptions,
+      static fn($option) => isset($devicesWithServices[(string)($option["value_key"] ?? "")])
+    ));
   }
 } catch (Throwable $e) {
   $repairDeviceOptions = [];
@@ -119,7 +128,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechCatalogServiceId = <?= (int)$repairServiceId ?>;
   window.servitechCatalogRules = <?= json_encode($repairRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
+<script src="/assets/js/main.js?v=20260621-dynamic-device-services"></script>
 
 </body>
 </html>

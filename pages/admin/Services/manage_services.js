@@ -141,11 +141,19 @@
     Object.entries(contract.groups).forEach(([key, name], index) => {
       let item = normalized.groups.find((candidate) => candidate.group_key === key);
       if (!item) {
-        item = { group_key: key, name, active: 1, sort_order: index, values: [] };
+        item = {
+          group_key: key,
+          name,
+          active: currentKind === "installation" && key === "device_type" ? 0 : 1,
+          sort_order: index,
+          values: [],
+        };
         normalized.groups.push(item);
       }
       item.name = name;
-      item.active = 1;
+      item.active = currentKind === "installation" && key === "device_type"
+        ? Number(item.active ?? 0)
+        : 1;
       item.sort_order = index;
       item.values = Array.isArray(item.values) ? item.values : [];
       item.values.forEach((value, valueIndex) => {
@@ -260,7 +268,16 @@
           </div>`;
         }).join("")}
       </div>
-      <div class="ms-inline-add"><input data-new-value="${groupKey}" placeholder="${escapeHtml(addLabel)}"><button type="button" data-add-value="${groupKey}">Add</button></div>
+      <div class="ms-inline-add ms-inline-add--rule">
+        <input data-new-value="${groupKey}" placeholder="${escapeHtml(addLabel)}">
+        ${options.description ? `<input data-new-description="${groupKey}" placeholder="Inclusions or details">` : ""}
+        <div class="ms-price-input"><span>PHP</span><input data-new-price="${groupKey}" type="number" min="0" step="0.01" placeholder="Price"></div>
+        ${options.fixedOnly
+          ? `<input type="hidden" data-new-price-type="${groupKey}" value="fixed"><span class="ms-fixed-label">Fixed Price</span>`
+          : `<select data-new-price-type="${groupKey}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select>`}
+        <label class="ms-switch ms-switch--compact"><input data-new-active="${groupKey}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
+        <button type="button" data-add-value="${groupKey}">Add</button>
+      </div>
     </section>`;
   }
 
@@ -285,6 +302,7 @@
           return `<details class="ms-device-card" open>
             <summary><strong>${escapeHtml(device.label)}</strong><span>${rules.filter((rule) => Number(rule.active)).length} active services</span></summary>
             <div class="ms-device-card__body">
+              ${rules.length ? "" : '<p class="ms-device-guidance">Add repair services available for this device.</p>'}
               ${rules.map((rule) => {
                 const value = groupValue("repair_type", rule.option_value_keys?.repair_type);
                 if (!value) return "";
@@ -296,11 +314,49 @@
                   <button class="ms-text-action danger" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}">Archive</button>
                 </div>`;
               }).join("")}
-              <div class="ms-inline-add"><input data-new-repair="${escapeHtml(device.value_key)}" placeholder="New repair service"><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Repair Type</button></div>
+              <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Service</button></div>
             </div>
           </details>`;
         }).join("")}</div>
       </section>`;
+  }
+
+  function installationDeviceEditor() {
+    const devices = group("device_type")?.values || [];
+    return `${valueManager("device_type", "Devices", "New device")}
+      <section class="ms-pricing-section">
+        <div class="ms-section-head"><div><h4>Installation Services by Device</h4><p>Add installation services available for each device.</p></div></div>
+        <div class="ms-device-stack">${devices.filter((device) => Number(device.active)).map((device) => {
+          const rules = (catalog.rules || []).filter((rule) => rule.option_value_keys?.device_type === device.value_key)
+            .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+          return `<details class="ms-device-card" open>
+            <summary><strong>${escapeHtml(device.label)}</strong><span>${rules.filter((rule) => Number(rule.active)).length} active services</span></summary>
+            <div class="ms-device-card__body">
+              ${rules.length ? "" : '<p class="ms-device-guidance">Add installation services available for this device.</p>'}
+              ${rules.map((rule) => {
+                const value = groupValue("installation_type", rule.option_value_keys?.installation_type);
+                if (!value) return "";
+                return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
+                  <input data-value-label data-group-key="installation_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}">
+                  <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
+                  <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
+                  ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
+                  <button class="ms-text-action danger" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}">Archive</button>
+                </div>`;
+              }).join("")}
+              <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(device.value_key)}">Add Service</button></div>
+            </div>
+          </details>`;
+        }).join("")}</div>
+      </section>`;
+  }
+
+  function installationEditor() {
+    const deviceMode = Number(group("device_type")?.active) === 1;
+    return `<section class="ms-option-section ms-mode-section"><div><h4>Pricing Setup</h4><p>Use a simple service list, or enable device-specific installation pricing.</p></div><label class="ms-switch"><input data-installation-device-mode type="checkbox" ${deviceMode ? "checked" : ""}><span aria-hidden="true"></span><em>Use Device Category</em></label></section>
+      ${deviceMode
+        ? installationDeviceEditor()
+        : simpleRuleRows("installation_type", "Installation Types", "New installation service", { nameLabel: "Installation Type" })}`;
   }
 
   function render() {
@@ -310,7 +366,7 @@
     else if (currentKind === "laminating") editor.innerHTML = simpleRuleRows("lamination_type", "Laminating Options", "New laminating type", { nameLabel: "Type" });
     else if (currentKind === "scanning") editor.innerHTML = simpleRuleRows("paper_size", "Scanning Paper Sizes", "New paper size", { nameLabel: "Paper Size" });
     else if (currentKind === "repair") editor.innerHTML = repairEditor();
-    else if (currentKind === "installation") editor.innerHTML = simpleRuleRows("installation_type", "Installation Types", "New installation type", { nameLabel: "Installation Type" });
+    else if (currentKind === "installation") editor.innerHTML = installationEditor();
   }
 
   function syncFromDom() {
@@ -381,9 +437,32 @@
       const input = qs(`[data-new-value="${groupKey}"]`, editor);
       const label = input?.value.trim() || "";
       if (!label) return showError("Enter a name before adding the option.");
-      addValue(groupKey, label);
+      const priceInput = qs(`[data-new-price="${groupKey}"]`, editor);
+      const priceTypeInput = qs(`[data-new-price-type="${groupKey}"]`, editor);
+      const activeInput = qs(`[data-new-active="${groupKey}"]`, editor);
+      const descriptionInput = qs(`[data-new-description="${groupKey}"]`, editor);
+      const priceType = priceTypeInput?.value === "assessment" ? "assessment" : "fixed";
+      const active = activeInput ? activeInput.checked : true;
+      const price = priceInput?.value.trim() || "";
+      if (priceInput && active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) {
+        return showError("Enter a valid price, or choose For Assessment before adding this option.");
+      }
+      const value = addValue(groupKey, label);
+      value.active = active ? 1 : 0;
+      value.description = descriptionInput?.value.trim() || value.description || "";
+      if (priceInput) {
+        const rule = ensureRule({ [groupKey]: value.value_key }, value.label, catalog.rules.length, priceType);
+        rule.description = value.description;
+        rule.price = priceType === "fixed" ? price : "";
+        rule.price_type = priceType;
+        rule.active = active ? 1 : 0;
+      }
       render();
-      window.servitechAdminToast?.success?.(`${contracts[currentKind].groups[groupKey]} option added.`);
+      if (groupKey === "device_type") {
+        window.servitechAdminToast?.success?.("Device added. Add services available for this device.");
+      } else {
+        window.servitechAdminToast?.success?.(`${contracts[currentKind].groups[groupKey]} option added.`);
+      }
       return;
     }
 
@@ -394,10 +473,38 @@
       const input = qs(`[data-new-repair="${deviceKey}"]`, editor);
       const label = input?.value.trim() || "";
       if (!label) return showError("Enter a repair service name first.");
+      const price = qs(`[data-new-repair-price="${deviceKey}"]`, editor)?.value.trim() || "";
+      const priceType = qs(`[data-new-repair-price-type="${deviceKey}"]`, editor)?.value === "assessment" ? "assessment" : "fixed";
+      const active = qs(`[data-new-repair-active="${deviceKey}"]`, editor)?.checked !== false;
+      if (active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) return showError("Enter a valid price, or choose For Assessment.");
       const value = addValue("repair_type", label);
-      ensureRule({ device_type: deviceKey, repair_type: value.value_key }, `${groupValue("device_type", deviceKey)?.label || "Device"} / ${value.label}`, catalog.rules.length, "assessment");
+      const rule = ensureRule({ device_type: deviceKey, repair_type: value.value_key }, `${groupValue("device_type", deviceKey)?.label || "Device"} / ${value.label}`, catalog.rules.length, priceType);
+      rule.price = priceType === "fixed" ? price : "";
+      rule.price_type = priceType;
+      rule.active = active ? 1 : 0;
       render();
-      window.servitechAdminToast?.success?.("Repair type added.");
+      window.servitechAdminToast?.success?.("Repair service added.");
+      return;
+    }
+
+    const installationButton = event.target.closest("[data-add-installation]");
+    if (installationButton) {
+      syncFromDom();
+      const deviceKey = installationButton.dataset.addInstallation;
+      const input = qs(`[data-new-installation="${deviceKey}"]`, editor);
+      const label = input?.value.trim() || "";
+      if (!label) return showError("Enter an installation service name first.");
+      const price = qs(`[data-new-installation-price="${deviceKey}"]`, editor)?.value.trim() || "";
+      const priceType = qs(`[data-new-installation-price-type="${deviceKey}"]`, editor)?.value === "assessment" ? "assessment" : "fixed";
+      const active = qs(`[data-new-installation-active="${deviceKey}"]`, editor)?.checked !== false;
+      if (active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) return showError("Enter a valid price, or choose For Assessment.");
+      const value = addValue("installation_type", label);
+      const rule = ensureRule({ device_type: deviceKey, installation_type: value.value_key }, `${groupValue("device_type", deviceKey)?.label || "Device"} / ${value.label}`, catalog.rules.length, priceType);
+      rule.price = priceType === "fixed" ? price : "";
+      rule.price_type = priceType;
+      rule.active = active ? 1 : 0;
+      render();
+      window.servitechAdminToast?.success?.("Installation service added.");
       return;
     }
 
@@ -436,6 +543,16 @@
   });
 
   editor.addEventListener("change", (event) => {
+    if (event.target.matches("[data-installation-device-mode]")) {
+      syncFromDom();
+      const deviceGroup = group("device_type");
+      if (deviceGroup) deviceGroup.active = event.target.checked ? 1 : 0;
+      render();
+      window.servitechAdminToast?.success?.(event.target.checked
+        ? "Device pricing enabled. Add a device, then add its installation services."
+        : "Simple installation pricing enabled.");
+      return;
+    }
     if ((event.target.matches("[data-rule-active]") || event.target.matches("[data-value-active]"))
       && !event.target.checked
       && !window.confirm("Deactivate this option? It will no longer appear on the landing page or customer queue forms.")) {
@@ -497,6 +614,11 @@
       Number(rule.active) && rule.price_type === "fixed" && (rule.price === "" || !Number.isFinite(Number(rule.price)))
     );
     if (invalidRule) return showError(`Enter a valid price for ${invalidRule.label || "the active option"}, or mark it For Assessment.`);
+    if (currentKind === "installation" && Number(group("device_type")?.active) === 1) {
+      const hasDeviceService = (payload.rules || []).some((rule) => Number(rule.active)
+        && rule.option_value_keys?.device_type && rule.option_value_keys?.installation_type);
+      if (!hasDeviceService) return showError("Add at least one active installation service under a device before enabling Device Category.");
+    }
 
     const changed = JSON.stringify(payload) !== originalSnapshot;
     if (changed && !window.confirm("Save these option and price changes? New customer submissions will use the updated catalog. Old records keep their saved snapshots.")) return;

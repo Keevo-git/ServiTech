@@ -111,6 +111,18 @@ if ($action === "save") {
         $activeRules = array_values(array_filter($catalogData["rules"], static fn($rule) => !empty($rule["active"])));
         if (servitech_catalog_service_kind($existing) === "rush_id") {
             $activeRules = array_values(array_filter($activeRules, static fn($rule) => isset($rule["option_value_keys"]["package"])));
+        } elseif (servitech_catalog_service_kind($existing) === "installation") {
+            $deviceMode = false;
+            foreach ($catalogData["groups"] as $group) {
+                if (($group["group_key"] ?? "") === "device_type" && !empty($group["active"])) {
+                    $deviceMode = true;
+                    break;
+                }
+            }
+            $activeRules = array_values(array_filter($activeRules, static function ($rule) use ($deviceMode): bool {
+                $hasDevice = isset($rule["option_value_keys"]["device_type"]);
+                return $deviceMode ? $hasDevice : !$hasDevice;
+            }));
         }
         $priceRange = servitech_catalog_price_range_from_rules($activeRules);
 

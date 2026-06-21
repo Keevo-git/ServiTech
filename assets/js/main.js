@@ -163,19 +163,23 @@ function buildCatalogRuleCards(service, groupKey) {
     }));
 }
 
-function buildRepairCatalogCards(service) {
+function buildDeviceCatalogCards(service, serviceGroupKey, fallbackLabel, iconKey) {
   const rows = new Map();
   catalogRulesFor(service).forEach((rule) => {
     const device = rule.option_labels?.device_type || "Device";
-    const repair = rule.option_labels?.repair_type || rule.label || "Repair";
+    const serviceLabel = rule.option_labels?.[serviceGroupKey] || rule.label || fallbackLabel;
     if (!rows.has(device)) rows.set(device, []);
-    rows.get(device).push(`${repair}: ${formatCatalogRulePrice(rule)}`);
+    rows.get(device).push(`${serviceLabel}: ${formatCatalogRulePrice(rule)}`);
   });
   return Array.from(rows.entries()).map(([title, lines]) => ({
     title,
-    icon: "repair",
+    icon: iconKey,
     lines,
   }));
+}
+
+function buildRepairCatalogCards(service) {
+  return buildDeviceCatalogCards(service, "repair_type", "Repair", "repair");
 }
 
 function openModal(id) {
@@ -509,10 +513,13 @@ async function loadServicesFromDatabase() {
             cards: buildRepairCatalogCards(service),
           };
         } else if (detailKey === "installationCatalog") {
+          const deviceMode = catalogRulesFor(service).some((rule) => rule.option_labels?.device_type);
           serviceModalDetailData.installationCatalog = {
             title: "Installation Services",
-            description: "Review installation service types.",
-            cards: buildCatalogRuleCards(service, "installation_type"),
+            description: deviceMode ? "Review installation services by device." : "Review installation service types.",
+            cards: deviceMode
+              ? buildDeviceCatalogCards(service, "installation_type", "Installation", "install")
+              : buildCatalogRuleCards(service, "installation_type"),
           };
         }
 

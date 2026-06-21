@@ -58,7 +58,10 @@ function servitech_catalog_group_contract(string $kind): array {
       "device_type" => "Devices",
       "repair_type" => "Service Type",
     ],
-    "installation" => ["installation_type" => "Installation Type"],
+    "installation" => [
+      "installation_type" => "Installation Type",
+      "device_type" => "Devices",
+    ],
     default => [],
   };
 }
@@ -72,7 +75,7 @@ function servitech_catalog_expected_rule_groups(string $kind, array $keys): bool
     "laminating" => [["lamination_type"]],
     "scanning" => [["paper_size"]],
     "repair" => [["device_type", "repair_type"]],
-    "installation" => [["installation_type"]],
+    "installation" => [["installation_type"], ["device_type", "installation_type"]],
     default => [],
   };
   return in_array($groups, $allowed, true);
@@ -90,7 +93,9 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
     if (!isset($contract[$key])) throw new DomainException("Unsupported option group for this service.");
     $group["group_key"] = $key;
     $group["name"] = $contract[$key];
-    $group["active"] = 1;
+    $group["active"] = ($kind === "installation" && $key === "device_type")
+      ? (!empty($group["active"]) ? 1 : 0)
+      : 1;
     $group["sort_order"] = array_search($key, array_keys($contract), true);
     $groupsByKey[$key] = $group;
   }
@@ -99,14 +104,27 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
       $groupsByKey[$key] = [
         "group_key" => $key,
         "name" => $name,
-        "active" => 1,
+        "active" => ($kind === "installation" && $key === "device_type") ? 0 : 1,
         "sort_order" => array_search($key, array_keys($contract), true),
         "values" => [],
       ];
     }
   }
 
-  $rules = isset($catalog["rules"]) && is_array($catalog["rules"]) ? $catalog["rules"] : [];
+  $submittedRules = isset($catalog["rules"]) && is_array($catalog["rules"]) ? $catalog["rules"] : [];
+  $rules = [];
+  $seenCombinations = [];
+  foreach ($submittedRules as $rule) {
+    $keys = isset($rule["option_value_keys"]) && is_array($rule["option_value_keys"])
+      ? $rule["option_value_keys"]
+      : [];
+    ksort($keys);
+    $signature = json_encode($keys);
+    if ($signature === false || isset($seenCombinations[$signature])) continue;
+    $seenCombinations[$signature] = true;
+    $rule["option_value_keys"] = $keys;
+    $rules[] = $rule;
+  }
   foreach ($rules as &$rule) {
     $keys = isset($rule["option_value_keys"]) && is_array($rule["option_value_keys"])
       ? $rule["option_value_keys"]
@@ -114,11 +132,103 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
     foreach (array_keys($keys) as $key) {
       if (!isset($contract[$key])) throw new DomainException("A pricing rule uses an unsupported option group.");
     }
+    foreach ($keys as $key => $valueKey) {
+      $validValue = false;
+      foreach ($groupsByKey[$key]["values"] ?? [] as $value) {
+        if ((string)($value["value_key"] ?? "") === (string)$valueKey) {
+          $validValue = true;
+          break;
+        }
+      }
+      if (!$validValue) throw new DomainException("A pricing rule references an unavailable option value.");
+    }
     if (!servitech_catalog_expected_rule_groups($kind, $keys)) {
       throw new DomainException("A pricing rule does not match this service's pricing structure.");
     }
+    $priceType = ($rule["price_type"] ?? "fixed") === "assessment" ? "assessment" : "fixed";
+    $price = $rule["price"] ?? null;
+    if (!empty($rule["active"]) && $priceType === "fixed" && ($price === "" || $price === null || !is_numeric($price))) {
+      throw new DomainException("Every active fixed-price option must have a valid price.");
+    }
+    if (is_numeric($price) && (float)$price < 0) {
+      throw new DomainException("Prices cannot be negative.");
+    }
+    $rule["price_type"] = $priceType;
   }
   unset($rule);
+
+  $activeValues = static function (string $groupKey) use (&$groupsByKey): array {
+    return array_values(array_filter(
+      $groupsByKey[$groupKey]["values"] ?? [],
+      static fn($value) => !empty($value["active"]) && trim((string)($value["label"] ?? "")) !== ""
+    ));
+  };
+  $ensureRule = static function (array $keys, string $label, int $sortOrder) use (&$rules, &$seenCombinations): void {
+    ksort($keys);
+    $signature = json_encode($keys);
+    if ($signature === false || isset($seenCombinations[$signature])) return;
+    $seenCombinations[$signature] = true;
+    $rules[] = [
+      "rule_key" => servitech_catalog_slug(implode("__", array_map(
+        static fn($key, $value) => $key . "_" . $value,
+        array_keys($keys),
+        array_values($keys)
+      ))),
+      "option_value_keys" => $keys,
+      "label" => $label,
+      "description" => "",
+      "price" => null,
+      "price_type" => "assessment",
+      "active" => 1,
+      "sort_order" => $sortOrder,
+    ];
+  };
+
+  if (in_array($kind, ["document_printing", "photocopy"], true)) {
+    $order = count($rules);
+    foreach ($activeValues("paper_size") as $paper) {
+      foreach ($activeValues("color_option") as $color) {
+        $ensureRule(
+          ["paper_size" => (string)$paper["value_key"], "color_option" => (string)$color["value_key"]],
+          trim((string)$paper["label"]) . " / " . trim((string)$color["label"]),
+          $order++
+        );
+      }
+    }
+  } elseif (in_array($kind, ["rush_id", "laminating", "scanning"], true)
+    || ($kind === "installation" && empty($groupsByKey["device_type"]["active"]))) {
+    $simpleGroups = match ($kind) {
+      "rush_id" => ["package", "addon"],
+      "laminating" => ["lamination_type"],
+      "scanning" => ["paper_size"],
+      "installation" => ["installation_type"],
+      default => [],
+    };
+    $order = count($rules);
+    foreach ($simpleGroups as $groupKey) {
+      foreach ($activeValues($groupKey) as $value) {
+        $ensureRule(
+          [$groupKey => (string)$value["value_key"]],
+          trim((string)$value["label"]),
+          $order++
+        );
+      }
+    }
+  }
+
+  if ($kind === "installation" && !empty($groupsByKey["device_type"]["active"])) {
+    $hasActiveDeviceRule = false;
+    foreach ($rules as $rule) {
+      if (!empty($rule["active"])
+        && isset($rule["option_value_keys"]["device_type"], $rule["option_value_keys"]["installation_type"])) {
+        $hasActiveDeviceRule = true;
+        break;
+      }
+    }
+    if (!$hasActiveDeviceRule) {
+      throw new DomainException("Add at least one active installation service under a device before enabling Device Category.");
+    }
+  }
 
   return [
     "groups" => array_values($groupsByKey),
@@ -248,6 +358,20 @@ function servitech_catalog_fetch(PDO $pdo, int $serviceId, bool $activeOnly = tr
   }
   unset($rule);
 
+  if ($activeOnly && servitech_catalog_service_kind($service) === "installation") {
+    $deviceMode = false;
+    foreach ($groups as $group) {
+      if (($group["group_key"] ?? "") === "device_type") {
+        $deviceMode = true;
+        break;
+      }
+    }
+    $rules = array_values(array_filter($rules, static function ($rule) use ($deviceMode): bool {
+      $hasDevice = isset($rule["option_value_keys"]["device_type"]);
+      return $deviceMode ? $hasDevice : !$hasDevice;
+    }));
+  }
+
   $rangeRules = $rules;
   if (servitech_catalog_service_kind($service) === "rush_id") {
     $rangeRules = array_values(array_filter($rules, static fn($rule) => isset($rule["option_value_keys"]["package"])));
@@ -283,6 +407,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
   $rules = isset($catalog["rules"]) && is_array($catalog["rules"]) ? $catalog["rules"] : [];
   $groupIds = [];
   $valueIds = [];
+  $submittedRuleKeys = [];
 
   $groupStmt = $pdo->prepare("
     INSERT INTO service_option_groups (service_id, group_key, name, active, sort_order)
@@ -376,5 +501,19 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
       ":active" => !empty($rule["active"]),
       ":sort_order" => (int)($rule["sort_order"] ?? $ruleIndex),
     ]);
+    $submittedRuleKeys[$ruleKey] = true;
+  }
+
+  $existingRulesStmt = $pdo->prepare("SELECT rule_key FROM service_pricing_rules WHERE service_id = :service_id");
+  $existingRulesStmt->execute([":service_id" => $serviceId]);
+  $archiveRuleStmt = $pdo->prepare("
+    UPDATE service_pricing_rules
+    SET active = FALSE, archived_at = COALESCE(archived_at, NOW()), updated_at = NOW()
+    WHERE service_id = :service_id AND rule_key = :rule_key
+  ");
+  foreach ($existingRulesStmt->fetchAll(PDO::FETCH_COLUMN) as $existingRuleKey) {
+    if (!isset($submittedRuleKeys[(string)$existingRuleKey])) {
+      $archiveRuleStmt->execute([":service_id" => $serviceId, ":rule_key" => (string)$existingRuleKey]);
+    }
   }
 }

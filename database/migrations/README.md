@@ -48,7 +48,8 @@ For an existing ServiTech database:
     the Order Management recycle-bin index.
 12. Run `20260620_unify_service_catalog_pricing.sql` if it has not yet been
     applied, then run `20260620_add_rush_id_addons.sql`, followed by
-    `20260621_add_laminating_catalog.sql` and
+    `20260621_deduplicate_photocopy_service.sql`,
+    `20260621_add_laminating_catalog.sql`, and
     `20260621_add_scanning_catalog.sql`. The additive migrations preserve
     edited prices and non-archived option statuses while adding Rush ID
     add-ons and restoring previously archived canonical Printing services.

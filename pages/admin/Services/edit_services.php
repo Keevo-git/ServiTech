@@ -48,7 +48,7 @@ $services = array_values(array_filter($services, "ms_supported_catalog_service")
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260620-friendly-catalog') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260621-guided-options') ?>">
 </head>
 <body>
 
@@ -192,7 +192,7 @@ require __DIR__ . "/../_includes/admin_header.php";
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260620-friendly-catalog') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260621-guided-options') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

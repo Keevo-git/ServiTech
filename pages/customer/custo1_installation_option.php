@@ -10,12 +10,31 @@ servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
 $installationServiceId = 0;
 $installationRules = [];
+$installationDeviceOptions = [];
+$installationDeviceMode = false;
 try {
   $installationService = servitech_catalog_fetch_service_by_kind($pdo, "installation", true);
   if (is_array($installationService)) {
     $installationServiceId = (int)$installationService["id"];
     $catalog = servitech_catalog_fetch($pdo, $installationServiceId, true);
     $installationRules = $catalog["rules"] ?? [];
+    foreach ($catalog["groups"] ?? [] as $group) {
+      if (($group["group_key"] ?? "") === "device_type") {
+        $installationDeviceMode = true;
+        $installationDeviceOptions = $group["values"] ?? [];
+      }
+    }
+    if ($installationDeviceMode) {
+      $devicesWithServices = [];
+      foreach ($installationRules as $rule) {
+        $deviceKey = trim((string)($rule["option_value_keys"]["device_type"] ?? ""));
+        if ($deviceKey !== "") $devicesWithServices[$deviceKey] = true;
+      }
+      $installationDeviceOptions = array_values(array_filter(
+        $installationDeviceOptions,
+        static fn($option) => isset($devicesWithServices[(string)($option["value_key"] ?? "")])
+      ));
+    }
   }
 } catch (Throwable $e) {
   $installationRules = [];
@@ -49,9 +68,23 @@ try {
 
       <div class="form-grid">
         <div>
+          <?php if ($installationDeviceMode): ?>
+          <label for="deviceTypeSelect">Select Device Type<span class="required">*</span></label>
+          <select id="deviceTypeSelect" class="form-select">
+            <option value="" selected disabled>Select Device</option>
+            <?php foreach ($installationDeviceOptions as $option): ?>
+              <option value="<?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>"
+                      data-value-key="<?= htmlspecialchars((string)$option["value_key"], ENT_QUOTES, "UTF-8") ?>">
+                <?= htmlspecialchars((string)$option["label"], ENT_QUOTES, "UTF-8") ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <?php endif; ?>
+
           <label for="installationTypeSelect">Select Installation Type<span class="required">*</span></label>
           <select id="installationTypeSelect" class="form-select">
-            <option value="" selected disabled>Select Installation/Software Service</option>
+            <option value="" selected disabled><?= $installationDeviceMode ? "Select a device first" : "Select Installation/Software Service" ?></option>
+            <?php if (!$installationDeviceMode): ?>
             <?php foreach ($installationRules as $rule):
               $label = (string)($rule["option_labels"]["installation_type"] ?? $rule["label"] ?? "Installation Type");
               $priceRange = ($rule["price_type"] ?? "") === "fixed" && isset($rule["price"]) && is_numeric($rule["price"])
@@ -65,6 +98,7 @@ try {
                 <?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?>
               </option>
             <?php endforeach; ?>
+            <?php endif; ?>
           </select>
         </div>
 
@@ -112,9 +146,40 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 ?>
 
 <script>
+  window.servitechCatalogServiceId = <?= (int)$installationServiceId ?>;
+  window.servitechCatalogRules = <?= json_encode($installationRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   (function(){
     const sel = document.getElementById('installationTypeSelect');
+    const device = document.getElementById('deviceTypeSelect');
     if (!sel) return;
+
+    function priceLabel(rule) {
+      const price = Number(rule && rule.price);
+      return rule && rule.price_type !== 'assessment' && Number.isFinite(price)
+        ? `PHP ${price.toFixed(2)}`
+        : 'For assessment';
+    }
+
+    function populateServices() {
+      if (!device) return;
+      const deviceKey = device.options[device.selectedIndex]?.dataset?.valueKey || '';
+      sel.innerHTML = '<option value="" selected disabled>Select Installation Service</option>';
+      (window.servitechCatalogRules || [])
+        .filter((rule) => rule?.option_value_keys?.device_type === deviceKey)
+        .forEach((rule) => {
+          const option = document.createElement('option');
+          const label = rule?.option_labels?.installation_type || rule?.label || 'Installation Service';
+          option.value = label;
+          option.textContent = label;
+          option.dataset.catalogId = String(window.servitechCatalogServiceId || 0);
+          option.dataset.ruleId = String(rule?.id || 0);
+          option.dataset.priceRange = priceLabel(rule);
+          sel.appendChild(option);
+        });
+      sel.dispatchEvent(new Event('change'));
+    }
+
+    device?.addEventListener('change', populateServices);
 
     // Expose selected installation details so main.js can store correct label/meta
     window.getInstallationDetails = function(){
@@ -130,11 +195,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 </script>
 
 <script src="/assets/js/csrf.js"></script>
-<script>
-  window.servitechCatalogServiceId = <?= (int)$installationServiceId ?>;
-  window.servitechCatalogRules = <?= json_encode($installationRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-</script>
-<script src="/assets/js/main.js?v=20260620-service-catalog"></script>
+<script src="/assets/js/main.js?v=20260621-installation-device-mode"></script>
 
 </body>
 </html>

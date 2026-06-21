@@ -2034,7 +2034,8 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         return labelKey(labels.device_type) === device && labelKey(labels.repair_type) === repair;
       }
       if (filterCategoryKey(queueData) === "installation") {
-        return labelKey(labels.installation_type) === installation;
+        const ruleDevice = labelKey(labels.device_type);
+        return labelKey(labels.installation_type) === installation && (!ruleDevice || ruleDevice === device);
       }
       return false;
     }) || null;
@@ -2523,7 +2524,15 @@ require_once __DIR__ . "/../../components/auth_guard.php";
       rows.push(editSelect("device_type", "Device", queueData.device_type ?? details.device_type, groupOptions("device_type")));
       rows.push(editSelect("repair_type", "Repair Type", queueData.repair_type ?? details.repair_type, groupOptions("repair_type")));
     } else if (category === "installation") {
-      rows.push(editSelect("installation_type", "Installation Type", queueData.installation_type ?? details.installation_type, groupOptions("installation_type")));
+      const installationDeviceMode = catalogRules(catalogService).some((rule) => rule?.option_labels?.device_type);
+      if (installationDeviceMode) {
+        rows.push(editSelect("catalog_pricing_rule_id", "Device / Installation Service", currentRuleId, catalogRules(catalogService).map((rule) => [
+          String(rule.id || ""),
+          `${rule.option_labels?.device_type || "Device"} / ${rule.option_labels?.installation_type || catalogRuleLabel(rule)} - ${rule.price_type === "assessment" ? "For assessment" : toPeso(rule.price)}`,
+        ])));
+      } else {
+        rows.push(editSelect("installation_type", "Installation Type", queueData.installation_type ?? details.installation_type, groupOptions("installation_type")));
+      }
     }
 
     if (isOnlineDocumentPrinting(queueData)) {
