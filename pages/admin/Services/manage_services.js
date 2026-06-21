@@ -214,7 +214,6 @@
             <span aria-hidden="true"></span><em>${Number(value.active) ? "Active" : "Inactive"}</em>
           </label>
           ${movementButtons(groupKey, value.value_key, index, values.length)}
-          <button class="ms-archive-button" type="button" data-archive-value="${groupKey}" data-value-key="${escapeHtml(value.value_key)}" title="Archive option" aria-label="Archive ${escapeHtml(value.label)}">${archiveIcon()}<span>Archive</span></button>
         </div>`).join("")}
       </div>
       <div class="ms-inline-add">
@@ -265,7 +264,7 @@
     return `<section class="ms-pricing-section">
       <div class="ms-section-head"><div><h4>${escapeHtml(title)}</h4><p>${escapeHtml(options.help || "Edit names, prices, and availability.")}</p></div></div>
       <div class="ms-rule-table">
-        <div class="ms-rule-table__head"><span>${escapeHtml(options.nameLabel || "Name")}</span>${options.description ? "<span>Details</span>" : ""}<span>Price</span><span>Price Type</span><span>Status</span><span>Actions</span></div>
+        <div class="ms-rule-table__head"><span>${escapeHtml(options.nameLabel || "Name")}</span>${options.description ? "<span>Details</span>" : ""}<span>Price</span><span>Price Type</span><span>Status</span><span>Order</span></div>
         ${values.map((value, index) => {
           const rule = findRule({ [groupKey]: value.value_key });
           return `<div class="ms-rule-row ${Number(value.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(rule.rule_key)}" data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
@@ -274,7 +273,7 @@
             <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
             ${options.fixedOnly ? '<input type="hidden" data-rule-price-type value="fixed"><span class="ms-fixed-label">Fixed Price</span>' : `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>`}
             ${toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive")}
-            <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, index, values.length)}<button class="ms-archive-button" type="button" data-archive-value="${groupKey}" data-value-key="${escapeHtml(value.value_key)}" title="Archive option" aria-label="Archive ${escapeHtml(value.label)}">${archiveIcon()}<span>Archive</span></button></div>
+            <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, index, values.length)}</div>
           </div>`;
         }).join("")}
       </div>
@@ -345,10 +344,6 @@
     focusable[next].focus();
   });
 
-  function archiveIcon() {
-    return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v4H4V5zm2 6h12v9H6v-9zm4 2v2h4v-2h-4z"></path></svg>`;
-  }
-
   function optionGroupName(groupKey) {
     return contracts[currentKind]?.groups?.[groupKey] || "Option";
   }
@@ -390,7 +385,6 @@
                   <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
                   <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
                   ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
-                  <button class="ms-archive-button" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}" title="Archive service" aria-label="Archive ${escapeHtml(value.label)}">${archiveIcon()}<span>Archive</span></button>
                 </div>`;
               }).join("")}
               <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Service</button></div>
@@ -420,7 +414,6 @@
                   <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
                   <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
                   ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
-                  <button class="ms-archive-button" type="button" data-archive-rule="${escapeHtml(rule.rule_key)}" title="Archive service" aria-label="Archive ${escapeHtml(value.label)}">${archiveIcon()}<span>Archive</span></button>
                 </div>`;
               }).join("")}
               <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(device.value_key)}">Add Service</button></div>
@@ -497,15 +490,6 @@
     const value = { value_key: valueKey, label, description: "", active: 1, sort_order: item.values.length };
     item.values.push(value);
     return value;
-  }
-
-  function archiveValue(groupKey, valueKey) {
-    const value = groupValue(groupKey, valueKey);
-    if (!value) return;
-    value.active = 0;
-    (catalog.rules || []).forEach((rule) => {
-      if (rule.option_value_keys?.[groupKey] === valueKey) rule.active = 0;
-    });
   }
 
   editor.addEventListener("click", async (event) => {
@@ -599,38 +583,6 @@
       rule.active = active ? 1 : 0;
       render();
       window.servitechAdminToast?.success?.("Installation service added to this draft. Save changes to publish it.");
-      return;
-    }
-
-    const archiveButton = event.target.closest("[data-archive-value]");
-    if (archiveButton) {
-      syncFromDom();
-      if (!await confirmAction({
-        title: "Archive Option",
-        message: "Archive this item? It will be hidden from active service management and customers will no longer be able to select it. Existing submitted records will not be deleted.",
-        confirmLabel: "Archive Option",
-        tone: "warning",
-      })) return;
-      const archivedGroup = optionGroupName(archiveButton.dataset.archiveValue);
-      archiveValue(archiveButton.dataset.archiveValue, archiveButton.dataset.valueKey);
-      render();
-      window.servitechAdminToast?.success?.(`${archivedGroup} archived in this draft. Save changes to publish it.`);
-      return;
-    }
-
-    const archiveRuleButton = event.target.closest("[data-archive-rule]");
-    if (archiveRuleButton) {
-      syncFromDom();
-      if (!await confirmAction({
-        title: "Archive Service Option",
-        message: "Archive this item? Customers will no longer be able to select it, but existing submitted records will remain unchanged.",
-        confirmLabel: "Archive Option",
-        tone: "warning",
-      })) return;
-      const rule = catalog.rules.find((item) => item.rule_key === archiveRuleButton.dataset.archiveRule);
-      if (rule) rule.active = 0;
-      render();
-      window.servitechAdminToast?.success?.("Service option archived in this draft. Save changes to publish it.");
       return;
     }
 
