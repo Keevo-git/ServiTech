@@ -263,7 +263,7 @@ try {
   $assessmentPaymentLabel = trim((string)($details["service_label"] ?? $service_label));
   $paymentLabel = $payment_method === "cash" ? "Cash payment selected" : "Queue submitted";
   $customerMessage = $paymentNotRequired
-    ? "Your {$assessmentPaymentLabel} request has been submitted. The admin will review it and provide further details."
+    ? "Your {$assessmentPaymentLabel} request has been submitted. Staff will review it and provide further details."
     : "Queue {$queue_code}: {$paymentLabel}.";
   $adminMessage = $paymentNotRequired
     ? "Queue {$queue_code}: New {$assessmentPaymentLabel} request submitted. Review the request and update its status."

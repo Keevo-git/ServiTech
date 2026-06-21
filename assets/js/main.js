@@ -1496,7 +1496,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.openQueueSuccessModal(result.queue_code, {
           service: buildServiceLabel(),
           message: assessmentServiceFlow
-            ? "Your queue has been submitted successfully. The admin will review your request and provide further details."
+            ? "Your queue has been submitted successfully. Staff will review your request and provide further details."
             : undefined,
           note: assessmentServiceFlow
             ? "The final service details may vary after review, so please check your queue status for updates."

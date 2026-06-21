@@ -46,7 +46,7 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Repair Option</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260621-assessment-payment">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260621-global-ui-polish">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260621-join-form-wrap">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
 </head>

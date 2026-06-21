@@ -13,7 +13,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Service Status</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260621-global-ui-polish">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260607-status-edit-toast">
   <link rel="stylesheet" href="/assets/css/upload-progress.css?v=20260611-per-file-state">
@@ -303,7 +303,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
       color: #8b1e1e !important;
       cursor: pointer;
       display: flex !important;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: inherit;
       flex: 0 0 48px !important;
       flex-grow: 0 !important;
       flex-shrink: 0 !important;
@@ -1476,7 +1476,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
         <div class="status-modal__grid modal-body">
           <div class="status-modal__column status-modal__column--primary">
             <section id="adminSendBackSection" class="status-modal__section status-admin-message" aria-labelledby="adminSendBackTitle" hidden>
-              <h4 id="adminSendBackTitle" class="status-modal__section-title">Message from Admin</h4>
+              <h4 id="adminSendBackTitle" class="status-modal__section-title">Message from Staff</h4>
               <p id="adminSendBackMessage" class="status-admin-message__body"></p>
             </section>
 
@@ -1566,13 +1566,13 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
 
         <div class="status-edit-modal__body">
           <section class="status-modal__section status-admin-message" aria-labelledby="editAdminMessageTitle">
-            <h4 id="editAdminMessageTitle" class="status-modal__section-title">Message from Admin</h4>
+            <h4 id="editAdminMessageTitle" class="status-modal__section-title">Message from Staff</h4>
             <p id="editAdminMessage" class="status-admin-message__body"></p>
           </section>
 
           <section id="statusEditSection" class="status-edit-shell" aria-labelledby="statusEditTitle">
             <h4 id="statusEditTitle" class="status-modal__section-title">Edit Request Details</h4>
-            <p class="status-edit-mode-note">Update the fields below based on admin feedback. Existing uploaded files stay attached unless you choose replacements.</p>
+            <p class="status-edit-mode-note">Update the fields below based on staff feedback. Existing uploaded files stay attached unless you choose replacements.</p>
             <form id="statusEditForm" class="status-edit-form">
               <div id="statusEditFields" class="status-edit-grid"></div>
               <p id="statusEditHelp" class="status-edit-help"></p>
@@ -2579,7 +2579,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     const visible = message !== "" && hasActiveSendBack(queueData);
     if (adminSendBackSection) adminSendBackSection.hidden = !visible;
     if (adminSendBackMessage) adminSendBackMessage.textContent = message;
-    if (editAdminMessage) editAdminMessage.textContent = message || "No admin message was provided.";
+    if (editAdminMessage) editAdminMessage.textContent = message || "No staff message was provided.";
   }
 
   function syncModalModeState(){
@@ -2609,7 +2609,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
       editRequestQueueTitle.textContent = queueCode ? `Edit Request ${queueCode}` : "Edit Request";
     }
     if (editAdminMessage) {
-      editAdminMessage.textContent = String(currentDetailQueue?.send_back_message || "").trim() || "No admin message was provided.";
+      editAdminMessage.textContent = String(currentDetailQueue?.send_back_message || "").trim() || "No staff message was provided.";
     }
     editRemovedFileTokens = new Set();
     editRemovedFileIndexes = new Set();
@@ -3185,7 +3185,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
         </div>
         <div class="status-detail-row">
           <span class="status-detail-label">Note</span>
-          <span class="status-detail-value">The admin will assess your request first because the final price may vary.</span>
+          <span class="status-detail-value">Staff will assess your request first because the final price may vary.</span>
         </div>
       `;
       if (paymentQr) paymentQr.classList.remove("is-visible");

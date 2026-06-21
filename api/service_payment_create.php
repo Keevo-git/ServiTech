@@ -66,7 +66,7 @@ function service_payment_success(int $queueId, string $queueCode, string $servic
       "queue_id" => $queueId,
       "queue_code" => $queueCode,
       "service_name" => $serviceName,
-      "message" => "Your queue has been submitted successfully. Your GCash payment is now waiting for admin review.",
+      "message" => "Your queue has been submitted successfully. Your GCash payment is now waiting for staff review.",
     ]);
   }
 
@@ -93,7 +93,7 @@ if ($draftToken !== "") {
   $serviceLabel = trim((string)($details["service_label"] ?? ($draft["service_label"] ?? "Service")));
   $serviceKind = trim((string)($draft["service_kind"] ?? ""));
   if (in_array($serviceKind, ["repair", "installation"], true) || in_array($category, ["repair", "installation"], true)) {
-    service_payment_fail("Payment is not required yet for this request. The admin will assess it first.", servitech_url("/pages/customer/customer_dash.php"));
+    service_payment_fail("Payment is not required yet for this request. Staff will assess it first.", servitech_url("/pages/customer/customer_dash.php"));
   }
   if ($category === "" || $prefix === "" || $serviceLabel === "" || empty($details)) {
     service_payment_fail("Your payment draft is incomplete. Please start the queue request again.", servitech_url("/pages/customer/customer_dash.php"));
@@ -157,7 +157,7 @@ if ($draftToken !== "") {
       $userId,
       $category,
       $queueId,
-      "Queue {$queueCode}: GCash payment details submitted. Waiting for admin review.",
+      "Queue {$queueCode}: GCash payment details submitted. Waiting for staff review.",
       "customer_new_gcash_queue:{$queueId}",
       true
     );

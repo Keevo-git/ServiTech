@@ -228,7 +228,7 @@ $adminHeaderVariant = "special";
   <title>Store Availability</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/store_availability.css?v=20260619-confirm-toasts') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/store_availability.css?v=20260621-global-ui-polish') ?>">
 </head>
 <body class="store-settings-page">
 <?php require __DIR__ . "/_includes/admin_header.php"; ?>

@@ -142,7 +142,7 @@ try {
     throw new DomainException("Only Pending or Approved records can be edited.");
   }
   if (empty($queue["customer_edit_required"])) {
-    throw new DomainException("This request can only be edited after an admin sends it back for editing.");
+    throw new DomainException("This request can only be edited after staff send it back for editing.");
   }
 
   $currentDetails = [];

@@ -35,9 +35,9 @@ function customer_code_from_id(int $id): string {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Customer List</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260619-row-details') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260621-global-ui-polish') ?>">
 </head>
 
 <body>

@@ -511,6 +511,28 @@ body.store-confirm-open {
   min-width: 128px;
 }
 
+.store-confirm-close {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid #d7e2f0;
+  border-radius: 50%;
+  background: #f8fbff;
+  color: #7f1d1d;
+  font-size: 24px;
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+}
+
+.store-confirm-close:hover,
+.store-confirm-close:focus-visible {
+  border-color: #fecaca;
+  background: #fee2e2;
+  color: #991b1b;
+  box-shadow: 0 10px 22px rgba(127, 29, 29, .16);
+}
+
 .holiday-panel { margin-top: 22px; }
 .holiday-form {
   display: grid;

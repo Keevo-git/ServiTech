@@ -69,7 +69,7 @@ unset($_SESSION["servitech_customer_toast"]);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Customer Dashboard</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260621-global-ui-polish">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260526status-badges">
   <link rel="stylesheet" href="/assets/css/store-availability.css?v=20260615">
   <style>

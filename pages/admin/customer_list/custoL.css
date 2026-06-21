@@ -1,6 +1,6 @@
 /* use your custoL.css as-is (no code changes required) */
 
-* { font-family: "Segoe UI", Arial, sans-serif !important; }
+* { font-family: "Bahnschrift", "Trebuchet MS", "Segoe UI", Arial, sans-serif !important; }
 
 :root{
   --maroon:#1f4a8a;
@@ -1314,4 +1314,40 @@
   width: 50px !important;
   height: auto !important;
   object-fit: contain !important;
+}
+
+/* Final customer-list modal control alignment. */
+.cl-modalHead .cl-modalX,
+#customerMessageModal .cl-modalHead .cl-modalX {
+  align-items: center !important;
+  background: #f8fbff !important;
+  border: 1px solid #d7e2f0 !important;
+  border-radius: 50% !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08) !important;
+  color: #7f1d1d !important;
+  display: inline-flex !important;
+  flex: 0 0 44px !important;
+  font-family: inherit !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  height: 44px !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 0 !important;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease !important;
+  width: 44px !important;
+}
+
+.cl-modalHead .cl-modalX:hover,
+.cl-modalHead .cl-modalX:focus-visible,
+#customerMessageModal .cl-modalHead .cl-modalX:hover,
+#customerMessageModal .cl-modalHead .cl-modalX:focus-visible {
+  background: #fee2e2 !important;
+  border-color: #fecaca !important;
+  box-shadow: 0 10px 22px rgba(127, 29, 29, 0.16) !important;
+  color: #991b1b !important;
+  outline: none !important;
+  transform: translateY(-1px) !important;
 }

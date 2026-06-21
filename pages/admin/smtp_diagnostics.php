@@ -37,7 +37,7 @@ servitech_log_smtp_config_status($check);
       padding: 32px;
       background: #f8f5f2;
       color: #24120f;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: "Bahnschrift", "Trebuchet MS", "Segoe UI", Arial, sans-serif;
     }
 
     main {

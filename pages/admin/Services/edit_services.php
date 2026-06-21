@@ -46,9 +46,9 @@ $services = array_values(array_filter($services, "ms_supported_catalog_service")
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Manage Services</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260621-toggle-only-modal-close') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260621-global-ui-polish') ?>">
 </head>
 <body>
 

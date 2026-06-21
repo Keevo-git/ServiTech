@@ -12,7 +12,7 @@ $csrfToken = servitech_csrf_token();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Register</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260621-register-checkbox") ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260621-global-ui-polish") ?>">
 </head>
 <body class="auth-page auth-page--register">
 
@@ -274,7 +274,7 @@ $csrfToken = servitech_csrf_token();
               <li>Queue, service request, Document Printing, repair, installation, laminating, and rush ID forms.</li>
               <li>File upload forms used for documents, images, presentations, and related service files.</li>
               <li>Payment selection and GCash reference submission for Document Printing orders.</li>
-              <li>Admin actions for queue status updates, cancellation reasons, price updates, paid amount updates, service management, announcements, and customer record viewing.</li>
+              <li>Staff actions for queue status updates, cancellation reasons, price updates, paid amount updates, service management, announcements, and customer record viewing.</li>
               <li>Automatic security checks for sessions, CSRF tokens, failed login throttling, notifications, and queue status history.</li>
             </ul>
           </section>
@@ -286,9 +286,9 @@ $csrfToken = servitech_csrf_token();
               <li>Authenticate users through email/password login or Google sign-in.</li>
               <li>Create queue numbers and manage service requests from submission to completion or cancellation.</li>
               <li>Process Document Printing, repair, installation, laminating, rush ID, and related service requests.</li>
-              <li>Store uploaded files and make them available to the file owner and authorized administrators for service processing.</li>
+              <li>Store uploaded files and make them available to the file owner and authorized staff for service processing.</li>
               <li>Record cash or GCash payment details, price, paid amount, and payment review information for Document Printing orders.</li>
-              <li>Send customer and admin notifications about new requests, payment review, price updates, cancellations, and status changes.</li>
+              <li>Send customer and staff notifications about new requests, payment review, price updates, cancellations, and status changes.</li>
               <li>Protect the system through CSRF checks, session controls, role-based access checks, and failed login throttling.</li>
               <li>Support academic evaluation, demonstration, testing, reporting, and system improvement for the ServiTech capstone project.</li>
             </ul>
@@ -300,7 +300,7 @@ $csrfToken = servitech_csrf_token();
           <section class="policy-section">
             <h3>Storage and Access</h3>
             <p>ServiTech stores account, queue, payment, notification, upload metadata, login attempt, and status history records in the project database. Uploaded files are stored in the private upload storage directory using random storage keys. Passwords are stored as password hashes. Failed login throttling stores hashed email and hashed IP-based values instead of plain login-attempt identifiers.</p>
-            <p>Customers can access their own account, queue status, notifications, and uploaded files. Administrators can access customer records, queues, orders, payment details, uploaded files, notifications, service records, announcements, and status history needed to operate and evaluate the system. ServiTech does not sell user data.</p>
+            <p>Customers can access their own account, queue status, notifications, and uploaded files. Staff can access customer records, queues, orders, payment details, uploaded files, notifications, service records, announcements, and status history needed to operate and evaluate the system. ServiTech does not sell user data.</p>
           </section>
           <section class="policy-section">
             <h3>Service Providers</h3>
@@ -310,14 +310,14 @@ $csrfToken = servitech_csrf_token();
             <h3>Data Protection</h3>
             <p>ServiTech protects user data through these implemented controls:</p>
             <ul>
-              <li>Role-based access for customers and administrators.</li>
+              <li>Role-based access for customers and staff.</li>
               <li>HTTP-only session cookies with SameSite=Lax.</li>
               <li>CSRF tokens for protected form and API requests.</li>
               <li>Password hashing for stored passwords.</li>
               <li>Hashed login attempt records for failed login throttling.</li>
               <li>Private upload storage, random file storage keys, upload tokens, checksum records, file type validation, size limits, and restricted file downloads.</li>
-              <li>Admin-only pages protected by login and role checks.</li>
-              <li>Status history records that show queue changes and admin notes.</li>
+              <li>Staff-only pages protected by login and role checks.</li>
+              <li>Status history records that show queue changes and staff notes.</li>
             </ul>
           </section>
           <section class="policy-section">
@@ -366,7 +366,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Service Description</h3>
-            <p>ServiTech provides account registration, login, customer queueing, Document Printing order submission, uploaded file handling, service status tracking, notifications, payment detail recording, profile editing, and administrator management for printing, repair, installation, laminating, rush ID, and related services.</p>
+            <p>ServiTech provides account registration, login, customer queueing, Document Printing order submission, uploaded file handling, service status tracking, notifications, payment detail recording, profile editing, and staff management for printing, repair, installation, laminating, rush ID, and related services.</p>
           </section>
           <section class="policy-section">
             <h3>Academic Purpose</h3>
@@ -404,20 +404,20 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Requests, Status, and Cancellations</h3>
-            <p>ServiTech creates queue records for submitted service requests. Requests start as pending and move through the status flow managed by the system and administrators. Online print orders move from pending to approved, ongoing, for pick-up, and done. Other service requests move from pending to ongoing, for pick-up or done, and then finalized.</p>
-            <p>Customers can cancel only their own pending requests. A cancelled request becomes an order history record, its paid amount is reset to zero, and administrators receive a cancellation notification. Administrators can cancel requests through the status update flow and must provide a cancellation reason. Completed and cancelled records are finalized and cannot continue through the normal status flow.</p>
+            <p>ServiTech creates queue records for submitted service requests. Requests start as pending and move through the status flow managed by the system and staff. Online print orders move from pending to approved, ongoing, for pick-up, and done. Other service requests move from pending to ongoing, for pick-up or done, and then finalized.</p>
+            <p>Customers can cancel only their own pending requests. A cancelled request becomes an order history record, its paid amount is reset to zero, and staff receive a cancellation notification. Staff can cancel requests through the status update flow and must provide a cancellation reason. Completed and cancelled records are finalized and cannot continue through the normal status flow.</p>
           </section>
           <section class="policy-section">
             <h3>Payments and Transaction Details</h3>
-            <p>For Document Printing orders, ServiTech records the selected payment method, order amount, paid amount, and GCash reference number for GCash payments. ServiTech also supports cash selection while regular queues are available. Administrators review payment details, update price and paid amount, and approve or continue processing the order through the admin status workflow. ServiTech records transaction details for tracking and review; it does not process payment through an external payment gateway.</p>
+            <p>For Document Printing orders, ServiTech records the selected payment method, order amount, paid amount, and GCash reference number for GCash payments. ServiTech also supports cash selection while regular queues are available. Staff review payment details, update price and paid amount, and approve or continue processing the order through the staff status workflow. ServiTech records transaction details for tracking and review; it does not process payment through an external payment gateway.</p>
           </section>
           <section class="policy-section">
             <h3>Uploaded Files and User Content</h3>
             <p>Users are responsible for the files and content they upload. Upload-enabled services accept up to 5 files per submission, with a maximum of 25 MB per file and 100 MB total, subject to each service's file-type rules. Uploaded files are stored in private upload storage and linked to the user's queue or order. ServiTech uses them only to review and process the requested service. Active-request files remain available while operationally needed, Done or Cancelled request files expire after 30 days, and temporary failed, cancelled, abandoned, or unlinked uploads expire within 24 hours. Users must have the right to upload, print, use, or reproduce submitted files.</p>
           </section>
           <section class="policy-section">
-            <h3>Administrator Access and Actions</h3>
-            <p>Administrators can view registered customers, queues, orders, service details, payment details, uploaded files, notifications, status history, services, and announcements. Administrators can update request status, add cancellation notes, update prices and paid amounts, manage service listings, and manage announcements. Queue records cannot be permanently deleted through the admin delete endpoint; administrators must cancel the order instead.</p>
+            <h3>Staff Access and Actions</h3>
+            <p>Staff can view registered customers, queues, orders, service details, payment details, uploaded files, notifications, status history, services, and announcements. Staff can update request status, add cancellation notes, update prices and paid amounts, manage service listings, and manage announcements. Queue records cannot be permanently deleted through the staff delete endpoint; staff must cancel the order instead.</p>
           </section>
           <section class="policy-section">
             <h3>Intellectual Property</h3>
@@ -429,7 +429,7 @@ $csrfToken = servitech_csrf_token();
           </section>
           <section class="policy-section">
             <h3>Misuse and Account Restrictions</h3>
-            <p>ServiTech restricts access by customer and admin roles. Accounts and requests can be restricted, cancelled, or blocked from normal processing when users submit harmful content, misuse the system, violate these terms, or compromise system security.</p>
+            <p>ServiTech restricts access by customer and staff roles. Accounts and requests can be restricted, cancelled, or blocked from normal processing when users submit harmful content, misuse the system, violate these terms, or compromise system security.</p>
           </section>
           <section class="policy-section">
             <h3>Limitation of Responsibility</h3>

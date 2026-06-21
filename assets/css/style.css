@@ -1,8 +1,18 @@
+:root {
+  --site-font-sans: "Segoe UI", Arial, sans-serif;
+  --site-modal-close-size: 44px;
+  --site-modal-close-bg: #fff8f5;
+  --site-modal-close-border: #ead2c5;
+  --site-modal-close-color: #8b1e1e;
+  --site-modal-close-hover-bg: #8b1e1e;
+  --site-modal-close-hover-color: #ffffff;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: var(--site-font-sans);
 }
 
 body {
@@ -5657,5 +5667,126 @@ body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-
   color: #8a2a1f !important;
   text-decoration: none !important;
   transform: none !important;
+}
+
+/* Shared public/customer modal controls and typography cleanup. */
+:where(
+  .notification-close-btn,
+  .site-privacy-controls__close,
+  body.customer-layout .queue-success-modal__close,
+  body.customer-layout.customer-page--status .status-modal .modal-close,
+  body.customer-layout.customer-page--status .status-edit-modal .modal-close
+) {
+  align-items: center !important;
+  background: var(--site-modal-close-bg) !important;
+  border: 1px solid var(--site-modal-close-border) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 10px 22px rgba(74, 5, 5, 0.08);
+  box-sizing: border-box;
+  color: var(--site-modal-close-color) !important;
+  cursor: pointer;
+  display: inline-flex !important;
+  flex: 0 0 var(--site-modal-close-size);
+  font-family: inherit !important;
+  font-size: 0 !important;
+  height: var(--site-modal-close-size) !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  min-height: var(--site-modal-close-size) !important;
+  min-width: var(--site-modal-close-size) !important;
+  padding: 0 !important;
+  text-decoration: none;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  width: var(--site-modal-close-size) !important;
+}
+
+:where(
+  .notification-close-btn,
+  .site-privacy-controls__close,
+  body.customer-layout .queue-success-modal__close,
+  body.customer-layout.customer-page--status .status-modal .modal-close,
+  body.customer-layout.customer-page--status .status-edit-modal .modal-close
+)::before,
+:where(
+  .notification-close-btn,
+  .site-privacy-controls__close,
+  body.customer-layout .queue-success-modal__close,
+  body.customer-layout.customer-page--status .status-modal .modal-close,
+  body.customer-layout.customer-page--status .status-edit-modal .modal-close
+)::after {
+  background: currentColor !important;
+  border-radius: 999px;
+  content: "" !important;
+  height: 2.5px !important;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform-origin: center;
+  width: 17px !important;
+}
+
+:where(
+  .notification-close-btn,
+  .site-privacy-controls__close,
+  body.customer-layout .queue-success-modal__close,
+  body.customer-layout.customer-page--status .status-modal .modal-close,
+  body.customer-layout.customer-page--status .status-edit-modal .modal-close
+)::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+:where(
+  .notification-close-btn,
+  .site-privacy-controls__close,
+  body.customer-layout .queue-success-modal__close,
+  body.customer-layout.customer-page--status .status-modal .modal-close,
+  body.customer-layout.customer-page--status .status-edit-modal .modal-close
+)::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+:where(
+  .notification-close-btn,
+  .site-privacy-controls__close,
+  body.customer-layout .queue-success-modal__close,
+  body.customer-layout.customer-page--status .status-modal .modal-close,
+  body.customer-layout.customer-page--status .status-edit-modal .modal-close
+):hover,
+:where(
+  .notification-close-btn,
+  .site-privacy-controls__close,
+  body.customer-layout .queue-success-modal__close,
+  body.customer-layout.customer-page--status .status-modal .modal-close,
+  body.customer-layout.customer-page--status .status-edit-modal .modal-close
+):focus-visible {
+  background: var(--site-modal-close-hover-bg) !important;
+  border-color: var(--site-modal-close-hover-bg) !important;
+  box-shadow: 0 14px 28px rgba(139, 30, 30, 0.18);
+  color: var(--site-modal-close-hover-color) !important;
+  outline: none !important;
+  transform: translateY(-1px);
+}
+
+.site-privacy-controls__close span,
+body.customer-layout .queue-success-modal__close,
+body.customer-layout.customer-page--status .status-modal .modal-close span,
+body.customer-layout.customer-page--status .status-edit-modal .modal-close span {
+  font-size: 0 !important;
+}
+
+@media (max-width: 640px) {
+  body.customer-layout.customer-page--status #detailModal,
+  body.customer-layout.customer-page--status #editRequestModal {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 14px !important;
+  }
+
+  body.customer-layout.customer-page--status .status-modal,
+  body.customer-layout.customer-page--status .status-edit-modal {
+    max-height: calc(100dvh - 28px) !important;
+    width: min(100%, calc(100vw - 28px)) !important;
+  }
 }
 

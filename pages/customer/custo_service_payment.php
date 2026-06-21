@@ -152,7 +152,7 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: GCash Payment</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260616-footer-hover">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260621-global-ui-polish">
   <link rel="stylesheet" href="/assets/css/customer-responsive.css?v=20260410d1">
   <link rel="stylesheet" href="/assets/css/customer-payment.css?v=20260621c">
 </head>
@@ -164,7 +164,7 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
     <section class="form-card customer-payment-confirmation">
       <span class="customer-payment-confirmation__icon<?= $paymentCancelled ? ' is-cancelled' : '' ?>" aria-hidden="true"><?= $paymentCancelled ? '&times;' : '&#10003;' ?></span>
       <h2><?= $paymentStatus === "APPROVED" || $paymentStatus === "PAID" ? "GCash Payment Approved" : ($paymentStatus === "CANCELLED" ? "Payment Cancelled" : "GCash Payment Submitted") ?></h2>
-      <p><?php if ($paymentStatus === "APPROVED" || $paymentStatus === "PAID"): ?>Your GCash payment for Queue <?= service_payment_esc($queue["queue_code"]) ?> has been approved.<?php elseif ($paymentStatus === "CANCELLED"): ?>This payment and queue/order have been cancelled.<?php else: ?>Your GCash details for Queue <?= service_payment_esc($queue["queue_code"]) ?> were submitted and are waiting for admin review.<?php endif; ?></p>
+      <p><?php if ($paymentStatus === "APPROVED" || $paymentStatus === "PAID"): ?>Your GCash payment for Queue <?= service_payment_esc($queue["queue_code"]) ?> has been approved.<?php elseif ($paymentStatus === "CANCELLED"): ?>This payment and queue/order have been cancelled.<?php else: ?>Your GCash details for Queue <?= service_payment_esc($queue["queue_code"]) ?> were submitted and are waiting for staff review.<?php endif; ?></p>
       <div class="form-actions form-actions--compact"><a class="btn-next" href="<?= service_payment_esc(servitech_url('/pages/customer/custo_service_status.php')) ?>">View Queue Status</a></div>
     </section>
   <?php else: ?>
@@ -185,7 +185,7 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
       <div class="form-card customer-payment-card">
         <div class="customer-payment-step">
           <p class="customer-payment-step__label">Payment</p>
-          <span class="customer-payment-status"><?= $isDraft ? "Payment details required" : "Waiting for admin review" ?></span>
+          <span class="customer-payment-status"><?= $isDraft ? "Payment details required" : "Waiting for staff review" ?></span>
         </div>
 
         <div class="customer-payment-total">
@@ -237,7 +237,7 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
                 <input class="form-input" id="referenceNumberInput" name="reference_number" type="text" inputmode="numeric" pattern="[0-9]{13}" minlength="13" maxlength="13" autocomplete="off" value="<?= service_payment_esc($queue["reference_number"] ?? "") ?>" placeholder="Enter your GCash reference number" aria-describedby="referenceNumberHelp" required<?= $paymentDetailsSubmitted ? ' readonly' : '' ?>>
                 <p class="customer-payment-help" id="referenceNumberHelp">Enter the reference number from your GCash receipt.</p>
               </div>
-              <p class="customer-payment-reminder"><strong>Important:</strong> <?= $isDraft ? "Your queue will only be created after you submit the required GCash details." : "Your order remains pending until an admin approves the GCash payment." ?></p>
+              <p class="customer-payment-reminder"><strong>Important:</strong> <?= $isDraft ? "Your queue will only be created after you submit the required GCash details." : "Your order remains pending until staff approve the GCash payment." ?></p>
             </div>
           </div>
         </div>
@@ -308,7 +308,7 @@ header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0")
     if (typeof window.openQueueSuccessModal === "function") {
       window.openQueueSuccessModal(queueCode, {
         title: "Queue Successfully Joined",
-        message: "Your queue has been submitted successfully. Your GCash payment is now waiting for admin review.",
+        message: "Your queue has been submitted successfully. Your GCash payment is now waiting for staff review.",
         service: serviceName || <?= json_encode($serviceName) ?>,
         note: "You can view your queue while the shop reviews your GCash payment."
       });

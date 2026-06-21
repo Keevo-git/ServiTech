@@ -271,9 +271,9 @@ if ($customer) {
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Customer Details</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260315h2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260608-history-table') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/customer_list/custoL.css?v=20260621-global-ui-polish') ?>">
   <style>
     html,
     body{
@@ -785,7 +785,7 @@ if ($customer) {
       border-radius:50%;
       background:#f8fbff;
       color:#174a7c !important;
-      font-family:Arial, sans-serif;
+      font-family:inherit;
       font-size:0 !important;
       line-height:1 !important;
     }
@@ -1047,6 +1047,46 @@ if ($customer) {
       .cd-detailModal .cd-fileActions a{
         flex:1;
       }
+    }
+
+    .customer-details-page .cl-modalX,
+    .customer-details-page .cd-detailModalHead .cl-modalX {
+      display:inline-flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      flex:0 0 44px !important;
+      width:44px !important;
+      height:44px !important;
+      min-width:44px !important;
+      min-height:44px !important;
+      padding:0 !important;
+      border:1px solid #d7e2f0 !important;
+      border-radius:50% !important;
+      background:#f8fbff !important;
+      color:#7f1d1d !important;
+      box-shadow:0 8px 18px rgba(15,23,42,.08) !important;
+      font-family:inherit !important;
+      font-size:24px !important;
+      font-weight:800 !important;
+      line-height:1 !important;
+    }
+
+    .customer-details-page .cl-modalX:hover,
+    .customer-details-page .cl-modalX:focus-visible,
+    .customer-details-page .cd-detailModalHead .cl-modalX:hover,
+    .customer-details-page .cd-detailModalHead .cl-modalX:focus-visible {
+      background:#fee2e2 !important;
+      border-color:#fecaca !important;
+      color:#991b1b !important;
+      box-shadow:0 10px 22px rgba(127,29,29,.16) !important;
+      outline:none !important;
+      transform:translateY(-1px) !important;
+    }
+
+    .customer-details-page .cd-detailModalHead .cl-modalX span {
+      font-size:24px !important;
+      font-weight:800 !important;
+      line-height:1 !important;
     }
   </style>
 </head>

@@ -35,7 +35,7 @@ body.customer-layout .queue-success-modal__close {
   color: #5f0e0f;
   cursor: pointer;
   display: inline-flex;
-  font-family: Arial, sans-serif;
+  font-family: inherit;
   font-size: 22px;
   font-weight: 800;
   height: 48px;

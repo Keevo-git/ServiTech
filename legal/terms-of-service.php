@@ -17,7 +17,7 @@ $effectiveDate = "June 13, 2026";
     body {
       background: #f8f5f2;
       color: #24120f;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: var(--site-font-sans);
       margin: 0;
     }
 
@@ -108,7 +108,7 @@ $effectiveDate = "June 13, 2026";
       <p>By creating an account and using ServiTech, users agree to follow these Terms of Service. Users who do not agree should not create an account or use the platform.</p>
 
       <h2>Service Description</h2>
-      <p>ServiTech provides account registration, login, customer queueing, Document Printing order submission, uploaded file handling, service status tracking, notifications, payment-detail recording, profile editing, and administrator management for printing, repair, installation, laminating, rush ID, and related services.</p>
+      <p>ServiTech provides account registration, login, customer queueing, Document Printing order submission, uploaded file handling, service status tracking, notifications, payment-detail recording, profile editing, and staff management for printing, repair, installation, laminating, rush ID, and related services.</p>
 
       <h2>Academic and Operational Purpose</h2>
       <p>ServiTech is an academic capstone/project system developed for educational, demonstration, testing, evaluation, and service-management workflows. Users must use the system according to applicable school, project, and service requirements.</p>
@@ -136,7 +136,7 @@ $effectiveDate = "June 13, 2026";
       </ul>
 
       <h2>Requests, Status, and Cancellations</h2>
-      <p>ServiTech creates queue and order records for submitted service requests. Requests move through the status flow managed by the system and administrators. Customers may cancel only their own pending requests where the workflow allows it. Administrators may update statuses, send requests back for editing, and record operational notes.</p>
+      <p>ServiTech creates queue and order records for submitted service requests. Requests move through the status flow managed by the system and staff. Customers may cancel only their own pending requests where the workflow allows it. Staff may update statuses, send requests back for editing, and record operational notes.</p>
 
       <h2>Payments and Transaction Details</h2>
       <p>ServiTech records payment method, order amount, paid amount, and reference details for review and tracking. ServiTech does not process payment through an external payment gateway.</p>
@@ -144,8 +144,8 @@ $effectiveDate = "June 13, 2026";
       <h2>Uploaded Files and User Content</h2>
       <p>Users are responsible for files and content they upload. Upload-enabled services accept only allowed file types and sizes. Uploaded files are stored privately and linked to the user's request or order. Users must have the right to upload, print, use, or reproduce submitted files.</p>
 
-      <h2>Admin Access</h2>
-      <p>Administrators can access operational records needed to manage customers, queues, orders, payment review, service listings, announcements, notifications, and uploaded file references. Admin actions are logged or reflected in status history where applicable.</p>
+      <h2>Staff Access</h2>
+      <p>Staff can access operational records needed to manage customers, queues, orders, payment review, service listings, announcements, notifications, and uploaded file references. Staff actions are logged or reflected in status history where applicable.</p>
 
       <h2>Availability and Changes</h2>
       <p>ServiTech depends on hosting, database, authentication, email, file storage, internet connection, and configured third-party services. The system does not guarantee uninterrupted access or error-free operation. ServiTech may update these terms to match system, academic, security, or workflow changes.</p>

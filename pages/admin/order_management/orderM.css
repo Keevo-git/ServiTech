@@ -2755,3 +2755,14 @@ body.order-confirm-open {
     width: 100%;
   }
 }
+
+/* Final confirmation close alignment with the shared admin modal controls. */
+.order-confirm-close {
+  flex: 0 0 44px !important;
+  font-family: inherit;
+  font-size: 24px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
+  width: 44px !important;
+}
