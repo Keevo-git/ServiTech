@@ -132,9 +132,9 @@ require __DIR__ . "/../_includes/admin_header.php";
                     <small><?= esc(admin_queue_submitted_time($r["created_at"])) ?></small>
                   </span>
                 </td>
-                <td>
+                <td class="status-cell">
                   <span class="status-badge <?= esc(status_class($r["status"])) ?>">
-                    <?= esc($r["status"]) ?>
+                    <?= esc(queue_ui_status_label($r["status"])) ?>
                   </span>
                 </td>
                 <td class="actions">
@@ -220,7 +220,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 </script>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260614-queue-modal-fix2') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260622-status-update-fix') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260622-status-display-fix') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

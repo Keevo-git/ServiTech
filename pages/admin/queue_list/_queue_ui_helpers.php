@@ -41,6 +41,20 @@ function queue_ui_normalize_service_label(string $serviceLabel): string
     return trim($serviceLabel);
 }
 
+function queue_ui_status_label($status): string
+{
+    $status = strtoupper(trim((string)$status));
+    $status = preg_replace('/[\s_]+/', ' ', $status);
+    return match ($status) {
+        "APPROVED" => "Approved",
+        "ONGOING" => "Ongoing",
+        "FOR PICK-UP", "FOR PICK UP", "FOR PICKUP" => "For Pick-up",
+        "DONE", "COMPLETED" => "Done",
+        "CANCELLED", "CANCELED" => "Cancelled",
+        default => "Pending",
+    };
+}
+
 function queue_ui_category_label(array $row, string $serviceLabel): string
 {
     $category = strtolower(trim((string)($row["category"] ?? "")));

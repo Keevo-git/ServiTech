@@ -161,6 +161,14 @@ document.addEventListener("DOMContentLoaded", function () {
     return `PHP ${amount(value).toFixed(2)}`;
   }
 
+  function queuePaymentSummary(queue) {
+    const method = String(queue?.paymentMethod || "").trim();
+    const price = amount(queue?.price);
+    const total = price > 0 ? money(price) : "";
+    if (method && total) return `${method}: ${total}`;
+    return method || total || String(queue?.payment || "").trim();
+  }
+
   function paymentChanged() {
     return priceEl?.value !== initialPayment.price || paidAmountEl?.value !== initialPayment.paidAmount;
   }
@@ -223,6 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
     currentQueue.price = out.price;
     currentQueue.paidAmount = out.paid_amount;
     currentQueue.paidPending = out.paid_pending;
+    currentQueue.payment = queuePaymentSummary(currentQueue);
     populatePayment(currentQueue);
   }
 
@@ -247,12 +256,21 @@ document.addEventListener("DOMContentLoaded", function () {
   function syncCurrentRow() {
     if (!currentQueueRow || !currentQueue) return;
 
-    currentQueueRow.dataset.queueStatus = currentStatus;
-    const badge = currentQueueRow.querySelector("td .status-badge");
+    const status = normalizeStatus(currentQueue.status || currentStatus);
+    currentStatus = status;
+    currentQueueRow.dataset.queueStatus = status;
+    const statusCell = currentQueueRow.querySelector(".status-cell");
+    const badge = statusCell?.querySelector(".status-badge");
     if (badge) {
-      badge.className = `status-badge ${statusClass(currentStatus)}`;
-      badge.textContent = statusLabels[currentStatus] || currentStatus;
+      badge.className = `status-badge ${statusClass(status)}`;
+      badge.textContent = statusLabels[status] || status;
+    } else if (statusCell) {
+      statusCell.innerHTML = `<span class="status-badge ${statusClass(status)}">${esc(statusLabels[status] || status)}</span>`;
     }
+
+    const paymentCell = currentQueueRow.querySelector(".payment-cell");
+    const payment = queuePaymentSummary(currentQueue);
+    if (paymentCell && payment) paymentCell.textContent = payment;
 
     const viewButton = currentQueueRow.querySelector(".queue-view-btn");
     if (viewButton) {

@@ -523,17 +523,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const currentStatus = normalizeStatus(currentOrder.status);
     currentOrderRow.dataset.status = currentStatus;
 
-    const badge = currentOrderRow.querySelector(".status-cell .status-badge");
+    const statusCell = currentOrderRow.querySelector(".status-cell");
+    const badge = statusCell?.querySelector(".status-badge");
     if (badge) {
       badge.className = `status-badge ${statusClass(currentStatus)}`;
       badge.textContent = statusLabels[currentStatus] || currentStatus;
+    } else if (statusCell) {
+      statusCell.innerHTML = `<span class="status-badge ${statusClass(currentStatus)}">${esc(statusLabels[currentStatus] || currentStatus)}</span>`;
     }
 
-    const cells = currentOrderRow.querySelectorAll("td");
-    if (cells[3]) {
-      const summary = paymentSummary(currentOrder);
-      if (summary) cells[3].textContent = summary;
-    }
+    const paymentCell = currentOrderRow.querySelector(".payment-cell");
+    const summary = paymentSummary(currentOrder);
+    if (paymentCell && summary) paymentCell.textContent = summary;
 
     const viewButton = currentOrderRow.querySelector(".view-order-btn");
     if (viewButton) {

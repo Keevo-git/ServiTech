@@ -104,7 +104,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260622-status-update-fix') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260622-status-display-fix') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_printing">
 
@@ -205,7 +205,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                             </span>
                           </td>
                           <td class="status-cell"><span class="status-badge <?= $cls ?>"><?= htmlspecialchars(status_label($r["status"])) ?></span></td>
-                          <td><?= htmlspecialchars(om_payment_summary($r)) ?></td>
+                          <td class="payment-cell"><?= htmlspecialchars(om_payment_summary($r)) ?></td>
                           <td>
                             <span class="datetime-stack">
                               <strong><?= htmlspecialchars(admin_queue_submitted_date($r["created_at"])) ?></strong>
