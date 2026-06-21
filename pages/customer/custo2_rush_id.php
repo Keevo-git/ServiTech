@@ -117,20 +117,54 @@ try {
     }
 
     .rush-addon-option {
-      align-items: center;
       border: 1px solid rgba(95, 14, 15, 0.14);
       border-radius: 12px;
       cursor: pointer;
-      display: flex;
-      gap: 0.7rem;
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr) max-content;
+      column-gap: 0.7rem;
       padding: 0.75rem 0.85rem;
     }
 
-    .rush-addon-option span {
-      display: flex;
-      flex: 1;
-      justify-content: space-between;
-      gap: 0.75rem;
+    .rush-addon-option input[type="checkbox"] {
+      align-self: start;
+      height: 1rem;
+      margin: 0.18rem 0 0;
+      width: 1rem;
+    }
+
+    .rush-addon-copy {
+      display: block;
+      line-height: 1.35;
+      min-width: 0;
+    }
+
+    .rush-addon-copy strong {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .rush-addon-price {
+      align-self: end;
+      font-size: 0.95rem;
+      font-style: italic;
+      font-weight: 700;
+      justify-self: end;
+      line-height: 1.35;
+      margin-left: 0.4rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 420px) {
+      .rush-addon-option {
+        column-gap: 0.6rem;
+        padding: 0.7rem 0.75rem;
+      }
+
+      .rush-addon-price {
+        margin-left: 0.15rem;
+      }
     }
 
   </style>
@@ -191,10 +225,10 @@ try {
                          data-value-id="<?= (int)($rule["option_value_ids"]["addon"] ?? 0) ?>"
                          data-value-key="<?= htmlspecialchars((string)($rule["option_value_keys"]["addon"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
                          data-price="<?= $addonPrice !== null ? htmlspecialchars(number_format($addonPrice, 2, ".", ""), ENT_QUOTES, "UTF-8") : "" ?>">
-                  <span>
+                  <span class="rush-addon-copy">
                     <strong><?= htmlspecialchars((string)($rule["option_labels"]["addon"] ?? $rule["label"] ?? "Add-On"), ENT_QUOTES, "UTF-8") ?></strong>
-                    <em><?= $addonPrice !== null ? "&#8369;" . htmlspecialchars(number_format($addonPrice, 2), ENT_QUOTES, "UTF-8") : "For assessment" ?></em>
                   </span>
+                  <em class="rush-addon-price"><?= $addonPrice !== null ? "&#8369;" . htmlspecialchars(number_format($addonPrice, 2), ENT_QUOTES, "UTF-8") : "For assessment" ?></em>
                 </label>
               <?php endforeach; ?>
               <?php if (!$rushAddonRules): ?>
