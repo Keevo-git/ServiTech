@@ -1294,12 +1294,17 @@
         }
 
         if (usesGcashPaymentPage) {
-          var draftResult = await savePrintDraft(payload);
-          if (!draftResult.ok) {
+          var gcashResult = await createQueue(payload);
+          if (!gcashResult.ok) {
             if (canCleanupUploads) {
               await cleanupUploadedFiles(payload.uploaded_files);
             }
-            setFeedback(draftResult.error || "Unable to continue to payment.", "error");
+            setFeedback(gcashResult.error || "Unable to continue to payment.", "error");
+            return;
+          }
+
+          if (!String(gcashResult.queue_code || "").toUpperCase().startsWith("P") || !gcashResult.redirect_url) {
+            setFeedback("Queue saved, but the payment page could not be opened. Please view your queue status.", "error");
             return;
           }
 
@@ -1311,7 +1316,7 @@
           if (window.servitechJoinQueueLeaveGuard) {
             window.servitechJoinQueueLeaveGuard.disarm();
           }
-          window.location.href = servitechUrl("/pages/customer/custo_print_order_payment.php");
+          window.location.href = gcashResult.redirect_url;
           return;
         }
 

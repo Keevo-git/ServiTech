@@ -81,6 +81,13 @@ try {
             <label for="qtyInput">Quantity<span class="required">*</span></label>
             <input type="number" min="1" value="1" class="form-input" id="qtyInput">
 
+            <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
+            <select class="form-select" id="paymentMethodSelect">
+              <option value="" selected disabled>Select payment method</option>
+              <option value="cash">Cash</option>
+              <option value="gcash">GCash</option>
+            </select>
+
             <label for="notes">Additional Instructions</label>
             <textarea class="form-textarea" id="notes"></textarea>
           </div>

@@ -143,3 +143,51 @@
     });
   };
 })();
+
+(function () {
+  "use strict";
+
+  window.servitechRequestApprovalConfirmation = function (queueCode) {
+    let overlay = document.getElementById("queueApprovalOverlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "queue-cancellation-overlay";
+      overlay.id = "queueApprovalOverlay";
+      overlay.hidden = true;
+      overlay.innerHTML = `
+        <div class="queue-cancellation-dialog" role="dialog" aria-modal="true" aria-labelledby="queueApprovalTitle">
+          <div class="queue-cancellation-head">
+            <div><p>GCash Review</p><h3 id="queueApprovalTitle">Approve GCash payment?</h3></div>
+            <button type="button" class="queue-cancellation-close" data-approval-no aria-label="Close">&times;</button>
+          </div>
+          <div class="queue-cancellation-body">
+            <p data-approval-message></p>
+            <div class="queue-cancellation-actions">
+              <button type="button" class="queue-cancellation-btn queue-cancellation-btn--secondary" data-approval-no>Go back</button>
+              <button type="button" class="queue-cancellation-btn queue-cancellation-btn--primary" data-approval-yes>Approve payment</button>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+
+    overlay.querySelectorAll("[data-approval-no], [data-approval-yes]").forEach((button) => {
+      button.replaceWith(button.cloneNode(true));
+    });
+    const dialog = overlay.querySelector(".queue-cancellation-dialog");
+    const message = overlay.querySelector("[data-approval-message]");
+    if (message) message.textContent = `Confirm that you reviewed the GCash reference for ${queueCode} before approving this payment.`;
+    overlay.hidden = false;
+    window.servitechAdminModalStack?.open({ overlay, dialog, focus: overlay.querySelector("[data-approval-no]") });
+
+    return new Promise((resolve) => {
+      const finish = (value) => {
+        window.servitechAdminModalStack?.close(overlay);
+        overlay.hidden = true;
+        resolve(value);
+      };
+      overlay.querySelectorAll("[data-approval-no]").forEach((button) => button.addEventListener("click", () => finish(false), { once: true }));
+      overlay.querySelector("[data-approval-yes]")?.addEventListener("click", () => finish(true), { once: true });
+    });
+  };
+})();

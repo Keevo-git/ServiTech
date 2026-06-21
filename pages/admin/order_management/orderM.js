@@ -292,6 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
       ...(Array.isArray(order.details) ? order.details.map((row) => detailRow(row.label, row.value)) : []),
       fileRows(order.files),
       detailRow("Payment Method", order.paymentMethod),
+      detailRow("Payment Status", order.paymentStatus ? order.paymentStatus.replaceAll("_", " ") : "-"),
       detailRow("Payment Reference", order.paymentReference || "-"),
       detailRow("Submitted Date", order.submitted),
       detailRow("Completed Date", order.completed || "-"),
@@ -476,6 +477,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function applyStatusResult(out) {
     const newStatus = normalizeStatus(out.status || currentOrder.status);
     currentOrder.status = newStatus;
+    if (out.payment_status) currentOrder.paymentStatus = String(out.payment_status).toUpperCase();
     currentOrder.allowedStatuses = Array.isArray(out.allowed_transitions) ? out.allowed_transitions : [];
     renderOrderStatusState(newStatus, currentOrder.allowedStatuses);
     syncSendBackButton();
@@ -765,6 +767,12 @@ document.addEventListener("DOMContentLoaded", function () {
       updateSaveButton();
       await cancelCurrentOrder();
       return;
+    }
+
+    if (statusEl.value !== normalizeStatus(currentOrder.status) && action === "approved" && String(currentOrder.paymentMethod || "").toLowerCase() === "gcash"
+        && typeof window.servitechRequestApprovalConfirmation === "function") {
+      const confirmed = await window.servitechRequestApprovalConfirmation(currentOrder.queueCode || "this order");
+      if (!confirmed) return;
     }
 
     updateInProgress = true;

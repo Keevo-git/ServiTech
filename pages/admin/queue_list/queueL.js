@@ -209,6 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function applyStatusResult(out) {
     const newStatus = normalizeStatus(out.status || currentStatus);
     currentQueue.status = newStatus;
+    if (out.payment_status) currentQueue.paymentStatus = String(out.payment_status).toUpperCase();
     currentQueue.allowedStatuses = Array.isArray(out.allowed_transitions) ? out.allowed_transitions : [];
     renderStatusState(newStatus, currentQueue.allowedStatuses);
     syncSendBackButton();
@@ -605,6 +606,7 @@ document.addEventListener("DOMContentLoaded", function () {
       ...(Array.isArray(queue.details) ? queue.details.map((item) => detailRow(item.label, item.value)) : []),
       fileRows(queue.files),
       detailRow("Payment", queue.payment),
+      detailRow("Payment Status", queue.paymentStatus ? queue.paymentStatus.replaceAll("_", " ") : "-"),
       detailRow("Payment Reference", queue.paymentReference),
       detailRow("Submitted Date", queue.submitted),
       detailRow("Completed Date", queue.completed || "-"),
@@ -708,6 +710,18 @@ document.addEventListener("DOMContentLoaded", function () {
       updateBtn.removeAttribute("aria-busy");
       syncStatusUpdateButton();
       return;
+    }
+
+    if (selectedStatus !== currentStatus && action === "approved" && String(currentQueue.paymentMethod || "").toLowerCase() === "gcash"
+        && typeof window.servitechRequestApprovalConfirmation === "function") {
+      const confirmed = await window.servitechRequestApprovalConfirmation(currentQueue.queueCode || "this queue");
+      if (!confirmed) {
+        updateInProgress = false;
+        updateBtn.textContent = updateLabel;
+        updateBtn.removeAttribute("aria-busy");
+        syncStatusUpdateButton();
+        return;
+      }
     }
 
     const paymentResult = await savePayment();

@@ -178,6 +178,12 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "comments" => queue_ui_detail_value($details, ["notes", "additional_instructions", "comments"]),
         "payment" => $paymentSummary,
         "paymentReference" => trim((string)($row["reference_number"] ?? ($details["reference_number"] ?? ""))),
+        "paymentMethod" => match (queue_ui_payment_method($row)) {
+            "gcash" => "GCash",
+            "cash" => "Cash",
+            default => "",
+        },
+        "paymentStatus" => strtoupper(trim((string)($row["payment_status"] ?? ""))),
         "price" => $payment["price"],
         "paidAmount" => $payment["paid_amount"],
         "paidPending" => $payment["paid_pending"],
@@ -185,6 +191,7 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "sendBackMessage" => trim((string)($row["send_back_message"] ?? "")),
         "files" => admin_queue_file_items($row["details"] ?? null),
         "details" => queue_ui_detail_rows($details),
+        "allowedStatuses" => servitech_queue_allowed_transitions($row),
     ];
 }
 
@@ -232,6 +239,9 @@ function queue_ui_render_transition_buttons(array $row): void
             continue;
         }
         [$action, $label, $class] = $buttons[$status];
+        if ($status === "APPROVED" && queue_ui_payment_method($row) === "gcash") {
+            $label = "Approve GCash";
+        }
         ?>
         <button
           class="<?= htmlspecialchars($class, ENT_QUOTES, "UTF-8") ?> admin-file-action"

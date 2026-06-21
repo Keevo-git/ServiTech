@@ -196,6 +196,7 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
         "price" => $payment["price"],
         "paidAmount" => $payment["paid_amount"],
         "paidPending" => $payment["paid_pending"],
+        "paymentStatus" => strtoupper(trim((string)($row["payment_status"] ?? ""))),
         "customerEditRequired" => !empty($row["customer_edit_required"]),
         "sendBackMessage" => trim((string)($row["send_back_message"] ?? "")),
         "files" => admin_queue_file_items($row["details"] ?? null),

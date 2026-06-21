@@ -1836,6 +1836,14 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     return "Not specified";
   }
 
+  function formatPaymentStatus(value){
+    const key = String(value || "pending").trim().toUpperCase().replace(/[\s_]+/g, " ");
+    if (key === "APPROVED") return "Approved";
+    if (key === "PAID") return "Paid";
+    if (key === "CANCELLED" || key === "CANCELED") return "Cancelled";
+    return "Pending review";
+  }
+
   function queueDetails(queueData){
     return queueData && typeof queueData.details === "object" && queueData.details
       ? queueData.details
@@ -3156,6 +3164,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     const paymentQr = document.getElementById("modalPaymentQr");
     const method = String(queueData.payment_method || details.payment_method || "").trim().toLowerCase();
     const reference = String(queueData.reference_number || details.reference_number || "").trim();
+    const paymentStatus = String(queueData.payment_status || "Pending").trim();
     const baseRows = `
       <div class="status-payment-price">
         <span class="status-detail-label">Price</span>
@@ -3169,6 +3178,22 @@ require_once __DIR__ . "/../../components/auth_guard.php";
         <span class="status-detail-label">Paid Pending</span>
         <span class="status-detail-value">${esc(toPeso(queueData.paid_pending))}</span>
       </div>
+      ${method ? `
+        <div class="status-detail-row">
+          <span class="status-detail-label">Payment Method</span>
+          <span class="status-detail-value">${esc(formatPaymentMethod(method))}</span>
+        </div>
+        <div class="status-detail-row">
+          <span class="status-detail-label">Payment Status</span>
+          <span class="status-detail-value">${esc(formatPaymentStatus(paymentStatus))}</span>
+        </div>
+        ${method === "gcash" || reference ? `
+          <div class="status-detail-row">
+            <span class="status-detail-label">Reference Number</span>
+            <span class="status-detail-value">${esc(reference || "Not submitted")}</span>
+          </div>
+        ` : ""}
+      ` : ""}
     `;
 
     if (!paymentEl) return;
@@ -3176,16 +3201,6 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     if (isOnlineDocumentPrinting(queueData)) {
       paymentEl.innerHTML = `
         ${baseRows}
-        <div class="status-detail-row">
-          <span class="status-detail-label">Payment Method</span>
-          <span class="status-detail-value">${esc(formatPaymentMethod(method))}</span>
-        </div>
-        ${method === "gcash" || reference ? `
-          <div class="status-detail-row">
-            <span class="status-detail-label">Reference Number</span>
-            <span class="status-detail-value">${esc(reference || "-")}</span>
-          </div>
-        ` : ""}
       `;
       if (paymentQr) paymentQr.classList.toggle("is-visible", method === "gcash");
       return;
@@ -3194,7 +3209,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
     paymentEl.innerHTML = baseRows;
 
     if (paymentQr) {
-      paymentQr.classList.remove("is-visible");
+      paymentQr.classList.toggle("is-visible", method === "gcash");
     }
   }
 

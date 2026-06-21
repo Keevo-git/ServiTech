@@ -51,12 +51,12 @@ $rows = $pdo->query("
     q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
     u.fullname, u.email AS customer_email,
     COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone,
-    p.payment_method, p.reference_number, p.amount,
+    p.payment_method, p.reference_number, p.amount, p.status AS payment_status,
     q.details->>'estimated_total' AS details_total
   FROM queues q
   JOIN users u ON u.id = q.user_id
   LEFT JOIN LATERAL (
-    SELECT payment_method, reference_number, amount
+    SELECT payment_method, reference_number, amount, status
     FROM payments
     WHERE queue_id = q.id
     ORDER BY id DESC

@@ -13,6 +13,7 @@ function status_class($status): string {
   $key = strtolower(trim((string)$status));
   $key = preg_replace('/[\s_]+/', '-', $key);
   return match ($key) {
+    "approved" => "status-approved",
     "ongoing" => "status-ongoing",
     "for-pick-up", "for-pickup" => "status-pickup",
     "done" => "status-done",
@@ -38,9 +39,14 @@ $stmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
     q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
     u.fullname, u.email AS customer_email,
-    COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone
+    COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone,
+    p.payment_method, p.reference_number, p.amount, p.status AS payment_status
   FROM queues q
   JOIN users u ON u.id = q.user_id
+  LEFT JOIN LATERAL (
+    SELECT payment_method, reference_number, amount, status
+    FROM payments WHERE queue_id = q.id ORDER BY id DESC LIMIT 1
+  ) p ON TRUE
   WHERE q.category = 'installation'
     AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
   ORDER BY q.created_at ASC, q.id ASC

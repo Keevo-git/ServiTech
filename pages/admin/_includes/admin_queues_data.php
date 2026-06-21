@@ -8,12 +8,12 @@ header("Content-Type: application/json; charset=utf-8");
 try {
   $stmt = $pdo->prepare("
     SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount, q.created_at, u.fullname,
-      p.payment_method, p.reference_number, p.amount,
+      p.payment_method, p.reference_number, p.amount, p.status AS payment_status,
       q.details->>'estimated_total' AS details_total
     FROM queues q
     JOIN users u ON u.id = q.user_id
     LEFT JOIN LATERAL (
-      SELECT payment_method, reference_number, amount
+      SELECT payment_method, reference_number, amount, status
       FROM payments
       WHERE queue_id = q.id
       ORDER BY id DESC
@@ -44,6 +44,7 @@ try {
       "payment_method" => (string)($row["payment_method"] ?? ""),
       "reference_number" => (string)($row["reference_number"] ?? ""),
       "amount" => (float)($row["amount"] ?? 0),
+      "payment_status" => (string)($row["payment_status"] ?? ""),
       "price" => $row["price"] !== null ? (float)$row["price"] : null,
       "paid_amount" => (float)($row["paid_amount"] ?? 0)
     ];

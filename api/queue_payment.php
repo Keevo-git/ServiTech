@@ -98,11 +98,16 @@ function servitech_update_queue_payment(PDO $pdo, int $queueId, $priceInput, $pa
 
   try {
     $stmt = $pdo->prepare("
-      SELECT id, user_id, queue_code, category, status, price
-      FROM queues
-      WHERE id = :id
+      SELECT q.id, q.user_id, q.queue_code, q.category, q.status, q.price,
+        p.payment_method, p.status AS payment_status
+      FROM queues q
+      LEFT JOIN LATERAL (
+        SELECT payment_method, status
+        FROM payments WHERE queue_id = q.id ORDER BY id DESC LIMIT 1
+      ) p ON TRUE
+      WHERE q.id = :id
       LIMIT 1
-      FOR UPDATE
+      FOR UPDATE OF q
     ");
     $stmt->execute([":id" => $queueId]);
     $queue = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -119,6 +124,11 @@ function servitech_update_queue_payment(PDO $pdo, int $queueId, $priceInput, $pa
       $paidAmount = 0.0;
     } elseif ($paidAmount > $price) {
       throw new DomainException("Paid amount cannot exceed the price.");
+    }
+    $paymentMethod = strtolower(trim((string)($queue["payment_method"] ?? "")));
+    $paymentStatus = strtoupper(trim((string)($queue["payment_status"] ?? "PENDING")));
+    if ($paymentMethod === "gcash" && !in_array($paymentStatus, ["APPROVED", "PAID"], true) && $paidAmount > 0) {
+      throw new DomainException("Approve the GCash payment before recording any paid amount.");
     }
 
     $update = $pdo->prepare("

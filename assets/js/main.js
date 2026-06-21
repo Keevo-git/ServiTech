@@ -1406,6 +1406,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.servitechJoinQueueLeaveGuard) {
         window.servitechJoinQueueLeaveGuard.disarm();
       }
+      if (result.payment_method === "gcash" && result.redirect_url) {
+        if (typeof window.servitechToastForNavigation === "function") {
+          window.servitechToastForNavigation("Queue saved. Complete your GCash payment details.", { tone: "success" });
+        }
+        window.location.href = result.redirect_url;
+        return;
+      }
       if (window.servitechJoinQueuePostSuccess) {
         window.servitechJoinQueuePostSuccess.markComplete(result.queue_code);
       }

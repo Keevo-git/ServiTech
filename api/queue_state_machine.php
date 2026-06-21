@@ -23,12 +23,37 @@ function servitech_queue_is_online_print_order(array $queue): bool {
     || str_starts_with($queueCode, "OP");
 }
 
+function servitech_queue_details_array($details): array {
+  if (is_array($details)) return $details;
+  $decoded = json_decode((string)$details, true);
+  return is_array($decoded) ? $decoded : [];
+}
+
+function servitech_queue_payment_method(array $queue): string {
+  $details = servitech_queue_details_array($queue["details"] ?? null);
+  return strtolower(trim((string)($queue["payment_method"] ?? ($details["payment_method"] ?? ""))));
+}
+
+function servitech_queue_payment_reference(array $queue): string {
+  $details = servitech_queue_details_array($queue["details"] ?? null);
+  return trim((string)($queue["reference_number"] ?? ($queue["payment_reference_number"] ?? ($details["reference_number"] ?? ""))));
+}
+
+function servitech_queue_requires_gcash_review(array $queue): bool {
+  $paymentStatus = strtoupper(trim((string)($queue["payment_status"] ?? "PENDING")));
+  return servitech_queue_payment_method($queue) === "gcash"
+    && $paymentStatus === "PENDING"
+    && servitech_queue_payment_reference($queue) !== "";
+}
+
 function servitech_queue_allowed_transitions(array $queue): array {
   $status = servitech_queue_normalize_status((string)($queue["status"] ?? "PENDING"));
 
-  if (servitech_queue_is_online_print_order($queue)) {
+  if (servitech_queue_is_online_print_order($queue) || servitech_queue_payment_method($queue) === "gcash") {
     return match ($status) {
-      "PENDING" => ["APPROVED", "CANCELLED"],
+      "PENDING" => servitech_queue_requires_gcash_review($queue) || servitech_queue_payment_method($queue) !== "gcash"
+        ? ["APPROVED", "CANCELLED"]
+        : ["CANCELLED"],
       "APPROVED" => ["ONGOING"],
       "ONGOING" => ["FOR PICK-UP"],
       "FOR PICK-UP" => ["DONE"],
@@ -69,6 +94,9 @@ function servitech_queue_actor_name(PDO $pdo, ?int $adminId): string {
 }
 
 function servitech_queue_customer_subject(array $queue): string {
+  $details = servitech_queue_details_array($queue["details"] ?? null);
+  $serviceLabel = trim((string)($details["service_label"] ?? ""));
+  if ($serviceLabel !== "") return $serviceLabel . " order";
   $category = strtolower(trim((string)($queue["category"] ?? "")));
 
   if (servitech_queue_is_online_print_order($queue)) {
@@ -250,10 +278,12 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     servitech_ensure_queue_lifecycle_schema($pdo);
     $stmt = $pdo->prepare("
       SELECT q.id, q.user_id, q.queue_code, q.category, q.status, q.lifecycle_stage,
-        q.details, q.price, q.paid_amount, p.amount AS payment_amount
+        q.details, q.price, q.paid_amount, p.id AS payment_id,
+        p.amount AS payment_amount, p.payment_method, p.reference_number,
+        p.status AS payment_status
       FROM queues q
       LEFT JOIN LATERAL (
-        SELECT amount
+        SELECT id, amount, payment_method, reference_number, status
         FROM payments
         WHERE queue_id = q.id
         ORDER BY id DESC
@@ -317,6 +347,27 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
       ":id" => $queueId,
     ]);
 
+    if (!empty($queue["payment_id"])) {
+      $paymentStatus = match ($newStatus) {
+        "APPROVED" => servitech_queue_payment_method($queue) === "gcash" ? "APPROVED" : null,
+        "DONE" => "PAID",
+        "CANCELLED" => "CANCELLED",
+        default => null,
+      };
+      if ($paymentStatus !== null) {
+        $paymentUpdate = $pdo->prepare("
+          UPDATE payments
+          SET status = :status, updated_at = NOW()
+          WHERE id = :payment_id
+        ");
+        $paymentUpdate->execute([
+          ":status" => $paymentStatus,
+          ":payment_id" => (int)$queue["payment_id"],
+        ]);
+        $queue["payment_status"] = $paymentStatus;
+      }
+    }
+
     servitech_record_queue_status_history(
       $pdo,
       $queueId,
@@ -361,6 +412,7 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
       "lifecycle_stage" => $lifecycleStage,
       "allowed_transitions" => servitech_queue_allowed_transitions($queue),
       "payment" => servitech_queue_payment_values($queue),
+      "payment_status" => (string)($queue["payment_status"] ?? ""),
     ];
   } catch (Throwable $e) {
     if ($ownsTransaction && $pdo->inTransaction()) $pdo->rollBack();

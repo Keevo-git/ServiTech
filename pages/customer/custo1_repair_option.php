@@ -110,6 +110,17 @@ try {
       <p class="form-note">A description is required when you select Others.</p>
     </div>
 
+    <div class="form-card">
+      <h3 class="step-title">4. PAYMENT</h3>
+      <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
+      <select class="form-select" id="paymentMethodSelect">
+        <option value="" selected disabled>Select payment method</option>
+        <option value="cash">Cash at the shop</option>
+        <option value="gcash">GCash</option>
+      </select>
+      <p class="form-note">GCash is available for fixed-price services. Choose Cash when the final price requires assessment.</p>
+    </div>
+
     <div class="customer-form-actions customer-step-actions">
       <a href="/pages/customer/customer_dash.php" class="btn-back">Back</a>
       <button type="button" class="btn-next btn-primary-action" id="joinQueueBtn" <?= $storeAvailability["regular_queue_allowed"] ? "" : 'disabled data-availability-locked="true"' ?>>Join Queue</button>
