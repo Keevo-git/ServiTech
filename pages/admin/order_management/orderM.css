@@ -2811,7 +2811,7 @@ body.order-confirm-open {
 
 .order-management-table--selectable th:nth-child(3),
 .order-management-table--selectable td:nth-child(3) {
-  width: 17.5%;
+  width: 22%;
 }
 
 .order-management-table--selectable th:nth-child(4),
@@ -2821,12 +2821,17 @@ body.order-confirm-open {
 
 .order-management-table--selectable th:nth-child(5),
 .order-management-table--selectable td:nth-child(5) {
-  width: 19.5%;
+  width: 15%;
+  padding-right: 10px;
+  padding-left: 10px;
 }
 
 .order-management-table--selectable th:nth-child(6),
 .order-management-table--selectable td:nth-child(6) {
   width: 15.5%;
+  padding-right: 8px;
+  padding-left: 8px;
+  text-align: left;
 }
 
 .order-management-table--selectable th:nth-child(7),
@@ -2844,7 +2849,7 @@ body.order-confirm-open {
 
 .order-management-table:not(.order-management-table--selectable) th:nth-child(2),
 .order-management-table:not(.order-management-table--selectable) td:nth-child(2) {
-  width: 21%;
+  width: 25%;
 }
 
 .order-management-table:not(.order-management-table--selectable) th:nth-child(3),
@@ -2854,12 +2859,17 @@ body.order-confirm-open {
 
 .order-management-table:not(.order-management-table--selectable) th:nth-child(4),
 .order-management-table:not(.order-management-table--selectable) td:nth-child(4) {
-  width: 21%;
+  width: 17%;
+  padding-right: 10px;
+  padding-left: 10px;
 }
 
 .order-management-table:not(.order-management-table--selectable) th:nth-child(5),
 .order-management-table:not(.order-management-table--selectable) td:nth-child(5) {
   width: 16%;
+  padding-right: 8px;
+  padding-left: 8px;
+  text-align: left;
 }
 
 .order-management-table:not(.order-management-table--selectable) th:nth-child(6),
