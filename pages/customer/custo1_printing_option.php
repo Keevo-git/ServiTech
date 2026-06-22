@@ -8,34 +8,69 @@ servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
+$printingServiceRows = [];
 $printingServices = [];
+$printingServiceOptions = [];
+$printingServiceLoadError = "";
 try {
   $stmt = $pdo->prepare("
-    SELECT id, name
+    SELECT id, category, name,
+           CASE WHEN active THEN 1 ELSE 0 END AS active,
+           sort_order
     FROM services
     WHERE category = 'printing'
       AND active = TRUE
     ORDER BY sort_order ASC, id ASC
   ");
   $stmt->execute();
-  $printingServices = servitech_catalog_dedupe_services($stmt->fetchAll(PDO::FETCH_ASSOC), false);
+  $printingServiceRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $printingServices = servitech_catalog_dedupe_services($printingServiceRows, false);
 } catch (Throwable $e) {
-  $printingServices = [];
+  $printingServiceLoadError = $e->getMessage();
+  error_log("ServiTech printing service selection query failed: " . $e->getMessage());
 }
 
-function printing_service_route(string $name): string {
-  $label = strtolower(trim($name));
-  if (str_contains($label, "document") && (str_contains($label, "print") || str_contains($label, "printing"))) return "custo2_docu_printing.php";
-  if (str_contains($label, "photocopy") || str_contains($label, "xerox")) return "custo2_photocopy.php";
-  if (str_contains($label, "rush") && str_contains($label, "id")) return "custo2_rush_id.php";
-  if (str_contains($label, "laminat")) return "custo2_laminating.php";
-  if (str_contains($label, "scan")) return "custo2_scanning.php";
-  return "";
+function printing_service_route(array $service): string {
+  return match (servitech_catalog_service_kind($service)) {
+    "document_printing" => "custo2_docu_printing.php",
+    "photocopy" => "custo2_photocopy.php",
+    "rush_id" => "custo2_rush_id.php",
+    "laminating" => "custo2_laminating.php",
+    "scanning" => "custo2_scanning.php",
+    default => "",
+  };
 }
 
 function printing_service_display_name(string $name): string {
   return strcasecmp(trim($name), "xerox") === 0 ? "Photocopy" : $name;
 }
+
+$excludedPrintingServices = [];
+foreach ($printingServices as $service) {
+  $route = printing_service_route($service);
+  if ($route === "") {
+    $excludedPrintingServices[] = [
+      "id" => (int)($service["id"] ?? 0),
+      "name" => (string)($service["name"] ?? ""),
+      "reason" => "unsupported_service_kind",
+    ];
+    continue;
+  }
+  $printingServiceOptions[] = ["service" => $service, "route" => $route];
+}
+
+error_log("ServiTech printing service selection: " . json_encode([
+  "category" => "printing",
+  "filters" => ["active" => true],
+  "active_rows_found" => count($printingServiceRows),
+  "services_returned" => array_map(static fn($service) => [
+    "id" => (int)($service["id"] ?? 0),
+    "name" => (string)($service["name"] ?? ""),
+    "active" => (int)($service["active"] ?? 0),
+  ], $printingServices),
+  "excluded" => $excludedPrintingServices,
+  "query_error" => $printingServiceLoadError,
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -68,10 +103,10 @@ function printing_service_display_name(string $name): string {
 
       <select id="serviceType" class="form-select">
         <option value="" selected disabled>Select A Service</option>
-        <?php foreach ($printingServices as $service):
-          $route = printing_service_route((string)$service["name"]);
-          if ($route === "") continue;
-          $requiresRegularQueue = !str_contains(strtolower((string)$service["name"]), "document");
+        <?php foreach ($printingServiceOptions as $option):
+          $service = $option["service"];
+          $route = (string)$option["route"];
+          $requiresRegularQueue = servitech_catalog_service_kind($service) !== "document_printing";
           $disabled = $requiresRegularQueue && !$storeAvailability["regular_queue_allowed"];
         ?>
           <option value="<?= htmlspecialchars($route, ENT_QUOTES, "UTF-8") ?>" <?= $disabled ? "disabled" : "" ?>>
@@ -79,6 +114,9 @@ function printing_service_display_name(string $name): string {
           </option>
         <?php endforeach; ?>
       </select>
+      <?php if (!$printingServiceOptions): ?>
+        <p class="queue-unavailable-note">No active printing services are available right now. Please contact the shop.</p>
+      <?php endif; ?>
       <?php if (!$storeAvailability["regular_queue_allowed"]): ?>
         <p class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></p>
       <?php endif; ?>

@@ -63,6 +63,44 @@ foreach ($customerForms as $file) {
   dynamic_queue_assert(str_contains($source, "data-value-id"), "{$file} must render database option IDs.");
 }
 
+$printingSelectionSource = file_get_contents(__DIR__ . "/../pages/customer/custo1_printing_option.php") ?: "";
+dynamic_queue_assert(
+  str_contains($printingSelectionSource, "SELECT id, category, name"),
+  "The Printing service selector must include category metadata required by the shared catalog classifier."
+);
+dynamic_queue_assert(
+  str_contains($printingSelectionSource, "servitech_catalog_dedupe_services(\$printingServiceRows, false)"),
+  "The Printing service selector must use the shared catalog deduplicator."
+);
+dynamic_queue_assert(
+  str_contains($printingSelectionSource, 'servitech_catalog_service_kind($service) !== "document_printing"'),
+  "Printing service availability must use catalog kinds instead of editable service names."
+);
+dynamic_queue_assert(
+  str_contains($printingSelectionSource, "No active printing services are available right now."),
+  "The Printing service selector must show a clear empty state."
+);
+dynamic_queue_assert(
+  !str_contains($printingSelectionSource, "archived_at"),
+  "The Printing service selector must use Active/Inactive only."
+);
+
+$activePrintingRows = [
+  ["id" => 1, "category" => "printing", "name" => "Document Printing", "active" => 1],
+  ["id" => 2, "category" => "printing", "name" => "Photocopy", "active" => 1],
+  ["id" => 3, "category" => "printing", "name" => "Xerox", "active" => 1],
+  ["id" => 4, "category" => "printing", "name" => "Rush ID", "active" => 1],
+  ["id" => 5, "category" => "printing", "name" => "Lamination", "active" => 1],
+];
+$activePrintingKinds = array_map(
+  "servitech_catalog_service_kind",
+  servitech_catalog_dedupe_services($activePrintingRows, false)
+);
+dynamic_queue_assert(
+  $activePrintingKinds === ["document_printing", "photocopy", "rush_id", "laminating"],
+  "The Printing selector must return the four active configured services and treat Xerox as the Photocopy alias."
+);
+
 $mainSource = file_get_contents(__DIR__ . "/../assets/js/main.js") ?: "";
 dynamic_queue_assert(!str_contains($mainSource, "The selected photocopy combination is currently unavailable."), "The old Photocopy error must be removed.");
 dynamic_queue_assert(str_contains($mainSource, "catalog_option_value_ids"), "Queue payloads must submit option-ID maps.");
