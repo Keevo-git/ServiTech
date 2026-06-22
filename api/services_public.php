@@ -32,11 +32,14 @@ if ($action === "list" && $category) {
           SELECT id, category, name, description,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
-          WHERE category = :category AND active = TRUE
+          WHERE category = :category
           ORDER BY sort_order ASC, id ASC
         ");
         $stmt->execute([":category" => $category]);
-        $services = servitech_catalog_dedupe_services($stmt->fetchAll(PDO::FETCH_ASSOC));
+        $services = array_values(array_filter(
+            servitech_catalog_dedupe_services($stmt->fetchAll(PDO::FETCH_ASSOC)),
+            static fn($service) => (int)($service["active"] ?? 0) === 1
+        ));
         foreach ($services as &$service) {
             try {
                 $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);

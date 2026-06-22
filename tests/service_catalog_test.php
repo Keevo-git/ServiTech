@@ -23,6 +23,24 @@ $dedupedServices = servitech_catalog_dedupe_services([
 ]);
 catalog_test_assert(count($dedupedServices) === 2, "Service lists must not show duplicate Photocopy/Xerox catalog records.");
 
+$dedupedRepair = servitech_catalog_dedupe_services([
+    ["category" => "repair", "name" => "LCD Replacement", "id" => 10, "active" => 0],
+    ["category" => "repair", "name" => "Device Repair", "id" => 11, "active" => 1],
+]);
+catalog_test_assert(($dedupedRepair[0]["name"] ?? "") === "Device Repair", "Repair tab must choose the configured Device Repair service group over old service-type rows.");
+
+$dedupedInstallation = servitech_catalog_dedupe_services([
+    ["category" => "installation", "name" => "Reprogram Service", "id" => 20, "active" => 0],
+    ["category" => "installation", "name" => "Installation Services", "id" => 21, "active" => 1],
+]);
+catalog_test_assert(($dedupedInstallation[0]["name"] ?? "") === "Installation Services", "Installation tab must choose the configured Installation Services group over old service-type rows.");
+
+$dedupedInactiveCanonical = servitech_catalog_dedupe_services([
+    ["category" => "repair", "name" => "LCD Replacement", "id" => 30, "active" => 1],
+    ["category" => "repair", "name" => "Device Repair", "id" => 31, "active" => 0],
+]);
+catalog_test_assert((int)($dedupedInactiveCanonical[0]["id"] ?? 0) === 31, "Old active repair rows must not replace the configured inactive repair group.");
+
 $normalized = servitech_catalog_normalize_admin_payload($service, [
     "groups" => [[
         "group_key" => "paper_size",

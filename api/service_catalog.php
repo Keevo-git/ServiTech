@@ -51,21 +51,61 @@ function servitech_catalog_service_kind(array $service): string {
   return "";
 }
 
+function servitech_catalog_service_dedupe_score(array $service): int {
+  $kind = servitech_catalog_service_kind($service);
+  $name = strtolower(trim((string)($service["name"] ?? "")));
+  $score = !empty($service["active"]) ? 10 : 0;
+
+  if ($kind === "photocopy" && str_contains($name, "photocopy")) return $score + 100;
+  if ($kind === "document_printing" && str_contains($name, "document") && str_contains($name, "print")) return $score + 100;
+  if ($kind === "rush_id" && str_contains($name, "rush") && str_contains($name, "id")) return $score + 100;
+  if ($kind === "laminating" && str_contains($name, "laminat")) return $score + 100;
+  if ($kind === "scanning" && str_contains($name, "scan")) return $score + 100;
+
+  if ($kind === "repair") {
+    if (in_array($name, ["device repair", "repair services", "repair"], true)) return $score + 300;
+    if (str_contains($name, "device") && str_contains($name, "repair")) return $score + 250;
+    if (str_contains($name, "repair services")) return $score + 240;
+    return $score - 100;
+  }
+
+  if ($kind === "installation") {
+    if (in_array($name, ["installation services", "installation"], true)) return $score + 300;
+    if (str_contains($name, "installation services")) return $score + 250;
+    if (str_contains($name, "installation") && !str_contains($name, "windows")) return $score + 150;
+    return $score - 100;
+  }
+
+  return $score;
+}
+
 function servitech_catalog_dedupe_services(array $services, bool $keepUnsupported = true): array {
-  $result = [];
-  $seenKinds = [];
-  foreach ($services as $service) {
+  $unsupported = [];
+  $byKind = [];
+  $kindOrder = [];
+  foreach ($services as $index => $service) {
     if (!is_array($service)) continue;
     $kind = servitech_catalog_service_kind($service);
     if ($kind === "") {
-      if ($keepUnsupported) $result[] = $service;
+      if ($keepUnsupported) $unsupported[] = $service;
       continue;
     }
-    if (isset($seenKinds[$kind])) continue;
-    $seenKinds[$kind] = true;
-    $result[] = $service;
+    $score = servitech_catalog_service_dedupe_score($service);
+    if (!isset($byKind[$kind])) {
+      $kindOrder[] = $kind;
+      $byKind[$kind] = ["service" => $service, "score" => $score, "index" => $index];
+      continue;
+    }
+    if ($score > $byKind[$kind]["score"]) {
+      $byKind[$kind] = ["service" => $service, "score" => $score, "index" => $index];
+    }
   }
-  return $result;
+
+  $result = [];
+  foreach ($kindOrder as $kind) {
+    $result[] = $byKind[$kind]["service"];
+  }
+  return array_merge($result, $unsupported);
 }
 
 function servitech_catalog_group_contract(string $kind): array {
