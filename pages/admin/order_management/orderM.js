@@ -732,6 +732,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function openFromButton(button) {
+    if (!(button instanceof Element) || !button.matches(".view-order-btn")) {
+      return;
+    }
+
     let order = {};
     try {
       order = JSON.parse(button.dataset.order || "{}");
@@ -753,6 +757,7 @@ document.addEventListener("DOMContentLoaded", function () {
     button.disabled = false;
     button.addEventListener("click", function (event) {
       event.preventDefault();
+      event.stopPropagation();
       openFromButton(this);
     });
   });

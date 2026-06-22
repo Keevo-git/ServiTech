@@ -188,6 +188,7 @@
       selectAll.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visible.length;
     }
 
+    selectAll.addEventListener("click", (event) => event.stopPropagation());
     selectAll.addEventListener("change", () => {
       visibleCheckboxes().forEach((checkbox) => {
         checkbox.checked = selectAll.checked;
@@ -195,11 +196,15 @@
       updateBulkState();
     });
 
-    checkboxes.forEach((checkbox) => checkbox.addEventListener("change", updateBulkState));
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("click", (event) => event.stopPropagation());
+      checkbox.addEventListener("change", updateBulkState);
+    });
 
     bulkButtons.forEach((button) => {
       button.addEventListener("click", (event) => {
         event.preventDefault();
+        event.stopPropagation();
         const items = selectedCheckboxes()
           .map((checkbox) => ({
             id: checkbox.dataset.id,
@@ -219,19 +224,16 @@
     updateBulkState();
   }
 
-  document.addEventListener("click", (event) => {
-    const deleteButton = event.target.closest("[data-order-delete]");
-    if (deleteButton) {
+  document.querySelectorAll("[data-order-delete], [data-recycle-action]").forEach((button) => {
+    button.addEventListener("click", (event) => {
       event.preventDefault();
-      openModal("soft_delete", deleteButton.dataset.id, deleteButton.dataset.code, deleteButton);
-      return;
-    }
+      event.stopPropagation();
 
-    const recycleButton = event.target.closest("[data-recycle-action]");
-    if (recycleButton) {
-      event.preventDefault();
-      openModal(recycleButton.dataset.recycleAction, recycleButton.dataset.id, recycleButton.dataset.code, recycleButton);
-    }
+      const action = button.hasAttribute("data-order-delete")
+        ? "soft_delete"
+        : button.dataset.recycleAction;
+      openModal(action, button.dataset.id, button.dataset.code, button);
+    });
   });
 
   cancelButton?.addEventListener("click", closeModal);

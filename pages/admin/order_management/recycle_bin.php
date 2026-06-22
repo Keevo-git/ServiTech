@@ -281,7 +281,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($schemaReady): ?>
-  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260620-recycle-bulk-select') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260623-action-isolation') ?>" defer></script>
 <?php endif; ?>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
