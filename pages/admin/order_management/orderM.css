@@ -2059,7 +2059,7 @@ body.order-confirm-open {
   }
 }
 
-/* Responsive recycle-bin and Move to Bin controls. */
+/* Responsive recycle-bin and order action controls. */
 .order-table td.order-actions {
   width: 230px;
 }
@@ -2094,6 +2094,30 @@ body.order-confirm-open {
   background: #fee2e2;
   color: #991b1b;
   box-shadow: 0 10px 20px rgba(185, 28, 28, 0.14);
+}
+
+.order-action-buttons {
+  grid-template-columns: minmax(76px, 1fr) 42px;
+}
+
+.action-buttons .order-bin-icon-btn {
+  width: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  min-height: 38px;
+  padding: 0;
+  flex: 0 0 42px;
+}
+
+.order-bin-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .order-confirm-dialog {
@@ -2433,6 +2457,12 @@ body.order-confirm-open {
 
   .order-confirm-actions button {
     width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .order-action-buttons {
+    grid-template-columns: minmax(72px, 1fr) 42px;
   }
 }
 

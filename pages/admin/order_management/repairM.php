@@ -70,7 +70,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260621-global-ui-polish') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260622-bin-icon-action') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260622-modal-status-sync') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_repair">
@@ -180,7 +180,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                             </span>
                           </td>
                           <td class="order-actions">
-                            <div class="action-buttons">
+                            <div class="action-buttons<?= $orderRecycleReady ? ' order-action-buttons' : '' ?>">
                               <button
                                 class="btn-primary view-order-btn"
                                 type="button"
@@ -188,7 +188,15 @@ require __DIR__ . "/../_includes/admin_header.php";
                                 data-order="<?= om_order_payload_attr($r, "Repair", "Repair Service") ?>"
                               >View</button>
                               <?php if ($orderRecycleReady): ?>
-                                <button class="delete-order-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>">Move to Bin</button>
+                                <button class="delete-order-btn order-bin-icon-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>" aria-label="Move to Bin" title="Move to Bin">
+                                  <svg class="order-bin-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M8 6V4h8v2"></path>
+                                    <path d="M19 6l-1 14H6L5 6"></path>
+                                    <path d="M10 11v5"></path>
+                                    <path d="M14 11v5"></path>
+                                  </svg>
+                                </button>
                               <?php endif; ?>
                             </div>
                           </td>
