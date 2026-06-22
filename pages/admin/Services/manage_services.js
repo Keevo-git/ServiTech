@@ -13,6 +13,7 @@
   const confirmMessage = qs("#msConfirmMessage");
   const confirmCancel = qs("#msConfirmCancel");
   const confirmAccept = qs("#msConfirmAccept");
+  const confirmClose = qs("#msConfirmX");
   const fields = {
     id: qs("#ms_id"),
     category: qs("#ms_category"),
@@ -30,6 +31,38 @@
   let confirmResolver = null;
   let confirmReturnFocus = null;
   let editorReturnFocus = null;
+
+  function isConfirmOpen() {
+    return !!confirmOverlay && confirmOverlay.hidden === false;
+  }
+
+  function isEditorOpen() {
+    return overlay?.style.display === "flex";
+  }
+
+  function focusableElements(root) {
+    if (!root) return [];
+    return qsa('button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])', root)
+      .filter((item) => item.offsetParent !== null || item === document.activeElement);
+  }
+
+  function trapFocus(root, event) {
+    const focusable = focusableElements(root);
+    if (!focusable.length) {
+      event.preventDefault();
+      root?.focus?.();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   const contracts = {
     document_printing: {
@@ -318,6 +351,7 @@
     confirmOverlay.hidden = true;
     confirmOverlay.setAttribute("aria-hidden", "true");
     confirmOverlay.dataset.tone = "";
+    document.body.classList.remove("ms-confirm-open");
     overlay?.removeAttribute("inert");
     if (overlay?.style.display === "flex") overlay.setAttribute("aria-hidden", "false");
     resolve(accepted);
@@ -334,13 +368,15 @@
     confirmOverlay.dataset.tone = tone;
     confirmOverlay.hidden = false;
     confirmOverlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("ms-confirm-open");
     overlay?.setAttribute("aria-hidden", "true");
     overlay?.setAttribute("inert", "");
-    window.requestAnimationFrame(() => confirmDialog.focus());
+    window.requestAnimationFrame(() => (confirmAccept || confirmDialog)?.focus());
     return new Promise((resolve) => { confirmResolver = resolve; });
   }
 
   confirmCancel?.addEventListener("click", () => finishConfirmation(false));
+  confirmClose?.addEventListener("click", () => finishConfirmation(false));
   confirmAccept?.addEventListener("click", () => finishConfirmation(true));
   confirmOverlay?.addEventListener("click", (event) => {
     if (event.target === confirmOverlay) finishConfirmation(false);
@@ -353,14 +389,8 @@
       return;
     }
     if (event.key !== "Tab") return;
-    const focusable = [confirmCancel, confirmAccept].filter(Boolean);
-    if (!focusable.length) return;
-    const index = focusable.indexOf(document.activeElement);
-    const next = event.shiftKey
-      ? (index <= 0 ? focusable.length - 1 : index - 1)
-      : (index >= focusable.length - 1 ? 0 : index + 1);
-    event.preventDefault();
-    focusable[next].focus();
+    event.stopPropagation();
+    trapFocus(confirmDialog, event);
   });
 
   function optionGroupName(groupKey) {
@@ -740,7 +770,7 @@
     if (confirmResolver) finishConfirmation(false);
     overlay.style.display = "none";
     overlay.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("ms-modal-open");
+    document.body.classList.remove("ms-modal-open", "ms-confirm-open");
     catalog = null;
     originalServiceSnapshot = null;
     hideError();
@@ -775,7 +805,23 @@
   qs("#msCancel")?.addEventListener("click", closeEditor);
   overlay?.addEventListener("click", (event) => { if (event.target === overlay) closeEditor(); });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && overlay?.style.display === "flex" && confirmOverlay?.hidden !== false) closeEditor();
+    if (isConfirmOpen()) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        finishConfirmation(false);
+      } else if (event.key === "Tab") {
+        trapFocus(confirmDialog, event);
+      }
+      return;
+    }
+    if (!isEditorOpen()) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeEditor();
+    } else if (event.key === "Tab") {
+      trapFocus(qs(".ms-modal", overlay), event);
+    }
   });
 
   qs("#msSave")?.addEventListener("click", async () => {

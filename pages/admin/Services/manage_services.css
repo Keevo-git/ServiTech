@@ -144,3 +144,171 @@ body.ms-modal-open{overflow:hidden}.ms-overlay{box-sizing:border-box;overscroll-
     top: calc(12px + env(safe-area-inset-top));
   }
 }
+
+/* Modal stack contract for Manage Services. */
+.ms-overlay {
+  align-items: center;
+  background: rgba(8,22,38,.68);
+  box-sizing: border-box;
+  display: none;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  padding: 16px;
+  position: fixed;
+  z-index: 2147483100;
+}
+
+.ms-overlay[inert] {
+  pointer-events: none;
+}
+
+.ms-overlay[inert] .ms-modal {
+  filter: saturate(.88) brightness(.96);
+}
+
+.ms-modal {
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+  min-height: 0;
+  overflow: hidden;
+  width: min(1180px, calc(100vw - 32px));
+}
+
+.ms-mhead {
+  flex: 0 0 auto;
+  padding-right: 76px;
+}
+
+.ms-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.ms-foot {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.ms-confirm-overlay {
+  align-items: center;
+  background: rgba(8,22,38,.62);
+  box-sizing: border-box;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  padding: 18px;
+  position: fixed;
+  z-index: 2147483300;
+}
+
+.ms-confirm-overlay[hidden] {
+  display: none;
+}
+
+.ms-confirm-dialog {
+  box-sizing: border-box;
+  max-height: calc(100dvh - 36px);
+  min-height: 0;
+  overflow: auto;
+  padding: 22px;
+  padding-right: 70px;
+  position: relative;
+  width: min(480px, calc(100vw - 36px));
+}
+
+.ms-confirm-dialog:focus {
+  outline: none;
+}
+
+.ms-confirm-x {
+  right: 14px;
+  top: 14px;
+}
+
+.ms-confirm-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  justify-content: flex-end;
+}
+
+.ms-confirm-overlay[data-tone="warning"] #msConfirmAccept {
+  background: #8a6412;
+}
+
+.ms-confirm-overlay[data-tone="warning"] #msConfirmAccept:hover,
+.ms-confirm-overlay[data-tone="warning"] #msConfirmAccept:focus-visible {
+  background: #71500c;
+}
+
+.ms-btn {
+  min-height: 44px;
+}
+
+.ms-btn.ghost:hover,
+.ms-btn.ghost:focus-visible {
+  background: #dbe5f0;
+}
+
+.ms-btn.primary:hover,
+.ms-btn.primary:focus-visible {
+  background: #12345d;
+}
+
+.ms-btn.ghost:focus-visible,
+.ms-btn.primary:focus-visible {
+  outline: 3px solid rgba(35,104,168,.3);
+  outline-offset: 2px;
+}
+
+@media(max-width:760px) {
+  .ms-overlay {
+    padding: 10px;
+  }
+
+  .ms-modal {
+    max-height: calc(100dvh - 20px);
+    width: min(100%, calc(100vw - 20px));
+  }
+
+  .ms-confirm-overlay {
+    padding: 10px;
+  }
+
+  .ms-confirm-dialog {
+    max-height: calc(100dvh - 20px);
+    padding: 18px;
+    padding-right: 66px;
+    width: min(100%, calc(100vw - 20px));
+  }
+}
+
+@media(max-width:520px) {
+  .ms-modal {
+    border-radius: 14px;
+    height: auto;
+    max-height: calc(100dvh - 20px);
+    width: calc(100vw - 20px);
+  }
+
+  .ms-foot,
+  .ms-confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ms-confirm-dialog {
+    grid-template-columns: 1fr;
+  }
+
+  .ms-confirm-actions {
+    grid-column: 1;
+  }
+}

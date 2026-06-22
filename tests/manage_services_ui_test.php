@@ -22,6 +22,9 @@ foreach ([
     'aria-labelledby="msConfirmTitle"',
     'id="msConfirmCancel"',
     'id="msConfirmAccept"',
+    'id="msConfirmX"',
+    'aria-label="Close modal"',
+    'aria-label="Close confirmation"',
 ] as $requiredMarkup) {
     manage_services_ui_assert(str_contains($page, $requiredMarkup), "Confirmation markup must include {$requiredMarkup}.");
 }
@@ -62,6 +65,10 @@ foreach ([
     "Enable Device-Based Installation",
     "Existing submitted orders will keep their original saved details and price.",
     "syncServiceStatusLabel",
+    "trapFocus",
+    "isConfirmOpen",
+    "ms-confirm-open",
+    "confirmClose",
 ] as $requiredBehavior) {
     manage_services_ui_assert(str_contains($script, $requiredBehavior), "Confirmation behavior must include {$requiredBehavior}.");
 }
@@ -77,6 +84,11 @@ foreach ([
     "top: calc(12px + env(safe-area-inset-top));",
     ".ms-confirm-overlay",
     "min-height:46px",
+    "z-index: 2147483100",
+    "z-index: 2147483300",
+    ".ms-overlay[inert]",
+    ".ms-confirm-x",
+    "pointer-events: none",
 ] as $requiredStyle) {
     manage_services_ui_assert(str_contains($styles, $requiredStyle), "Responsive styles must include {$requiredStyle}.");
 }

@@ -48,7 +48,7 @@ $services = servitech_catalog_dedupe_services(array_values(array_filter($service
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260622-admin-services-active-only') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260622-admin-services-modal-stack') ?>">
 </head>
 <body>
 
@@ -134,7 +134,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <div class="ms-overlay" id="msOverlay" aria-hidden="true">
   <div class="ms-modal" role="dialog" aria-modal="true" aria-labelledby="msModalTitle" tabindex="-1">
-    <button class="ms-x" id="msX" type="button" aria-label="Close">&times;</button>
+    <button class="ms-x" id="msX" type="button" aria-label="Close modal">&times;</button>
 
     <div class="ms-mhead">
       <div>
@@ -189,6 +189,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 
 <div class="ms-confirm-overlay" id="msConfirmOverlay" hidden aria-hidden="true">
   <div class="ms-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="msConfirmTitle" aria-describedby="msConfirmMessage" tabindex="-1">
+    <button class="ms-x ms-confirm-x" id="msConfirmX" type="button" aria-label="Close confirmation">&times;</button>
     <div class="ms-confirm-icon" aria-hidden="true">!</div>
     <div class="ms-confirm-copy">
       <h3 id="msConfirmTitle">Confirm change</h3>
@@ -206,7 +207,7 @@ require __DIR__ . "/../_includes/admin_header.php";
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260622-admin-services-active-only') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260622-admin-services-modal-stack') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
