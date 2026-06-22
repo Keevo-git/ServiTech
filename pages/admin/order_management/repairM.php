@@ -70,7 +70,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260622-bin-icon-action') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260623-table-columns') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260622-modal-status-sync') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_repair">
@@ -123,7 +123,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                 </div>
               <?php endif; ?>
               <div class="table-scroll-wrapper">
-                <table id="repairOrdersTable" class="orders table-content order-table order-table--simple order-table--selectable">
+                <table id="repairOrdersTable" class="orders table-content order-table order-table--simple order-table--selectable order-management-table<?= $orderRecycleReady ? ' order-management-table--selectable' : '' ?>">
                   <thead>
                     <tr>
                       <?php if ($orderRecycleReady): ?>

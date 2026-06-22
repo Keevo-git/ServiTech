@@ -2775,6 +2775,99 @@ body.order-confirm-open {
   text-align: center;
 }
 
+/* Keep the live Order Management lists within their desktop card. The shared
+   recycle-bin table deliberately retains its wider, scrollable column set. */
+.order-management-table {
+  min-width: 1010px;
+}
+
+.order-management-table th,
+.order-management-table td {
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+.order-management-table .payment-cell {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.order-management-table .action-buttons {
+  gap: 8px;
+}
+
+/* Seven-column layout used when row selection is available. */
+.order-management-table--selectable th.select-cell,
+.order-management-table--selectable td.select-cell {
+  width: 4.5%;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
+.order-management-table--selectable th:nth-child(2),
+.order-management-table--selectable td:nth-child(2) {
+  width: 9%;
+}
+
+.order-management-table--selectable th:nth-child(3),
+.order-management-table--selectable td:nth-child(3) {
+  width: 17.5%;
+}
+
+.order-management-table--selectable th:nth-child(4),
+.order-management-table--selectable td:nth-child(4) {
+  width: 13%;
+}
+
+.order-management-table--selectable th:nth-child(5),
+.order-management-table--selectable td:nth-child(5) {
+  width: 19.5%;
+}
+
+.order-management-table--selectable th:nth-child(6),
+.order-management-table--selectable td:nth-child(6) {
+  width: 15.5%;
+}
+
+.order-management-table--selectable th:nth-child(7),
+.order-management-table--selectable td:nth-child(7),
+.order-management-table--selectable td.order-actions {
+  width: 21%;
+}
+
+/* Six-column fallback for installations where recycle-bin selection is not
+   available yet. Keeping this separate prevents nth-child drift. */
+.order-management-table:not(.order-management-table--selectable) th:nth-child(1),
+.order-management-table:not(.order-management-table--selectable) td:nth-child(1) {
+  width: 10%;
+}
+
+.order-management-table:not(.order-management-table--selectable) th:nth-child(2),
+.order-management-table:not(.order-management-table--selectable) td:nth-child(2) {
+  width: 21%;
+}
+
+.order-management-table:not(.order-management-table--selectable) th:nth-child(3),
+.order-management-table:not(.order-management-table--selectable) td:nth-child(3) {
+  width: 14%;
+}
+
+.order-management-table:not(.order-management-table--selectable) th:nth-child(4),
+.order-management-table:not(.order-management-table--selectable) td:nth-child(4) {
+  width: 21%;
+}
+
+.order-management-table:not(.order-management-table--selectable) th:nth-child(5),
+.order-management-table:not(.order-management-table--selectable) td:nth-child(5) {
+  width: 16%;
+}
+
+.order-management-table:not(.order-management-table--selectable) th:nth-child(6),
+.order-management-table:not(.order-management-table--selectable) td:nth-child(6),
+.order-management-table:not(.order-management-table--selectable) td.order-actions {
+  width: 18%;
+}
+
 @media (max-width: 768px) {
   .order-bulk-toolbar {
     align-items: stretch;

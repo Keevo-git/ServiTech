@@ -102,7 +102,7 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260621-global-ui-polish') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260622-bin-icon-action') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260623-table-columns') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
   <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260622-modal-status-sync') ?>" defer></script>
 </head>
@@ -156,7 +156,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                 </div>
               <?php endif; ?>
               <div class="table-scroll-wrapper">
-                <table id="onlineOrdersTable" class="orders table-content order-table order-table--online order-table--selectable">
+                <table id="onlineOrdersTable" class="orders table-content order-table order-table--online order-table--selectable order-management-table<?= $orderRecycleReady ? ' order-management-table--selectable' : '' ?>">
                   <thead>
                     <tr>
                       <?php if ($orderRecycleReady): ?>
