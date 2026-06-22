@@ -214,6 +214,38 @@ document.addEventListener("DOMContentLoaded", function () {
     return "status-pending";
   }
 
+  function fallbackAllowedStatuses(status, order = currentOrder) {
+    const normalizedStatus = normalizeStatus(status);
+    const hasApprovalStep = usesOnlinePaymentReview(order?.paymentMethod)
+      || String(order?.queueCode || "").trim().toUpperCase().startsWith("OP")
+      || String(order?.category || order?.serviceType || order?.serviceLabel || "").toLowerCase().includes("online");
+
+    if (normalizedStatus === "PENDING") {
+      return hasApprovalStep ? ["APPROVED", "CANCELLED"] : ["ONGOING", "CANCELLED"];
+    }
+    if (normalizedStatus === "APPROVED") return ["ONGOING"];
+    if (normalizedStatus === "ONGOING") {
+      return hasApprovalStep ? ["FOR PICK-UP"] : ["FOR PICK-UP", "DONE", "CANCELLED"];
+    }
+    if (normalizedStatus === "FOR PICK-UP") return ["DONE"];
+    return [];
+  }
+
+  function responseAllowedStatuses(out, status, order = currentOrder) {
+    const normalizedStatus = normalizeStatus(status);
+    const raw = Array.isArray(out?.allowed_transitions)
+      ? out.allowed_transitions
+      : (Array.isArray(out?.allowedStatuses) ? out.allowedStatuses : []);
+    const allowed = raw
+      .map(normalizeStatus)
+      .filter((item, index, statuses) => statusLabels[item] && item !== normalizedStatus && statuses.indexOf(item) === index);
+    const hasStaleCurrentStatus = raw.some((item) => normalizeStatus(item) === normalizedStatus);
+
+    return allowed.length && !hasStaleCurrentStatus
+      ? allowed
+      : fallbackAllowedStatuses(normalizedStatus, order);
+  }
+
   function updateSaveButton() {
     if (!saveBtn || !statusEl) return;
     const currentStatus = normalizeStatus(currentOrder?.status);
@@ -240,7 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!statusEl) return;
     const normalizedStatus = normalizeStatus(status);
     const allowed = Array.isArray(allowedStatuses)
-      ? allowedStatuses.map(normalizeStatus).filter((item) => statusLabels[item])
+      ? allowedStatuses.map(normalizeStatus).filter((item) => statusLabels[item] && item !== normalizedStatus)
       : [];
     const selectableStatuses = [normalizedStatus, ...allowed]
       .filter((item, index, statuses) => statusLabels[item] && statuses.indexOf(item) === index);
@@ -503,7 +535,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const newStatus = normalizeStatus(out.status || currentOrder.status);
     currentOrder.status = newStatus;
     if (out.payment_status) currentOrder.paymentStatus = String(out.payment_status).toUpperCase();
-    currentOrder.allowedStatuses = Array.isArray(out.allowed_transitions) ? out.allowed_transitions : [];
+    currentOrder.allowedStatuses = responseAllowedStatuses(out, newStatus, currentOrder);
     renderOrderStatusState(newStatus, currentOrder.allowedStatuses);
     syncSendBackButton();
     if (out.payment && typeof out.payment === "object") {

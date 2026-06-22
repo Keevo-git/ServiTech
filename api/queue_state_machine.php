@@ -428,14 +428,18 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     }
 
     if ($ownsTransaction) $pdo->commit();
+
     $queue["status"] = $newStatus;
     $queue["lifecycle_stage"] = $lifecycleStage;
     $queue["price"] = $payment["price"];
     $queue["paid_amount"] = $newStatus === "DONE" ? $payment["price"] : ($newStatus === "CANCELLED" ? 0 : $payment["paid_amount"]);
+    $allowedTransitions = servitech_queue_allowed_transitions($queue);
+
     return [
       "status" => $newStatus,
       "lifecycle_stage" => $lifecycleStage,
-      "allowed_transitions" => servitech_queue_allowed_transitions($queue),
+      "allowed_transitions" => $allowedTransitions,
+      "allowedStatuses" => $allowedTransitions,
       "payment" => servitech_queue_payment_values($queue),
       "payment_status" => (string)($queue["payment_status"] ?? ""),
     ];
