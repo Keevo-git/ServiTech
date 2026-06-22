@@ -2,6 +2,8 @@
 // Central auth gate + session settings
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/join_queue_flow.php";
+require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/google_account_completion.php";
 
 if (!servitech_is_logged_in()) {
     header("Location: " . servitech_url("/auth/log_in.php"));
@@ -10,6 +12,12 @@ if (!servitech_is_logged_in()) {
 
 if (servitech_is_admin()) {
     header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+    exit();
+}
+
+$authenticatedCustomerId = (int)($_SESSION["user_id"] ?? 0);
+if (servitech_google_account_completion_required($pdo, $authenticatedCustomerId)) {
+    header("Location: " . servitech_url(servitech_google_account_completion_path()));
     exit();
 }
 

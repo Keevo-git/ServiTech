@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/google_auth.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/google_account_completion.php";
 require_once __DIR__ . "/registration_notifications.php";
 
 servitech_enforce_same_origin(true);
@@ -37,13 +38,16 @@ if (servitech_supabase_auth_enabled()) {
         $authUser = is_array($authResponse["user"] ?? null) ? $authResponse["user"] : [];
         $authUserId = trim((string)($authUser["id"] ?? ""));
         $authEmail = strtolower(trim((string)($authUser["email"] ?? "")));
-        if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId) || $authEmail === "") {
+        $googleClaims = servitech_supabase_jwt_claims($credential);
+        $supabaseGoogleId = trim((string)($googleClaims["sub"] ?? ""));
+        if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId) || $authEmail === "" || $supabaseGoogleId === "") {
             throw new RuntimeException("Google sign-in did not return a usable Supabase identity.");
         }
 
         $privilegedPdo = servitech_db_connect_privileged();
         $profile = $privilegedPdo->prepare("
-            SELECT id, auth_user_id
+            SELECT id, auth_user_id,
+                   COALESCE(NULLIF(to_jsonb(users)->>'google_id', ''), '') AS google_id
             FROM users
             WHERE auth_user_id = :auth_user_id OR LOWER(email) = LOWER(:email)
             ORDER BY CASE WHEN auth_user_id = :auth_user_id THEN 0 ELSE 1 END
@@ -54,6 +58,13 @@ if (servitech_supabase_auth_enabled()) {
             ":email" => $authEmail,
         ]);
         $existing = $profile->fetch(PDO::FETCH_ASSOC);
+        if (
+            is_array($existing)
+            && trim((string)($existing["google_id"] ?? "")) !== ""
+            && trim((string)$existing["google_id"]) !== $supabaseGoogleId
+        ) {
+            throw new DomainException("This email is already linked to a different Google account.");
+        }
         if (is_array($existing) && trim((string)($existing["auth_user_id"] ?? "")) === "") {
             $link = $privilegedPdo->prepare("
                 UPDATE users
@@ -69,6 +80,30 @@ if (servitech_supabase_auth_enabled()) {
         }
 
         $applicationProfile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        $syncGoogleProfile = $privilegedPdo->prepare("
+            UPDATE users
+            SET google_id = :google_id,
+                local_password_set_at = CASE
+                    WHEN :has_email_identity = '1' THEN COALESCE(local_password_set_at, NOW())
+                    ELSE local_password_set_at
+                END,
+                email_verified_at = COALESCE(email_verified_at, NOW()),
+                updated_at = NOW()
+            WHERE id = :id
+              AND (google_id IS NULL OR google_id = :google_id)
+        ");
+        $syncGoogleProfile->execute([
+            ":google_id" => $supabaseGoogleId,
+            ":has_email_identity" => servitech_supabase_user_has_email_identity($authUser) ? "1" : "0",
+            ":id" => (int)($applicationProfile["id"] ?? 0),
+        ]);
+        if ($syncGoogleProfile->rowCount() !== 1) {
+            throw new RuntimeException("The Google account could not be linked to its ServiTech profile.");
+        }
+        $completionStatus = servitech_refresh_google_account_completion_state(
+            $privilegedPdo,
+            (int)($applicationProfile["id"] ?? 0)
+        );
         if (!is_array($existing) && ($applicationProfile["role"] ?? "customer") !== "admin") {
             $profileFullname = trim((string)($authUser["user_metadata"]["full_name"] ?? $authUser["user_metadata"]["name"] ?? ""));
             servitech_notify_admin_new_customer(
@@ -82,7 +117,9 @@ if (servitech_supabase_auth_enabled()) {
             "ok" => true,
             "redirect" => ($applicationProfile["role"] ?? "customer") === "admin"
                 ? "/pages/admin/admin_dashboard.php"
-                : "/pages/customer/customer_dash.php",
+                : ($completionStatus["required"]
+                    ? servitech_google_account_completion_path()
+                    : "/pages/customer/customer_dash.php"),
         ]);
         exit();
     } catch (DomainException $e) {
@@ -235,9 +272,13 @@ try {
     $_SESSION["user_id"] = $userId;
     $_SESSION["role"] = ($role === "admin") ? "admin" : "customer";
 
+    $completionStatus = servitech_refresh_google_account_completion_state($pdo, $userId);
+
     $redirect = ($_SESSION["role"] === "admin")
         ? "/pages/admin/admin_dashboard.php"
-        : "/pages/customer/customer_dash.php";
+        : ($completionStatus["required"]
+            ? servitech_google_account_completion_path()
+            : "/pages/customer/customer_dash.php");
 
     if ($_SESSION["role"] === "admin") {
         $_SESSION["admin_logged_in"] = true;

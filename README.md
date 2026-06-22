@@ -80,6 +80,8 @@
 - You can enable Google account sign-in with either the `GOOGLE_CLIENT_ID` environment variable or a local config file.
 - To use a local config file, copy `config/google.local.example.php` to `config/google.local.php` and paste your Google OAuth Web Client ID into `client_id`.
 - Keep `config/google.local.php` out of version control.
+- Apply `database/migrations/20260623_require_google_account_completion.sql` before enabling the Google account completion flow with Supabase Auth.
+- New and existing Google-linked customers with a missing password or contact number are redirected to the required account setup page after sign-in.
 
 ## Local Development
 - Preferred: copy `.env.example` to `.env`, set the `SUPABASE_DB_*` values, and keep `.env` private.
