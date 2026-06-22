@@ -117,6 +117,19 @@
     return (group(groupKey)?.values || []).find((item) => item.value_key === valueKey);
   }
 
+  function optionValueIsActive(groupKey, valueKey) {
+    const optionGroup = group(groupKey);
+    const value = groupValue(groupKey, valueKey);
+    return Number(optionGroup?.active ?? 1) === 1
+      && Number(value?.active ?? 0) === 1
+      && String(value?.label || "").trim() !== "";
+  }
+
+  function ruleUsesInactiveOption(rule) {
+    return Object.entries(rule.option_value_keys || {})
+      .some(([groupKey, valueKey]) => !optionValueIsActive(groupKey, valueKey));
+  }
+
   function rulesForGroup(groupKey) {
     return (catalog?.rules || [])
       .filter((rule) => Object.prototype.hasOwnProperty.call(rule.option_value_keys || {}, groupKey))
@@ -361,6 +374,37 @@
     return `Add this new ${optionGroupName(groupKey).toLowerCase()}? It will be available in Manage Services${active ? " and may appear to customers after you save" : " but will remain inactive"}.`;
   }
 
+  function toggleConfirmation(target, activated) {
+    const valueRow = target.closest("[data-group-key][data-value-key]");
+    const groupKey = valueRow?.dataset?.groupKey || "";
+    const label = groupKey ? optionGroupName(groupKey).toLowerCase() : "option";
+    if (groupKey === "device_type") {
+      return {
+        title: activated ? "Activate Device" : "Deactivate Device",
+        message: activated
+          ? "Activate this device? Customers will be able to see it if it has active services and complete pricing."
+          : "Deactivate this device? Customers will no longer see this device or the services under it. Existing submitted records will remain unchanged.",
+        confirmLabel: activated ? "Activate Device" : "Deactivate Device",
+      };
+    }
+    if (target.matches("[data-value-active]")) {
+      return {
+        title: activated ? `Activate ${optionGroupName(groupKey)}` : `Deactivate ${optionGroupName(groupKey)}`,
+        message: activated
+          ? `Activate this ${label}? Customers will be able to select related active prices after you save.`
+          : `Deactivate this ${label}? Related prices will be hidden from customers, but existing submitted records will remain unchanged.`,
+        confirmLabel: activated ? "Activate" : "Deactivate",
+      };
+    }
+    return {
+      title: activated ? "Activate Price Option" : "Deactivate Price Option",
+      message: activated
+        ? "Activate this price option? Customers will be able to select it after you save if its parent options are active."
+        : "Deactivate this price option? Customers will no longer be able to select it, but old submitted records will remain unchanged.",
+      confirmLabel: activated ? "Activate" : "Deactivate",
+    };
+  }
+
   function rushEditor() {
     return `${simpleRuleRows("package", "Packages", "New package name", {
       nameLabel: "Package Name", description: true, help: "Base price for each Rush ID package.",
@@ -477,6 +521,9 @@
       if (description) rule.description = description.value.trim();
       const labels = Object.entries(rule.option_value_keys || {}).map(([key, valueKey]) => groupValue(key, valueKey)?.label || "").filter(Boolean);
       rule.label = labels.join(" / ");
+    });
+    (catalog.rules || []).forEach((rule) => {
+      if (ruleUsesInactiveOption(rule)) rule.active = 0;
     });
     (catalog.groups || []).forEach((item) => {
       (item.values || []).forEach((value, index) => { value.sort_order = index; });
@@ -629,12 +676,11 @@
     }
     if (event.target.matches("[data-rule-active]") || event.target.matches("[data-value-active]")) {
       const activated = event.target.checked;
+      const copy = toggleConfirmation(event.target, activated);
       if (!await confirmAction({
-        title: activated ? "Activate Option" : "Deactivate Option",
-        message: activated
-          ? "Activate this option? Customers will be able to see and select it after you save."
-          : "Deactivate this option? Customers will no longer be able to select it, but old submitted records will remain unchanged.",
-        confirmLabel: activated ? "Activate" : "Deactivate",
+        title: copy.title,
+        message: copy.message,
+        confirmLabel: copy.confirmLabel,
         tone: activated ? "primary" : "warning",
       })) {
         event.target.checked = !activated;

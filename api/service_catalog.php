@@ -7,6 +7,15 @@ function servitech_catalog_slug(string $value): string {
   return $slug !== '' ? $slug : 'option';
 }
 
+function servitech_catalog_bool_param($value): string {
+  if (is_string($value)) {
+    $normalized = strtolower(trim($value));
+    if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) return 'true';
+    if (in_array($normalized, ['0', 'false', 'no', 'off', ''], true)) return 'false';
+  }
+  return !empty($value) ? 'true' : 'false';
+}
+
 function servitech_catalog_money_label($value): string {
   if ($value === null || $value === '' || !is_numeric($value)) {
     return 'For assessment';
@@ -129,6 +138,7 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
     $keys = isset($rule["option_value_keys"]) && is_array($rule["option_value_keys"])
       ? $rule["option_value_keys"]
       : [];
+    $usesInactiveOption = false;
     foreach (array_keys($keys) as $key) {
       if (!isset($contract[$key])) throw new DomainException("A pricing rule uses an unsupported option group.");
     }
@@ -137,6 +147,9 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
       foreach ($groupsByKey[$key]["values"] ?? [] as $value) {
         if ((string)($value["value_key"] ?? "") === (string)$valueKey) {
           $validValue = true;
+          if (empty($groupsByKey[$key]["active"]) || empty($value["active"]) || trim((string)($value["label"] ?? "")) === "") {
+            $usesInactiveOption = true;
+          }
           break;
         }
       }
@@ -147,6 +160,7 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
     }
     $priceType = ($rule["price_type"] ?? "fixed") === "assessment" ? "assessment" : "fixed";
     $price = $rule["price"] ?? null;
+    $rule["active"] = (!empty($rule["active"]) && !$usesInactiveOption) ? 1 : 0;
     if (!empty($rule["active"]) && $priceType === "fixed" && ($price === "" || $price === null || !is_numeric($price))) {
       throw new DomainException("Every active fixed-price option must have a valid price.");
     }
@@ -423,7 +437,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
 
   $groupStmt = $pdo->prepare("
     INSERT INTO service_option_groups (service_id, group_key, name, active, sort_order)
-    VALUES (:service_id, :group_key, :name, :active, :sort_order)
+    VALUES (:service_id, :group_key, :name, CAST(:active AS boolean), :sort_order)
     ON CONFLICT (service_id, group_key)
     DO UPDATE SET name = EXCLUDED.name, active = EXCLUDED.active, sort_order = EXCLUDED.sort_order,
                   archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE COALESCE(service_option_groups.archived_at, NOW()) END,
@@ -432,7 +446,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
   ");
   $valueStmt = $pdo->prepare("
     INSERT INTO service_option_values (group_id, value_key, label, description, active, sort_order)
-    VALUES (:group_id, :value_key, :label, :description, :active, :sort_order)
+    VALUES (:group_id, :value_key, :label, :description, CAST(:active AS boolean), :sort_order)
     ON CONFLICT (group_id, value_key)
     DO UPDATE SET label = EXCLUDED.label, description = EXCLUDED.description, active = EXCLUDED.active,
                   sort_order = EXCLUDED.sort_order,
@@ -449,7 +463,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
       ":service_id" => $serviceId,
       ":group_key" => $groupKey,
       ":name" => $groupName,
-      ":active" => !empty($group["active"]),
+      ":active" => servitech_catalog_bool_param($group["active"] ?? false),
       ":sort_order" => (int)($group["sort_order"] ?? $groupIndex),
     ]);
     $groupId = (int)$groupStmt->fetchColumn();
@@ -465,7 +479,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
         ":value_key" => $valueKey,
         ":label" => $label,
         ":description" => trim((string)($value["description"] ?? "")),
-        ":active" => !empty($value["active"]),
+        ":active" => servitech_catalog_bool_param($value["active"] ?? false),
         ":sort_order" => (int)($value["sort_order"] ?? $valueIndex),
       ]);
       $valueIds[$groupKey][$valueKey] = (int)$valueStmt->fetchColumn();
@@ -474,7 +488,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
 
   $ruleStmt = $pdo->prepare("
     INSERT INTO service_pricing_rules (service_id, rule_key, option_value_ids, label, description, price, price_type, active, sort_order)
-    VALUES (:service_id, :rule_key, CAST(:option_value_ids AS jsonb), :label, :description, :price, :price_type, :active, :sort_order)
+    VALUES (:service_id, :rule_key, CAST(:option_value_ids AS jsonb), :label, :description, :price, :price_type, CAST(:active AS boolean), :sort_order)
     ON CONFLICT (service_id, rule_key)
     DO UPDATE SET option_value_ids = EXCLUDED.option_value_ids, label = EXCLUDED.label,
                   description = EXCLUDED.description, price = EXCLUDED.price, price_type = EXCLUDED.price_type,
@@ -510,7 +524,7 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
       ":description" => trim((string)($rule["description"] ?? "")),
       ":price" => $price,
       ":price_type" => $priceType,
-      ":active" => !empty($rule["active"]),
+      ":active" => servitech_catalog_bool_param($rule["active"] ?? false),
       ":sort_order" => (int)($rule["sort_order"] ?? $ruleIndex),
     ]);
     $submittedRuleKeys[$ruleKey] = true;

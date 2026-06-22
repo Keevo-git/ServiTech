@@ -134,8 +134,8 @@ if ($action === "save") {
               description=:description,
               price=NULL,
               price_range=:price_range,
-              active=:active,
-              archived_at=CASE WHEN :reactivate THEN NULL ELSE archived_at END,
+              active=CAST(:active AS boolean),
+              archived_at=CASE WHEN CAST(:reactivate AS boolean) THEN NULL ELSE archived_at END,
               sort_order=:sort_order,
               updated_at=NOW()
           WHERE id=:id
@@ -145,8 +145,8 @@ if ($action === "save") {
             ":name" => $name,
             ":description" => $description,
             ":price_range" => $priceRange,
-            ":active" => ($active ? true : false),
-            ":reactivate" => ($active ? true : false),
+            ":active" => servitech_catalog_bool_param($active),
+            ":reactivate" => servitech_catalog_bool_param($active),
             ":sort_order" => (int)$existing["sort_order"],
             ":id" => $id,
         ]);
@@ -158,8 +158,12 @@ if ($action === "save") {
         respond(["ok" => false, "error" => $e->getMessage()]);
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
-        error_log("services_api save error: " . $e->getMessage());
-        respond(["ok" => false, "error" => "Failed to save changes. Please try again."]);
+        $serviceLabel = $name !== "" ? $name : ("service #" . $id);
+        error_log("services_api save error for {$serviceLabel}: " . $e->getMessage());
+        respond([
+            "ok" => false,
+            "error" => "Failed to save {$serviceLabel}. The database rejected the service update; please check the service setup and try again.",
+        ]);
     }
 }
 

@@ -157,6 +157,42 @@ try {
 }
 catalog_test_assert($blankFixedPriceRejected, "Backend validation must reject an active fixed option without a price.");
 
+$inactiveScanningPaper = servitech_catalog_normalize_admin_payload(
+    ["category" => "printing", "name" => "Scanning"],
+    [
+        "groups" => [[
+            "group_key" => "paper_size",
+            "values" => [["value_key" => "letter", "label" => "Letter", "active" => 0]],
+        ]],
+        "rules" => [[
+            "rule_key" => "letter",
+            "option_value_keys" => ["paper_size" => "letter"],
+            "price" => "",
+            "price_type" => "fixed",
+            "active" => 1,
+        ]],
+    ]
+);
+catalog_test_assert((int)$inactiveScanningPaper["rules"][0]["active"] === 0, "Deactivating a Scanning paper size must deactivate its pricing rule.");
+
+$inactiveDocumentColor = servitech_catalog_normalize_admin_payload(
+    ["category" => "printing", "name" => "Document Printing"],
+    [
+        "groups" => [
+            ["group_key" => "paper_size", "values" => [catalog_test_value("letter", "Letter")]],
+            ["group_key" => "color_option", "values" => [["value_key" => "bw", "label" => "Black and White", "active" => 0]]],
+        ],
+        "rules" => [[
+            "rule_key" => "letter_bw",
+            "option_value_keys" => ["paper_size" => "letter", "color_option" => "bw"],
+            "price" => 5,
+            "price_type" => "fixed",
+            "active" => 1,
+        ]],
+    ]
+);
+catalog_test_assert((int)$inactiveDocumentColor["rules"][0]["active"] === 0, "Deactivating a matrix option value must deactivate linked combinations.");
+
 $repairCatalog = servitech_catalog_normalize_admin_payload(
     ["category" => "repair", "name" => "Device Repair"],
     [
@@ -176,9 +212,31 @@ $repairCatalog = servitech_catalog_normalize_admin_payload(
 catalog_test_assert(count($repairCatalog["rules"]) === 1, "Repair must retain only explicitly configured device/service combinations.");
 catalog_test_assert(servitech_pricing_is_other_request("Tablet / Others"), "Others detection must require a customer description.");
 
+$inactiveRepairDevice = servitech_catalog_normalize_admin_payload(
+    ["category" => "repair", "name" => "Device Repair"],
+    [
+        "groups" => [
+            ["group_key" => "device_type", "values" => [["value_key" => "phone", "label" => "Phone", "active" => 0]]],
+            ["group_key" => "repair_type", "values" => [catalog_test_value("lcd", "LCD Replacement")]],
+        ],
+        "rules" => [[
+            "rule_key" => "phone_lcd",
+            "option_value_keys" => ["device_type" => "phone", "repair_type" => "lcd"],
+            "price" => 1500,
+            "price_type" => "fixed",
+            "active" => 1,
+        ]],
+    ]
+);
+catalog_test_assert((int)$inactiveRepairDevice["rules"][0]["active"] === 0, "Deactivating a Repair device must deactivate linked device/service pricing rules.");
+
 $adminEditorSource = file_get_contents(__DIR__ . "/../pages/admin/Services/manage_services.js") ?: "";
 foreach (["data-new-description", "data-new-price", "data-add-repair", "data-installation-device-mode", "data-add-installation"] as $requiredControl) {
     catalog_test_assert(str_contains($adminEditorSource, $requiredControl), "Admin editor must include {$requiredControl} guidance/control.");
 }
+
+$catalogSource = file_get_contents(__DIR__ . "/../api/service_catalog.php") ?: "";
+catalog_test_assert(str_contains($catalogSource, "servitech_catalog_bool_param"), "Catalog writes must use explicit PostgreSQL-safe boolean parameters.");
+catalog_test_assert(substr_count($catalogSource, "CAST(:active AS boolean)") >= 3, "Catalog active writes must cast boolean parameters explicitly.");
 
 echo "Service catalog tests passed.\n";
