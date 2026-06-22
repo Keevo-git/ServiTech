@@ -11,6 +11,10 @@ $page = file_get_contents(__DIR__ . "/../pages/admin/Services/edit_services.php"
 $script = file_get_contents(__DIR__ . "/../pages/admin/Services/manage_services.js") ?: "";
 $styles = file_get_contents(__DIR__ . "/../pages/admin/Services/manage_services.css") ?: "";
 $api = file_get_contents(__DIR__ . "/../pages/admin/Services/services_api.php") ?: "";
+$catalog = file_get_contents(__DIR__ . "/../api/service_catalog.php") ?: "";
+$publicApi = file_get_contents(__DIR__ . "/../api/services_public.php") ?: "";
+$pricing = file_get_contents(__DIR__ . "/../api/service_pricing.php") ?: "";
+$printingOptions = file_get_contents(__DIR__ . "/../pages/customer/custo1_printing_option.php") ?: "";
 
 foreach ([
     'id="msConfirmOverlay"',
@@ -31,6 +35,20 @@ manage_services_ui_assert(!str_contains($script, "Archive Option"), "Archive-spe
 manage_services_ui_assert(!str_contains($styles, ".ms-archive-button"), "Archive button styles must be removed from Admin Edit Services.");
 manage_services_ui_assert(!str_contains($api, '"archived" => true'), "Delete action must not archive services from Admin Edit Services.");
 manage_services_ui_assert(str_contains($api, "Use the Active/Inactive toggle instead."), "Delete action must point admins to the Active/Inactive toggle.");
+manage_services_ui_assert(!str_contains($page, "Legacy service"), "Manage Services must not show legacy service warnings.");
+manage_services_ui_assert(!str_contains($page, "ms-legacy-note"), "Manage Services must not use legacy warning styling.");
+manage_services_ui_assert(str_contains($page, "ms-setup-note"), "Unsupported services should use setup guidance, not legacy/archive wording.");
+
+foreach ([
+    "edit_services.php" => $page,
+    "services_api.php" => $api,
+    "service_catalog.php" => $catalog,
+    "services_public.php" => $publicApi,
+    "service_pricing.php" => $pricing,
+    "custo1_printing_option.php" => $printingOptions,
+] as $fileName => $source) {
+    manage_services_ui_assert(!str_contains($source, "archived_at"), "{$fileName} must not use archived_at for current service availability.");
+}
 
 foreach ([
     "Save Service Changes",

@@ -41,7 +41,6 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
       FROM services
       WHERE id = :id
         AND active = TRUE
-        AND archived_at IS NULL
       LIMIT 1
     ");
     $stmt->execute([":id" => $requestedId]);
@@ -72,7 +71,6 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
     FROM services
     WHERE {$where}
       AND active = TRUE
-      AND archived_at IS NULL
     ORDER BY sort_order ASC, id ASC
     LIMIT 1
   ");

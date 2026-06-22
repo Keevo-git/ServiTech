@@ -21,10 +21,10 @@ if ($action === "list") {
     $params = [];
     $where = "";
     if ($cat === "printing" || $cat === "repair" || $cat === "installation") {
-        $where = "WHERE category = :cat AND archived_at IS NULL";
+        $where = "WHERE category = :cat";
         $params[":cat"] = $cat;
     } else {
-        $where = "WHERE archived_at IS NULL";
+        $where = "";
     }
     $stmt = $pdo->prepare("
       SELECT id, category, name, description,
@@ -34,7 +34,7 @@ if ($action === "list") {
       ORDER BY category ASC, sort_order ASC, id ASC
     ");
     $stmt->execute($params);
-    $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $services = servitech_catalog_dedupe_services($stmt->fetchAll(PDO::FETCH_ASSOC));
     foreach ($services as &$service) {
         try {
             $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], false);
@@ -82,7 +82,7 @@ if ($action === "save") {
           SELECT id, category, name, description,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
-          WHERE id = :id AND archived_at IS NULL
+          WHERE id = :id
           LIMIT 1
         ");
         $existingStmt->execute([":id" => $id]);
@@ -135,7 +135,6 @@ if ($action === "save") {
               price=NULL,
               price_range=:price_range,
               active=CAST(:active AS boolean),
-              archived_at=CASE WHEN CAST(:reactivate AS boolean) THEN NULL ELSE archived_at END,
               sort_order=:sort_order,
               updated_at=NOW()
           WHERE id=:id
@@ -146,7 +145,6 @@ if ($action === "save") {
             ":description" => $description,
             ":price_range" => $priceRange,
             ":active" => servitech_catalog_bool_param($active),
-            ":reactivate" => servitech_catalog_bool_param($active),
             ":sort_order" => (int)$existing["sort_order"],
             ":id" => $id,
         ]);

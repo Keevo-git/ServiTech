@@ -15,11 +15,10 @@ try {
     FROM services
     WHERE category = 'printing'
       AND active = TRUE
-      AND archived_at IS NULL
     ORDER BY sort_order ASC, id ASC
   ");
   $stmt->execute();
-  $printingServices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $printingServices = servitech_catalog_dedupe_services($stmt->fetchAll(PDO::FETCH_ASSOC), false);
 } catch (Throwable $e) {
   $printingServices = [];
 }

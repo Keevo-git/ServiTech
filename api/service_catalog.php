@@ -51,6 +51,23 @@ function servitech_catalog_service_kind(array $service): string {
   return "";
 }
 
+function servitech_catalog_dedupe_services(array $services, bool $keepUnsupported = true): array {
+  $result = [];
+  $seenKinds = [];
+  foreach ($services as $service) {
+    if (!is_array($service)) continue;
+    $kind = servitech_catalog_service_kind($service);
+    if ($kind === "") {
+      if ($keepUnsupported) $result[] = $service;
+      continue;
+    }
+    if (isset($seenKinds[$kind])) continue;
+    $seenKinds[$kind] = true;
+    $result[] = $service;
+  }
+  return $result;
+}
+
 function servitech_catalog_group_contract(string $kind): array {
   return match ($kind) {
     "document_printing", "photocopy" => [
@@ -252,7 +269,7 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
 
 function servitech_catalog_fetch_service(PDO $pdo, int $serviceId, bool $activeOnly = true): ?array {
   if ($serviceId <= 0) return null;
-  $activeSql = $activeOnly ? "AND active = TRUE AND archived_at IS NULL" : "";
+  $activeSql = $activeOnly ? "AND active = TRUE" : "";
   $stmt = $pdo->prepare("
     SELECT id, category, name, description,
            CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
@@ -266,7 +283,7 @@ function servitech_catalog_fetch_service(PDO $pdo, int $serviceId, bool $activeO
 }
 
 function servitech_catalog_fetch_service_by_kind(PDO $pdo, string $kind, bool $activeOnly = true): ?array {
-  $activeSql = $activeOnly ? "AND active = TRUE AND archived_at IS NULL" : "";
+  $activeSql = $activeOnly ? "AND active = TRUE" : "";
   $where = match ($kind) {
     'document_printing' => "category = 'printing' AND LOWER(name) LIKE '%document%' AND (LOWER(name) LIKE '%printing%' OR LOWER(name) LIKE '%print%')",
     'photocopy' => "category = 'printing' AND (LOWER(name) LIKE '%photocopy%' OR LOWER(name) LIKE '%xerox%')",
@@ -296,11 +313,11 @@ function servitech_catalog_fetch(PDO $pdo, int $serviceId, bool $activeOnly = tr
     throw new DomainException("Service not found.");
   }
 
-  $activeGroupSql = $activeOnly ? "AND g.active = TRUE AND g.archived_at IS NULL" : "";
+  $activeGroupSql = $activeOnly ? "AND g.active = TRUE" : "";
   $activeValueSql = $activeOnly
-    ? "AND v.active = TRUE AND v.archived_at IS NULL AND g.active = TRUE AND g.archived_at IS NULL"
+    ? "AND v.active = TRUE AND g.active = TRUE"
     : "";
-  $activeRuleSql = $activeOnly ? "AND r.active = TRUE AND r.archived_at IS NULL" : "";
+  $activeRuleSql = $activeOnly ? "AND r.active = TRUE" : "";
 
   $groupsStmt = $pdo->prepare("
     SELECT g.id, g.service_id, g.group_key, g.name, CASE WHEN g.active THEN 1 ELSE 0 END AS active, g.sort_order
@@ -440,7 +457,6 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
     VALUES (:service_id, :group_key, :name, CAST(:active AS boolean), :sort_order)
     ON CONFLICT (service_id, group_key)
     DO UPDATE SET name = EXCLUDED.name, active = EXCLUDED.active, sort_order = EXCLUDED.sort_order,
-                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE COALESCE(service_option_groups.archived_at, NOW()) END,
                   updated_at = NOW()
     RETURNING id
   ");
@@ -450,7 +466,6 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
     ON CONFLICT (group_id, value_key)
     DO UPDATE SET label = EXCLUDED.label, description = EXCLUDED.description, active = EXCLUDED.active,
                   sort_order = EXCLUDED.sort_order,
-                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE COALESCE(service_option_values.archived_at, NOW()) END,
                   updated_at = NOW()
     RETURNING id
   ");
@@ -493,7 +508,6 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
     DO UPDATE SET option_value_ids = EXCLUDED.option_value_ids, label = EXCLUDED.label,
                   description = EXCLUDED.description, price = EXCLUDED.price, price_type = EXCLUDED.price_type,
                   active = EXCLUDED.active, sort_order = EXCLUDED.sort_order,
-                  archived_at = CASE WHEN EXCLUDED.active THEN NULL ELSE COALESCE(service_pricing_rules.archived_at, NOW()) END,
                   updated_at = NOW()
   ");
 
@@ -532,14 +546,14 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
 
   $existingRulesStmt = $pdo->prepare("SELECT rule_key FROM service_pricing_rules WHERE service_id = :service_id");
   $existingRulesStmt->execute([":service_id" => $serviceId]);
-  $archiveRuleStmt = $pdo->prepare("
+  $deactivateRuleStmt = $pdo->prepare("
     UPDATE service_pricing_rules
-    SET active = FALSE, archived_at = COALESCE(archived_at, NOW()), updated_at = NOW()
+    SET active = FALSE, updated_at = NOW()
     WHERE service_id = :service_id AND rule_key = :rule_key
   ");
   foreach ($existingRulesStmt->fetchAll(PDO::FETCH_COLUMN) as $existingRuleKey) {
     if (!isset($submittedRuleKeys[(string)$existingRuleKey])) {
-      $archiveRuleStmt->execute([":service_id" => $serviceId, ":rule_key" => (string)$existingRuleKey]);
+      $deactivateRuleStmt->execute([":service_id" => $serviceId, ":rule_key" => (string)$existingRuleKey]);
     }
   }
 }

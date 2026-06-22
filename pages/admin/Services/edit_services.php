@@ -11,7 +11,7 @@ $stmt = $pdo->prepare("
   SELECT id, category, name, description,
          CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
   FROM services
-  WHERE category=:cat AND archived_at IS NULL
+  WHERE category=:cat
   ORDER BY sort_order ASC, id ASC
 ");
 $stmt->execute([":cat"=>$tab]);
@@ -37,7 +37,7 @@ function ms_display_service_name($name): string {
   return $name;
 }
 $unsupportedServices = array_values(array_filter($services, static fn($service) => !ms_supported_catalog_service($service)));
-$services = array_values(array_filter($services, "ms_supported_catalog_service"));
+$services = servitech_catalog_dedupe_services(array_values(array_filter($services, "ms_supported_catalog_service")), false);
 ?>
 <!doctype html>
 <html lang="en">
@@ -48,7 +48,7 @@ $services = array_values(array_filter($services, "ms_supported_catalog_service")
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260622-admin-services-toggle') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260622-admin-services-active-only') ?>">
 </head>
 <body>
 
@@ -121,10 +121,10 @@ require __DIR__ . "/../_includes/admin_header.php";
         <?php endif; ?>
     </div>
     <?php if ($unsupportedServices): ?>
-      <div class="ms-legacy-note">
-        <strong>Legacy service<?= count($unsupportedServices) === 1 ? "" : "s" ?> not managed by this editor:</strong>
+      <div class="ms-setup-note">
+        <strong>Service<?= count($unsupportedServices) === 1 ? "" : "s" ?> needing setup:</strong>
         <?= h(implode(", ", array_map(static fn($service) => ms_display_service_name($service["name"] ?? "Unnamed service"), $unsupportedServices))) ?>.
-        <?= count($unsupportedServices) === 1 ? "This record remains" : "These records remain" ?> unchanged and active/inactive exactly as currently configured. Add a dedicated catalog migration before managing <?= count($unsupportedServices) === 1 ? "it" : "them" ?> in this editor.
+        Add a configured service structure before managing <?= count($unsupportedServices) === 1 ? "this service" : "these services" ?> here.
       </div>
     <?php endif; ?>
   </div>
@@ -206,7 +206,7 @@ require __DIR__ . "/../_includes/admin_header.php";
   window.MS_API_URL = <?= json_encode(admin_url_raw('/pages/admin/Services/services_api.php')) ?>;
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260622-admin-services-toggle') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260622-admin-services-active-only') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>

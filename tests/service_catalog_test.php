@@ -16,6 +16,13 @@ catalog_test_assert(servitech_catalog_group_contract("scanning") === ["paper_siz
 catalog_test_assert(servitech_catalog_expected_rule_groups("scanning", ["paper_size" => "a4"]), "Paper-size pricing rules must be accepted.");
 catalog_test_assert(!servitech_catalog_expected_rule_groups("scanning", ["paper_size" => "a4", "color_option" => "bw"]), "Extra Scanning option groups must be rejected.");
 
+$dedupedServices = servitech_catalog_dedupe_services([
+    ["category" => "printing", "name" => "Photocopy", "id" => 1],
+    ["category" => "printing", "name" => "Xerox", "id" => 2],
+    ["category" => "printing", "name" => "Scanning", "id" => 3],
+]);
+catalog_test_assert(count($dedupedServices) === 2, "Service lists must not show duplicate Photocopy/Xerox catalog records.");
+
 $normalized = servitech_catalog_normalize_admin_payload($service, [
     "groups" => [[
         "group_key" => "paper_size",

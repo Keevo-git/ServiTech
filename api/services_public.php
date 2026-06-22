@@ -32,11 +32,11 @@ if ($action === "list" && $category) {
           SELECT id, category, name, description,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
-          WHERE category = :category AND active = TRUE AND archived_at IS NULL
+          WHERE category = :category AND active = TRUE
           ORDER BY sort_order ASC, id ASC
         ");
         $stmt->execute([":category" => $category]);
-        $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $services = servitech_catalog_dedupe_services($stmt->fetchAll(PDO::FETCH_ASSOC));
         foreach ($services as &$service) {
             try {
                 $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);
@@ -74,7 +74,7 @@ if ($action === "detail" && $category) {
           SELECT id, category, name, description,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
-          WHERE category = :category AND name = :name AND active = TRUE AND archived_at IS NULL
+          WHERE category = :category AND name = :name AND active = TRUE
           LIMIT 1
         ");
         $stmt->execute([

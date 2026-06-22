@@ -3,7 +3,7 @@
 .ms-wrap{max-width:1160px;margin:24px auto 60px}.ms-card{background:#fff;border:1px solid var(--ms-line);border-radius:10px;box-shadow:0 14px 32px rgba(18,49,83,.1);padding:18px}
 .ms-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#edf3fa;border:1px solid var(--ms-line);border-radius:9px;padding:6px;margin-bottom:18px}
 .ms-tab{border-radius:7px;color:#31577f;font-weight:800;padding:10px;text-align:center;text-decoration:none}.ms-tab.active{background:#fff;color:var(--ms-navy);box-shadow:0 4px 12px rgba(28,64,102,.1)}
-.ms-legacy-note{background:#fff8e8;border:1px solid #ead7a7;border-radius:7px;color:#6c5726;font-size:12px;margin-bottom:14px;padding:10px 12px}
+.ms-setup-note{background:#fff8e8;border:1px solid #ead7a7;border-radius:7px;color:#6c5726;font-size:12px;margin-bottom:14px;padding:10px 12px}
 .ms-service-grid{display:grid;gap:12px}.ms-service-card{border:1px solid var(--ms-line);border-radius:8px;padding:16px}.ms-service-card__head,.ms-service-card__foot{align-items:center;display:flex;gap:14px;justify-content:space-between}
 .ms-service-card h2{color:var(--ms-navy);font-size:18px;margin:3px 0 0}.ms-service-card p{color:#536579;font-size:13px;line-height:1.55;margin:12px 0}.ms-service-card__category{color:#6c7f92;font-size:11px;font-weight:900;text-transform:uppercase}
 .ms-service-card__foot{border-top:1px solid #e8eef5;padding-top:12px;font-size:13px}.ms-edit-button,.ms-inline-add button{background:var(--ms-navy);border:0;border-radius:7px;color:#fff;cursor:pointer;font-weight:800;padding:9px 13px}
