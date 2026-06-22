@@ -697,7 +697,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const notes = await window.servitechRequestCancellationReason();
+    const notes = await window.servitechRequestCancellationReason({ skipWarning: true });
     if (!notes) {
       statusEl.value = previousStatusSelection;
       updateSaveButton();
@@ -800,13 +800,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   overlay?.addEventListener("click", closeModal);
   statusEl?.addEventListener("change", () => {
-    if (statusEl.value === "CANCELLED") {
-      statusEl.value = previousStatusSelection;
-      updateSaveButton();
-      cancelCurrentOrder();
-      return;
-    }
-    previousStatusSelection = statusEl.value;
     clearError();
     syncPaymentPreview();
     updateSaveButton();
@@ -833,21 +826,33 @@ document.addEventListener("DOMContentLoaded", function () {
     event.stopPropagation();
     if (!currentOrder?.id || updateInProgress) return;
 
-    const action = actionMap[statusEl.value];
-    if (!action) {
+    const selectedStatus = normalizeStatus(statusEl.value);
+    const currentStatus = normalizeStatus(currentOrder.status);
+    const statusChanged = selectedStatus !== currentStatus;
+    const action = actionMap[selectedStatus];
+    if (statusChanged && !action) {
       showError("Invalid status selected.");
       return;
     }
 
-    let notes = "";
-    if (action === "cancel") {
-      statusEl.value = previousStatusSelection;
-      updateSaveButton();
+    if (statusChanged) {
+      if (typeof window.servitechRequestStatusUpdateConfirmation !== "function") {
+        showError("Status confirmation is unavailable. Refresh the page and try again.");
+        return;
+      }
+      const confirmed = await window.servitechRequestStatusUpdateConfirmation(
+        statusLabels[currentStatus] || currentStatus,
+        statusLabels[selectedStatus] || selectedStatus
+      );
+      if (!confirmed) return;
+    }
+
+    if (statusChanged && action === "cancel") {
       await cancelCurrentOrder();
       return;
     }
 
-    if (statusEl.value !== normalizeStatus(currentOrder.status) && action === "approved" && usesOnlinePaymentReview(currentOrder.paymentMethod)
+    if (statusChanged && action === "approved" && usesOnlinePaymentReview(currentOrder.paymentMethod)
         && typeof window.servitechRequestApprovalConfirmation === "function") {
       const confirmed = await window.servitechRequestApprovalConfirmation(currentOrder.queueCode || "this order", paymentReviewLabel(currentOrder.paymentMethod));
       if (!confirmed) return;
@@ -860,7 +865,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       const paymentResult = await savePayment();
-      const statusResult = await saveStatus(action, notes);
+      const statusResult = await saveStatus(action);
       showUpdateResultToasts(paymentResult, statusResult);
       window.realtimeQueueAdmin?.markRenderedSynced?.();
     } finally {

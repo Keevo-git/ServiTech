@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    const notes = await window.servitechRequestCancellationReason();
+    const notes = await window.servitechRequestCancellationReason({ skipWarning: true });
     if (!notes) return;
 
     updateInProgress = true;
@@ -755,12 +755,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (event.target === overlay) closeDetails();
   });
   statusEl?.addEventListener("change", () => {
-    if (statusEl.value === "CANCELLED") {
-      statusEl.value = currentStatus;
-      syncStatusUpdateButton();
-      cancelCurrentQueue();
-      return;
-    }
     showStatusError("", false);
     syncPaymentPreview();
     syncStatusUpdateButton();
@@ -778,45 +772,57 @@ document.addEventListener("DOMContentLoaded", function () {
     event.stopPropagation();
     if (!currentQueue?.id || updateInProgress) return;
 
-    updateInProgress = true;
     const updateLabel = updateBtn.textContent;
-    updateBtn.textContent = "Updating...";
-    updateBtn.setAttribute("aria-busy", "true");
-    syncStatusUpdateButton();
     clearErrors();
 
     const selectedStatus = normalizeStatus(statusEl?.value || currentStatus);
+    const statusChanged = selectedStatus !== currentStatus;
     const action = statusActions[selectedStatus];
-    if (selectedStatus !== currentStatus && !action) {
+    if (statusChanged && !action) {
       showStatusError("Invalid status selected.");
       showUpdateFeedback("Invalid status selected.", "error");
+      return;
+    }
+
+    if (statusChanged) {
+      if (typeof window.servitechRequestStatusUpdateConfirmation !== "function") {
+        showStatusError("Status confirmation is unavailable. Refresh the page and try again.");
+        showUpdateFeedback("Status confirmation is unavailable. Refresh the page and try again.", "error");
+        return;
+      }
+      const confirmed = await window.servitechRequestStatusUpdateConfirmation(
+        statusLabels[currentStatus] || currentStatus,
+        statusLabels[selectedStatus] || selectedStatus
+      );
+      if (!confirmed) return;
+    }
+
+    if (statusChanged && action === "cancel") {
+      await cancelCurrentQueue();
+      return;
+    }
+
+    if (statusChanged && action === "approved" && usesOnlinePaymentReview(currentQueue.paymentMethod)
+        && typeof window.servitechRequestApprovalConfirmation === "function") {
+      const confirmed = await window.servitechRequestApprovalConfirmation(currentQueue.queueCode || "this queue", paymentReviewLabel(currentQueue.paymentMethod));
+      if (!confirmed) return;
+    }
+
+    updateInProgress = true;
+    updateBtn.textContent = "Updating...";
+    updateBtn.setAttribute("aria-busy", "true");
+    syncStatusUpdateButton();
+
+    try {
+      const paymentResult = await savePayment();
+      const statusResult = await saveStatus(action);
+      showUpdateResultToasts(paymentResult, statusResult);
+    } finally {
       updateInProgress = false;
       updateBtn.textContent = updateLabel;
       updateBtn.removeAttribute("aria-busy");
       syncStatusUpdateButton();
-      return;
     }
-
-    if (selectedStatus !== currentStatus && action === "approved" && usesOnlinePaymentReview(currentQueue.paymentMethod)
-        && typeof window.servitechRequestApprovalConfirmation === "function") {
-      const confirmed = await window.servitechRequestApprovalConfirmation(currentQueue.queueCode || "this queue", paymentReviewLabel(currentQueue.paymentMethod));
-      if (!confirmed) {
-        updateInProgress = false;
-        updateBtn.textContent = updateLabel;
-        updateBtn.removeAttribute("aria-busy");
-        syncStatusUpdateButton();
-        return;
-      }
-    }
-
-    const paymentResult = await savePayment();
-    const statusResult = await saveStatus(action);
-    showUpdateResultToasts(paymentResult, statusResult);
-
-    updateInProgress = false;
-    updateBtn.textContent = updateLabel;
-    updateBtn.removeAttribute("aria-busy");
-    syncStatusUpdateButton();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && modal?.classList.contains("active")) closeDetails();

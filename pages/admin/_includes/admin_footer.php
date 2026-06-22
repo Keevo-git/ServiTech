@@ -264,7 +264,9 @@ $adminFooterEmail = servitech_contact_email();
     position: relative;
     width: 100%;
   }
-  #queueCancellationOverlay .queue-cancellation-dialog { max-width: 460px; }
+  #queueCancellationOverlay .queue-cancellation-dialog,
+  #queueApprovalOverlay .queue-cancellation-dialog,
+  #queueStatusUpdateOverlay .queue-cancellation-dialog { max-width: 460px; }
   #queueCancellationReasonOverlay .queue-cancellation-dialog { max-width: 560px; }
   .queue-cancellation-head {
     align-items: flex-start;
@@ -314,6 +316,40 @@ $adminFooterEmail = servitech_contact_email();
     font-size: 15px;
     line-height: 1.6;
     margin: 0 0 16px;
+  }
+  .queue-status-confirm-transition {
+    align-items: stretch;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    margin: 4px 0 20px;
+  }
+  .queue-status-confirm-transition > div {
+    background: #f4f7fb;
+    border: 1px solid #dce5f0;
+    border-radius: 10px;
+    min-width: 0;
+    padding: 12px 14px;
+  }
+  .queue-status-confirm-transition span:not(.queue-status-confirm-arrow) {
+    color: #64748b;
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .queue-status-confirm-transition strong {
+    color: #173760;
+    display: block;
+    font-size: 15px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .queue-status-confirm-arrow {
+    align-self: center;
+    color: #214f91;
+    font-size: 20px;
+    font-weight: 900;
   }
   .queue-cancellation-dialog textarea {
     border: 1px solid #cbd5e1;
@@ -402,6 +438,15 @@ $adminFooterEmail = servitech_contact_email();
     .queue-cancellation-dialog textarea {
       font-size: 14px;
     }
+    .queue-status-confirm-transition {
+      gap: 8px;
+      grid-template-columns: 1fr;
+    }
+    .queue-status-confirm-arrow {
+      justify-self: center;
+      line-height: 1;
+      transform: rotate(90deg);
+    }
     .queue-cancellation-actions {
       display: grid;
       grid-template-columns: 1fr;
@@ -414,4 +459,4 @@ $adminFooterEmail = servitech_contact_email();
   }
 </style>
 <script src="<?= admin_url('/pages/admin/modal_stack.js?v=20260621-modal-stack-toast') ?>"></script>
-<script src="<?= admin_url('/pages/admin/queue_state_machine.js?v=20260621-gcash-approval') ?>"></script>
+<script src="<?= admin_url('/pages/admin/queue_state_machine.js?v=20260623-status-confirm') ?>"></script>

@@ -134,12 +134,91 @@
     });
   }
 
-  window.servitechRequestCancellationReason = function () {
+  window.servitechRequestCancellationReason = function ({ skipWarning = false } = {}) {
     ensureDialogs();
-    showWarningStep();
+    if (skipWarning) {
+      showReasonStep();
+    } else {
+      showWarningStep();
+    }
 
     return new Promise((resolve) => {
       activeResolver = resolve;
+    });
+  };
+})();
+
+(function () {
+  "use strict";
+
+  window.servitechRequestStatusUpdateConfirmation = function (currentStatus, selectedStatus) {
+    let overlay = document.getElementById("queueStatusUpdateOverlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "queue-cancellation-overlay";
+      overlay.id = "queueStatusUpdateOverlay";
+      overlay.hidden = true;
+      overlay.innerHTML = `
+        <div class="queue-cancellation-dialog" role="dialog" aria-modal="true" aria-labelledby="queueStatusUpdateTitle" aria-describedby="queueStatusUpdateMessage">
+          <div class="queue-cancellation-head">
+            <div><p>Status Update</p><h3 id="queueStatusUpdateTitle">Confirm Status Update</h3></div>
+            <button type="button" class="queue-cancellation-close" data-status-update-cancel aria-label="Close">&times;</button>
+          </div>
+          <div class="queue-cancellation-body">
+            <p id="queueStatusUpdateMessage" data-status-update-message></p>
+            <div class="queue-status-confirm-transition" aria-label="Status change">
+              <div><span>Current status</span><strong data-status-update-current></strong></div>
+              <span class="queue-status-confirm-arrow" aria-hidden="true">&rarr;</span>
+              <div><span>New status</span><strong data-status-update-selected></strong></div>
+            </div>
+            <div class="queue-cancellation-actions">
+              <button type="button" class="queue-cancellation-btn queue-cancellation-btn--secondary" data-status-update-cancel>Cancel</button>
+              <button type="button" class="queue-cancellation-btn queue-cancellation-btn--primary" data-status-update-confirm>Confirm Update</button>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+
+    const currentLabel = String(currentStatus || "Pending").trim() || "Pending";
+    const selectedLabel = String(selectedStatus || "Pending").trim() || "Pending";
+    const dialog = overlay.querySelector(".queue-cancellation-dialog");
+    const message = overlay.querySelector("[data-status-update-message]");
+    const current = overlay.querySelector("[data-status-update-current]");
+    const selected = overlay.querySelector("[data-status-update-selected]");
+    if (message) message.textContent = `Are you sure you want to change this status from ${currentLabel} to ${selectedLabel}?`;
+    if (current) current.textContent = currentLabel;
+    if (selected) selected.textContent = selectedLabel;
+    overlay.hidden = false;
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (confirmed) => {
+        if (settled) return;
+        settled = true;
+        window.servitechAdminModalStack?.close(overlay);
+        overlay.hidden = true;
+        overlay.onclick = null;
+        resolve(confirmed);
+      };
+
+      overlay.querySelectorAll("[data-status-update-cancel], [data-status-update-confirm]").forEach((button) => {
+        button.replaceWith(button.cloneNode(true));
+      });
+      overlay.querySelectorAll("[data-status-update-cancel]").forEach((button) => {
+        button.addEventListener("click", () => finish(false), { once: true });
+      });
+      const confirmButton = overlay.querySelector("[data-status-update-confirm]");
+      confirmButton?.addEventListener("click", () => finish(true), { once: true });
+      overlay.onclick = (event) => {
+        if (event.target === overlay) finish(false);
+      };
+      window.servitechAdminModalStack?.open({
+        overlay,
+        dialog,
+        focus: overlay.querySelector("[data-status-update-cancel]"),
+        onEscape: () => finish(false),
+      });
     });
   };
 })();
