@@ -47,17 +47,25 @@
   const catalogs = {
     1: {
       groups: [
-        { group_key: "device_type", name: "Devices", active: 1, sort_order: 0, values: [{ value_key: "laptop", label: "Laptop", active: 1, sort_order: 0 }] },
-        { group_key: "repair_type", name: "Service Type", active: 1, sort_order: 1, values: [{ value_key: "cleanup", label: "Cleanup", active: 1, sort_order: 0 }] }
+        { group_key: "device_type", name: "Devices", active: 1, sort_order: 0, values: [{ value_key: "laptop", label: "Laptop", active: 1, sort_order: 0 }, { value_key: "desktop", label: "Desktop", active: 1, sort_order: 1 }] },
+        { group_key: "repair_type", name: "Service Type", active: 1, sort_order: 1, values: [{ value_key: "cleanup", label: "Cleanup", active: 1, sort_order: 0 }, { value_key: "diagnostics", label: "Diagnostics", active: 1, sort_order: 1 }] }
       ],
-      rules: [{ rule_key: "laptop_cleanup", option_value_keys: { device_type: "laptop", repair_type: "cleanup" }, label: "Laptop / Cleanup", price: "500", price_type: "fixed", active: 1, sort_order: 0 }]
+      rules: [
+        { rule_key: "laptop_cleanup", option_value_keys: { device_type: "laptop", repair_type: "cleanup" }, label: "Laptop / Cleanup", price: "500", price_type: "fixed", active: 1, sort_order: 0 },
+        { rule_key: "laptop_diagnostics", option_value_keys: { device_type: "laptop", repair_type: "diagnostics" }, label: "Laptop / Diagnostics", price: "300", price_type: "fixed", active: 1, sort_order: 1 },
+        { rule_key: "desktop_cleanup", option_value_keys: { device_type: "desktop", repair_type: "cleanup" }, label: "Desktop / Cleanup", price: "600", price_type: "fixed", active: 1, sort_order: 1000 }
+      ]
     },
     2: {
       groups: [
-        { group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [{ value_key: "a4", label: "A4", active: 1, sort_order: 0 }] },
+        { group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [{ value_key: "letter", label: "Letter / Short Bond (8.5x11)", active: 1, sort_order: 0 }, { value_key: "a4", label: "A4", active: 1, sort_order: 1 }, { value_key: "orphan", label: "Configured Without Active Price", active: 1, sort_order: 2 }] },
         { group_key: "color_option", name: "Color Option", active: 1, sort_order: 1, values: [{ value_key: "black_white", label: "Black & White", active: 1, sort_order: 0 }] }
       ],
-      rules: [{ rule_key: "a4_black_white", option_value_keys: { paper_size: "a4", color_option: "black_white" }, label: "A4 / Black & White", price: "5", price_type: "fixed", active: 1, sort_order: 0 }]
+      rules: [
+        { rule_key: "letter_black_white", option_value_keys: { paper_size: "letter", color_option: "black_white" }, label: "Letter / Short Bond (8.5x11) / Black & White", price: "5", price_type: "fixed", active: 1, sort_order: 0 },
+        { rule_key: "a4_black_white", option_value_keys: { paper_size: "a4", color_option: "black_white" }, label: "A4 / Black & White", price: "6", price_type: "fixed", active: 1, sort_order: 1 },
+        { rule_key: "orphan_black_white", option_value_keys: { paper_size: "orphan", color_option: "black_white" }, label: "Configured Without Active Price / Black & White", price: "7", price_type: "fixed", active: 0, sort_order: 2 }
+      ]
     },
     3: {
       groups: [
@@ -144,6 +152,23 @@
     assert(!editorOverlay.hidden && editorOverlay.classList.contains("is-open"), "Repair editor did not open");
     assert(document.querySelector("[data-add-repair]"), "Repair device/service editor did not render");
 
+    const deviceStateBeforeMove = Object.fromEntries(Array.from(document.querySelectorAll('[data-group-key="device_type"][data-value-key]')).map((row) => [row.dataset.valueKey, row.querySelector("[data-value-active]").checked]));
+    document.querySelector('[data-group-key="device_type"][data-value-key="laptop"] [data-action="move-down"]').click();
+    await wait();
+    assert(Array.from(document.querySelectorAll('[data-group-key="device_type"][data-value-key]')).map((row) => row.dataset.valueKey).join(",") === "desktop,laptop", "Repair device Move Down did not update order");
+    assert(Object.entries(deviceStateBeforeMove).every(([key, active]) => document.querySelector(`[data-group-key="device_type"][data-value-key="${key}"] [data-value-active]`).checked === active), "Repair device movement changed active status");
+    assert(confirmOverlay.hidden, "Repair device movement opened a status confirmation");
+
+    const laptopCard = Array.from(document.querySelectorAll(".ms-device-card")).find((card) => card.querySelector("summary")?.textContent.includes("Laptop"));
+    const laptopRuleOrder = () => Array.from(laptopCard.querySelectorAll(".ms-repair-row")).map((row) => row.dataset.ruleKey);
+    const laptopActiveBeforeMove = Array.from(laptopCard.querySelectorAll("[data-rule-active]")).map((input) => input.checked);
+    laptopCard.querySelector('[data-action="move-rule-down"]').click();
+    await wait();
+    const movedLaptopCard = Array.from(document.querySelectorAll(".ms-device-card")).find((card) => card.querySelector("summary")?.textContent.includes("Laptop"));
+    assert(Array.from(movedLaptopCard.querySelectorAll(".ms-repair-row")).map((row) => row.dataset.ruleKey).join(",") === "laptop_diagnostics,laptop_cleanup", "Repair service movement did not update order");
+    assert(Array.from(movedLaptopCard.querySelectorAll("[data-rule-active]")).every((input, index) => input.checked === laptopActiveBeforeMove[laptopActiveBeforeMove.length - 1 - index]), "Repair service movement changed active status");
+    assert(confirmOverlay.hidden, "Repair service movement opened a status confirmation");
+
     let toggle = document.querySelector("[data-rule-active]");
     const modalBody = document.querySelector(".ms-body");
     modalBody.scrollTop = Math.min(120, modalBody.scrollHeight - modalBody.clientHeight);
@@ -200,6 +225,33 @@
     document.querySelector("#openPrinting").click();
     await wait();
     assert(document.querySelector(".ms-catalog-matrix"), "Document Printing matrix did not render");
+    assert(Array.from(document.querySelectorAll(".ms-value-row")).every((row) => row.scrollWidth <= row.clientWidth + 2), "Arrangement controls overflow an option row");
+    assert(Array.from(document.querySelectorAll(".ms-order-actions button")).every((button) => button.getBoundingClientRect().height >= 36), "Arrangement controls are not touch-friendly");
+    assert(document.querySelector(".ms-matrix-wrap").clientWidth <= document.querySelector(".ms-body").clientWidth, "Price matrix wrapper overflows the modal body");
+    const paperOrder = () => Array.from(document.querySelectorAll('[data-group-key="paper_size"][data-value-key]')).map((row) => row.dataset.valueKey);
+    const paperStates = () => Object.fromEntries(Array.from(document.querySelectorAll('[data-group-key="paper_size"][data-value-key]')).map((row) => [row.dataset.valueKey, row.querySelector("[data-value-active]").checked]));
+    const statusBeforeMove = paperStates();
+    document.querySelector('[data-group-key="paper_size"][data-value-key="letter"] [data-action="move-down"]').click();
+    await wait();
+    assert(paperOrder().join(",") === "a4,letter,orphan", "Move Down did not change only the paper-size order");
+    assert(Object.entries(statusBeforeMove).every(([key, active]) => paperStates()[key] === active), "Move Down changed an Active/Inactive state");
+    assert(confirmOverlay.hidden, "Move Down incorrectly opened an Active/Inactive confirmation");
+
+    const orderBeforeToggle = paperOrder().join(",");
+    document.querySelector('[data-group-key="paper_size"][data-value-key="letter"] [data-value-active]').click();
+    await wait();
+    document.querySelector("#msConfirmAccept").click();
+    await wait();
+    assert(paperOrder().join(",") === orderBeforeToggle, "Paper-size Active/Inactive changed display order");
+    assert(!document.querySelector('[data-group-key="paper_size"][data-value-key="letter"] [data-value-active]').checked, "Paper-size deactivation did not change status");
+    document.querySelector('[data-group-key="paper_size"][data-value-key="letter"] [data-value-active]').click();
+    await wait();
+    document.querySelector("#msConfirmAccept").click();
+    await wait();
+    assert(document.querySelector('[data-group-key="paper_size"][data-value-key="letter"] [data-value-active]').checked, "Paper-size reactivation did not restore status");
+    assert(document.querySelector('[data-rule-key="letter_black_white"] [data-rule-active]').checked, "Reactivating Short Bond did not preserve its active valid combination");
+    assert(!document.querySelector('[data-group-key="paper_size"][data-value-key="letter"] .ms-option-warning'), "Short Bond incorrectly warns despite an active valid combination");
+    assert(document.querySelector('[data-group-key="paper_size"][data-value-key="orphan"] .ms-option-warning')?.textContent.includes("at least one active price combination"), "An active customer-hidden option did not show the required admin warning");
     for (const groupKey of ["paper_size", "color_option"]) {
       const addInput = document.querySelector(`[data-new-value="${groupKey}"]`);
       addInput.value = groupKey === "paper_size" ? "Legal" : "Draft Color";

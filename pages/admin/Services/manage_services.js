@@ -318,9 +318,34 @@
       && String(value?.label || "").trim() !== "";
   }
 
-  function ruleUsesInactiveOption(rule) {
-    return Object.entries(rule.option_value_keys || {})
-      .some(([groupKey, valueKey]) => !optionValueIsActive(groupKey, valueKey));
+  function ruleHasValidPrice(rule) {
+    if (rule?.price_type === "assessment") return true;
+    const price = Number(rule?.price);
+    return rule?.price !== "" && rule?.price !== null && Number.isFinite(price) && price > 0;
+  }
+
+  function ruleIsCustomerSelectable(rule) {
+    return Number(rule?.active) === 1
+      && ruleHasValidPrice(rule)
+      && Object.entries(rule.option_value_keys || {}).every(([groupKey, valueKey]) => optionValueIsActive(groupKey, valueKey));
+  }
+
+  function optionVisibilityWarning(groupKey, value) {
+    if (!Number(value?.active)) return "";
+    if (!fields.active?.checked) {
+      return "This option is active, but customers cannot see it while the service is inactive.";
+    }
+    const optionGroup = group(groupKey);
+    if (!Number(optionGroup?.active ?? 1)) {
+      return "This option is active, but customers cannot see it while this option group is inactive.";
+    }
+    const hasSelectableRule = (catalog?.rules || []).some((rule) => (
+      String(rule.option_value_keys?.[groupKey] ?? "") === String(value.value_key)
+      && ruleIsCustomerSelectable(rule)
+    ));
+    return hasSelectableRule
+      ? ""
+      : "This option is active, but it will not appear to customers until at least one active price combination is configured.";
   }
 
   function rulesForGroup(groupKey) {
@@ -397,17 +422,26 @@
     return normalized;
   }
 
-  function toggleControl(checked, label = "Active") {
+  function toggleControl(checked, label = "Active", ariaLabel = "Toggle active status") {
     return `<label class="ms-switch ms-switch--compact">
-      <input data-rule-active type="checkbox" ${checked ? "checked" : ""}>
+      <input data-rule-active data-action="toggle-active" type="checkbox" aria-label="${escapeHtml(ariaLabel)}" ${checked ? "checked" : ""}>
       <span aria-hidden="true"></span><em>${label}</em>
     </label>`;
   }
 
-  function movementButtons(groupKey, valueKey, index, total) {
-    return `<div class="ms-order-actions" aria-label="Display order">
-      <button type="button" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up">&uarr;</button>
-      <button type="button" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down">&darr;</button>
+  function movementButtons(groupKey, valueKey, valueLabel, index, total) {
+    return `<div class="ms-order-actions" aria-label="Arrange ${escapeHtml(valueLabel)}">
+      <span class="ms-control-label">Order</span>
+      <button type="button" data-action="move-up" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(valueLabel)} up">&uarr;</button>
+      <button type="button" data-action="move-down" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(valueLabel)} down">&darr;</button>
+    </div>`;
+  }
+
+  function ruleMovementButtons(ruleKey, ruleLabel, index, total) {
+    return `<div class="ms-order-actions" aria-label="Arrange ${escapeHtml(ruleLabel)}">
+      <span class="ms-control-label">Order</span>
+      <button type="button" data-action="move-rule-up" data-rule-key="${escapeHtml(ruleKey)}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(ruleLabel)} up">&uarr;</button>
+      <button type="button" data-action="move-rule-down" data-rule-key="${escapeHtml(ruleKey)}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(ruleLabel)} down">&darr;</button>
     </div>`;
   }
 
@@ -418,14 +452,17 @@
         <div><h4>${escapeHtml(title)}</h4><p>Edit names, availability, and display order.</p></div>
       </div>
       <div class="ms-value-list">
+        <div class="ms-value-list__head" aria-hidden="true"><span>Name</span><span>Status</span><span>Arrange</span></div>
         ${values.map((value, index) => `<div class="ms-value-row ${Number(value.active) ? "" : "is-inactive"}"
           data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
           <input data-value-label value="${escapeHtml(value.label)}" aria-label="${escapeHtml(title)} name">
-          <label class="ms-switch ms-switch--compact">
-            <input data-value-active type="checkbox" ${Number(value.active) ? "checked" : ""}>
+          <label class="ms-switch ms-switch--compact ms-status-control">
+            <span class="ms-control-label">Status</span>
+            <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(value.label)} active status" ${Number(value.active) ? "checked" : ""}>
             <span aria-hidden="true"></span><em>${Number(value.active) ? "Active" : "Inactive"}</em>
           </label>
-          ${movementButtons(groupKey, value.value_key, index, values.length)}
+          ${movementButtons(groupKey, value.value_key, value.label, index, values.length)}
+          ${optionVisibilityWarning(groupKey, value) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning(groupKey, value))}</p>` : ""}
         </div>`).join("")}
       </div>
       <div class="ms-inline-add">
@@ -442,7 +479,7 @@
         <option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option>
         <option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option>
       </select>
-      ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
+      ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${rule.label || "price combination"} active status`)}
     </div>`;
   }
 
@@ -484,8 +521,8 @@
             ${options.description ? `<input data-rule-description value="${escapeHtml(rule.description || value.description || "")}" placeholder="Details shown to customers">` : ""}
             <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
             ${options.fixedOnly ? '<input type="hidden" data-rule-price-type value="fixed"><span class="ms-fixed-label">Fixed Price</span>' : `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>`}
-            ${toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive")}
-            <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, index, values.length)}</div>
+            ${toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
+            <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, value.label, index, values.length)}</div>
           </div>`;
         }).join("")}
       </div>
@@ -599,14 +636,15 @@
             <summary><strong>${escapeHtml(device.label)}</strong><span>${rules.filter((rule) => Number(rule.active)).length} active services</span></summary>
             <div class="ms-device-card__body">
               ${rules.length ? "" : '<p class="ms-device-guidance">Add repair services available for this device.</p>'}
-              ${rules.map((rule) => {
+              ${rules.map((rule, ruleIndex) => {
                 const value = groupValue("repair_type", rule.option_value_keys?.repair_type);
                 if (!value) return "";
                 return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
                   <input data-value-label data-group-key="repair_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}">
                   <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
                   <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
-                  ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
+                  ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
+                  ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
                 </div>`;
               }).join("")}
               <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Service</button></div>
@@ -628,14 +666,15 @@
             <summary><strong>${escapeHtml(device.label)}</strong><span>${rules.filter((rule) => Number(rule.active)).length} active services</span></summary>
             <div class="ms-device-card__body">
               ${rules.length ? "" : '<p class="ms-device-guidance">Add installation services available for this device.</p>'}
-              ${rules.map((rule) => {
+              ${rules.map((rule, ruleIndex) => {
                 const value = groupValue("installation_type", rule.option_value_keys?.installation_type);
                 if (!value) return "";
                 return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
                   <input data-value-label data-group-key="installation_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}">
                   <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
                   <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
-                  ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive")}
+                  ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
+                  ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
                 </div>`;
               }).join("")}
               <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(device.value_key)}">Add Service</button></div>
@@ -663,14 +702,14 @@
     else if (currentKind === "installation") editor.innerHTML = installationEditor();
   }
 
-  function syncFromDom() {
+  function syncFromDom({ includeStatus = true } = {}) {
     qsa("[data-group-key][data-value-key]", editor).forEach((row) => {
       const value = groupValue(row.dataset.groupKey, row.dataset.valueKey);
       if (!value) return;
       const labelInput = qs("[data-value-label]", row);
       const activeInput = qs("[data-value-active]", row);
       if (labelInput) value.label = labelInput.value.trim() || value.label;
-      if (activeInput) value.active = activeInput.checked ? 1 : 0;
+      if (activeInput && includeStatus) value.active = activeInput.checked ? 1 : 0;
     });
     qsa("[data-value-label][data-group-key][data-value-key]", editor).forEach((input) => {
       const value = groupValue(input.dataset.groupKey, input.dataset.valueKey);
@@ -685,8 +724,8 @@
       const description = qs("[data-rule-description]", row);
       if (price) rule.price = price.value.trim();
       if (priceType) rule.price_type = priceType.value;
-      if (active) rule.active = active.checked ? 1 : 0;
-      if (active && row.dataset.groupKey && row.dataset.valueKey) {
+      if (active && includeStatus) rule.active = active.checked ? 1 : 0;
+      if (active && includeStatus && row.dataset.groupKey && row.dataset.valueKey) {
         const value = groupValue(row.dataset.groupKey, row.dataset.valueKey);
         if (value) value.active = active.checked ? 1 : 0;
       }
@@ -694,13 +733,46 @@
       const labels = Object.entries(rule.option_value_keys || {}).map(([key, valueKey]) => groupValue(key, valueKey)?.label || "").filter(Boolean);
       rule.label = labels.join(" / ");
     });
-    (catalog.rules || []).forEach((rule) => {
-      if (ruleUsesInactiveOption(rule)) rule.active = 0;
-    });
-    (catalog.groups || []).forEach((item) => {
+    resequenceCatalog();
+    return catalog;
+  }
+
+  function resequenceCatalog() {
+    const indexFor = (groupKey, valueKey) => {
+      const values = group(groupKey)?.values || [];
+      const index = values.findIndex((value) => String(value.value_key) === String(valueKey));
+      return index < 0 ? 9999 : index;
+    };
+    (catalog?.groups || []).forEach((item) => {
       (item.values || []).forEach((value, index) => { value.sort_order = index; });
     });
-    return catalog;
+    const deviceRuleIndexes = new Map();
+    if (["repair", "installation"].includes(currentKind)) {
+      (group("device_type")?.values || []).forEach((device) => {
+        (catalog?.rules || [])
+          .filter((rule) => rule.option_value_keys?.device_type === device.value_key)
+          .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
+          .forEach((rule, index) => deviceRuleIndexes.set(rule.rule_key, index));
+      });
+    }
+    (catalog?.rules || []).forEach((rule, currentIndex) => {
+      const keys = rule.option_value_keys || {};
+      if (["document_printing", "photocopy"].includes(currentKind)) {
+        rule.sort_order = (indexFor("paper_size", keys.paper_size) * 1000) + indexFor("color_option", keys.color_option);
+      } else if (currentKind === "rush_id") {
+        rule.sort_order = keys.package !== undefined
+          ? indexFor("package", keys.package)
+          : 10000 + indexFor("addon", keys.addon);
+      } else if (currentKind === "repair") {
+        rule.sort_order = (indexFor("device_type", keys.device_type) * 1000) + (deviceRuleIndexes.get(rule.rule_key) ?? currentIndex);
+      } else if (currentKind === "installation" && keys.device_type !== undefined) {
+        rule.sort_order = (indexFor("device_type", keys.device_type) * 1000) + (deviceRuleIndexes.get(rule.rule_key) ?? currentIndex);
+      } else {
+        const groupKey = Object.keys(keys)[0];
+        rule.sort_order = groupKey ? indexFor(groupKey, keys[groupKey]) : currentIndex;
+      }
+    });
+    catalog?.rules?.sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
   }
 
   function addValue(groupKey, label) {
@@ -718,6 +790,50 @@
   }
 
   editor?.addEventListener("click", async (event) => {
+    const toggleTarget = event.target.closest('input[data-action="toggle-active"]');
+    if (toggleTarget) {
+      event.stopPropagation();
+      return;
+    }
+
+    const moveButton = event.target.closest('button[data-action="move-up"], button[data-action="move-down"]');
+    if (moveButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      syncFromDom({ includeStatus: false });
+      const values = group(moveButton.dataset.moveValue)?.values || [];
+      const index = values.findIndex((value) => value.value_key === moveButton.dataset.valueKey);
+      const targetIndex = index + Number(moveButton.dataset.direction);
+      if (index >= 0 && targetIndex >= 0 && targetIndex < values.length) {
+        [values[index], values[targetIndex]] = [values[targetIndex], values[index]];
+        resequenceCatalog();
+        render();
+      }
+      return;
+    }
+
+    const moveRuleButton = event.target.closest('button[data-action="move-rule-up"], button[data-action="move-rule-down"]');
+    if (moveRuleButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      syncFromDom({ includeStatus: false });
+      const rule = (catalog.rules || []).find((item) => item.rule_key === moveRuleButton.dataset.ruleKey);
+      const deviceKey = rule?.option_value_keys?.device_type;
+      const rules = (catalog.rules || [])
+        .filter((item) => item.option_value_keys?.device_type === deviceKey)
+        .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+      const index = rules.findIndex((item) => item.rule_key === moveRuleButton.dataset.ruleKey);
+      const targetIndex = index + Number(moveRuleButton.dataset.direction);
+      if (index >= 0 && targetIndex >= 0 && targetIndex < rules.length) {
+        const currentOrder = Number(rules[index].sort_order || index);
+        rules[index].sort_order = Number(rules[targetIndex].sort_order || targetIndex);
+        rules[targetIndex].sort_order = currentOrder;
+        catalog.rules.sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+        render();
+      }
+      return;
+    }
+
     const addButton = event.target.closest("[data-add-value]");
     if (addButton) {
       syncFromDom();
@@ -732,7 +848,7 @@
       const priceType = priceTypeInput?.value === "assessment" ? "assessment" : "fixed";
       const active = activeInput ? activeInput.checked : true;
       const price = priceInput?.value.trim() || "";
-      if (priceInput && active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) {
+      if (priceInput && active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)) || Number(price) <= 0)) {
         return showError("Enter a valid price, or choose For Assessment before adding this option.");
       }
       if (!await confirmAction({
@@ -769,7 +885,7 @@
       const price = qs(`[data-new-repair-price="${deviceKey}"]`, editor)?.value.trim() || "";
       const priceType = qs(`[data-new-repair-price-type="${deviceKey}"]`, editor)?.value === "assessment" ? "assessment" : "fixed";
       const active = qs(`[data-new-repair-active="${deviceKey}"]`, editor)?.checked !== false;
-      if (active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) return showError("Enter a valid price, or choose For Assessment.");
+      if (active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)) || Number(price) <= 0)) return showError("Enter a price greater than zero, or choose For Assessment.");
       if (!await confirmAction({
         title: "Add Repair Service",
         message: "Add this repair service? It will appear under the selected device and may become available to customers after you save.",
@@ -795,7 +911,7 @@
       const price = qs(`[data-new-installation-price="${deviceKey}"]`, editor)?.value.trim() || "";
       const priceType = qs(`[data-new-installation-price-type="${deviceKey}"]`, editor)?.value === "assessment" ? "assessment" : "fixed";
       const active = qs(`[data-new-installation-active="${deviceKey}"]`, editor)?.checked !== false;
-      if (active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)))) return showError("Enter a valid price, or choose For Assessment.");
+      if (active && priceType === "fixed" && (price === "" || !Number.isFinite(Number(price)) || Number(price) <= 0)) return showError("Enter a price greater than zero, or choose For Assessment.");
       if (!await confirmAction({
         title: "Add Installation Service",
         message: "Add this installation service? It will appear under the selected device and may become available to customers after you save.",
@@ -811,17 +927,6 @@
       return;
     }
 
-    const moveButton = event.target.closest("[data-move-value]");
-    if (moveButton) {
-      syncFromDom();
-      const values = group(moveButton.dataset.moveValue)?.values || [];
-      const index = values.findIndex((value) => value.value_key === moveButton.dataset.valueKey);
-      const target = index + Number(moveButton.dataset.direction);
-      if (index >= 0 && target >= 0 && target < values.length) {
-        [values[index], values[target]] = [values[target], values[index]];
-        render();
-      }
-    }
   });
 
   editor?.addEventListener("change", async (event) => {
@@ -846,7 +951,7 @@
         : "Simple installation pricing enabled in this draft.");
       return;
     }
-    if (event.target.matches("[data-rule-active]") || event.target.matches("[data-value-active]")) {
+    if (event.target.matches('input[data-action="toggle-active"][data-rule-active], input[data-action="toggle-active"][data-value-active]')) {
       const activated = event.target.checked;
       const copy = toggleConfirmation(event.target, activated);
       if (!await confirmAction({
@@ -967,6 +1072,7 @@
       return;
     }
     syncServiceStatusLabel();
+    render();
     window.servitechAdminToast?.success?.(activated
       ? "Service activated in this draft. Save changes to publish it."
       : "Service deactivated in this draft. Save changes to publish it.");
@@ -981,7 +1087,7 @@
     hideError();
     const payload = syncFromDom();
     const invalidRule = (payload.rules || []).find((rule) =>
-      Number(rule.active) && rule.price_type === "fixed" && (rule.price === "" || !Number.isFinite(Number(rule.price)))
+      Number(rule.active) && rule.price_type === "fixed" && (rule.price === "" || !Number.isFinite(Number(rule.price)) || Number(rule.price) <= 0)
     );
     if (invalidRule) return showError(`Enter a valid price for ${invalidRule.label || "the active option"}, or mark it For Assessment.`);
     if (currentKind === "installation" && Number(group("device_type")?.active) === 1) {

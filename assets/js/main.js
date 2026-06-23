@@ -147,13 +147,15 @@ function buildCatalogMatrixCards(service, rowGroupKey, colGroupKey) {
     const row = rule.option_labels?.[rowGroupKey] || "";
     const col = rule.option_labels?.[colGroupKey] || "";
     if (!row || !col) return;
-    if (!rows.has(row)) rows.set(row, []);
-    rows.get(row).push(`${col}: ${formatCatalogRulePrice(rule)}`);
+    const rowId = Number(rule.option_value_ids?.[rowGroupKey] || 0);
+    const rowKey = rowId > 0 ? `id:${rowId}` : `key:${rule.option_value_keys?.[rowGroupKey] || ""}`;
+    if (!rows.has(rowKey)) rows.set(rowKey, { title: row, lines: [] });
+    rows.get(rowKey).lines.push(`${col}: ${formatCatalogRulePrice(rule)}`);
   });
-  return Array.from(rows.entries()).map(([title, lines]) => ({
-    title,
+  return Array.from(rows.values()).map((row) => ({
+    title: row.title,
     icon: getServiceIconKey(service.category, service.name),
-    lines,
+    lines: row.lines,
   }));
 }
 
@@ -173,13 +175,15 @@ function buildDeviceCatalogCards(service, serviceGroupKey, fallbackLabel, iconKe
   catalogRulesFor(service).forEach((rule) => {
     const device = rule.option_labels?.device_type || "Device";
     const serviceLabel = rule.option_labels?.[serviceGroupKey] || rule.label || fallbackLabel;
-    if (!rows.has(device)) rows.set(device, []);
-    rows.get(device).push(`${serviceLabel}: ${formatCatalogRulePrice(rule)}`);
+    const deviceId = Number(rule.option_value_ids?.device_type || 0);
+    const deviceKey = deviceId > 0 ? `id:${deviceId}` : `key:${rule.option_value_keys?.device_type || ""}`;
+    if (!rows.has(deviceKey)) rows.set(deviceKey, { title: device, lines: [] });
+    rows.get(deviceKey).lines.push(`${serviceLabel}: ${formatCatalogRulePrice(rule)}`);
   });
-  return Array.from(rows.entries()).map(([title, lines]) => ({
-    title,
+  return Array.from(rows.values()).map((row) => ({
+    title: row.title,
     icon: iconKey,
-    lines,
+    lines: row.lines,
   }));
 }
 
@@ -534,6 +538,7 @@ async function loadServicesFromDatabase() {
         }
 
         return {
+          serviceId: Number(service.id || 0),
           title: displayServiceName(service.name),
           icon: getServiceIconKey(category, service.name),
           lines: lines.length > 0 ? lines : [service.description || ""],
@@ -572,9 +577,9 @@ function parseDescriptionBlocks(description) {
   });
 }
 
-async function fetchServiceDetail(category, serviceName) {
+async function fetchServiceDetail(category, serviceId) {
   try {
-    const url = `${servitechUrl(`/api/services_public.php`)}?action=detail&category=${encodeURIComponent(category)}&service=${encodeURIComponent(serviceName)}`;
+    const url = `${servitechUrl(`/api/services_public.php`)}?action=detail&category=${encodeURIComponent(category)}&id=${encodeURIComponent(serviceId)}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 

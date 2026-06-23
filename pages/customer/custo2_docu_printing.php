@@ -6,6 +6,7 @@ servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
+servitech_store_send_no_cache_headers();
 
 $sessionPrintDraft = $_SESSION["print_order_draft"] ?? null;
 $documentPrintingLabel = "Document Print";

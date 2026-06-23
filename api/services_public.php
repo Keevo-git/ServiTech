@@ -67,9 +67,9 @@ if ($action === "detail" && $category) {
         respond(["ok" => false, "error" => "Invalid category"]);
     }
 
-    $serviceName = $_GET["service"] ?? "";
-    if (!$serviceName) {
-        respond(["ok" => false, "error" => "Service name required"]);
+    $serviceId = (int)($_GET["id"] ?? 0);
+    if ($serviceId <= 0) {
+        respond(["ok" => false, "error" => "Service id required"]);
     }
 
     try {
@@ -77,12 +77,12 @@ if ($action === "detail" && $category) {
           SELECT id, category, name, description,
                  CASE WHEN active THEN 1 ELSE 0 END AS active, sort_order
           FROM services
-          WHERE category = :category AND name = :name AND active = TRUE
+          WHERE category = :category AND id = :id AND active = TRUE
           LIMIT 1
         ");
         $stmt->execute([
             ":category" => $category,
-            ":name" => $serviceName
+            ":id" => $serviceId
         ]);
         $service = $stmt->fetch(PDO::FETCH_ASSOC);
 

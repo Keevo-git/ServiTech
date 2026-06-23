@@ -108,7 +108,7 @@ if ($action === "save") {
         }
         if (!is_array($catalogData)) throw new DomainException("Service options are required.");
         $catalogData = servitech_catalog_normalize_admin_payload($existing, $catalogData);
-        $activeRules = array_values(array_filter($catalogData["rules"], static fn($rule) => !empty($rule["active"])));
+        $activeRules = servitech_catalog_customer_rules_from_admin_catalog($catalogData);
         if (servitech_catalog_service_kind($existing) === "rush_id") {
             $activeRules = array_values(array_filter($activeRules, static fn($rule) => isset($rule["option_value_keys"]["package"])));
         } elseif (servitech_catalog_service_kind($existing) === "installation") {

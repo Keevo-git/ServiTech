@@ -77,6 +77,13 @@ foreach ([
     'event.target.closest("[data-ms-edit]")',
     "Invalid or unsupported service payload",
     'installation_type: "Installation Type", device_type: "Devices"',
+    'data-action="toggle-active"',
+    'data-action="move-up"',
+    'data-action="move-down"',
+    'data-action="move-rule-up"',
+    "resequenceCatalog",
+    "syncFromDom({ includeStatus: false })",
+    "This option is active, but it will not appear to customers until at least one active price combination is configured.",
 ] as $requiredBehavior) {
     manage_services_ui_assert(str_contains($script, $requiredBehavior), "Confirmation behavior must include {$requiredBehavior}.");
 }
@@ -111,6 +118,8 @@ manage_services_ui_assert(str_contains($page, 'data-service-name='), "Edit butto
 manage_services_ui_assert(strpos($page, "admin_footer.php") < strpos($page, "manage_services.js"), "The global modal stack must load before Manage Services registers its handlers.");
 manage_services_ui_assert(!str_contains($script, 'overlay.style.display'), "Modal visibility must not be managed with one-off inline display values.");
 manage_services_ui_assert(!str_contains($script, "location.reload()"), "Saving must update the open editor instead of reloading and destroying modal state.");
+manage_services_ui_assert(!str_contains($script, "ruleUsesInactiveOption"), "Parent option toggles must not destructively rewrite linked pricing-rule status.");
+manage_services_ui_assert(str_contains($catalog, "servitech_catalog_customer_rules_from_admin_catalog"), "Backend visibility must use the same active relationship rules as customer pages.");
 manage_services_ui_assert(str_contains($api, '"catalog" => $catalogData'), "Save responses must return the saved catalog for an in-place editor refresh.");
 
 echo "Manage Services UI tests passed.\n";

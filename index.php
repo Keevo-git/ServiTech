@@ -244,7 +244,7 @@ try {
   <?php include __DIR__ . "/components/footer.php"; ?>
 
   <script src="/assets/js/csrf.js"></script>
-  <script src="/assets/js/main.js?v=20260620-dynamic-catalog"></script>
+  <script src="/assets/js/main.js?v=20260623-active-order-consistency"></script>
   <script src="/assets/js/header-menu.js?v=20260613-customer-logout-gap" defer></script>
 </body>
 </html>

@@ -51,6 +51,34 @@ function servitech_catalog_service_kind(array $service): string {
   return "";
 }
 
+function servitech_catalog_rule_has_customer_price(array $rule): bool {
+  if (($rule["price_type"] ?? "fixed") === "assessment") return true;
+  $price = $rule["price"] ?? null;
+  return $price !== "" && $price !== null && is_numeric($price) && (float)$price > 0;
+}
+
+function servitech_catalog_customer_rules_from_admin_catalog(array $catalog): array {
+  $activeValues = [];
+  foreach ($catalog["groups"] ?? [] as $group) {
+    if (empty($group["active"])) continue;
+    $groupKey = (string)($group["group_key"] ?? "");
+    foreach ($group["values"] ?? [] as $value) {
+      if (!empty($value["active"]) && trim((string)($value["label"] ?? "")) !== "") {
+        $activeValues[$groupKey][(string)($value["value_key"] ?? "")] = true;
+      }
+    }
+  }
+  return array_values(array_filter($catalog["rules"] ?? [], static function ($rule) use ($activeValues): bool {
+    if (empty($rule["active"]) || !servitech_catalog_rule_has_customer_price($rule)) return false;
+    $keys = $rule["option_value_keys"] ?? [];
+    if (!$keys) return false;
+    foreach ($keys as $groupKey => $valueKey) {
+      if (empty($activeValues[(string)$groupKey][(string)$valueKey])) return false;
+    }
+    return true;
+  }));
+}
+
 function servitech_catalog_service_dedupe_score(array $service): int {
   $kind = servitech_catalog_service_kind($service);
   $name = strtolower(trim((string)($service["name"] ?? "")));
@@ -217,9 +245,9 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
     }
     $priceType = ($rule["price_type"] ?? "fixed") === "assessment" ? "assessment" : "fixed";
     $price = $rule["price"] ?? null;
-    $rule["active"] = (!empty($rule["active"]) && !$usesInactiveOption) ? 1 : 0;
-    if (!empty($rule["active"]) && $priceType === "fixed" && ($price === "" || $price === null || !is_numeric($price))) {
-      throw new DomainException("Every active fixed-price option must have a valid price.");
+    $rule["active"] = !empty($rule["active"]) ? 1 : 0;
+    if (!empty($rule["active"]) && !$usesInactiveOption && $priceType === "fixed" && ($price === "" || $price === null || !is_numeric($price) || (float)$price <= 0)) {
+      throw new DomainException("Every active fixed-price option must have a price greater than zero.");
     }
     if (is_numeric($price) && (float)$price < 0) {
       throw new DomainException("Prices cannot be negative.");
@@ -289,9 +317,8 @@ function servitech_catalog_normalize_admin_payload(array $service, array $catalo
 
   if ($kind === "installation" && !empty($groupsByKey["device_type"]["active"])) {
     $hasActiveDeviceRule = false;
-    foreach ($rules as $rule) {
-      if (!empty($rule["active"])
-        && isset($rule["option_value_keys"]["device_type"], $rule["option_value_keys"]["installation_type"])) {
+    foreach (servitech_catalog_customer_rules_from_admin_catalog(["groups" => array_values($groupsByKey), "rules" => $rules]) as $rule) {
+      if (isset($rule["option_value_keys"]["device_type"], $rule["option_value_keys"]["installation_type"])) {
         $hasActiveDeviceRule = true;
         break;
       }
@@ -422,7 +449,12 @@ function servitech_catalog_fetch(PDO $pdo, int $serviceId, bool $activeOnly = tr
   }
   unset($rule);
   if ($activeOnly) {
-    $rules = array_values(array_filter($rules, static fn($rule) => empty($rule["_missing_active_option"])));
+    $serviceKind = servitech_catalog_service_kind($service);
+    $rules = array_values(array_filter($rules, static function ($rule) use ($serviceKind): bool {
+      return empty($rule["_missing_active_option"])
+        && servitech_catalog_expected_rule_groups($serviceKind, $rule["option_value_keys"] ?? [])
+        && servitech_catalog_rule_has_customer_price($rule);
+    }));
   }
   foreach ($rules as &$rule) {
     unset($rule["_missing_active_option"]);

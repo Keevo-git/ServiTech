@@ -48,7 +48,7 @@ $services = servitech_catalog_dedupe_services(array_values(array_filter($service
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260623-local-modal-stack') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260623-active-order-consistency') ?>">
 </head>
 <body>
 
@@ -216,7 +216,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260623-local-modal-stack') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260623-active-order-consistency') ?>"></script>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>

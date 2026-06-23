@@ -112,6 +112,26 @@ $usedValues = servitech_catalog_values_used_by_rules(
 );
 catalog_test_assert(count($usedValues) === 1 && (int)$usedValues[0]["id"] === 11, "Customer forms must hide option values with no active pricing rule.");
 
+$shortBondCatalog = [
+    "groups" => [
+        ["group_key" => "paper_size", "active" => 1, "values" => [catalog_test_value("letter", "Letter / Short Bond (8.5x11)"), catalog_test_value("a4", "A4")]],
+        ["group_key" => "color_option", "active" => 1, "values" => [catalog_test_value("bw", "Black and White")]],
+    ],
+    "rules" => [
+        ["rule_key" => "letter_bw", "option_value_keys" => ["paper_size" => "letter", "color_option" => "bw"], "price" => 5, "price_type" => "fixed", "active" => 1],
+        ["rule_key" => "a4_bw", "option_value_keys" => ["paper_size" => "a4", "color_option" => "bw"], "price" => "", "price_type" => "fixed", "active" => 1],
+    ],
+];
+$shortBondRules = servitech_catalog_customer_rules_from_admin_catalog($shortBondCatalog);
+catalog_test_assert(count($shortBondRules) === 1 && ($shortBondRules[0]["rule_key"] ?? "") === "letter_bw", "An active Short Bond paper with an active valid combination must be customer-visible.");
+$shortBondCatalog["groups"][0]["values"][0]["active"] = 0;
+catalog_test_assert(servitech_catalog_customer_rules_from_admin_catalog($shortBondCatalog) === [], "Deactivating Short Bond must hide it without exposing an invalid sibling combination.");
+$shortBondCatalog["groups"][0]["values"][0]["active"] = 1;
+catalog_test_assert(count(servitech_catalog_customer_rules_from_admin_catalog($shortBondCatalog)) === 1, "Reactivating Short Bond must restore its preserved valid combination.");
+catalog_test_assert(servitech_catalog_rule_has_customer_price(["price_type" => "assessment"]), "For Assessment must be a valid customer pricing state.");
+catalog_test_assert(!servitech_catalog_rule_has_customer_price(["price_type" => "fixed", "price" => ""]), "A blank fixed price must not be customer-selectable.");
+catalog_test_assert(!servitech_catalog_rule_has_customer_price(["price_type" => "fixed", "price" => 0]), "A zero fixed price must not be customer-selectable.");
+
 foreach ([
     [["category" => "printing", "name" => "Rush ID"], "package", "package_7", "Package 7"],
     [["category" => "printing", "name" => "Rush ID"], "addon", "retouch", "Photo Retouch"],
@@ -198,7 +218,7 @@ $inactiveScanningPaper = servitech_catalog_normalize_admin_payload(
         ]],
     ]
 );
-catalog_test_assert((int)$inactiveScanningPaper["rules"][0]["active"] === 0, "Deactivating a Scanning paper size must deactivate its pricing rule.");
+catalog_test_assert((int)$inactiveScanningPaper["rules"][0]["active"] === 1, "Deactivating a Scanning paper size must preserve its pricing-rule state for later reactivation.");
 
 $inactiveDocumentColor = servitech_catalog_normalize_admin_payload(
     ["category" => "printing", "name" => "Document Printing"],
@@ -216,7 +236,7 @@ $inactiveDocumentColor = servitech_catalog_normalize_admin_payload(
         ]],
     ]
 );
-catalog_test_assert((int)$inactiveDocumentColor["rules"][0]["active"] === 0, "Deactivating a matrix option value must deactivate linked combinations.");
+catalog_test_assert((int)$inactiveDocumentColor["rules"][0]["active"] === 1, "Deactivating a matrix option value must preserve linked combination states.");
 
 $repairCatalog = servitech_catalog_normalize_admin_payload(
     ["category" => "repair", "name" => "Device Repair"],
@@ -253,7 +273,7 @@ $inactiveRepairDevice = servitech_catalog_normalize_admin_payload(
         ]],
     ]
 );
-catalog_test_assert((int)$inactiveRepairDevice["rules"][0]["active"] === 0, "Deactivating a Repair device must deactivate linked device/service pricing rules.");
+catalog_test_assert((int)$inactiveRepairDevice["rules"][0]["active"] === 1, "Deactivating a Repair device must preserve linked device/service pricing rules.");
 
 $adminEditorSource = file_get_contents(__DIR__ . "/../pages/admin/Services/manage_services.js") ?: "";
 foreach (["data-new-description", "data-new-price", "data-add-repair", "data-installation-device-mode", "data-add-installation"] as $requiredControl) {

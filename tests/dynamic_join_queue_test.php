@@ -109,4 +109,15 @@ $documentSource = file_get_contents(__DIR__ . "/../assets/js/custo2_docu_printin
 dynamic_queue_assert(!str_contains($documentSource, "normalizePaperKey"), "Document Printing must not hardcode paper aliases.");
 dynamic_queue_assert(!str_contains($documentSource, "normalizeColorKey"), "Document Printing must not hardcode color aliases.");
 
+foreach (["custo2_docu_printing.php", "custo2_xerox.php"] as $matrixForm) {
+  $source = file_get_contents(__DIR__ . "/../pages/customer/{$matrixForm}") ?: "";
+  dynamic_queue_assert(str_contains($source, "servitech_catalog_values_used_by_rules"), "{$matrixForm} must show only option IDs used by active valid combinations.");
+  dynamic_queue_assert(str_contains($source, "servitech_store_send_no_cache_headers"), "{$matrixForm} must not embed stale catalog data.");
+}
+
+$publicApiSource = file_get_contents(__DIR__ . "/../api/services_public.php") ?: "";
+dynamic_queue_assert(str_contains($publicApiSource, "id = :id AND active = TRUE"), "Landing service details must resolve active services by database ID.");
+dynamic_queue_assert(!str_contains($publicApiSource, "name = :name"), "Landing service details must not depend on editable display-name equality.");
+dynamic_queue_assert(str_contains($mainSource, "buildCatalogMatrixCards"), "Landing price cards must be built from active dynamic catalog rules.");
+
 echo "Dynamic Join Queue tests passed.\n";
