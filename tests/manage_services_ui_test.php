@@ -24,7 +24,6 @@ foreach ([
     'id="msConfirmAccept"',
     'id="msConfirmX"',
     'aria-label="Close modal"',
-    'aria-label="Close confirmation"',
 ] as $requiredMarkup) {
     manage_services_ui_assert(str_contains($page, $requiredMarkup), "Confirmation markup must include {$requiredMarkup}.");
 }
@@ -65,10 +64,14 @@ foreach ([
     "Enable Device-Based Installation",
     "Existing submitted orders will keep their original saved details and price.",
     "syncServiceStatusLabel",
-    "trapFocus",
     "isConfirmOpen",
-    "ms-confirm-open",
     "confirmClose",
+    "servitechAdminModalStack",
+    "isTopModal",
+    "openModalLayer",
+    "closeModalLayer",
+    "syncBodyLock",
+    "updateServiceCard",
 ] as $requiredBehavior) {
     manage_services_ui_assert(str_contains($script, $requiredBehavior), "Confirmation behavior must include {$requiredBehavior}.");
 }
@@ -86,11 +89,19 @@ foreach ([
     "min-height:46px",
     "z-index: 2147483100",
     "z-index: 2147483300",
-    ".ms-overlay[inert]",
-    ".ms-confirm-x",
+    ".ms-modal[inert]",
     "pointer-events: none",
+    ".ms-overlay.is-open",
+    ".ms-confirm-overlay.is-open",
 ] as $requiredStyle) {
     manage_services_ui_assert(str_contains($styles, $requiredStyle), "Responsive styles must include {$requiredStyle}.");
 }
+
+manage_services_ui_assert(substr_count($page, 'aria-label="Close modal"') >= 2, "Every Manage Services X button must use the same accessible close label.");
+manage_services_ui_assert(str_contains($page, 'id="msOverlay" hidden'), "The editor overlay must start hidden and be opened only by the modal stack.");
+manage_services_ui_assert(strpos($page, "admin_footer.php") < strpos($page, "manage_services.js"), "The global modal stack must load before Manage Services registers its handlers.");
+manage_services_ui_assert(!str_contains($script, 'overlay.style.display'), "Modal visibility must not be managed with one-off inline display values.");
+manage_services_ui_assert(!str_contains($script, "location.reload()"), "Saving must update the open editor instead of reloading and destroying modal state.");
+manage_services_ui_assert(str_contains($api, '"catalog" => $catalogData'), "Save responses must return the saved catalog for an in-place editor refresh.");
 
 echo "Manage Services UI tests passed.\n";

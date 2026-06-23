@@ -1,0 +1,155 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manage Services modal browser test</title>
+<link rel="stylesheet" href="../pages/admin/Services/manage_services.css">
+
+<button id="openRepair" data-ms-edit='{"id":1,"category":"repair","name":"Repair Services","description":"Repair","active":1,"sort_order":0}'>Repair</button>
+<button id="openPrinting" data-ms-edit='{"id":2,"category":"printing","name":"Document Printing","description":"Print","active":1,"sort_order":0}'>Printing</button>
+
+<div class="ms-overlay" id="msOverlay" hidden aria-hidden="true">
+  <div class="ms-modal" role="dialog" aria-modal="true" aria-labelledby="msModalTitle" tabindex="-1">
+    <button class="ms-x" id="msX" type="button" aria-label="Close modal">&times;</button>
+    <div class="ms-mhead"><h3 id="msModalTitle"></h3><p id="msModalHelp"></p></div>
+    <div class="ms-accent"></div>
+    <div class="ms-body">
+      <input type="hidden" id="ms_id"><input type="hidden" id="ms_category"><input type="hidden" id="ms_sort">
+      <label><input id="ms_active" type="checkbox"><span id="ms_active_label"></span></label>
+      <div id="msServiceNameField" hidden><input id="ms_name"></div>
+      <textarea id="ms_description"></textarea>
+      <div id="ms_catalogEditor"></div>
+      <div id="msErr"></div>
+    </div>
+    <div class="ms-foot"><button id="msCancel">Cancel</button><button id="msSave">Save</button></div>
+  </div>
+</div>
+
+<div class="ms-confirm-overlay" id="msConfirmOverlay" hidden aria-hidden="true">
+  <div class="ms-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="msConfirmTitle" aria-describedby="msConfirmMessage" tabindex="-1">
+    <button class="ms-x" id="msConfirmX" type="button" aria-label="Close modal">&times;</button>
+    <div class="ms-confirm-icon">!</div>
+    <div><h3 id="msConfirmTitle"></h3><p id="msConfirmMessage"></p></div>
+    <div class="ms-confirm-actions"><button id="msConfirmCancel">Cancel</button><button id="msConfirmAccept">Confirm</button></div>
+  </div>
+</div>
+<pre id="result">RUNNING</pre>
+
+<script>
+  const catalogs = {
+    1: {
+      groups: [
+        { group_key: "device_type", name: "Devices", active: 1, sort_order: 0, values: [{ value_key: "laptop", label: "Laptop", active: 1, sort_order: 0 }] },
+        { group_key: "repair_type", name: "Service Type", active: 1, sort_order: 1, values: [{ value_key: "cleanup", label: "Cleanup", active: 1, sort_order: 0 }] }
+      ],
+      rules: [{ rule_key: "laptop_cleanup", option_value_keys: { device_type: "laptop", repair_type: "cleanup" }, label: "Laptop / Cleanup", price: "500", price_type: "fixed", active: 1, sort_order: 0 }]
+    },
+    2: {
+      groups: [
+        { group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [{ value_key: "a4", label: "A4", active: 1, sort_order: 0 }] },
+        { group_key: "color_option", name: "Color Option", active: 1, sort_order: 1, values: [{ value_key: "black_white", label: "Black & White", active: 1, sort_order: 0 }] }
+      ],
+      rules: [{ rule_key: "a4_black_white", option_value_keys: { paper_size: "a4", color_option: "black_white" }, label: "A4 / Black & White", price: "5", price_type: "fixed", active: 1, sort_order: 0 }]
+    }
+  };
+  window.MS_API_URL = "/fake-services-api";
+  window.servitechCsrfToken = () => "test";
+  window.servitechAdminToast = { error() {}, success() {}, show() {} };
+  window.fetch = async (url, options = {}) => {
+    if (!options.method) {
+      const id = Number(new URL(url, location.href).searchParams.get("id"));
+      return { ok: true, json: async () => ({ ok: true, catalog: structuredClone(catalogs[id]) }) };
+    }
+    const id = Number(options.body.get("id"));
+    const saved = JSON.parse(options.body.get("catalog_json"));
+    catalogs[id] = structuredClone(saved);
+    return { ok: true, json: async () => ({
+      ok: true,
+      message: "Saved",
+      catalog: structuredClone(saved),
+      service: {
+        id,
+        category: options.body.get("category"),
+        name: options.body.get("name"),
+        description: options.body.get("description"),
+        active: Number(options.body.get("active")),
+        sort_order: Number(options.body.get("sort_order")),
+        catalog_price_range: "PHP 25.00"
+      }
+    }) };
+  };
+</script>
+<script src="../pages/admin/modal_stack.js"></script>
+<script src="../pages/admin/Services/manage_services.js"></script>
+<script>
+  (async () => {
+    const wait = () => new Promise((resolve) => setTimeout(resolve, 40));
+    const assert = (condition, message) => { if (!condition) throw new Error(message); };
+    const editorOverlay = document.querySelector("#msOverlay");
+    const editorDialog = document.querySelector(".ms-modal");
+    const confirmOverlay = document.querySelector("#msConfirmOverlay");
+
+    document.querySelector("#openRepair").click();
+    await wait();
+    assert(!editorOverlay.hidden && editorOverlay.classList.contains("is-open"), "Repair editor did not open");
+
+    let toggle = document.querySelector("[data-rule-active]");
+    const repairMarkup = document.querySelector("#ms_catalogEditor").innerHTML;
+    toggle.click();
+    await wait();
+    assert(window.servitechAdminModalStack.top().overlay === confirmOverlay, "Confirmation was not pushed on top");
+    assert(editorDialog.inert && document.body.classList.contains("ms-modal-open"), "Covered editor was not inert/locked");
+    document.querySelector("#msConfirmCancel").click();
+    await wait();
+    toggle = document.querySelector("[data-rule-active]");
+    assert(toggle.checked, "Cancel did not restore the repair toggle");
+    assert(document.querySelector("#ms_catalogEditor").innerHTML === repairMarkup, "Cancel re-rendered repair content");
+    assert(window.servitechAdminModalStack.top().overlay === editorOverlay && !editorDialog.inert, "Cancel did not restore the editor stack level");
+
+    toggle.click();
+    await wait();
+    document.querySelector("#msConfirmX").click();
+    await wait();
+    assert(!confirmOverlay.classList.contains("is-open") && !editorOverlay.hidden, "Confirmation X closed the wrong modal");
+
+    document.querySelector("[data-rule-active]").click();
+    await wait();
+    document.querySelector("#msConfirmAccept").click();
+    await wait();
+    assert(!document.querySelector("[data-rule-active]").checked, "Deactivate did not update the repair draft");
+    assert(document.querySelector("#ms_catalogEditor").children.length > 0 && !editorOverlay.hidden, "Deactivate blanked the editor");
+
+    document.querySelector("#msX").click();
+    await wait();
+    assert(editorOverlay.hidden && !document.body.classList.contains("ms-modal-open"), "Closing the final modal did not unlock the body");
+
+    document.querySelector("#openPrinting").click();
+    await wait();
+    const price = document.querySelector("[data-rule-price]");
+    price.value = "25";
+    document.querySelector("#msSave").click();
+    await wait();
+    const confirmRect = document.querySelector(".ms-confirm-dialog").getBoundingClientRect();
+    assert(confirmRect.width <= innerWidth && confirmRect.height <= innerHeight, "Confirmation overflows the viewport");
+    document.querySelector("#msConfirmCancel").click();
+    await wait();
+    assert(document.querySelector("[data-rule-price]").value === "25", "Save cancel discarded the changed print price");
+    assert(!editorOverlay.hidden && document.body.classList.contains("ms-modal-open"), "Save cancel did not return to the editor");
+
+    document.querySelector("#msSave").click();
+    await wait();
+    document.querySelector("#msConfirmAccept").click();
+    await wait();
+    assert(!editorOverlay.hidden && document.querySelector("[data-rule-price]").value === "25", "Successful save did not refresh the open editor in place");
+    assert(document.querySelector("#openPrinting").getAttribute("data-ms-edit").includes('"id":2'), "Successful save did not update the service card payload");
+
+    const editorRect = editorDialog.getBoundingClientRect();
+    assert(editorRect.width <= innerWidth && editorRect.height <= innerHeight, "Editor overflows the viewport");
+    document.querySelector("#msX").click();
+    await wait();
+    document.querySelector("#result").textContent = "PASS";
+    document.title = "PASS";
+  })().catch((error) => {
+    document.querySelector("#result").textContent = `FAIL: ${error.message}`;
+    document.title = "FAIL";
+  });
+</script>

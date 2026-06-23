@@ -150,7 +150,21 @@ if ($action === "save") {
         ]);
         servitech_catalog_upsert($pdo, $id, $catalogData);
         $pdo->commit();
-        respond(["ok" => true, "id" => $id, "message" => $name . " updated successfully."]);
+        respond([
+            "ok" => true,
+            "id" => $id,
+            "message" => $name . " updated successfully.",
+            "service" => [
+                "id" => $id,
+                "category" => $category,
+                "name" => $name,
+                "description" => $description,
+                "active" => $active ? 1 : 0,
+                "sort_order" => (int)$existing["sort_order"],
+                "catalog_price_range" => $active ? ($priceRange ?: "For assessment") : "Not shown to customers",
+            ],
+            "catalog" => $catalogData,
+        ]);
     } catch (DomainException $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         respond(["ok" => false, "error" => $e->getMessage()]);

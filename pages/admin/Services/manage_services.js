@@ -5,6 +5,7 @@
   const apiUrl = window.MS_API_URL || "/pages/admin/Services/services_api.php";
 
   const overlay = qs("#msOverlay");
+  const editorDialog = qs(".ms-modal", overlay);
   const editor = qs("#ms_catalogEditor");
   const errorBox = qs("#msErr");
   const confirmOverlay = qs("#msConfirmOverlay");
@@ -30,38 +31,50 @@
   let currentKind = "";
   let confirmResolver = null;
   let confirmReturnFocus = null;
-  let editorReturnFocus = null;
+  let editorLoadToken = 0;
 
   function isConfirmOpen() {
-    return !!confirmOverlay && confirmOverlay.hidden === false;
+    return !!confirmOverlay && !confirmOverlay.hidden && confirmOverlay.classList.contains("is-open");
   }
 
   function isEditorOpen() {
-    return overlay?.style.display === "flex";
+    return !!overlay && !overlay.hidden && overlay.classList.contains("is-open");
   }
 
-  function focusableElements(root) {
-    if (!root) return [];
-    return qsa('button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])', root)
-      .filter((item) => item.offsetParent !== null || item === document.activeElement);
+  function modalStack() {
+    return window.servitechAdminModalStack || null;
   }
 
-  function trapFocus(root, event) {
-    const focusable = focusableElements(root);
-    if (!focusable.length) {
-      event.preventDefault();
-      root?.focus?.();
-      return;
-    }
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
+  function isTopModal(layer) {
+    return modalStack()?.top()?.overlay === layer;
+  }
+
+  function syncBodyLock() {
+    const hasStackedModal = Boolean(modalStack()?.top());
+    document.body.classList.toggle("ms-modal-open", hasStackedModal || isEditorOpen() || isConfirmOpen());
+  }
+
+  function openModalLayer(layer, dialog, focus, onEscape) {
+    if (!layer || !dialog || !modalStack()) return false;
+    layer.hidden = false;
+    layer.classList.add("is-open");
+    layer.setAttribute("aria-hidden", "false");
+    dialog.removeAttribute("aria-hidden");
+    modalStack().open({ overlay: layer, dialog, focus, onEscape });
+    syncBodyLock();
+    return true;
+  }
+
+  function closeModalLayer(layer, dialog) {
+    if (!layer || !dialog || !isTopModal(layer)) return false;
+    modalStack().close(layer);
+    layer.classList.remove("is-open");
+    layer.hidden = true;
+    layer.setAttribute("aria-hidden", "true");
+    dialog.removeAttribute("inert");
+    dialog.setAttribute("aria-hidden", "true");
+    syncBodyLock();
+    return true;
   }
 
   const contracts = {
@@ -140,6 +153,46 @@
   function syncServiceStatusLabel() {
     if (!fields.activeLabel || !fields.active) return;
     fields.activeLabel.textContent = fields.active.checked ? "Active" : "Inactive";
+  }
+
+  function updateServiceCard(service) {
+    if (!service) return;
+    const editButton = qsa("[data-ms-edit]").find((button) => {
+      try {
+        return Number(JSON.parse(button.getAttribute("data-ms-edit") || "{}").id) === Number(service.id);
+      } catch (_) {
+        return false;
+      }
+    });
+    if (!editButton) return;
+
+    const buttonData = {
+      id: Number(service.id),
+      category: String(service.category || fields.category.value),
+      name: String(service.name || fields.name.value),
+      description: String(service.description || ""),
+      active: Number(service.active) === 1 ? 1 : 0,
+      sort_order: Number(service.sort_order || 0),
+    };
+    editButton.setAttribute("data-ms-edit", JSON.stringify(buttonData));
+
+    const card = editButton.closest(".ms-service-card");
+    const heading = qs("h2", card);
+    const description = qs(".ms-service-card__head + p", card);
+    const status = qs(".ms-pill", card);
+    const price = qs(".ms-service-card__foot > span", card);
+    if (heading) heading.textContent = buttonData.name.toLowerCase() === "xerox" ? "Photocopy" : buttonData.name;
+    if (description) description.textContent = buttonData.description;
+    if (status) {
+      status.classList.toggle("on", buttonData.active === 1);
+      status.classList.toggle("off", buttonData.active !== 1);
+      status.textContent = buttonData.active === 1 ? "Active" : "Inactive";
+    }
+    if (price && service.catalog_price_range) {
+      const label = document.createElement("strong");
+      label.textContent = "Customer price:";
+      price.replaceChildren(label, document.createTextNode(` ${service.catalog_price_range}`));
+    }
   }
 
   function group(key) {
@@ -343,19 +396,19 @@
   }
 
   function finishConfirmation(accepted) {
-    if (!confirmResolver) return;
+    if (!confirmResolver || !isTopModal(confirmOverlay)) return;
     const resolve = confirmResolver;
     const returnFocus = confirmReturnFocus;
+    if (!closeModalLayer(confirmOverlay, confirmDialog)) return;
     confirmResolver = null;
     confirmReturnFocus = null;
-    confirmOverlay.hidden = true;
-    confirmOverlay.setAttribute("aria-hidden", "true");
     confirmOverlay.dataset.tone = "";
-    document.body.classList.remove("ms-confirm-open");
-    overlay?.removeAttribute("inert");
-    if (overlay?.style.display === "flex") overlay.setAttribute("aria-hidden", "false");
     resolve(accepted);
-    returnFocus?.focus?.();
+    window.requestAnimationFrame(() => {
+      if (returnFocus && document.contains(returnFocus) && !returnFocus.closest("[inert]")) {
+        returnFocus.focus();
+      }
+    });
   }
 
   function confirmAction({ title, message, confirmLabel = "Confirm", tone = "primary" }) {
@@ -366,12 +419,9 @@
     confirmMessage.textContent = message;
     confirmAccept.textContent = confirmLabel;
     confirmOverlay.dataset.tone = tone;
-    confirmOverlay.hidden = false;
-    confirmOverlay.setAttribute("aria-hidden", "false");
-    document.body.classList.add("ms-confirm-open");
-    overlay?.setAttribute("aria-hidden", "true");
-    overlay?.setAttribute("inert", "");
-    window.requestAnimationFrame(() => (confirmAccept || confirmDialog)?.focus());
+    if (!openModalLayer(confirmOverlay, confirmDialog, confirmAccept, () => finishConfirmation(false))) {
+      return Promise.resolve(false);
+    }
     return new Promise((resolve) => { confirmResolver = resolve; });
   }
 
@@ -379,18 +429,7 @@
   confirmClose?.addEventListener("click", () => finishConfirmation(false));
   confirmAccept?.addEventListener("click", () => finishConfirmation(true));
   confirmOverlay?.addEventListener("click", (event) => {
-    if (event.target === confirmOverlay) finishConfirmation(false);
-  });
-  confirmOverlay?.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      finishConfirmation(false);
-      return;
-    }
-    if (event.key !== "Tab") return;
-    event.stopPropagation();
-    trapFocus(confirmDialog, event);
+    if (event.target === confirmOverlay && isTopModal(confirmOverlay)) finishConfirmation(false);
   });
 
   function optionGroupName(groupKey) {
@@ -732,7 +771,7 @@
   }
 
   async function openEditor(data) {
-    editorReturnFocus = document.activeElement;
+    const loadToken = ++editorLoadToken;
     hideError();
     fields.id.value = data.id;
     fields.category.value = data.category;
@@ -752,30 +791,30 @@
     const contract = contracts[currentKind];
     qs("#msModalTitle").textContent = contract?.title || `Edit ${data.name}`;
     qs("#msModalHelp").textContent = contract?.help || "";
-    overlay.style.display = "flex";
-    overlay.setAttribute("aria-hidden", "false");
-    document.body.classList.add("ms-modal-open");
-    window.requestAnimationFrame(() => qs(".ms-modal", overlay)?.focus());
+    if (!openModalLayer(overlay, editorDialog, editorDialog, closeEditor)) {
+      showError("The service editor could not be opened. Refresh the page and try again.");
+      return;
+    }
     editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
     try {
-      catalog = normalizeCatalog(await fetchCatalog(data.id));
+      const fetchedCatalog = await fetchCatalog(data.id);
+      if (loadToken !== editorLoadToken || !isEditorOpen()) return;
+      catalog = normalizeCatalog(fetchedCatalog);
       originalSnapshot = JSON.stringify(catalog);
       render();
     } catch (error) {
+      if (loadToken !== editorLoadToken || !isEditorOpen()) return;
       showError(error.message || "Unable to load service options.");
     }
   }
 
   function closeEditor() {
-    if (confirmResolver) finishConfirmation(false);
-    overlay.style.display = "none";
-    overlay.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("ms-modal-open", "ms-confirm-open");
+    if (!closeModalLayer(overlay, editorDialog)) return;
+    editorLoadToken += 1;
     catalog = null;
+    originalSnapshot = "";
     originalServiceSnapshot = null;
     hideError();
-    editorReturnFocus?.focus?.();
-    editorReturnFocus = null;
   }
 
   qsa("[data-ms-edit]").forEach((button) => button.addEventListener("click", () => {
@@ -803,25 +842,8 @@
   });
   qs("#msX")?.addEventListener("click", closeEditor);
   qs("#msCancel")?.addEventListener("click", closeEditor);
-  overlay?.addEventListener("click", (event) => { if (event.target === overlay) closeEditor(); });
-  document.addEventListener("keydown", (event) => {
-    if (isConfirmOpen()) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        finishConfirmation(false);
-      } else if (event.key === "Tab") {
-        trapFocus(confirmDialog, event);
-      }
-      return;
-    }
-    if (!isEditorOpen()) return;
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeEditor();
-    } else if (event.key === "Tab") {
-      trapFocus(qs(".ms-modal", overlay), event);
-    }
+  overlay?.addEventListener("click", (event) => {
+    if (event.target === overlay && isTopModal(overlay)) closeEditor();
   });
 
   qs("#msSave")?.addEventListener("click", async () => {
@@ -873,8 +895,23 @@
       });
       const data = await response.json();
       if (!response.ok || !data.ok) throw new Error(data.error || "Failed to save changes. Please try again.");
-      window.servitechAdminToast?.persist(data.message || `${fields.name.value} updated successfully.`);
-      location.reload();
+      catalog = normalizeCatalog(data.catalog || payload);
+      originalSnapshot = JSON.stringify(catalog);
+      if (data.service) {
+        fields.name.value = data.service.name || fields.name.value;
+        fields.description.value = data.service.description || "";
+        fields.active.checked = Number(data.service.active) === 1;
+        fields.sort.value = data.service.sort_order || fields.sort.value;
+      }
+      originalServiceSnapshot = {
+        name: fields.name.value.trim(),
+        description: fields.description.value.trim(),
+        active: fields.active.checked,
+      };
+      syncServiceStatusLabel();
+      updateServiceCard(data.service);
+      render();
+      window.servitechAdminToast?.success?.(data.message || `${fields.name.value} updated successfully.`);
     } catch (error) {
       showError(error.message || "Failed to save changes. Please try again.");
     } finally {
