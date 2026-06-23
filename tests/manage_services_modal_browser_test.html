@@ -2,6 +2,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Manage Services modal browser test</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../pages/admin/admin.css">
 <link rel="stylesheet" href="../pages/admin/Services/manage_services.css">
 
 <button id="openRepair" data-ms-edit='{"id":1,"category":"repair","name":"Repair Services","description":"Repair","active":1,"sort_order":0}'>Repair</button>
@@ -143,17 +145,40 @@
     assert(document.querySelector("[data-add-repair]"), "Repair device/service editor did not render");
 
     let toggle = document.querySelector("[data-rule-active]");
+    const modalBody = document.querySelector(".ms-body");
+    modalBody.scrollTop = Math.min(120, modalBody.scrollHeight - modalBody.clientHeight);
+    const repairScrollTop = modalBody.scrollTop;
     const repairMarkup = document.querySelector("#ms_catalogEditor").innerHTML;
     toggle.click();
     await wait();
     assert(!confirmOverlay.hidden && confirmOverlay.classList.contains("is-open"), "Confirmation was not pushed on top");
-    assert(editorDialog.inert && document.body.classList.contains("ms-modal-open"), "Covered editor was not inert/locked");
+    assert(editorOverlay.classList.contains("is-covered") && document.body.classList.contains("ms-modal-open"), "Covered editor was not blocked/locked");
     document.querySelector("#msConfirmCancel").click();
     await wait();
     toggle = document.querySelector("[data-rule-active]");
     assert(toggle.checked, "Cancel did not restore the repair toggle");
     assert(document.querySelector("#ms_catalogEditor").innerHTML === repairMarkup, "Cancel re-rendered repair content");
-    assert(confirmOverlay.hidden && !editorDialog.inert, "Cancel did not restore the editor stack level");
+    assert(confirmOverlay.hidden && !editorOverlay.classList.contains("is-covered"), "Cancel did not restore the editor stack level");
+    assert(document.querySelector("#ms_catalogEditor").getBoundingClientRect().height > 40, "Cancel left the repair editor visually blank");
+    assert(toggle.getBoundingClientRect().width > 0, "Cancel left repair controls invisible");
+    assert(Math.abs(modalBody.scrollTop - repairScrollTop) < 2, "Cancel changed the parent modal scroll position");
+
+    const newDevice = document.querySelector('[data-new-value="device_type"]');
+    newDevice.value = "Desktop";
+    document.querySelector('[data-add-value="device_type"]').click();
+    await wait();
+    document.querySelector("#msConfirmCancel").click();
+    await wait();
+    assert(newDevice.value === "Desktop" && !editorOverlay.hidden, "Canceling Add Device changed or closed the repair editor");
+
+    const newRepair = document.querySelector('[data-new-repair="laptop"]');
+    newRepair.value = "Diagnostics";
+    document.querySelector('[data-new-repair-price="laptop"]').value = "200";
+    document.querySelector('[data-add-repair="laptop"]').click();
+    await wait();
+    document.querySelector("#msConfirmCancel").click();
+    await wait();
+    assert(newRepair.value === "Diagnostics" && !editorOverlay.hidden, "Canceling Add Service Type changed or closed the repair editor");
 
     toggle.click();
     await wait();
@@ -175,6 +200,15 @@
     document.querySelector("#openPrinting").click();
     await wait();
     assert(document.querySelector(".ms-catalog-matrix"), "Document Printing matrix did not render");
+    for (const groupKey of ["paper_size", "color_option"]) {
+      const addInput = document.querySelector(`[data-new-value="${groupKey}"]`);
+      addInput.value = groupKey === "paper_size" ? "Legal" : "Draft Color";
+      document.querySelector(`[data-add-value="${groupKey}"]`).click();
+      await wait();
+      document.querySelector("#msConfirmCancel").click();
+      await wait();
+      assert(addInput.value && !editorOverlay.hidden, `Canceling Add ${groupKey} changed or closed Document Printing`);
+    }
     const price = document.querySelector("[data-rule-price]");
     price.value = "25";
     document.querySelector("#msSave").click();
@@ -199,17 +233,46 @@
     await wait();
 
     const editorCases = [
-      ["#openPhotocopy", ".ms-catalog-matrix", "Photocopy matrix"],
-      ["#openRush", '[data-new-value="package"]', "RUSH ID package/add-ons editor"],
-      ["#openLaminating", '[data-new-value="lamination_type"]', "Lamination type editor"],
-      ["#openScanning", '[data-new-value="paper_size"]', "Scanning paper-size editor"],
-      ["#openInstallation", "[data-add-installation]", "Installation device/service editor"],
+      ["#openPhotocopy", ".ms-catalog-matrix", "Photocopy matrix", "toggle"],
+      ["#openRush", '[data-new-value="package"]', "RUSH ID package/add-ons editor", "rush-add"],
+      ["#openLaminating", '[data-new-value="lamination_type"]', "Lamination type editor", "type-add"],
+      ["#openScanning", '[data-new-value="paper_size"]', "Scanning paper-size editor", "toggle"],
+      ["#openInstallation", "[data-add-installation]", "Installation device/service editor", "toggle"],
     ];
-    for (const [buttonSelector, editorSelector, label] of editorCases) {
+    for (const [buttonSelector, editorSelector, label, action] of editorCases) {
       document.querySelector(buttonSelector).click();
       await wait();
       assert(!editorOverlay.hidden && document.querySelector(editorSelector), `${label} did not open`);
       if (buttonSelector === "#openScanning") assert(!document.querySelector("#ms_active").checked, "Inactive Scanning did not open as inactive");
+      const beforeActionMarkup = document.querySelector("#ms_catalogEditor").innerHTML;
+      let toggleState = null;
+      if (action === "toggle") {
+        toggleState = document.querySelector("[data-rule-active]").checked;
+        document.querySelector("[data-rule-active]").click();
+      } else if (action === "rush-add") {
+        document.querySelector('[data-new-value="package"]').value = "Premium";
+        document.querySelector('[data-new-price="package"]').value = "150";
+        document.querySelector('[data-add-value="package"]').click();
+      } else if (action === "type-add") {
+        document.querySelector('[data-new-value="lamination_type"]').value = "Legal";
+        document.querySelector('[data-new-price="lamination_type"]').value = "60";
+        document.querySelector('[data-add-value="lamination_type"]').click();
+      }
+      await wait();
+      assert(!confirmOverlay.hidden, `${label} confirmation did not open`);
+      document.querySelector("#msConfirmCancel").click();
+      await wait();
+      assert(!editorOverlay.hidden && document.querySelector("#ms_catalogEditor").innerHTML === beforeActionMarkup, `${label} was changed or blanked by confirmation Cancel`);
+      assert(document.querySelector("#ms_catalogEditor").getBoundingClientRect().height > 40, `${label} became visually blank after Cancel`);
+      if (action === "toggle") {
+        assert(document.querySelector("[data-rule-active]").checked === toggleState, `${label} toggle was not restored after Cancel`);
+        document.querySelector("[data-rule-active]").click();
+        await wait();
+        document.querySelector("#msConfirmAccept").click();
+        await wait();
+        assert(!editorOverlay.hidden && document.querySelector("[data-rule-active]").checked !== toggleState, `${label} confirmation did not update the parent editor`);
+        assert(document.querySelector("#ms_catalogEditor").getBoundingClientRect().height > 40, `${label} became visually blank after Confirm`);
+      }
       document.querySelector("#msX").click();
       await wait();
     }

@@ -33,68 +33,10 @@
   let confirmResolver = null;
   let confirmReturnFocus = null;
   let editorLoadToken = 0;
-  let warnedAboutFallbackStack = false;
-  let activeModalStack = null;
-
-  const fallbackModalStack = (() => {
-    const entries = [];
-    const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-    function focusLater(element) {
-      window.setTimeout(() => {
-        if (element && document.contains(element) && typeof element.focus === "function") element.focus();
-      }, 0);
-    }
-
-    function focusables(dialog) {
-      return dialog ? qsa(focusableSelector, dialog).filter((element) => !element.hidden) : [];
-    }
-
-    function cover(entry, covered) {
-      if (!entry?.dialog) return;
-      entry.dialog.inert = covered;
-      entry.dialog.setAttribute("aria-hidden", covered ? "true" : "false");
-    }
-
-    function open({ overlay: layer, dialog, focus = null, onEscape = null }) {
-      if (!layer || !dialog) return;
-      const existing = entries.findIndex((entry) => entry.overlay === layer);
-      if (existing !== -1) entries.splice(existing, 1);
-      cover(entries[entries.length - 1], true);
-      const zIndex = 2147483100 + (entries.length * 200);
-      const entry = {
-        overlay: layer,
-        dialog,
-        focus,
-        onEscape,
-        previousFocus: document.activeElement,
-        previousOverlayZ: layer.style.zIndex,
-        previousDialogZ: dialog.style.zIndex,
-      };
-      layer.style.zIndex = String(zIndex);
-      dialog.style.zIndex = String(zIndex + 1);
-      entries.push(entry);
-      cover(entry, false);
-      focusLater(focus || focusables(dialog)[0] || dialog);
-    }
-
-    function close(layer) {
-      const entry = entries[entries.length - 1];
-      if (!entry || entry.overlay !== layer) return;
-      entries.pop();
-      entry.overlay.style.zIndex = entry.previousOverlayZ;
-      entry.dialog.style.zIndex = entry.previousDialogZ;
-      entry.dialog.inert = false;
-      const next = entries[entries.length - 1] || null;
-      cover(next, false);
-      const returnFocus = entry.previousFocus && document.contains(entry.previousFocus)
-        ? entry.previousFocus
-        : (next?.focus || focusables(next?.dialog)[0] || next?.dialog);
-      focusLater(returnFocus);
-    }
-
-    return { open, close, top: () => entries[entries.length - 1] || null, focusables };
-  })();
+  const serviceModalStack = [];
+  const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const modalBaseZIndex = 2147483100;
+  const modalLayerStep = 200;
 
   function isConfirmOpen() {
     return !!confirmOverlay && !confirmOverlay.hidden && confirmOverlay.classList.contains("is-open");
@@ -104,43 +46,67 @@
     return !!overlay && !overlay.hidden && overlay.classList.contains("is-open");
   }
 
-  function modalStack() {
-    if (activeModalStack) return activeModalStack;
-    if (window.servitechAdminModalStack) {
-      activeModalStack = window.servitechAdminModalStack;
-      return activeModalStack;
-    }
-    if (!warnedAboutFallbackStack) {
-      warnedAboutFallbackStack = true;
-      console.warn("[Manage Services] Global modal stack unavailable; using the page fallback stack.");
-    }
-    activeModalStack = fallbackModalStack;
-    return activeModalStack;
+  function focusableElements(dialog) {
+    if (!dialog) return [];
+    return qsa(focusableSelector, dialog).filter((element) => (
+      !element.hidden && (element.offsetParent !== null || element === document.activeElement)
+    ));
+  }
+
+  function focusLater(element) {
+    window.requestAnimationFrame(() => {
+      if (!element || !document.contains(element) || typeof element.focus !== "function") return;
+      try {
+        element.focus({ preventScroll: true });
+      } catch (_) {
+        element.focus();
+      }
+    });
+  }
+
+  function topModal() {
+    return serviceModalStack[serviceModalStack.length - 1] || null;
   }
 
   function isTopModal(layer) {
-    return modalStack()?.top()?.overlay === layer;
+    return topModal()?.layer === layer;
   }
 
-  function syncBodyLock() {
-    const hasStackedModal = Boolean(modalStack()?.top());
-    document.body.classList.toggle("ms-modal-open", hasStackedModal || isEditorOpen() || isConfirmOpen());
+  function syncModalLayers() {
+    serviceModalStack.forEach((entry, index) => {
+      const covered = index < serviceModalStack.length - 1;
+      entry.layer.style.zIndex = String(modalBaseZIndex + (index * modalLayerStep));
+      entry.layer.classList.toggle("is-covered", covered);
+      entry.layer.dataset.modalDepth = String(index);
+    });
+    document.body.classList.toggle("ms-modal-open", serviceModalStack.length > 0);
   }
 
   function openModalLayer(layer, dialog, focus, onEscape) {
     if (!layer || !dialog) return false;
+    if (serviceModalStack.some((entry) => entry.layer === layer)) return false;
+    const previous = topModal();
+    if (previous?.scrollContainer) previous.scrollTop = previous.scrollContainer.scrollTop;
     layer.hidden = false;
     layer.classList.add("is-open");
+    layer.classList.remove("is-covered");
     layer.setAttribute("aria-hidden", "false");
-    dialog.removeAttribute("aria-hidden");
-    modalStack().open({ overlay: layer, dialog, focus, onEscape });
-    syncBodyLock();
+    serviceModalStack.push({
+      layer,
+      dialog,
+      focus,
+      onEscape,
+      previousFocus: document.activeElement,
+      scrollContainer: qs(".ms-body", dialog),
+      scrollTop: qs(".ms-body", dialog)?.scrollTop || 0,
+    });
+    syncModalLayers();
+    focusLater(focus || focusableElements(dialog)[0] || dialog);
     return true;
   }
 
   document.addEventListener("keydown", (event) => {
-    if (activeModalStack !== fallbackModalStack) return;
-    const entry = fallbackModalStack.top();
+    const entry = topModal();
     if (!entry) return;
     if (event.key === "Escape" && typeof entry.onEscape === "function") {
       event.preventDefault();
@@ -149,7 +115,7 @@
       return;
     }
     if (event.key !== "Tab") return;
-    const focusable = fallbackModalStack.focusables(entry.dialog);
+    const focusable = focusableElements(entry.dialog);
     if (!focusable.length) {
       event.preventDefault();
       entry.dialog.focus();
@@ -167,22 +133,36 @@
   }, true);
 
   document.addEventListener("focusin", (event) => {
-    if (activeModalStack !== fallbackModalStack) return;
-    const entry = fallbackModalStack.top();
+    const entry = topModal();
     if (!entry || entry.dialog.contains(event.target)) return;
-    (entry.focus || fallbackModalStack.focusables(entry.dialog)[0] || entry.dialog)?.focus?.();
+    focusLater(entry.focus || focusableElements(entry.dialog)[0] || entry.dialog);
   }, true);
 
   function closeModalLayer(layer, dialog) {
     if (!layer || !dialog || !isTopModal(layer)) return false;
-    modalStack().close(layer);
+    const entry = serviceModalStack.pop();
     layer.classList.remove("is-open");
+    layer.classList.remove("is-covered");
     layer.hidden = true;
     layer.setAttribute("aria-hidden", "true");
-    dialog.removeAttribute("inert");
-    dialog.setAttribute("aria-hidden", "true");
-    syncBodyLock();
+    layer.style.zIndex = "";
+    delete layer.dataset.modalDepth;
+    syncModalLayers();
+    const next = topModal();
+    if (next?.scrollContainer) {
+      window.requestAnimationFrame(() => { next.scrollContainer.scrollTop = next.scrollTop; });
+    }
+    const returnFocus = entry.previousFocus && document.contains(entry.previousFocus)
+      ? entry.previousFocus
+      : (next?.focus || focusableElements(next?.dialog)[0] || next?.dialog);
+    focusLater(returnFocus);
     return true;
+  }
+
+  function closeTopModal(expectedLayer = null) {
+    const entry = topModal();
+    if (!entry || (expectedLayer && entry.layer !== expectedLayer)) return false;
+    return closeModalLayer(entry.layer, entry.dialog);
   }
 
   const contracts = {
@@ -526,16 +506,12 @@
     if (!confirmResolver || !isTopModal(confirmOverlay)) return;
     const resolve = confirmResolver;
     const returnFocus = confirmReturnFocus;
-    if (!closeModalLayer(confirmOverlay, confirmDialog)) return;
+    if (!closeTopModal(confirmOverlay)) return;
     confirmResolver = null;
     confirmReturnFocus = null;
     confirmOverlay.dataset.tone = "";
     resolve(accepted);
-    window.requestAnimationFrame(() => {
-      if (returnFocus && document.contains(returnFocus) && !returnFocus.closest("[inert]")) {
-        returnFocus.focus();
-      }
-    });
+    focusLater(returnFocus);
   }
 
   function confirmAction({ title, message, confirmLabel = "Confirm", tone = "primary" }) {

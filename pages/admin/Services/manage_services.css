@@ -67,7 +67,8 @@ body.ms-modal-open{overflow:hidden}.ms-overlay{box-sizing:border-box;overscroll-
   z-index: 2147483100;
 }
 
-.ms-modal[inert] {
+.ms-overlay.is-covered,
+.ms-confirm-overlay.is-covered {
   pointer-events: none;
 }
 
