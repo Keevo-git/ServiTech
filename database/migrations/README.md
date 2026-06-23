@@ -53,6 +53,8 @@ For an existing ServiTech database:
     `20260621_add_scanning_catalog.sql`. The additive migrations preserve
     edited prices and non-archived option statuses while adding Rush ID
     add-ons and restoring previously archived canonical Printing services.
+13. Run `20260623_add_announcement_soft_delete.sql` to add the deletion
+    timestamp and active/deleted lookup indexes used by Admin Announcements.
 
 `20260620_unify_service_catalog_pricing.sql` is a one-time catalog conversion
 and seed migration. Do not rerun it after administrators have edited catalog

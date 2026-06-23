@@ -255,8 +255,8 @@
 .announcement-item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: start;
+  gap: 12px;
+  align-items: center;
   padding: 13px;
   border: 1px solid #e0e8f2;
   border-radius: 12px;
@@ -279,10 +279,14 @@
 .announcement-item__actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 7px;
+  padding-left: 12px;
+  border-left: 1px solid #e0e8f2;
 }
 
 .announcement-item__actions form {
+  display: inline-flex;
   margin: 0;
 }
 
@@ -380,6 +384,9 @@
 
   .announcement-item__actions {
     justify-content: space-between;
+    padding: 12px 0 0;
+    border-top: 1px solid #e0e8f2;
+    border-left: 0;
   }
 }
 

@@ -11,6 +11,8 @@ function ann_h($value): string
 
 $notice = "";
 $error = "";
+$announcementSoftDeleteReady = admin_table_has_columns($pdo, "announcements", ["deleted_at"]);
+$notDeletedPredicate = $announcementSoftDeleteReady ? " AND deleted_at IS NULL" : "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     servitech_enforce_same_origin(false);
@@ -20,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     try {
         if ($action === "clear") {
-            $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
+            $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE 1 = 1{$notDeletedPredicate}");
             $notice = "Announcement hidden from the landing page.";
         } elseif ($action === "toggle_status") {
             $id = (int)($_POST["announcement_id"] ?? 0);
@@ -32,9 +34,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if ($status === "active") {
                 $pdo->beginTransaction();
-                $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
+                $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE 1 = 1{$notDeletedPredicate}");
 
-                $stmt = $pdo->prepare("UPDATE announcements SET active = TRUE, updated_at = NOW() WHERE id = :id");
+                $stmt = $pdo->prepare("UPDATE announcements SET active = TRUE, updated_at = NOW() WHERE id = :id{$notDeletedPredicate}");
                 $stmt->execute([":id" => $id]);
 
                 if ($stmt->rowCount() < 1) {
@@ -45,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $pdo->commit();
                 $notice = "Announcement published on the landing page.";
             } else {
-                $stmt = $pdo->prepare("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE id = :id");
+                $stmt = $pdo->prepare("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE id = :id{$notDeletedPredicate}");
                 $stmt->execute([":id" => $id]);
 
                 if ($stmt->rowCount() < 1) {
@@ -55,18 +57,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $notice = "Announcement hidden from the landing page.";
             }
         } elseif ($action === "delete") {
-            $id = (int)($_POST["id"] ?? 0);
+            $id = (int)($_POST["announcement_id"] ?? 0);
             if ($id <= 0) {
-                throw new RuntimeException("Invalid announcement.");
+                throw new DomainException("Invalid announcement.");
+            }
+
+            if (!$announcementSoftDeleteReady) {
+                throw new DomainException("Announcement deletion is unavailable until the database migration is applied.");
             }
 
             $stmt = $pdo->prepare("
                 UPDATE announcements
-                SET active = FALSE, updated_at = NOW()
+                SET active = FALSE, deleted_at = NOW(), updated_at = NOW()
                 WHERE id = :id
+                  AND deleted_at IS NULL
             ");
             $stmt->execute([":id" => $id]);
-            $notice = "Announcement archived.";
+
+            if ($stmt->rowCount() < 1) {
+                throw new DomainException("Announcement not found or already deleted.");
+            }
+
+            $notice = "Announcement moved to deleted records.";
         } elseif ($action === "edit_announcement") {
             $id = (int)($_POST["announcement_id"] ?? 0);
             $title = trim((string)($_POST["title"] ?? ""));
@@ -85,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 throw new RuntimeException("Invalid announcement status.");
             }
 
-            $existsStmt = $pdo->prepare("SELECT id FROM announcements WHERE id = :id");
+            $existsStmt = $pdo->prepare("SELECT id FROM announcements WHERE id = :id{$notDeletedPredicate}");
             $existsStmt->execute([":id" => $id]);
             if (!$existsStmt->fetch(PDO::FETCH_ASSOC)) {
                 throw new RuntimeException("Announcement not found.");
@@ -95,13 +107,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if ($active) {
                 $pdo->beginTransaction();
-                $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
+                $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE 1 = 1{$notDeletedPredicate}");
             }
 
             $stmt = $pdo->prepare("
                 UPDATE announcements
                 SET title = :title, message = :message, active = :active, updated_at = NOW()
-                WHERE id = :id
+                WHERE id = :id{$notDeletedPredicate}
             ");
             $stmt->execute([
                 ":id" => $id,
@@ -127,7 +139,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             if ($active) {
-                $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
+                $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE 1 = 1{$notDeletedPredicate}");
             }
 
             $stmt = $pdo->prepare("
@@ -149,7 +161,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $pdo->rollBack();
         }
 
-        $error = $exception->getMessage();
+        if ($action === "delete" && !$exception instanceof DomainException) {
+            error_log("announcement soft delete failed: " . $exception->getMessage());
+            $error = "Failed to delete announcement.";
+        } else {
+            $error = $exception->getMessage();
+        }
     }
 }
 
@@ -158,7 +175,7 @@ $csrfToken = servitech_csrf_token();
 $activeStmt = $pdo->query("
     SELECT id, title, message, active, created_at, updated_at
     FROM announcements
-    WHERE active = TRUE
+    WHERE active = TRUE{$notDeletedPredicate}
     ORDER BY updated_at DESC, id DESC
     LIMIT 1
 ");
@@ -167,6 +184,7 @@ $activeAnnouncement = $activeStmt->fetch(PDO::FETCH_ASSOC) ?: null;
 $recentStmt = $pdo->query("
     SELECT id, title, message, active, created_at, updated_at
     FROM announcements
+    WHERE 1 = 1{$notDeletedPredicate}
     ORDER BY updated_at DESC, id DESC
     LIMIT 8
 ");
@@ -180,23 +198,23 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
   <title>Manage Announcement</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260619-hero-actions') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/announcement.css?v=20260623-soft-delete-actions') ?>">
   <style>
-    .announcement-item .announcement-actions {
+    .announcement-item__actions {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: 7px;
+      flex-wrap: nowrap;
     }
 
-    .announcement-item .announcement-actions form {
+    .announcement-item__actions form {
       display: inline-flex;
       flex: 0 0 auto;
       margin: 0;
     }
 
-    .announcement-item .announcement-actions button {
+    .announcement-item__actions button {
       width: auto;
       margin: 0;
       white-space: nowrap;
@@ -207,11 +225,12 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
       align-items: center;
       justify-content: center;
       min-width: 72px;
-      padding: 6px 14px;
-      border-radius: 20px;
+      min-height: 34px;
+      padding: 8px 13px;
+      border-radius: 999px;
       border: none;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 800;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -231,13 +250,15 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
       align-items: center;
       justify-content: center;
       min-width: 72px;
+      min-height: 34px;
       background: #3b82f6;
       color: #fff;
-      padding: 8px 14px;
-      border-radius: 8px;
+      padding: 8px 13px;
+      border-radius: 999px;
       border: none;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 12px;
+      font-weight: 800;
       line-height: 1;
       transition: all 0.2s ease;
     }
@@ -247,13 +268,15 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
       align-items: center;
       justify-content: center;
       min-width: 72px;
+      min-height: 34px;
       background: #7f1d1d;
       color: #fff;
-      padding: 8px 14px;
-      border-radius: 8px;
+      padding: 8px 13px;
+      border-radius: 999px;
       border: none;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 12px;
+      font-weight: 800;
       line-height: 1;
       transition: all 0.2s ease;
     }
@@ -336,15 +359,17 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     @media (max-width: 620px) {
-      .announcement-item .announcement-actions {
+      .announcement-item__actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
         justify-content: flex-start;
-        flex-wrap: wrap;
       }
 
-      .announcement-item .announcement-actions form,
-      .announcement-item .announcement-actions .edit-btn,
-      .announcement-item .announcement-actions .delete-btn {
-        flex: 0 0 auto;
+      .announcement-item__actions form,
+      .announcement-item__actions button {
+        min-width: 0;
+        width: 100%;
       }
     }
   </style>
@@ -456,7 +481,7 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
                 <strong><?= ann_h($item["title"] ?? "") ?></strong>
                 <p><?= ann_h($item["message"] ?? "") ?></p>
               </div>
-              <div class="announcement-actions">
+              <div class="announcement-item__actions" role="group" aria-label="Actions for <?= ann_h($item["title"] ?? "announcement") ?>">
                 <form method="post">
                   <input type="hidden" name="csrf_token" value="<?= ann_h($csrfToken) ?>">
                   <input type="hidden" name="action" value="toggle_status">
@@ -481,11 +506,11 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
                 >
                   Edit
                 </button>
-                <form method="post" onsubmit="return confirm('Delete this announcement?');">
+                <form method="post" onsubmit="return confirm('Delete this announcement? It will be moved to deleted records.');">
                   <input type="hidden" name="csrf_token" value="<?= ann_h($csrfToken) ?>">
                   <input type="hidden" name="action" value="delete">
-                  <input type="hidden" name="id" value="<?= (int)($item["id"] ?? 0) ?>">
-                  <button class="delete-btn" type="submit">Delete</button>
+                  <input type="hidden" name="announcement_id" value="<?= (int)($item["id"] ?? 0) ?>">
+                  <button class="delete-btn" type="submit" aria-label="Delete <?= ann_h($item["title"] ?? "announcement") ?>">Delete</button>
                 </form>
               </div>
             </div>

@@ -17,6 +17,8 @@ if (!is_array($data)) {
 
 $id = (int)($data["id"] ?? 0);
 $status = trim((string)($data["status"] ?? ""));
+$announcementSoftDeleteReady = admin_table_has_columns($pdo, "announcements", ["deleted_at"]);
+$notDeletedPredicate = $announcementSoftDeleteReady ? " AND deleted_at IS NULL" : "";
 
 if ($id <= 0 || !in_array($status, ["active", "hidden"], true)) {
     http_response_code(400);
@@ -27,9 +29,9 @@ if ($id <= 0 || !in_array($status, ["active", "hidden"], true)) {
 try {
     if ($status === "active") {
         $pdo->beginTransaction();
-        $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW()");
+        $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE 1 = 1{$notDeletedPredicate}");
 
-        $stmt = $pdo->prepare("UPDATE announcements SET active = TRUE, updated_at = NOW() WHERE id = :id");
+        $stmt = $pdo->prepare("UPDATE announcements SET active = TRUE, updated_at = NOW() WHERE id = :id{$notDeletedPredicate}");
         $stmt->execute([":id" => $id]);
 
         if ($stmt->rowCount() < 1) {
@@ -41,7 +43,7 @@ try {
 
         $pdo->commit();
     } else {
-        $stmt = $pdo->prepare("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE id = :id");
+        $stmt = $pdo->prepare("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE id = :id{$notDeletedPredicate}");
         $stmt->execute([":id" => $id]);
 
         if ($stmt->rowCount() < 1) {
