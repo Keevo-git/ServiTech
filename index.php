@@ -38,7 +38,7 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260621-global-ui-polish'), ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260623-landing-modal-close'), ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/landing-store-details.css?v=20260615'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body class="has-fixed-site-header landing-page">
@@ -210,7 +210,7 @@ try {
 
   <div id="service-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal modal-content service-modal" role="dialog" aria-modal="true" aria-labelledby="service-modal-title">
-      <button class="btn-close close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceModal()">&times;</button>
+      <button class="btn-close close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceModal()"><span aria-hidden="true">&times;</span></button>
       <div class="service-modal__header">
         <div class="service-modal__eyebrow">Service Overview</div>
         <h3 id="service-modal-title" class="service-modal__title">Service Details</h3>
@@ -226,7 +226,7 @@ try {
 
   <div id="service-detail-modal" class="modal-overlay" aria-hidden="true">
     <div class="modal modal-content service-modal" role="dialog" aria-modal="true" aria-labelledby="service-detail-modal-title">
-      <button class="btn-close close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceDetailModal()">&times;</button>
+      <button class="btn-close close-btn service-modal__close" type="button" aria-label="Close" onclick="closeServiceDetailModal()"><span aria-hidden="true">&times;</span></button>
       <div class="service-modal__header">
         <div class="service-modal__eyebrow">Detailed View</div>
         <h3 id="service-detail-modal-title" class="service-modal__title">More Details</h3>

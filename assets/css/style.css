@@ -487,29 +487,13 @@ html:has(body.modal-open) {
 }
 
 .service-modal__close {
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  color: #5b3310;
-  font-size: 28px;
-  line-height: 1;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.service-modal__close:hover {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 139, 44, 0.14);
-  color: #4A0505;
+  right: 0.9rem;
+  top: 0.9rem;
+  z-index: 1;
 }
 
 .service-modal__header {
-  padding-right: 48px;
+  padding-right: calc(var(--site-modal-close-size) + 16px);
 }
 
 .service-modal__eyebrow {
@@ -5712,6 +5696,7 @@ body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-
 
 /* Shared public/customer modal controls and typography cleanup. */
 :where(
+  .service-modal__close,
   .confirm-modal__close,
   .policy-modal__close,
   .notification-close-btn,
@@ -5746,6 +5731,7 @@ body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-
 }
 
 :where(
+  .service-modal__close,
   .confirm-modal__close,
   .policy-modal__close,
   .notification-close-btn,
@@ -5755,6 +5741,7 @@ body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-
   body.customer-layout.customer-page--status .status-edit-modal .modal-close
 )::before,
 :where(
+  .service-modal__close,
   .confirm-modal__close,
   .policy-modal__close,
   .notification-close-btn,
@@ -5776,6 +5763,7 @@ body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-
 }
 
 :where(
+  .service-modal__close,
   .confirm-modal__close,
   .policy-modal__close,
   .notification-close-btn,
@@ -5788,6 +5776,7 @@ body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-
 }
 
 :where(
+  .service-modal__close,
   .confirm-modal__close,
   .policy-modal__close,
   .notification-close-btn,
@@ -5800,6 +5789,7 @@ body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-
 }
 
 :where(
+  .service-modal__close,
   .confirm-modal__close,
   .policy-modal__close,
   .notification-close-btn,
@@ -5825,6 +5815,9 @@ body.auth-page--login .auth-login-options a.login-option-text.forgot-link:focus-
   transform: translateY(-1px);
 }
 
+.service-modal__close span,
+.service-modal__close svg,
+.service-modal__close i,
 .confirm-modal__close span,
 .confirm-modal__close svg,
 .confirm-modal__close i,
