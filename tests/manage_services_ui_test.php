@@ -81,6 +81,8 @@ foreach ([
     'data-action="move-up"',
     'data-action="move-down"',
     'data-action="move-rule-up"',
+    'class="ms-status-cell"',
+    'class="ms-arrange-cell"',
     "resequenceCatalog",
     "syncFromDom({ includeStatus: false })",
     "This option is active, but it will not appear to customers until at least one active price combination is configured.",
@@ -105,6 +107,8 @@ foreach ([
     "pointer-events: none",
     ".ms-overlay.is-open",
     ".ms-confirm-overlay.is-open",
+    '.ms-switch>span[aria-hidden="true"]',
+    ".ms-status-cell,.ms-arrange-cell",
 ] as $requiredStyle) {
     manage_services_ui_assert(str_contains($styles, $requiredStyle), "Responsive styles must include {$requiredStyle}.");
 }
@@ -119,6 +123,7 @@ manage_services_ui_assert(strpos($page, "admin_footer.php") < strpos($page, "man
 manage_services_ui_assert(!str_contains($script, 'overlay.style.display'), "Modal visibility must not be managed with one-off inline display values.");
 manage_services_ui_assert(!str_contains($script, "location.reload()"), "Saving must update the open editor instead of reloading and destroying modal state.");
 manage_services_ui_assert(!str_contains($script, "ruleUsesInactiveOption"), "Parent option toggles must not destructively rewrite linked pricing-rule status.");
+manage_services_ui_assert(!str_contains($script, "ms-status-control"), "Status text must not be rendered inside a switch where it can look like a duplicate toggle.");
 manage_services_ui_assert(str_contains($catalog, "servitech_catalog_customer_rules_from_admin_catalog"), "Backend visibility must use the same active relationship rules as customer pages.");
 manage_services_ui_assert(str_contains($api, '"catalog" => $catalogData'), "Save responses must return the saved catalog for an in-place editor refresh.");
 

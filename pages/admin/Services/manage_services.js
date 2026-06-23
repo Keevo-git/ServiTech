@@ -430,18 +430,22 @@
   }
 
   function movementButtons(groupKey, valueKey, valueLabel, index, total) {
-    return `<div class="ms-order-actions" aria-label="Arrange ${escapeHtml(valueLabel)}">
-      <span class="ms-control-label">Order</span>
-      <button type="button" data-action="move-up" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(valueLabel)} up">&uarr;</button>
-      <button type="button" data-action="move-down" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(valueLabel)} down">&darr;</button>
+    return `<div class="ms-arrange-cell">
+      <span class="ms-control-label">Arrange</span>
+      <div class="ms-order-actions" role="group" aria-label="Arrange ${escapeHtml(valueLabel)}">
+        <button type="button" data-action="move-up" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(valueLabel)} up">&uarr;</button>
+        <button type="button" data-action="move-down" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(valueLabel)} down">&darr;</button>
+      </div>
     </div>`;
   }
 
   function ruleMovementButtons(ruleKey, ruleLabel, index, total) {
-    return `<div class="ms-order-actions" aria-label="Arrange ${escapeHtml(ruleLabel)}">
-      <span class="ms-control-label">Order</span>
-      <button type="button" data-action="move-rule-up" data-rule-key="${escapeHtml(ruleKey)}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(ruleLabel)} up">&uarr;</button>
-      <button type="button" data-action="move-rule-down" data-rule-key="${escapeHtml(ruleKey)}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(ruleLabel)} down">&darr;</button>
+    return `<div class="ms-arrange-cell">
+      <span class="ms-control-label">Arrange</span>
+      <div class="ms-order-actions" role="group" aria-label="Arrange ${escapeHtml(ruleLabel)}">
+        <button type="button" data-action="move-rule-up" data-rule-key="${escapeHtml(ruleKey)}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(ruleLabel)} up">&uarr;</button>
+        <button type="button" data-action="move-rule-down" data-rule-key="${escapeHtml(ruleKey)}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(ruleLabel)} down">&darr;</button>
+      </div>
     </div>`;
   }
 
@@ -456,11 +460,13 @@
         ${values.map((value, index) => `<div class="ms-value-row ${Number(value.active) ? "" : "is-inactive"}"
           data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
           <input data-value-label value="${escapeHtml(value.label)}" aria-label="${escapeHtml(title)} name">
-          <label class="ms-switch ms-switch--compact ms-status-control">
+          <div class="ms-status-cell">
             <span class="ms-control-label">Status</span>
-            <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(value.label)} active status" ${Number(value.active) ? "checked" : ""}>
-            <span aria-hidden="true"></span><em>${Number(value.active) ? "Active" : "Inactive"}</em>
-          </label>
+            <label class="ms-switch ms-switch--compact">
+              <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(value.label)} active status" ${Number(value.active) ? "checked" : ""}>
+              <span aria-hidden="true"></span><em>${Number(value.active) ? "Active" : "Inactive"}</em>
+            </label>
+          </div>
           ${movementButtons(groupKey, value.value_key, value.label, index, values.length)}
           ${optionVisibilityWarning(groupKey, value) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning(groupKey, value))}</p>` : ""}
         </div>`).join("")}

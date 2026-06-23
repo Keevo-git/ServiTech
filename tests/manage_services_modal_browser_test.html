@@ -141,6 +141,14 @@
     const editorDialog = document.querySelector(".ms-modal");
     const confirmOverlay = document.querySelector("#msConfirmOverlay");
 
+    if (new URLSearchParams(location.search).has("visual")) {
+      document.querySelector("#openPrinting").click();
+      await wait();
+      document.querySelector("#result").textContent = `VISUAL ${innerWidth}x${innerHeight}`;
+      document.title = `VISUAL-${innerWidth}x${innerHeight}`;
+      return;
+    }
+
     document.querySelector("#openInvalid").click();
     await wait();
     assert(!document.querySelector("#msPageError").hidden, "Invalid editor payload failed silently");
@@ -225,7 +233,13 @@
     document.querySelector("#openPrinting").click();
     await wait();
     assert(document.querySelector(".ms-catalog-matrix"), "Document Printing matrix did not render");
+    assert(Array.from(document.querySelectorAll(".ms-value-row")).every((row) => row.querySelectorAll('.ms-switch input[data-action="toggle-active"]').length === 1), "An option row does not have exactly one Active/Inactive control");
+    assert(Array.from(document.querySelectorAll(".ms-value-row")).every((row) => row.querySelectorAll('.ms-switch > span[aria-hidden="true"]').length === 1), "An option row renders a duplicate toggle track");
+    assert(!document.querySelector(".ms-switch .ms-control-label"), "A technical column label is rendered inside a switch");
+    assert(Array.from(document.querySelectorAll(".ms-value-row")).every((row) => row.querySelector(".ms-status-cell") && row.querySelector(".ms-arrange-cell")), "Status and Arrange are not separate row cells");
+    assert(Array.from(document.querySelectorAll('.ms-switch input[data-action="toggle-active"]')).every((input) => input.getBoundingClientRect().width <= 1), "A hidden status checkbox overlaps other row actions");
     assert(Array.from(document.querySelectorAll(".ms-value-row")).every((row) => row.scrollWidth <= row.clientWidth + 2), "Arrangement controls overflow an option row");
+    assert(document.querySelector(".ms-body").scrollWidth <= document.querySelector(".ms-body").clientWidth + 2, "Editor controls cause horizontal modal-body overflow");
     assert(Array.from(document.querySelectorAll(".ms-order-actions button")).every((button) => button.getBoundingClientRect().height >= 36), "Arrangement controls are not touch-friendly");
     assert(document.querySelector(".ms-matrix-wrap").clientWidth <= document.querySelector(".ms-body").clientWidth, "Price matrix wrapper overflows the modal body");
     const paperOrder = () => Array.from(document.querySelectorAll('[data-group-key="paper_size"][data-value-key]')).map((row) => row.dataset.valueKey);
