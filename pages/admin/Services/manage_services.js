@@ -77,9 +77,13 @@
       const covered = index < serviceModalStack.length - 1;
       entry.layer.style.zIndex = String(modalBaseZIndex + (index * modalLayerStep));
       entry.layer.classList.toggle("is-covered", covered);
+      entry.layer.inert = covered;
+      entry.dialog.setAttribute("aria-modal", covered ? "false" : "true");
       entry.layer.dataset.modalDepth = String(index);
     });
-    document.body.classList.toggle("ms-modal-open", serviceModalStack.length > 0);
+    const hasOpenModal = serviceModalStack.length > 0;
+    document.documentElement.classList.toggle("ms-modal-open", hasOpenModal);
+    document.body.classList.toggle("ms-modal-open", hasOpenModal);
   }
 
   function openModalLayer(layer, dialog, focus, onEscape) {
@@ -144,7 +148,9 @@
     layer.classList.remove("is-open");
     layer.classList.remove("is-covered");
     layer.hidden = true;
+    layer.inert = false;
     layer.setAttribute("aria-hidden", "true");
+    dialog.setAttribute("aria-modal", "false");
     layer.style.zIndex = "";
     delete layer.dataset.modalDepth;
     syncModalLayers();

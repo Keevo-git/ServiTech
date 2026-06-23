@@ -137,13 +137,23 @@
   (async () => {
     const wait = () => new Promise((resolve) => setTimeout(resolve, 40));
     const assert = (condition, message) => { if (!condition) throw new Error(message); };
+    const rectSnapshot = (element) => {
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    };
+    const sameRect = (before, after) => ["x", "y", "width", "height"].every((key) => Math.abs(before[key] - after[key]) < 0.6);
     const editorOverlay = document.querySelector("#msOverlay");
     const editorDialog = document.querySelector(".ms-modal");
     const confirmOverlay = document.querySelector("#msConfirmOverlay");
 
-    if (new URLSearchParams(location.search).has("visual")) {
+    const visualMode = new URLSearchParams(location.search).get("visual");
+    if (visualMode) {
       document.querySelector("#openPrinting").click();
       await wait();
+      if (visualMode === "stack") {
+        document.querySelector('[data-group-key="paper_size"] [data-value-active]').click();
+        await wait();
+      }
       document.querySelector("#result").textContent = `VISUAL ${innerWidth}x${innerHeight}`;
       document.title = `VISUAL-${innerWidth}x${innerHeight}`;
       return;
@@ -182,16 +192,29 @@
     modalBody.scrollTop = Math.min(120, modalBody.scrollHeight - modalBody.clientHeight);
     const repairScrollTop = modalBody.scrollTop;
     const repairMarkup = document.querySelector("#ms_catalogEditor").innerHTML;
+    const repairRectBeforeConfirm = rectSnapshot(editorDialog);
+    const repairBodyRectBeforeConfirm = rectSnapshot(modalBody);
     toggle.click();
     await wait();
     assert(!confirmOverlay.hidden && confirmOverlay.classList.contains("is-open"), "Confirmation was not pushed on top");
-    assert(editorOverlay.classList.contains("is-covered") && document.body.classList.contains("ms-modal-open"), "Covered editor was not blocked/locked");
+    assert(editorOverlay.classList.contains("is-covered") && editorOverlay.inert, "Covered editor was not made fully non-interactive");
+    assert(document.documentElement.classList.contains("ms-modal-open") && document.body.classList.contains("ms-modal-open"), "The document and body were not both scroll-locked");
+    assert(editorDialog.getAttribute("aria-modal") === "false" && confirmOverlay.querySelector(".ms-confirm-dialog").getAttribute("aria-modal") === "true", "Only the top dialog must be exposed as modal");
+    assert(Number(getComputedStyle(confirmOverlay).zIndex) > Number(getComputedStyle(editorOverlay).zIndex), "Confirmation is not above the editor layer");
+    assert(getComputedStyle(editorOverlay).pointerEvents === "none", "Covered editor still accepts pointer input");
+    assert(sameRect(repairRectBeforeConfirm, rectSnapshot(editorDialog)), "Opening a confirmation shifted or resized the Repair editor");
+    assert(sameRect(repairBodyRectBeforeConfirm, rectSnapshot(modalBody)), "Opening a confirmation changed the Repair editor body geometry");
+    assert(Math.abs(modalBody.scrollTop - repairScrollTop) < 2, "Opening a confirmation changed the parent modal scroll position");
+    assert(getComputedStyle(editorDialog).opacity === "1" && getComputedStyle(editorDialog).transform === "none" && getComputedStyle(editorDialog).filter === "none", "Covered editor received a visual transform, opacity, or filter state");
     document.querySelector("#msConfirmCancel").click();
     await wait();
     toggle = document.querySelector("[data-rule-active]");
     assert(toggle.checked, "Cancel did not restore the repair toggle");
     assert(document.querySelector("#ms_catalogEditor").innerHTML === repairMarkup, "Cancel re-rendered repair content");
     assert(confirmOverlay.hidden && !editorOverlay.classList.contains("is-covered"), "Cancel did not restore the editor stack level");
+    assert(!editorOverlay.inert && editorDialog.getAttribute("aria-modal") === "true", "Cancel did not restore editor interactivity and modal semantics");
+    assert(sameRect(repairRectBeforeConfirm, rectSnapshot(editorDialog)), "Cancel returned to a shifted or resized Repair editor");
+    assert(sameRect(repairBodyRectBeforeConfirm, rectSnapshot(modalBody)), "Cancel changed the Repair editor body geometry");
     assert(document.querySelector("#ms_catalogEditor").getBoundingClientRect().height > 40, "Cancel left the repair editor visually blank");
     assert(toggle.getBoundingClientRect().width > 0, "Cancel left repair controls invisible");
     assert(Math.abs(modalBody.scrollTop - repairScrollTop) < 2, "Cancel changed the parent modal scroll position");
@@ -228,7 +251,7 @@
 
     document.querySelector("#msX").click();
     await wait();
-    assert(editorOverlay.hidden && !document.body.classList.contains("ms-modal-open"), "Closing the final modal did not unlock the body");
+    assert(editorOverlay.hidden && !document.body.classList.contains("ms-modal-open") && !document.documentElement.classList.contains("ms-modal-open"), "Closing the final modal did not unlock the document and body");
 
     document.querySelector("#openPrinting").click();
     await wait();
@@ -277,14 +300,19 @@
     }
     const price = document.querySelector("[data-rule-price]");
     price.value = "25";
+    const printingRectBeforeSave = rectSnapshot(editorDialog);
+    const printingScrollBeforeSave = document.querySelector(".ms-body").scrollTop;
     document.querySelector("#msSave").click();
     await wait();
+    assert(sameRect(printingRectBeforeSave, rectSnapshot(editorDialog)), "Save confirmation shifted or resized the Document Printing editor");
+    assert(document.querySelector(".ms-body").scrollTop === printingScrollBeforeSave, "Save confirmation changed the Document Printing scroll position");
     const confirmRect = document.querySelector(".ms-confirm-dialog").getBoundingClientRect();
     assert(confirmRect.width <= innerWidth && confirmRect.height <= innerHeight, "Confirmation overflows the viewport");
     document.querySelector("#msConfirmCancel").click();
     await wait();
     assert(document.querySelector("[data-rule-price]").value === "25", "Save cancel discarded the changed print price");
     assert(!editorOverlay.hidden && document.body.classList.contains("ms-modal-open"), "Save cancel did not return to the editor");
+    assert(sameRect(printingRectBeforeSave, rectSnapshot(editorDialog)), "Save cancel returned to a shifted or resized Document Printing editor");
 
     document.querySelector("#msSave").click();
     await wait();

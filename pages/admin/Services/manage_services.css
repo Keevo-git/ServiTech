@@ -31,7 +31,7 @@
 @media(max-width:640px){.ms-tabs{grid-template-columns:1fr}.ms-modal{height:100%;max-height:none;width:100%}.ms-overlay{padding:0}.ms-service-status,.ms-service-card__head,.ms-mode-section{align-items:flex-start;flex-direction:column}.ms-rule-row,.ms-repair-row,.ms-inline-add--rule,.ms-inline-add--rule:has([data-new-description]){grid-template-columns:1fr}.ms-inline-add{flex-direction:column}.ms-inline-add input{max-width:none}.ms-foot{justify-content:stretch}.ms-btn{flex:1}}
 
 /* Responsive and confirmation refinements */
-body.ms-modal-open{overflow:hidden}.ms-overlay{box-sizing:border-box;overscroll-behavior:contain}.ms-modal{max-height:calc(100dvh - 32px);min-height:0}.ms-mhead,.ms-accent,.ms-foot{flex:0 0 auto}.ms-body{min-height:0;overscroll-behavior:contain;scrollbar-gutter:stable}.ms-foot{box-shadow:0 -8px 22px rgba(18,49,83,.07);position:relative;z-index:2}.ms-service-card,.ms-rule-row,.ms-repair-row,.ms-value-row{min-width:0}.ms-service-card__head>div,.ms-service-card__foot>span{min-width:0}.ms-service-card h2,.ms-service-card p,.ms-service-card__foot span{overflow-wrap:anywhere}.ms-service-card__foot{flex-wrap:wrap}.ms-edit-button,.ms-btn,.ms-inline-add button{min-height:42px}.ms-edit-button:focus-visible,.ms-btn:focus-visible,.ms-inline-add button:focus-visible,.ms-order-actions button:focus-visible,.ms-x:focus-visible,.ms-tab:focus-visible,.ms-switch:focus-within{outline:3px solid rgba(35,104,168,.3);outline-offset:2px}.ms-value-row input,.ms-rule-row input,.ms-rule-row select,.ms-repair-row input,.ms-repair-row select,.ms-price-cell input,.ms-price-cell select,.ms-inline-add input,.ms-inline-add select,.ms-field input,.ms-field textarea{box-sizing:border-box;min-height:42px}.ms-switch{min-height:42px}.ms-switch--compact{min-height:38px}.ms-matrix-wrap{max-width:100%;overscroll-behavior-inline:contain;padding-bottom:7px;-webkit-overflow-scrolling:touch}.ms-catalog-matrix th:first-child{left:0;position:sticky;z-index:2}.ms-catalog-matrix thead th:first-child{z-index:3}.ms-order-actions button{min-height:36px;min-width:36px}.ms-row-actions{flex-wrap:wrap}
+html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollbar-gutter:stable}body.ms-modal-open{overscroll-behavior:none}.ms-overlay{box-sizing:border-box;overscroll-behavior:contain}.ms-modal{max-height:calc(100dvh - 32px);min-height:0}.ms-mhead,.ms-accent,.ms-foot{flex:0 0 auto}.ms-body{min-height:0;overscroll-behavior:contain;scrollbar-gutter:stable}.ms-foot{box-shadow:0 -8px 22px rgba(18,49,83,.07);position:relative;z-index:2}.ms-service-card,.ms-rule-row,.ms-repair-row,.ms-value-row{min-width:0}.ms-service-card__head>div,.ms-service-card__foot>span{min-width:0}.ms-service-card h2,.ms-service-card p,.ms-service-card__foot span{overflow-wrap:anywhere}.ms-service-card__foot{flex-wrap:wrap}.ms-edit-button,.ms-btn,.ms-inline-add button{min-height:42px}.ms-edit-button:focus-visible,.ms-btn:focus-visible,.ms-inline-add button:focus-visible,.ms-order-actions button:focus-visible,.ms-x:focus-visible,.ms-tab:focus-visible,.ms-switch:focus-within{outline:3px solid rgba(35,104,168,.3);outline-offset:2px}.ms-value-row input,.ms-rule-row input,.ms-rule-row select,.ms-repair-row input,.ms-repair-row select,.ms-price-cell input,.ms-price-cell select,.ms-inline-add input,.ms-inline-add select,.ms-field input,.ms-field textarea{box-sizing:border-box;min-height:42px}.ms-switch{min-height:42px}.ms-switch--compact{min-height:38px}.ms-matrix-wrap{max-width:100%;overscroll-behavior-inline:contain;padding-bottom:7px;-webkit-overflow-scrolling:touch}.ms-catalog-matrix th:first-child{left:0;position:sticky;z-index:2}.ms-catalog-matrix thead th:first-child{z-index:3}.ms-order-actions button{min-height:36px;min-width:36px}.ms-row-actions{flex-wrap:wrap}
 
 .ms-confirm-overlay{align-items:center;background:rgba(8,22,38,.76);display:flex;inset:0;justify-content:center;padding:18px;position:fixed;z-index:2147483300}.ms-confirm-overlay[hidden]{display:none}.ms-confirm-dialog{background:#fff;border:1px solid #cfdae7;border-radius:10px;box-shadow:0 28px 80px rgba(0,0,0,.36);display:grid;gap:14px;grid-template-columns:auto 1fr;max-height:calc(100dvh - 36px);overflow:auto;padding:20px;width:min(470px,calc(100vw - 36px))}.ms-confirm-dialog:focus{outline:none}.ms-confirm-icon{align-items:center;background:#e8f1fb;border-radius:50%;color:var(--ms-navy);display:flex;font-size:20px;font-weight:900;height:42px;justify-content:center;width:42px}.ms-confirm-copy h3{color:var(--ms-navy);font-size:19px;margin:1px 0 7px}.ms-confirm-copy p{color:#536579;font-size:13px;line-height:1.6;margin:0;overflow-wrap:anywhere}.ms-confirm-actions{display:flex;gap:9px;grid-column:1/-1;justify-content:flex-end}.ms-confirm-overlay[data-tone="warning"] .ms-confirm-icon{background:#fff0c9;color:#7a5705}.ms-confirm-overlay[data-tone="warning"] #msConfirmAccept{background:#8a6412}.ms-confirm-overlay[data-tone="warning"] #msConfirmAccept:hover{background:#71500c}
 
@@ -76,6 +76,14 @@ body.ms-modal-open{overflow:hidden}.ms-overlay{box-sizing:border-box;overscroll-
 .ms-overlay.is-covered,
 .ms-confirm-overlay.is-covered {
   pointer-events: none;
+  user-select: none;
+}
+
+.ms-overlay.is-covered .ms-modal {
+  filter: none;
+  opacity: 1;
+  transform: none;
+  visibility: visible;
 }
 
 .ms-modal {
@@ -112,7 +120,8 @@ body.ms-modal-open{overflow:hidden}.ms-overlay{box-sizing:border-box;overscroll-
 }
 
 .ms-confirm-overlay {
-  background: rgba(8,22,38,.62);
+  background: rgba(8,22,38,.42);
+  overscroll-behavior: contain;
   padding: 18px;
   z-index: 2147483300;
 }

@@ -72,6 +72,9 @@ foreach ([
     "closeTopModal",
     "serviceModalStack",
     "syncModalLayers",
+    'entry.layer.inert = covered',
+    'document.documentElement.classList.toggle("ms-modal-open"',
+    'entry.dialog.setAttribute("aria-modal"',
     "updateServiceCard",
     "reportEditorOpenError",
     'event.target.closest("[data-ms-edit]")',
@@ -107,6 +110,8 @@ foreach ([
     "pointer-events: none",
     ".ms-overlay.is-open",
     ".ms-confirm-overlay.is-open",
+    "html.ms-modal-open,body.ms-modal-open",
+    ".ms-overlay.is-covered .ms-modal",
     '.ms-switch>span[aria-hidden="true"]',
     ".ms-status-cell,.ms-arrange-cell",
 ] as $requiredStyle) {
