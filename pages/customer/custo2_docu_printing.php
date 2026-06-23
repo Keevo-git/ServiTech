@@ -20,11 +20,10 @@ $documentColorOptions = [];
 $documentRules = [];
 
 try {
-  $documentPrintingService = servitech_catalog_fetch_service_by_kind($pdo, "document_printing", true);
-
-  if (is_array($documentPrintingService)) {
+  $documentCatalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "document_printing");
+  if (is_array($documentCatalog)) {
+    $documentPrintingService = $documentCatalog["service"] ?? [];
     $documentCatalogServiceId = (int)($documentPrintingService["id"] ?? 0);
-    $documentCatalog = servitech_catalog_fetch($pdo, $documentCatalogServiceId, true);
     foreach ($documentCatalog["groups"] as $group) {
       if (($group["group_key"] ?? "") === "paper_size") $documentPaperOptions = $group["values"] ?? [];
       if (($group["group_key"] ?? "") === "color_option") $documentColorOptions = $group["values"] ?? [];
@@ -34,7 +33,12 @@ try {
     $documentColorOptions = servitech_catalog_values_used_by_rules($documentColorOptions, $documentRules, "color_option");
   }
 } catch (Throwable $e) {
-  // Keep the order form usable if the service table is unavailable.
+  $documentCatalog = null;
+}
+if (!is_array($documentCatalog)) {
+  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "Document Printing is currently unavailable."];
+  header("Location: /pages/customer/custo1_printing_option.php");
+  exit;
 }
 
 if (is_array($sessionPrintDraft)) {

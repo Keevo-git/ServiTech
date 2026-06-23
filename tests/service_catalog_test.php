@@ -132,6 +132,32 @@ catalog_test_assert(servitech_catalog_rule_has_customer_price(["price_type" => "
 catalog_test_assert(!servitech_catalog_rule_has_customer_price(["price_type" => "fixed", "price" => ""]), "A blank fixed price must not be customer-selectable.");
 catalog_test_assert(!servitech_catalog_rule_has_customer_price(["price_type" => "fixed", "price" => 0]), "A zero fixed price must not be customer-selectable.");
 
+$activeDocumentService = ["id" => 1, "category" => "printing", "name" => "Document Printing", "active" => 1];
+$documentAvailability = servitech_catalog_customer_availability($activeDocumentService, $shortBondCatalog);
+catalog_test_assert(!empty($documentAvailability["available"]), "Active Document Printing with a complete fixed combination must be customer-visible.");
+$assessmentDocument = $shortBondCatalog;
+$assessmentDocument["rules"][0]["price_type"] = "assessment";
+$assessmentDocument["rules"][0]["price"] = null;
+catalog_test_assert(
+    empty(servitech_catalog_customer_availability($activeDocumentService, $assessmentDocument)["available"]),
+    "Document Printing must stay hidden until it has a fixed active price combination."
+);
+$inactiveDocumentService = $activeDocumentService;
+$inactiveDocumentService["active"] = 0;
+catalog_test_assert(
+    empty(servitech_catalog_customer_availability($inactiveDocumentService, $shortBondCatalog)["available"]),
+    "Inactive services must never be customer-visible even when pricing is complete."
+);
+
+$rushAddonOnly = [
+    "groups" => [["group_key" => "addon", "active" => 1, "values" => [catalog_test_value("retouch", "Retouch")]]],
+    "rules" => [["rule_key" => "retouch", "option_value_keys" => ["addon" => "retouch"], "price" => 25, "price_type" => "fixed", "active" => 1]],
+];
+catalog_test_assert(
+    empty(servitech_catalog_customer_availability(["category" => "printing", "name" => "Rush ID", "active" => 1], $rushAddonOnly)["available"]),
+    "Rush ID add-ons without an active package must not expose the service to customers."
+);
+
 foreach ([
     [["category" => "printing", "name" => "Rush ID"], "package", "package_7", "Package 7"],
     [["category" => "printing", "name" => "Rush ID"], "addon", "retouch", "Photo Retouch"],

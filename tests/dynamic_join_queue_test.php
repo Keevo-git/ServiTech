@@ -118,6 +118,8 @@ foreach (["custo2_docu_printing.php", "custo2_xerox.php"] as $matrixForm) {
 $publicApiSource = file_get_contents(__DIR__ . "/../api/services_public.php") ?: "";
 dynamic_queue_assert(str_contains($publicApiSource, "id = :id AND active = TRUE"), "Landing service details must resolve active services by database ID.");
 dynamic_queue_assert(!str_contains($publicApiSource, "name = :name"), "Landing service details must not depend on editable display-name equality.");
+dynamic_queue_assert(str_contains($publicApiSource, "servitech_catalog_customer_availability"), "Landing service lists must hide active services with incomplete pricing.");
 dynamic_queue_assert(str_contains($mainSource, "buildCatalogMatrixCards"), "Landing price cards must be built from active dynamic catalog rules.");
+dynamic_queue_assert(str_contains($mainSource, "serviceDataLoadPromise = loadServicesFromDatabase()"), "Landing modals must re-fetch the database catalog when opened.");
 
 echo "Dynamic Join Queue tests passed.\n";

@@ -79,6 +79,60 @@ function servitech_catalog_customer_rules_from_admin_catalog(array $catalog): ar
   }));
 }
 
+function servitech_catalog_customer_primary_rules(array $service, array $catalog): array {
+  if (empty($service["active"])) return [];
+
+  $kind = servitech_catalog_service_kind($service);
+  $rules = servitech_catalog_customer_rules_from_admin_catalog($catalog);
+  if ($kind === "document_printing") {
+    return array_values(array_filter(
+      $rules,
+      static fn($rule) => ($rule["price_type"] ?? "fixed") === "fixed"
+    ));
+  }
+  if ($kind === "rush_id") {
+    return array_values(array_filter(
+      $rules,
+      static fn($rule) => isset($rule["option_value_keys"]["package"])
+    ));
+  }
+
+  if ($kind === "installation") {
+    $deviceMode = false;
+    foreach ($catalog["groups"] ?? [] as $group) {
+      if (($group["group_key"] ?? "") === "device_type" && !empty($group["active"])) {
+        $deviceMode = true;
+        break;
+      }
+    }
+    return array_values(array_filter($rules, static function ($rule) use ($deviceMode): bool {
+      $hasDevice = isset($rule["option_value_keys"]["device_type"]);
+      return $deviceMode ? $hasDevice : !$hasDevice;
+    }));
+  }
+
+  return $rules;
+}
+
+function servitech_catalog_customer_availability(array $service, array $catalog): array {
+  if (empty($service["active"])) {
+    return [
+      "available" => false,
+      "reason" => "This service is Inactive and is hidden from customers.",
+    ];
+  }
+
+  $rules = servitech_catalog_customer_primary_rules($service, $catalog);
+  if (!$rules) {
+    return [
+      "available" => false,
+      "reason" => "This service is Active, but it will not appear to customers until at least one active option has a complete price setup.",
+    ];
+  }
+
+  return ["available" => true, "reason" => ""];
+}
+
 function servitech_catalog_service_dedupe_score(array $service): int {
   $kind = servitech_catalog_service_kind($service);
   $name = strtolower(trim((string)($service["name"] ?? "")));
@@ -374,6 +428,20 @@ function servitech_catalog_fetch_service_by_kind(PDO $pdo, string $kind, bool $a
   return is_array($service) ? $service : null;
 }
 
+function servitech_catalog_fetch_customer_catalog_by_kind(PDO $pdo, string $kind): ?array {
+  $service = servitech_catalog_fetch_service_by_kind($pdo, $kind, true);
+  if (!$service) return null;
+
+  try {
+    $catalog = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+  } catch (Throwable $e) {
+    return null;
+  }
+
+  $availability = servitech_catalog_customer_availability($service, $catalog);
+  return !empty($availability["available"]) ? $catalog : null;
+}
+
 function servitech_catalog_fetch(PDO $pdo, int $serviceId, bool $activeOnly = true): array {
   $service = servitech_catalog_fetch_service($pdo, $serviceId, $activeOnly);
   if (!$service) {
@@ -475,10 +543,10 @@ function servitech_catalog_fetch(PDO $pdo, int $serviceId, bool $activeOnly = tr
     }));
   }
 
-  $rangeRules = $rules;
-  if (servitech_catalog_service_kind($service) === "rush_id") {
-    $rangeRules = array_values(array_filter($rules, static fn($rule) => isset($rule["option_value_keys"]["package"])));
-  }
+  $rangeRules = servitech_catalog_customer_primary_rules($service, [
+    "groups" => $groups,
+    "rules" => $rules,
+  ]);
   $service["catalog_price_range"] = servitech_catalog_price_range_from_rules($rangeRules);
   return [
     "service" => $service,

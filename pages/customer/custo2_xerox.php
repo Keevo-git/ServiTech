@@ -15,11 +15,10 @@ $xeroxPaperOptions = [];
 $xeroxColorOptions = [];
 
 try {
-  $xeroxService = servitech_catalog_fetch_service_by_kind($pdo, "photocopy", true);
-
-  if (is_array($xeroxService)) {
+  $catalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "photocopy");
+  if (is_array($catalog)) {
+    $xeroxService = $catalog["service"] ?? [];
     $xeroxCatalogServiceId = (int)($xeroxService["id"] ?? 0);
-    $catalog = servitech_catalog_fetch($pdo, $xeroxCatalogServiceId, true);
     foreach ($catalog["groups"] as $group) {
       if (($group["group_key"] ?? "") === "paper_size") $xeroxPaperOptions = $group["values"] ?? [];
       if (($group["group_key"] ?? "") === "color_option") $xeroxColorOptions = $group["values"] ?? [];
@@ -29,7 +28,12 @@ try {
     $xeroxColorOptions = servitech_catalog_values_used_by_rules($xeroxColorOptions, $xeroxCatalogRules, "color_option");
   }
 } catch (Throwable $e) {
-  // Keep the photocopy form usable if service pricing cannot be loaded.
+  $catalog = null;
+}
+if (!is_array($catalog ?? null)) {
+  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "Photocopy is currently unavailable."];
+  header("Location: /pages/customer/custo1_printing_option.php");
+  exit;
 }
 
 ?>

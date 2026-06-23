@@ -306,6 +306,7 @@
     editButton.dataset.serviceName = buttonData.name;
 
     const card = editButton.closest(".ms-service-card");
+    if (!card) return;
     const heading = qs("h2", card);
     const description = qs(".ms-service-card__head + p", card);
     const status = qs(".ms-pill", card);
@@ -317,10 +318,28 @@
       status.classList.toggle("off", buttonData.active !== 1);
       status.textContent = buttonData.active === 1 ? "Active" : "Inactive";
     }
-    if (price && service.catalog_price_range) {
+    if (price) {
       const label = document.createElement("strong");
       label.textContent = "Customer price:";
-      price.replaceChildren(label, document.createTextNode(` ${service.catalog_price_range}`));
+      price.replaceChildren(label, document.createTextNode(` ${service.catalog_price_range || "Catalog unavailable"}`));
+    }
+
+    const grid = card?.parentElement;
+    if (grid) {
+      qsa(".ms-service-card", grid)
+        .sort((left, right) => {
+          const leftButton = qs("[data-ms-edit]", left);
+          const rightButton = qs("[data-ms-edit]", right);
+          const read = (button) => {
+            try { return JSON.parse(button?.getAttribute("data-ms-edit") || "{}"); }
+            catch (_) { return {}; }
+          };
+          const leftData = read(leftButton);
+          const rightData = read(rightButton);
+          return Number(leftData.sort_order || 0) - Number(rightData.sort_order || 0)
+            || Number(leftData.id || 0) - Number(rightData.id || 0);
+        })
+        .forEach((item) => grid.appendChild(item));
     }
   }
 
@@ -350,6 +369,31 @@
     return Number(rule?.active) === 1
       && ruleHasValidPrice(rule)
       && Object.entries(rule.option_value_keys || {}).every(([groupKey, valueKey]) => optionValueIsActive(groupKey, valueKey));
+  }
+
+  function customerPrimarySelectableRules() {
+    const rules = (catalog?.rules || []).filter(ruleIsCustomerSelectable);
+    if (currentKind === "document_printing") {
+      return rules.filter((rule) => rule.price_type !== "assessment");
+    }
+    if (currentKind === "rush_id") {
+      return rules.filter((rule) => Object.prototype.hasOwnProperty.call(rule.option_value_keys || {}, "package"));
+    }
+    if (currentKind === "installation") {
+      const deviceMode = Number(group("device_type")?.active) === 1;
+      return rules.filter((rule) => {
+        const hasDevice = Object.prototype.hasOwnProperty.call(rule.option_value_keys || {}, "device_type");
+        return deviceMode ? hasDevice : !hasDevice;
+      });
+    }
+    return rules;
+  }
+
+  function serviceAvailabilityWarning() {
+    if (!fields.active?.checked) return "";
+    return customerPrimarySelectableRules().length
+      ? ""
+      : "This service is Active, but it will not appear to customers until at least one active option has a complete price setup.";
   }
 
   function optionVisibilityWarning(groupKey, value) {
@@ -722,12 +766,15 @@
 
   function render() {
     if (!catalog || !currentKind) return;
-    if (currentKind === "document_printing" || currentKind === "photocopy") editor.innerHTML = matrixEditor();
-    else if (currentKind === "rush_id") editor.innerHTML = rushEditor();
-    else if (currentKind === "laminating") editor.innerHTML = simpleRuleRows("lamination_type", "Laminating Options", "New laminating type", { nameLabel: "Type" });
-    else if (currentKind === "scanning") editor.innerHTML = simpleRuleRows("paper_size", "Scanning Paper Sizes", "New paper size", { nameLabel: "Paper Size" });
-    else if (currentKind === "repair") editor.innerHTML = repairEditor();
-    else if (currentKind === "installation") editor.innerHTML = installationEditor();
+    let content = "";
+    if (currentKind === "document_printing" || currentKind === "photocopy") content = matrixEditor();
+    else if (currentKind === "rush_id") content = rushEditor();
+    else if (currentKind === "laminating") content = simpleRuleRows("lamination_type", "Laminating Options", "New laminating type", { nameLabel: "Type" });
+    else if (currentKind === "scanning") content = simpleRuleRows("paper_size", "Scanning Paper Sizes", "New paper size", { nameLabel: "Paper Size" });
+    else if (currentKind === "repair") content = repairEditor();
+    else if (currentKind === "installation") content = installationEditor();
+    const warning = serviceAvailabilityWarning();
+    editor.innerHTML = `${warning ? `<div class="ms-option-warning ms-service-warning" role="status">${escapeHtml(warning)}</div>` : ""}${content}`;
   }
 
   function syncFromDom({ includeStatus = true } = {}) {
@@ -1032,6 +1079,7 @@
       name: data.name || "",
       description: data.description || "",
       active: Number(data.active) === 1,
+      sort_order: Number(data.sort_order || 0),
     };
     currentKind = kind;
     const serviceNameField = qs("#msServiceNameField");
@@ -1128,7 +1176,8 @@
     const serviceChanged = !originalServiceSnapshot
       || fields.name.value.trim() !== originalServiceSnapshot.name
       || fields.description.value.trim() !== originalServiceSnapshot.description
-      || fields.active.checked !== originalServiceSnapshot.active;
+      || fields.active.checked !== originalServiceSnapshot.active
+      || Number(fields.sort.value || 0) !== originalServiceSnapshot.sort_order;
     if (!catalogChanged && !serviceChanged) {
       window.servitechAdminToast?.show?.("No service changes to save.", "info");
       return;
@@ -1172,6 +1221,7 @@
         name: fields.name.value.trim(),
         description: fields.description.value.trim(),
         active: fields.active.checked,
+        sort_order: Number(fields.sort.value || 0),
       };
       syncServiceStatusLabel();
       updateServiceCard(data.service);

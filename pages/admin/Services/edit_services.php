@@ -90,7 +90,10 @@ require __DIR__ . "/../_includes/admin_header.php";
             if ((int)$s["active"]) {
               try {
                 $catalog = servitech_catalog_fetch($pdo, (int)$s["id"], true);
-                $catalogPriceRange = (string)($catalog["service"]["catalog_price_range"] ?? "For assessment");
+                $availability = servitech_catalog_customer_availability($s, $catalog);
+                $catalogPriceRange = !empty($availability["available"])
+                  ? (string)($catalog["service"]["catalog_price_range"] ?? "For assessment")
+                  : "Catalog unavailable";
               } catch (Throwable $e) {
                 // Keep the explicit unavailable state until this service has an active catalog.
               }
@@ -156,7 +159,6 @@ require __DIR__ . "/../_includes/admin_header.php";
     <div class="ms-body">
       <input type="hidden" id="ms_id" value="">
       <input type="hidden" id="ms_category">
-      <input type="hidden" id="ms_sort">
 
       <div class="ms-service-status">
         <div>
@@ -180,6 +182,11 @@ require __DIR__ . "/../_includes/admin_header.php";
         <div class="ms-field">
           <textarea id="ms_description" placeholder="Short customer-facing note for this service"></textarea>
           <small>This text appears with the service on customer-facing pages.</small>
+        </div>
+        <div class="ms-field">
+          <label for="ms_sort">Service display order</label>
+          <input id="ms_sort" type="number" min="0" max="9999" step="1">
+          <small>Lower numbers appear first in customer and admin service lists.</small>
         </div>
       </details>
 
@@ -216,7 +223,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260623-deep-scroll-stack') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260623-realtime-catalog') ?>"></script>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>

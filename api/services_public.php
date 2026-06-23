@@ -40,16 +40,19 @@ if ($action === "list" && $category) {
             servitech_catalog_dedupe_services($stmt->fetchAll(PDO::FETCH_ASSOC)),
             static fn($service) => (int)($service["active"] ?? 0) === 1
         ));
-        foreach ($services as &$service) {
+        $availableServices = [];
+        foreach ($services as $service) {
             try {
                 $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+                $availability = servitech_catalog_customer_availability($service, $service["catalog"]);
+                if (empty($availability["available"])) continue;
                 $service["catalog_price_range"] = (string)($service["catalog"]["service"]["catalog_price_range"] ?? "");
             } catch (Throwable $e) {
-                $service["catalog"] = null;
-                $service["catalog_price_range"] = "";
+                continue;
             }
+            $availableServices[] = $service;
         }
-        unset($service);
+        $services = $availableServices;
 
         respond([
             "ok" => true,
@@ -92,10 +95,13 @@ if ($action === "detail" && $category) {
 
         try {
             $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+            $availability = servitech_catalog_customer_availability($service, $service["catalog"]);
+            if (empty($availability["available"])) {
+                respond(["ok" => false, "error" => "Service is not currently available"]);
+            }
             $service["catalog_price_range"] = (string)($service["catalog"]["service"]["catalog_price_range"] ?? "");
         } catch (Throwable $e) {
-            $service["catalog"] = null;
-            $service["catalog_price_range"] = "";
+            respond(["ok" => false, "error" => "Service is not currently available"]);
         }
 
         respond([

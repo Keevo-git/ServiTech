@@ -3,6 +3,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
 require_once __DIR__ . "/../../api/upload_helpers.php";
+require_once __DIR__ . "/../../api/service_catalog.php";
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
@@ -32,6 +33,18 @@ function format_fullname($name) {
 $display_name = format_fullname($fullname);
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
+$dashboardDocumentPrintingAvailable = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "document_printing") !== null;
+$dashboardPrintingAvailable = $dashboardDocumentPrintingAvailable;
+foreach (["photocopy", "rush_id", "laminating", "scanning"] as $printingKind) {
+  if (servitech_catalog_fetch_customer_catalog_by_kind($pdo, $printingKind) !== null) {
+    $dashboardPrintingAvailable = true;
+    break;
+  }
+}
+$dashboardRepairAvailable = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "repair") !== null;
+$dashboardInstallationAvailable = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "installation") !== null;
+$dashboardPrintingCurrentlyUsable = $dashboardDocumentPrintingAvailable
+  || ($storeAvailability["regular_queue_allowed"] && $dashboardPrintingAvailable);
 $dashboardStatusKey = strtolower((string)($storeAvailability["effective_status"] ?? $storeAvailability["reason_code"] ?? "closed"));
 $dashboardStatusTone = [
   "open" => "open",
@@ -1093,7 +1106,7 @@ unset($_SESSION["servitech_customer_toast"]);
           </div>
           <div>
             <dt>Document Printing</dt>
-            <dd data-store-status-document-print>Available</dd>
+            <dd data-store-status-document-print><?= $dashboardDocumentPrintingAvailable ? "Available" : "Unavailable" ?></dd>
           </div>
         </dl>
         <p class="customer-hero__availability-message" data-store-status-message><?= htmlspecialchars($storeAvailability["customer_message"], ENT_QUOTES, "UTF-8") ?></p>
@@ -1110,15 +1123,23 @@ unset($_SESSION["servitech_customer_toast"]);
     </div>
 
     <div class="queue-service-options dashboard-service-options" role="group" aria-label="Choose a service">
+      <?php if ($dashboardPrintingCurrentlyUsable): ?>
       <a href="/pages/customer/custo1_printing_option.php?new_queue=1" class="queue-service-card">
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Print</span>
-        <?php if (!$storeAvailability["regular_queue_allowed"]): ?><span class="queue-unavailable-note">Document Printing is available with GCash.</span><?php endif; ?>
+        <?php if (!$storeAvailability["regular_queue_allowed"] && $dashboardDocumentPrintingAvailable): ?><span class="queue-unavailable-note">Document Printing is available with GCash.</span><?php endif; ?>
       </a>
+      <?php else: ?>
+      <div class="queue-service-card" aria-disabled="true" title="<?= htmlspecialchars($dashboardPrintingAvailable ? $dashboardRestrictionMessage : "No active printing service has a complete price setup.", ENT_QUOTES, "UTF-8") ?>">
+        <span class="queue-service-card__media"><img src="/assets/images/CARD_PRINTING.png" alt="" aria-hidden="true"></span>
+        <span class="queue-service-card__label">Print</span>
+        <span class="queue-unavailable-note"><?= htmlspecialchars($dashboardPrintingAvailable ? $dashboardRestrictionMessage : "No printing services are currently available.", ENT_QUOTES, "UTF-8") ?></span>
+      </div>
+      <?php endif; ?>
 
-      <?php if ($storeAvailability["regular_queue_allowed"]): ?>
+      <?php if ($storeAvailability["regular_queue_allowed"] && $dashboardRepairAvailable): ?>
       <a href="/pages/customer/custo1_repair_option.php?new_queue=1" class="queue-service-card">
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
@@ -1131,11 +1152,11 @@ unset($_SESSION["servitech_customer_toast"]);
           <img src="/assets/images/CARD_REPAIR.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Repair</span>
-        <span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span>
+        <span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRepairAvailable ? $dashboardRestrictionMessage : "Repair is currently inactive or missing a complete price setup.", ENT_QUOTES, "UTF-8") ?></span>
       </div>
       <?php endif; ?>
 
-      <?php if ($storeAvailability["regular_queue_allowed"]): ?>
+      <?php if ($storeAvailability["regular_queue_allowed"] && $dashboardInstallationAvailable): ?>
       <a href="/pages/customer/custo1_installation_option.php?new_queue=1" class="queue-service-card">
         <span class="queue-service-card__media">
           <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
@@ -1148,7 +1169,7 @@ unset($_SESSION["servitech_customer_toast"]);
           <img src="/assets/images/CARD_INSTALLATION.png" alt="" aria-hidden="true">
         </span>
         <span class="queue-service-card__label">Installation</span>
-        <span class="queue-unavailable-note"><?= htmlspecialchars($dashboardRestrictionMessage, ENT_QUOTES, "UTF-8") ?></span>
+        <span class="queue-unavailable-note"><?= htmlspecialchars($dashboardInstallationAvailable ? $dashboardRestrictionMessage : "Installation is currently inactive or missing a complete price setup.", ENT_QUOTES, "UTF-8") ?></span>
       </div>
       <?php endif; ?>
     </div>

@@ -14,18 +14,24 @@ $scanningCatalogRules = [];
 $scanningServiceName = "Scanning";
 
 try {
-  $scanningService = servitech_catalog_fetch_service_by_kind($pdo, "scanning", true);
-  if (is_array($scanningService)) {
+  $catalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "scanning");
+  if (is_array($catalog)) {
+    $scanningService = $catalog["service"] ?? [];
     $scanningCatalogServiceId = (int)($scanningService["id"] ?? 0);
     $scanningServiceName = trim((string)($scanningService["name"] ?? "")) ?: "Scanning";
-    $catalog = servitech_catalog_fetch($pdo, $scanningCatalogServiceId, true);
     $scanningCatalogRules = array_values(array_filter(
       $catalog["rules"] ?? [],
       static fn($rule) => !empty($rule["option_value_keys"]["paper_size"])
     ));
   }
 } catch (Throwable $e) {
+  $catalog = null;
   $scanningCatalogRules = [];
+}
+if (!is_array($catalog ?? null)) {
+  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "Scanning is currently unavailable."];
+  header("Location: /pages/customer/custo1_printing_option.php");
+  exit;
 }
 ?>
 <!DOCTYPE html>

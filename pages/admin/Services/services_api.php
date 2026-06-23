@@ -5,6 +5,8 @@ require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../../../api/service_catalog.php";
 
 header("Content-Type: application/json; charset=utf-8");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
 servitech_enforce_csrf_token(true);
 
 
@@ -65,8 +67,8 @@ if ($action === "save") {
     $description = trim((string)($_POST["description"] ?? ""));
     $catalogJsonRaw = trim((string)($_POST["catalog_json"] ?? ""));
     $catalogData = null;
-    $active = isset($_POST["active"]) ? (int)($_POST["active"]) : 1;
-    $sort_order = isset($_POST["sort_order"]) ? (int)($_POST["sort_order"]) : 0;
+    $active = !empty($_POST["active"]) ? 1 : 0;
+    $sort_order = max(0, min(9999, (int)($_POST["sort_order"] ?? 0)));
 
     if ($id <= 0) respond(["ok" => false, "error" => "New top-level services cannot be added here. Edit one of the configured services instead."]);
 
@@ -108,22 +110,9 @@ if ($action === "save") {
         }
         if (!is_array($catalogData)) throw new DomainException("Service options are required.");
         $catalogData = servitech_catalog_normalize_admin_payload($existing, $catalogData);
-        $activeRules = servitech_catalog_customer_rules_from_admin_catalog($catalogData);
-        if (servitech_catalog_service_kind($existing) === "rush_id") {
-            $activeRules = array_values(array_filter($activeRules, static fn($rule) => isset($rule["option_value_keys"]["package"])));
-        } elseif (servitech_catalog_service_kind($existing) === "installation") {
-            $deviceMode = false;
-            foreach ($catalogData["groups"] as $group) {
-                if (($group["group_key"] ?? "") === "device_type" && !empty($group["active"])) {
-                    $deviceMode = true;
-                    break;
-                }
-            }
-            $activeRules = array_values(array_filter($activeRules, static function ($rule) use ($deviceMode): bool {
-                $hasDevice = isset($rule["option_value_keys"]["device_type"]);
-                return $deviceMode ? $hasDevice : !$hasDevice;
-            }));
-        }
+        $serviceForAvailability = $existing;
+        $serviceForAvailability["active"] = $active;
+        $activeRules = servitech_catalog_customer_primary_rules($serviceForAvailability, $catalogData);
         $priceRange = servitech_catalog_price_range_from_rules($activeRules);
 
         $pdo->beginTransaction();
@@ -145,25 +134,32 @@ if ($action === "save") {
             ":description" => $description,
             ":price_range" => $priceRange,
             ":active" => servitech_catalog_bool_param($active),
-            ":sort_order" => (int)$existing["sort_order"],
+            ":sort_order" => $sort_order,
             ":id" => $id,
         ]);
         servitech_catalog_upsert($pdo, $id, $catalogData);
+        $savedCatalog = servitech_catalog_fetch($pdo, $id, false);
+        $savedService = $savedCatalog["service"];
+        $availability = servitech_catalog_customer_availability($savedService, $savedCatalog);
         $pdo->commit();
         respond([
             "ok" => true,
             "id" => $id,
-            "message" => $name . " updated successfully.",
+            "message" => $name . " updated successfully. Changes saved. Please refresh any customer page that was already open to see updated service availability.",
             "service" => [
                 "id" => $id,
                 "category" => $category,
                 "name" => $name,
                 "description" => $description,
                 "active" => $active ? 1 : 0,
-                "sort_order" => (int)$existing["sort_order"],
-                "catalog_price_range" => $active ? ($priceRange ?: "For assessment") : "Not shown to customers",
+                "sort_order" => $sort_order,
+                "catalog_price_range" => !$active
+                    ? "Not shown to customers"
+                    : (!empty($availability["available"]) ? ($priceRange ?: "For assessment") : "Catalog unavailable"),
+                "customer_available" => !empty($availability["available"]),
+                "availability_warning" => (string)($availability["reason"] ?? ""),
             ],
-            "catalog" => $catalogData,
+            "catalog" => $savedCatalog,
         ]);
     } catch (DomainException $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();

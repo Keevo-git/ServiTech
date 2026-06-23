@@ -30,15 +30,20 @@ function laminating_rule_label(array $rule): string {
 }
 
 try {
-  $laminatingService = servitech_catalog_fetch_service_by_kind($pdo, "laminating", true);
-  if ($laminatingService) {
+  $catalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "laminating");
+  if (is_array($catalog)) {
+    $laminatingService = $catalog["service"] ?? [];
     $laminatingCatalogServiceId = (int)($laminatingService["id"] ?? 0);
     $laminatingServiceName = trim((string)($laminatingService["name"] ?? "")) ?: "Laminating";
-    $catalog = servitech_catalog_fetch($pdo, $laminatingCatalogServiceId, true);
     $laminatingCatalogRules = $catalog["rules"] ?? [];
   }
 } catch (Throwable $e) {
-  // Keep the Laminating form usable if service pricing cannot be loaded.
+  $catalog = null;
+}
+if (!is_array($catalog ?? null)) {
+  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "Laminating is currently unavailable."];
+  header("Location: /pages/customer/custo1_printing_option.php");
+  exit;
 }
 ?>
 

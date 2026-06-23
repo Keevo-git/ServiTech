@@ -24,7 +24,17 @@ try {
   ");
   $stmt->execute();
   $printingServiceRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-  $printingServices = servitech_catalog_dedupe_services($printingServiceRows, false);
+  $printingServices = array_values(array_filter(
+    servitech_catalog_dedupe_services($printingServiceRows, false),
+    static function (array $service) use ($pdo): bool {
+      try {
+        $catalog = servitech_catalog_fetch($pdo, (int)$service["id"], true);
+        return !empty(servitech_catalog_customer_availability($service, $catalog)["available"]);
+      } catch (Throwable $e) {
+        return false;
+      }
+    }
+  ));
 } catch (Throwable $e) {
   $printingServiceLoadError = $e->getMessage();
   error_log("ServiTech printing service selection query failed: " . $e->getMessage());

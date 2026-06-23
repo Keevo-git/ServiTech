@@ -242,42 +242,6 @@ const serviceModalDetailData = {
   rushId: { title: "Rush ID Packages", cards: [] },
 };
 
-function renderServiceModalBody(service) {
-  return `
-    <div class="service-grid">
-      ${service.cards
-        .map((card) => {
-          const clickable = card.detailKey ? " clickable" : "";
-          const extra = card.detailKey ? `<p class="more-details">Click for more details</p>` : "";
-
-          return `
-        <div class="detail-card${clickable}" data-detail-key="${card.detailKey || ""}">
-          <h4>${card.title}</h4>
-          ${card.lines.map((line) => `<p>${line}</p>`).join("")}
-          ${extra}
-        </div>`;
-        })
-        .join("")}
-    </div>
-  `;
-}
-
-function renderServiceDetailModalBody(detail) {
-  return `
-    <div class="service-grid">
-      ${detail.cards
-        .map(
-          (card) => `
-        <div class="detail-card">
-          <h4>${card.title}</h4>
-          ${card.lines.map((line) => `<p>${line}</p>`).join("")}
-        </div>`
-        )
-        .join("")}
-    </div>
-  `;
-}
-
 function bindServiceDetailCards(bodyEl) {
   bodyEl.querySelectorAll(".detail-card.clickable").forEach((card) => {
     const detailKey = card.dataset.detailKey;
@@ -299,71 +263,6 @@ function displayServiceName(name) {
     .replace(/\bDocument\s+Printing\b/gi, "Document Print")
     .replace(/\bPrinting\s+Service\b/gi, "Print Service")
     .replace(/\bPrinting\b/g, "Print");
-}
-
-async function openServiceModal(sectionId) {
-  if (serviceDataLoadPromise) {
-    try {
-      await serviceDataLoadPromise;
-    } catch (error) {
-      console.error("Service data load failed:", error);
-    }
-  }
-
-  const service = serviceModalData[sectionId];
-  if (!service) return;
-
-  const overlay = document.getElementById("service-modal");
-  const titleEl = document.getElementById("service-modal-title");
-  const bodyEl = document.getElementById("service-modal-body");
-  if (!overlay || !titleEl || !bodyEl) return;
-
-  titleEl.textContent = service.title;
-  bodyEl.innerHTML = renderServiceModalBody(service);
-  bindServiceDetailCards(bodyEl);
-
-  overlay.style.display = "flex";
-  syncBodyScrollLock();
-  document.addEventListener("keydown", escCloseServiceModal);
-}
-
-function openServiceDetailModal(detailKey) {
-  const detail = serviceModalDetailData[detailKey];
-  if (!detail) return;
-
-  const overlay = document.getElementById("service-detail-modal");
-  const titleEl = document.getElementById("service-detail-modal-title");
-  const bodyEl = document.getElementById("service-detail-modal-body");
-  if (!overlay || !titleEl || !bodyEl) return;
-
-  titleEl.textContent = detail.title;
-  bodyEl.innerHTML = renderServiceDetailModalBody(detail);
-
-  overlay.style.display = "flex";
-  syncBodyScrollLock();
-  document.addEventListener("keydown", escCloseServiceDetailModal);
-}
-
-function closeServiceModal() {
-  const overlay = document.getElementById("service-modal");
-  const bodyEl = document.getElementById("service-modal-body");
-
-  if (overlay) overlay.style.display = "none";
-  if (bodyEl) bodyEl.innerHTML = "";
-
-  document.removeEventListener("keydown", escCloseServiceModal);
-  syncBodyScrollLock();
-}
-
-function closeServiceDetailModal() {
-  const overlay = document.getElementById("service-detail-modal");
-  const bodyEl = document.getElementById("service-detail-modal-body");
-
-  if (overlay) overlay.style.display = "none";
-  if (bodyEl) bodyEl.innerHTML = "";
-
-  document.removeEventListener("keydown", escCloseServiceDetailModal);
-  syncBodyScrollLock();
 }
 
 function escCloseServiceModal(e) {
@@ -560,41 +459,6 @@ async function loadServicesFromDatabase() {
   }
 }
 
-function parseDescriptionBlocks(description) {
-  const blocks = description
-    .split(/\r?\n\s*\r?\n/)
-    .map((block) => block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean))
-    .filter((block) => block.length > 0);
-
-  return blocks.map((block) => {
-    if (block.length === 1) {
-      return { title: block[0], lines: [] };
-    }
-    return {
-      title: block[0],
-      lines: block.slice(1),
-    };
-  });
-}
-
-async function fetchServiceDetail(category, serviceId) {
-  try {
-    const url = `${servitechUrl(`/api/services_public.php`)}?action=detail&category=${encodeURIComponent(category)}&id=${encodeURIComponent(serviceId)}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const data = await response.json();
-    if (!data.ok || !data.service) {
-      throw new Error(data.error || "Service not found");
-    }
-
-    return data.service;
-  } catch (error) {
-    console.error("Error fetching service detail:", error);
-    return null;
-  }
-}
-
 function renderServiceModalBody(service) {
   return `
     <div class="service-grid">
@@ -666,12 +530,12 @@ function renderServiceDetailModalBody(detail) {
 }
 
 async function openServiceModal(sectionId) {
-  if (serviceDataLoadPromise) {
-    try {
-      await serviceDataLoadPromise;
-    } catch (error) {
-      console.error("Service data load failed:", error);
-    }
+  try {
+    if (serviceDataLoadPromise) await serviceDataLoadPromise;
+    serviceDataLoadPromise = loadServicesFromDatabase();
+    await serviceDataLoadPromise;
+  } catch (error) {
+    console.error("Service data load failed:", error);
   }
 
   const service = serviceModalData[sectionId];

@@ -14,18 +14,22 @@ $rushPackageRules = [];
 $rushAddonRules = [];
 
 try {
-  $rushService = servitech_catalog_fetch_service_by_kind($pdo, "rush_id", true);
-
-  if (is_array($rushService)) {
+  $catalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "rush_id");
+  if (is_array($catalog)) {
+    $rushService = $catalog["service"] ?? [];
     $rushCatalogServiceId = (int)($rushService["id"] ?? 0);
-    $catalog = servitech_catalog_fetch($pdo, $rushCatalogServiceId, true);
     foreach (($catalog["rules"] ?? []) as $rule) {
       if (!empty($rule["option_value_keys"]["package"])) $rushPackageRules[] = $rule;
       if (!empty($rule["option_value_keys"]["addon"])) $rushAddonRules[] = $rule;
     }
   }
 } catch (Throwable $e) {
-  // Keep the Rush ID form usable if service pricing cannot be loaded.
+  $catalog = null;
+}
+if (!is_array($catalog ?? null)) {
+  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "RUSH ID is currently unavailable."];
+  header("Location: /pages/customer/custo1_printing_option.php");
+  exit;
 }
 ?>
 

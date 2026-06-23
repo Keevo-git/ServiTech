@@ -1964,6 +1964,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
       const response = await fetch(servitechUrl(`/api/services_public.php?action=list&category=${encodeURIComponent(category)}`), {
         method: "GET",
         credentials: "same-origin",
+        cache: "no-store",
         headers: { "Accept": "application/json" }
       });
       const data = await response.json().catch(() => ({}));
@@ -2647,6 +2648,8 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     }
     editRemovedFileTokens = new Set();
     editRemovedFileIndexes = new Set();
+    const catalogCategory = serviceCatalogCategory(currentDetailQueue || {});
+    if (catalogCategory) delete serviceCatalogCache[catalogCategory];
     renderEditForm(currentDetailQueue || {});
     openEditRequestModal();
   }

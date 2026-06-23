@@ -14,11 +14,11 @@ servitech_store_redirect_customer_unavailable_service($storeAvailability, $repai
 $repairDeviceOptions = [];
 $repairRules = [];
 try {
-  $repairService = servitech_catalog_fetch_service_by_kind($pdo, "repair", true);
-  if (is_array($repairService)) {
+  $catalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "repair");
+  if (is_array($catalog)) {
+    $repairService = $catalog["service"] ?? [];
     $repairServiceId = (int)$repairService["id"];
     $repairServiceName = trim((string)($repairService["name"] ?? "")) ?: $repairServiceName;
-    $catalog = servitech_catalog_fetch($pdo, $repairServiceId, true);
     foreach ($catalog["groups"] as $group) {
       if (($group["group_key"] ?? "") === "device_type") $repairDeviceOptions = $group["values"] ?? [];
     }
@@ -34,8 +34,14 @@ try {
     ));
   }
 } catch (Throwable $e) {
+  $catalog = null;
   $repairDeviceOptions = [];
   $repairRules = [];
+}
+if (!is_array($catalog ?? null)) {
+  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "Repair is currently unavailable."];
+  header("Location: /pages/customer/customer_dash.php");
+  exit;
 }
 ?>
 

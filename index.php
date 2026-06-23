@@ -3,6 +3,8 @@ require_once __DIR__ . "/config/session_check.php"; // use your consistent sessi
 require_once __DIR__ . "/config/app.php";
 require_once __DIR__ . "/config/db.php";
 require_once __DIR__ . "/config/store_availability.php";
+require_once __DIR__ . "/api/service_catalog.php";
+servitech_store_send_no_cache_headers();
 $is_logged_in = servitech_is_logged_in();
 $is_admin = servitech_is_admin();
 $queue_url = $is_admin
@@ -18,6 +20,10 @@ $print_url = $is_admin
 $landingAnnouncement = null;
 $storeAvailability = servitech_store_current_availability($pdo);
 $landingUpcomingHoliday = $storeAvailability["upcoming_holidays"][0] ?? null;
+$landingDocumentPrintingAvailable = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "document_printing") !== null;
+if ($is_logged_in && !$is_admin && !$landingDocumentPrintingAvailable) {
+  $print_url = "/pages/customer/custo1_printing_option.php";
+}
 try {
   $announcementStmt = $pdo->query("
     SELECT title, message
@@ -125,8 +131,6 @@ try {
         role="button"
         tabindex="0"
         aria-label="Open Print Service details"
-        onclick="openServiceModal('printing')"
-        onkeydown="handleServiceCardKeydown(event, 'printing')"
       >
         <img src="/assets/images/CARD_PRINTING.png" alt="Print Service">
         <h3>Print Service</h3>
@@ -138,8 +142,6 @@ try {
         role="button"
         tabindex="0"
         aria-label="Open Device Repair Service details"
-        onclick="openServiceModal('repair')"
-        onkeydown="handleServiceCardKeydown(event, 'repair')"
       >
         <img src="/assets/images/CARD_REPAIR.png" alt="Device Repair">
         <h3>Device Repair Service</h3>
@@ -151,8 +153,6 @@ try {
         role="button"
         tabindex="0"
         aria-label="Open Installation and Software details"
-        onclick="openServiceModal('installation')"
-        onkeydown="handleServiceCardKeydown(event, 'installation')"
       >
         <img src="/assets/images/CARD_INSTALLATION.png" alt="Installation Service">
         <h3>Installation / Software</h3>
@@ -191,7 +191,7 @@ try {
 
         <div class="landing-store-detail landing-store-detail--printing">
           <span class="landing-store-detail__label">Document Printing</span>
-          <strong>Available</strong>
+          <strong><?= $landingDocumentPrintingAvailable ? "Available" : "Unavailable" ?></strong>
         </div>
 
         <?php if (is_array($landingUpcomingHoliday)): ?>
@@ -244,7 +244,7 @@ try {
   <?php include __DIR__ . "/components/footer.php"; ?>
 
   <script src="/assets/js/csrf.js"></script>
-  <script src="/assets/js/main.js?v=20260623-active-order-consistency"></script>
+  <script src="/assets/js/main.js?v=20260623-live-service-catalog"></script>
   <script src="/assets/js/header-menu.js?v=20260613-customer-logout-gap" defer></script>
 </body>
 </html>
