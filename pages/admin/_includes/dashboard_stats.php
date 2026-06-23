@@ -120,7 +120,12 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
 
     $todayQueues = admin_dashboard_safe_count(
         $pdo,
-        "SELECT COUNT(*) FROM queues WHERE created_at >= CURRENT_DATE"
+        "
+        SELECT COUNT(*)
+        FROM queues
+        WHERE (created_at AT TIME ZONE 'Asia/Manila')::date
+            = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
+        "
     );
 
     $todayCompleted = admin_dashboard_safe_count(
@@ -128,7 +133,8 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
         SELECT COUNT(*)
         FROM queues
-        WHERE created_at >= CURRENT_DATE
+        WHERE (created_at AT TIME ZONE 'Asia/Manila')::date
+            = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
           AND UPPER(TRIM(COALESCE(status, ''))) = 'DONE'
         "
     );
@@ -138,7 +144,8 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
         SELECT COUNT(*)
         FROM queues
-        WHERE created_at >= CURRENT_DATE
+        WHERE (created_at AT TIME ZONE 'Asia/Manila')::date
+            = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
           AND UPPER(TRIM(COALESCE(status, ''))) = 'CANCELLED'
         "
     );
