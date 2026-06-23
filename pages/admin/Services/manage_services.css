@@ -80,21 +80,28 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
 }
 
 .ms-overlay.is-covered .ms-modal {
+  backface-visibility: hidden;
   filter: none;
   opacity: 1;
-  transform: none;
+  transform: translateZ(0);
   visibility: visible;
 }
 
 .ms-modal {
   border: 1px solid #d8e3ee;
   border-radius: 12px;
+  box-sizing: border-box;
+  contain: paint;
   display: flex;
   flex-direction: column;
+  height: min(760px, calc(100dvh - 32px));
+  isolation: isolate;
   max-height: calc(100dvh - 32px);
   min-height: 0;
   overflow: hidden;
+  transform: translateZ(0);
   width: min(1180px, calc(100vw - 32px));
+  will-change: transform;
 }
 
 .ms-modal:focus,
@@ -108,9 +115,16 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
 }
 
 .ms-body {
-  flex: 1 1 auto;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  contain: paint;
+  flex: 1 1 0;
+  isolation: isolate;
   min-height: 0;
-  overflow: auto;
+  overflow-anchor: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform: translateZ(0);
 }
 
 .ms-foot {
@@ -229,6 +243,7 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
   }
 
   .ms-modal {
+    height: calc(100dvh - 20px);
     max-height: calc(100dvh - 20px);
     width: min(100%, calc(100vw - 20px));
   }
@@ -253,7 +268,7 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
 @media(max-width:520px) {
   .ms-modal {
     border-radius: 14px;
-    height: auto;
+    height: calc(100dvh - 20px);
     max-height: calc(100dvh - 20px);
     width: calc(100vw - 20px);
   }

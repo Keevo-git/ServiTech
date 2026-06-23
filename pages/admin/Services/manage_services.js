@@ -72,12 +72,28 @@
     return topModal()?.layer === layer;
   }
 
+  function captureScrollPositions(dialog) {
+    if (!dialog) return [];
+    return qsa(".ms-body, .ms-matrix-wrap", dialog).map((element) => ({
+      element,
+      top: element.scrollTop,
+      left: element.scrollLeft,
+    }));
+  }
+
+  function restoreScrollPositions(entry) {
+    (entry?.scrollPositions || []).forEach(({ element, top, left }) => {
+      if (!document.contains(element)) return;
+      element.scrollTop = top;
+      element.scrollLeft = left;
+    });
+  }
+
   function syncModalLayers() {
     serviceModalStack.forEach((entry, index) => {
       const covered = index < serviceModalStack.length - 1;
       entry.layer.style.zIndex = String(modalBaseZIndex + (index * modalLayerStep));
       entry.layer.classList.toggle("is-covered", covered);
-      entry.layer.inert = covered;
       entry.dialog.setAttribute("aria-modal", covered ? "false" : "true");
       entry.layer.dataset.modalDepth = String(index);
     });
@@ -90,7 +106,7 @@
     if (!layer || !dialog) return false;
     if (serviceModalStack.some((entry) => entry.layer === layer)) return false;
     const previous = topModal();
-    if (previous?.scrollContainer) previous.scrollTop = previous.scrollContainer.scrollTop;
+    if (previous) previous.scrollPositions = captureScrollPositions(previous.dialog);
     layer.hidden = false;
     layer.classList.add("is-open");
     layer.classList.remove("is-covered");
@@ -101,10 +117,13 @@
       focus,
       onEscape,
       previousFocus: document.activeElement,
-      scrollContainer: qs(".ms-body", dialog),
-      scrollTop: qs(".ms-body", dialog)?.scrollTop || 0,
+      scrollPositions: captureScrollPositions(dialog),
     });
     syncModalLayers();
+    if (previous) {
+      restoreScrollPositions(previous);
+      window.requestAnimationFrame(() => restoreScrollPositions(previous));
+    }
     focusLater(focus || focusableElements(dialog)[0] || dialog);
     return true;
   }
@@ -148,16 +167,13 @@
     layer.classList.remove("is-open");
     layer.classList.remove("is-covered");
     layer.hidden = true;
-    layer.inert = false;
     layer.setAttribute("aria-hidden", "true");
     dialog.setAttribute("aria-modal", "false");
     layer.style.zIndex = "";
     delete layer.dataset.modalDepth;
     syncModalLayers();
     const next = topModal();
-    if (next?.scrollContainer) {
-      window.requestAnimationFrame(() => { next.scrollContainer.scrollTop = next.scrollTop; });
-    }
+    if (next) window.requestAnimationFrame(() => restoreScrollPositions(next));
     const returnFocus = entry.previousFocus && document.contains(entry.previousFocus)
       ? entry.previousFocus
       : (next?.focus || focusableElements(next?.dialog)[0] || next?.dialog);

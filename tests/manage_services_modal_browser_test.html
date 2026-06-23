@@ -23,13 +23,13 @@
     <div class="ms-accent"></div>
     <div class="ms-body">
       <input type="hidden" id="ms_id"><input type="hidden" id="ms_category"><input type="hidden" id="ms_sort">
-      <label><input id="ms_active" type="checkbox"><span id="ms_active_label"></span></label>
+      <div class="ms-service-status"><strong>Service status</strong><label class="ms-switch"><input id="ms_active" type="checkbox"><span aria-hidden="true"></span><em id="ms_active_label"></em></label></div>
       <div id="msServiceNameField" hidden><input id="ms_name"></div>
       <textarea id="ms_description"></textarea>
       <div id="ms_catalogEditor"></div>
       <div id="msErr"></div>
     </div>
-    <div class="ms-foot"><button id="msCancel">Cancel</button><button id="msSave">Save</button></div>
+    <div class="ms-foot"><button class="ms-btn ghost" id="msCancel" type="button">Cancel</button><button class="ms-btn primary" id="msSave" type="button">Save</button></div>
   </div>
 </div>
 
@@ -37,8 +37,8 @@
   <div class="ms-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="msConfirmTitle" aria-describedby="msConfirmMessage" tabindex="-1">
     <button class="ms-x" id="msConfirmX" type="button" aria-label="Close modal">&times;</button>
     <div class="ms-confirm-icon">!</div>
-    <div><h3 id="msConfirmTitle"></h3><p id="msConfirmMessage"></p></div>
-    <div class="ms-confirm-actions"><button id="msConfirmCancel">Cancel</button><button id="msConfirmAccept">Confirm</button></div>
+    <div class="ms-confirm-copy"><h3 id="msConfirmTitle"></h3><p id="msConfirmMessage"></p></div>
+    <div class="ms-confirm-actions"><button class="ms-btn ghost" id="msConfirmCancel" type="button">Cancel</button><button class="ms-btn primary" id="msConfirmAccept" type="button">Confirm</button></div>
   </div>
 </div>
 <pre id="result">RUNNING</pre>
@@ -142,12 +142,53 @@
       return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
     };
     const sameRect = (before, after) => ["x", "y", "width", "height"].every((key) => Math.abs(before[key] - after[key]) < 0.6);
+    const parentState = () => {
+      const head = editorDialog.querySelector(".ms-mhead");
+      const body = editorDialog.querySelector(".ms-body");
+      const foot = editorDialog.querySelector(".ms-foot");
+      const matrix = editorDialog.querySelector(".ms-matrix-wrap");
+      const style = getComputedStyle(editorDialog);
+      const bodyStyle = getComputedStyle(body);
+      return {
+        nodes: { head, body, foot, catalog: document.querySelector("#ms_catalogEditor") },
+        rects: { dialog: rectSnapshot(editorDialog), head: rectSnapshot(head), body: rectSnapshot(body), foot: rectSnapshot(foot) },
+        scrollTop: body.scrollTop,
+        scrollHeight: body.scrollHeight,
+        clientHeight: body.clientHeight,
+        matrix,
+        matrixScrollLeft: matrix?.scrollLeft || 0,
+        display: style.display,
+        flexDirection: style.flexDirection,
+        transform: style.transform,
+        containment: style.contain,
+        bodyOverflowX: bodyStyle.overflowX,
+        bodyOverflowY: bodyStyle.overflowY,
+      };
+    };
+    const assertParentState = (before, label, phase) => {
+      const after = parentState();
+      assert(sameRect(before.rects.dialog, after.rects.dialog), `${label}: parent dialog shifted or resized ${phase}`);
+      assert(sameRect(before.rects.head, after.rects.head), `${label}: parent header changed geometry ${phase}`);
+      assert(sameRect(before.rects.body, after.rects.body), `${label}: parent scroll body changed geometry ${phase}`);
+      assert(sameRect(before.rects.foot, after.rects.foot), `${label}: parent footer changed geometry ${phase}`);
+      assert(before.nodes.head === after.nodes.head && before.nodes.body === after.nodes.body && before.nodes.foot === after.nodes.foot && before.nodes.catalog === after.nodes.catalog, `${label}: parent modal DOM was replaced ${phase}`);
+      assert(Math.abs(before.scrollTop - after.scrollTop) < 2, `${label}: deep vertical scroll position changed ${phase} (before=${before.scrollTop}, after=${after.scrollTop})`);
+      assert(before.scrollHeight === after.scrollHeight && before.clientHeight === after.clientHeight, `${label}: parent scroll metrics changed ${phase}`);
+      assert(before.display === after.display && before.flexDirection === after.flexDirection, `${label}: parent flex layout changed ${phase}`);
+      assert(before.transform === after.transform && before.containment === after.containment, `${label}: parent paint layer changed ${phase}`);
+      assert(before.bodyOverflowX === after.bodyOverflowX && before.bodyOverflowY === after.bodyOverflowY, `${label}: parent scroll overflow mode changed ${phase}`);
+      if (before.matrix && document.contains(before.matrix)) {
+        assert(before.matrix === after.matrix, `${label}: price matrix scroller was replaced ${phase}`);
+        assert(Math.abs(before.matrixScrollLeft - after.matrixScrollLeft) < 2, `${label}: price matrix horizontal scroll changed ${phase}`);
+      }
+    };
     const editorOverlay = document.querySelector("#msOverlay");
     const editorDialog = document.querySelector(".ms-modal");
     const confirmOverlay = document.querySelector("#msConfirmOverlay");
 
     const visualMode = new URLSearchParams(location.search).get("visual");
-    if (visualMode) {
+    const deepVisualMode = visualMode === "deep-stack";
+    if (visualMode && !deepVisualMode) {
       document.querySelector("#openPrinting").click();
       await wait();
       if (visualMode === "stack") {
@@ -194,10 +235,11 @@
     const repairMarkup = document.querySelector("#ms_catalogEditor").innerHTML;
     const repairRectBeforeConfirm = rectSnapshot(editorDialog);
     const repairBodyRectBeforeConfirm = rectSnapshot(modalBody);
+    const repairTransformBeforeConfirm = getComputedStyle(editorDialog).transform;
     toggle.click();
     await wait();
     assert(!confirmOverlay.hidden && confirmOverlay.classList.contains("is-open"), "Confirmation was not pushed on top");
-    assert(editorOverlay.classList.contains("is-covered") && editorOverlay.inert, "Covered editor was not made fully non-interactive");
+    assert(editorOverlay.classList.contains("is-covered") && !editorOverlay.inert, "Covered editor must use layout-neutral interaction blocking instead of mutating the deep subtree with inert");
     assert(document.documentElement.classList.contains("ms-modal-open") && document.body.classList.contains("ms-modal-open"), "The document and body were not both scroll-locked");
     assert(editorDialog.getAttribute("aria-modal") === "false" && confirmOverlay.querySelector(".ms-confirm-dialog").getAttribute("aria-modal") === "true", "Only the top dialog must be exposed as modal");
     assert(Number(getComputedStyle(confirmOverlay).zIndex) > Number(getComputedStyle(editorOverlay).zIndex), "Confirmation is not above the editor layer");
@@ -205,14 +247,14 @@
     assert(sameRect(repairRectBeforeConfirm, rectSnapshot(editorDialog)), "Opening a confirmation shifted or resized the Repair editor");
     assert(sameRect(repairBodyRectBeforeConfirm, rectSnapshot(modalBody)), "Opening a confirmation changed the Repair editor body geometry");
     assert(Math.abs(modalBody.scrollTop - repairScrollTop) < 2, "Opening a confirmation changed the parent modal scroll position");
-    assert(getComputedStyle(editorDialog).opacity === "1" && getComputedStyle(editorDialog).transform === "none" && getComputedStyle(editorDialog).filter === "none", "Covered editor received a visual transform, opacity, or filter state");
+    assert(getComputedStyle(editorDialog).opacity === "1" && getComputedStyle(editorDialog).transform === repairTransformBeforeConfirm && getComputedStyle(editorDialog).filter === "none", "Covered editor changed its compositor, opacity, or filter state");
     document.querySelector("#msConfirmCancel").click();
     await wait();
     toggle = document.querySelector("[data-rule-active]");
     assert(toggle.checked, "Cancel did not restore the repair toggle");
     assert(document.querySelector("#ms_catalogEditor").innerHTML === repairMarkup, "Cancel re-rendered repair content");
     assert(confirmOverlay.hidden && !editorOverlay.classList.contains("is-covered"), "Cancel did not restore the editor stack level");
-    assert(!editorOverlay.inert && editorDialog.getAttribute("aria-modal") === "true", "Cancel did not restore editor interactivity and modal semantics");
+    assert(editorDialog.getAttribute("aria-modal") === "true", "Cancel did not restore editor modal semantics");
     assert(sameRect(repairRectBeforeConfirm, rectSnapshot(editorDialog)), "Cancel returned to a shifted or resized Repair editor");
     assert(sameRect(repairBodyRectBeforeConfirm, rectSnapshot(modalBody)), "Cancel changed the Repair editor body geometry");
     assert(document.querySelector("#ms_catalogEditor").getBoundingClientRect().height > 40, "Cancel left the repair editor visually blank");
@@ -370,6 +412,109 @@
       document.querySelector("#msX").click();
       await wait();
     }
+
+    const inflateMatrixCatalog = (serviceId) => {
+      const serviceCatalog = catalogs[serviceId];
+      const paperGroup = serviceCatalog.groups.find((item) => item.group_key === "paper_size");
+      const colorGroup = serviceCatalog.groups.find((item) => item.group_key === "color_option");
+      for (let index = 0; index < 8; index += 1) {
+        const paperKey = `deep_paper_${index}`;
+        const colorKey = `deep_color_${index}`;
+        if (!paperGroup.values.some((item) => item.value_key === paperKey)) paperGroup.values.push({ value_key: paperKey, label: `Deep Paper ${index + 1}`, active: 1, sort_order: paperGroup.values.length });
+        if (!colorGroup.values.some((item) => item.value_key === colorKey)) colorGroup.values.push({ value_key: colorKey, label: `Deep Color ${index + 1}`, active: 1, sort_order: colorGroup.values.length });
+      }
+      paperGroup.values.forEach((paper) => colorGroup.values.forEach((color) => {
+        const ruleKey = `${paper.value_key}_${color.value_key}`;
+        if (serviceCatalog.rules.some((item) => item.rule_key === ruleKey)) return;
+        serviceCatalog.rules.push({
+          rule_key: ruleKey,
+          option_value_keys: { paper_size: paper.value_key, color_option: color.value_key },
+          label: `${paper.label} / ${color.label}`,
+          price: "5",
+          price_type: "fixed",
+          active: 1,
+          sort_order: serviceCatalog.rules.length,
+        });
+      }));
+    };
+    const inflateSingleGroup = (serviceId, groupKey, prefix, count, optionKeys) => {
+      const serviceCatalog = catalogs[serviceId];
+      const targetGroup = serviceCatalog.groups.find((item) => item.group_key === groupKey);
+      for (let index = 0; index < count; index += 1) {
+        const valueKey = `${prefix}_${index}`;
+        if (!targetGroup.values.some((item) => item.value_key === valueKey)) {
+          targetGroup.values.push({ value_key: valueKey, label: `${prefix.replaceAll("_", " ")} ${index + 1}`, active: 1, sort_order: targetGroup.values.length });
+        }
+        if (!serviceCatalog.rules.some((item) => item.rule_key === valueKey)) {
+          serviceCatalog.rules.push({ rule_key: valueKey, option_value_keys: optionKeys(valueKey), label: `${prefix.replaceAll("_", " ")} ${index + 1}`, price: "25", price_type: "fixed", active: 1, sort_order: serviceCatalog.rules.length });
+        }
+      }
+    };
+
+    inflateMatrixCatalog(2);
+    inflateMatrixCatalog(3);
+    inflateSingleGroup(4, "addon", "deep_addon", 18, (valueKey) => ({ addon: valueKey }));
+    inflateSingleGroup(1, "repair_type", "deep_repair", 18, (valueKey) => ({ device_type: "laptop", repair_type: valueKey }));
+    inflateSingleGroup(7, "installation_type", "deep_installation", 18, (valueKey) => ({ device_type: "laptop", installation_type: valueKey }));
+
+    if (deepVisualMode) {
+      document.querySelector("#openPrinting").click();
+      await wait();
+      const body = editorDialog.querySelector(".ms-body");
+      body.scrollTop = body.scrollHeight - body.clientHeight;
+      Array.from(document.querySelectorAll("[data-rule-active]")).at(-1).click();
+      await wait();
+      document.querySelector("#result").textContent = `VISUAL ${innerWidth}x${innerHeight}`;
+      document.title = `VISUAL-${innerWidth}x${innerHeight}`;
+      return;
+    }
+
+    async function auditDeepConfirmation({ button, target, label, save = false, closeWithX = false, horizontal = false }) {
+      document.querySelector(button).click();
+      await wait();
+      const body = editorDialog.querySelector(".ms-body");
+      const targetElement = target();
+      assert(targetElement, `${label}: deep target was not rendered`);
+      const bodyRect = body.getBoundingClientRect();
+      const targetRect = targetElement.getBoundingClientRect();
+      body.scrollTop = Math.max(0, Math.min(
+        body.scrollHeight - body.clientHeight,
+        body.scrollTop + targetRect.top - bodyRect.top - (body.clientHeight / 2),
+      ));
+      if (horizontal) {
+        const matrix = editorDialog.querySelector(".ms-matrix-wrap");
+        matrix.scrollLeft = Math.max(0, matrix.scrollWidth - matrix.clientWidth);
+      }
+      await wait();
+      assert(body.scrollTop > 0 && body.scrollHeight > body.clientHeight, `${label}: fixture did not reach a real deep-scroll state (top=${body.scrollTop}, scroll=${body.scrollHeight}, client=${body.clientHeight}, modal=${editorDialog.clientHeight})`);
+      if (save) targetElement.value = String(Number(targetElement.value || 5) + 1);
+      const before = parentState();
+      assert(before.rects.body.y >= before.rects.head.y + before.rects.head.height - 1, `${label}: parent body overlaps or precedes its header before stacking`);
+      assert(before.rects.foot.y >= before.rects.body.y + before.rects.body.height - 1, `${label}: parent footer is displaced above its scroll body before stacking`);
+      assert(Math.abs((before.rects.foot.y + before.rects.foot.height) - (before.rects.dialog.y + before.rects.dialog.height)) < 3, `${label}: parent footer is not anchored to the dialog bottom before stacking`);
+      assert(before.bodyOverflowY === "auto" || before.bodyOverflowY === "scroll", `${label}: details content is not using the intended internal scroll container`);
+      assert(before.bodyOverflowX === "hidden", `${label}: horizontal scrolling is not confined to the Price Matrix wrapper`);
+      if (save) document.querySelector("#msSave").click();
+      else targetElement.click();
+      await wait();
+      assert(!confirmOverlay.hidden && confirmOverlay.classList.contains("is-open"), `${label}: confirmation did not open`);
+      assert(confirmOverlay.parentElement === editorOverlay.parentElement && !editorOverlay.contains(confirmOverlay), `${label}: confirmation is mounted inside the parent scroll container`);
+      assertParentState(before, label, "while confirmation was open");
+      (closeWithX ? document.querySelector("#msConfirmX") : document.querySelector("#msConfirmCancel")).click();
+      await wait();
+      assert(confirmOverlay.hidden && !editorOverlay.classList.contains("is-covered"), `${label}: confirmation did not close cleanly`);
+      assertParentState(before, label, "after confirmation closed");
+      document.querySelector("#msX").click();
+      await wait();
+    }
+
+    await auditDeepConfirmation({ button: "#openPrinting", target: () => Array.from(document.querySelectorAll('[data-group-key="color_option"] [data-value-active]')).at(-1), label: "Document Printing Color Option" });
+    await auditDeepConfirmation({ button: "#openPrinting", target: () => Array.from(document.querySelectorAll("[data-rule-price]")).at(-1), label: "Document Printing Price Matrix", save: true, closeWithX: true, horizontal: true });
+    await auditDeepConfirmation({ button: "#openPhotocopy", target: () => Array.from(document.querySelectorAll('[data-group-key="color_option"] [data-value-active]')).at(-1), label: "Photocopy Color Option", closeWithX: true });
+    await auditDeepConfirmation({ button: "#openPhotocopy", target: () => Array.from(document.querySelectorAll("[data-rule-price]")).at(-1), label: "Photocopy Price Matrix", save: true, horizontal: true });
+    await auditDeepConfirmation({ button: "#openRush", target: () => Array.from(document.querySelectorAll('[data-group-key="addon"] [data-rule-active]')).at(-1), label: "RUSH ID Optional Add-Ons" });
+    await auditDeepConfirmation({ button: "#openRepair", target: () => Array.from(document.querySelectorAll('.ms-repair-row [data-rule-active]')).at(-1), label: "Repair Services by Device", closeWithX: true });
+    await auditDeepConfirmation({ button: "#openInstallation", target: () => Array.from(document.querySelectorAll('.ms-repair-row [data-rule-active]')).at(-1), label: "Installation Services" });
 
     document.querySelector("#result").textContent = "PASS";
     document.title = "PASS";
