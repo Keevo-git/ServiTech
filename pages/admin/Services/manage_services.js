@@ -5,11 +5,12 @@
   const apiUrl = window.MS_API_URL || "/pages/admin/Services/services_api.php";
 
   const overlay = qs("#msOverlay");
-  const editorDialog = qs(".ms-modal", overlay);
+  const editorDialog = overlay ? qs(".ms-modal", overlay) : null;
   const editor = qs("#ms_catalogEditor");
   const errorBox = qs("#msErr");
+  const pageError = qs("#msPageError");
   const confirmOverlay = qs("#msConfirmOverlay");
-  const confirmDialog = qs(".ms-confirm-dialog", confirmOverlay);
+  const confirmDialog = confirmOverlay ? qs(".ms-confirm-dialog", confirmOverlay) : null;
   const confirmTitle = qs("#msConfirmTitle");
   const confirmMessage = qs("#msConfirmMessage");
   const confirmCancel = qs("#msConfirmCancel");
@@ -32,6 +33,68 @@
   let confirmResolver = null;
   let confirmReturnFocus = null;
   let editorLoadToken = 0;
+  let warnedAboutFallbackStack = false;
+  let activeModalStack = null;
+
+  const fallbackModalStack = (() => {
+    const entries = [];
+    const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    function focusLater(element) {
+      window.setTimeout(() => {
+        if (element && document.contains(element) && typeof element.focus === "function") element.focus();
+      }, 0);
+    }
+
+    function focusables(dialog) {
+      return dialog ? qsa(focusableSelector, dialog).filter((element) => !element.hidden) : [];
+    }
+
+    function cover(entry, covered) {
+      if (!entry?.dialog) return;
+      entry.dialog.inert = covered;
+      entry.dialog.setAttribute("aria-hidden", covered ? "true" : "false");
+    }
+
+    function open({ overlay: layer, dialog, focus = null, onEscape = null }) {
+      if (!layer || !dialog) return;
+      const existing = entries.findIndex((entry) => entry.overlay === layer);
+      if (existing !== -1) entries.splice(existing, 1);
+      cover(entries[entries.length - 1], true);
+      const zIndex = 2147483100 + (entries.length * 200);
+      const entry = {
+        overlay: layer,
+        dialog,
+        focus,
+        onEscape,
+        previousFocus: document.activeElement,
+        previousOverlayZ: layer.style.zIndex,
+        previousDialogZ: dialog.style.zIndex,
+      };
+      layer.style.zIndex = String(zIndex);
+      dialog.style.zIndex = String(zIndex + 1);
+      entries.push(entry);
+      cover(entry, false);
+      focusLater(focus || focusables(dialog)[0] || dialog);
+    }
+
+    function close(layer) {
+      const entry = entries[entries.length - 1];
+      if (!entry || entry.overlay !== layer) return;
+      entries.pop();
+      entry.overlay.style.zIndex = entry.previousOverlayZ;
+      entry.dialog.style.zIndex = entry.previousDialogZ;
+      entry.dialog.inert = false;
+      const next = entries[entries.length - 1] || null;
+      cover(next, false);
+      const returnFocus = entry.previousFocus && document.contains(entry.previousFocus)
+        ? entry.previousFocus
+        : (next?.focus || focusables(next?.dialog)[0] || next?.dialog);
+      focusLater(returnFocus);
+    }
+
+    return { open, close, top: () => entries[entries.length - 1] || null, focusables };
+  })();
 
   function isConfirmOpen() {
     return !!confirmOverlay && !confirmOverlay.hidden && confirmOverlay.classList.contains("is-open");
@@ -42,7 +105,17 @@
   }
 
   function modalStack() {
-    return window.servitechAdminModalStack || null;
+    if (activeModalStack) return activeModalStack;
+    if (window.servitechAdminModalStack) {
+      activeModalStack = window.servitechAdminModalStack;
+      return activeModalStack;
+    }
+    if (!warnedAboutFallbackStack) {
+      warnedAboutFallbackStack = true;
+      console.warn("[Manage Services] Global modal stack unavailable; using the page fallback stack.");
+    }
+    activeModalStack = fallbackModalStack;
+    return activeModalStack;
   }
 
   function isTopModal(layer) {
@@ -55,7 +128,7 @@
   }
 
   function openModalLayer(layer, dialog, focus, onEscape) {
-    if (!layer || !dialog || !modalStack()) return false;
+    if (!layer || !dialog) return false;
     layer.hidden = false;
     layer.classList.add("is-open");
     layer.setAttribute("aria-hidden", "false");
@@ -64,6 +137,41 @@
     syncBodyLock();
     return true;
   }
+
+  document.addEventListener("keydown", (event) => {
+    if (activeModalStack !== fallbackModalStack) return;
+    const entry = fallbackModalStack.top();
+    if (!entry) return;
+    if (event.key === "Escape" && typeof entry.onEscape === "function") {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      entry.onEscape();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = fallbackModalStack.focusables(entry.dialog);
+    if (!focusable.length) {
+      event.preventDefault();
+      entry.dialog.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }, true);
+
+  document.addEventListener("focusin", (event) => {
+    if (activeModalStack !== fallbackModalStack) return;
+    const entry = fallbackModalStack.top();
+    if (!entry || entry.dialog.contains(event.target)) return;
+    (entry.focus || fallbackModalStack.focusables(entry.dialog)[0] || entry.dialog)?.focus?.();
+  }, true);
 
   function closeModalLayer(layer, dialog) {
     if (!layer || !dialog || !isTopModal(layer)) return false;
@@ -109,7 +217,7 @@
       help: "Choose a device section, then manage its repair services, prices, and availability.",
     },
     installation: {
-      groups: { installation_type: "Installation Type" },
+      groups: { installation_type: "Installation Type", device_type: "Devices" },
       title: "Edit Installation Services",
       help: "Manage installation types and mark each price as fixed or for assessment.",
     },
@@ -150,6 +258,22 @@
     errorBox.style.display = "none";
   }
 
+  function clearPageError() {
+    if (!pageError) return;
+    pageError.textContent = "";
+    pageError.hidden = true;
+  }
+
+  function reportEditorOpenError(error) {
+    const message = "Unable to open the service editor. Please refresh and try again.";
+    console.error("[Manage Services] Unable to open service editor:", error);
+    if (pageError) {
+      pageError.textContent = message;
+      pageError.hidden = false;
+    }
+    window.servitechAdminToast?.error?.(message);
+  }
+
   function syncServiceStatusLabel() {
     if (!fields.activeLabel || !fields.active) return;
     fields.activeLabel.textContent = fields.active.checked ? "Active" : "Inactive";
@@ -175,6 +299,9 @@
       sort_order: Number(service.sort_order || 0),
     };
     editButton.setAttribute("data-ms-edit", JSON.stringify(buttonData));
+    editButton.dataset.serviceId = String(buttonData.id);
+    editButton.dataset.serviceCategory = buttonData.category;
+    editButton.dataset.serviceName = buttonData.name;
 
     const card = editButton.closest(".ms-service-card");
     const heading = qs("h2", card);
@@ -614,7 +741,7 @@
     return value;
   }
 
-  editor.addEventListener("click", async (event) => {
+  editor?.addEventListener("click", async (event) => {
     const addButton = event.target.closest("[data-add-value]");
     if (addButton) {
       syncFromDom();
@@ -721,7 +848,7 @@
     }
   });
 
-  editor.addEventListener("change", async (event) => {
+  editor?.addEventListener("change", async (event) => {
     if (event.target.matches("[data-installation-device-mode]")) {
       const enabled = event.target.checked;
       if (!await confirmAction({
@@ -771,11 +898,23 @@
   }
 
   async function openEditor(data) {
+    if (!overlay || !editorDialog || !editor || !errorBox || !confirmOverlay || !confirmDialog) {
+      throw new Error("Required editor modal elements are missing from the page.");
+    }
+    const id = Number(data?.id);
+    const category = String(data?.category || "").trim().toLowerCase();
+    const name = String(data?.name || "").trim();
+    const kind = serviceKind(category, name);
+    if (!Number.isInteger(id) || id <= 0 || !["printing", "repair", "installation"].includes(category) || !kind || !contracts[kind]) {
+      throw new Error(`Invalid or unsupported service payload: ${JSON.stringify(data || {})}`);
+    }
+
     const loadToken = ++editorLoadToken;
+    clearPageError();
     hideError();
-    fields.id.value = data.id;
-    fields.category.value = data.category;
-    fields.name.value = data.name;
+    fields.id.value = id;
+    fields.category.value = category;
+    fields.name.value = name;
     fields.description.value = data.description || "";
     fields.sort.value = data.sort_order || 0;
     fields.active.checked = Number(data.active) === 1;
@@ -785,15 +924,14 @@
       description: data.description || "",
       active: Number(data.active) === 1,
     };
-    currentKind = serviceKind(data.category, data.name);
+    currentKind = kind;
     const serviceNameField = qs("#msServiceNameField");
     if (serviceNameField) serviceNameField.hidden = !["laminating", "scanning"].includes(currentKind);
     const contract = contracts[currentKind];
-    qs("#msModalTitle").textContent = contract?.title || `Edit ${data.name}`;
+    qs("#msModalTitle").textContent = contract?.title || `Edit ${name}`;
     qs("#msModalHelp").textContent = contract?.help || "";
     if (!openModalLayer(overlay, editorDialog, editorDialog, closeEditor)) {
-      showError("The service editor could not be opened. Refresh the page and try again.");
-      return;
+      throw new Error("The editor modal layer could not be opened.");
     }
     editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
     try {
@@ -804,6 +942,7 @@
       render();
     } catch (error) {
       if (loadToken !== editorLoadToken || !isEditorOpen()) return;
+      console.error(`[Manage Services] Catalog load failed for service ${id}:`, error);
       showError(error.message || "Unable to load service options.");
     }
   }
@@ -817,10 +956,26 @@
     hideError();
   }
 
-  qsa("[data-ms-edit]").forEach((button) => button.addEventListener("click", () => {
-    const data = JSON.parse(button.getAttribute("data-ms-edit") || "{}");
-    openEditor(data);
-  }));
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-ms-edit]");
+    if (!button) return;
+    event.preventDefault();
+    if (button.disabled || button.getAttribute("aria-busy") === "true") return;
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    try {
+      const data = JSON.parse(button.getAttribute("data-ms-edit") || "{}");
+      data.id = data.id || button.dataset.serviceId;
+      data.category = data.category || button.dataset.serviceCategory;
+      data.name = data.name || button.dataset.serviceName;
+      await openEditor(data);
+    } catch (error) {
+      reportEditorOpenError(error);
+    } finally {
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+    }
+  });
   fields.active?.addEventListener("change", async () => {
     const activated = fields.active.checked;
     if (!await confirmAction({

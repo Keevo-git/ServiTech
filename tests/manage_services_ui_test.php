@@ -72,6 +72,11 @@ foreach ([
     "closeModalLayer",
     "syncBodyLock",
     "updateServiceCard",
+    "fallbackModalStack",
+    "reportEditorOpenError",
+    'event.target.closest("[data-ms-edit]")',
+    "Invalid or unsupported service payload",
+    'installation_type: "Installation Type", device_type: "Devices"',
 ] as $requiredBehavior) {
     manage_services_ui_assert(str_contains($script, $requiredBehavior), "Confirmation behavior must include {$requiredBehavior}.");
 }
@@ -99,6 +104,10 @@ foreach ([
 
 manage_services_ui_assert(substr_count($page, 'aria-label="Close modal"') >= 2, "Every Manage Services X button must use the same accessible close label.");
 manage_services_ui_assert(str_contains($page, 'id="msOverlay" hidden'), "The editor overlay must start hidden and be opened only by the modal stack.");
+manage_services_ui_assert(str_contains($page, 'id="msPageError"'), "The page must provide a visible error region when the editor cannot open.");
+manage_services_ui_assert(str_contains($page, 'data-service-id='), "Edit buttons must expose the dynamic service identifier.");
+manage_services_ui_assert(str_contains($page, 'data-service-category='), "Edit buttons must expose the dynamic service category.");
+manage_services_ui_assert(str_contains($page, 'data-service-name='), "Edit buttons must expose the dynamic service name.");
 manage_services_ui_assert(strpos($page, "admin_footer.php") < strpos($page, "manage_services.js"), "The global modal stack must load before Manage Services registers its handlers.");
 manage_services_ui_assert(!str_contains($script, 'overlay.style.display'), "Modal visibility must not be managed with one-off inline display values.");
 manage_services_ui_assert(!str_contains($script, "location.reload()"), "Saving must update the open editor instead of reloading and destroying modal state.");

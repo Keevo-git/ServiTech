@@ -6,6 +6,13 @@
 
 <button id="openRepair" data-ms-edit='{"id":1,"category":"repair","name":"Repair Services","description":"Repair","active":1,"sort_order":0}'>Repair</button>
 <button id="openPrinting" data-ms-edit='{"id":2,"category":"printing","name":"Document Printing","description":"Print","active":1,"sort_order":0}'>Printing</button>
+<button id="openPhotocopy" data-ms-edit='{"id":3,"category":"printing","name":"Xerox","description":"Copy","active":1,"sort_order":1}'>Photocopy</button>
+<button id="openRush" data-ms-edit='{"id":4,"category":"printing","name":"RUSH ID","description":"ID","active":1,"sort_order":2}'>RUSH ID</button>
+<button id="openLaminating" data-ms-edit='{"id":5,"category":"printing","name":"Lamination","description":"Laminate","active":1,"sort_order":3}'>Lamination</button>
+<button id="openScanning" data-ms-edit='{"id":6,"category":"printing","name":"Scan","description":"Scan","active":0,"sort_order":4}'>Scanning</button>
+<button id="openInstallation" data-ms-edit='{"id":7,"category":"installation","name":"Installation Services","description":"Install","active":1,"sort_order":0}'>Installation</button>
+<button id="openInvalid" data-ms-edit='{}'>Invalid</button>
+<div class="ms-page-error" id="msPageError" role="alert" hidden></div>
 
 <div class="ms-overlay" id="msOverlay" hidden aria-hidden="true">
   <div class="ms-modal" role="dialog" aria-modal="true" aria-labelledby="msModalTitle" tabindex="-1">
@@ -49,6 +56,38 @@
         { group_key: "color_option", name: "Color Option", active: 1, sort_order: 1, values: [{ value_key: "black_white", label: "Black & White", active: 1, sort_order: 0 }] }
       ],
       rules: [{ rule_key: "a4_black_white", option_value_keys: { paper_size: "a4", color_option: "black_white" }, label: "A4 / Black & White", price: "5", price_type: "fixed", active: 1, sort_order: 0 }]
+    },
+    3: {
+      groups: [
+        { group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [{ value_key: "a4", label: "A4", active: 1, sort_order: 0 }] },
+        { group_key: "color_option", name: "Color Option", active: 1, sort_order: 1, values: [{ value_key: "black_white", label: "Black & White", active: 1, sort_order: 0 }] }
+      ],
+      rules: [{ rule_key: "a4_black_white", option_value_keys: { paper_size: "a4", color_option: "black_white" }, label: "A4 / Black & White", price: "3", price_type: "fixed", active: 1, sort_order: 0 }]
+    },
+    4: {
+      groups: [
+        { group_key: "package", name: "Package", active: 1, sort_order: 0, values: [{ value_key: "basic", label: "Basic", active: 1, sort_order: 0 }] },
+        { group_key: "addon", name: "Add-Ons", active: 1, sort_order: 1, values: [{ value_key: "softcopy", label: "Soft Copy", active: 1, sort_order: 0 }] }
+      ],
+      rules: [
+        { rule_key: "basic", option_value_keys: { package: "basic" }, label: "Basic", price: "100", price_type: "fixed", active: 1, sort_order: 0 },
+        { rule_key: "softcopy", option_value_keys: { addon: "softcopy" }, label: "Soft Copy", price: "20", price_type: "fixed", active: 1, sort_order: 1 }
+      ]
+    },
+    5: {
+      groups: [{ group_key: "lamination_type", name: "Type", active: 1, sort_order: 0, values: [{ value_key: "a4", label: "A4", active: 1, sort_order: 0 }] }],
+      rules: [{ rule_key: "a4", option_value_keys: { lamination_type: "a4" }, label: "A4", price: "40", price_type: "fixed", active: 1, sort_order: 0 }]
+    },
+    6: {
+      groups: [{ group_key: "paper_size", name: "Paper Size", active: 1, sort_order: 0, values: [{ value_key: "a4", label: "A4", active: 1, sort_order: 0 }] }],
+      rules: [{ rule_key: "a4", option_value_keys: { paper_size: "a4" }, label: "A4", price: "10", price_type: "fixed", active: 1, sort_order: 0 }]
+    },
+    7: {
+      groups: [
+        { group_key: "installation_type", name: "Installation Type", active: 1, sort_order: 0, values: [{ value_key: "setup", label: "Setup", active: 1, sort_order: 0 }] },
+        { group_key: "device_type", name: "Devices", active: 1, sort_order: 1, values: [{ value_key: "laptop", label: "Laptop", active: 1, sort_order: 0 }] }
+      ],
+      rules: [{ rule_key: "laptop_setup", option_value_keys: { device_type: "laptop", installation_type: "setup" }, label: "Laptop / Setup", price: "300", price_type: "fixed", active: 1, sort_order: 0 }]
     }
   };
   window.MS_API_URL = "/fake-services-api";
@@ -78,7 +117,11 @@
     }) };
   };
 </script>
-<script src="../pages/admin/modal_stack.js"></script>
+<script>
+  if (!location.search.includes("fallback=1")) {
+    document.write('<script src="../pages/admin/modal_stack.js"><\/script>');
+  }
+</script>
 <script src="../pages/admin/Services/manage_services.js"></script>
 <script>
   (async () => {
@@ -88,22 +131,29 @@
     const editorDialog = document.querySelector(".ms-modal");
     const confirmOverlay = document.querySelector("#msConfirmOverlay");
 
+    document.querySelector("#openInvalid").click();
+    await wait();
+    assert(!document.querySelector("#msPageError").hidden, "Invalid editor payload failed silently");
+    assert(document.querySelector("#msPageError").textContent.includes("Unable to open the service editor"), "Editor failure message is not admin-friendly");
+
     document.querySelector("#openRepair").click();
     await wait();
+    assert(document.querySelector("#msPageError").hidden, "A valid editor open did not clear the page error");
     assert(!editorOverlay.hidden && editorOverlay.classList.contains("is-open"), "Repair editor did not open");
+    assert(document.querySelector("[data-add-repair]"), "Repair device/service editor did not render");
 
     let toggle = document.querySelector("[data-rule-active]");
     const repairMarkup = document.querySelector("#ms_catalogEditor").innerHTML;
     toggle.click();
     await wait();
-    assert(window.servitechAdminModalStack.top().overlay === confirmOverlay, "Confirmation was not pushed on top");
+    assert(!confirmOverlay.hidden && confirmOverlay.classList.contains("is-open"), "Confirmation was not pushed on top");
     assert(editorDialog.inert && document.body.classList.contains("ms-modal-open"), "Covered editor was not inert/locked");
     document.querySelector("#msConfirmCancel").click();
     await wait();
     toggle = document.querySelector("[data-rule-active]");
     assert(toggle.checked, "Cancel did not restore the repair toggle");
     assert(document.querySelector("#ms_catalogEditor").innerHTML === repairMarkup, "Cancel re-rendered repair content");
-    assert(window.servitechAdminModalStack.top().overlay === editorOverlay && !editorDialog.inert, "Cancel did not restore the editor stack level");
+    assert(confirmOverlay.hidden && !editorDialog.inert, "Cancel did not restore the editor stack level");
 
     toggle.click();
     await wait();
@@ -124,6 +174,7 @@
 
     document.querySelector("#openPrinting").click();
     await wait();
+    assert(document.querySelector(".ms-catalog-matrix"), "Document Printing matrix did not render");
     const price = document.querySelector("[data-rule-price]");
     price.value = "25";
     document.querySelector("#msSave").click();
@@ -146,6 +197,23 @@
     assert(editorRect.width <= innerWidth && editorRect.height <= innerHeight, "Editor overflows the viewport");
     document.querySelector("#msX").click();
     await wait();
+
+    const editorCases = [
+      ["#openPhotocopy", ".ms-catalog-matrix", "Photocopy matrix"],
+      ["#openRush", '[data-new-value="package"]', "RUSH ID package/add-ons editor"],
+      ["#openLaminating", '[data-new-value="lamination_type"]', "Lamination type editor"],
+      ["#openScanning", '[data-new-value="paper_size"]', "Scanning paper-size editor"],
+      ["#openInstallation", "[data-add-installation]", "Installation device/service editor"],
+    ];
+    for (const [buttonSelector, editorSelector, label] of editorCases) {
+      document.querySelector(buttonSelector).click();
+      await wait();
+      assert(!editorOverlay.hidden && document.querySelector(editorSelector), `${label} did not open`);
+      if (buttonSelector === "#openScanning") assert(!document.querySelector("#ms_active").checked, "Inactive Scanning did not open as inactive");
+      document.querySelector("#msX").click();
+      await wait();
+    }
+
     document.querySelector("#result").textContent = "PASS";
     document.title = "PASS";
   })().catch((error) => {

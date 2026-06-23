@@ -48,7 +48,7 @@ $services = servitech_catalog_dedupe_services(array_values(array_filter($service
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260622-admin-services-modal-stack') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260623-editor-open-fix') ?>">
 </head>
 <body>
 
@@ -80,6 +80,7 @@ require __DIR__ . "/../_includes/admin_header.php";
       <a class="ms-tab <?= $tab==="installation"?"active":"" ?>" href="?tab=installation">Installation</a>
     </div>
 
+    <div class="ms-page-error" id="msPageError" role="alert" hidden></div>
     <div class="ms-service-grid">
         <?php if (!$services): ?>
           <div class="ms-empty">No configured services were found. Run the service catalog migration first.</div>
@@ -114,7 +115,14 @@ require __DIR__ . "/../_includes/admin_header.php";
               <p><?= h($s["description"]) ?></p>
               <div class="ms-service-card__foot">
                 <span><strong>Customer price:</strong> <?= h($catalogPriceRange ?: "For assessment") ?></span>
-                <button class="ms-edit-button" type="button" data-ms-edit='<?= h(json_encode($payload)) ?>'>Edit prices and options</button>
+                <button
+                  class="ms-edit-button"
+                  type="button"
+                  data-ms-edit='<?= h(json_encode($payload)) ?>'
+                  data-service-id="<?= (int)$s["id"] ?>"
+                  data-service-category="<?= h($s["category"]) ?>"
+                  data-service-name="<?= h($s["name"]) ?>"
+                >Edit prices and options</button>
               </div>
             </article>
           <?php endforeach; ?>
@@ -208,7 +216,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260623-admin-services-modal-stack') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260623-editor-open-fix') ?>"></script>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
