@@ -2,25 +2,21 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/_auth_backed_customer_scope.php";
 
-$stmt = $pdo->prepare("
+$customerPdo = admin_auth_backed_customer_connection();
+$customerScopeSql = admin_auth_backed_customer_scope_sql();
+$stmt = $customerPdo->prepare("
   SELECT
-    id,
-    fullname,
-    email,
+    users.id,
+    users.fullname,
+    users.email,
     COALESCE(
       NULLIF(to_jsonb(users)->>'contacts', ''),
       NULLIF(to_jsonb(users)->>'contact', '')
     ) AS contacts
-  FROM users
-  WHERE LOWER(
-    COALESCE(
-      NULLIF(to_jsonb(users)->>'role', ''),
-      'customer'
-    )
-  ) = 'customer'
-    AND (auth_user_id IS NULL OR email_verified_at IS NOT NULL)
-  ORDER BY id ASC
+  {$customerScopeSql}
+  ORDER BY users.id ASC
 ");
 $stmt->execute();
 $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);

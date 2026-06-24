@@ -3,6 +3,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../../../api/queue_helpers.php";
+require_once __DIR__ . "/_auth_backed_customer_scope.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -27,12 +28,12 @@ if ($message === "") {
     customer_message_respond(["ok" => false, "error" => "Please enter a message before sending."], 422);
 }
 
-$stmt = $pdo->prepare("
-    SELECT id, fullname, email
-    FROM users
-    WHERE id = :id
-      AND LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'customer'
-      AND (auth_user_id IS NULL OR email_verified_at IS NOT NULL)
+$customerPdo = admin_auth_backed_customer_connection();
+$customerScopeSql = admin_auth_backed_customer_scope_sql();
+$stmt = $customerPdo->prepare("
+    SELECT users.id, users.fullname, users.email
+    {$customerScopeSql}
+      AND users.id = :id
     LIMIT 1
 ");
 $stmt->execute([":id" => $customerId]);

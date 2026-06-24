@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
+require_once __DIR__ . "/_auth_backed_customer_scope.php";
 require_once __DIR__ . "/../_includes/queue_files.php";
 require_once __DIR__ . "/../../../api/queue_payment.php";
 
@@ -193,17 +194,17 @@ function cd_history_payload(array $row, array $files, array $payment, string $re
 
 $customer = null;
 if ($customerId > 0) {
-  $stmt = $pdo->prepare("
+  $customerPdo = admin_auth_backed_customer_connection();
+  $customerScopeSql = admin_auth_backed_customer_scope_sql();
+  $stmt = $customerPdo->prepare("
     SELECT
-      id,
-      fullname,
-      email,
+      users.id,
+      users.fullname,
+      users.email,
       COALESCE(NULLIF(to_jsonb(users)->>'contacts', ''), NULLIF(to_jsonb(users)->>'contact', '')) AS contacts,
       to_jsonb(users)->>'created_at' AS created_at
-    FROM users
-    WHERE id = :id
-      AND LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'customer'
-      AND (auth_user_id IS NULL OR email_verified_at IS NOT NULL)
+    {$customerScopeSql}
+      AND users.id = :id
     LIMIT 1
   ");
   $stmt->execute([":id" => $customerId]);
