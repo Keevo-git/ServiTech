@@ -538,6 +538,7 @@ function servitech_supabase_complete_login(
     $profile = servitech_supabase_bind_application_profile($pdo, $authUserId);
     $_SESSION["supabase_profile_bound_at"] = time();
     $_SESSION["supabase_last_activity_at"] = time();
+    unset($_SESSION["verification_registration_state"], $_SESSION["verification_email_hint"]);
     session_regenerate_id(true);
     return $profile;
 }

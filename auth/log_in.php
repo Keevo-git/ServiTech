@@ -2,6 +2,12 @@
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
 servitech_require_guest_page();
+$legacyRegistrationState = strtolower(trim((string)($_GET["registered"] ?? "")));
+if (in_array($legacyRegistrationState, ["verify", "verify_resend"], true)) {
+    $_SESSION["verification_registration_state"] = $legacyRegistrationState === "verify" ? "sent" : "retry";
+    header("Location: " . auth_url_raw("/auth/verification_pending.php"));
+    exit();
+}
 $csrfToken = servitech_csrf_token();
 $rememberMeRetry = !empty($_SESSION["login_remember_retry"]);
 unset($_SESSION["login_remember_retry"]);
@@ -475,12 +481,6 @@ unset($_SESSION["login_remember_retry"]);
 
       if (registeredCode === "1") {
         setMessage("success", "Registration successful. You can now log in to your account.");
-      } else if (registeredCode === "verify") {
-        setMessage("success", "Your account is almost ready. We sent a verification email to your inbox. Confirm your email before logging in.");
-        resendVerificationPrompt.hidden = false;
-      } else if (registeredCode === "verify_resend") {
-        setMessage("error", "Supabase could not deliver a verification email. Request another below. If this is a new email and nothing arrives, wait briefly and register again.");
-        resendVerificationPrompt.hidden = false;
       } else if (registeredCode === "exists") {
         setMessage("error", "That email is already registered. Try logging in instead.");
         resendVerificationPrompt.hidden = false;

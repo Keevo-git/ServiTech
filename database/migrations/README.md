@@ -30,6 +30,12 @@ Site URL instead of requiring a fragile per-page redirect allow-list entry.
 Keep `https://servitech.store/auth/reset_password.php` in Redirect URLs for the
 existing password-recovery flow.
 
+For production email delivery, configure Custom SMTP inside the Supabase
+Dashboard's Authentication settings. The `SMTP_*` values in ServiTech's local
+`.env` configure the PHP mailer only; they do not configure emails sent by
+Supabase Auth. Keep the confirmation template's `{{ .ConfirmationURL }}` link,
+and review Authentication logs/rate limits if signup reports a delivery retry.
+
 If `20260612_add_supabase_auth_rls_foundation.sql` was applied before the
 catalog delete-grant hardening, also run
 `20260612_revoke_public_catalog_delete_grants.sql`. New installs should still

@@ -57,18 +57,27 @@ verification_assert(
 $register = verification_source("auth/register.php");
 $login = verification_source("auth/login.php");
 $loginPage = verification_source("auth/log_in.php");
+$pendingPage = verification_source("auth/verification_pending.php");
 $resend = verification_source("auth/resend_verification.php");
 $google = verification_source("auth/google_login.php");
 $reset = verification_source("auth/reset_password.php");
 $migration = verification_source("database/migrations/20260625_require_verified_supabase_accounts.sql");
 
 verification_assert(
-    str_contains($register, 'registered=verify')
+    str_contains($register, '/auth/verification_pending.php')
         && str_contains($register, '$_SESSION["verification_email_hint"] = $email')
+        && str_contains($register, '$_SESSION["verification_registration_state"] = "sent"')
         && str_contains($register, 'servitech_supabase_sign_up($email, $password_raw, [')
         && !str_contains($register, 'servitech_account_public_url("/auth/log_in.php?verification=success")')
         && !str_contains($register, 'servitech_supabase_complete_login($privilegedPdo, $authResponse)'),
     "Case A: password signup must stop at the verification notice instead of completing login."
+);
+verification_assert(
+    str_contains($pendingPage, "Check your email")
+        && str_contains($pendingPage, "Your account was created")
+        && str_contains($pendingPage, "Resend verification email")
+        && str_contains($pendingPage, "form-alert--warning"),
+    "Case A/F: successful signup and delivery retry must use the dedicated verification page."
 );
 verification_assert(
     str_contains($login, 'servitech_supabase_complete_login($privilegedPdo, $authResponse, "password")')
@@ -78,7 +87,7 @@ verification_assert(
 verification_assert(
     str_contains($loginPage, 'id="resendVerificationPrompt"')
         && str_contains($loginPage, "Resend verification")
-        && str_contains($loginPage, "Confirm your email before logging in"),
+        && str_contains($loginPage, "Verify your email address before logging in"),
     "Registration/login feedback must clearly explain verification and offer resend."
 );
 $loginButtonPosition = strpos($loginPage, 'id="loginSubmit"');

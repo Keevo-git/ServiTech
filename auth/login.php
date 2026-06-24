@@ -189,6 +189,7 @@ try {
 
     if ($user && $is_valid) {
         session_regenerate_id(true);
+        unset($_SESSION["verification_registration_state"], $_SESSION["verification_email_hint"]);
         $_SESSION["user_id"] = (int)$user["id"];
         $_SESSION["role"] = strtolower((string)($user["role"] ?? "customer"));
         servitech_apply_password_login_persistence(

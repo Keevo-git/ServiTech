@@ -78,7 +78,8 @@ if (servitech_supabase_auth_enabled()) {
             // Do not notify admins yet; unconfirmed signups can be abandoned or
             // automated. Operational reporting should count confirmed accounts.
             $_SESSION["verification_email_hint"] = $email;
-            header("Location: " . servitech_url("/auth/log_in.php?registered=verify"));
+            $_SESSION["verification_registration_state"] = "sent";
+            header("Location: " . servitech_url("/auth/verification_pending.php"));
             exit();
         }
 
@@ -102,11 +103,11 @@ if (servitech_supabase_auth_enabled()) {
             || str_contains($message, "sending confirmation")
             || str_contains($message, "email rate limit")
         ) {
-            // Supabase may persist the Auth user before its mail provider rejects
-            // delivery. Treat that as a pending account and give the user the
-            // working resend path instead of falsely reporting a total failure.
+            // Delivery/rate failures are not the normal confirmation-required
+            // response. Keep them out of Login and present a calm retry state.
             $_SESSION["verification_email_hint"] = $email;
-            header("Location: " . servitech_url("/auth/log_in.php?registered=verify_resend"));
+            $_SESSION["verification_registration_state"] = "retry";
+            header("Location: " . servitech_url("/auth/verification_pending.php"));
             exit();
         }
 
@@ -221,8 +222,13 @@ try {
     }
 
     $pdo->commit();
-    $registeredCode = $verification["token"] !== null ? "verify" : "1";
-    header("Location: " . servitech_url("/auth/log_in.php?registered=" . $registeredCode));
+    if ($verification["token"] !== null) {
+        $_SESSION["verification_email_hint"] = $email;
+        $_SESSION["verification_registration_state"] = "sent";
+        header("Location: " . servitech_url("/auth/verification_pending.php"));
+        exit();
+    }
+    header("Location: " . servitech_url("/auth/log_in.php?registered=1"));
     exit();
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {

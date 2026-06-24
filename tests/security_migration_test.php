@@ -96,7 +96,7 @@ security_test_assert(
 $registrationSource = file_get_contents(__DIR__ . "/../auth/register.php") ?: "";
 security_test_assert(
     str_contains($registrationSource, '$hasSession')
-        && str_contains($registrationSource, 'registered=verify'),
+        && str_contains($registrationSource, '/auth/verification_pending.php'),
     "Supabase registration must handle email-confirmation responses without a session."
 );
 
