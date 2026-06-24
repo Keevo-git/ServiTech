@@ -19,10 +19,13 @@ if (servitech_supabase_session_aal() === "aal2") {
 }
 
 $accessToken = trim((string)($_SESSION["supabase_access_token"] ?? ""));
-$message = "";
+$message = trim((string)($_SESSION["mfa_flash_message"] ?? ""));
+$messageType = trim((string)($_SESSION["mfa_flash_type"] ?? "error"));
+unset($_SESSION["mfa_flash_message"], $_SESSION["mfa_flash_type"]);
 $qrCode = trim((string)($_SESSION["mfa_enrollment_qr"] ?? ""));
 $pendingFactorId = trim((string)($_SESSION["mfa_pending_factor_id"] ?? ""));
 $verifiedFactors = [];
+$unverifiedFactors = [];
 
 function servitech_mfa_safe_qr_data_uri(string $candidate): string
 {
@@ -50,18 +53,35 @@ function servitech_mfa_safe_qr_data_uri(string $candidate): string
 }
 
 try {
-    $authUser = servitech_supabase_get_user($accessToken);
-    foreach ((array)($authUser["factors"] ?? []) as $factor) {
+    $factorResponse = servitech_supabase_mfa_list_factors($accessToken);
+    $factorRows = [];
+    foreach (["all", "totp", "factors"] as $factorCollection) {
+        if (isset($factorResponse[$factorCollection]) && is_array($factorResponse[$factorCollection])) {
+            $factorRows = array_merge($factorRows, $factorResponse[$factorCollection]);
+        }
+    }
+    if (!$factorRows && array_is_list($factorResponse)) {
+        $factorRows = $factorResponse;
+    }
+    if (!$factorRows) {
+        $authUser = servitech_supabase_get_user($accessToken);
+        $factorRows = (array)($authUser["factors"] ?? []);
+    }
+
+    foreach ($factorRows as $factor) {
         if (!is_array($factor)) {
             continue;
         }
         $factorId = trim((string)($factor["id"] ?? ""));
-        if (
-            preg_match('/^[0-9a-f-]{36}$/i', $factorId)
-            && strtolower(trim((string)($factor["factor_type"] ?? "totp"))) === "totp"
-            && strtolower(trim((string)($factor["status"] ?? ""))) === "verified"
-        ) {
+        $factorType = strtolower(trim((string)($factor["factor_type"] ?? $factor["type"] ?? "totp")));
+        $factorStatus = strtolower(trim((string)($factor["status"] ?? "unverified")));
+        if (!preg_match('/^[0-9a-f-]{36}$/i', $factorId) || $factorType !== "totp") {
+            continue;
+        }
+        if ($factorStatus === "verified") {
             $verifiedFactors[$factorId] = $factor;
+        } else {
+            $unverifiedFactors[$factorId] = $factor;
         }
     }
 } catch (Throwable $exception) {
@@ -79,6 +99,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $message === "") {
             if (!servitech_supabase_admin_mfa_enrollment_allowed() || $verifiedFactors) {
                 throw new DomainException("MFA enrollment is not available for this account.");
             }
+            if ($unverifiedFactors) {
+                throw new DomainException("Remove the incomplete authenticator setup before starting again.");
+            }
             $enrollment = servitech_supabase_mfa_enroll_totp($accessToken, "ServiTech Admin");
             $factorId = trim((string)($enrollment["id"] ?? ""));
             $candidateQr = servitech_mfa_safe_qr_data_uri(
@@ -91,6 +114,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $message === "") {
             $_SESSION["mfa_enrollment_qr"] = $candidateQr;
             $pendingFactorId = $factorId;
             $qrCode = $candidateQr;
+            $unverifiedFactors[$factorId] = [
+                "id" => $factorId,
+                "status" => "unverified",
+                "factor_type" => "totp",
+            ];
+            $message = "Authenticator setup started. Scan the QR code before leaving this page.";
+            $messageType = "success";
+        } elseif ($action === "reset_incomplete") {
+            $factorId = trim((string)($_POST["factor_id"] ?? ""));
+            $isIncompleteFactor = isset($unverifiedFactors[$factorId])
+                || ($pendingFactorId !== "" && hash_equals($pendingFactorId, $factorId));
+            if (!$isIncompleteFactor || isset($verifiedFactors[$factorId])) {
+                throw new DomainException("The incomplete MFA factor could not be identified safely.");
+            }
+            servitech_supabase_mfa_unenroll($accessToken, $factorId);
+            unset($_SESSION["mfa_pending_factor_id"], $_SESSION["mfa_enrollment_qr"]);
+            $_SESSION["mfa_flash_message"] = "The incomplete authenticator setup was removed. You can start again now.";
+            $_SESSION["mfa_flash_type"] = "success";
+            header("Location: " . servitech_url("/auth/mfa.php"));
+            exit();
         } elseif ($action === "verify") {
             $factorId = trim((string)($_POST["factor_id"] ?? ""));
             $code = trim((string)($_POST["code"] ?? ""));
@@ -127,9 +170,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $message === "") {
         }
     } catch (DomainException $exception) {
         $message = $exception->getMessage();
+        $messageType = "error";
     } catch (Throwable $exception) {
         error_log("MFA operation failed: " . $exception->getMessage());
         $message = "MFA could not be completed. Please try again or contact the system operator.";
+        $messageType = "error";
     }
 }
 
@@ -157,7 +202,7 @@ $csrfToken = servitech_csrf_token();
       </div>
 
       <?php if ($message !== ""): ?>
-        <div class="form-alert form-alert--error" role="alert"><?= htmlspecialchars($message, ENT_QUOTES, "UTF-8") ?></div>
+        <div class="form-alert <?= $messageType === "success" ? "form-alert--success" : "form-alert--error" ?>" role="alert"><?= htmlspecialchars($message, ENT_QUOTES, "UTF-8") ?></div>
       <?php endif; ?>
 
       <?php if ($qrCode !== "" && $pendingFactorId !== ""): ?>
@@ -172,13 +217,23 @@ $csrfToken = servitech_csrf_token();
           <input type="hidden" name="factor_id" value="<?= htmlspecialchars($factorIdForVerification, ENT_QUOTES, 'UTF-8') ?>">
           <label for="mfa-code">6-digit code</label>
           <input id="mfa-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus>
-          <button type="submit" class="btn btn-primary">Verify and continue</button>
+          <button type="submit" class="auth-submit">Verify and continue</button>
+        </form>
+      <?php elseif ($unverifiedFactors): ?>
+        <div class="form-alert form-alert--error" role="alert">
+          An authenticator setup was started but not verified. Its original QR code cannot be shown again safely. Remove it, then create a new setup.
+        </div>
+        <form method="post" action="<?= htmlspecialchars(servitech_url('/auth/mfa.php'), ENT_QUOTES, 'UTF-8') ?>">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+          <input type="hidden" name="action" value="reset_incomplete">
+          <input type="hidden" name="factor_id" value="<?= htmlspecialchars((string)array_key_first($unverifiedFactors), ENT_QUOTES, 'UTF-8') ?>">
+          <button type="submit" class="auth-submit">Remove incomplete setup</button>
         </form>
       <?php elseif (servitech_supabase_admin_mfa_enrollment_allowed()): ?>
         <form method="post" action="<?= htmlspecialchars(servitech_url('/auth/mfa.php'), ENT_QUOTES, 'UTF-8') ?>">
           <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
           <input type="hidden" name="action" value="enroll">
-          <button type="submit" class="btn btn-primary">Set up authenticator</button>
+          <button type="submit" class="auth-submit">Set up authenticator</button>
         </form>
       <?php else: ?>
         <div class="form-alert form-alert--error" role="alert">No verified authenticator is enrolled. Ask the operator to temporarily enable controlled admin MFA enrollment.</div>
