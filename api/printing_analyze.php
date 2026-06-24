@@ -191,9 +191,9 @@ if (!empty($uploadedFiles)) {
     if ($ext === "doc" || $ext === "docx") {
       $pages = $ext === "docx"
         ? servitech_document_count_docx_pages($tmp)
-        : servitech_document_estimate_doc_pages($tmp);
+        : servitech_document_count_doc_pages($tmp);
       if ($pages < 1) {
-        $validationErrors[] = "Unable to detect the page count for {$name}. Please upload a valid, unlocked document.";
+        $validationErrors[] = "Unable to render and count pages for {$name}. Please upload a valid, unlocked DOC/DOCX file or convert it to PDF.";
         $total_files--;
         continue;
       }

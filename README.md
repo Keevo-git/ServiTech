@@ -43,6 +43,8 @@
 - `AUTH_ALLOW_ADMIN_MFA_ENROLLMENT` (temporary controlled bootstrap only; normally `0`)
 - `SERVITECH_PRIVATE_UPLOAD_DIR` (absolute path ending in `ServiTech_Uploads`)
 - `SERVITECH_REQUIRE_PRIVATE_UPLOAD_ROOT` (`1` in production)
+- `SERVITECH_SOFFICE_PATH` (absolute LibreOffice/soffice executable path used to render DOC/DOCX files before page counting)
+- `SERVITECH_DOCUMENT_RENDER_TIMEOUT_SECONDS` (DOC/DOCX render timeout; default `60`, allowed range `15`-`180`)
 - `SERVITECH_CONTACT_EMAIL` (public contact email shown in footers, auth pages, and legal pages)
 - `SERVITECH_CONTACT_PHONE` (public contact phone shown in shared footers)
 - `SERVITECH_CONTACT_FACEBOOK_URL` (public Facebook link shown in shared footers)

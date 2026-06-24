@@ -18,6 +18,38 @@ function upload_rules_expect_domain_exception(callable $callback, string $messag
   upload_rules_assert(false, $label . " should have been rejected.");
 }
 
+function upload_rules_create_docx(string $path, int $renderedPages, int $metadataPages = 1): void {
+  $zip = new ZipArchive();
+  upload_rules_assert($zip->open($path, ZipArchive::OVERWRITE) === true, "DOCX test archive could not be created.");
+  $zip->addFromString("[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+      <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+      <Default Extension="xml" ContentType="application/xml"/>
+      <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+      <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
+    </Types>');
+  $zip->addFromString("_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+      <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+      <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>
+    </Relationships>');
+
+  $paragraphs = [];
+  for ($page = 1; $page <= $renderedPages; $page++) {
+    $break = $page < $renderedPages ? '<w:br w:type="page"/>' : '';
+    $paragraphs[] = '<w:p><w:r><w:t>Rendered page ' . $page . '</w:t>' . $break . '</w:r></w:p>';
+  }
+  $zip->addFromString("word/document.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+      <w:body>' . implode("", $paragraphs) . '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/></w:sectPr></w:body>
+    </w:document>');
+  $zip->addFromString("docProps/app.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">
+      <Application>Microsoft Office Word</Application><Pages>' . $metadataPages . '</Pages>
+    </Properties>');
+  $zip->close();
+}
+
 $temporaryFiles = [];
 try {
   $plainPdf = tempnam(sys_get_temp_dir(), "servitech-pdf-");
@@ -43,14 +75,21 @@ try {
     "Multiple Document Printing files must sum all detected pages."
   );
 
-  $docx = tempnam(sys_get_temp_dir(), "servitech-docx-");
-  $temporaryFiles[] = $docx;
-  $docxZip = new ZipArchive();
-  upload_rules_assert($docxZip->open($docx, ZipArchive::OVERWRITE) === true, "DOCX test archive could not be created.");
-  $docxZip->addFromString("docProps/app.xml", "<Properties><Pages>4</Pages></Properties>");
-  $docxZip->addFromString("word/document.xml", "<w:document><w:body><w:p>Text</w:p></w:body></w:document>");
-  $docxZip->close();
-  upload_rules_assert(servitech_document_count_docx_pages($docx) === 4, "DOCX page metadata must be used when available.");
+  if (servitech_document_word_renderer_available()) {
+    $docxA = tempnam(sys_get_temp_dir(), "servitech-docx-");
+    $docxB = tempnam(sys_get_temp_dir(), "servitech-docx-");
+    $temporaryFiles[] = $docxA;
+    $temporaryFiles[] = $docxB;
+    upload_rules_create_docx($docxA, 3, 1);
+    upload_rules_create_docx($docxB, 2, 1);
+    $docxAPages = servitech_document_count_docx_pages($docxA);
+    $docxBPages = servitech_document_count_docx_pages($docxB);
+    upload_rules_assert($docxAPages === 3, "A rendered three-page DOCX must not use stale one-page metadata.");
+    upload_rules_assert($docxBPages === 2, "A second rendered two-page DOCX must not use stale one-page metadata.");
+    upload_rules_assert($docxAPages + servitech_document_count_pdf_pages($plainPdf) === 5, "A DOCX and PDF upload must sum their rendered page counts.");
+  } else {
+    fwrite(STDOUT, "DOCX renderer integration checks skipped because no server renderer is installed.\n");
+  }
 
   $pptx = tempnam(sys_get_temp_dir(), "servitech-pptx-");
   $temporaryFiles[] = $pptx;
@@ -100,6 +139,13 @@ try {
   $printingJs = (string)file_get_contents(__DIR__ . "/../assets/js/custo2_docu_printing.js");
   upload_rules_assert(str_contains($printingJs, "qty * totalPages * pricePerPage"), "Document Printing summary must price from detected total pages.");
   upload_rules_assert(str_contains($printingJs, "total + getPageCountFromInfo(fileInfo)"), "Document Printing must aggregate page counts from every file.");
+
+  $printingAnalyzer = (string)file_get_contents(__DIR__ . "/../api/printing_analyze.php");
+  $servicePricing = (string)file_get_contents(__DIR__ . "/../api/service_pricing.php");
+  upload_rules_assert(str_contains($printingAnalyzer, "servitech_document_count_docx_pages"), "Document Printing preview must render DOCX files for page counting.");
+  upload_rules_assert(str_contains($servicePricing, "servitech_document_count_docx_pages"), "Queue pricing must independently render saved DOCX files for page counting.");
+  upload_rules_assert(str_contains($servicePricing, 'servitech_pricing_analyze_saved_uploads($pdo'), "Queue creation must use authoritative saved-file analysis.");
+  upload_rules_assert(str_contains($servicePricing, '$fixedPrice * $quantity * (int)$details["total_pages"]'), "Saved pricing must use the authoritative total page count.");
 } finally {
   foreach ($temporaryFiles as $path) {
     if (is_string($path) && is_file($path)) @unlink($path);

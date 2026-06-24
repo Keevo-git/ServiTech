@@ -156,8 +156,8 @@ function servitech_pricing_analyze_saved_uploads(PDO $pdo, array $uploadedFiles)
     } elseif ($ext === "doc" || $ext === "docx") {
       $pages = $ext === "docx"
         ? servitech_document_count_docx_pages($path)
-        : servitech_document_estimate_doc_pages($path);
-      if ($pages < 1) throw new DomainException("Unable to detect the page count for {$name}. Please upload a valid, unlocked document.");
+        : servitech_document_count_doc_pages($path);
+      if ($pages < 1) throw new DomainException("Unable to render and count pages for {$name}. Please upload a valid, unlocked DOC/DOCX file or convert it to PDF.");
       $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => $pages];
       $totalPages += $pages;
     } elseif ($ext === "ppt" || $ext === "pptx") {
