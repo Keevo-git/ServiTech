@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
+require_once __DIR__ . "/../components/privacy_policy_content.php";
 servitech_require_guest_page();
 $legacyRegistrationState = strtolower(trim((string)($_GET["registered"] ?? "")));
 if (in_array($legacyRegistrationState, ["verify", "verify_resend"], true)) {
@@ -160,6 +161,7 @@ unset($_SESSION["login_remember_retry"]);
     const policyModalTitle = document.getElementById("policyModalTitle");
     const policyModalContent = document.getElementById("policyModalContent");
     const authCard = document.querySelector(".auth-card--login");
+    const privacyPolicyBody = <?= json_encode(servitech_privacy_policy_html("modal"), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     let activePolicyTrigger = null;
 
     const loginFields = {
@@ -186,104 +188,7 @@ unset($_SESSION["login_remember_retry"]);
     const policyDocuments = {
       privacy: {
         title: "ServiTech Data Privacy Policy",
-        body: `
-          <section class="policy-section">
-            <h3>Overview</h3>
-            <p>ServiTech respects user privacy and protects personal information handled by the system. This Privacy Policy explains what ServiTech collects, how the information is used, where it is stored, who can access it, and what rights users have.</p>
-          </section>
-          <section class="policy-section">
-            <h3>Information Collected</h3>
-            <p>ServiTech collects and stores the following information:</p>
-            <ul>
-              <li>Account details: full name, email address, contact number, role, account creation date, and update date.</li>
-              <li>Authentication details: password hashes, Google account ID for Google sign-in, email verification tokens and timestamps, password reset tokens and expiry dates, consent date, and consent version.</li>
-              <li>Queue and service request details: queue code, service category, service label, order type, paper size, quantity, color option, package label, lamination type, device type, notes, uploaded file references, estimated total, price, paid amount, status, lifecycle stage, creation date, update date, and completion date.</li>
-              <li>Payment transaction details for Document Printing orders: payment method, amount, GCash reference number for GCash payments, payment status, and payment record dates.</li>
-              <li>Uploaded file records: original file name, private storage key, file extension, MIME type, file size, SHA-256 checksum, upload token, linked queue, upload date, linked date, and deletion date.</li>
-              <li>Notification records: message, notification type, related queue or order reference, read status, deletion date, and creation date.</li>
-              <li>Login security records: hashed email and hashed IP-based login attempt records used for throttling failed login attempts.</li>
-              <li>Session and CSRF data: ServiTech uses the SERVITECHSESSID session cookie to keep users signed in and protect forms from unauthorized requests.</li>
-            </ul>
-          </section>
-          <section class="policy-section">
-            <h3>How Information is Collected</h3>
-            <p>ServiTech collects information through these current system flows:</p>
-            <ul>
-              <li>Registration, login, Google sign-in, email verification, password reset, and profile update forms.</li>
-              <li>Queue, service request, Document Printing, repair, installation, laminating, and rush ID forms.</li>
-              <li>File upload forms used for documents, images, presentations, and related service files.</li>
-              <li>Payment selection and GCash reference submission for Document Printing orders.</li>
-              <li>Staff actions for queue status updates, cancellation reasons, price updates, paid amount updates, service management, announcements, and customer record viewing.</li>
-              <li>Automatic security checks for sessions, CSRF tokens, failed login throttling, notifications, and queue status history.</li>
-            </ul>
-          </section>
-          <section class="policy-section">
-            <h3>Purpose of Data Usage</h3>
-            <p>ServiTech uses this information for the following purposes:</p>
-            <ul>
-              <li>Create, verify, update, and secure user accounts.</li>
-              <li>Authenticate users through email/password login or Google sign-in.</li>
-              <li>Create queue numbers and manage service requests from submission to completion or cancellation.</li>
-              <li>Process Document Printing, repair, installation, laminating, rush ID, and related service requests.</li>
-              <li>Store uploaded files and make them available to the file owner and authorized staff for service processing.</li>
-              <li>Record cash or GCash payment details, price, paid amount, and payment review information for Document Printing orders.</li>
-              <li>Send customer and staff notifications about new requests, payment review, price updates, cancellations, and status changes.</li>
-              <li>Protect the system through CSRF checks, session controls, role-based access checks, and failed login throttling.</li>
-              <li>Support academic evaluation, demonstration, testing, reporting, and system improvement for the ServiTech capstone project.</li>
-            </ul>
-          </section>
-          <section class="policy-section">
-            <h3>Storage and Access</h3>
-            <p>ServiTech stores account, queue, payment, notification, upload metadata, login attempt, and status history records in the project database. Uploaded files are stored in the private upload storage directory using random storage keys. Passwords are stored as password hashes. Failed login throttling stores hashed email and hashed IP-based values instead of plain login-attempt identifiers.</p>
-            <p>Customers can access their own account, queue status, notifications, and uploaded files. Staff can access customer records, queues, orders, payment details, uploaded files, notifications, service records, announcements, and status history needed to operate and evaluate the system. ServiTech does not sell user data.</p>
-          </section>
-          <section class="policy-section">
-            <h3>Data Protection</h3>
-            <p>ServiTech protects user data through these implemented controls:</p>
-            <ul>
-              <li>Role-based access for customers and staff.</li>
-              <li>HTTP-only session cookies with SameSite=Lax.</li>
-              <li>CSRF tokens for protected form and API requests.</li>
-              <li>Password hashing for stored passwords.</li>
-              <li>Hashed login attempt records for failed login throttling.</li>
-              <li>Private upload storage, random file storage keys, upload tokens, checksum records, file type validation, size limits, and restricted file downloads.</li>
-              <li>Staff-only pages protected by login and role checks.</li>
-              <li>Status history records that show queue changes and staff notes.</li>
-            </ul>
-          </section>
-          <section class="policy-section">
-            <h3>Cookies and Browser Storage</h3>
-            <p>ServiTech uses required cookies and browser settings to keep you signed in, protect your account, support forms and uploads, show important notifications, remember your cookie choice, and support Google sign-in when you choose it. ServiTech does not currently use analytics, advertising, or marketing tracking cookies.</p>
-          </section>
-          <section class="policy-section">
-            <h3>Data Retention</h3>
-            <p>ServiTech retains uploaded files only as long as operationally needed. Files linked to active requests remain available while processing, review, pick-up, or a requested customer edit is ongoing. When a request becomes Done or Cancelled, its stored file content is retained for 30 days for rechecking, disputes, and authorized review, then automatically deleted. Temporary failed, cancelled, abandoned, or unlinked uploads are deleted within 24 hours. Queue, payment, notification, and status-history records may remain after file deletion so the service history stays accurate; expired attachments are shown as unavailable.</p>
-          </section>
-          <section class="policy-section">
-            <h3>User Rights</h3>
-            <p>Under the Philippine Data Privacy Act of 2012, users can exercise the following rights over their personal data:</p>
-            <ul>
-              <li>Access their personal data stored in ServiTech.</li>
-              <li>Request correction of inaccurate account or request information.</li>
-              <li>Request deletion of personal data that the project no longer needs for account records, order history, security, academic evaluation, or legal compliance.</li>
-              <li>Request a copy of their personal data.</li>
-              <li>Raise privacy questions, concerns, or complaints for review.</li>
-            </ul>
-          </section>
-          <section class="policy-section">
-            <h3>Academic Purpose</h3>
-            <p>ServiTech is an academic capstone/project system. The system records and displays data needed for educational demonstration, testing, evaluation, and service management workflows.</p>
-          </section>
-          <section class="policy-section">
-            <h3>Contact Information</h3>
-            <p>The project owner must replace these contact details before publication:</p>
-            <ul>
-              <li>Support email: [Insert ServiTech support email]</li>
-              <li>School/business/project address: [Insert official address]</li>
-              <li>Official contact person: [Insert official contact person]</li>
-            </ul>
-          </section>
-        `
+        body: privacyPolicyBody
       },
       terms: {
         title: "ServiTech Terms & Conditions",
