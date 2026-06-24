@@ -3,6 +3,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/account.php";
+require_once __DIR__ . "/../../config/customer_profile_feedback.php";
 
 function e(?string $value): string
 {
@@ -233,36 +234,6 @@ function wantsPasswordChange(array $formData): bool
         || $formData["confirm_password"] !== "";
 }
 
-function describeProfileChanges(array $changedLabels): string
-{
-    $changedLabels = array_values(array_unique(array_filter($changedLabels)));
-    $count = count($changedLabels);
-
-    if ($count === 0) {
-        return "No changes were detected.";
-    }
-
-    if ($count === 1) {
-        return $changedLabels[0] . " updated successfully.";
-    }
-
-    if (in_array("Password", $changedLabels, true) && $count === 2) {
-        $otherLabel = $changedLabels[0] === "Password" ? $changedLabels[1] : $changedLabels[0];
-        return $otherLabel . " and password updated successfully.";
-    }
-
-    if ($count <= 3) {
-        $last = array_pop($changedLabels);
-        return implode(", ", $changedLabels) . " and " . strtolower($last) . " updated successfully.";
-    }
-
-    if (in_array("Password", $changedLabels, true)) {
-        return "Profile and password updated successfully.";
-    }
-
-    return "Profile updated successfully.";
-}
-
 function verifyStoredPassword(string $storedPassword, string $submittedPassword): bool
 {
     if ($storedPassword === "" || $submittedPassword === "") {
@@ -387,13 +358,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $formData["current_password"] = (string)($_POST["current_password"] ?? "");
     $formData["new_password"] = (string)($_POST["new_password"] ?? "");
     $formData["confirm_password"] = (string)($_POST["confirm_password"] ?? "");
-    $passwordOnlyUpdate = (string)($_POST["update_scope"] ?? "") === "password";
-
     $changedFields = [
-        "name" => !$passwordOnlyUpdate && $nameWasSubmitted && $formData["name"] !== $currentName,
-        "email" => !$passwordOnlyUpdate && $emailWasSubmitted && $formData["email"] !== $currentEmail,
-        "phone" => !$passwordOnlyUpdate
-            && $phoneWasSubmitted
+        "name" => $nameWasSubmitted && $formData["name"] !== $currentName,
+        "email" => $emailWasSubmitted && $formData["email"] !== $currentEmail,
+        "phone" => $phoneWasSubmitted
             && comparablePhilippineMobileNumber($formData["phone"]) !== $currentPhone
             && !($formData["phone"] === "" && philippineMobileNationalPart($currentPhone) === ""),
     ];
@@ -414,6 +382,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     $emailChangePending = false;
+    $passwordUpdated = false;
     if ($errors["current_password"] === "" && $schema && $profile) {
         if (servitech_supabase_auth_enabled()) {
             try {
@@ -444,6 +413,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         (string)($_SESSION["supabase_access_token"] ?? ""),
                         $authChanges
                     );
+                    $passwordUpdated = array_key_exists("password", $authChanges);
                     $returnedEmail = normalizeEmail((string)($updatedAuth["email"] ?? $currentEmail));
                     if (isset($authChanges["email"]) && $returnedEmail !== $formData["email"]) {
                         $emailChangePending = true;
@@ -494,6 +464,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $changedLabels[] = "Password";
         }
 
+        $profileUpdated = false;
         if ($changes) {
             $assignments = [];
             $params = [":id" => $userId];
@@ -516,28 +487,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             try {
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
-
-                $_SESSION["profile_flash"] = [
-                    "type" => "success",
-                    "message" => describeProfileChanges($changedLabels),
-                ];
+                $profileUpdated = true;
+                if (wantsPasswordChange($formData) && !servitech_supabase_auth_enabled()) {
+                    $passwordUpdated = true;
+                }
             } catch (PDOException $exception) {
                 error_log("profile update error: " . $exception->getMessage());
                 $errors["general"] = "We could not save your changes right now.";
             }
-        } elseif ($emailChangePending) {
-            $_SESSION["profile_flash"] = [
-                "type" => "success",
-                "message" => "Check both email addresses to confirm the requested email change.",
-            ];
-        } else {
-            $_SESSION["profile_flash"] = [
-                "type" => "info",
-                "message" => "No changes were detected.",
-            ];
         }
 
         if ($errors["general"] === "") {
+            $_SESSION["profile_flash"] = servitech_customer_profile_update_feedback(
+                $changedLabels,
+                $profileUpdated,
+                $passwordUpdated,
+                $emailChangePending
+            );
             header("Location: /pages/customer/custo_edit_profile.php");
             exit();
         }
