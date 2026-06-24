@@ -31,7 +31,8 @@ function servitech_pricing_service_kind(string $category, string $serviceLabel):
   return "";
 }
 
-function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $serviceLabel): array {
+function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $serviceLabel, bool $lockForSubmission = false): array {
+  $lockSql = $lockForSubmission && $pdo->inTransaction() ? "FOR SHARE" : "";
   $requestedId = isset($GLOBALS["servitech_requested_catalog_service_id"])
     ? (int)$GLOBALS["servitech_requested_catalog_service_id"]
     : 0;
@@ -41,12 +42,12 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
       FROM services
       WHERE id = :id
         AND active = TRUE
-      LIMIT 1
+      LIMIT 1 {$lockSql}
     ");
     $stmt->execute([":id" => $requestedId]);
     $service = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!is_array($service)) {
-      throw new DomainException("The selected service is currently unavailable.");
+      throw new DomainException(servitech_pricing_selection_changed_message());
     }
     $actualKind = servitech_pricing_service_kind((string)$service["category"], (string)$service["name"]);
     if ($actualKind !== $kind) {
@@ -72,7 +73,7 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
     WHERE {$where}
       AND active = TRUE
     ORDER BY sort_order ASC, id ASC
-    LIMIT 1
+    LIMIT 1 {$lockSql}
   ");
   $params = in_array($kind, ["repair", "installation"], true)
     ? [":name" => servitech_pricing_clean_service_label($serviceLabel)]
@@ -81,9 +82,35 @@ function servitech_pricing_fetch_active_service(PDO $pdo, string $kind, string $
   $service = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if (!is_array($service)) {
-    throw new DomainException("The selected service is currently unavailable.");
+    throw new DomainException(servitech_pricing_selection_changed_message());
   }
   return $service;
+}
+
+function servitech_pricing_lock_catalog_rows(PDO $pdo, int $serviceId): void {
+  if ($serviceId <= 0 || !$pdo->inTransaction()) return;
+
+  $groups = $pdo->prepare("SELECT id FROM service_option_groups WHERE service_id = :service_id FOR SHARE");
+  $groups->execute([":service_id" => $serviceId]);
+  $groups->fetchAll(PDO::FETCH_COLUMN);
+
+  $values = $pdo->prepare("
+    SELECT v.id
+    FROM service_option_values v
+    JOIN service_option_groups g ON g.id = v.group_id
+    WHERE g.service_id = :service_id
+    FOR SHARE OF v
+  ");
+  $values->execute([":service_id" => $serviceId]);
+  $values->fetchAll(PDO::FETCH_COLUMN);
+
+  $rules = $pdo->prepare("SELECT id FROM service_pricing_rules WHERE service_id = :service_id FOR SHARE");
+  $rules->execute([":service_id" => $serviceId]);
+  $rules->fetchAll(PDO::FETCH_COLUMN);
+}
+
+function servitech_pricing_selection_changed_message(): string {
+  return "The selected service option has changed or is no longer available. Please review your selection before joining the queue.";
 }
 
 function servitech_pricing_count_pdf_pages(string $path): int {
@@ -268,7 +295,7 @@ function servitech_pricing_validate_catalog_option_ids(array $rule, array $servi
   if (!$wasSubmitted) return $expected;
   if ($submitted !== $expected) {
     servitech_pricing_log_catalog_issue("selected_option_ids_do_not_match_rule", $service, $details, $rule);
-    throw new DomainException("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
+    throw new DomainException(servitech_pricing_selection_changed_message());
   }
   return $expected;
 }
@@ -287,10 +314,32 @@ function servitech_pricing_apply_snapshot(array $details, array $service, string
   $details["price_snapshot"] = $price;
   $details["pricing_status"] = $status;
   $details["price_type_snapshot"] = $status === "fixed" ? "fixed" : "assessment";
+  $details["quantity_snapshot"] = max(1, (int)($details["quantity"] ?? 1));
+  $details["final_total_snapshot"] = isset($details["estimated_total"]) && is_numeric($details["estimated_total"])
+    ? max(0, (float)$details["estimated_total"])
+    : null;
+  $details["payment_method_snapshot"] = trim((string)($details["payment_method"] ?? ""));
+  $details["customer_notes_snapshot"] = trim((string)($details["notes"] ?? ""));
+  foreach ([
+    "paper_size" => "paper_size_snapshot",
+    "color_option" => "color_option_snapshot",
+    "package_label" => "package_snapshot",
+    "device_type" => "device_snapshot",
+    "repair_type" => "service_type_snapshot",
+    "installation_type" => "installation_type_snapshot",
+    "lamination_type" => "lamination_type_snapshot",
+  ] as $source => $snapshot) {
+    if (isset($details[$source]) && trim((string)$details[$source]) !== "") {
+      $details[$snapshot] = trim((string)$details[$source]);
+    }
+  }
   return $details;
 }
 
-function servitech_pricing_apply(PDO $pdo, string $category, array $details): array {
+function servitech_pricing_apply(PDO $pdo, string $category, array $details, bool $lockForSubmission = false): array {
+  if ($lockForSubmission && !$pdo->inTransaction()) {
+    throw new LogicException("Final pricing validation must run inside the queue submission transaction.");
+  }
   $serviceLabel = trim((string)($details["service_label"] ?? ""));
   $kind = servitech_pricing_service_kind($category, $serviceLabel);
   if ($kind === "") throw new DomainException("Unsupported service.");
@@ -300,7 +349,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   $cleanLabel = servitech_pricing_clean_service_label($serviceLabel);
 
   try {
-  $service = servitech_pricing_fetch_active_service($pdo, $kind, $serviceLabel);
+  $service = servitech_pricing_fetch_active_service($pdo, $kind, $serviceLabel, $lockForSubmission);
   } finally {
     unset($GLOBALS["servitech_requested_catalog_service_id"]);
   }
@@ -309,19 +358,22 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
   $details["catalog_service_id"] = (int)$service["id"];
   $details["catalog_service_name"] = (string)$service["name"];
   $details["pricing_calculated_at"] = date(DATE_ATOM);
+  if ($lockForSubmission) {
+    servitech_pricing_lock_catalog_rows($pdo, (int)$service["id"]);
+  }
 
   $catalogRuleId = isset($details["catalog_pricing_rule_id"]) ? (int)$details["catalog_pricing_rule_id"] : 0;
   $catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning", "repair", "installation"];
   if ($catalogRuleId <= 0 && in_array($kind, $catalogManagedKinds, true)) {
     servitech_pricing_log_catalog_issue("pricing_rule_id_missing", $service, $details);
-    throw new DomainException("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
+    throw new DomainException(servitech_pricing_selection_changed_message());
   }
   if ($catalogRuleId > 0) {
     $catalog = servitech_catalog_fetch($pdo, (int)$service["id"], true);
     $rule = servitech_catalog_find_rule($catalog, $catalogRuleId);
     if (!$rule) {
       servitech_pricing_log_catalog_issue("active_pricing_rule_not_found", $service, $details);
-      throw new DomainException("The selected option is not available because it has no active price setup. Please choose another option or contact the shop.");
+      throw new DomainException(servitech_pricing_selection_changed_message());
     }
 
     $ruleLabel = servitech_catalog_rule_display_label($rule);
@@ -371,7 +423,7 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
         $addonRule = servitech_catalog_find_rule($catalog, $addonId);
         $addonLabel = $addonRule ? servitech_catalog_option_label($addonRule, "addon") : "";
         if (!$addonRule || $addonLabel === "" || servitech_catalog_option_label($addonRule, "package") !== "") {
-          throw new DomainException("A selected Rush ID add-on is currently unavailable.");
+          throw new DomainException(servitech_pricing_selection_changed_message());
         }
         $addonPrice = (($addonRule["price_type"] ?? "") === "fixed" && isset($addonRule["price"]) && is_numeric($addonRule["price"]))
           ? max(0, (float)$addonRule["price"])
@@ -419,12 +471,13 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
     $details["catalog_pricing_rule_id"] = $catalogRuleId;
 
     if ($kind === "document_printing") {
-      if ($fixedPrice === null) {
-        throw new DomainException("The selected print option is marked for assessment and cannot be submitted with catalog pricing.");
-      }
       $details = array_merge($details, servitech_pricing_analyze_saved_uploads($pdo, (array)($details["uploaded_files"] ?? [])));
-      $details["price_per_page"] = $fixedPrice;
-      $details["estimated_total"] = servitech_pricing_round($fixedPrice * $quantity * (int)$details["total_pages"]);
+      if ($fixedPrice === null) {
+        unset($details["price_per_page"], $details["estimated_total"]);
+      } else {
+        $details["price_per_page"] = $fixedPrice;
+        $details["estimated_total"] = servitech_pricing_round($fixedPrice * $quantity * (int)$details["total_pages"]);
+      }
     } elseif (in_array($kind, ["xerox", "rush_id", "laminating", "scanning"], true)) {
       $effectivePrice = $kind === "rush_id" ? $snapshotPrice : $fixedPrice;
       if ($effectivePrice === null) {
@@ -454,5 +507,5 @@ function servitech_pricing_apply(PDO $pdo, string $category, array $details): ar
     );
   }
 
-  throw new DomainException("Select a valid active service option from the service catalog.");
+  throw new DomainException(servitech_pricing_selection_changed_message());
 }

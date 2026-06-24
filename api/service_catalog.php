@@ -84,12 +84,6 @@ function servitech_catalog_customer_primary_rules(array $service, array $catalog
 
   $kind = servitech_catalog_service_kind($service);
   $rules = servitech_catalog_customer_rules_from_admin_catalog($catalog);
-  if ($kind === "document_printing") {
-    return array_values(array_filter(
-      $rules,
-      static fn($rule) => ($rule["price_type"] ?? "fixed") === "fixed"
-    ));
-  }
   if ($kind === "rush_id") {
     return array_values(array_filter(
       $rules,

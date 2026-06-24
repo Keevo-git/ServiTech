@@ -298,7 +298,7 @@ try {
   }
 
   $details = queue_update_clean_details($details);
-  $details = servitech_pricing_apply($pdo, $category, $details);
+  $details = servitech_pricing_apply($pdo, $category, $details, true);
   $price = isset($details["estimated_total"]) ? max(0, (float)$details["estimated_total"]) : null;
   $changeSummary = queue_update_change_summary($currentDetails, $details, count($resolvedUploadedFiles), $removedFileCount);
 

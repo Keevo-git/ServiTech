@@ -30,7 +30,7 @@ try {
     "catalog_option_value_ids" => ["paper_size" => 12, "color_option" => 21],
   ]);
 } catch (DomainException $e) {
-  $rejected = str_contains($e->getMessage(), "no active price setup");
+  $rejected = str_contains($e->getMessage(), "changed or is no longer available");
 }
 dynamic_queue_assert($rejected, "A manipulated option-ID combination must be rejected with the customer-safe message.");
 

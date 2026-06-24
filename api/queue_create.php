@@ -181,7 +181,7 @@ try {
       $resolvedUploadedFiles
     );
   }
-  $details = servitech_pricing_apply($pdo, $category, $details);
+  $details = servitech_pricing_apply($pdo, $category, $details, true);
   if ($payment_method === "gcash" && !isset($details["estimated_total"])) {
     throw new DomainException("GCash is available after the service has a fixed total. Please choose Cash for services that require assessment.");
   }

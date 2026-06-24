@@ -6,6 +6,7 @@ require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/join_queue_flow.php";
 require_once __DIR__ . "/../config/store_availability.php";
 require_once __DIR__ . "/queue_helpers.php";
+require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
 require_once __DIR__ . "/upload_helpers.php";
 
@@ -111,6 +112,10 @@ if ($draftToken !== "") {
       $uploadedFiles = servitech_upload_resolve_owned_metadata($pdo, $userId, $uploadedFiles);
       if ($serviceKind === "rush_id") servitech_upload_assert_rush_id_uploaded_files($uploadedFiles);
       $details = servitech_upload_apply_metadata_to_details($details, $uploadedFiles);
+    }
+    $details = servitech_pricing_apply($pdo, $category, $details, true);
+    if (!isset($details["estimated_total"]) || !is_numeric($details["estimated_total"])) {
+      throw new DomainException("The selected service option is now marked For Assessment. Please review the service form and choose an available payment method before joining the queue.");
     }
     $details["payment_method"] = "gcash";
     $details["reference_number"] = $referenceNumber;

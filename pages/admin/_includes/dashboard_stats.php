@@ -77,6 +77,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
                 OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
                 THEN 'Print'
             ELSE COALESCE(
+                NULLIF(TRIM(details->>'service_name_snapshot'), ''),
                 NULLIF(TRIM(details->>'service_label'), ''),
                 CASE
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'repair' THEN 'Repair Service'

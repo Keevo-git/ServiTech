@@ -33,11 +33,11 @@ function service_label($details = null): string
 {
     if (is_string($details) && $details !== "") {
         $decoded = json_decode($details, true);
-        if (is_array($decoded) && trim((string)($decoded["service_label"] ?? "")) !== "") {
-            return trim((string)$decoded["service_label"]);
+        if (is_array($decoded) && trim((string)($decoded["service_name_snapshot"] ?? ($decoded["service_label"] ?? ""))) !== "") {
+            return trim((string)($decoded["service_name_snapshot"] ?? $decoded["service_label"]));
         }
-    } elseif (is_array($details) && trim((string)($details["service_label"] ?? "")) !== "") {
-        return trim((string)$details["service_label"]);
+    } elseif (is_array($details) && trim((string)($details["service_name_snapshot"] ?? ($details["service_label"] ?? ""))) !== "") {
+        return trim((string)($details["service_name_snapshot"] ?? $details["service_label"]));
     }
 
     return "Installation Service";

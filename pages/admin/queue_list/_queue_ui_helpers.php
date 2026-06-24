@@ -95,7 +95,7 @@ function queue_ui_filter_date($value): string
 function queue_ui_payment_method(array $row): string
 {
     $details = queue_ui_details_array($row["details"] ?? null);
-    return strtolower(trim((string)($row["payment_method"] ?? ($details["payment_method"] ?? ""))));
+    return strtolower(trim((string)($row["payment_method"] ?? ($details["payment_method_snapshot"] ?? ($details["payment_method"] ?? "")))));
 }
 
 function queue_ui_payment_summary(array $row): string
@@ -126,21 +126,21 @@ function queue_ui_payment_summary(array $row): string
 
 function queue_ui_detail_rows(array $details): array
 {
-    $serviceLabel = strtolower(queue_ui_detail_value($details, ["service_label", "service", "service_type"]));
+    $serviceLabel = strtolower(queue_ui_detail_value($details, ["service_name_snapshot", "service_label", "service", "service_type"]));
     $unitPriceLabel = str_contains($serviceLabel, "scan")
         ? "Price Per Scan"
         : (str_contains($serviceLabel, "laminat") ? "Unit Price" : "Price Per Page");
     $map = [
-        "Paper Size" => ["paper_size", "paper"],
-        "Quantity / Copies" => ["quantity", "copies"],
-        "Color Option" => ["color_option", "color"],
-        "Device" => ["device", "device_type", "unit"],
-        "Repair Type" => ["repair_type"],
-        "Installation Type" => ["installation_type"],
-        "Package" => ["package_label", "package"],
-        "Lamination Type" => ["lamination_type"],
+        "Paper Size" => ["paper_size_snapshot", "paper_size", "paper"],
+        "Quantity / Copies" => ["quantity_snapshot", "quantity", "copies"],
+        "Color Option" => ["color_option_snapshot", "color_option", "color"],
+        "Device" => ["device_snapshot", "device", "device_type", "unit"],
+        "Repair Type" => ["service_type_snapshot", "repair_type"],
+        "Installation Type" => ["installation_type_snapshot", "installation_type"],
+        "Package" => ["package_snapshot", "package_label", "package"],
+        "Lamination Type" => ["lamination_type_snapshot", "lamination_type"],
         "Total Pages" => ["total_pages", "page_count"],
-        $unitPriceLabel => ["price_per_page", "price_snapshot"],
+        $unitPriceLabel => ["price_snapshot", "price_per_page"],
     ];
 
     $rows = [];
@@ -174,6 +174,8 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
 {
     $details = queue_ui_details_array($row["details"] ?? null);
     $payment = servitech_queue_payment_values($row);
+    $snapshotServiceLabel = queue_ui_detail_value($details, ["service_name_snapshot", "service_label", "catalog_service_name"]);
+    if ($snapshotServiceLabel !== "") $serviceLabel = $snapshotServiceLabel;
     $serviceLabel = queue_ui_normalize_service_label($serviceLabel);
     $categoryLabel = queue_ui_category_label($row, $serviceLabel);
     if ($categoryLabel === "Print" && in_array(strtolower($serviceLabel), ["online", "walk-in", "walk in", "walkin"], true)) {
@@ -193,7 +195,7 @@ function queue_ui_payload(array $row, string $serviceLabel, string $paymentSumma
         "completed" => admin_queue_has_timestamp($row["completed_at"] ?? null)
             ? trim(admin_queue_completed_date($row["completed_at"]) . " " . admin_queue_completed_time($row["completed_at"]))
             : "-",
-        "comments" => queue_ui_detail_value($details, ["notes", "additional_instructions", "comments"]),
+        "comments" => queue_ui_detail_value($details, ["customer_notes_snapshot", "notes", "additional_instructions", "comments"]),
         "payment" => $paymentSummary,
         "paymentReference" => trim((string)($row["reference_number"] ?? ($details["reference_number"] ?? ""))),
         "paymentMethod" => match (queue_ui_payment_method($row)) {

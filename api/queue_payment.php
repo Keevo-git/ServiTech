@@ -39,6 +39,7 @@ function servitech_queue_payment_price(array $queue): float {
   $details = servitech_queue_payment_details($queue["details"] ?? null);
   foreach ([
     $queue["price"] ?? null,
+    $details["final_total_snapshot"] ?? null,
     $details["estimated_total"] ?? null,
     $queue["payment_amount"] ?? ($queue["amount"] ?? null),
   ] as $candidate) {

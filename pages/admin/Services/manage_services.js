@@ -373,9 +373,6 @@
 
   function customerPrimarySelectableRules() {
     const rules = (catalog?.rules || []).filter(ruleIsCustomerSelectable);
-    if (currentKind === "document_printing") {
-      return rules.filter((rule) => rule.price_type !== "assessment");
-    }
     if (currentKind === "rush_id") {
       return rules.filter((rule) => Object.prototype.hasOwnProperty.call(rule.option_value_keys || {}, "package"));
     }

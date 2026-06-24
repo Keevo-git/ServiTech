@@ -70,7 +70,7 @@ function om_payment_summary(array $row): string
 
 function om_service_label(array $details, string $fallback): string
 {
-    $label = om_detail_value($details, ["service_label", "service", "service_type", "installation_type", "repair_type"], $fallback);
+    $label = om_detail_value($details, ["service_name_snapshot", "service_label", "catalog_service_name", "service", "service_type", "installation_type_snapshot", "installation_type", "service_type_snapshot", "repair_type"], $fallback);
     $legacyPrintingLabels = [
         "document printing",
         "document print",
@@ -111,7 +111,7 @@ function om_category_label(string $serviceType, string $serviceLabel): string
 function om_additional_comments(array $details): string
 {
     $comments = [];
-    foreach (["additional_comments", "additional_comment", "comments", "notes", "additional_instructions", "instructions", "edit_request", "request_notes"] as $key) {
+    foreach (["customer_notes_snapshot", "additional_comments", "additional_comment", "comments", "notes", "additional_instructions", "instructions", "edit_request", "request_notes"] as $key) {
         $value = om_detail_value($details, [$key]);
         if ($value !== "" && !in_array($value, $comments, true)) {
             $comments[] = $value;
@@ -123,21 +123,21 @@ function om_additional_comments(array $details): string
 
 function om_extra_detail_rows(array $details): array
 {
-    $serviceLabel = strtolower(om_detail_value($details, ["service_label", "service", "service_type"]));
+    $serviceLabel = strtolower(om_detail_value($details, ["service_name_snapshot", "service_label", "service", "service_type"]));
     $unitPriceLabel = str_contains($serviceLabel, "scan")
         ? "Price Per Scan"
         : (str_contains($serviceLabel, "laminat") ? "Unit Price" : "Price Per Page");
     $map = [
-        "Paper Size" => ["paper_size", "paper"],
-        "Quantity / Copies" => ["quantity", "copies"],
-        "Color Option" => ["color_option", "color"],
-        "Device" => ["device", "device_type", "unit"],
-        "Repair Type" => ["repair_type"],
-        "Installation Type" => ["installation_type"],
-        "Package" => ["package_label", "package"],
-        "Lamination Type" => ["lamination_type"],
+        "Paper Size" => ["paper_size_snapshot", "paper_size", "paper"],
+        "Quantity / Copies" => ["quantity_snapshot", "quantity", "copies"],
+        "Color Option" => ["color_option_snapshot", "color_option", "color"],
+        "Device" => ["device_snapshot", "device", "device_type", "unit"],
+        "Repair Type" => ["service_type_snapshot", "repair_type"],
+        "Installation Type" => ["installation_type_snapshot", "installation_type"],
+        "Package" => ["package_snapshot", "package_label", "package"],
+        "Lamination Type" => ["lamination_type_snapshot", "lamination_type"],
         "Total Pages" => ["total_pages", "page_count"],
-        $unitPriceLabel => ["price_per_page", "price_snapshot"],
+        $unitPriceLabel => ["price_snapshot", "price_per_page"],
     ];
 
     $rows = [];

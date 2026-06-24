@@ -163,7 +163,7 @@ try {
     $details,
     servitech_upload_resolve_owned_metadata($pdo, $user_id, (array)($details["uploaded_files"] ?? []))
   );
-  $details = servitech_pricing_apply($pdo, $printMeta["category"], $details);
+  $details = servitech_pricing_apply($pdo, $printMeta["category"], $details, true);
   $queueIdentity = servitech_generate_queue_identity($pdo, $printMeta["prefix"]);
   $queue_code = $queueIdentity["queue_code"];
   if (!servitech_queue_code_matches_category($queue_code, $printMeta["category"])) {

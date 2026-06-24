@@ -26,50 +26,56 @@ function service_payment_add_row(array &$rows, string $label, $value): void {
 }
 
 function service_payment_rows(array $details): array {
-  $service = strtolower(trim((string)($details["service_label"] ?? "")));
+  $pick = static function (array $keys, $fallback = "") use ($details) {
+    foreach ($keys as $key) {
+      if (isset($details[$key]) && !is_array($details[$key]) && trim((string)$details[$key]) !== "") return $details[$key];
+    }
+    return $fallback;
+  };
+  $service = strtolower(trim((string)$pick(["service_name_snapshot", "service_label", "catalog_service_name"])));
   $rows = [];
   if (str_contains($service, "document") && str_contains($service, "print")) {
     service_payment_add_row($rows, "Attached files", implode(", ", array_map("strval", (array)($details["file_names"] ?? []))));
-    service_payment_add_row($rows, "Paper size", $details["paper_size"] ?? "");
-    service_payment_add_row($rows, "Color option", $details["color_option"] ?? "");
-    service_payment_add_row($rows, "Number of copies", $details["quantity"] ?? "");
+    service_payment_add_row($rows, "Paper size", $pick(["paper_size_snapshot", "paper_size"]));
+    service_payment_add_row($rows, "Color option", $pick(["color_option_snapshot", "color_option"]));
+    service_payment_add_row($rows, "Number of copies", $pick(["quantity_snapshot", "quantity"]));
     service_payment_add_row($rows, "Number of pages", $details["total_pages"] ?? "");
-    service_payment_add_row($rows, "Additional instructions", $details["notes"] ?? "");
+    service_payment_add_row($rows, "Additional instructions", $pick(["customer_notes_snapshot", "notes"]));
   } elseif (str_contains($service, "xerox") || str_contains($service, "photocopy")) {
-    service_payment_add_row($rows, "Paper size", $details["paper_size"] ?? "");
-    service_payment_add_row($rows, "Color option", $details["color_option"] ?? "");
-    service_payment_add_row($rows, "Number of copies", $details["quantity"] ?? "");
-    service_payment_add_row($rows, "Additional instructions", $details["notes"] ?? "");
+    service_payment_add_row($rows, "Paper size", $pick(["paper_size_snapshot", "paper_size"]));
+    service_payment_add_row($rows, "Color option", $pick(["color_option_snapshot", "color_option"]));
+    service_payment_add_row($rows, "Number of copies", $pick(["quantity_snapshot", "quantity"]));
+    service_payment_add_row($rows, "Additional instructions", $pick(["customer_notes_snapshot", "notes"]));
   } elseif (str_contains($service, "rush") && str_contains($service, "id")) {
-    service_payment_add_row($rows, "Package and inclusions", $details["package_label"] ?? "");
-    service_payment_add_row($rows, "Quantity", $details["quantity"] ?? "");
+    service_payment_add_row($rows, "Package and inclusions", $pick(["package_snapshot", "package_label"]));
+    service_payment_add_row($rows, "Quantity", $pick(["quantity_snapshot", "quantity"]));
     $addons = [];
     foreach ((array)($details["add_ons_snapshot"] ?? []) as $addon) {
       if (is_array($addon) && trim((string)($addon["name"] ?? "")) !== "") $addons[] = trim((string)$addon["name"]);
     }
     service_payment_add_row($rows, "Add-ons", implode(", ", $addons));
-    service_payment_add_row($rows, "Additional instructions", $details["notes"] ?? "");
+    service_payment_add_row($rows, "Additional instructions", $pick(["customer_notes_snapshot", "notes"]));
   } elseif (str_contains($service, "laminat")) {
-    service_payment_add_row($rows, "Lamination type", $details["lamination_type"] ?? ($details["option_name_snapshot"] ?? ""));
-    service_payment_add_row($rows, "Size", $details["paper_size"] ?? "");
-    service_payment_add_row($rows, "Quantity", $details["quantity"] ?? "");
-    service_payment_add_row($rows, "Additional instructions", $details["notes"] ?? "");
+    service_payment_add_row($rows, "Lamination type", $pick(["lamination_type_snapshot", "lamination_type", "option_name_snapshot"]));
+    service_payment_add_row($rows, "Size", $pick(["paper_size_snapshot", "paper_size"]));
+    service_payment_add_row($rows, "Quantity", $pick(["quantity_snapshot", "quantity"]));
+    service_payment_add_row($rows, "Additional instructions", $pick(["customer_notes_snapshot", "notes"]));
   } elseif (str_contains($service, "scan")) {
-    service_payment_add_row($rows, "Paper size", $details["paper_size"] ?? "");
-    service_payment_add_row($rows, "Number of pages", $details["quantity"] ?? "");
-    service_payment_add_row($rows, "Additional instructions", $details["notes"] ?? "");
-  } elseif (isset($details["installation_type"])) {
-    service_payment_add_row($rows, "Device", $details["device_type"] ?? "");
-    service_payment_add_row($rows, "Installation service", $details["installation_type"] ?? "");
-    service_payment_add_row($rows, "Instructions", $details["notes"] ?? "");
+    service_payment_add_row($rows, "Paper size", $pick(["paper_size_snapshot", "paper_size"]));
+    service_payment_add_row($rows, "Number of pages", $pick(["quantity_snapshot", "quantity"]));
+    service_payment_add_row($rows, "Additional instructions", $pick(["customer_notes_snapshot", "notes"]));
+  } elseif (isset($details["installation_type_snapshot"]) || isset($details["installation_type"])) {
+    service_payment_add_row($rows, "Device", $pick(["device_snapshot", "device_type"]));
+    service_payment_add_row($rows, "Installation service", $pick(["installation_type_snapshot", "installation_type"]));
+    service_payment_add_row($rows, "Instructions", $pick(["customer_notes_snapshot", "notes"]));
   } elseif (isset($details["repair_type"]) || isset($details["service_type_snapshot"])) {
-    service_payment_add_row($rows, "Device", $details["device_type"] ?? "");
-    service_payment_add_row($rows, "Repair service", $details["repair_type"] ?? ($details["service_type_snapshot"] ?? ""));
-    service_payment_add_row($rows, "Issue description", $details["customer_issue_description"] ?? ($details["notes"] ?? ""));
+    service_payment_add_row($rows, "Device", $pick(["device_snapshot", "device_type"]));
+    service_payment_add_row($rows, "Repair service", $pick(["service_type_snapshot", "repair_type"]));
+    service_payment_add_row($rows, "Issue description", $pick(["customer_issue_description", "customer_notes_snapshot", "notes"]));
   } else {
     service_payment_add_row($rows, "Selected option", $details["option_name_snapshot"] ?? ($details["option_details_snapshot"] ?? ""));
-    service_payment_add_row($rows, "Quantity", $details["quantity"] ?? "");
-    service_payment_add_row($rows, "Instructions", $details["notes"] ?? "");
+    service_payment_add_row($rows, "Quantity", $pick(["quantity_snapshot", "quantity"]));
+    service_payment_add_row($rows, "Instructions", $pick(["customer_notes_snapshot", "notes"]));
   }
   return $rows;
 }
@@ -123,9 +129,9 @@ if ($isDraft) {
 }
 
 $details = service_payment_details($queue["details"] ?? null);
-$serviceName = trim((string)($details["service_label"] ?? ($details["catalog_service_name"] ?? "Service")));
+$serviceName = trim((string)($details["service_name_snapshot"] ?? ($details["service_label"] ?? ($details["catalog_service_name"] ?? "Service"))));
 $detailRows = service_payment_rows($details);
-$total = $queue["price"] ?? ($details["estimated_total"] ?? ($queue["amount"] ?? null));
+$total = $queue["price"] ?? ($details["final_total_snapshot"] ?? ($details["estimated_total"] ?? ($queue["amount"] ?? null)));
 $flashError = trim((string)($_SESSION["service_payment_flash_error"] ?? ""));
 unset($_SESSION["service_payment_flash_error"]);
 $incompleteRedirect = $isDraft && (string)($_GET["incomplete"] ?? "") === "1";

@@ -139,8 +139,8 @@ $assessmentDocument = $shortBondCatalog;
 $assessmentDocument["rules"][0]["price_type"] = "assessment";
 $assessmentDocument["rules"][0]["price"] = null;
 catalog_test_assert(
-    empty(servitech_catalog_customer_availability($activeDocumentService, $assessmentDocument)["available"]),
-    "Document Printing must stay hidden until it has a fixed active price combination."
+    !empty(servitech_catalog_customer_availability($activeDocumentService, $assessmentDocument)["available"]),
+    "An active For Assessment rule is a complete customer-visible pricing state."
 );
 $inactiveDocumentService = $activeDocumentService;
 $inactiveDocumentService["active"] = 0;

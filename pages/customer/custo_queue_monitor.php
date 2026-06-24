@@ -85,20 +85,33 @@ function qm_normalize_service_label(string $serviceLabel, string $fallbackLabel)
 
 function qm_build_short_details(array $details, bool $includeNotes = true): string {
   $parts = [];
-
-  foreach (["paper_size", "color_option", "package_label", "device_type", "repair_type", "installation_type"] as $key) {
-    if (!empty($details[$key])) {
-      $parts[] = trim((string)$details[$key]);
+  $value = static function (array $keys) use ($details): string {
+    foreach ($keys as $key) {
+      if (isset($details[$key]) && !is_array($details[$key]) && trim((string)$details[$key]) !== "") {
+        return trim((string)$details[$key]);
+      }
     }
+    return "";
+  };
+
+  foreach ([
+    ["paper_size_snapshot", "paper_size"],
+    ["color_option_snapshot", "color_option"],
+    ["package_snapshot", "package_label"],
+    ["device_snapshot", "device_type"],
+    ["service_type_snapshot", "repair_type"],
+    ["installation_type_snapshot", "installation_type"],
+  ] as $keys) {
+    if (($selected = $value($keys)) !== "") $parts[] = $selected;
   }
 
-  if (!empty($details["quantity"])) {
-    $qty = max(1, (int)$details["quantity"]);
+  if (($quantity = $value(["quantity_snapshot", "quantity"])) !== "") {
+    $qty = max(1, (int)$quantity);
     array_splice($parts, 1, 0, $qty . " " . ($qty === 1 ? "copy" : "copies"));
   }
 
-  if (!empty($details["lamination_type"])) {
-    $parts[] = ucfirst(strtolower(trim((string)$details["lamination_type"]))) . " Lamination";
+  if (($lamination = $value(["lamination_type_snapshot", "lamination_type"])) !== "") {
+    $parts[] = ucfirst(strtolower($lamination)) . " Lamination";
   }
 
   $addOns = $details["add_ons_snapshot"] ?? [];
@@ -114,8 +127,8 @@ function qm_build_short_details(array $details, bool $includeNotes = true): stri
     }
   }
 
-  if ($includeNotes && !count($parts) && !empty($details["notes"])) {
-    $parts[] = trim((string)$details["notes"]);
+  if ($includeNotes && !count($parts) && ($notes = $value(["customer_notes_snapshot", "notes"])) !== "") {
+    $parts[] = $notes;
   }
 
   if (!count($parts)) return "No extra details";
@@ -145,7 +158,7 @@ function qm_fetch_user_queue_items(PDO $pdo, int $userId, string $categoryKey, i
     $details = qm_parse_queue_details($row["details"] ?? null);
     $createdAt = trim((string)($row["created_at"] ?? ""));
     $status = strtoupper(trim((string)($row["status"] ?? "PENDING")));
-    $serviceLabel = qm_normalize_service_label((string)($details["service_label"] ?? ""), $meta["label"]);
+    $serviceLabel = qm_normalize_service_label((string)($details["service_name_snapshot"] ?? ($details["service_label"] ?? "")), $meta["label"]);
 
     $items[] = [
       "queue_code" => trim((string)($row["queue_code"] ?? "")),
@@ -183,7 +196,7 @@ function qm_fetch_latest_queue_items(PDO $pdo, string $categoryKey, int $limit):
     $details = qm_parse_queue_details($row["details"] ?? null);
     $createdAt = trim((string)($row["created_at"] ?? ""));
     $status = strtoupper(trim((string)($row["status"] ?? "PENDING")));
-    $serviceLabel = qm_normalize_service_label((string)($details["service_label"] ?? ""), $meta["label"]);
+    $serviceLabel = qm_normalize_service_label((string)($details["service_name_snapshot"] ?? ($details["service_label"] ?? "")), $meta["label"]);
 
     $items[] = [
       "queue_code" => trim((string)($row["queue_code"] ?? "")),
