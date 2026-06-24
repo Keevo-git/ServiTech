@@ -54,7 +54,8 @@
 - `SMTP_REPLY_TO` (optional)
 - `SMTP_DEBUG` (`1` only for temporary admin debugging)
 - `APP_BASE_PATH` (default: `/ServiTech`; set `/` if app is hosted at domain root)
-- `SESSION_LIFETIME_SECONDS` (default: 30 days)
+- `SESSION_LIFETIME_SECONDS` (default: 30 days; server-side Supabase remember-session lifetime)
+- `REMEMBER_ME_LIFETIME_SECONDS` (default: 30 days; password-login remember-token lifetime, capped at 365 days)
 - `APP_DEBUG` (`1` to enable PHP error display, otherwise disabled)
 - `GOOGLE_CLIENT_ID` (required to enable Sign in with Google on the login page)
 

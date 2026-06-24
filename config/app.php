@@ -52,3 +52,17 @@ function servitech_cookie_path(): string
     $base = servitech_base_path();
     return ($base === "") ? "/" : ($base . "/");
 }
+
+function servitech_request_is_https(): bool
+{
+    if (!empty($_SERVER["HTTPS"]) && strtolower((string)$_SERVER["HTTPS"]) !== "off") {
+        return true;
+    }
+
+    $forwardedProto = strtolower(trim(explode(",", (string)($_SERVER["HTTP_X_FORWARDED_PROTO"] ?? ""))[0]));
+    if ($forwardedProto === "https") {
+        return true;
+    }
+
+    return (string)($_SERVER["SERVER_PORT"] ?? "") === "443";
+}

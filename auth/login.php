@@ -6,6 +6,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/remember_me.php";
 
 servitech_enforce_same_origin(false);
 servitech_enforce_csrf_token(false);
@@ -19,9 +20,44 @@ $email = strtolower(trim($_POST["email"] ?? ""));
 $password = (string)($_POST["password"] ?? "");
 $rememberMe = isset($_POST["remember_me"]) && (string)$_POST["remember_me"] === "1";
 
-if ($email === "" || $password === "") {
-    header("Location: " . servitech_url("/auth/log_in.php?login=required"));
+function servitech_login_failure_redirect(string $code, bool $rememberMe): void
+{
+    $_SESSION["login_remember_retry"] = $rememberMe;
+    header("Location: " . servitech_url("/auth/log_in.php?login=" . rawurlencode($code)));
     exit();
+}
+
+function servitech_apply_password_login_persistence(PDO $pdo, int $userId, bool $rememberMe): void
+{
+    unset($_SESSION["login_remember_retry"], $_SESSION["remember_selector"]);
+    $_SESSION["remember_me"] = $rememberMe;
+
+    if (servitech_supabase_auth_enabled()) {
+        // The Supabase refresh token remains in PHP's server-side session
+        // storage; only its random session ID is persisted in the browser.
+        servitech_remember_clear_cookie();
+        servitech_apply_session_cookie_lifetime($rememberMe);
+        return;
+    }
+
+    // Local password auth keeps PHPSESSID session-only and uses a separate,
+    // revocable selector/validator token for browser-restart persistence.
+    try {
+        if ($rememberMe) {
+            servitech_remember_issue($pdo, $userId);
+        } else {
+            servitech_remember_revoke_current($pdo);
+        }
+    } catch (Throwable $exception) {
+        error_log("Remember-me setup failed: " . $exception->getMessage());
+        $_SESSION["remember_me"] = false;
+        servitech_remember_clear_cookie();
+    }
+    servitech_apply_session_cookie_lifetime(false);
+}
+
+if ($email === "" || $password === "") {
+    servitech_login_failure_redirect("required", $rememberMe);
 }
 
 if (servitech_supabase_auth_enabled()) {
@@ -33,8 +69,7 @@ if (servitech_supabase_auth_enabled()) {
         $privilegedPdo = servitech_db_connect_privileged();
 
         if (!servitech_login_throttle_allows($privilegedPdo, $email)) {
-            header("Location: " . servitech_url("/auth/log_in.php?login=throttled"));
-            exit();
+            servitech_login_failure_redirect("throttled", $rememberMe);
         }
 
         try {
@@ -103,8 +138,11 @@ if (servitech_supabase_auth_enabled()) {
 
         servitech_login_throttle_clear($privilegedPdo, $email);
         $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
-        $_SESSION["remember_me"] = $rememberMe;
-        servitech_apply_session_cookie_lifetime($rememberMe);
+        servitech_apply_password_login_persistence(
+            $privilegedPdo,
+            (int)($profile["id"] ?? 0),
+            $rememberMe
+        );
         header("Location: " . servitech_url(
             ($profile["role"] ?? "customer") === "admin"
                 ? "/pages/admin/admin_dashboard.php"
@@ -113,8 +151,7 @@ if (servitech_supabase_auth_enabled()) {
         exit();
     } catch (DomainException $e) {
         error_log("Supabase login rejected: " . $e->getMessage());
-        header("Location: " . servitech_url("/auth/log_in.php?login=fail"));
-        exit();
+        servitech_login_failure_redirect("fail", $rememberMe);
     } catch (Throwable $e) {
         error_log("Supabase login error: " . $e->getMessage());
         if ($privilegedPdo instanceof PDO) {
@@ -123,15 +160,13 @@ if (servitech_supabase_auth_enabled()) {
             } catch (Throwable $ignored) {
             }
         }
-        header("Location: " . servitech_url("/auth/log_in.php?login=fail"));
-        exit();
+        servitech_login_failure_redirect("fail", $rememberMe);
     }
 }
 
 try {
     if (!servitech_login_throttle_allows($pdo, $email)) {
-        header("Location: " . servitech_url("/auth/log_in.php?login=throttled"));
-        exit();
+        servitech_login_failure_redirect("throttled", $rememberMe);
     }
 
     $stmt = $pdo->prepare("
@@ -173,8 +208,7 @@ try {
             servitech_account_email_verification_required()
             && trim((string)($user["email_verified_at"] ?? "")) === ""
         ) {
-            header("Location: " . servitech_url("/auth/log_in.php?login=verify_email"));
-            exit();
+            servitech_login_failure_redirect("verify_email", $rememberMe);
         }
     }
 
@@ -191,8 +225,11 @@ try {
         session_regenerate_id(true);
         $_SESSION["user_id"] = (int)$user["id"];
         $_SESSION["role"] = strtolower((string)($user["role"] ?? "customer"));
-        $_SESSION["remember_me"] = $rememberMe;
-        servitech_apply_session_cookie_lifetime($rememberMe);
+        servitech_apply_password_login_persistence(
+            $pdo,
+            (int)$user["id"],
+            $rememberMe
+        );
 
         if ($_SESSION["role"] === "admin") {
             $_SESSION["admin_logged_in"] = true;
@@ -210,14 +247,11 @@ try {
 
     $googleId = trim((string)($user["google_id"] ?? ""));
     if ($user && $googleId !== "" && $storedHash === "") {
-        header("Location: " . servitech_url("/auth/log_in.php?login=google_required"));
-        exit();
+        servitech_login_failure_redirect("google_required", $rememberMe);
     }
 
-    header("Location: " . servitech_url("/auth/log_in.php?login=fail"));
-    exit();
+    servitech_login_failure_redirect("fail", $rememberMe);
 } catch (Throwable $e) {
     error_log("login error: " . $e->getMessage());
-    header("Location: " . servitech_url("/auth/log_in.php?login=fail"));
-    exit();
+    servitech_login_failure_redirect("fail", $rememberMe);
 }

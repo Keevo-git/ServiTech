@@ -1,6 +1,19 @@
 <?php
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/app.php";
+require_once __DIR__ . "/../config/remember_me.php";
+
+if (!empty($_COOKIE[servitech_remember_cookie_name()])) {
+    try {
+        require_once __DIR__ . "/../config/db.php";
+        servitech_remember_revoke_current(servitech_db_connect_privileged());
+    } catch (Throwable $exception) {
+        error_log("Remember-me logout cleanup failed: " . $exception->getMessage());
+        servitech_remember_clear_cookie();
+    }
+} else {
+    servitech_remember_clear_cookie();
+}
 
 $supabaseAccessToken = trim((string)($_SESSION["supabase_access_token"] ?? ""));
 if ($supabaseAccessToken !== "") {
@@ -10,11 +23,12 @@ servitech_supabase_clear_auth_session();
 $_SESSION = [];
 
 if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), "", time() - 42000, servitech_cookie_path(), $params["domain"], $params["secure"], $params["httponly"]);
+    setcookie(session_name(), "", servitech_session_cookie_options(time() - 42000));
 }
 
-session_destroy();
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_destroy();
+}
 
 header("Location: " . servitech_url("/auth/log_in.php?logout=1"));
 exit();

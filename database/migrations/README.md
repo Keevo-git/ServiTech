@@ -55,6 +55,9 @@ For an existing ServiTech database:
     add-ons and restoring previously archived canonical Printing services.
 13. Run `20260623_add_announcement_soft_delete.sql` to add the deletion
     timestamp and active/deleted lookup indexes used by Admin Announcements.
+14. Run `20260624_add_remember_tokens.sql` before deploying the remember-me
+    authentication update. It adds hashed, expiring, per-browser login tokens;
+    raw token validators are never stored in the database.
 
 `20260620_unify_service_catalog_pricing.sql` is a one-time catalog conversion
 and seed migration. Do not rerun it after administrators have edited catalog

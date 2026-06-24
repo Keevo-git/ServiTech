@@ -13,7 +13,7 @@ ini_set("session.use_cookies", "1");
 ini_set("session.gc_maxlifetime", (string)$sessionLifetime);
 
 session_name("SERVITECHSESSID");
-$secure = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off");
+$secure = servitech_request_is_https();
 
 session_set_cookie_params([
     "lifetime" => 0,
@@ -34,8 +34,28 @@ if (servitech_supabase_auth_enabled()) {
             $_SESSION["user_id"],
             $_SESSION["role"],
             $_SESSION["admin_logged_in"],
-            $_SESSION["admin_email"]
+            $_SESSION["admin_email"],
+            $_SESSION["remember_me"],
+            $_SESSION["remember_selector"]
         );
+    }
+}
+
+// Password-login remember tokens can rebuild a fresh, short-lived PHP session
+// after the browser has discarded its normal session cookie.
+if (
+    !servitech_supabase_auth_enabled()
+    && empty($_SESSION["user_id"])
+    && !empty($_COOKIE["SERVITECHREMEMBER"])
+) {
+    require_once __DIR__ . "/remember_me.php";
+    try {
+        require_once __DIR__ . "/db.php";
+        $rememberPdo = servitech_db_connect_privileged();
+        servitech_remember_restore($rememberPdo);
+    } catch (Throwable $exception) {
+        error_log("Remember-me restore failed: " . $exception->getMessage());
+        servitech_remember_clear_cookie();
     }
 }
 
@@ -53,13 +73,12 @@ if (!empty($_SESSION["user_id"]) && (int)$_SESSION["user_id"] > 0) {
 if (!function_exists("servitech_session_cookie_options")) {
     function servitech_session_cookie_options(int $expires): array
     {
-        $secure = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off");
         return [
             "expires" => $expires,
             "path" => servitech_cookie_path(),
             "httponly" => true,
             "samesite" => "Lax",
-            "secure" => $secure,
+            "secure" => servitech_request_is_https(),
         ];
     }
 }
@@ -75,13 +94,17 @@ if (!function_exists("servitech_apply_session_cookie_lifetime")) {
         $sessionLifetime = (is_string($lifetimeEnv) && ctype_digit($lifetimeEnv) && (int)$lifetimeEnv > 0)
             ? (int)$lifetimeEnv
             : 60 * 60 * 24 * 30;
-        $shouldRemember = $remember ?? !empty($_SESSION["remember_me"]);
+        // Supabase refresh credentials live in the server-side PHP session, so
+        // that integration retains the persistent session-cookie strategy.
+        // Local password auth uses the separate hashed token cookie instead.
+        $shouldRemember = servitech_supabase_auth_enabled()
+            && ($remember ?? !empty($_SESSION["remember_me"]));
         $expires = $shouldRemember ? (time() + $sessionLifetime) : 0;
         setcookie(session_name(), session_id(), servitech_session_cookie_options($expires));
     }
 }
 
-// Sliding expiration: persistent only when the user explicitly chose Remember me.
+// Supabase-only sliding expiration. Other PHP session cookies stay session-only.
 if (session_id() !== "") {
     servitech_apply_session_cookie_lifetime();
 }

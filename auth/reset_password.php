@@ -2,6 +2,7 @@
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/remember_me.php";
 
 $supabaseRecoveryMode = servitech_supabase_auth_enabled();
 $token = (string)($_GET["token"] ?? $_POST["token"] ?? "");
@@ -83,6 +84,7 @@ if ($requestMethod === "POST") {
 
             $consume = $pdo->prepare("UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = :user_id");
             $consume->execute([":user_id" => (int)$resetRequest["id"]]);
+            servitech_remember_revoke_all_for_user($pdo, (int)$resetRequest["id"]);
 
             $pdo->commit();
             header("Location: " . auth_url_raw("/auth/log_in.php?reset=success"));

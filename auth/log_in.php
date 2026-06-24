@@ -3,6 +3,8 @@ require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
 servitech_require_guest_page();
 $csrfToken = servitech_csrf_token();
+$rememberMeRetry = !empty($_SESSION["login_remember_retry"]);
+unset($_SESSION["login_remember_retry"]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -58,7 +60,7 @@ $csrfToken = servitech_csrf_token();
           <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
           <div class="auth-login-options">
             <label class="remember-me-control" for="rememberMe">
-              <input id="rememberMe" name="remember_me" type="checkbox" value="1">
+              <input id="rememberMe" name="remember_me" type="checkbox" value="1"<?= $rememberMeRetry ? " checked" : "" ?>>
               <span class="login-option-text">Remember me</span>
             </label>
             <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link login-option-text">Forgot Password?</a>

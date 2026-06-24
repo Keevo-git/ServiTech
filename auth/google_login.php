@@ -5,6 +5,7 @@ require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/google_auth.php";
 require_once __DIR__ . "/../config/account.php";
 require_once __DIR__ . "/../config/google_account_completion.php";
+require_once __DIR__ . "/../config/remember_me.php";
 require_once __DIR__ . "/registration_notifications.php";
 
 servitech_enforce_same_origin(true);
@@ -80,6 +81,10 @@ if (servitech_supabase_auth_enabled()) {
         }
 
         $applicationProfile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        $_SESSION["remember_me"] = false;
+        unset($_SESSION["remember_selector"]);
+        servitech_apply_session_cookie_lifetime(false);
+        servitech_remember_clear_cookie();
         $syncGoogleProfile = $privilegedPdo->prepare("
             UPDATE users
             SET google_id = :google_id,
@@ -271,6 +276,10 @@ try {
     session_regenerate_id(true);
     $_SESSION["user_id"] = $userId;
     $_SESSION["role"] = ($role === "admin") ? "admin" : "customer";
+    $_SESSION["remember_me"] = false;
+    unset($_SESSION["remember_selector"]);
+    servitech_apply_session_cookie_lifetime(false);
+    servitech_remember_clear_cookie();
 
     $completionStatus = servitech_refresh_google_account_completion_state($pdo, $userId);
 
