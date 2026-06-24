@@ -83,6 +83,46 @@ if (is_string($temporaryExecutable)) {
 }
 security_test_assert($executableRejected, "Executable PHP uploads must be rejected.");
 
+$loginSource = file_get_contents(__DIR__ . "/../auth/login.php") ?: "";
+security_test_assert(
+    !str_contains($loginSource, "servitech_supabase_admin_create_user"),
+    "The login path must not auto-create Auth users from legacy credentials."
+);
+security_test_assert(
+    !str_contains($loginSource, 'hash_equals($storedHash, $password)'),
+    "The local fallback must not accept plaintext password values."
+);
+
+$registrationSource = file_get_contents(__DIR__ . "/../auth/register.php") ?: "";
+security_test_assert(
+    str_contains($registrationSource, '$hasSession')
+        && str_contains($registrationSource, 'registered=verify'),
+    "Supabase registration must handle email-confirmation responses without a session."
+);
+
+$cutoverMigration = file_get_contents(
+    __DIR__ . "/../database/migrations/20260624_harden_supabase_auth_cutover.sql"
+) ?: "";
+foreach (["service_option_groups", "service_option_values", "service_pricing_rules", "remember_tokens"] as $rlsTable) {
+    security_test_assert(
+        str_contains($cutoverMigration, "ALTER TABLE public.{$rlsTable} ENABLE ROW LEVEL SECURITY"),
+        "RLS must be enabled for {$rlsTable}."
+    );
+}
+security_test_assert(
+    str_contains($cutoverMigration, "public.servitech_is_trusted_backend()")
+        && str_contains($cutoverMigration, "'aal2'"),
+    "Cutover policies must require validated backend writes and AAL2 admin authority."
+);
+
+$htaccessExample = file_get_contents(__DIR__ . "/../.htaccess.example") ?: "";
+foreach (["backups", "database", "docs", "supabase", "tests", "vendor", "legacy"] as $privatePath) {
+    security_test_assert(
+        str_contains($htaccessExample, "backups|database|docs|supabase|tests|vendor|legacy"),
+        "The web-server example must block the {$privatePath} path."
+    );
+}
+
 if ($failures) {
     foreach ($failures as $failure) {
         fwrite(STDERR, "FAIL: {$failure}\n");
@@ -91,4 +131,3 @@ if ($failures) {
 }
 
 echo "Security migration unit checks passed.\n";
-

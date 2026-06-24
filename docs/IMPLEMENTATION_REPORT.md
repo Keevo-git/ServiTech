@@ -87,7 +87,9 @@ Live role tests are pending the pooler connection and staging deployment.
 ## 8. Auth and Roles
 
 - Added server-side Supabase signup, password login, refresh, logout, recovery, and Google ID-token exchange.
-- Added a first-login bridge for legacy password accounts.
+- Removed the former first-login bridge. Supabase Auth is now the only password
+  verifier in Auth mode; legacy accounts use controlled invitation/recovery and
+  reviewed `auth_user_id` mapping.
 - Legacy hashes are nulled one account at a time only after successful Auth creation and linkage.
 - Roles remain `customer` and `admin`.
 - Registration never accepts an admin role.

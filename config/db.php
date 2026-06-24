@@ -159,6 +159,10 @@ function servitech_db_connect(bool $applyRlsContext = true): PDO
     $databaseRole = $authenticated ? "authenticated" : "anon";
     $claims = $authenticated ? $claims : ["role" => "anon"];
     $claims["role"] = $databaseRole;
+    // This claim is added only by the server-side PDO connection. Browser calls
+    // made directly with the Supabase anon key do not receive it, allowing RLS
+    // to distinguish validated application writes from client-crafted writes.
+    $claims["servitech_backend"] = $authenticated;
 
     $connection->exec("SET ROLE " . $databaseRole);
     $setClaims = $connection->prepare("

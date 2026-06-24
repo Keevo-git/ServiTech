@@ -99,6 +99,7 @@ if (servitech_supabase_auth_enabled()) {
     if ($changingPass) {
       $authUpdates["password"] = $new_password;
     }
+    $emailChangePending = false;
     if ($authUpdates) {
       $updatedAuth = servitech_supabase_update_user(
         (string)$_SESSION["supabase_access_token"],
@@ -106,9 +107,7 @@ if (servitech_supabase_auth_enabled()) {
       );
       $returnedEmail = strtolower(trim((string)($updatedAuth["email"] ?? $profile["email"])));
       if (isset($authUpdates["email"]) && $returnedEmail !== strtolower($email)) {
-        throw new DomainException(
-          "Supabase did not apply the email change immediately. Confirm email-change verification is disabled during testing."
-        );
+        $emailChangePending = true;
       }
     }
 
@@ -122,12 +121,17 @@ if (servitech_supabase_auth_enabled()) {
     ");
     $update->execute([
       ":fullname" => $fullname,
-      ":email" => strtolower($email),
+      // Keep the current public profile email until Supabase confirms the new
+      // address. The auth.users synchronization trigger updates it afterward.
+      ":email" => $emailChangePending ? strtolower((string)$profile["email"]) : strtolower($email),
       ":contact" => $contact !== "" ? $contact : null,
       ":id" => $user_id,
     ]);
 
-    header("Location: /pages/customer/custo_edit_profile.php?ok=" . urlencode("Profile updated!"));
+    $successMessage = $emailChangePending
+      ? "Profile updated. Check both email addresses to confirm the email change."
+      : "Profile updated!";
+    header("Location: /pages/customer/custo_edit_profile.php?ok=" . urlencode($successMessage));
     exit();
   } catch (DomainException $e) {
     header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode($e->getMessage()));

@@ -88,9 +88,12 @@ function servitech_google_account_status_from_profile(
 {
     $isGoogle = trim((string)($profile["google_id"] ?? "")) !== "" || $googleSession;
     $missingContact = trim((string)($profile["contact"] ?? "")) === "";
+    $localStoredPassword = trim((string)($profile["password_hash"] ?? ""));
+    $localPasswordInfo = $localStoredPassword !== "" ? password_get_info($localStoredPassword) : [];
+    $localPasswordIsHash = (int)($localPasswordInfo["algo"] ?? 0) !== 0;
     $missingPassword = $usesSupabaseAuth
         ? trim((string)($profile["local_password_set_at"] ?? "")) === "" && !$emailPasswordIdentity
-        : trim((string)($profile["password_hash"] ?? "")) === "";
+        : !$localPasswordIsHash;
 
     return [
         "is_google" => $isGoogle,

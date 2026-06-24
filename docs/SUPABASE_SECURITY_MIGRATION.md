@@ -9,7 +9,10 @@ Do not apply the foundation migration until all of these are complete:
 3. Temporarily set `SUPABASE_PROJECT_REF` and a Supabase Management API
    `SUPABASE_ACCESS_TOKEN` in the shell used for backup. Do not store the personal
    access token in the website `.env`.
-4. Run:
+4. Set `SERVITECH_BACKUP_DIR` to an encrypted/private destination outside the
+   ServiTech website directory. The backup script now refuses an in-project
+   destination.
+5. Run:
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File scripts/backup_supabase.ps1
@@ -22,7 +25,7 @@ Do not apply the foundation migration until all of these are complete:
    powershell -ExecutionPolicy Bypass -File scripts/backup_supabase.ps1
    ```
 
-5. Confirm the generated backup directory contains:
+6. Confirm the generated backup directory contains:
    - `servitech-full.dump`
    - `servitech-schema.sql`
    - `servitech-data.sql`
@@ -30,11 +33,12 @@ Do not apply the foundation migration until all of these are complete:
    - `upload-inventory.csv`, or a clearly reviewed warning
    - `supabase-auth-config.json`
    - `manifest.json` with SHA-256 hashes
-6. Restore the custom dump into a disposable PostgreSQL database and run smoke queries.
-7. Run the catalog audit and retain its output:
+7. Restore the custom dump into a disposable PostgreSQL database and run smoke queries.
+8. Run both audits and retain their output in the private migration record:
 
    ```powershell
    psql $env:SUPABASE_DB_URL -f scripts/audit_supabase_catalog.sql
+   psql $env:SUPABASE_DB_URL -f scripts/audit_auth_mappings.sql
    ```
 
 No production backup was created from this workspace because the configured direct database
@@ -44,34 +48,79 @@ hostname did not resolve and the exact pooler URL was not available.
 
 1. Rehearse the backup, migration, and rollback on a staging Supabase project.
 2. Run `scripts/verify_security_migration.ps1`.
-3. Apply `database/migrations/20260612_add_supabase_auth_rls_foundation.sql`.
-4. In Supabase Auth settings, keep **Confirm email** disabled during the requested testing phase.
-5. Disable secure email-change confirmation during testing if immediate profile email changes are required.
-6. Add `https://servitech.store/auth/reset_password.php` to allowed Auth redirect URLs.
-7. Configure server-only environment values:
+3. Apply `database/migrations/20260612_add_supabase_auth_rls_foundation.sql`,
+   then all later dated migrations except the final cutover migration.
+4. In Supabase Auth settings, enable **Confirm email**. Keep secure email-change
+   confirmation enabled; the application waits for confirmation before syncing
+   `public.users.email`.
+5. Add the deployed reset-password URL and Google callback/origin URLs to the
+   Auth allow list. Use staging URLs during rehearsal.
+6. Configure server-only environment values:
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
    - `SUPABASE_DB_*`
    - `SERVITECH_PRIVATE_UPLOAD_DIR`
-8. Create `/ServiTech_Uploads` outside `public_html`, owned by the PHP process and not directly web-accessible.
-9. Deploy code with `SUPABASE_AUTH_ENABLED=0` and `SERVITECH_DB_ENFORCE_RLS=0`.
-10. Verify the migration and bootstrap/link an admin Auth identity.
-11. Enable `SUPABASE_AUTH_ENABLED=1` and `SERVITECH_DB_ENFORCE_RLS=1` together.
-12. Run customer, second-customer, admin, anonymous, upload, and direct-file-access tests.
+   `SUPABASE_SERVICE_ROLE_KEY` is no longer required by login and should be
+   omitted unless a separate reviewed server-only provisioning task needs it.
+7. Create `/ServiTech_Uploads` outside `public_html`, owned by the PHP process and not directly web-accessible.
+8. Deploy code with `SUPABASE_AUTH_ENABLED=0` and `SERVITECH_DB_ENFORCE_RLS=0`.
+9. Create/link Auth identities without copying legacy passwords. Use Supabase
+   invitations or password-recovery links. Review every mapping reported by
+   `scripts/audit_auth_mappings.sql`; do not link by email alone without proving ownership.
+10. Apply `database/migrations/20260624_harden_supabase_auth_cutover.sql`.
+    This is the point at which admin RLS authority starts requiring AAL2; the
+    MFA setup page remains available because enrollment uses Supabase Auth and
+    owner-only profile access, not admin table authority.
+11. Set `AUTH_ALLOW_ADMIN_MFA_ENROLLMENT=1`, then enable
+    `SUPABASE_AUTH_ENABLED=1` and `SERVITECH_DB_ENFORCE_RLS=1` together. Sign in
+    as the known admin, scan the QR at `/auth/mfa.php`, verify a code, then
+    immediately restore the enrollment value to `0`. Keep
+    `AUTH_REQUIRE_ADMIN_MFA=1`.
+12. Test signup confirmation, password login, recovery, token refresh, logout,
+    Google login, admin MFA, role downgrade/rebind, two-customer IDOR cases,
+    direct Supabase writes, uploads, and browser-back behavior.
+13. Repeat the restore rehearsal and tests, then perform the production cutover
+    in a maintenance window. Do not apply a production flag change until the
+    staging evidence is signed off.
 
-## First-Login Bridge
+## Legacy Credential Removal
 
-For an existing password account:
+The application no longer contains a first-login password bridge. In Supabase
+Auth mode:
 
-1. Normal Supabase password sign-in is attempted.
-2. If it fails, the server checks the legacy password through a privileged server-only connection.
-3. A confirmed Supabase Auth identity is created with the submitted password.
-4. `users.auth_user_id` is linked to that identity.
-5. That profile's legacy `password_hash` is set to `NULL`.
-6. The user signs in through Supabase Auth and receives a server-side PHP session.
+1. Only Supabase verifies the submitted password.
+2. Login never reads a legacy password and never creates `auth.users`.
+3. Existing users receive a controlled invitation/recovery flow.
+4. `public.users.auth_user_id` is linked only after identity review.
+5. Legacy password columns are retained temporarily for rollback but are not
+   accepted by the Supabase login path.
+6. After production acceptance and the rollback window, null/remove legacy
+   password material in a separately approved destructive migration.
 
-The service-role key is never rendered into HTML or JavaScript.
+Do not use the tracked seed-account passwords for migration. Treat them as
+disclosed, rotate affected credentials, and remove the file from deployed web
+roots and repository history through a separately reviewed incident task.
+
+## Manual Versus Repository Work
+
+Already implemented in the repository:
+
+- sensitive project directories are denied by Apache configuration;
+- backups require a private destination outside the project;
+- login has no plaintext/first-login bridge;
+- email-confirmed signup and secure email change are supported;
+- profile roles are periodically rebound from `public.users`;
+- admin TOTP/AAL2 challenge and enforcement are implemented;
+- final RLS hardening and mapping-audit SQL are provided.
+
+Operator-only steps:
+
+- obtain and protect staging/production credentials;
+- execute and restore-test backups;
+- configure Supabase email, redirects, Google provider, rate limits, and MFA;
+- review/link identities and enroll the known admin factor;
+- apply migrations and flip both feature flags in the approved window;
+- execute browser tests using separate customer/admin accounts.
 
 ## Upload Storage
 
@@ -84,9 +133,8 @@ The service-role key is never rendered into HTML or JavaScript.
 
 ## Destructive Changes
 
-This implementation does not remove or rename production tables, columns, rows, functions,
-triggers, policies, buckets, or files. The foundation migration contains no `DROP`, `DELETE`,
-`TRUNCATE`, or rename statements.
+This repository work does not delete production tables, rows, buckets, or files.
+The final migration replaces named policies but does not remove application data.
 
 Potential later removals requiring separate approval:
 

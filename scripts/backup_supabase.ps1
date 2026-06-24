@@ -4,7 +4,7 @@ param(
     [string]$ProjectRef = $env:SUPABASE_PROJECT_REF,
     [string]$ManagementAccessToken = $env:SUPABASE_ACCESS_TOKEN,
     [string]$PostgresBin = $env:POSTGRES_BIN,
-    [string]$OutputRoot = ""
+    [string]$OutputRoot = $env:SERVITECH_BACKUP_DIR
 )
 
 $ErrorActionPreference = "Stop"
@@ -14,8 +14,19 @@ if ([string]::IsNullOrWhiteSpace($DatabaseUrl)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
-    $OutputRoot = Join-Path $PSScriptRoot "..\backups"
+    throw "Set SERVITECH_BACKUP_DIR or pass -OutputRoot with a private directory outside the website project root."
 }
+
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
+$resolvedOutputRoot = [IO.Path]::GetFullPath($OutputRoot)
+$projectPrefix = $projectRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+if (
+    $resolvedOutputRoot.Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase) -or
+    $resolvedOutputRoot.StartsWith($projectPrefix, [StringComparison]::OrdinalIgnoreCase)
+) {
+    throw "Backup output must be outside the ServiTech website project root."
+}
+$OutputRoot = $resolvedOutputRoot
 
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $backupDir = Join-Path $OutputRoot "supabase-$timestamp"

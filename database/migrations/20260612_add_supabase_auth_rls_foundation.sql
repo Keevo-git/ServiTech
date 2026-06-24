@@ -213,7 +213,8 @@ DECLARE
   profile_name TEXT;
   profile_contact TEXT;
 BEGIN
-  -- Existing legacy emails are linked only by the privileged first-login bridge.
+  -- Existing profiles are never auto-linked by email. The operator must create
+  -- and verify the auth.users identity, then review the explicit mapping.
   IF EXISTS (
     SELECT 1 FROM public.users u WHERE LOWER(u.email) = LOWER(NEW.email)
   ) THEN

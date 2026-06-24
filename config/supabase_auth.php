@@ -70,7 +70,7 @@ function servitech_supabase_auth_enabled(): bool
     return servitech_supabase_env_bool("SUPABASE_AUTH_ENABLED", false);
 }
 
-function servitech_supabase_auth_configured(bool $requireServiceRole = false): bool
+function servitech_supabase_auth_configured(): bool
 {
     if (
         servitech_supabase_env("SUPABASE_URL") === ""
@@ -78,24 +78,21 @@ function servitech_supabase_auth_configured(bool $requireServiceRole = false): b
     ) {
         return false;
     }
-    return !$requireServiceRole || servitech_supabase_env("SUPABASE_SERVICE_ROLE_KEY") !== "";
+    return true;
 }
 
 function servitech_supabase_auth_request(
     string $path,
     string $method = "GET",
     ?array $body = null,
-    string $bearer = "",
-    bool $admin = false
+    string $bearer = ""
 ): array {
     if (!function_exists("curl_init")) {
         throw new RuntimeException("PHP cURL is required for Supabase Auth.");
     }
 
     $baseUrl = rtrim(servitech_supabase_env("SUPABASE_URL"), "/");
-    $apiKey = $admin
-        ? servitech_supabase_env("SUPABASE_SERVICE_ROLE_KEY")
-        : servitech_supabase_env("SUPABASE_ANON_KEY");
+    $apiKey = servitech_supabase_env("SUPABASE_ANON_KEY");
     if ($baseUrl === "" || $apiKey === "") {
         throw new RuntimeException("Supabase Auth configuration is incomplete.");
     }
@@ -179,22 +176,46 @@ function servitech_supabase_refresh(string $refreshToken): array
     ]);
 }
 
-function servitech_supabase_admin_create_user(
-    string $email,
-    string $password,
-    array $metadata = []
-): array {
-    return servitech_supabase_auth_request("admin/users", "POST", [
-        "email" => $email,
-        "password" => $password,
-        "email_confirm" => true,
-        "user_metadata" => $metadata,
-    ], "", true);
-}
-
 function servitech_supabase_update_user(string $accessToken, array $updates): array
 {
     return servitech_supabase_auth_request("user", "PUT", $updates, $accessToken);
+}
+
+function servitech_supabase_get_user(string $accessToken): array
+{
+    return servitech_supabase_auth_request("user", "GET", null, $accessToken);
+}
+
+function servitech_supabase_mfa_enroll_totp(string $accessToken, string $friendlyName): array
+{
+    return servitech_supabase_auth_request("factors", "POST", [
+        "factor_type" => "totp",
+        "friendly_name" => $friendlyName,
+    ], $accessToken);
+}
+
+function servitech_supabase_mfa_challenge(string $accessToken, string $factorId): array
+{
+    return servitech_supabase_auth_request(
+        "factors/" . rawurlencode($factorId) . "/challenge",
+        "POST",
+        [],
+        $accessToken
+    );
+}
+
+function servitech_supabase_mfa_verify(
+    string $accessToken,
+    string $factorId,
+    string $challengeId,
+    string $code
+): array {
+    return servitech_supabase_auth_request(
+        "factors/" . rawurlencode($factorId) . "/verify",
+        "POST",
+        ["challenge_id" => $challengeId, "code" => $code],
+        $accessToken
+    );
 }
 
 function servitech_supabase_send_recovery(string $email, string $redirectUrl): array
@@ -228,6 +249,31 @@ function servitech_supabase_jwt_claims(string $token): array
     }
     $claims = json_decode($decoded, true);
     return is_array($claims) ? $claims : [];
+}
+
+function servitech_supabase_session_aal(): string
+{
+    $claims = is_array($_SESSION["supabase_claims"] ?? null)
+        ? $_SESSION["supabase_claims"]
+        : [];
+    $aal = strtolower(trim((string)($claims["aal"] ?? "aal1")));
+    return in_array($aal, ["aal1", "aal2"], true) ? $aal : "aal1";
+}
+
+function servitech_supabase_admin_mfa_required(): bool
+{
+    return servitech_supabase_env_bool("AUTH_REQUIRE_ADMIN_MFA", true);
+}
+
+function servitech_supabase_admin_mfa_enrollment_allowed(): bool
+{
+    return servitech_supabase_env_bool("AUTH_ALLOW_ADMIN_MFA_ENROLLMENT", false);
+}
+
+function servitech_supabase_profile_rebind_seconds(): int
+{
+    $configured = servitech_supabase_env("AUTH_PROFILE_REBIND_SECONDS", "300");
+    return ctype_digit($configured) ? max(30, (int)$configured) : 300;
 }
 
 function servitech_supabase_store_auth_session(array $authResponse): array
@@ -287,8 +333,62 @@ function servitech_supabase_complete_login(PDO $pdo, array $authResponse): array
     $user = servitech_supabase_store_auth_session($authResponse);
     $authUserId = trim((string)($user["id"] ?? $_SESSION["auth_user_id"] ?? ""));
     $profile = servitech_supabase_bind_application_profile($pdo, $authUserId);
+    $_SESSION["supabase_profile_bound_at"] = time();
+    $_SESSION["supabase_last_activity_at"] = time();
     session_regenerate_id(true);
     return $profile;
+}
+
+function servitech_supabase_clear_application_session(): void
+{
+    unset(
+        $_SESSION["user_id"],
+        $_SESSION["role"],
+        $_SESSION["admin_logged_in"],
+        $_SESSION["admin_email"],
+        $_SESSION["remember_me"],
+        $_SESSION["remember_selector"],
+        $_SESSION["supabase_profile_bound_at"],
+        $_SESSION["supabase_last_activity_at"]
+    );
+}
+
+function servitech_supabase_rebind_application_profile(
+    PDO $pdo,
+    bool $force = false,
+    int $maxAgeSeconds = 300
+): bool {
+    if (!servitech_supabase_auth_enabled()) {
+        return true;
+    }
+
+    $authUserId = strtolower(trim((string)($_SESSION["auth_user_id"] ?? "")));
+    if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId)) {
+        return false;
+    }
+
+    $maxAgeSeconds = max(30, $maxAgeSeconds);
+    $lastBoundAt = (int)($_SESSION["supabase_profile_bound_at"] ?? 0);
+    if (!$force && $lastBoundAt > 0 && $lastBoundAt >= time() - $maxAgeSeconds) {
+        return true;
+    }
+
+    $previousUserId = (int)($_SESSION["user_id"] ?? 0);
+    $previousRole = strtolower(trim((string)($_SESSION["role"] ?? "customer")));
+
+    try {
+        $profile = servitech_supabase_bind_application_profile($pdo, $authUserId);
+        $_SESSION["supabase_profile_bound_at"] = time();
+        $currentUserId = (int)($profile["id"] ?? 0);
+        $currentRole = strtolower(trim((string)($profile["role"] ?? "customer")));
+        if ($previousUserId !== $currentUserId || $previousRole !== $currentRole) {
+            session_regenerate_id(true);
+        }
+        return true;
+    } catch (Throwable $exception) {
+        error_log("Supabase profile rebind failed: " . $exception->getMessage());
+        return false;
+    }
 }
 
 function servitech_supabase_clear_auth_session(): void
@@ -298,7 +398,9 @@ function servitech_supabase_clear_auth_session(): void
         $_SESSION["supabase_refresh_token"],
         $_SESSION["supabase_expires_at"],
         $_SESSION["supabase_claims"],
-        $_SESSION["auth_user_id"]
+        $_SESSION["auth_user_id"],
+        $_SESSION["supabase_profile_bound_at"],
+        $_SESSION["supabase_last_activity_at"]
     );
 }
 
@@ -320,6 +422,9 @@ function servitech_supabase_refresh_session_if_needed(): bool
 
     try {
         servitech_supabase_store_auth_session(servitech_supabase_refresh($refreshToken));
+        // Refreshing proves the Auth session is current, but the application role
+        // still comes from public.users and must be re-read on the next guard.
+        $_SESSION["supabase_profile_bound_at"] = 0;
         return true;
     } catch (Throwable $exception) {
         error_log("Supabase session refresh failed: " . $exception->getMessage());

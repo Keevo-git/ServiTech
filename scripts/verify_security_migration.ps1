@@ -1,6 +1,9 @@
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$migration = Join-Path $root "database\migrations\20260612_add_supabase_auth_rls_foundation.sql"
+$migrations = @(
+    (Join-Path $root "database\migrations\20260612_add_supabase_auth_rls_foundation.sql"),
+    (Join-Path $root "database\migrations\20260624_harden_supabase_auth_cutover.sql")
+)
 
 $runtimePaths = @(
     (Join-Path $root "api"),
@@ -17,7 +20,7 @@ if ($runtimeDdl) {
     throw "Runtime database DDL is not allowed."
 }
 
-$destructiveMigration = Select-String -Path $migration -Pattern "\b(DROP|DELETE\s+FROM|TRUNCATE|RENAME)\b"
+$destructiveMigration = Select-String -Path $migrations -Pattern "\b(DROP\s+(TABLE|SCHEMA|COLUMN)|DELETE\s+FROM|TRUNCATE|RENAME)\b"
 if ($destructiveMigration) {
     $destructiveMigration | ForEach-Object { Write-Error "Destructive migration statement: $($_.LineNumber)" }
     throw "The additive foundation migration contains a destructive statement."

@@ -39,6 +39,25 @@ if (servitech_supabase_auth_enabled()) {
             $_SESSION["remember_selector"]
         );
     }
+
+    $idleSetting = servitech_supabase_env("SESSION_IDLE_TIMEOUT_SECONDS", "1800");
+    $idleTimeout = ctype_digit($idleSetting) ? (int)$idleSetting : 1800;
+    $lastActivityAt = (int)($_SESSION["supabase_last_activity_at"] ?? 0);
+    if (
+        $idleTimeout > 0
+        && !empty($_SESSION["user_id"])
+        && $lastActivityAt > 0
+        && $lastActivityAt < time() - $idleTimeout
+    ) {
+        $accessToken = trim((string)($_SESSION["supabase_access_token"] ?? ""));
+        if ($accessToken !== "") {
+            servitech_supabase_logout_token($accessToken);
+        }
+        servitech_supabase_clear_auth_session();
+        servitech_supabase_clear_application_session();
+    } elseif (!empty($_SESSION["user_id"])) {
+        $_SESSION["supabase_last_activity_at"] = time();
+    }
 }
 
 // Password-login remember tokens can rebuild a fresh, short-lived PHP session

@@ -121,7 +121,10 @@ if (servitech_supabase_auth_enabled()) {
         echo json_encode([
             "ok" => true,
             "redirect" => ($applicationProfile["role"] ?? "customer") === "admin"
-                ? "/pages/admin/admin_dashboard.php"
+                ? (servitech_supabase_admin_mfa_required()
+                    && servitech_supabase_session_aal() !== "aal2"
+                    ? "/auth/mfa.php"
+                    : "/pages/admin/admin_dashboard.php")
                 : ($completionStatus["required"]
                     ? servitech_google_account_completion_path()
                     : "/pages/customer/customer_dash.php"),

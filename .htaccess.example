@@ -16,7 +16,6 @@ Options -Indexes
 # SetEnv SUPABASE_DB_SSLMODE "require"
 # SetEnv SUPABASE_URL "https://your-project-ref.supabase.co"
 # SetEnv SUPABASE_ANON_KEY "publishable-anon-key"
-# Keep SUPABASE_SERVICE_ROLE_KEY in the private .env file, not in public/client code.
 # SetEnv SUPABASE_AUTH_ENABLED "0"
 # SetEnv SERVITECH_DB_ENFORCE_RLS "0"
 # SetEnv SERVITECH_PRIVATE_UPLOAD_DIR "/home/your-hostinger-user/ServiTech_Uploads"
@@ -37,6 +36,8 @@ Options -Indexes
   RewriteRule ^storage(?:/|$) - [F,L]
   RewriteRule ^uploads(?:/|$) - [F,L]
   RewriteRule ^scripts(?:/|$) - [F,L]
+  RewriteRule ^(?:backups|database|docs|supabase|tests|vendor|legacy)(?:/|$) - [F,L]
+  RewriteRule ^supabase-audit\.txt$ - [F,L]
 
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

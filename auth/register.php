@@ -84,6 +84,19 @@ if (servitech_supabase_auth_enabled()) {
             "privacy_consent" => "1",
             "consent_version" => servitech_account_consent_version(),
         ]);
+
+        $hasSession = trim((string)($authResponse["access_token"] ?? "")) !== ""
+            && trim((string)($authResponse["refresh_token"] ?? "")) !== "";
+
+        if (!$hasSession) {
+            // With email confirmation enabled, Supabase creates auth.users and the
+            // profile trigger runs, but no login session is issued until verification.
+            // Do not notify admins yet; unconfirmed signups can be abandoned or
+            // automated. Operational reporting should count confirmed accounts.
+            header("Location: " . servitech_url("/auth/log_in.php?registered=verify"));
+            exit();
+        }
+
         $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
         if (($profile["role"] ?? "customer") !== "admin") {
             servitech_notify_admin_new_customer(

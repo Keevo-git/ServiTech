@@ -112,19 +112,6 @@ function servitech_ensure_queue_status_history_schema(PDO $pdo): void {
   static $verified = false;
   if ($verified) return;
 
-  try {
-    $pdo->exec("
-      ALTER TABLE queue_status_history
-        ADD COLUMN IF NOT EXISTS action_type TEXT NOT NULL DEFAULT 'status_change'
-    ");
-    $pdo->exec("
-      CREATE INDEX IF NOT EXISTS idx_queue_status_history_action_type
-        ON queue_status_history (queue_id, action_type, created_at DESC)
-    ");
-  } catch (Throwable $exception) {
-    error_log("queue status history schema ensure failed: " . $exception->getMessage());
-  }
-
   $stmt = $pdo->query("
     SELECT column_name
     FROM information_schema.columns
@@ -166,36 +153,9 @@ function servitech_ensure_payment_review_schema(PDO $pdo): void {
     $verified = true;
     return;
   }
-
-  try {
-    $pdo->exec("ALTER TABLE payments ALTER COLUMN reference_number TYPE TEXT");
-    $pdo->exec("
-      UPDATE payments
-      SET status = CASE
-        WHEN UPPER(TRIM(COALESCE(status, ''))) IN ('APPROVED', 'VERIFIED') THEN 'APPROVED'
-        WHEN UPPER(TRIM(COALESCE(status, ''))) IN ('PAID', 'COMPLETED', 'SUCCESS') THEN 'PAID'
-        WHEN UPPER(TRIM(COALESCE(status, ''))) IN ('CANCELLED', 'CANCELED', 'REJECTED') THEN 'CANCELLED'
-        ELSE 'PENDING'
-      END
-    ");
-    $pdo->exec("ALTER TABLE payments ALTER COLUMN status SET DEFAULT 'PENDING'");
-    $pdo->exec("ALTER TABLE payments ALTER COLUMN status SET NOT NULL");
-    $pdo->exec("ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_check");
-    $pdo->exec("
-      ALTER TABLE payments ADD CONSTRAINT payments_status_check
-        CHECK (UPPER(TRIM(status)) IN ('PENDING', 'APPROVED', 'PAID', 'CANCELLED')) NOT VALID
-    ");
-    $pdo->exec("
-      CREATE INDEX IF NOT EXISTS idx_payments_gcash_review
-        ON payments (status, queue_id)
-        WHERE LOWER(TRIM(payment_method)) = 'gcash'
-    ");
-  } catch (Throwable $exception) {
-    error_log("payment review schema ensure failed: " . $exception->getMessage());
-    throw new RuntimeException("Payment review database schema is not ready for approval updates.");
-  }
-
-  $verified = true;
+  throw new RuntimeException(
+    "Payment review database schema is not ready. Apply the dated payment migrations before serving requests."
+  );
 }
 
 function servitech_ensure_queue_lifecycle_schema(PDO $pdo): void {

@@ -11,6 +11,13 @@ Before applying it, complete and validate the backup procedure in
 `SUPABASE_AUTH_ENABLED` or `SERVITECH_DB_ENFORCE_RLS` until the migration,
 admin Auth linkage, and role tests have passed.
 
+After all dated schema/catalog migrations, apply
+`20260624_harden_supabase_auth_cutover.sql`. It protects catalog option tables,
+locks local remember tokens out of the data API, requires validated backend
+writes for orders/payments/uploads, synchronizes confirmed Auth email changes,
+and requires Supabase AAL2 for admin RLS authority. Enroll and verify the known
+admin's MFA factor in staging before applying this final cutover migration.
+
 If `20260612_add_supabase_auth_rls_foundation.sql` was applied before the
 catalog delete-grant hardening, also run
 `20260612_revoke_public_catalog_delete_grants.sql`. New installs should still

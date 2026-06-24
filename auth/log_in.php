@@ -481,6 +481,8 @@ unset($_SESSION["login_remember_retry"]);
         setMessage("error", "This account uses Google account sign-in. Continue with Google Account to access it.");
       } else if (loginCode === "google_unavailable") {
         setMessage("error", "Google account sign-in is currently unavailable. Please use your email and password.");
+      } else if (loginCode === "session_expired") {
+        setMessage("error", "Your session expired or your account access changed. Please log in again.");
       } else if (loginCode === "verify_email") {
         setMessage("error", "Verify your email address before logging in. Check your inbox for the verification link.");
       } else if (loginCode === "throttled") {

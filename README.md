@@ -35,9 +35,12 @@
 - `SUPABASE_DB_URL` (exact session-pooler URL used only for backup/audit tooling)
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` (server-only; never render it into client assets)
 - `SUPABASE_AUTH_ENABLED` (`0` until the additive migration and staging tests pass)
 - `SERVITECH_DB_ENFORCE_RLS` (`0` until Supabase Auth is enabled)
+- `SESSION_IDLE_TIMEOUT_SECONDS` (Supabase Auth inactivity limit; default `1800`)
+- `AUTH_PROFILE_REBIND_SECONDS` (profile/role refresh interval; default `300`)
+- `AUTH_REQUIRE_ADMIN_MFA` (`1` in staging and production)
+- `AUTH_ALLOW_ADMIN_MFA_ENROLLMENT` (temporary controlled bootstrap only; normally `0`)
 - `SERVITECH_PRIVATE_UPLOAD_DIR` (absolute path ending in `ServiTech_Uploads`)
 - `SERVITECH_REQUIRE_PRIVATE_UPLOAD_ROOT` (`1` in production)
 - `SERVITECH_CONTACT_EMAIL` (public contact email shown in footers, auth pages, and legal pages)

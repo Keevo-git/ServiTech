@@ -272,11 +272,7 @@ function verifyStoredPassword(string $storedPassword, string $submittedPassword)
     $hashInfo = password_get_info($storedPassword);
     $isHash = (int)($hashInfo["algo"] ?? 0) !== 0;
 
-    if ($isHash) {
-        return password_verify($submittedPassword, $storedPassword);
-    }
-
-    return hash_equals($storedPassword, $submittedPassword);
+    return $isHash && password_verify($submittedPassword, $storedPassword);
 }
 
 function profileErrorDefaults(): array
@@ -417,6 +413,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
+    $emailChangePending = false;
     if ($errors["current_password"] === "" && $schema && $profile) {
         if (servitech_supabase_auth_enabled()) {
             try {
@@ -449,9 +446,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     );
                     $returnedEmail = normalizeEmail((string)($updatedAuth["email"] ?? $currentEmail));
                     if (isset($authChanges["email"]) && $returnedEmail !== $formData["email"]) {
-                        throw new RuntimeException(
-                            "Supabase did not apply the email change immediately. Confirm email-change verification is disabled during testing."
-                        );
+                        $emailChangePending = true;
                     }
                 }
             } catch (Throwable $exception) {
@@ -472,8 +467,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         if (!empty($changedFields["email"])) {
-            $changes[$schema["emailColumn"]] = $formData["email"];
-            $changedLabels[] = "Email address";
+            if (servitech_supabase_auth_enabled() && $emailChangePending) {
+                $changedLabels[] = "Email verification request";
+            } else {
+                $changes[$schema["emailColumn"]] = $formData["email"];
+                $changedLabels[] = "Email address";
+            }
             if ($schema["table"] === "users" && !servitech_supabase_auth_enabled()) {
                 $changes["email_verified_at"] = null;
                 $changes["email_verification_token"] = null;
@@ -526,6 +525,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 error_log("profile update error: " . $exception->getMessage());
                 $errors["general"] = "We could not save your changes right now.";
             }
+        } elseif ($emailChangePending) {
+            $_SESSION["profile_flash"] = [
+                "type" => "success",
+                "message" => "Check both email addresses to confirm the requested email change.",
+            ];
         } else {
             $_SESSION["profile_flash"] = [
                 "type" => "info",
