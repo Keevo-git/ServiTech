@@ -79,9 +79,9 @@ reset_flow_assert(
 );
 reset_flow_assert(
     str_contains($reset, 'header("Cache-Control: private, no-store')
-        && str_contains($reset, 'header("Referrer-Policy: no-referrer")')
+        && str_contains($reset, 'header("Referrer-Policy: same-origin")')
         && str_contains($reset, 'name="robots" content="noindex, nofollow"'),
-    "Recovery credentials must not be cached, leaked through referrers, or indexed."
+    "Recovery credentials must not be cached or indexed, while same-origin reset form posts remain allowed."
 );
 reset_flow_assert(
     str_contains($css, ".auth-recovery-status")

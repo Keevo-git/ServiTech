@@ -5,7 +5,7 @@ require_once __DIR__ . "/../config/remember_me.php";
 
 header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
-header("Referrer-Policy: no-referrer");
+header("Referrer-Policy: same-origin");
 
 const RESET_PASSWORD_INVALID_MESSAGE = "This reset link is invalid or has expired. Please request a new one.";
 
