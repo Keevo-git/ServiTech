@@ -178,7 +178,19 @@ function servitech_upload_ooxml_has_prefix(string $path, string $prefix): bool {
   if (!class_exists("ZipArchive")) return false;
   $zip = new ZipArchive();
   if ($zip->open($path) !== true) return false;
-  $valid = $zip->locateName("[Content_Types].xml") !== false;
+  $contentTypes = $zip->getFromName("[Content_Types].xml");
+  $expectedMainType = $prefix === "word/"
+    ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"
+    : ($prefix === "ppt/"
+      ? "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"
+      : "");
+  $requiredMainPart = $prefix === "word/"
+    ? "word/document.xml"
+    : ($prefix === "ppt/" ? "ppt/presentation.xml" : "");
+  $valid = is_string($contentTypes)
+    && $contentTypes !== ""
+    && ($expectedMainType === "" || stripos($contentTypes, $expectedMainType) !== false)
+    && ($requiredMainPart === "" || $zip->locateName($requiredMainPart) !== false);
   for ($i = 0; $valid && $i < $zip->numFiles; $i++) {
     if (strpos((string)$zip->getNameIndex($i), $prefix) === 0) {
       $zip->close();
@@ -239,8 +251,8 @@ function servitech_upload_validate_type(string $path, string $originalName): arr
     "png" => ["image/png"],
     "doc" => ["application/msword", "application/cdfv2", "application/x-ole-storage"],
     "ppt" => ["application/vnd.ms-powerpoint", "application/cdfv2", "application/x-ole-storage"],
-    "docx" => ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/zip"],
-    "pptx" => ["application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/zip"],
+    "docx" => ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/zip", "application/x-zip-compressed", "application/octet-stream"],
+    "pptx" => ["application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/zip", "application/x-zip-compressed", "application/octet-stream"],
   ];
 
   if (in_array($extension, ["docx", "pptx"], true) && in_array($mime, ["application/cdfv2", "application/x-ole-storage", "application/vnd.ms-office"], true)) {
@@ -344,7 +356,9 @@ function servitech_document_soffice_path(): string {
   $configured = trim((string)getenv("SERVITECH_SOFFICE_PATH"));
   $candidates = [$configured];
   if (PHP_OS_FAMILY === "Windows") {
+    $candidates[] = "C:\\Program Files\\LibreOffice\\program\\soffice.com";
     $candidates[] = "C:\\Program Files\\LibreOffice\\program\\soffice.exe";
+    $candidates[] = "C:\\Program Files (x86)\\LibreOffice\\program\\soffice.com";
     $candidates[] = "C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe";
   } else {
     $candidates[] = "/usr/bin/libreoffice";
@@ -372,8 +386,13 @@ function servitech_document_powershell_path(): string {
   ]);
 }
 
+function servitech_document_word_com_fallback_enabled(): bool {
+  return in_array(strtolower(trim((string)getenv("SERVITECH_ALLOW_WORD_COM_RENDERER"))), ["1", "true", "yes", "on"], true);
+}
+
 function servitech_document_word_renderer_available(): bool {
   if (servitech_document_soffice_path() !== "") return true;
+  if (!servitech_document_word_com_fallback_enabled()) return false;
   $script = dirname(__DIR__) . DIRECTORY_SEPARATOR . "scripts" . DIRECTORY_SEPARATOR . "render_office_to_pdf.ps1";
   return servitech_document_word_path() !== ""
     && servitech_document_powershell_path() !== ""
@@ -504,7 +523,7 @@ function servitech_document_render_word_to_pdf(string $path, string $extension):
   $wordPath = servitech_document_word_path();
   $powershell = servitech_document_powershell_path();
   $wordScript = dirname(__DIR__) . DIRECTORY_SEPARATOR . "scripts" . DIRECTORY_SEPARATOR . "render_office_to_pdf.ps1";
-  if ($wordPath !== "" && $powershell !== "" && is_file($wordScript)) {
+  if (servitech_document_word_com_fallback_enabled() && $wordPath !== "" && $powershell !== "" && is_file($wordScript)) {
     $result = servitech_document_run_process([
       $powershell,
       "-NoLogo",
@@ -527,7 +546,7 @@ function servitech_document_render_word_to_pdf(string $path, string $extension):
 
   servitech_document_remove_temp_directory($temporaryDirectory);
   if (!$attemptErrors) {
-    throw new RuntimeException("No DOC/DOCX renderer is configured. Install LibreOffice and set SERVITECH_SOFFICE_PATH.");
+    throw new RuntimeException("No unattended DOC/DOCX renderer is configured. Install LibreOffice and set SERVITECH_SOFFICE_PATH.");
   }
   throw new RuntimeException(implode(" | ", $attemptErrors));
 }
