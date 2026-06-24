@@ -31,6 +31,7 @@ In **Authentication → URL Configuration**, save:
 | --- | --- |
 | Site URL | `https://servitech.store` |
 | Redirect URL | `https://servitech.store/auth/verification_callback.php` |
+| Redirect URL | `https://servitech.store/auth/reset_password.php` |
 
 In **Authentication → Email Templates → Confirm signup**, keep the confirmation action linked to `{{ .ConfirmationURL }}`. A template that omits or rewrites that value can deliver an unusable link.
 

@@ -95,6 +95,20 @@ function servitech_supabase_confirmation_redirect_url(): string
     return $baseUrl . "/auth/verification_callback.php";
 }
 
+function servitech_supabase_recovery_redirect_url(): string
+{
+    $baseUrl = rtrim(servitech_supabase_env("APP_PUBLIC_URL", "https://servitech.store"), "/");
+    $parts = parse_url($baseUrl);
+    $scheme = strtolower((string)($parts["scheme"] ?? ""));
+    $host = trim((string)($parts["host"] ?? ""));
+
+    if (!in_array($scheme, ["http", "https"], true) || $host === "") {
+        throw new RuntimeException("APP_PUBLIC_URL is not a valid public URL.");
+    }
+
+    return $baseUrl . "/auth/reset_password.php";
+}
+
 function servitech_supabase_error_is_email_rate_limited(string $message): bool
 {
     $message = strtolower(trim($message));
@@ -366,6 +380,19 @@ function servitech_supabase_send_recovery(string $email, string $redirectUrl): a
     return servitech_supabase_auth_request("recover", "POST", [
         "email" => $email,
         "redirect_to" => $redirectUrl,
+    ]);
+}
+
+function servitech_supabase_verify_recovery_token_hash(string $tokenHash): array
+{
+    $tokenHash = trim($tokenHash);
+    if ($tokenHash === "" || strlen($tokenHash) > 1024) {
+        throw new DomainException("The recovery token is invalid.");
+    }
+
+    return servitech_supabase_auth_request("verify", "POST", [
+        "type" => "recovery",
+        "token_hash" => $tokenHash,
     ]);
 }
 

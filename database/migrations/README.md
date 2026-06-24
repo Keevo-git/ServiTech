@@ -29,6 +29,8 @@ origin (for production, `https://servitech.store`). Signup and resend use that
 Site URL instead of requiring a fragile per-page redirect allow-list entry.
 Keep `https://servitech.store/auth/reset_password.php` in Redirect URLs for the
 existing password-recovery flow.
+The full callback behavior and production acceptance checklist are documented in
+`docs/RESET_PASSWORD_FLOW.md`.
 
 For production email delivery, configure Custom SMTP inside the Supabase
 Dashboard's Authentication settings. The `SMTP_*` values in ServiTech's local

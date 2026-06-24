@@ -506,7 +506,7 @@ unset($_SESSION["login_remember_retry"]);
       } else if (params.get("verification") === "invalid") {
         setMessage("error", "That verification link is invalid or has expired.");
       } else if (params.get("reset") === "success") {
-        setMessage("success", "Your password has been updated. You can now log in with your new password.");
+        setMessage("success", "Your password has been reset successfully. You can now log in with your new password.");
       }
 
       if (loginCode || registeredCode || logoutCode || params.get("reset") || params.get("verification")) {

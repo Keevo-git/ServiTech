@@ -123,7 +123,7 @@ if ($requestMethod === "POST") {
                 if (servitech_supabase_auth_enabled()) {
                     servitech_supabase_send_recovery(
                         $submittedEmail,
-                        servitech_account_public_url("/auth/reset_password.php")
+                        servitech_supabase_recovery_redirect_url()
                     );
                     $messageType = "success";
                     $messageText = FORGOT_PASSWORD_PUBLIC_MESSAGE;
