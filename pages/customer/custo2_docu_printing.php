@@ -539,7 +539,7 @@ if ($closedStoreDocumentPrinting) {
           <strong>Uploaded Files</strong>
           <ul id="fileAnalysisList"></ul>
           <p id="fileAnalysisMeta">No files uploaded yet.</p>
-          <p class="file-note"><strong>Page estimate:</strong> Page count shown is an estimate only. Staff may recount the file and adjust the final price if needed.</p>
+          <p class="file-note">Page count shown is an estimate only. Staff may recount the file and adjust the final price if needed.</p>
         </div>
       </div>
     </div>
