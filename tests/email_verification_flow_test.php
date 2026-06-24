@@ -65,6 +65,8 @@ $migration = verification_source("database/migrations/20260625_require_verified_
 verification_assert(
     str_contains($register, 'registered=verify')
         && str_contains($register, '$_SESSION["verification_email_hint"] = $email')
+        && str_contains($register, 'servitech_supabase_sign_up($email, $password_raw, [')
+        && !str_contains($register, 'servitech_account_public_url("/auth/log_in.php?verification=success")')
         && !str_contains($register, 'servitech_supabase_complete_login($privilegedPdo, $authResponse)'),
     "Case A: password signup must stop at the verification notice instead of completing login."
 );
@@ -74,13 +76,33 @@ verification_assert(
     "Case B/C: password login must enforce confirmation and expose the verification state."
 );
 verification_assert(
-    str_contains($loginPage, "Resend verification")
+    str_contains($loginPage, 'id="resendVerificationPrompt"')
+        && str_contains($loginPage, "Resend verification")
         && str_contains($loginPage, "Confirm your email before logging in"),
     "Registration/login feedback must clearly explain verification and offer resend."
 );
+$loginButtonPosition = strpos($loginPage, 'id="loginSubmit"');
+$resendPromptPosition = strpos($loginPage, 'id="resendVerificationPrompt"');
+$dividerPosition = strpos($loginPage, 'class="auth-divider"');
 verification_assert(
-    str_contains($resend, "servitech_supabase_resend_signup"),
+    $loginButtonPosition !== false
+        && $resendPromptPosition !== false
+        && $dividerPosition !== false
+        && $loginButtonPosition < $resendPromptPosition
+        && $resendPromptPosition < $dividerPosition,
+    "Cases D/E: resend verification must sit below Login and before the social-auth divider."
+);
+verification_assert(
+    str_contains($resend, "servitech_supabase_resend_signup(\$submittedEmail)")
+        && !str_contains($resend, 'servitech_account_public_url("/auth/log_in.php?verification=success")'),
     "Case D: Supabase resend must be wired to the active resend page."
+);
+
+$loginCss = verification_source("assets/css/style.css");
+verification_assert(
+    str_contains($loginCss, ".auth-verification-resend")
+        && str_contains($loginCss, "@media (max-width: 480px)"),
+    "Cases D/E: the verification helper must have intentional desktop and mobile styling."
 );
 verification_assert(
     str_contains($google, 'servitech_supabase_complete_login($privilegedPdo, $authResponse, "google")'),
@@ -93,8 +115,16 @@ verification_assert(
 verification_assert(
     str_contains($migration, "AND u.email_verified_at IS NOT NULL")
         && str_contains($migration, "email_verified_at, consent_accepted_at")
+        && str_contains($migration, "profile creation deferred")
         && str_contains($migration, "NULL,"),
     "Pending profiles and RLS ownership must remain inactive before verification."
+);
+
+$supabaseAuth = verification_source("config/supabase_auth.php");
+verification_assert(
+    str_contains($supabaseAuth, "function servitech_supabase_ensure_application_profile")
+        && str_contains($supabaseAuth, "servitech_supabase_ensure_application_profile(\$pdo, \$authUser)"),
+    "A verified first login must repair a profile that the signup trigger could not create."
 );
 
 if ($failures) {

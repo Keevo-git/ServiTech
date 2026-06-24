@@ -1683,6 +1683,53 @@ body.auth-page {
   gap: 8px;
 }
 
+.auth-verification-resend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #ead7c2;
+  border-radius: 12px;
+  background: #fff8ef;
+  color: #6b1a1a;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.auth-verification-resend[hidden] {
+  display: none !important;
+}
+
+.auth-verification-resend a {
+  color: #8a1c14;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-verification-resend a:hover {
+  color: #b13a20;
+}
+
+.auth-verification-resend a:focus-visible {
+  outline: 2px solid #ff8b2c;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+@media (max-width: 480px) {
+  .auth-verification-resend {
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
 .form-field__topline {
   display: flex;
   align-items: center;

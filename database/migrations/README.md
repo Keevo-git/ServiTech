@@ -24,6 +24,11 @@ profiles from user-scoped RLS access, and keeps the existing AAL2 admin rule.
 Supabase Dashboard must also have **Confirm email** enabled under
 Authentication > Providers > Email; the application deliberately fails closed
 if an email/password signup unexpectedly returns an immediate session.
+Set Authentication > URL Configuration > Site URL to the public application
+origin (for production, `https://servitech.store`). Signup and resend use that
+Site URL instead of requiring a fragile per-page redirect allow-list entry.
+Keep `https://servitech.store/auth/reset_password.php` in Redirect URLs for the
+existing password-recovery flow.
 
 If `20260612_add_supabase_auth_rls_foundation.sql` was applied before the
 catalog delete-grant hardening, also run

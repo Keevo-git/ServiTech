@@ -433,6 +433,72 @@ function servitech_supabase_bind_application_profile(PDO $pdo, string $authUserI
     return $profile;
 }
 
+function servitech_supabase_ensure_application_profile(PDO $pdo, array $authUser): void
+{
+    $authUserId = strtolower(trim((string)($authUser["id"] ?? "")));
+    $email = strtolower(trim((string)($authUser["email"] ?? "")));
+    $confirmedAt = servitech_supabase_user_email_confirmed_at($authUser);
+    if (
+        !preg_match('/^[0-9a-f-]{36}$/i', $authUserId)
+        || !filter_var($email, FILTER_VALIDATE_EMAIL)
+        || $confirmedAt === ""
+    ) {
+        throw new DomainException("A verified Supabase identity is required to create an application profile.");
+    }
+
+    $existing = $pdo->prepare("SELECT id FROM users WHERE auth_user_id = :auth_user_id LIMIT 1");
+    $existing->execute([":auth_user_id" => $authUserId]);
+    if ($existing->fetchColumn()) {
+        return;
+    }
+
+    $metadata = is_array($authUser["user_metadata"] ?? null) ? $authUser["user_metadata"] : [];
+    $fullname = trim((string)($metadata["fullname"] ?? $metadata["full_name"] ?? $metadata["name"] ?? ""));
+    if ($fullname === "") {
+        $fullname = trim((string)(strstr($email, "@", true) ?: "ServiTech Customer"));
+    }
+    $contact = trim((string)($metadata["contact"] ?? ""));
+    $consentAccepted = (string)($metadata["privacy_consent"] ?? "") === "1";
+    $consentVersion = trim((string)($metadata["consent_version"] ?? ""));
+
+    // This is a verified-login repair path for deployments where the Auth
+    // profile trigger was missing or temporarily failed. It never links an
+    // existing email row automatically, preserving admin/customer role safety.
+    $insert = $pdo->prepare("
+        INSERT INTO users (
+            auth_user_id, fullname, email, contact, password_hash, role,
+            email_verified_at, consent_accepted_at, consent_version,
+            created_at, updated_at
+        )
+        SELECT
+            :auth_user_id, :fullname, :email, :contact, NULL, 'customer',
+            :confirmed_at,
+            CASE WHEN :consent_accepted = '1' THEN NOW() ELSE NULL END,
+            NULLIF(:consent_version, ''),
+            NOW(), NOW()
+        WHERE NOT EXISTS (
+            SELECT 1 FROM users WHERE LOWER(email) = LOWER(:email)
+        )
+        ON CONFLICT DO NOTHING
+    ");
+    $insert->execute([
+        ":auth_user_id" => $authUserId,
+        ":fullname" => $fullname,
+        ":email" => $email,
+        ":contact" => $contact !== "" ? $contact : null,
+        ":confirmed_at" => $confirmedAt,
+        ":consent_accepted" => $consentAccepted ? "1" : "0",
+        ":consent_version" => $consentVersion,
+    ]);
+
+    $existing->execute([":auth_user_id" => $authUserId]);
+    if (!$existing->fetchColumn()) {
+        throw new RuntimeException(
+            "The verified Supabase identity could not be linked because that email already belongs to another profile."
+        );
+    }
+}
+
 function servitech_supabase_complete_login(
     PDO $pdo,
     array $authResponse,
@@ -448,6 +514,8 @@ function servitech_supabase_complete_login(
     if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId)) {
         throw new RuntimeException("Supabase did not return a valid authenticated user.");
     }
+
+    servitech_supabase_ensure_application_profile($pdo, $authUser);
 
     // The auth.users trigger normally performs this synchronization. Repeating
     // it here makes late confirmation resilient to deployment-order or trigger

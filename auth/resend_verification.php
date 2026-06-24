@@ -26,10 +26,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if (!servitech_supabase_auth_configured()) {
                     throw new RuntimeException("Supabase Auth is enabled but not configured.");
                 }
-                servitech_supabase_resend_signup(
-                    $submittedEmail,
-                    servitech_account_public_url("/auth/log_in.php?verification=success")
-                );
+                // Use the Supabase Site URL for confirmation redirects. Passing
+                // a custom redirect makes resend fail unless that exact URL is
+                // also present in Supabase's redirect allow-list.
+                servitech_supabase_resend_signup($submittedEmail);
             } elseif (servitech_account_email_verification_required()) {
                 require_once __DIR__ . "/../config/db.php";
                 require_once __DIR__ . "/../config/mail.php";

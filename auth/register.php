@@ -3,11 +3,8 @@ require_once __DIR__ . "/guest_guard.php";
 servitech_redirect_authenticated_user();
 
 require_once __DIR__ . "/../config/csrf.php";
-require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
-require_once __DIR__ . "/../config/mail.php";
-require_once __DIR__ . "/registration_notifications.php";
 
 servitech_enforce_same_origin(false);
 servitech_enforce_csrf_token(false);
@@ -65,25 +62,12 @@ if (servitech_supabase_auth_enabled()) {
             throw new RuntimeException("Supabase Auth is enabled but not configured.");
         }
 
-        $privilegedPdo = servitech_db_connect_privileged();
-        $existingProfile = $privilegedPdo->prepare("
-            SELECT id
-            FROM users
-            WHERE LOWER(email) = LOWER(:email)
-            LIMIT 1
-        ");
-        $existingProfile->execute([":email" => $email]);
-        if ($existingProfile->fetchColumn()) {
-            header("Location: " . servitech_url("/auth/log_in.php?registered=exists"));
-            exit();
-        }
-
         $authResponse = servitech_supabase_sign_up($email, $password_raw, [
             "fullname" => $fullname,
             "contact" => $contact,
             "privacy_consent" => "1",
             "consent_version" => servitech_account_consent_version(),
-        ], servitech_account_public_url("/auth/log_in.php?verification=success"));
+        ]);
 
         $hasSession = trim((string)($authResponse["access_token"] ?? "")) !== ""
             && trim((string)($authResponse["refresh_token"] ?? "")) !== "";
@@ -113,9 +97,31 @@ if (servitech_supabase_auth_enabled()) {
     } catch (DomainException $e) {
         error_log("Supabase registration rejected: " . $e->getMessage());
         $message = strtolower($e->getMessage());
-        $code = str_contains($message, "already") || str_contains($message, "registered")
-            ? "exists"
-            : "error";
+        if (
+            str_contains($message, "confirmation email")
+            || str_contains($message, "sending confirmation")
+            || str_contains($message, "email rate limit")
+        ) {
+            // Supabase may persist the Auth user before its mail provider rejects
+            // delivery. Treat that as a pending account and give the user the
+            // working resend path instead of falsely reporting a total failure.
+            $_SESSION["verification_email_hint"] = $email;
+            header("Location: " . servitech_url("/auth/log_in.php?registered=verify_resend"));
+            exit();
+        }
+
+        if (str_contains($message, "already") || str_contains($message, "registered")) {
+            header("Location: " . servitech_url("/auth/log_in.php?registered=exists"));
+            exit();
+        }
+
+        $code = str_contains($message, "redirect")
+            ? "verification_redirect"
+            : (str_contains($message, "database error") || str_contains($message, "saving new user")
+                ? "profile_setup"
+                : (str_contains($message, "signup") && str_contains($message, "disabled")
+                    ? "signup_disabled"
+                    : "error"));
         header("Location: " . servitech_url("/auth/regis.php?error=" . $code));
         exit();
     } catch (Throwable $e) {
@@ -125,6 +131,10 @@ if (servitech_supabase_auth_enabled()) {
         exit();
     }
 }
+
+require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/mail.php";
+require_once __DIR__ . "/registration_notifications.php";
 
 $password_hash = password_hash($password_raw, PASSWORD_DEFAULT);
 if (!is_string($password_hash) || $password_hash === "") {

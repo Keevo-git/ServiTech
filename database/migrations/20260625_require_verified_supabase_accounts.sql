@@ -90,6 +90,13 @@ BEGIN
   );
 
   RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- A profile-side schema/configuration problem must not roll back a valid
+    -- auth.users signup. The application repairs a missing customer profile
+    -- after the identity has verified its email and signs in successfully.
+    RAISE WARNING 'ServiTech profile creation deferred for auth user %: %', NEW.id, SQLERRM;
+    RETURN NEW;
 END;
 $$;
 

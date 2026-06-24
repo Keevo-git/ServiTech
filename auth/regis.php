@@ -558,7 +558,10 @@ $csrfToken = servitech_csrf_token();
         password: `Password must be ${passwordMinLength} to ${passwordMaxLength} characters.`,
         privacy: "You must agree to the Data Privacy Policy before creating an account.",
         error: "We could not create your account right now. Please try again.",
-        verification_unavailable: "Account activation is temporarily unavailable because email verification is not configured. Please contact support."
+        verification_unavailable: "Account activation is temporarily unavailable because email verification is not configured. Please contact support.",
+        verification_redirect: "Email verification could not start because the Supabase confirmation redirect is not configured correctly.",
+        profile_setup: "Supabase could not create the account profile. Please contact support before trying again.",
+        signup_disabled: "New account registration is currently disabled in Supabase. Please contact support."
       };
 
       const errorCode = params.get("error");
