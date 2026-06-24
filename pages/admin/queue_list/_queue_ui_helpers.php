@@ -224,6 +224,14 @@ function queue_ui_payload_attr(array $row, string $serviceLabel, string $payment
 
 function queue_ui_row_attrs(array $row): string
 {
+    $filterStatus = strtoupper(trim((string)($row["status"] ?? "PENDING")));
+    $filterStatus = preg_replace('/[\s_]+/', ' ', $filterStatus);
+    $filterStatus = match ($filterStatus) {
+        "FOR PICK UP", "FOR PICKUP" => "FOR PICK-UP",
+        "COMPLETED" => "DONE",
+        "CANCELED" => "CANCELLED",
+        default => $filterStatus,
+    };
     $attrs = [
         "data-queue-id" => (string)($row["queue_code"] ?? ""),
         "data-queue-record-id" => (string)($row["id"] ?? ""),
@@ -231,7 +239,7 @@ function queue_ui_row_attrs(array $row): string
         "data-queue-customer" => strtolower((string)($row["fullname"] ?? "")),
         "data-queue-customer-email" => strtolower((string)($row["customer_email"] ?? "")),
         "data-queue-customer-phone" => strtolower((string)($row["customer_phone"] ?? "")),
-        "data-queue-status" => strtoupper(trim((string)($row["status"] ?? "PENDING"))),
+        "data-queue-status" => $filterStatus,
         "data-queue-payment" => queue_ui_payment_method($row),
         "data-queue-date" => queue_ui_filter_date($row["created_at"] ?? null),
         "data-queue-submitted-at" => (string)($row["created_at"] ?? ""),
@@ -269,6 +277,127 @@ function queue_ui_render_transition_buttons(array $row): void
           data-id="<?= (int)($row["id"] ?? 0) ?>"
           data-action="<?= htmlspecialchars($action, ENT_QUOTES, "UTF-8") ?>"
         ><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></button>
+        <?php
+    }
+}
+
+function queue_ui_status_class($status): string
+{
+    $key = strtolower(trim((string)$status));
+    $key = preg_replace('/[\s_]+/', '-', $key);
+    return match ($key) {
+        "approved" => "status-approved",
+        "ongoing" => "status-ongoing",
+        "for-pick-up", "for-pickup" => "status-pickup",
+        "done", "completed" => "status-done",
+        "cancelled", "canceled" => "status-cancelled",
+        default => "status-pending",
+    };
+}
+
+function queue_ui_service_label_for_scope(array $row, string $scope): string
+{
+    $details = queue_ui_details_array($row["details"] ?? null);
+    $snapshot = queue_ui_detail_value($details, ["service_name_snapshot", "service_label", "catalog_service_name"]);
+    if ($snapshot !== "") {
+        return queue_ui_normalize_service_label($snapshot);
+    }
+
+    if ($scope === "queue_repair") {
+        return "Repair Service";
+    }
+    if ($scope === "queue_installation") {
+        return "Installation Service";
+    }
+
+    $category = strtolower(trim((string)($row["category"] ?? "")));
+    $labels = [
+        "printing" => "Document Print",
+        "online_printorder" => "Document Print",
+        "printing_online" => "Document Print",
+        "walkin" => "Document Print",
+        "printing_walkin" => "Document Print",
+        "xerox" => "Photocopy",
+        "photocopy" => "Photocopy",
+        "rush-id" => "Rush ID",
+        "laminating" => "Laminating",
+        "scanning" => "Scanning",
+    ];
+    return $labels[$category] ?? ($category !== "" ? ucwords(str_replace(["_", "-"], " ", $category)) : "Print Service");
+}
+
+function queue_ui_render_table_rows(array $rows, string $scope): void
+{
+    $isPrinting = $scope === "queue_printing";
+    $columnCount = $isPrinting ? 6 : 5;
+    $emptyLabel = match ($scope) {
+        "queue_repair" => "No repair queues yet.",
+        "queue_installation" => "No installation queues yet.",
+        default => "No print queues yet.",
+    };
+
+    if ($rows === []) {
+        ?>
+        <tr class="queue-server-empty-row">
+          <td colspan="<?= $columnCount ?>" style="text-align:center;padding:18px;color:#666;"><?= htmlspecialchars($emptyLabel, ENT_QUOTES, "UTF-8") ?></td>
+        </tr>
+        <?php
+        return;
+    }
+
+    foreach ($rows as $row) {
+        $serviceLabel = queue_ui_service_label_for_scope($row, $scope);
+        $paymentSummary = $isPrinting ? queue_ui_payment_summary($row) : "";
+        $contact = trim(implode(" | ", array_filter([
+            (string)($row["customer_email"] ?? ""),
+            (string)($row["customer_phone"] ?? ""),
+        ], static fn($value): bool => trim($value) !== "")));
+        ?>
+        <tr<?= queue_ui_row_attrs($row) ?>>
+          <td><?= htmlspecialchars((string)($row["queue_code"] ?? ""), ENT_QUOTES, "UTF-8") ?></td>
+          <td>
+            <span class="customer-stack">
+              <strong><?= htmlspecialchars((string)($row["fullname"] ?? ""), ENT_QUOTES, "UTF-8") ?></strong>
+              <?php if ($contact !== ""): ?>
+                <small><?= htmlspecialchars($contact, ENT_QUOTES, "UTF-8") ?></small>
+              <?php endif; ?>
+            </span>
+          </td>
+          <?php if ($isPrinting): ?>
+            <td class="payment-cell"><?= htmlspecialchars($paymentSummary, ENT_QUOTES, "UTF-8") ?></td>
+          <?php endif; ?>
+          <td>
+            <span class="submitted-stack">
+              <strong><?= htmlspecialchars(admin_queue_submitted_date($row["created_at"] ?? null), ENT_QUOTES, "UTF-8") ?></strong>
+              <small><?= htmlspecialchars(admin_queue_submitted_time($row["created_at"] ?? null), ENT_QUOTES, "UTF-8") ?></small>
+            </span>
+          </td>
+          <td class="status-cell">
+            <span class="status-badge <?= htmlspecialchars(queue_ui_status_class($row["status"] ?? "PENDING"), ENT_QUOTES, "UTF-8") ?>">
+              <?= htmlspecialchars(queue_ui_status_label($row["status"] ?? "PENDING"), ENT_QUOTES, "UTF-8") ?>
+            </span>
+          </td>
+          <td class="actions">
+            <button
+              class="queue-view-btn"
+              type="button"
+              data-queue="<?= queue_ui_payload_attr($row, $serviceLabel, $paymentSummary) ?>"
+            >View</button>
+            <div class="queue-inline-actions">
+              <div class="actions-group">
+                <?php queue_ui_render_transition_buttons($row); ?>
+                <button
+                  class="btn-message admin-file-action"
+                  type="button"
+                  data-id="<?= (int)($row["id"] ?? 0) ?>"
+                  data-queue-code="<?= htmlspecialchars((string)($row["queue_code"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
+                  data-customer="<?= htmlspecialchars((string)($row["fullname"] ?? ""), ENT_QUOTES, "UTF-8") ?>"
+                  data-service="<?= htmlspecialchars($serviceLabel, ENT_QUOTES, "UTF-8") ?>"
+                >Message</button>
+              </div>
+            </div>
+          </td>
+        </tr>
         <?php
     }
 }

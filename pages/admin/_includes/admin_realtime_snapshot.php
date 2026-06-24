@@ -2,6 +2,7 @@
 require_once __DIR__ . "/admin_auth.php";
 require_once __DIR__ . "/admin_db.php";
 require_once __DIR__ . "/queue_files.php";
+require_once __DIR__ . "/../queue_list/_queue_ui_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -112,24 +113,29 @@ try {
         SELECT
             q.id,
             q.queue_code,
+            q.category,
             q.status,
             q.lifecycle_stage,
+            q.customer_edit_required,
+            q.send_back_message,
+            q.created_at,
             q.completed_at,
             q.updated_at,
             q.price,
             q.paid_amount,
-            q.details::text AS details,
+            q.details,
             u.fullname,
             u.email AS customer_email,
             COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone,
             p.id AS payment_id,
             p.payment_method,
             p.reference_number,
-            p.amount
+            p.amount,
+            p.status AS payment_status
         FROM queues q
         JOIN users u ON u.id = q.user_id
         LEFT JOIN LATERAL (
-            SELECT id, payment_method, reference_number, amount
+            SELECT id, payment_method, reference_number, amount, status
             FROM payments
             WHERE queue_id = q.id
             ORDER BY id DESC
@@ -137,7 +143,7 @@ try {
         ) p ON TRUE
         WHERE {$recordVisibilityPredicate}
           AND ({$predicates[$scope]})
-        ORDER BY q.id ASC
+        ORDER BY q.created_at ASC, q.id ASC
     ");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $signatureJson = json_encode($rows, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -151,11 +157,19 @@ try {
         ];
     }, $rows);
 
+    $tableHtml = null;
+    if (str_starts_with($scope, "queue_")) {
+        ob_start();
+        queue_ui_render_table_rows($rows, $scope);
+        $tableHtml = ob_get_clean();
+    }
+
     echo json_encode([
         "ok" => true,
         "scope" => $scope,
         "signature" => hash("sha256", is_string($signatureJson) ? $signatureJson : "[]"),
         "records" => $records,
+        "table_html" => $tableHtml,
     ]);
 } catch (Throwable $exception) {
     error_log("admin realtime snapshot error: " . $exception->getMessage());

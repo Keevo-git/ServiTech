@@ -527,6 +527,7 @@ document.addEventListener("DOMContentLoaded", function () {
     overlay.classList.remove("active");
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");
+    delete overlay.dataset.queueId;
     document.dispatchEvent(new CustomEvent("servitech:admin-modal-closed"));
   }
 
@@ -705,6 +706,7 @@ document.addEventListener("DOMContentLoaded", function () {
     overlay.classList.add("active");
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
+    overlay.dataset.queueId = String(queue.id || row.dataset.queueRecordId || "");
     window.servitechAdminModalStack?.open({
       overlay,
       dialog: modal,
@@ -713,8 +715,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  document.querySelectorAll(".queue-view-btn").forEach((button) => {
-    button.addEventListener("click", () => openDetails(button));
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest(".queue-view-btn");
+    if (button) openDetails(button);
   });
 
   function openNotificationQueueDetails() {
@@ -841,7 +844,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const tbody = table?.querySelector("tbody");
     if (!table || !tbody) return;
 
-    const rows = Array.from(tbody.querySelectorAll(".queue-data-row"));
     const search = toolbar.querySelector("[data-queue-filter-search]");
     const date = toolbar.querySelector("[data-queue-filter-date]");
     const statuses = Array.from(toolbar.querySelectorAll("[data-queue-filter-status]"));
@@ -862,6 +864,7 @@ document.addEventListener("DOMContentLoaded", function () {
     tbody.appendChild(emptyRow);
 
     function applyFilters() {
+      const rows = Array.from(tbody.querySelectorAll(".queue-data-row"));
       const query = String(search?.value || "").trim().toLowerCase();
       const selectedDate = String(date?.value || "");
       const selectedStatuses = statuses.filter((input) => input.checked).map((input) => input.value);
@@ -901,6 +904,7 @@ document.addEventListener("DOMContentLoaded", function () {
     date?.addEventListener("change", applyFilters);
     payment?.addEventListener("change", applyFilters);
     statuses.forEach((input) => input.addEventListener("change", applyFilters));
+    table.addEventListener("servitech:queue-table-updated", applyFilters);
     clear?.addEventListener("click", () => {
       if (search) search.value = "";
       if (date) date.value = "";

@@ -51,7 +51,7 @@ $stmt = $pdo->prepare("
     SELECT payment_method, reference_number, amount, status
     FROM payments WHERE queue_id = q.id ORDER BY id DESC LIMIT 1
   ) p ON TRUE
-  WHERE q.category = 'installation'
+  WHERE LOWER(TRIM(COALESCE(q.category, ''))) = 'installation'
     AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
     {$queueVisibilityPredicate}
   ORDER BY q.created_at ASC, q.id ASC
@@ -114,56 +114,7 @@ require __DIR__ . "/../_includes/admin_header.php";
             </tr>
           </thead>
           <tbody>
-          <?php if (!$rows): ?>
-            <tr>
-              <td colspan="5" style="text-align:center;padding:18px;color:#666;">No installation queues yet.</td>
-            </tr>
-          <?php else: ?>
-            <?php foreach ($rows as $r): ?>
-              <?php $serviceLabel = service_label($r["details"] ?? null); ?>
-              <tr<?= queue_ui_row_attrs($r) ?>>
-                <td><?= esc($r["queue_code"]) ?></td>
-                <td>
-                  <span class="customer-stack">
-                    <strong><?= esc($r["fullname"]) ?></strong>
-                    <?php if (trim((string)($r["customer_email"] ?? "")) !== "" || trim((string)($r["customer_phone"] ?? "")) !== ""): ?>
-                      <small><?= esc(trim(implode(" | ", array_filter([(string)($r["customer_email"] ?? ""), (string)($r["customer_phone"] ?? "")], fn($value) => trim($value) !== "")))) ?></small>
-                    <?php endif; ?>
-                  </span>
-                </td>
-                <td>
-                  <span class="submitted-stack">
-                    <strong><?= esc(admin_queue_submitted_date($r["created_at"])) ?></strong>
-                    <small><?= esc(admin_queue_submitted_time($r["created_at"])) ?></small>
-                  </span>
-                </td>
-                <td class="status-cell">
-                  <span class="status-badge <?= esc(status_class($r["status"])) ?>">
-                    <?= esc(queue_ui_status_label($r["status"])) ?>
-                  </span>
-                </td>
-                <td class="actions">
-                  <button
-                    class="queue-view-btn"
-                    type="button"
-                    data-queue="<?= queue_ui_payload_attr($r, $serviceLabel) ?>"
-                  >View</button>
-                  <div class="queue-inline-actions">
-                    <div class="actions-group">
-                      <?php queue_ui_render_transition_buttons($r); ?>
-                      <button
-                        class="btn-message admin-file-action"
-                        data-id="<?= (int)$r["id"] ?>"
-                        data-queue-code="<?= esc($r["queue_code"]) ?>"
-                        data-customer="<?= esc($r["fullname"]) ?>"
-                        data-service="<?= esc($serviceLabel) ?>"
-                      >Message</button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          <?php endif; ?>
+          <?php queue_ui_render_table_rows($rows, "queue_installation"); ?>
           </tbody>
           </table>
         </div>
@@ -220,12 +171,15 @@ require __DIR__ . "/../_includes/admin_header.php";
     }
   }
 
-  document.querySelectorAll("[data-action]").forEach(btn => btn.addEventListener("click", () => doAction(btn, btn.dataset.action)));
+  document.addEventListener("click", (event) => {
+    const btn = event.target.closest(".queue-data-row [data-action]");
+    if (btn) doAction(btn, btn.dataset.action);
+  });
 })();
 </script>
 
-<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260614-queue-modal-fix2') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260623-status-confirm') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260624-queue-inplace-sync') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260624-queue-live-sync') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

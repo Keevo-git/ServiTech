@@ -95,10 +95,12 @@
     window.servitechAdminModalStack?.close(modal);
     modal.style.display = "none";
     modal.setAttribute("aria-hidden", "true");
+    document.dispatchEvent(new CustomEvent("servitech:admin-modal-closed"));
   }
 
-  document.querySelectorAll(".btn-message").forEach((button) => {
-    button.addEventListener("click", () => openModal(button));
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest(".btn-message");
+    if (button) openModal(button);
   });
 
   document.querySelectorAll("[data-qmsg-template]").forEach((button) => {

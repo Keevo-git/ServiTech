@@ -177,57 +177,7 @@ require __DIR__ . "/../_includes/admin_header.php";
               </tr>
             </thead>
             <tbody>
-            <?php if (!$rows): ?>
-              <tr>
-                <td colspan="6" style="text-align:center;padding:18px;color:#666;">No print queues yet.</td>
-              </tr>
-            <?php else: ?>
-              <?php foreach ($rows as $r): ?>
-                <?php $paymentSummary = queue_ui_payment_summary($r); ?>
-                <tr<?= queue_ui_row_attrs($r) ?>>
-                  <td><?= esc($r["queue_code"]) ?></td>
-                  <td>
-                    <span class="customer-stack">
-                      <strong><?= esc($r["fullname"]) ?></strong>
-                      <?php if (trim((string)($r["customer_email"] ?? "")) !== "" || trim((string)($r["customer_phone"] ?? "")) !== ""): ?>
-                        <small><?= esc(trim(implode(" | ", array_filter([(string)($r["customer_email"] ?? ""), (string)($r["customer_phone"] ?? "")], fn($value) => trim($value) !== "")))) ?></small>
-                      <?php endif; ?>
-                    </span>
-                  </td>
-                  <td class="payment-cell"><?= esc($paymentSummary) ?></td>
-                  <td>
-                    <span class="submitted-stack">
-                      <strong><?= esc(admin_queue_submitted_date($r["created_at"])) ?></strong>
-                      <small><?= esc(admin_queue_submitted_time($r["created_at"])) ?></small>
-                    </span>
-                  </td>
-                  <td class="status-cell">
-                    <span class="status-badge <?= esc(status_class($r["status"])) ?>">
-                      <?= esc(queue_ui_status_label($r["status"])) ?>
-                    </span>
-                  </td>
-                  <td class="actions">
-                    <button
-                      class="queue-view-btn"
-                      type="button"
-                      data-queue="<?= queue_ui_payload_attr($r, service_label($r["category"], $r["details"] ?? null), $paymentSummary) ?>"
-                    >View</button>
-                    <div class="queue-inline-actions">
-                      <div class="actions-group">
-                        <?php queue_ui_render_transition_buttons($r); ?>
-                        <button
-                          class="btn-message admin-file-action"
-                          data-id="<?= (int)$r["id"] ?>"
-                          data-queue-code="<?= esc($r["queue_code"]) ?>"
-                          data-customer="<?= esc($r["fullname"]) ?>"
-                          data-service="<?= esc(service_label($r["category"], $r["details"] ?? null)) ?>"
-                        >Message</button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            <?php endif; ?>
+            <?php queue_ui_render_table_rows($rows, "queue_printing"); ?>
             </tbody>
           </table>
         </div>
@@ -284,12 +234,15 @@ require __DIR__ . "/../_includes/admin_header.php";
     }
   }
 
-  document.querySelectorAll("[data-action]").forEach(btn => btn.addEventListener("click", () => doAction(btn, btn.dataset.action)));
+  document.addEventListener("click", (event) => {
+    const btn = event.target.closest(".queue-data-row [data-action]");
+    if (btn) doAction(btn, btn.dataset.action);
+  });
 })();
 </script>
 
-<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260614-queue-modal-fix2') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260623-status-confirm') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260624-queue-inplace-sync') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260624-queue-live-sync') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>
