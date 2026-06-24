@@ -1722,7 +1722,21 @@ body.auth-page {
 }
 
 .auth-verification-card {
+  max-width: 700px;
   text-align: center;
+}
+
+.auth-verification-shell {
+  max-width: 58rem;
+}
+
+.auth-verification-header {
+  justify-items: center;
+  margin-bottom: 0;
+}
+
+.auth-verification-header .auth-card__subtitle {
+  max-width: 54ch;
 }
 
 .auth-verification-icon {
@@ -1737,6 +1751,12 @@ body.auth-page {
   color: #7c130d;
 }
 
+.auth-verification-icon--warning {
+  border-color: #e4b85e;
+  background: #fff8df;
+  color: #8a5800;
+}
+
 .auth-verification-icon svg {
   width: 34px;
   height: 34px;
@@ -1747,24 +1767,135 @@ body.auth-page {
   stroke-width: 1.6;
 }
 
-.auth-verification-address {
-  margin: 18px auto;
-  color: #4a0505;
-  font-size: clamp(16px, 2vw, 19px);
-  font-weight: 700;
+.auth-verification-address-wrap {
+  display: grid;
+  gap: 4px;
+  margin: 20px auto 0;
+  padding: 13px 18px;
+  border: 1px solid #ead8c5;
+  border-radius: 14px;
+  background: #fffaf4;
   overflow-wrap: anywhere;
 }
 
+.auth-verification-address-wrap span {
+  color: #7b6b61;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.auth-verification-address-wrap strong {
+  color: #4a0505;
+  font-size: clamp(16px, 2vw, 19px);
+}
+
 .form-alert--warning {
-  border-color: #e6bd70;
+  border: 1px solid #e6bd70;
   background: #fff8df;
   color: #6f4b00;
+}
+
+.auth-verification-alert {
+  margin: 18px 0 0;
+}
+
+.auth-verification-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.auth-verification-steps li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-content: start;
+  gap: 10px;
+  min-height: 118px;
+  padding: 16px;
+  border: 1px solid rgba(74, 5, 5, 0.09);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffdfa 0%, #fff7ed 100%);
+}
+
+.auth-verification-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #7c130d;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.auth-verification-steps li div {
+  display: grid;
+  gap: 5px;
+}
+
+.auth-verification-steps strong {
+  color: #4a0505;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.auth-verification-steps li div span {
+  color: #716158;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.auth-verification-help {
+  display: grid;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f8f5f1;
+  color: #6f625a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-verification-help strong {
+  color: #4a0505;
+  font-size: 14px;
+}
+
+.auth-verification-recovery {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #ead8c5;
+  border-radius: 16px;
+  background: #fffaf4;
+  color: #6f625a;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.auth-verification-recovery strong {
+  color: #4a0505;
+  font-size: 16px;
 }
 
 .auth-verification-actions {
   display: grid;
   gap: 12px;
   margin-top: 20px;
+}
+
+.auth-verification-resend-form {
+  margin: 0;
 }
 
 .auth-action-link {
@@ -1806,8 +1937,38 @@ body.auth-page {
   outline-offset: 2px;
 }
 
-.auth-verification-note {
-  margin-top: 18px;
+.auth-verification-text-link {
+  width: fit-content;
+  margin: 2px auto 0;
+  color: #7c130d;
+  font-size: 14px;
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.auth-verification-text-link:hover {
+  color: #b13a20;
+}
+
+.auth-verification-text-link:focus-visible {
+  outline: 2px solid #ff8b2c;
+  outline-offset: 3px;
+}
+
+.auth-verification-callback {
+  min-height: 360px;
+  display: grid;
+  align-content: center;
+}
+
+@media (max-width: 720px) {
+  .auth-verification-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-verification-steps li {
+    min-height: 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1827,6 +1988,14 @@ body.auth-page {
   .auth-verification-icon svg {
     width: 30px;
     height: 30px;
+  }
+
+  .auth-verification-address-wrap,
+  .auth-verification-help,
+  .auth-verification-recovery,
+  .auth-verification-steps li {
+    padding-right: 14px;
+    padding-left: 14px;
   }
 }
 

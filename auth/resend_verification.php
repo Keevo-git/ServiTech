@@ -7,29 +7,28 @@ require_once __DIR__ . "/../config/account.php";
 $message = "";
 $messageType = "success";
 $submittedEmail = strtolower(trim((string)($_SESSION["verification_email_hint"] ?? "")));
-unset($_SESSION["verification_email_hint"]);
 $csrfToken = servitech_csrf_token();
+$returnToPending = false;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     servitech_enforce_same_origin(false);
     servitech_enforce_csrf_token(false);
 
     $submittedEmail = strtolower(trim((string)($_POST["email"] ?? "")));
+    $returnToPending = (string)($_POST["return_to"] ?? "") === "pending";
     if ($submittedEmail === "" || !filter_var($submittedEmail, FILTER_VALIDATE_EMAIL)) {
         $message = "Enter a valid email address.";
         $messageType = "error";
     } else {
-        $message = "If the account exists and still needs verification, a new link will be sent shortly.";
-
         try {
             if (servitech_supabase_auth_enabled()) {
                 if (!servitech_supabase_auth_configured()) {
                     throw new RuntimeException("Supabase Auth is enabled but not configured.");
                 }
-                // Use the Supabase Site URL for confirmation redirects. Passing
-                // a custom redirect makes resend fail unless that exact URL is
-                // also present in Supabase's redirect allow-list.
-                servitech_supabase_resend_signup($submittedEmail);
+                servitech_supabase_resend_signup(
+                    $submittedEmail,
+                    servitech_supabase_confirmation_redirect_url()
+                );
             } elseif (servitech_account_email_verification_required()) {
                 require_once __DIR__ . "/../config/db.php";
                 require_once __DIR__ . "/../config/mail.php";
@@ -61,19 +60,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     );
                     if (empty($mailResult["ok"])) {
                         error_log("resend verification mail failed: " . (string)($mailResult["error"] ?? "unknown error"));
+                        throw new RuntimeException("Verification email was rejected by the configured mail transport.");
                     }
                 }
             }
+
+            $_SESSION["verification_email_hint"] = $submittedEmail;
+            $_SESSION["verification_registration_state"] = "resent";
+            $_SESSION["verification_resend_available_at"] = time() + 60;
+            unset($_SESSION["verification_delivery_message"]);
+            if ($returnToPending) {
+                header("Location: " . auth_url_raw("/auth/verification_pending.php"));
+                exit();
+            }
+            $message = "Request accepted. If this account still needs verification, a fresh link should arrive shortly.";
         } catch (DomainException $e) {
             error_log("Supabase resend verification rejected: " . $e->getMessage());
             $messageType = "error";
-            $message = str_contains(strtolower($e->getMessage()), "rate")
+            $message = servitech_supabase_error_is_email_rate_limited($e->getMessage())
                 ? "Please wait a moment before requesting another verification email."
-                : "We could not send a verification email right now. Please try again shortly.";
+                : "The verification email was not accepted for delivery. Please check the address and try again.";
+            if (servitech_supabase_error_is_email_rate_limited($e->getMessage())) {
+                $_SESSION["verification_resend_available_at"] = time() + 60;
+            }
+            if ($returnToPending) {
+                $_SESSION["verification_email_hint"] = $submittedEmail;
+                $_SESSION["verification_registration_state"] = "resend_failed";
+                $_SESSION["verification_delivery_message"] = $message;
+                header("Location: " . auth_url_raw("/auth/verification_pending.php"));
+                exit();
+            }
         } catch (Throwable $e) {
             error_log("resend verification error: " . $e->getMessage());
             $messageType = "error";
-            $message = "We could not send a verification email right now. Please try again shortly.";
+            $message = "The verification email could not be sent right now. Please try again shortly.";
+            if ($returnToPending) {
+                $_SESSION["verification_email_hint"] = $submittedEmail;
+                $_SESSION["verification_registration_state"] = "resend_failed";
+                $_SESSION["verification_delivery_message"] = $message;
+                header("Location: " . auth_url_raw("/auth/verification_pending.php"));
+                exit();
+            }
         }
     }
 }
@@ -96,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="auth-card__header">
         <p class="auth-card__eyebrow">Account Verification</p>
         <h1 id="resend-verification-title">Resend Verification Email</h1>
-        <p class="auth-card__subtitle">Enter your email address to request a fresh verification link.</p>
+        <p class="auth-card__subtitle">Enter the email used during registration. We’ll request a fresh activation link from Supabase.</p>
       </div>
 
       <?php if ($message !== ""): ?>
@@ -111,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <label for="verificationEmail">Email Address</label>
           <input id="verificationEmail" name="email" type="email" value="<?= htmlspecialchars($submittedEmail, ENT_QUOTES, "UTF-8") ?>" autocomplete="email" required>
         </div>
-        <button type="submit" class="auth-submit">Send Verification Link</button>
+        <button type="submit" class="auth-submit">Send verification link</button>
       </form>
 
       <a href="<?= auth_url("/auth/log_in.php") ?>" class="back-login">Back to login</a>

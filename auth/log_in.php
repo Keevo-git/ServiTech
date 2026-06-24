@@ -4,7 +4,7 @@ require_once __DIR__ . "/guest_guard.php";
 servitech_require_guest_page();
 $legacyRegistrationState = strtolower(trim((string)($_GET["registered"] ?? "")));
 if (in_array($legacyRegistrationState, ["verify", "verify_resend"], true)) {
-    $_SESSION["verification_registration_state"] = $legacyRegistrationState === "verify" ? "sent" : "retry";
+    $_SESSION["verification_registration_state"] = $legacyRegistrationState === "verify" ? "sent" : "signup_delivery_failed";
     header("Location: " . auth_url_raw("/auth/verification_pending.php"));
     exit();
 }

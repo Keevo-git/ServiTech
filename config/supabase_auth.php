@@ -81,6 +81,46 @@ function servitech_supabase_auth_configured(): bool
     return true;
 }
 
+function servitech_supabase_confirmation_redirect_url(): string
+{
+    $baseUrl = rtrim(servitech_supabase_env("APP_PUBLIC_URL", "https://servitech.store"), "/");
+    $parts = parse_url($baseUrl);
+    $scheme = strtolower((string)($parts["scheme"] ?? ""));
+    $host = trim((string)($parts["host"] ?? ""));
+
+    if (!in_array($scheme, ["http", "https"], true) || $host === "") {
+        throw new RuntimeException("APP_PUBLIC_URL is not a valid public URL.");
+    }
+
+    return $baseUrl . "/auth/verification_callback.php";
+}
+
+function servitech_supabase_error_is_email_rate_limited(string $message): bool
+{
+    $message = strtolower(trim($message));
+    return str_contains($message, "rate limit")
+        || str_contains($message, "too many requests")
+        || str_contains($message, "security purposes");
+}
+
+function servitech_supabase_error_is_email_delivery_failure(string $message): bool
+{
+    $message = strtolower(trim($message));
+    foreach ([
+        "confirmation email",
+        "sending confirmation",
+        "send email",
+        "smtp",
+        "mailer",
+        "email rate limit",
+    ] as $marker) {
+        if (str_contains($message, $marker)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function servitech_supabase_auth_request(
     string $path,
     string $method = "GET",

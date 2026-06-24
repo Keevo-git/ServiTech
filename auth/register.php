@@ -62,12 +62,17 @@ if (servitech_supabase_auth_enabled()) {
             throw new RuntimeException("Supabase Auth is enabled but not configured.");
         }
 
-        $authResponse = servitech_supabase_sign_up($email, $password_raw, [
-            "fullname" => $fullname,
-            "contact" => $contact,
-            "privacy_consent" => "1",
-            "consent_version" => servitech_account_consent_version(),
-        ]);
+        $authResponse = servitech_supabase_sign_up(
+            $email,
+            $password_raw,
+            [
+                "fullname" => $fullname,
+                "contact" => $contact,
+                "privacy_consent" => "1",
+                "consent_version" => servitech_account_consent_version(),
+            ],
+            servitech_supabase_confirmation_redirect_url()
+        );
 
         $hasSession = trim((string)($authResponse["access_token"] ?? "")) !== ""
             && trim((string)($authResponse["refresh_token"] ?? "")) !== "";
@@ -79,6 +84,8 @@ if (servitech_supabase_auth_enabled()) {
             // automated. Operational reporting should count confirmed accounts.
             $_SESSION["verification_email_hint"] = $email;
             $_SESSION["verification_registration_state"] = "sent";
+            $_SESSION["verification_resend_available_at"] = time() + 60;
+            unset($_SESSION["verification_delivery_message"]);
             header("Location: " . servitech_url("/auth/verification_pending.php"));
             exit();
         }
@@ -98,15 +105,18 @@ if (servitech_supabase_auth_enabled()) {
     } catch (DomainException $e) {
         error_log("Supabase registration rejected: " . $e->getMessage());
         $message = strtolower($e->getMessage());
-        if (
-            str_contains($message, "confirmation email")
-            || str_contains($message, "sending confirmation")
-            || str_contains($message, "email rate limit")
-        ) {
-            // Delivery/rate failures are not the normal confirmation-required
-            // response. Keep them out of Login and present a calm retry state.
+        if (servitech_supabase_error_is_email_delivery_failure($message)) {
+            // Do not present a provider rejection as a successfully sent email.
             $_SESSION["verification_email_hint"] = $email;
-            $_SESSION["verification_registration_state"] = "retry";
+            $_SESSION["verification_registration_state"] = "signup_delivery_failed";
+            $_SESSION["verification_delivery_message"] = servitech_supabase_error_is_email_rate_limited($message)
+                ? "Supabase is temporarily limiting verification emails. Please wait a minute, then submit registration again."
+                : "Supabase could not send the verification email, so your account was not created. Please return to registration and try again.";
+            if (servitech_supabase_error_is_email_rate_limited($message)) {
+                $_SESSION["verification_resend_available_at"] = time() + 60;
+            } else {
+                unset($_SESSION["verification_resend_available_at"]);
+            }
             header("Location: " . servitech_url("/auth/verification_pending.php"));
             exit();
         }
