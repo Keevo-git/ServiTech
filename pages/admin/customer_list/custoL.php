@@ -21,8 +21,8 @@ $stmt = $customerPdo->prepare("
 $stmt->execute();
 $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-function customer_code_from_id(int $id): string {
-  return "C-" . str_pad((string)$id, 3, "0", STR_PAD_LEFT);
+function customer_code_from_sequence(int $sequence): string {
+  return "C-" . str_pad((string)$sequence, 3, "0", STR_PAD_LEFT);
 }
 ?>
 <!doctype html>
@@ -85,9 +85,9 @@ function customer_code_from_id(int $id): string {
                   <td colspan="5" class="cl-empty">No registered customers yet.</td>
                 </tr>
               <?php else: ?>
-                <?php foreach ($customers as $c): ?>
+                <?php foreach ($customers as $index => $c): ?>
                   <?php
-                    $code = customer_code_from_id((int)$c["id"]);
+                    $code = customer_code_from_sequence($index + 1);
                     $name = (string)($c["fullname"] ?? "");
                     $email = (string)($c["email"] ?? "");
                     $contact = (string)($c["contacts"] ?? "");
