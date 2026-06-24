@@ -1101,6 +1101,58 @@ if (!function_exists("admin_notification_render_styles")) {
     }
 }
 
+if (!function_exists("admin_notification_render_items")) {
+    function admin_notification_render_items(array $notifications): void
+    {
+        foreach ($notifications as $notification) {
+            $isRead = admin_notification_bool($notification["is_read"] ?? false);
+            $eventCategory = admin_notification_event_category($notification);
+            $serviceCategory = admin_notification_service_category($notification);
+            $typeLabel = admin_notification_type_label($notification);
+            $queueCode = trim((string)($notification["queue_code"] ?? ""));
+            $status = strtoupper(trim((string)($notification["queue_status"] ?? "")));
+            $service = admin_notification_service_label($notification);
+            $createdLabel = admin_notification_format_timestamp((string)($notification["created_at"] ?? ""));
+            $createdDate = admin_notification_filter_date((string)($notification["created_at"] ?? ""));
+            $cancelNote = trim((string)($notification["cancel_note"] ?? ""));
+            $targetUrl = admin_notification_target_url($notification);
+            $messageLabel = admin_notification_message_label($notification["message"] ?? "New notification");
+            ?>
+            <article
+              class="admin-notification-item<?= $isRead ? "" : " is-unread" ?>"
+              data-admin-notification-id="<?= (int)$notification["id"] ?>"
+              data-admin-notification-read="<?= $isRead ? "true" : "false" ?>"
+              data-admin-notification-category="<?= admin_notification_h($eventCategory) ?>"
+              data-admin-notification-service="<?= admin_notification_h($serviceCategory) ?>"
+              data-admin-notification-queue="<?= admin_notification_h(strtolower($queueCode)) ?>"
+              data-admin-notification-date="<?= admin_notification_h($createdDate) ?>"
+              data-admin-notification-url="<?= admin_notification_h($targetUrl) ?>"
+            >
+              <label class="admin-notification-item__select" aria-label="Select notification">
+                <input type="checkbox" data-admin-notification-select>
+              </label>
+              <button type="button" class="admin-notification-item__open" data-admin-notification-open>
+                <span class="admin-notification-item__content">
+                  <span class="admin-notification-item__topline">
+                    <span class="admin-notification-item__category admin-notification-item__category--<?= admin_notification_h($eventCategory) ?>"><?= admin_notification_h($typeLabel) ?></span>
+                    <span class="admin-notification-item__time"><?= admin_notification_h($createdLabel) ?></span>
+                  </span>
+                  <span class="admin-notification-item__message"><?= admin_notification_h($messageLabel) ?></span>
+                  <span class="admin-notification-item__details">
+                    <?php if ($queueCode !== ""): ?><span><strong>Queue ID: </strong><?= admin_notification_h($queueCode) ?></span><?php endif; ?>
+                    <?php if ($service !== ""): ?><span><strong>Service: </strong><?= admin_notification_h($service) ?></span><?php endif; ?>
+                    <?php if ($status !== ""): ?><span><strong>Status: </strong><?= admin_notification_h($status) ?></span><?php endif; ?>
+                    <?php if ($cancelNote !== "" && $eventCategory === "cancelled"): ?><span><strong>Reason: </strong><?= admin_notification_h($cancelNote) ?></span><?php endif; ?>
+                  </span>
+                </span>
+                <span class="admin-notification-item__indicator" aria-hidden="true"></span>
+              </button>
+            </article>
+            <?php
+        }
+    }
+}
+
 if (!function_exists("admin_notification_render_center")) {
     function admin_notification_render_center(array $data, array $options = []): void
     {
@@ -1222,52 +1274,7 @@ if (!function_exists("admin_notification_render_center")) {
               <span>New customer registrations and service updates will appear here.</span>
             </div>
 
-            <?php foreach ($notifications as $notification): ?>
-              <?php
-                $isRead = admin_notification_bool($notification["is_read"] ?? false);
-                $eventCategory = admin_notification_event_category($notification);
-                $serviceCategory = admin_notification_service_category($notification);
-                $typeLabel = admin_notification_type_label($notification);
-                $queueCode = trim((string)($notification["queue_code"] ?? ""));
-                $status = strtoupper(trim((string)($notification["queue_status"] ?? "")));
-                $service = admin_notification_service_label($notification);
-                $createdLabel = admin_notification_format_timestamp((string)($notification["created_at"] ?? ""));
-                $createdDate = admin_notification_filter_date((string)($notification["created_at"] ?? ""));
-                $cancelNote = trim((string)($notification["cancel_note"] ?? ""));
-                $targetUrl = admin_notification_target_url($notification);
-                $messageLabel = admin_notification_message_label($notification["message"] ?? "New notification");
-              ?>
-              <article
-                class="admin-notification-item<?= $isRead ? "" : " is-unread" ?>"
-                data-admin-notification-id="<?= (int)$notification["id"] ?>"
-                data-admin-notification-read="<?= $isRead ? "true" : "false" ?>"
-                data-admin-notification-category="<?= admin_notification_h($eventCategory) ?>"
-                data-admin-notification-service="<?= admin_notification_h($serviceCategory) ?>"
-                data-admin-notification-queue="<?= admin_notification_h(strtolower($queueCode)) ?>"
-                data-admin-notification-date="<?= admin_notification_h($createdDate) ?>"
-                data-admin-notification-url="<?= admin_notification_h($targetUrl) ?>"
-              >
-                <label class="admin-notification-item__select" aria-label="Select notification">
-                  <input type="checkbox" data-admin-notification-select>
-                </label>
-                <button type="button" class="admin-notification-item__open" data-admin-notification-open>
-                  <span class="admin-notification-item__content">
-                    <span class="admin-notification-item__topline">
-                      <span class="admin-notification-item__category admin-notification-item__category--<?= admin_notification_h($eventCategory) ?>"><?= admin_notification_h($typeLabel) ?></span>
-                      <span class="admin-notification-item__time"><?= admin_notification_h($createdLabel) ?></span>
-                    </span>
-                    <span class="admin-notification-item__message"><?= admin_notification_h($messageLabel) ?></span>
-                    <span class="admin-notification-item__details">
-                      <?php if ($queueCode !== ""): ?><span><strong>Queue ID: </strong><?= admin_notification_h($queueCode) ?></span><?php endif; ?>
-                      <?php if ($service !== ""): ?><span><strong>Service: </strong><?= admin_notification_h($service) ?></span><?php endif; ?>
-                      <?php if ($status !== ""): ?><span><strong>Status: </strong><?= admin_notification_h($status) ?></span><?php endif; ?>
-                      <?php if ($cancelNote !== "" && $eventCategory === "cancelled"): ?><span><strong>Reason: </strong><?= admin_notification_h($cancelNote) ?></span><?php endif; ?>
-                    </span>
-                  </span>
-                  <span class="admin-notification-item__indicator" aria-hidden="true"></span>
-                </button>
-              </article>
-            <?php endforeach; ?>
+            <?php admin_notification_render_items($notifications); ?>
           </div>
         </main>
       </div>
@@ -1295,8 +1302,11 @@ if (!function_exists("admin_notification_render_script")) {
 
   var endpoints = {
     markRead: <?= json_encode(admin_url('/pages/admin/_includes/admin_notification_mark_read.php')) ?>,
-    deleteBulk: <?= json_encode(admin_url('/pages/admin/_includes/admin_notification_delete_bulk.php')) ?>
+    deleteBulk: <?= json_encode(admin_url('/pages/admin/_includes/admin_notification_delete_bulk.php')) ?>,
+    snapshot: <?= json_encode(admin_url('/pages/admin/_includes/admin_notification_snapshot.php')) ?>
   };
+  var centerControllers = [];
+  var notificationPollMs = 5000;
 
   function csrfToken() {
     return window.servitechCsrfToken ? window.servitechCsrfToken() : "";
@@ -1367,9 +1377,82 @@ if (!function_exists("admin_notification_render_script")) {
     var dateInput = root.querySelector("[data-admin-notification-date]");
     var clearFiltersButton = root.querySelector("[data-admin-notification-clear-filters]");
     if (!list || !emptyState) return;
+    var pollTimer = null;
+    var refreshInFlight = false;
+    var lastSnapshotSignature = "";
+    var mutationVersion = 0;
 
     function notificationItems() {
       return Array.from(list.querySelectorAll(".admin-notification-item"));
+    }
+
+    function refreshNotifications(force) {
+      if (refreshInFlight || (!force && document.hidden)) return Promise.resolve();
+
+      refreshInFlight = true;
+      var requestMutationVersion = mutationVersion;
+      return fetch(endpoints.snapshot, {
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          "Accept": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      }).then(function (response) {
+        return response.text().then(function (text) {
+          var data = {};
+          try {
+            data = text ? JSON.parse(text) : {};
+          } catch (error) {
+            throw new Error("Invalid notification snapshot response.");
+          }
+          if (!response.ok || !data.ok) throw new Error(data.error || "Notification refresh failed.");
+          return data;
+        });
+      }).then(function (data) {
+        if (requestMutationVersion !== mutationVersion) return;
+
+        setBadgeCount(data.unread_count || 0);
+        if (lastSnapshotSignature === data.signature) return;
+
+        var template = document.createElement("template");
+        template.innerHTML = String(data.items_html || "").trim();
+        notificationItems().forEach(function (item) { item.remove(); });
+        list.appendChild(template.content);
+        lastSnapshotSignature = String(data.signature || "");
+
+        selectedIds.forEach(function (id) {
+          var item = list.querySelector('[data-admin-notification-id="' + String(id) + '"]');
+          if (!item) {
+            selectedIds.delete(id);
+            return;
+          }
+          var checkbox = item.querySelector("[data-admin-notification-select]");
+          if (checkbox) checkbox.checked = true;
+        });
+        applyFilter();
+      }).catch(function (error) {
+        console.error("Admin notification refresh failed:", error);
+      }).finally(function () {
+        refreshInFlight = false;
+      });
+    }
+
+    function notificationMutated() {
+      mutationVersion += 1;
+      lastSnapshotSignature = "";
+      window.setTimeout(function () { refreshNotifications(true); }, 0);
+    }
+
+    function startPolling() {
+      if (pollTimer) return;
+      pollTimer = window.setInterval(refreshNotifications, notificationPollMs);
+    }
+
+    function stopPolling() {
+      if (!pollTimer) return;
+      window.clearInterval(pollTimer);
+      pollTimer = null;
     }
 
     function visibleItems() {
@@ -1570,6 +1653,7 @@ if (!function_exists("admin_notification_render_script")) {
           selectedIds.delete(id);
           syncCounts();
           applyFilter();
+          notificationMutated();
         })
         .catch(function (error) {
           console.error(error);
@@ -1628,6 +1712,7 @@ if (!function_exists("admin_notification_render_script")) {
           });
           syncCounts();
           applyFilter();
+          notificationMutated();
         })
         .catch(function (error) {
           window.servitechAdminToast?.error(error.message || "Failed to mark selected notifications as read.");
@@ -1641,6 +1726,7 @@ if (!function_exists("admin_notification_render_script")) {
           notificationItems().forEach(markItemRead);
           syncCounts();
           applyFilter();
+          notificationMutated();
           window.servitechAdminToast?.persist("Notifications marked as read.");
         })
         .catch(function (error) {
@@ -1657,6 +1743,7 @@ if (!function_exists("admin_notification_render_script")) {
           removeSelectedItems(ids);
           syncCounts();
           applyFilter();
+          notificationMutated();
           window.servitechAdminToast?.persist("Selected notifications deleted successfully.");
         })
         .catch(function (error) {
@@ -1666,6 +1753,12 @@ if (!function_exists("admin_notification_render_script")) {
 
     syncCounts();
     applyFilter();
+    centerControllers.push({
+      refresh: refreshNotifications,
+      stop: stopPolling
+    });
+    refreshNotifications(true);
+    startPolling();
   }
 
   function overlayShell() {
@@ -1695,6 +1788,10 @@ if (!function_exists("admin_notification_render_script")) {
     var shade = backdrop();
     var panel = overlay ? overlay.querySelector("[data-admin-notification-center]") : null;
     if (!overlay) return false;
+
+    centerControllers.forEach(function (controller) {
+      controller.refresh(true);
+    });
 
     overlay.classList.add("is-open");
     overlay.setAttribute("aria-hidden", "false");
@@ -1731,6 +1828,14 @@ if (!function_exists("admin_notification_render_script")) {
   }
 
   document.querySelectorAll("[data-admin-notification-center]").forEach(initCenter);
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) return;
+    centerControllers.forEach(function (controller) { controller.refresh(true); });
+  });
+  window.addEventListener("pagehide", function () {
+    centerControllers.forEach(function (controller) { controller.stop(); });
+  }, { once: true });
 
   document.querySelectorAll(".admin-notification-btn").forEach(function (trigger) {
     trigger.setAttribute("aria-haspopup", "dialog");

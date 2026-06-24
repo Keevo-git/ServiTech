@@ -107,9 +107,11 @@ if (!function_exists("servitech_notification_fetch_all")) {
 }
 
 if (!function_exists("servitech_notification_unread_count")) {
-    function servitech_notification_unread_count(PDO $pdo, int $userId): int
+    function servitech_notification_unread_count(PDO $pdo, int $userId, bool $cleanupDuplicates = true): int
     {
-        servitech_cleanup_customer_status_notification_duplicates($pdo, $userId);
+        if ($cleanupDuplicates) {
+            servitech_cleanup_customer_status_notification_duplicates($pdo, $userId);
+        }
 
         $stmt = $pdo->prepare("
             WITH ranked_notifications AS (
@@ -253,6 +255,7 @@ if ($notificationAction !== "") {
                 servitech_notification_json_response([
                     "ok" => true,
                     "notifications" => servitech_notification_fetch_all($pdo, $notificationUserId),
+                    "unread_count" => servitech_notification_unread_count($pdo, $notificationUserId, false),
                 ]);
 
             case "get_unread_count":
@@ -1833,6 +1836,7 @@ $notificationRoutes = [
         backdrop.hidden = false;
         dropdown.classList.add("is-open");
         syncPanelMode();
+        refreshNotifications();
         window.setTimeout(function () {
           dropdown.focus({ preventScroll: true });
         }, 0);
@@ -1921,6 +1925,8 @@ $notificationRoutes = [
           addNotificationToUI(notification);
         });
 
+        setBadgeCount(data.unread_count || 0);
+
         selectedNotificationIds.forEach(function (id) {
           if (!getNotificationItem(id)) {
             selectedNotificationIds.delete(id);
@@ -1946,7 +1952,7 @@ $notificationRoutes = [
         notificationRefreshInFlight = true;
 
         try {
-          await Promise.all([loadNotifications(), loadUnreadCount()]);
+          await loadNotifications();
         } catch (error) {
           console.error(error);
         } finally {
@@ -1960,6 +1966,15 @@ $notificationRoutes = [
         }
 
         notificationPollTimer = window.setInterval(refreshNotifications, notificationPollMs);
+      }
+
+      function stopNotificationPolling() {
+        if (!notificationPollTimer) {
+          return;
+        }
+
+        window.clearInterval(notificationPollTimer);
+        notificationPollTimer = null;
       }
 
       async function markNotificationAsRead(notificationId) {
@@ -2046,7 +2061,7 @@ $notificationRoutes = [
           }
         });
         realtimeChannel = realtimeClient
-          .channel("notifications")
+          .channel("notifications-user-" + config.userId)
           .on(
             "postgres_changes",
             {
@@ -2057,8 +2072,9 @@ $notificationRoutes = [
             },
             function (payload) {
               var notification = normalizeNotification(payload.new);
+              var alreadyRendered = Boolean(getNotificationItem(notification.id));
               var item = addNotificationToUI(notification);
-              if (item && !notification.is_read) {
+              if (item && !alreadyRendered && !notification.is_read) {
                 incrementBadge();
               }
               refreshNotifications();
@@ -2164,6 +2180,11 @@ $notificationRoutes = [
           refreshNotifications();
         }
       });
+
+      window.addEventListener("pagehide", function () {
+        stopNotificationPolling();
+        stopRealtime();
+      }, { once: true });
 
       list.addEventListener("click", function (event) {
         var item = event.target.closest(".notification-item");

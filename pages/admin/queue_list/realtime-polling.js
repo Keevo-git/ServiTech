@@ -32,27 +32,6 @@
     return href.split("/pages/admin/")[0] + path;
   }
 
-  function syncNotificationBadge(count) {
-    const link = document.querySelector(".admin-notification-btn");
-    if (!link) return;
-
-    const safeCount = Math.max(0, Number(count) || 0);
-    let badge = link.querySelector(".admin-notification-badge");
-
-    link.setAttribute("aria-label", "Admin notifications: " + safeCount);
-    if (safeCount <= 0) {
-      if (badge) badge.remove();
-      return;
-    }
-
-    if (!badge) {
-      badge = document.createElement("span");
-      badge.className = "admin-notification-badge";
-      link.appendChild(badge);
-    }
-    badge.textContent = String(safeCount);
-  }
-
   function renderedRecords() {
     const queueRows = Array.from(document.querySelectorAll(".queue-data-row")).map(function (row) {
       return {
@@ -123,7 +102,6 @@
       const data = await response.json();
       if (!data.ok || !Array.isArray(data.records)) return;
 
-      syncNotificationBadge(data.notification_count);
       const snapshotRecordSignature = recordSignature(data.records);
       if (!lastRecordSignature && recordSignature(renderedRecords()) !== snapshotRecordSignature) {
         lastRecordSignature = snapshotRecordSignature;

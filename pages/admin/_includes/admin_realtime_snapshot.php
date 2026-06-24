@@ -148,7 +148,6 @@ try {
         "scope" => $scope,
         "signature" => hash("sha256", is_string($signatureJson) ? $signatureJson : "[]"),
         "records" => $records,
-        "notification_count" => admin_queue_notification_count($pdo),
     ]);
 } catch (Throwable $exception) {
     error_log("admin realtime snapshot error: " . $exception->getMessage());

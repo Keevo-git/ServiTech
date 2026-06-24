@@ -25,6 +25,33 @@ function service_payment_json_response(array $payload, int $status = 200): void 
   exit();
 }
 
+function service_payment_notify_review(
+  PDO $pdo,
+  int $userId,
+  string $category,
+  int $queueId,
+  string $queueCode,
+  string $adminMessage
+): void {
+  servitech_add_notification(
+    $pdo,
+    $userId,
+    $category,
+    $queueId,
+    "Queue {$queueCode}: GCash payment details submitted. Waiting for staff review.",
+    "customer_gcash_review_submitted:{$queueId}",
+    true
+  );
+  servitech_notify_admins(
+    $pdo,
+    "admin_new_order_payment_review",
+    $queueId,
+    $adminMessage,
+    "admin_new_order_payment_review:{$queueId}",
+    true
+  );
+}
+
 $userId = (int)($_SESSION["user_id"] ?? 0);
 if ($userId <= 0) {
   header("Location: " . servitech_url("/auth/log_in.php"));
@@ -157,22 +184,13 @@ if ($draftToken !== "") {
       ":reference_number" => $referenceNumber,
     ]);
 
-    servitech_add_notification(
+    service_payment_notify_review(
       $pdo,
       $userId,
       $category,
       $queueId,
-      "Queue {$queueCode}: GCash payment details submitted. Waiting for staff review.",
-      "customer_new_gcash_queue:{$queueId}",
-      true
-    );
-    servitech_notify_admins(
-      $pdo,
-      "admin_new_order_payment_review",
-      $queueId,
-      "Queue {$queueCode}: New {$serviceLabel} order submitted. GCash payment: Review the order and update its status.",
-      "admin_new_order_payment_review:{$queueId}",
-      true
+      $queueCode,
+      "Queue {$queueCode}: New {$serviceLabel} order submitted. GCash payment: Review the order and update its status."
     );
 
     $pdo->commit();
@@ -195,7 +213,7 @@ if ($queueId <= 0) {
 try {
   $pdo->beginTransaction();
   $stmt = $pdo->prepare("
-    SELECT q.id, q.queue_code, q.status, q.details, p.id AS payment_id,
+    SELECT q.id, q.user_id, q.queue_code, q.category, q.status, q.details, p.id AS payment_id,
       p.payment_method, p.reference_number, p.status AS payment_status
     FROM queues q
     JOIN LATERAL (
@@ -222,10 +240,18 @@ try {
   $details["reference_number"] = $referenceNumber;
   $updateQueue = $pdo->prepare("UPDATE queues SET details = :details::jsonb, updated_at = NOW() WHERE id = :queue_id");
   $updateQueue->execute([":details" => json_encode($details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ":queue_id" => $queueId]);
-  $pdo->commit();
-
   $queueCode = trim((string)$queue["queue_code"]);
   $legacyServiceName = trim((string)($details["service_label"] ?? ($details["catalog_service_name"] ?? "Service")));
+  service_payment_notify_review(
+    $pdo,
+    (int)($queue["user_id"] ?? $userId),
+    (string)($queue["category"] ?? "queue"),
+    $queueId,
+    $queueCode,
+    "Queue {$queueCode}: GCash payment details submitted. Review the order and update its status."
+  );
+  $pdo->commit();
+
   service_payment_success($queueId, $queueCode, $legacyServiceName !== "" ? $legacyServiceName : "Service", servitech_url("/pages/customer/custo_service_payment.php?queue_id={$queueId}"));
 } catch (DomainException $e) {
   if ($pdo->inTransaction()) $pdo->rollBack();
