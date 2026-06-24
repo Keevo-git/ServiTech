@@ -39,7 +39,8 @@ function service_payment_rows(array $details): array {
     service_payment_add_row($rows, "Paper size", $pick(["paper_size_snapshot", "paper_size"]));
     service_payment_add_row($rows, "Color option", $pick(["color_option_snapshot", "color_option"]));
     service_payment_add_row($rows, "Number of copies", $pick(["quantity_snapshot", "quantity"]));
-    service_payment_add_row($rows, "Number of pages", $details["total_pages"] ?? "");
+    service_payment_add_row($rows, "Estimated pages", $details["total_pages"] ?? "");
+    service_payment_add_row($rows, "Estimate notice", $details["page_estimate_note"] ?? "Page count is an estimate. Staff may recount the files and adjust the final price if needed.");
     service_payment_add_row($rows, "Additional instructions", $pick(["customer_notes_snapshot", "notes"]));
   } elseif (str_contains($service, "xerox") || str_contains($service, "photocopy")) {
     service_payment_add_row($rows, "Paper size", $pick(["paper_size_snapshot", "paper_size"]));

@@ -183,10 +183,14 @@ function servitech_upload_ooxml_has_prefix(string $path, string $prefix): bool {
     ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"
     : ($prefix === "ppt/"
       ? "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"
-      : "");
+      : ($prefix === "xl/"
+        ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
+        : ""));
   $requiredMainPart = $prefix === "word/"
     ? "word/document.xml"
-    : ($prefix === "ppt/" ? "ppt/presentation.xml" : "");
+    : ($prefix === "ppt/"
+      ? "ppt/presentation.xml"
+      : ($prefix === "xl/" ? "xl/workbook.xml" : ""));
   $valid = is_string($contentTypes)
     && $contentTypes !== ""
     && ($expectedMainType === "" || stripos($contentTypes, $expectedMainType) !== false)
@@ -224,6 +228,14 @@ function servitech_upload_office_is_encrypted(string $contents): bool {
     || stripos($normalized, "EncryptionInfo") !== false;
 }
 
+function servitech_upload_is_compound_binary_file(string $path): bool {
+  $handle = @fopen($path, "rb");
+  if (!is_resource($handle)) return false;
+  $signature = fread($handle, 8);
+  fclose($handle);
+  return $signature === "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1";
+}
+
 function servitech_upload_assert_unlocked(string $path, string $extension): void {
   $contents = servitech_upload_read_accessible_contents($path);
 
@@ -231,7 +243,7 @@ function servitech_upload_assert_unlocked(string $path, string $extension): void
     throw new DomainException("is password-protected. Please upload an unlocked PDF.");
   }
 
-  if (in_array($extension, ["doc", "docx", "ppt", "pptx"], true) && servitech_upload_office_is_encrypted($contents)) {
+  if (in_array($extension, ["doc", "docx", "ppt", "pptx", "xls", "xlsx"], true) && servitech_upload_office_is_encrypted($contents)) {
     throw new DomainException("is locked or protected. Please remove file protection and try again.");
   }
 }
@@ -251,11 +263,13 @@ function servitech_upload_validate_type(string $path, string $originalName): arr
     "png" => ["image/png"],
     "doc" => ["application/msword", "application/cdfv2", "application/x-ole-storage"],
     "ppt" => ["application/vnd.ms-powerpoint", "application/cdfv2", "application/x-ole-storage"],
+    "xls" => ["application/vnd.ms-excel", "application/cdfv2", "application/x-ole-storage", "application/octet-stream"],
     "docx" => ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/zip", "application/x-zip-compressed", "application/octet-stream"],
     "pptx" => ["application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/zip", "application/x-zip-compressed", "application/octet-stream"],
+    "xlsx" => ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip", "application/x-zip-compressed", "application/octet-stream"],
   ];
 
-  if (in_array($extension, ["docx", "pptx"], true) && in_array($mime, ["application/cdfv2", "application/x-ole-storage", "application/vnd.ms-office"], true)) {
+  if (in_array($extension, ["docx", "pptx", "xlsx"], true) && in_array($mime, ["application/cdfv2", "application/x-ole-storage", "application/vnd.ms-office"], true)) {
     servitech_upload_assert_unlocked($path, $extension);
   }
 
@@ -263,11 +277,17 @@ function servitech_upload_validate_type(string $path, string $originalName): arr
     throw new DomainException("has invalid file content.");
   }
   servitech_upload_assert_unlocked($path, $extension);
+  if (in_array($extension, ["doc", "ppt", "xls"], true) && !servitech_upload_is_compound_binary_file($path)) {
+    throw new DomainException("is not a valid legacy Office document.");
+  }
   if ($extension === "docx" && !servitech_upload_ooxml_has_prefix($path, "word/")) {
     throw new DomainException("is not a valid DOCX document.");
   }
   if ($extension === "pptx" && !servitech_upload_ooxml_has_prefix($path, "ppt/")) {
     throw new DomainException("is not a valid PPTX presentation.");
+  }
+  if ($extension === "xlsx" && !servitech_upload_ooxml_has_prefix($path, "xl/")) {
+    throw new DomainException("is not a valid XLSX spreadsheet.");
   }
 
   return ["extension" => $extension, "mime_type" => $mime];
@@ -344,236 +364,180 @@ function servitech_document_count_pdf_pages(string $path): int {
   return $pages;
 }
 
-function servitech_document_find_executable(array $candidates): string {
-  foreach ($candidates as $candidate) {
-    $candidate = trim((string)$candidate);
-    if ($candidate !== "" && is_file($candidate)) return $candidate;
+function servitech_document_text_metrics(string $text): array {
+  $text = html_entity_decode($text, ENT_QUOTES | ENT_XML1, "UTF-8");
+  $text = preg_replace('/\s+/u', ' ', trim($text)) ?: '';
+  $words = $text === '' ? 0 : preg_match_all('/[\p{L}\p{N}]+(?:[\'\x{2019}-][\p{L}\p{N}]+)*/u', $text, $unused);
+  $characters = function_exists("mb_strlen") ? mb_strlen($text, "UTF-8") : strlen($text);
+  return ["words" => is_int($words) ? $words : 0, "characters" => max(0, $characters)];
+}
+
+function servitech_document_estimate_docx_pages(string $path): int {
+  if (!class_exists("ZipArchive") || !is_file($path)) return 0;
+  $zip = new ZipArchive();
+  if ($zip->open($path) !== true) return 0;
+  $documentXml = $zip->getFromName("word/document.xml");
+  $appXml = $zip->getFromName("docProps/app.xml");
+  $zip->close();
+  if (!is_string($documentXml) || $documentXml === "") return 0;
+
+  $metadataPages = 0;
+  if (is_string($appXml) && preg_match('/<Pages>(\d+)<\/Pages>/i', $appXml, $match)) {
+    $metadataPages = max(0, (int)$match[1]);
   }
-  return "";
-}
+  $manualBreaks = preg_match_all('/<w:br\b[^>]*w:type=["\']page["\'][^>]*\/?\s*>/i', $documentXml, $unused);
+  $renderedBreaks = preg_match_all('/<w:lastRenderedPageBreak\b[^>]*\/?\s*>/i', $documentXml, $unused);
+  $paragraphs = preg_match_all('/<w:p\b/i', $documentXml, $unused);
+  $tableRows = preg_match_all('/<w:tr\b/i', $documentXml, $unused);
+  $drawings = preg_match_all('/<(?:w:drawing|w:pict)\b/i', $documentXml, $unused);
+  preg_match_all('/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/i', $documentXml, $textMatches);
+  $metrics = servitech_document_text_metrics(implode(' ', $textMatches[1] ?? []));
 
-function servitech_document_soffice_path(): string {
-  $configured = trim((string)getenv("SERVITECH_SOFFICE_PATH"));
-  $candidates = [$configured];
-  if (PHP_OS_FAMILY === "Windows") {
-    $candidates[] = "C:\\Program Files\\LibreOffice\\program\\soffice.com";
-    $candidates[] = "C:\\Program Files\\LibreOffice\\program\\soffice.exe";
-    $candidates[] = "C:\\Program Files (x86)\\LibreOffice\\program\\soffice.com";
-    $candidates[] = "C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe";
-  } else {
-    $candidates[] = "/usr/bin/libreoffice";
-    $candidates[] = "/usr/bin/soffice";
-    $candidates[] = "/usr/local/bin/libreoffice";
-    $candidates[] = "/usr/local/bin/soffice";
-  }
-  return servitech_document_find_executable($candidates);
-}
-
-function servitech_document_word_path(): string {
-  if (PHP_OS_FAMILY !== "Windows") return "";
-  return servitech_document_find_executable([
-    getenv("SERVITECH_WORD_PATH"),
-    "C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE",
-    "C:\\Program Files (x86)\\Microsoft Office\\root\\Office16\\WINWORD.EXE",
-  ]);
-}
-
-function servitech_document_powershell_path(): string {
-  if (PHP_OS_FAMILY !== "Windows") return "";
-  return servitech_document_find_executable([
-    getenv("SERVITECH_POWERSHELL_PATH"),
-    "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-  ]);
-}
-
-function servitech_document_word_com_fallback_enabled(): bool {
-  return in_array(strtolower(trim((string)getenv("SERVITECH_ALLOW_WORD_COM_RENDERER"))), ["1", "true", "yes", "on"], true);
-}
-
-function servitech_document_word_renderer_available(): bool {
-  if (servitech_document_soffice_path() !== "") return true;
-  if (!servitech_document_word_com_fallback_enabled()) return false;
-  $script = dirname(__DIR__) . DIRECTORY_SEPARATOR . "scripts" . DIRECTORY_SEPARATOR . "render_office_to_pdf.ps1";
-  return servitech_document_word_path() !== ""
-    && servitech_document_powershell_path() !== ""
-    && is_file($script);
-}
-
-function servitech_document_process_timeout_seconds(): int {
-  $configured = (int)getenv("SERVITECH_DOCUMENT_RENDER_TIMEOUT_SECONDS");
-  return $configured > 0 ? min(180, max(15, $configured)) : 60;
-}
-
-function servitech_document_run_process(array $command, int $timeoutSeconds): array {
-  $descriptors = [
-    0 => ["pipe", "r"],
-    1 => ["pipe", "w"],
-    2 => ["pipe", "w"],
-  ];
-  $pipes = [];
-  $process = @proc_open($command, $descriptors, $pipes, null, null, ["bypass_shell" => true]);
-  if (!is_resource($process)) throw new RuntimeException("Unable to start the document renderer process.");
-
-  fclose($pipes[0]);
-  stream_set_blocking($pipes[1], false);
-  stream_set_blocking($pipes[2], false);
-  $stdout = "";
-  $stderr = "";
-  $startedAt = microtime(true);
-  $exitCode = -1;
-  $timedOut = false;
-
-  while (true) {
-    $stdout .= (string)stream_get_contents($pipes[1]);
-    $stderr .= (string)stream_get_contents($pipes[2]);
-    $status = proc_get_status($process);
-    if (empty($status["running"])) {
-      $exitCode = (int)($status["exitcode"] ?? -1);
-      break;
+  $explicitPages = max(
+    is_int($manualBreaks) ? $manualBreaks + 1 : 1,
+    is_int($renderedBreaks) ? $renderedBreaks + 1 : 1
+  );
+  $wordPages = (int)ceil($metrics["words"] / 425);
+  $characterPages = (int)ceil($metrics["characters"] / 2400);
+  $layoutUnits = (is_int($paragraphs) ? $paragraphs : 0)
+    + ((is_int($tableRows) ? $tableRows : 0) * 1.5)
+    + ((is_int($drawings) ? $drawings : 0) * 6);
+  $layoutPages = (int)ceil($layoutUnits / 32);
+  $densityPages = max(1, $wordPages, $characterPages, $layoutPages);
+  if ($metadataPages > 0) {
+    $estimate = max($metadataPages, $explicitPages);
+    if ($densityPages > max($metadataPages + 2, $metadataPages * 2)) {
+      $estimate = max($estimate, $densityPages);
     }
-    if ((microtime(true) - $startedAt) >= $timeoutSeconds) {
-      $timedOut = true;
-      proc_terminate($process);
-      break;
+    return $estimate;
+  }
+  return max(1, $explicitPages, $densityPages);
+}
+
+function servitech_document_estimate_doc_pages(string $path): int {
+  $contents = @file_get_contents($path);
+  if (!is_string($contents) || $contents === "") return 0;
+  preg_match_all('/[\x20-\x7E]{4,}/', $contents, $asciiMatches);
+  preg_match_all('/(?:[\x20-\x7E]\x00){4,}/', $contents, $unicodeMatches);
+  $asciiText = implode(' ', $asciiMatches[0] ?? []);
+  $unicodeParts = [];
+  foreach ($unicodeMatches[0] ?? [] as $part) {
+    $decoded = @iconv('UTF-16LE', 'UTF-8//IGNORE', $part);
+    if (is_string($decoded)) $unicodeParts[] = $decoded;
+  }
+  $unicodeText = implode(' ', $unicodeParts);
+  $asciiMetrics = servitech_document_text_metrics($asciiText);
+  $unicodeMetrics = servitech_document_text_metrics($unicodeText);
+  $words = max($asciiMetrics["words"], $unicodeMetrics["words"]);
+  $characters = max($asciiMetrics["characters"], $unicodeMetrics["characters"]);
+  $formFeedPages = min(substr_count($contents, "\x0C") + 1, max(1, (int)ceil(strlen($contents) / (20 * 1024))));
+  $sizePages = (int)ceil(strlen($contents) / (80 * 1024));
+  return max(1, $formFeedPages, (int)ceil($words / 425), (int)ceil($characters / 2400), $sizePages);
+}
+
+function servitech_document_spreadsheet_column_number(string $letters): int {
+  $number = 0;
+  foreach (str_split(strtoupper($letters)) as $letter) {
+    if ($letter < 'A' || $letter > 'Z') continue;
+    $number = ($number * 26) + (ord($letter) - 64);
+  }
+  return $number;
+}
+
+function servitech_document_estimate_sheet_pages(int $rows, int $columns, bool $landscape = false, int $rowBreaks = 0, int $columnBreaks = 0, int $fitWidth = 0, int $fitHeight = 0): int {
+  $rows = max(1, $rows);
+  $columns = max(1, $columns);
+  $pagesWide = (int)ceil($columns / ($landscape ? 15 : 10));
+  $pagesTall = (int)ceil($rows / ($landscape ? 38 : 45));
+  if ($fitWidth > 0) $pagesWide = $fitWidth;
+  if ($fitHeight > 0) $pagesTall = $fitHeight;
+  return max(1, $pagesWide * $pagesTall, ($rowBreaks + 1) * ($columnBreaks + 1));
+}
+
+function servitech_document_estimate_xlsx_pages(string $path): int {
+  if (!class_exists("ZipArchive") || !is_file($path)) return 0;
+  $zip = new ZipArchive();
+  if ($zip->open($path) !== true) return 0;
+  $totalPages = 0;
+  $worksheetCount = 0;
+  for ($i = 0; $i < $zip->numFiles; $i++) {
+    $name = (string)$zip->getNameIndex($i);
+    if (!preg_match('/^xl\/worksheets\/sheet\d+\.xml$/i', $name)) continue;
+    $xml = $zip->getFromIndex($i);
+    if (!is_string($xml) || $xml === "") continue;
+    $worksheetCount++;
+    $rows = 0;
+    $columns = 0;
+    if (preg_match_all('/<c\b[^>]*\br=["\']([A-Z]{1,3})(\d+)["\']/i', $xml, $cells, PREG_SET_ORDER)) {
+      foreach ($cells as $cell) {
+        $columns = max($columns, servitech_document_spreadsheet_column_number($cell[1]));
+        $rows = max($rows, (int)$cell[2]);
+      }
     }
-    usleep(50000);
-  }
-
-  $stdout .= (string)stream_get_contents($pipes[1]);
-  $stderr .= (string)stream_get_contents($pipes[2]);
-  fclose($pipes[1]);
-  fclose($pipes[2]);
-  $closeCode = proc_close($process);
-  if ($exitCode < 0 && $closeCode >= 0) $exitCode = $closeCode;
-
-  return [
-    "ok" => !$timedOut && $exitCode === 0,
-    "exit_code" => $exitCode,
-    "timed_out" => $timedOut,
-    "stdout" => $stdout,
-    "stderr" => $stderr,
-  ];
-}
-
-function servitech_document_remove_temp_directory(string $directory): void {
-  if ($directory === "" || !is_dir($directory)) return;
-  foreach (scandir($directory) ?: [] as $item) {
-    if ($item === "." || $item === "..") continue;
-    $path = $directory . DIRECTORY_SEPARATOR . $item;
-    if (is_dir($path) && !is_link($path)) {
-      servitech_document_remove_temp_directory($path);
-    } else {
-      @unlink($path);
+    if ($rows < 1) {
+      $rowCount = preg_match_all('/<row\b/i', $xml, $unused);
+      $rows = is_int($rowCount) ? $rowCount : 0;
     }
-  }
-  @rmdir($directory);
-}
-
-function servitech_document_file_url(string $path): string {
-  $normalized = str_replace("\\", "/", $path);
-  $segments = array_map("rawurlencode", explode("/", ltrim($normalized, "/")));
-  $encoded = implode("/", $segments);
-  if (preg_match('/^[A-Za-z]%3A\//', $encoded)) $encoded = substr($encoded, 0, 1) . ":" . substr($encoded, 4);
-  return "file:///" . $encoded;
-}
-
-function servitech_document_render_word_to_pdf(string $path, string $extension): array {
-  if (!is_file($path) || !is_readable($path)) throw new RuntimeException("The source document is unreadable.");
-  $extension = strtolower(trim($extension));
-  if (!in_array($extension, ["doc", "docx"], true)) throw new RuntimeException("Unsupported rendered document type.");
-
-  $temporaryDirectory = rtrim(sys_get_temp_dir(), "\\/") . DIRECTORY_SEPARATOR . "servitech-office-" . bin2hex(random_bytes(12));
-  if (!mkdir($temporaryDirectory, 0700, true) && !is_dir($temporaryDirectory)) {
-    throw new RuntimeException("Unable to create the document rendering workspace.");
-  }
-
-  $sourcePath = $temporaryDirectory . DIRECTORY_SEPARATOR . "source." . $extension;
-  $pdfPath = $temporaryDirectory . DIRECTORY_SEPARATOR . "source.pdf";
-  if (!copy($path, $sourcePath)) {
-    servitech_document_remove_temp_directory($temporaryDirectory);
-    throw new RuntimeException("Unable to prepare the document for rendering.");
-  }
-
-  $attemptErrors = [];
-  $soffice = servitech_document_soffice_path();
-  if ($soffice !== "") {
-    $profilePath = $temporaryDirectory . DIRECTORY_SEPARATOR . "libreoffice-profile";
-    mkdir($profilePath, 0700, true);
-    $result = servitech_document_run_process([
-      $soffice,
-      "--headless",
-      "--nologo",
-      "--nodefault",
-      "--nolockcheck",
-      "--nofirststartwizard",
-      "-env:UserInstallation=" . servitech_document_file_url($profilePath),
-      "--convert-to",
-      "pdf:writer_pdf_Export",
-      "--outdir",
-      $temporaryDirectory,
-      $sourcePath,
-    ], servitech_document_process_timeout_seconds());
-    if (!empty($result["ok"]) && is_file($pdfPath) && filesize($pdfPath) > 0) {
-      return ["temporary_directory" => $temporaryDirectory, "pdf_path" => $pdfPath, "renderer" => "libreoffice"];
+    $landscape = preg_match('/<pageSetup\b[^>]*orientation=["\']landscape["\']/i', $xml) === 1;
+    $fitToPage = preg_match('/<pageSetUpPr\b[^>]*fitToPage=["\'](?:1|true)["\']/i', $xml) === 1;
+    $fitWidth = $fitToPage && preg_match('/<pageSetup\b[^>]*fitToWidth=["\'](\d+)["\']/i', $xml, $fit) ? (int)$fit[1] : 0;
+    $fitHeight = $fitToPage && preg_match('/<pageSetup\b[^>]*fitToHeight=["\'](\d+)["\']/i', $xml, $fit) ? (int)$fit[1] : 0;
+    $rowBreaks = 0;
+    $columnBreaks = 0;
+    if (preg_match('/<rowBreaks\b[\s\S]*?<\/rowBreaks>/i', $xml, $breakBlock)) {
+      $count = preg_match_all('/<brk\b/i', $breakBlock[0], $unused);
+      $rowBreaks = is_int($count) ? $count : 0;
     }
-    $attemptErrors[] = "LibreOffice: " . trim((string)($result["stderr"] ?: $result["stdout"] ?: "conversion failed"));
-    if (is_file($pdfPath)) @unlink($pdfPath);
-  }
-
-  $wordPath = servitech_document_word_path();
-  $powershell = servitech_document_powershell_path();
-  $wordScript = dirname(__DIR__) . DIRECTORY_SEPARATOR . "scripts" . DIRECTORY_SEPARATOR . "render_office_to_pdf.ps1";
-  if (servitech_document_word_com_fallback_enabled() && $wordPath !== "" && $powershell !== "" && is_file($wordScript)) {
-    $result = servitech_document_run_process([
-      $powershell,
-      "-NoLogo",
-      "-NoProfile",
-      "-NonInteractive",
-      "-ExecutionPolicy",
-      "Bypass",
-      "-File",
-      $wordScript,
-      "-InputPath",
-      $sourcePath,
-      "-OutputPath",
-      $pdfPath,
-    ], servitech_document_process_timeout_seconds());
-    if (!empty($result["ok"]) && is_file($pdfPath) && filesize($pdfPath) > 0) {
-      return ["temporary_directory" => $temporaryDirectory, "pdf_path" => $pdfPath, "renderer" => "microsoft-word"];
+    if (preg_match('/<colBreaks\b[\s\S]*?<\/colBreaks>/i', $xml, $breakBlock)) {
+      $count = preg_match_all('/<brk\b/i', $breakBlock[0], $unused);
+      $columnBreaks = is_int($count) ? $count : 0;
     }
-    $attemptErrors[] = "Microsoft Word: " . trim((string)($result["stderr"] ?: $result["stdout"] ?: "conversion failed"));
+    $totalPages += servitech_document_estimate_sheet_pages(
+      $rows,
+      $columns,
+      $landscape,
+      $rowBreaks,
+      $columnBreaks,
+      $fitWidth,
+      $fitHeight
+    );
   }
-
-  servitech_document_remove_temp_directory($temporaryDirectory);
-  if (!$attemptErrors) {
-    throw new RuntimeException("No unattended DOC/DOCX renderer is configured. Install LibreOffice and set SERVITECH_SOFFICE_PATH.");
-  }
-  throw new RuntimeException(implode(" | ", $attemptErrors));
+  $zip->close();
+  return $worksheetCount > 0 ? max($worksheetCount, $totalPages) : 0;
 }
 
-function servitech_document_count_word_pages(string $path, string $extension): int {
-  $rendered = null;
-  try {
-    $rendered = servitech_document_render_word_to_pdf($path, $extension);
-    $pages = servitech_document_count_pdf_pages((string)$rendered["pdf_path"]);
-    if ($pages < 1) throw new RuntimeException("The rendered PDF did not contain a readable page tree.");
-    return $pages;
-  } catch (Throwable $e) {
-    error_log("Document page rendering failed for " . basename($path) . ": " . substr($e->getMessage(), 0, 2000));
-    return 0;
-  } finally {
-    if (is_array($rendered)) {
-      servitech_document_remove_temp_directory((string)($rendered["temporary_directory"] ?? ""));
+function servitech_document_estimate_xls_pages(string $path): int {
+  $contents = @file_get_contents($path);
+  if (!is_string($contents) || $contents === "") return 0;
+  $totalPages = 0;
+  $dimensionRecords = 0;
+  $offset = 0;
+  $length = strlen($contents);
+  while (($recordOffset = strpos($contents, "\x00\x02", $offset)) !== false) {
+    if ($recordOffset + 18 <= $length) {
+      $recordLength = unpack('vlength', substr($contents, $recordOffset + 2, 2));
+      $payloadLength = (int)($recordLength['length'] ?? 0);
+      if ($payloadLength >= 10 && $payloadLength <= 32 && $recordOffset + 4 + $payloadLength <= $length) {
+        $payload = substr($contents, $recordOffset + 4, $payloadLength);
+        if ($payloadLength >= 14) {
+          $values = unpack('VfirstRow/VlastRow/vfirstCol/vlastCol', substr($payload, 0, 12));
+        } else {
+          $values = unpack('vfirstRow/vlastRow/vfirstCol/vlastCol', substr($payload, 0, 8));
+        }
+        $lastRow = (int)($values['lastRow'] ?? 0);
+        $lastCol = (int)($values['lastCol'] ?? 0);
+        if ($lastRow > 0 && $lastRow <= 1048576 && $lastCol > 0 && $lastCol <= 16384) {
+          $dimensionRecords++;
+          $totalPages += servitech_document_estimate_sheet_pages($lastRow, $lastCol);
+        }
+      }
     }
+    $offset = $recordOffset + 2;
   }
-}
-
-function servitech_document_count_docx_pages(string $path): int {
-  return servitech_document_count_word_pages($path, "docx");
-}
-
-function servitech_document_count_doc_pages(string $path): int {
-  return servitech_document_count_word_pages($path, "doc");
+  if ($dimensionRecords > 0) return max($dimensionRecords, $totalPages);
+  $sheetRecords = preg_match_all('/\x85\x00[\x08-\xFF]\x00/s', $contents, $unused);
+  $sheetCount = is_int($sheetRecords) ? $sheetRecords : 0;
+  return max(1, $sheetCount, (int)ceil($length / (100 * 1024)));
 }
 
 function servitech_document_count_pptx_slides(string $path): int {

@@ -529,9 +529,9 @@ if ($closedStoreDocumentPrinting) {
 
         <div class="printing-field">
           <label for="fileUpload">Upload your document</label>
-          <input type="file" id="fileUpload" class="form-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" multiple>
+          <input type="file" id="fileUpload" class="form-file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png" multiple>
           <p id="fileUploadStatus" class="file-upload-status" aria-live="polite"></p>
-          <p class="file-note">Accepted formats: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG. Up to 5 files, 25 MB each, 100 MB total.</p>
+          <p class="file-note">Accepted formats: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG. Up to 5 files, 25 MB each, 100 MB total.</p>
         </div>
 
         <div class="file-note" id="fileAnalysisPanel">
@@ -539,6 +539,7 @@ if ($closedStoreDocumentPrinting) {
           <strong>Uploaded Files</strong>
           <ul id="fileAnalysisList"></ul>
           <p id="fileAnalysisMeta">No files uploaded yet.</p>
+          <p class="file-note"><strong>Page estimate:</strong> Page count shown is an estimate only. Staff may recount the file and adjust the final price if needed.</p>
         </div>
       </div>
     </div>
@@ -568,7 +569,7 @@ if ($closedStoreDocumentPrinting) {
         </div>
 
         <div class="summary-row">
-          <span>TOTAL PAGES:</span>
+          <span>ESTIMATED PAGES:</span>
           <strong id="summaryTotalPages">0</strong>
         </div>
 
@@ -583,6 +584,7 @@ if ($closedStoreDocumentPrinting) {
           <span>Estimated Total:</span>
           <strong id="summaryTotal" class="is-pending-total">&mdash;</strong>
         </div>
+        <p class="file-note">Page count and total are estimates. Staff may recount your files and adjust the final price if needed.</p>
       </aside>
 
       <div class="customer-form-actions is-sidebar">
@@ -609,6 +611,6 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechCatalogRules = <?= json_encode($documentRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.SERVITECH_DOCUMENT_PRINTING_CLOSED_STORE_MODE = <?= $closedStoreDocumentPrinting ? "true" : "false" ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260624-page-count"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260624-page-estimate"></script>
 </body>
 </html>

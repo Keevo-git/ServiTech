@@ -68,6 +68,8 @@
       docx: true,
       ppt: true,
       pptx: true,
+      xls: true,
+      xlsx: true,
       jpg: true,
       jpeg: true,
       png: true,
@@ -250,7 +252,7 @@
           return "";
         }
 
-        if (ext === "doc" || ext === "docx" || ext === "ppt" || ext === "pptx") {
+        if (ext === "doc" || ext === "docx" || ext === "ppt" || ext === "pptx" || ext === "xls" || ext === "xlsx") {
           var officeSlice = file.slice(0, Math.min(file.size || 0, 1024 * 1024));
           var officeBuffer = await officeSlice.arrayBuffer();
           if (hasOfficeEncryptionMarker(officeBuffer)) {
@@ -497,6 +499,7 @@
             type: (fileInfo.file_type || (sourceFile ? getExt(sourceFile.name) : "") || "file").toUpperCase(),
             count: getPageCountFromInfo(fileInfo),
             isSlides: typeof fileInfo.slide_count !== "undefined",
+            isEstimate: fileInfo.count_is_estimate === true,
             index: index,
             key: sourceFile ? fileKey(sourceFile) : ""
           });
@@ -515,6 +518,7 @@
             type: (savedInfo.file_type || uploadedInfo.file_type || getExt(draftNames[i] || "") || "file").toUpperCase(),
             count: getPageCountFromInfo(savedInfo),
             isSlides: typeof savedInfo.slide_count !== "undefined",
+            isEstimate: savedInfo.count_is_estimate === true,
             index: i
           });
         }
@@ -530,7 +534,7 @@
         var li = document.createElement("li");
         var head = document.createElement("div");
         var countLabel = item.count > 0
-          ? " - " + item.count + (item.isSlides ? " slide(s)" : " page(s)")
+          ? " - " + item.count + (item.isSlides ? " slide(s)" : (item.isEstimate ? " estimated page(s)" : " page(s)"))
           : "";
         var task = item.key ? uploadTasks[item.key] || null : null;
         var taskIsActive = task && window.ServitechUpload && window.ServitechUpload.isActiveStatus(task.status);
@@ -588,7 +592,7 @@
 
       fileMetaEl.textContent =
         displayItems.length + (displayItems.length === 1 ? " file ready" : " files ready") +
-        " | Total Pages: " + (state.total_pages || 0);
+        " | Estimated Total Pages: " + (state.total_pages || 0);
       renderUploadStatus();
     }
 
@@ -663,7 +667,7 @@
             file: file,
             status: "analyzing",
             progress: 35,
-            message: "Processing file and counting pages...",
+            message: "Processing file and estimating pages...",
             metadata: null
           };
         });
@@ -721,7 +725,7 @@
               if (!readyTask) return;
               readyTask.status = "success";
               readyTask.progress = 100;
-              readyTask.message = "Processing complete. Ready to upload.";
+              readyTask.message = "Page estimate ready. Ready to upload.";
             });
             isAnalyzingFiles = false;
             resetAnalysis(true);
@@ -757,7 +761,7 @@
           if (!task) return;
           task.status = "success";
           task.progress = 100;
-          task.message = "Processing complete. Ready to upload.";
+          task.message = "Page estimate ready. Ready to upload.";
         });
         resetAnalysis(true);
         isAnalyzingFiles = false;

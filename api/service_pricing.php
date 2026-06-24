@@ -151,24 +151,31 @@ function servitech_pricing_analyze_saved_uploads(PDO $pdo, array $uploadedFiles)
     if ($ext === "pdf") {
       $pages = servitech_document_count_pdf_pages($path);
       if ($pages < 1) throw new DomainException("Unable to detect the page count for {$name}. Please upload a valid, unlocked PDF.");
-      $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => $pages];
+      $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => $pages, "count_is_estimate" => false];
       $totalPages += $pages;
     } elseif ($ext === "doc" || $ext === "docx") {
       $pages = $ext === "docx"
-        ? servitech_document_count_docx_pages($path)
-        : servitech_document_count_doc_pages($path);
-      if ($pages < 1) throw new DomainException("Unable to render and count pages for {$name}. Please upload a valid, unlocked DOC/DOCX file or convert it to PDF.");
-      $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => $pages];
+        ? servitech_document_estimate_docx_pages($path)
+        : servitech_document_estimate_doc_pages($path);
+      if ($pages < 1) throw new DomainException("Unable to estimate pages for {$name}. Please upload a valid, unlocked DOC/DOCX file or convert it to PDF.");
+      $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => $pages, "count_is_estimate" => true];
       $totalPages += $pages;
     } elseif ($ext === "ppt" || $ext === "pptx") {
       $slides = $ext === "pptx"
         ? servitech_document_count_pptx_slides($path)
         : servitech_document_count_ppt_slides($path);
       if ($slides < 1) throw new DomainException("Unable to detect the slide count for {$name}. Please upload a valid, unlocked presentation.");
-      $analysis[] = ["file_name" => $name, "file_type" => $ext, "slide_count" => $slides];
+      $analysis[] = ["file_name" => $name, "file_type" => $ext, "slide_count" => $slides, "count_is_estimate" => false];
       $totalPages += $slides;
+    } elseif ($ext === "xls" || $ext === "xlsx") {
+      $pages = $ext === "xlsx"
+        ? servitech_document_estimate_xlsx_pages($path)
+        : servitech_document_estimate_xls_pages($path);
+      if ($pages < 1) throw new DomainException("Unable to estimate printed pages for {$name}. Please upload a valid, unlocked XLS/XLSX file or convert it to PDF.");
+      $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => $pages, "count_is_estimate" => true];
+      $totalPages += $pages;
     } elseif (in_array($ext, ["jpg", "jpeg", "png"], true)) {
-      $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => 1];
+      $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => 1, "count_is_estimate" => false];
       $totalImages++;
       $totalPages++;
     } else {
@@ -183,6 +190,8 @@ function servitech_pricing_analyze_saved_uploads(PDO $pdo, array $uploadedFiles)
     "total_files" => count($analysis),
     "total_images" => $totalImages,
     "total_pages" => $totalPages,
+    "page_count_is_estimate" => true,
+    "page_estimate_note" => "Page count shown is an estimate only. Staff may recount the file and adjust the final price if needed.",
   ];
 }
 

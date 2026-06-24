@@ -139,7 +139,8 @@ function queue_ui_detail_rows(array $details): array
         "Installation Type" => ["installation_type_snapshot", "installation_type"],
         "Package" => ["package_snapshot", "package_label", "package"],
         "Lamination Type" => ["lamination_type_snapshot", "lamination_type"],
-        "Total Pages" => ["total_pages", "page_count"],
+        "Estimated Pages" => ["total_pages", "page_count"],
+        "Estimate Notice" => ["page_estimate_note"],
         $unitPriceLabel => ["price_snapshot", "price_per_page"],
     ];
 

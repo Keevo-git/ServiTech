@@ -183,6 +183,7 @@ if (!empty($uploadedFiles)) {
         "file_name" => $name,
         "file_type" => "pdf",
         "page_count" => $pages,
+        "count_is_estimate" => false,
       ];
       $total_pages += $pages;
       continue;
@@ -190,10 +191,10 @@ if (!empty($uploadedFiles)) {
 
     if ($ext === "doc" || $ext === "docx") {
       $pages = $ext === "docx"
-        ? servitech_document_count_docx_pages($tmp)
-        : servitech_document_count_doc_pages($tmp);
+        ? servitech_document_estimate_docx_pages($tmp)
+        : servitech_document_estimate_doc_pages($tmp);
       if ($pages < 1) {
-        $validationErrors[] = "Unable to render and count pages for {$name}. Please upload a valid, unlocked DOC/DOCX file or convert it to PDF.";
+        $validationErrors[] = "Unable to estimate pages for {$name}. Please upload a valid, unlocked DOC/DOCX file or convert it to PDF.";
         $total_files--;
         continue;
       }
@@ -201,6 +202,7 @@ if (!empty($uploadedFiles)) {
         "file_name" => $name,
         "file_type" => $ext,
         "page_count" => $pages,
+        "count_is_estimate" => true,
       ];
       $total_pages += $pages;
       continue;
@@ -219,8 +221,28 @@ if (!empty($uploadedFiles)) {
         "file_name" => $name,
         "file_type" => $ext,
         "slide_count" => $slides,
+        "count_is_estimate" => false,
       ];
       $total_pages += $slides;
+      continue;
+    }
+
+    if ($ext === "xls" || $ext === "xlsx") {
+      $pages = $ext === "xlsx"
+        ? servitech_document_estimate_xlsx_pages($tmp)
+        : servitech_document_estimate_xls_pages($tmp);
+      if ($pages < 1) {
+        $validationErrors[] = "Unable to estimate printed pages for {$name}. Please upload a valid, unlocked XLS/XLSX file or convert it to PDF.";
+        $total_files--;
+        continue;
+      }
+      $fileResults[] = [
+        "file_name" => $name,
+        "file_type" => $ext,
+        "page_count" => $pages,
+        "count_is_estimate" => true,
+      ];
+      $total_pages += $pages;
       continue;
     }
 
@@ -229,6 +251,7 @@ if (!empty($uploadedFiles)) {
         "file_name" => $name,
         "file_type" => $ext,
         "page_count" => 1,
+        "count_is_estimate" => false,
       ];
       $total_images++;
       $total_pages++;
@@ -299,6 +322,8 @@ printing_json_exit([
   "total_files" => $total_files,
   "total_images" => $total_images,
   "total_pages" => $total_pages,
+  "page_count_is_estimate" => true,
+  "page_estimate_note" => "Page count shown is an estimate only. Staff may recount the file and adjust the final price if needed.",
   "price_per_page" => $pricing["price_per_page"],
   "estimated_total" => $pricing["estimated_total"],
   "catalog_pricing_rule_id" => $pricing["catalog_pricing_rule_id"],

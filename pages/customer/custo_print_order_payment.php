@@ -683,7 +683,7 @@ if ($isConfirmed) {
                 <strong><?= esc_print_order((string)$totalFilesDisplay) ?></strong>
               </div>
               <div class="print-payment-meta-row">
-                <span>Total Pages</span>
+                <span>Estimated Pages</span>
                 <strong><?= esc_print_order((string)($draft["total_pages"] ?? 0)) ?></strong>
               </div>
               <div class="print-payment-meta-row">
@@ -695,6 +695,7 @@ if ($isConfirmed) {
                 <strong>Document Print</strong>
               </div>
             </div>
+            <p class="print-payment-detail-line">Page count and total are estimates. Staff may recount your files and adjust the final price if needed.</p>
           </div>
 
           <div class="print-payment-payment-box">

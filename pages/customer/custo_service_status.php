@@ -2124,7 +2124,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
   function editFileField(queueData){
     if (!supportsFileUpload(queueData)) return "";
     const rushId = serviceKey(queueData) === "rushid";
-    const accept = rushId ? ".jpg,.jpeg,.png" : ".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png";
+    const accept = rushId ? ".jpg,.jpeg,.png" : ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png";
     return `
       <div class="status-edit-field status-edit-field--full">
         <span class="status-edit-label">Current Attachments</span>
@@ -2152,7 +2152,7 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     const rushId = serviceKey(queueData) === "rushid";
     const allowed = rushId
       ? new Set(["jpg", "jpeg", "png"])
-      : new Set(["pdf", "doc", "docx", "ppt", "pptx", "jpg", "jpeg", "png"]);
+      : new Set(["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "jpg", "jpeg", "png"]);
     const keptFiles = keptEditFiles(queueData);
     let count = keptFiles.length;
     let bytes = keptFiles.reduce((total, file) => total + Math.max(0, Number(file?.byte_size) || 0), 0);
@@ -2405,7 +2405,8 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
       }
       rows.push(["Catalog option", catalogRuleLabel(rule)]);
       rows.push(["Price per page", unitPrice !== null ? toPeso(unitPrice) : "For assessment"]);
-      rows.push(["Pages / files", `${totalPages} page${totalPages === 1 ? "" : "s"} from ${keptFiles.length + addedFiles.length} file${keptFiles.length + addedFiles.length === 1 ? "" : "s"}`]);
+      rows.push(["Estimated pages / files", `${totalPages} page${totalPages === 1 ? "" : "s"} from ${keptFiles.length + addedFiles.length} file${keptFiles.length + addedFiles.length === 1 ? "" : "s"}`]);
+      notes.push("Page count is an estimate. Staff may recount the files and adjust the final price if needed.");
       rows.push(["Copies", quantity]);
     } else if (service === "xerox") {
       if (unitPrice !== null) {
@@ -2815,10 +2816,11 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
       add("Paper Size", queueData.paper_size ?? details.paper_size);
       add("Quantity/Copies", queueData.quantity ?? details.quantity);
       add("Color Option", queueData.color_option ?? details.color_option);
-      add("Total Pages", queueData.total_pages ?? details.total_pages);
+      add("Estimated Pages", queueData.total_pages ?? details.total_pages);
       add("Price Per Page", toNumber(queueData.price_per_page ?? details.price_per_page) !== null
         ? toPeso(queueData.price_per_page ?? details.price_per_page)
         : "");
+      add("Estimate Notice", details.page_estimate_note ?? "Page count is an estimate. Staff may recount the files and adjust the final price if needed.");
       return rows;
     }
 
