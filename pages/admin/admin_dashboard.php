@@ -12,7 +12,7 @@ function project_url(string $path): string
 
 $dashboardStats = fetch_admin_dashboard_stats($pdo);
 $customers = $dashboardStats["customers"];
-$onlineOrders = $dashboardStats["onlineOrders"];
+$printingOrders = $dashboardStats["printingOrders"] ?? $dashboardStats["onlineOrders"] ?? 0;
 $activeQueue = $dashboardStats["activeQueue"];
 $dashboardAnalytics = $dashboardStats["analytics"] ?? [];
 $mostRequested = is_array($dashboardAnalytics["mostRequested"] ?? null) ? $dashboardAnalytics["mostRequested"] : [];
@@ -76,11 +76,11 @@ require __DIR__ . "/_includes/admin_header.php";
       <div 
         class="value" 
         id="ordersCount" 
-        data-count="<?= $onlineOrders ?>"
+        data-count="<?= $printingOrders ?>"
       >
-        <?= $onlineOrders ?>
+        <?= $printingOrders ?>
       </div>
-      <p class="stat-note">Document print requests</p>
+      <p class="stat-note">Visible in Order Management</p>
     </div>
 
     <div class="stat stat--queue">
@@ -92,7 +92,7 @@ require __DIR__ . "/_includes/admin_header.php";
       >
         <?= $activeQueue ?>
       </div>
-      <p class="stat-note">Currently waiting for service</p>
+      <p class="stat-note">Active in Queue Management</p>
     </div>
 
   </section>
@@ -160,7 +160,7 @@ require __DIR__ . "/_includes/admin_header.php";
   </section>
 
   <header class="admin-quick-access-header admin-analytics-header">
-    <h3 class="section-title">Live Analytics</h3>
+    <h3 class="section-title">Operations Analytics</h3>
     <div class="admin-section-divider" aria-hidden="true"></div>
   </header>
 
@@ -169,9 +169,9 @@ require __DIR__ . "/_includes/admin_header.php";
       <div class="analytics-head">
         <div>
           <h4>Most Requested Services</h4>
-          <p>Ranked by total queue requests</p>
+          <p>All-time requests by service</p>
         </div>
-        <span class="live-pill">Live</span>
+        <span class="live-pill">All-time</span>
       </div>
       <div class="analytics-chart-shell">
         <div class="analytics-list analytics-list--ranked" id="mostRequestedList">
@@ -241,13 +241,13 @@ require __DIR__ . "/_includes/admin_header.php";
       <div class="analytics-head">
         <div>
           <h4>Today</h4>
-          <p>Queue activity since midnight</p>
+          <p>Activity by Manila calendar day</p>
         </div>
       </div>
       <div class="today-metrics">
         <div>
           <i aria-hidden="true"></i>
-          <span>New queues</span>
+          <span>New requests</span>
           <strong id="todayQueuesCount"><?= (int)($todayAnalytics["queues"] ?? 0) ?></strong>
         </div>
         <div>
@@ -269,7 +269,7 @@ require __DIR__ . "/_includes/admin_header.php";
 
 <?php require_once __DIR__ . "/_includes/admin_footer.php"; ?>
 
-<script src="<?= project_url('/pages/admin/admin_dashboard.js?v=20260624-live-bin-sync') ?>" defer></script>
+<script src="<?= project_url('/pages/admin/admin_dashboard.js?v=20260624-metric-alignment') ?>" defer></script>
 
 <script src="<?= project_url('/assets/js/header-menu.js') ?>" defer></script>
 

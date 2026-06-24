@@ -76,7 +76,8 @@ $onlineStmt = $pdo->prepare("
     {$orderRecyclePredicate}
     AND (
       LOWER(TRIM(COALESCE(q.category, ''))) IN (
-        'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin'
+        'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
+        'xerox', 'rush-id', 'laminating'
       )
       OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
     )

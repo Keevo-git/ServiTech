@@ -149,7 +149,7 @@ async function fetchStats() {
     const queueEl = document.getElementById("queueCount");
 
     if (customersEl) customersEl.textContent = Number(data.customers || 0);
-    if (ordersEl) ordersEl.textContent = Number(data.onlineOrders || 0);
+    if (ordersEl) ordersEl.textContent = Number(data.printingOrders ?? data.onlineOrders ?? 0);
     if (queueEl) queueEl.textContent = Number(data.activeQueue || 0);
     updateAnalytics(data.analytics);
 

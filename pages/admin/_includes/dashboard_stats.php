@@ -52,9 +52,44 @@ function admin_dashboard_live_order_predicate(PDO $pdo, string $tableAlias = "")
     return "{$prefix}deleted_at IS NULL AND {$prefix}permanently_hidden_at IS NULL";
 }
 
+function admin_dashboard_sql_alias(string $tableAlias): string
+{
+    $tableAlias = rtrim(trim($tableAlias), ".");
+    if ($tableAlias === "" || !preg_match('/^[a-z_][a-z0-9_]*$/i', $tableAlias)) {
+        throw new InvalidArgumentException("Invalid dashboard SQL alias.");
+    }
+    return $tableAlias;
+}
+
+function admin_dashboard_printing_scope_predicate(string $tableAlias = "q"): string
+{
+    $q = admin_dashboard_sql_alias($tableAlias);
+    return "
+      (
+        LOWER(TRIM(COALESCE({$q}.category, ''))) IN (
+          'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
+          'xerox', 'rush-id', 'laminating'
+        )
+        OR UPPER(TRIM(COALESCE({$q}.queue_code, ''))) LIKE 'OP%'
+      )
+    ";
+}
+
+function admin_dashboard_manila_day_predicate(string $timestampExpression): string
+{
+    if (!preg_match('/^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/i', $timestampExpression)) {
+        throw new InvalidArgumentException("Invalid dashboard timestamp expression.");
+    }
+    return "({$timestampExpression} AT TIME ZONE 'Asia/Manila')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date";
+}
+
 function fetch_admin_dashboard_stats(PDO $pdo): array
 {
-    $liveOrderPredicate = admin_dashboard_live_order_predicate($pdo);
+    $liveOrderPredicate = admin_dashboard_live_order_predicate($pdo, "q");
+    $printingScopePredicate = admin_dashboard_printing_scope_predicate("q");
+    $todayCreatedPredicate = admin_dashboard_manila_day_predicate("q.created_at");
+    $todayCompletedPredicate = admin_dashboard_manila_day_predicate("q.completed_at");
+    $todayClosedPredicate = admin_dashboard_manila_day_predicate("q.closed_at");
 
     // Registered customer accounts are independent of order recycle state.
     $customers = admin_dashboard_safe_count(
@@ -66,39 +101,32 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
     );
 
-    // Current printing orders are operational data and exclude recycled records.
-    $onlineOrders = admin_dashboard_safe_count(
+    // Exactly matches the visible Print tab in Order Management.
+    $printingOrders = admin_dashboard_safe_count(
         $pdo,
         "
         SELECT COUNT(*)
-        FROM queues
-        WHERE (
-            LOWER(TRIM(COALESCE(category, ''))) IN ('online_printorder', 'printing_online')
-            OR (
-                LOWER(TRIM(COALESCE(category, ''))) = 'printing'
-                AND LOWER(TRIM(COALESCE(details->>'order_type', ''))) = 'online'
-            )
-            OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
-        )
+        FROM queues q
+        WHERE UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        AND {$printingScopePredicate}
         AND {$liveOrderPredicate}
         "
     );
 
-    // Current non-online work excludes recycled records without changing status semantics.
+    // Union of active records visible across all Queue Management tabs.
     $activeQueue = admin_dashboard_safe_count(
         $pdo,
         "
         SELECT COUNT(*)
-        FROM queues
+        FROM queues q
         WHERE (
-            LOWER(TRIM(COALESCE(category, ''))) IN ('walkin', 'printing_walkin', 'repair', 'installation')
-            OR (
-                LOWER(TRIM(COALESCE(category, ''))) = 'printing'
-                AND COALESCE(NULLIF(LOWER(TRIM(COALESCE(details->>'order_type', ''))), ''), 'walkin') = 'walkin'
-                AND UPPER(TRIM(COALESCE(queue_code, ''))) NOT LIKE 'OP%'
-            )
+            {$printingScopePredicate}
+            OR LOWER(TRIM(COALESCE(q.category, ''))) IN ('repair', 'installation')
         )
-        AND UPPER(TRIM(COALESCE(status, 'PENDING'))) NOT IN ('DONE', 'CANCELLED')
+        AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
+        AND UPPER(TRIM(COALESCE(q.status, 'PENDING'))) NOT IN (
+            'DONE', 'COMPLETED', 'CANCEL', 'CANCELLED', 'CANCELED'
+        )
         AND {$liveOrderPredicate}
         "
     );
@@ -106,7 +134,8 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
     $serviceExpression = "
         CASE
             WHEN LOWER(TRIM(COALESCE(category, ''))) IN (
-                'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin'
+                'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
+                'xerox', 'rush-id', 'laminating'
             )
                 OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
                 THEN 'Print'
@@ -139,10 +168,12 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
         SELECT
             CASE
-                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('online_printorder', 'printing_online')
+                WHEN LOWER(TRIM(COALESCE(category, ''))) IN (
+                    'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
+                    'xerox', 'rush-id', 'laminating'
+                )
                     OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
                     THEN 'Print'
-                WHEN LOWER(TRIM(COALESCE(category, ''))) IN ('printing', 'walkin', 'printing_walkin') THEN 'Print'
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'repair' THEN 'Repair'
                 WHEN LOWER(TRIM(COALESCE(category, ''))) = 'installation' THEN 'Installation'
                 ELSE 'Other'
@@ -159,9 +190,8 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         $pdo,
         "
         SELECT COUNT(*)
-        FROM queues
-        WHERE (created_at AT TIME ZONE 'Asia/Manila')::date
-            = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
+        FROM queues q
+        WHERE {$todayCreatedPredicate}
         "
     );
 
@@ -169,10 +199,9 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         $pdo,
         "
         SELECT COUNT(*)
-        FROM queues
-        WHERE (created_at AT TIME ZONE 'Asia/Manila')::date
-            = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
-          AND UPPER(TRIM(COALESCE(status, ''))) = 'DONE'
+        FROM queues q
+        WHERE {$todayCompletedPredicate}
+          AND UPPER(TRIM(COALESCE(q.status, ''))) IN ('DONE', 'COMPLETED')
         "
     );
 
@@ -180,16 +209,16 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         $pdo,
         "
         SELECT COUNT(*)
-        FROM queues
-        WHERE (created_at AT TIME ZONE 'Asia/Manila')::date
-            = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date
-          AND UPPER(TRIM(COALESCE(status, ''))) = 'CANCELLED'
+        FROM queues q
+        WHERE {$todayClosedPredicate}
+          AND UPPER(TRIM(COALESCE(q.status, ''))) IN ('CANCEL', 'CANCELLED', 'CANCELED')
         "
     );
 
     return [
         "customers" => $customers,
-        "onlineOrders" => $onlineOrders,
+        "printingOrders" => $printingOrders,
+        "onlineOrders" => $printingOrders,
         "activeQueue" => $activeQueue,
         "analytics" => [
             "mostRequested" => $mostRequested,
