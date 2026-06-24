@@ -133,6 +133,52 @@ if (!function_exists("admin_notification_type_label")) {
     }
 }
 
+if (!function_exists("admin_notification_realtime_config")) {
+    function admin_notification_realtime_config(PDO $pdo, string $dbHost = ""): array
+    {
+        $enabledValue = strtolower(trim((string)getenv("SERVITECH_ENABLE_SUPABASE_REALTIME")));
+        $enabled = in_array($enabledValue, ["1", "true", "yes", "on"], true);
+        if (function_exists("servitech_supabase_auth_enabled") && servitech_supabase_auth_enabled()) {
+            // The browser does not own the server-managed Supabase session. Polling remains
+            // the authenticated fallback instead of exposing that access token to JavaScript.
+            $enabled = false;
+        }
+
+        $url = trim((string)getenv("SUPABASE_URL"));
+        if ($url === "" && preg_match('/^db\.([a-z0-9]+)\.supabase\.co$/i', trim($dbHost), $matches)) {
+            $url = "https://" . $matches[1] . ".supabase.co";
+        }
+
+        $anonKey = "";
+        foreach ([getenv("SUPABASE_ANON_KEY"), $_SERVER["SUPABASE_ANON_KEY"] ?? null, $_ENV["SUPABASE_ANON_KEY"] ?? null] as $candidate) {
+            $candidate = trim((string)$candidate);
+            if ($candidate !== "") {
+                $anonKey = $candidate;
+                break;
+            }
+        }
+
+        $targetUserId = 0;
+        if ($enabled && $url !== "" && $anonKey !== "") {
+            $targetUserId = (int)($pdo->query("
+                SELECT id
+                FROM users
+                WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                ORDER BY id ASC
+                LIMIT 1
+            ")->fetchColumn() ?: 0);
+        }
+
+        $isEnabled = $enabled && $url !== "" && $anonKey !== "" && $targetUserId > 0;
+        return [
+            "enabled" => $isEnabled,
+            "url" => $isEnabled ? $url : "",
+            "anon_key" => $isEnabled ? $anonKey : "",
+            "target_user_id" => $isEnabled ? $targetUserId : 0,
+        ];
+    }
+}
+
 if (!function_exists("admin_notification_message_label")) {
     function admin_notification_message_label($message): string
     {
@@ -224,12 +270,22 @@ if (!function_exists("admin_notification_center_data")) {
                 )
                   AND n.deleted_at IS NULL
             )
+            , visible_notifications AS (
+                SELECT
+                    ranked_notifications.*,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY COALESCE(is_read, FALSE)
+                        ORDER BY created_at DESC, id DESC
+                    ) AS read_state_rank
+                FROM ranked_notifications
+                WHERE duplicate_rank = 1
+            )
             SELECT id, type, reference_id, message, event_key, is_read, created_at,
                    queue_code, queue_status, queue_category, lifecycle_stage, details, cancel_note
-            FROM ranked_notifications
-            WHERE duplicate_rank = 1
+            FROM visible_notifications
+            WHERE COALESCE(is_read, FALSE) = FALSE
+               OR read_state_rank <= 100
             ORDER BY COALESCE(is_read, FALSE) ASC, created_at DESC, id DESC
-            LIMIT 100
         ");
         $stmt->execute();
         $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1292,6 +1348,9 @@ if (!function_exists("admin_notification_render_script")) {
             return;
         }
         $rendered = true;
+        $realtimeConfig = is_array($GLOBALS["adminNotificationRealtimeConfig"] ?? null)
+            ? $GLOBALS["adminNotificationRealtimeConfig"]
+            : ["enabled" => false, "url" => "", "anon_key" => "", "target_user_id" => 0];
         ?>
 <script>
 (function () {
@@ -1305,8 +1364,11 @@ if (!function_exists("admin_notification_render_script")) {
     deleteBulk: <?= json_encode(admin_url('/pages/admin/_includes/admin_notification_delete_bulk.php')) ?>,
     snapshot: <?= json_encode(admin_url('/pages/admin/_includes/admin_notification_snapshot.php')) ?>
   };
+  var realtimeConfig = <?= json_encode($realtimeConfig, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
   var centerControllers = [];
   var notificationPollMs = 5000;
+  var realtimeClient = null;
+  var realtimeChannel = null;
 
   function csrfToken() {
     return window.servitechCsrfToken ? window.servitechCsrfToken() : "";
@@ -1357,6 +1419,11 @@ if (!function_exists("admin_notification_render_script")) {
     });
   }
 
+  function setBadgeFromMutation(data) {
+    if (!data || !Object.prototype.hasOwnProperty.call(data, "unread_count")) return;
+    setBadgeCount(data.unread_count);
+  }
+
   function initCenter(root) {
     var activeFilter = "all";
     var activeServiceFilter = "all";
@@ -1379,6 +1446,7 @@ if (!function_exists("admin_notification_render_script")) {
     if (!list || !emptyState) return;
     var pollTimer = null;
     var refreshInFlight = false;
+    var refreshQueued = false;
     var lastSnapshotSignature = "";
     var mutationVersion = 0;
 
@@ -1387,7 +1455,11 @@ if (!function_exists("admin_notification_render_script")) {
     }
 
     function refreshNotifications(force) {
-      if (refreshInFlight || (!force && document.hidden)) return Promise.resolve();
+      if (!force && document.hidden) return Promise.resolve();
+      if (refreshInFlight) {
+        refreshQueued = refreshQueued || Boolean(force);
+        return Promise.resolve();
+      }
 
       refreshInFlight = true;
       var requestMutationVersion = mutationVersion;
@@ -1435,6 +1507,10 @@ if (!function_exists("admin_notification_render_script")) {
         console.error("Admin notification refresh failed:", error);
       }).finally(function () {
         refreshInFlight = false;
+        if (refreshQueued) {
+          refreshQueued = false;
+          refreshNotifications(true);
+        }
       });
     }
 
@@ -1510,6 +1586,7 @@ if (!function_exists("admin_notification_render_script")) {
       };
       notificationItems().forEach(function (item) {
         var eventCategory = item.dataset.adminNotificationCategory || "admin-updates";
+        var serviceCategory = item.dataset.adminNotificationService || "";
         var isUnread = item.dataset.adminNotificationRead !== "true";
 
         if (!isUnread) return;
@@ -1517,6 +1594,7 @@ if (!function_exists("admin_notification_render_script")) {
         counts.all += 1;
         counts.unread += 1;
         if (Object.prototype.hasOwnProperty.call(counts, eventCategory)) counts[eventCategory] += 1;
+        if (Object.prototype.hasOwnProperty.call(counts, serviceCategory)) counts[serviceCategory] += 1;
       });
 
       Object.keys(counts).forEach(function (key) {
@@ -1529,7 +1607,6 @@ if (!function_exists("admin_notification_render_script")) {
 
       var summary = root.querySelector("[data-admin-notification-summary]");
       if (summary) summary.textContent = counts.unread + " unread";
-      setBadgeCount(counts.unread);
     }
 
     function syncEmptyState() {
@@ -1648,7 +1725,8 @@ if (!function_exists("admin_notification_render_script")) {
       }
 
       postForm(endpoints.markRead, { id: String(id) })
-        .then(function () {
+        .then(function (data) {
+          setBadgeFromMutation(data);
           markItemRead(item);
           selectedIds.delete(id);
           syncCounts();
@@ -1705,7 +1783,8 @@ if (!function_exists("admin_notification_render_script")) {
       if (!ids.length) return;
 
       postForm(endpoints.markRead, { ids: JSON.stringify(ids) })
-        .then(function () {
+        .then(function (data) {
+          setBadgeFromMutation(data);
           ids.forEach(function (id) {
             selectedIds.delete(id);
             markItemRead(list.querySelector('[data-admin-notification-id="' + String(id) + '"]'));
@@ -1721,7 +1800,8 @@ if (!function_exists("admin_notification_render_script")) {
 
     markAllButton.addEventListener("click", function () {
       postForm(endpoints.markRead, { mark_all: "1" })
-        .then(function () {
+        .then(function (data) {
+          setBadgeFromMutation(data);
           selectedIds.clear();
           notificationItems().forEach(markItemRead);
           syncCounts();
@@ -1739,7 +1819,8 @@ if (!function_exists("admin_notification_render_script")) {
       if (!ids.length || !window.confirm("Delete " + ids.length + " selected notification(s)?")) return;
 
       postForm(endpoints.deleteBulk, { ids: JSON.stringify(ids) })
-        .then(function () {
+        .then(function (data) {
+          setBadgeFromMutation(data);
           removeSelectedItems(ids);
           syncCounts();
           applyFilter();
@@ -1755,10 +1836,94 @@ if (!function_exists("admin_notification_render_script")) {
     applyFilter();
     centerControllers.push({
       refresh: refreshNotifications,
+      start: startPolling,
       stop: stopPolling
     });
     refreshNotifications(true);
     startPolling();
+  }
+
+  function refreshAllNotifications(force) {
+    centerControllers.forEach(function (controller) {
+      controller.refresh(Boolean(force));
+    });
+  }
+
+  function stopRealtime() {
+    if (!realtimeChannel) return;
+    try {
+      if (realtimeClient && typeof realtimeClient.removeChannel === "function") {
+        realtimeClient.removeChannel(realtimeChannel);
+      } else if (typeof realtimeChannel.unsubscribe === "function") {
+        realtimeChannel.unsubscribe();
+      }
+    } catch (error) {
+      console.warn("Admin notification realtime cleanup failed.", error);
+    }
+    realtimeChannel = null;
+    realtimeClient = null;
+  }
+
+  function initRealtime() {
+    if (
+      !realtimeConfig.enabled
+      || !realtimeConfig.url
+      || !realtimeConfig.anon_key
+      || !realtimeConfig.target_user_id
+      || !window.supabase
+      || !window.supabase.createClient
+      || realtimeChannel
+    ) {
+      return;
+    }
+
+    realtimeClient = window.supabase.createClient(realtimeConfig.url, realtimeConfig.anon_key, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    });
+    realtimeChannel = realtimeClient
+      .channel("servitech-admin-notifications-" + realtimeConfig.target_user_id)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: "user_id=eq." + realtimeConfig.target_user_id
+        },
+        function () {
+          // Realtime is only a change signal. The authenticated snapshot remains
+          // the single source of truth for the badge, filters, and rendered list.
+          refreshAllNotifications(true);
+        }
+      )
+      .subscribe(function (status) {
+        if (status === "SUBSCRIBED") refreshAllNotifications(true);
+      });
+  }
+
+  function loadRealtimeClient() {
+    if (!realtimeConfig.enabled) return;
+    if (window.supabase && window.supabase.createClient) {
+      initRealtime();
+      return;
+    }
+
+    var existingScript = document.querySelector('script[data-servitech-supabase-client]');
+    if (existingScript) {
+      existingScript.addEventListener("load", initRealtime, { once: true });
+      return;
+    }
+
+    var script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    script.async = true;
+    script.dataset.servitechSupabaseClient = "true";
+    script.addEventListener("load", initRealtime, { once: true });
+    document.head.appendChild(script);
   }
 
   function overlayShell() {
@@ -1828,14 +1993,22 @@ if (!function_exists("admin_notification_render_script")) {
   }
 
   document.querySelectorAll("[data-admin-notification-center]").forEach(initCenter);
+  loadRealtimeClient();
 
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) return;
-    centerControllers.forEach(function (controller) { controller.refresh(true); });
+    refreshAllNotifications(true);
   });
   window.addEventListener("pagehide", function () {
     centerControllers.forEach(function (controller) { controller.stop(); });
-  }, { once: true });
+    stopRealtime();
+  });
+  window.addEventListener("pageshow", function (event) {
+    if (!event.persisted) return;
+    centerControllers.forEach(function (controller) { controller.start(); });
+    refreshAllNotifications(true);
+    loadRealtimeClient();
+  });
 
   document.querySelectorAll(".admin-notification-btn").forEach(function (trigger) {
     trigger.setAttribute("aria-haspopup", "dialog");

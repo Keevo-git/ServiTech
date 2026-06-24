@@ -12,9 +12,22 @@ $adminHeaderNotificationData = $adminHeaderNotificationData ?? null;
 if (!is_array($adminHeaderNotificationData) && ($pdo ?? null) instanceof PDO && ($adminHeaderShowNotificationOverlay || !isset($adminNotificationCount))) {
     $adminHeaderNotificationData = admin_notification_center_data($pdo);
 }
-$adminNotificationCount = isset($adminNotificationCount)
-    ? max(0, (int)$adminNotificationCount)
-    : (int)($adminHeaderNotificationData["unread_count"] ?? 0);
+$adminNotificationCount = is_array($adminHeaderNotificationData)
+    ? max(0, (int)($adminHeaderNotificationData["unread_count"] ?? 0))
+    : max(0, (int)($adminNotificationCount ?? 0));
+$GLOBALS["adminNotificationRealtimeConfig"] = [
+    "enabled" => false,
+    "url" => "",
+    "anon_key" => "",
+    "target_user_id" => 0,
+];
+if (($pdo ?? null) instanceof PDO) {
+    try {
+        $GLOBALS["adminNotificationRealtimeConfig"] = admin_notification_realtime_config($pdo, (string)($host ?? ""));
+    } catch (Throwable $exception) {
+        error_log("admin notification realtime config error: " . $exception->getMessage());
+    }
+}
 $adminHeaderShowHome = $adminHeaderVariant !== "dashboard";
 $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"], true);
 ?>

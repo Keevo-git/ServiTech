@@ -2,6 +2,7 @@
 require_once __DIR__ . "/admin_auth.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/admin_db.php";
+require_once __DIR__ . "/queue_files.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -33,7 +34,11 @@ try {
   ");
   $stmt->execute(array_merge($ids, [$_SESSION["user_id"] ?? 0]));
 
-  echo json_encode(["ok" => true, "deleted" => $stmt->rowCount()]);
+  echo json_encode([
+    "ok" => true,
+    "deleted" => $stmt->rowCount(),
+    "unread_count" => admin_notification_unread_count($pdo),
+  ]);
   exit();
 } catch (Throwable $e) {
   error_log("admin_notification_delete_bulk error: " . $e->getMessage());

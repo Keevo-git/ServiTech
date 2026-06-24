@@ -2,6 +2,7 @@
 require_once __DIR__ . "/admin_auth.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/admin_db.php";
+require_once __DIR__ . "/queue_files.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -28,7 +29,10 @@ try {
     exit();
   }
 
-  echo json_encode(["ok" => true]);
+  echo json_encode([
+    "ok" => true,
+    "unread_count" => admin_notification_unread_count($pdo),
+  ]);
   exit();
 } catch (Throwable $e) {
   error_log("admin_notification_delete error: " . $e->getMessage());
