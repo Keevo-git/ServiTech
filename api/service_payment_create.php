@@ -135,6 +135,7 @@ if ($draftToken !== "") {
     $pdo->beginTransaction();
 
     $uploadedFiles = (array)($details["uploaded_files"] ?? []);
+    if ($serviceKind === "rush_id") servitech_upload_assert_rush_id_file_count($uploadedFiles);
     if ($uploadedFiles !== []) {
       $uploadedFiles = servitech_upload_resolve_owned_metadata($pdo, $userId, $uploadedFiles);
       if ($serviceKind === "rush_id") servitech_upload_assert_rush_id_uploaded_files($uploadedFiles);

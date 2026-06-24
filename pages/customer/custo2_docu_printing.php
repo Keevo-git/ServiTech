@@ -609,6 +609,6 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
   window.servitechCatalogRules = <?= json_encode($documentRules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.SERVITECH_DOCUMENT_PRINTING_CLOSED_STORE_MODE = <?= $closedStoreDocumentPrinting ? "true" : "false" ?>;
 </script>
-<script src="/assets/js/custo2_docu_printing.js?v=20260621-closed-gcash"></script>
+<script src="/assets/js/custo2_docu_printing.js?v=20260624-page-count"></script>
 </body>
 </html>

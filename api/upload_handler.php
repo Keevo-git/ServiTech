@@ -80,6 +80,7 @@ if (empty($files)) {
   upload_json_exit(["success" => false, "message" => "No files uploaded."], 422);
 }
 try {
+  if ($isRushIdUpload) servitech_upload_assert_rush_id_file_count($files);
   servitech_upload_assert_limits($files, "size");
 } catch (DomainException $e) {
   upload_json_exit(["success" => false, "message" => $e->getMessage()], 422);

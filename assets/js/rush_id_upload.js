@@ -33,15 +33,16 @@
     };
     var rushIdFileTypeMessage = "Rush ID only accepts JPG, JPEG, and PNG photo files.";
     var rushIdWebpMessage = "Rush ID only accepts JPG, JPEG, and PNG photo files. WEBP files are not allowed.";
+    var rushIdOneFileMessage = "Rush ID accepts one image file only.";
     var uploadLimits = window.ServitechUpload && window.ServitechUpload.limits
       ? window.ServitechUpload.limits
       : {
           maxFileBytes: 25 * 1024 * 1024,
           maxTotalBytes: 100 * 1024 * 1024,
-          maxFiles: 5,
+          maxFiles: 1,
           fileSizeMessage: "Maximum file size is 25 MB per file.",
           totalSizeMessage: "Total upload size must not exceed 100 MB.",
-          fileCountMessage: "You can upload up to 5 files only."
+          fileCountMessage: rushIdOneFileMessage
         };
     var selectedFiles = [];
     var uploadedSignature = "";
@@ -216,6 +217,14 @@
         fileUploadStatus.classList.add("is-processing");
       }
 
+      if (incomingFiles.length > 1 || (selectedFiles.length > 0 && incomingFiles.length > 0)) {
+        syncFileInput();
+        renderList();
+        if (fileUploadStatus) fileUploadStatus.classList.remove("is-processing");
+        setFeedback(rushIdOneFileMessage, "error");
+        return;
+      }
+
       for (var i = 0; i < incomingFiles.length; i++) {
         var file = incomingFiles[i];
         var ext = getExt(file.name);
@@ -247,8 +256,8 @@
           continue;
         }
 
-        if (selectedFiles.length + acceptedFiles.length >= uploadLimits.maxFiles) {
-          errors.push(uploadLimits.fileCountMessage);
+        if (selectedFiles.length + acceptedFiles.length >= 1) {
+          errors.push(rushIdOneFileMessage);
           continue;
         }
         if (acceptedBytes + (file.size || 0) > uploadLimits.maxTotalBytes) {
@@ -278,7 +287,10 @@
 
     async function uploadSelectedFiles() {
       if (!selectedFiles.length) {
-        return { ok: false, error: "Upload at least one file." };
+        return { ok: false, error: "Upload one JPG, JPEG, or PNG image for Rush ID." };
+      }
+      if (selectedFiles.length !== 1) {
+        return { ok: false, error: rushIdOneFileMessage };
       }
 
       var signature = currentSignature();

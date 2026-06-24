@@ -113,58 +113,6 @@ function servitech_pricing_selection_changed_message(): string {
   return "The selected service option has changed or is no longer available. Please review your selection before joining the queue.";
 }
 
-function servitech_pricing_count_pdf_pages(string $path): int {
-  $content = @file_get_contents($path);
-  if ($content === false || $content === "") return 1;
-  $count = preg_match_all('/\/Type\s*\/Page\b/i', $content, $matches);
-  if ($count > 0) return $count;
-  if (preg_match_all('/\/Count\s+(\d+)/i', $content, $matches) && !empty($matches[1])) {
-    return max(1, max(array_map("intval", $matches[1])));
-  }
-  return 1;
-}
-
-function servitech_pricing_estimate_doc_pages(string $path): int {
-  $size = @filesize($path);
-  return max(1, (int)ceil(($size ?: 1) / (45 * 1024)));
-}
-
-function servitech_pricing_estimate_docx_pages(string $path): int {
-  if (!class_exists("ZipArchive")) return servitech_pricing_estimate_doc_pages($path);
-  $zip = new ZipArchive();
-  if ($zip->open($path) !== true) return servitech_pricing_estimate_doc_pages($path);
-  $appXml = $zip->getFromName("docProps/app.xml");
-  if ($appXml !== false && preg_match('/<Pages>(\d+)<\/Pages>/i', $appXml, $matches) && (int)$matches[1] > 0) {
-    $zip->close();
-    return (int)$matches[1];
-  }
-  $docXml = $zip->getFromName("word/document.xml");
-  $zip->close();
-  if ($docXml === false || $docXml === "") return servitech_pricing_estimate_doc_pages($path);
-  return max(1, (int)ceil(max(1, str_word_count(trim(strip_tags($docXml)))) / 500));
-}
-
-function servitech_pricing_count_pptx_slides(string $path): int {
-  if (!class_exists("ZipArchive")) return max(1, (int)ceil((@filesize($path) ?: 1) / (150 * 1024)));
-  $zip = new ZipArchive();
-  if ($zip->open($path) !== true) return max(1, (int)ceil((@filesize($path) ?: 1) / (150 * 1024)));
-  $slides = 0;
-  for ($i = 0; $i < $zip->numFiles; $i++) {
-    if (preg_match('/^ppt\/slides\/slide\d+\.xml$/i', (string)$zip->getNameIndex($i))) $slides++;
-  }
-  $zip->close();
-  return max(1, $slides);
-}
-
-function servitech_pricing_estimate_ppt_slides(string $path): int {
-  $content = @file_get_contents($path);
-  if ($content !== false && $content !== "") {
-    $slides = preg_match_all('/Slide/i', $content, $matches);
-    if (is_int($slides) && $slides > 0) return $slides;
-  }
-  return max(1, (int)ceil((@filesize($path) ?: 1) / (150 * 1024)));
-}
-
 function servitech_pricing_saved_upload_path(PDO $pdo, array $file): string {
   $token = servitech_upload_token_from_metadata($file);
   $stmt = $pdo->prepare("
@@ -201,15 +149,22 @@ function servitech_pricing_analyze_saved_uploads(PDO $pdo, array $uploadedFiles)
     $names[] = $name;
 
     if ($ext === "pdf") {
-      $pages = servitech_pricing_count_pdf_pages($path);
+      $pages = servitech_document_count_pdf_pages($path);
+      if ($pages < 1) throw new DomainException("Unable to detect the page count for {$name}. Please upload a valid, unlocked PDF.");
       $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => $pages];
       $totalPages += $pages;
     } elseif ($ext === "doc" || $ext === "docx") {
-      $pages = $ext === "docx" ? servitech_pricing_estimate_docx_pages($path) : servitech_pricing_estimate_doc_pages($path);
+      $pages = $ext === "docx"
+        ? servitech_document_count_docx_pages($path)
+        : servitech_document_estimate_doc_pages($path);
+      if ($pages < 1) throw new DomainException("Unable to detect the page count for {$name}. Please upload a valid, unlocked document.");
       $analysis[] = ["file_name" => $name, "file_type" => $ext, "page_count" => $pages];
       $totalPages += $pages;
     } elseif ($ext === "ppt" || $ext === "pptx") {
-      $slides = $ext === "pptx" ? servitech_pricing_count_pptx_slides($path) : servitech_pricing_estimate_ppt_slides($path);
+      $slides = $ext === "pptx"
+        ? servitech_document_count_pptx_slides($path)
+        : servitech_document_count_ppt_slides($path);
+      if ($slides < 1) throw new DomainException("Unable to detect the slide count for {$name}. Please upload a valid, unlocked presentation.");
       $analysis[] = ["file_name" => $name, "file_type" => $ext, "slide_count" => $slides];
       $totalPages += $slides;
     } elseif (in_array($ext, ["jpg", "jpeg", "png"], true)) {

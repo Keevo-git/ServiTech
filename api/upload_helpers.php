@@ -261,6 +261,160 @@ function servitech_upload_validate_type(string $path, string $originalName): arr
   return ["extension" => $extension, "mime_type" => $mime];
 }
 
+function servitech_document_pdf_decoded_streams(string $contents): array {
+  $decodedStreams = [];
+  $totalDecodedBytes = 0;
+  $maximumDecodedBytes = 128 * 1024 * 1024;
+
+  $pattern = '/(<<[\s\S]{0,8192}?\/Filter\s*(?:\/FlateDecode|\[[^\]]*\/FlateDecode[^\]]*\])[\s\S]{0,8192}?>>)\s*stream(?:\r\n|\n|\r)([\s\S]*?)(?:\r\n|\n|\r)?endstream/';
+  if (!preg_match_all($pattern, $contents, $matches)) return [];
+
+  foreach ($matches[2] as $index => $compressed) {
+    $dictionary = (string)($matches[1][$index] ?? "");
+    if (!preg_match('/\/Type\s*\/ObjStm\b/i', $dictionary)) continue;
+    if (!is_string($compressed) || $compressed === "") continue;
+    $compressed = rtrim($compressed, "\r\n");
+    $remainingBytes = $maximumDecodedBytes - $totalDecodedBytes;
+    if ($remainingBytes <= 0) break;
+
+    $decoded = @gzuncompress($compressed, $remainingBytes);
+    if (!is_string($decoded)) $decoded = @gzinflate($compressed, $remainingBytes);
+    if (!is_string($decoded)) $decoded = @gzdecode($compressed, $remainingBytes);
+    if (!is_string($decoded) || $decoded === "") continue;
+
+    $decodedStreams[] = $decoded;
+    $totalDecodedBytes += strlen($decoded);
+  }
+
+  return $decodedStreams;
+}
+
+function servitech_document_pdf_page_count_from_segment(string $segment): array {
+  $leafPages = preg_match_all('/\/Type\s*\/Page\b/i', $segment, $unused);
+  $treeCounts = [];
+  if (preg_match_all('/<<[^<>]{0,8192}\/Type\s*\/Pages\b[^<>]{0,8192}>>/i', $segment, $dictionaries)) {
+    foreach ($dictionaries[0] as $dictionary) {
+      if (preg_match('/\/Count\s+(\d+)/i', $dictionary, $match)) {
+        $treeCounts[] = max(0, (int)$match[1]);
+      }
+    }
+  }
+
+  return [
+    "leaf_pages" => is_int($leafPages) ? $leafPages : 0,
+    "tree_pages" => $treeCounts ? max($treeCounts) : 0,
+  ];
+}
+
+function servitech_document_count_pdf_pages(string $path): int {
+  $contents = @file_get_contents($path);
+  if (!is_string($contents) || $contents === "") return 0;
+
+  $structuralContents = preg_replace(
+    '/stream(?:\r\n|\n|\r)[\s\S]*?(?:\r\n|\n|\r)?endstream/i',
+    "stream\nendstream",
+    $contents
+  );
+  $segments = array_merge(
+    [is_string($structuralContents) ? $structuralContents : $contents],
+    servitech_document_pdf_decoded_streams($contents)
+  );
+  $leafPages = 0;
+  $treePages = 0;
+  foreach ($segments as $segment) {
+    $counts = servitech_document_pdf_page_count_from_segment($segment);
+    $leafPages += (int)$counts["leaf_pages"];
+    $treePages = max($treePages, (int)$counts["tree_pages"]);
+  }
+
+  return $treePages > 0 ? $treePages : $leafPages;
+}
+
+function servitech_document_estimate_doc_pages(string $path): int {
+  $size = @filesize($path);
+  if (!is_int($size) || $size <= 0) return 0;
+  return max(1, (int)ceil($size / (45 * 1024)));
+}
+
+function servitech_document_count_docx_pages(string $path): int {
+  if (!class_exists("ZipArchive") || !is_file($path)) return servitech_document_estimate_doc_pages($path);
+
+  $zip = new ZipArchive();
+  if ($zip->open($path) !== true) return servitech_document_estimate_doc_pages($path);
+
+  $appXml = $zip->getFromName("docProps/app.xml");
+  if (is_string($appXml) && preg_match('/<Pages>(\d+)<\/Pages>/i', $appXml, $matches) && (int)$matches[1] > 0) {
+    $zip->close();
+    return (int)$matches[1];
+  }
+
+  $documentXml = $zip->getFromName("word/document.xml");
+  $zip->close();
+  if (!is_string($documentXml) || $documentXml === "") return servitech_document_estimate_doc_pages($path);
+
+  $renderedBreaks = preg_match_all('/<w:lastRenderedPageBreak\b[^>]*\/?\s*>/i', $documentXml, $unused);
+  if (is_int($renderedBreaks) && $renderedBreaks > 0) return $renderedBreaks + 1;
+
+  $manualBreaks = preg_match_all('/<w:br\b[^>]*w:type=["\']page["\'][^>]*\/?\s*>/i', $documentXml, $unused);
+  if (is_int($manualBreaks) && $manualBreaks > 0) return $manualBreaks + 1;
+
+  $plainText = trim(strip_tags($documentXml));
+  $words = str_word_count($plainText);
+  return $words > 0 ? max(1, (int)ceil($words / 500)) : 0;
+}
+
+function servitech_document_count_pptx_slides(string $path): int {
+  if (!class_exists("ZipArchive") || !is_file($path)) return 0;
+
+  $zip = new ZipArchive();
+  if ($zip->open($path) !== true) return 0;
+  $slides = 0;
+  for ($i = 0; $i < $zip->numFiles; $i++) {
+    if (preg_match('/^ppt\/slides\/slide\d+\.xml$/i', (string)$zip->getNameIndex($i))) $slides++;
+  }
+  $zip->close();
+  return $slides;
+}
+
+function servitech_document_count_ppt_slides(string $path): int {
+  $contents = @file_get_contents($path);
+  if (!is_string($contents) || $contents === "") return 0;
+
+  $slides = 0;
+  $searchOffset = 2;
+  $contentLength = strlen($contents);
+  while (($typeOffset = strpos($contents, "\xEE\x03", $searchOffset)) !== false) {
+    $headerOffset = $typeOffset - 2;
+    if ($headerOffset >= 0 && $typeOffset + 6 <= $contentLength) {
+      $recordVersion = ord($contents[$headerOffset]) & 0x0F;
+      $recordLength = unpack("Vlength", substr($contents, $typeOffset + 2, 4));
+      $payloadLength = (int)($recordLength["length"] ?? 0);
+      if ($recordVersion === 0x0F && $payloadLength > 0 && $payloadLength <= $contentLength - ($headerOffset + 8)) {
+        $slides++;
+      }
+    }
+    $searchOffset = $typeOffset + 2;
+  }
+
+  return $slides > 0 ? $slides : servitech_document_estimate_ppt_slides($path);
+}
+
+function servitech_document_estimate_ppt_slides(string $path): int {
+  $contents = @file_get_contents($path);
+  if (is_string($contents) && $contents !== "") {
+    $slides = preg_match_all('/Slide/i', $contents, $unused);
+    if (is_int($slides) && $slides > 0) return $slides;
+  }
+  $size = @filesize($path);
+  return is_int($size) && $size > 0 ? max(1, (int)ceil($size / (150 * 1024))) : 0;
+}
+
+function servitech_upload_assert_rush_id_file_count(array $uploadedFiles): void {
+  if (count($uploadedFiles) !== 1) {
+    throw new DomainException("Rush ID accepts one image file only.");
+  }
+}
+
 function servitech_upload_assert_rush_id_photo_extension(string $extension): void {
   $extension = strtolower(trim($extension));
   if ($extension === "webp") {
@@ -272,6 +426,7 @@ function servitech_upload_assert_rush_id_photo_extension(string $extension): voi
 }
 
 function servitech_upload_assert_rush_id_uploaded_files(array $uploadedFiles): void {
+  servitech_upload_assert_rush_id_file_count($uploadedFiles);
   foreach ($uploadedFiles as $file) {
     if (!is_array($file)) {
       throw new DomainException("An uploaded file is invalid. Please upload it again.");

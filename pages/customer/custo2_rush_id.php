@@ -271,9 +271,9 @@ if (!is_array($catalog ?? null)) {
 
         <div class="printing-field">
           <label for="fileUpload">Upload your photo</label>
-          <input type="file" id="fileUpload" class="form-file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple>
+          <input type="file" id="fileUpload" class="form-file" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
           <p id="fileUploadStatus" class="file-upload-status" aria-live="polite"></p>
-          <p class="file-note">Accepted formats: JPG, JPEG, PNG. Up to 5 photos, 25 MB each, 100 MB total.</p>
+          <p class="file-note">Upload one image only. Accepted formats: JPG, JPEG, PNG. WEBP is not allowed. Maximum 25 MB.</p>
         </div>
 
         <div class="file-note" id="fileAnalysisPanel">
@@ -340,7 +340,7 @@ include __DIR__ . "/../../components/join_queue_leave_guard.php";
 
 <script src="/assets/js/csrf.js"></script>
 <script src="/assets/js/upload_progress.js?v=20260612-upload-limits"></script>
-<script src="/assets/js/rush_id_upload.js?v=20260612-upload-limits"></script>
+<script src="/assets/js/rush_id_upload.js?v=20260624-single-image"></script>
 <script>
 window.servitechCatalogServiceId = <?= (int)$rushCatalogServiceId ?>;
 window.servitechCatalogRules = <?= json_encode(array_merge($rushPackageRules, $rushAddonRules), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;

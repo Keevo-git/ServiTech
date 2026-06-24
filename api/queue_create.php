@@ -168,7 +168,7 @@ try {
     throw new DomainException("This service does not support file attachments.");
   }
   if ($isRushIdQueue && empty($details["uploaded_files"])) {
-    throw new DomainException("Upload at least one JPG, JPEG, or PNG photo for Rush ID.");
+    throw new DomainException("Upload one JPG, JPEG, or PNG image for Rush ID.");
   }
 
   if (!empty($details["uploaded_files"]) && is_array($details["uploaded_files"])) {

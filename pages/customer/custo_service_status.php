@@ -2131,9 +2131,9 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
         <div id="statusEditExistingFiles" class="status-edit-existing-files"></div>
       </div>
       <div class="status-edit-field status-edit-field--full">
-        <label class="status-edit-label" for="edit_files">${rushId ? "Add New Photos" : "Add New Files"}</label>
-        <input id="edit_files" class="status-edit-control" name="files" type="file" multiple accept="${accept}">
-        <span class="status-edit-existing-file__meta">Up to 5 files total, 25 MB each, 100 MB combined.</span>
+        <label class="status-edit-label" for="edit_files">${rushId ? "Add New Photo" : "Add New Files"}</label>
+        <input id="edit_files" class="status-edit-control" name="files" type="file" ${rushId ? "" : "multiple"} accept="${accept}">
+        <span class="status-edit-existing-file__meta">${rushId ? "One JPG, JPEG, or PNG image only. WEBP is not allowed. Maximum 25 MB." : "Up to 5 files total, 25 MB each, 100 MB combined."}</span>
         <div id="statusEditUploadProgress" class="servitech-upload-list" aria-live="polite"></div>
       </div>
     `;
@@ -2159,6 +2159,10 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     const accepted = [];
     const errors = [];
 
+    if (rushId && (count + Array.from(input.files || []).length !== 1)) {
+      return ["Rush ID accepts one image file only."];
+    }
+
     Array.from(input.files || []).forEach((file) => {
       const extension = String(file.name || "").split(".").pop().toLowerCase();
       if (rushId && extension === "webp") {
@@ -2175,8 +2179,8 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
         errors.push(limits.fileSizeMessage);
         return;
       }
-      if (count >= limits.maxFiles) {
-        errors.push(limits.fileCountMessage);
+      if (count >= (rushId ? 1 : limits.maxFiles)) {
+        errors.push(rushId ? "Rush ID accepts one image file only." : limits.fileCountMessage);
         return;
       }
       if (bytes + (file.size || 0) > limits.maxTotalBytes) {

@@ -268,7 +268,7 @@ try {
     $mergedUploadedFiles = array_values(array_merge($keptUploadedFiles, $resolvedUploadedFiles));
     if (empty($mergedUploadedFiles)) {
       throw new DomainException($serviceKind === "rush_id"
-        ? "Upload at least one JPG, JPEG, or PNG photo for Rush ID."
+        ? "Upload one JPG, JPEG, or PNG image for Rush ID."
         : "Upload at least one file before continuing.");
     }
     servitech_upload_assert_limits($mergedUploadedFiles);
