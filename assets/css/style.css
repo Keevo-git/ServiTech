@@ -5216,56 +5216,91 @@ body.auth-page--register .form-section--consent .consent-card {
 }
 
 body.auth-page--register .agreement-row {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
   align-items: flex-start;
-  gap: 12px;
+  column-gap: 12px;
   width: 100%;
   line-height: 1.45;
 }
 
 body.auth-page--register .agreement-row__native[type="checkbox"] {
-  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+body.auth-page--register .agreement-row__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  grid-column: 1;
   width: 20px;
   height: 20px;
   min-width: 20px;
-  flex: 0 0 20px;
-  margin: 1px 0 0;
-  padding: 0;
+  margin-top: 1px;
   border: 2px solid #7a0808;
   border-radius: 4px;
-  background-color: #ffffff;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 14px 14px;
+  background: #ffffff;
   box-shadow: 0 1px 2px rgba(74, 5, 5, 0.12);
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
+  box-sizing: border-box;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: none;
   transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-body.auth-page--register .agreement-row:hover .agreement-row__native[type="checkbox"] {
+body.auth-page--register .agreement-row__box svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+}
+
+body.auth-page--register .agreement-row__box path {
+  fill: none;
+  stroke: #ffffff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+body.auth-page--register .agreement-row:hover .agreement-row__box {
   border-color: #a64b0a;
   box-shadow: 0 0 0 3px rgba(255, 139, 44, 0.12);
 }
 
-body.auth-page--register .agreement-row__native[type="checkbox"]:checked {
+body.auth-page--register .agreement-row__native[type="checkbox"]:checked + .agreement-row__box {
   border-color: #7a0808;
   background-color: #7a0808;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.4' d='m3.2 8.2 3 3.1 6.6-7'/%3E%3C/svg%3E");
 }
 
-body.auth-page--register .agreement-row__native[type="checkbox"]:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+body.auth-page--register .agreement-row__native[type="checkbox"]:checked + .agreement-row__box svg {
+  opacity: 1;
 }
 
-body.auth-page--register .agreement-row__native[type="checkbox"]:focus-visible {
+body.auth-page--register .agreement-row__native[type="checkbox"]:focus-visible + .agreement-row__box {
   outline: 3px solid rgba(255, 139, 44, 0.35);
   outline-offset: 2px;
 }
 
+body.auth-page--register .agreement-row__native[type="checkbox"]:disabled + .agreement-row__box {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 body.auth-page--register .agreement-row__text {
+  grid-column: 2;
   min-width: 0;
   line-height: 1.45;
 }
@@ -5439,10 +5474,10 @@ body.auth-page--register .agreement-row__error:not(:empty) {
 }
 
 @media (max-width: 480px) {
-  body.auth-page--register .agreement-row__native[type="checkbox"] {
+  body.auth-page--register .agreement-row__box {
     width: 20px;
     height: 20px;
-    flex-basis: 20px;
+    min-width: 20px;
     margin-top: 1px;
   }
 

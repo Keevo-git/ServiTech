@@ -12,7 +12,68 @@ $csrfToken = servitech_csrf_token();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: Register</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260624-register-agreement") ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260624-register-agreement-v2") ?>">
+  <style id="register-agreement-critical-styles">
+    body.auth-page--register .agreement-row {
+      position: relative !important;
+      display: grid !important;
+      grid-template-columns: 20px minmax(0, 1fr) !important;
+      align-items: start !important;
+      column-gap: 12px !important;
+    }
+
+    body.auth-page--register .agreement-row__native[type="checkbox"] {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      margin: 0 !important;
+      opacity: 0 !important;
+      clip-path: inset(50%) !important;
+    }
+
+    body.auth-page--register .agreement-row__box {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      border: 2px solid #7a0808 !important;
+      border-radius: 4px !important;
+      background: #fff !important;
+      box-sizing: border-box !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: none !important;
+    }
+
+    body.auth-page--register .agreement-row__box svg {
+      width: 14px !important;
+      height: 14px !important;
+      opacity: 0 !important;
+    }
+
+    body.auth-page--register .agreement-row__box path {
+      fill: none !important;
+      stroke: #fff !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      stroke-width: 2.4 !important;
+    }
+
+    body.auth-page--register .agreement-row__native[type="checkbox"]:checked + .agreement-row__box {
+      background: #7a0808 !important;
+    }
+
+    body.auth-page--register .agreement-row__native[type="checkbox"]:checked + .agreement-row__box svg {
+      opacity: 1 !important;
+    }
+
+    body.auth-page--register .agreement-row__native[type="checkbox"]:focus-visible + .agreement-row__box {
+      outline: 3px solid rgba(255, 139, 44, 0.35) !important;
+      outline-offset: 2px !important;
+    }
+  </style>
 </head>
 <body class="auth-page auth-page--register">
 
@@ -93,6 +154,11 @@ $csrfToken = servitech_csrf_token();
           <div class="consent-card">
             <label class="agreement-row" for="privacyConsent">
               <input id="privacyConsent" class="agreement-row__native" name="privacy_consent" type="checkbox" value="1" aria-describedby="privacyConsentError" required>
+              <span class="agreement-row__box" aria-hidden="true">
+                <svg viewBox="0 0 16 16" focusable="false" aria-hidden="true">
+                  <path d="m3.2 8.2 3 3.1 6.6-7"></path>
+                </svg>
+              </span>
               <span class="agreement-row__text">I agree to the <button type="button" class="text-link" data-doc-trigger="privacy">Data Privacy Policy</button> and <button type="button" class="text-link" data-doc-trigger="terms">Terms &amp; Conditions</button>.</span>
             </label>
             <p class="field-error agreement-row__error" id="privacyConsentError" aria-live="polite"></p>
@@ -763,7 +829,11 @@ $csrfToken = servitech_csrf_token();
     bindPasswordToggle(fields.confirmPassword.input, registrationConfirmPasswordToggle, "confirm password");
 
     document.querySelectorAll("[data-doc-trigger]").forEach((button) => {
-      button.addEventListener("click", () => openPolicyModal(button.dataset.docTrigger));
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openPolicyModal(button.dataset.docTrigger);
+      });
     });
 
     policyModal.querySelectorAll("[data-close-modal]").forEach((element) => {

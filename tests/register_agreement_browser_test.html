@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register agreement browser regression test</title>
+</head>
+<body data-test-status="running">
+  <pre id="results">Running...</pre>
+  <iframe id="registerPage" title="Register page under test" src="../auth/regis.php" width="1000" height="1800"></iframe>
+  <script>
+    const results = document.getElementById("results");
+    const iframe = document.getElementById("registerPage");
+
+    function assert(condition, message) {
+      if (!condition) {
+        throw new Error(message);
+      }
+    }
+
+    function dispatchInput(element, value) {
+      element.value = value;
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    function assertVisibleBox(win, box, expectedWidth, viewportName) {
+      const style = win.getComputedStyle(box);
+      const rect = box.getBoundingClientRect();
+      assert(style.display !== "none", `${viewportName}: checkbox box is display:none.`);
+      assert(style.visibility === "visible", `${viewportName}: checkbox box is not visible.`);
+      assert(Number(style.opacity) > 0, `${viewportName}: checkbox box is transparent.`);
+      assert(rect.width >= expectedWidth && rect.height >= expectedWidth, `${viewportName}: checkbox box collapsed.`);
+      assert(parseFloat(style.borderLeftWidth) >= 2, `${viewportName}: checkbox border is missing.`);
+    }
+
+    let testStarted = false;
+    const readinessTimer = setInterval(async () => {
+      const candidateDocument = iframe.contentDocument;
+      if (
+        testStarted
+        || !candidateDocument
+        || !candidateDocument.getElementById("privacyConsent")
+        || !candidateDocument.querySelector(".agreement-row__box")
+        || !candidateDocument.querySelector(".agreement-row__text")
+        || !candidateDocument.getElementById("registerSubmit")
+      ) {
+        return;
+      }
+
+      testStarted = true;
+      clearInterval(readinessTimer);
+
+      try {
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
+        const input = doc.getElementById("privacyConsent");
+        const label = doc.querySelector('label[for="privacyConsent"]');
+        const box = doc.querySelector(".agreement-row__box");
+        const text = doc.querySelector(".agreement-row__text");
+        const privacyButton = doc.querySelector('[data-doc-trigger="privacy"]');
+        const termsButton = doc.querySelector('[data-doc-trigger="terms"]');
+        const modal = doc.getElementById("policyModal");
+        const modalTitle = doc.getElementById("policyModalTitle");
+        const form = doc.getElementById("registerForm");
+        const submit = doc.getElementById("registerSubmit");
+
+        assert(input && input.required, "Required agreement input is missing.");
+        assert(label && label.htmlFor === input.id, "Checkbox/label association is broken.");
+        assert(box && text, "Visible checkbox box or agreement text is missing.");
+
+        iframe.width = "1000";
+        await new Promise((resolve) => win.requestAnimationFrame(() => win.requestAnimationFrame(resolve)));
+        assertVisibleBox(win, box, 20, "Desktop");
+
+        iframe.width = "390";
+        await new Promise((resolve) => win.requestAnimationFrame(() => win.requestAnimationFrame(resolve)));
+        assertVisibleBox(win, box, 20, "Mobile");
+
+        input.checked = false;
+        box.click();
+        assert(input.checked, "Clicking the visible checkbox does not toggle the input.");
+        assert(Number(win.getComputedStyle(box.querySelector("svg")).opacity) === 1, "Checked mark is not visible.");
+
+        text.click();
+        assert(!input.checked, "Clicking the agreement label text does not toggle the input.");
+
+        privacyButton.click();
+        assert(!input.checked, "Privacy link unexpectedly toggled the checkbox.");
+        assert(!modal.hidden && modalTitle.textContent.includes("Privacy"), "Privacy Policy link did not open its document.");
+        doc.querySelector("[data-close-modal]").click();
+
+        termsButton.click();
+        assert(!modal.hidden && modalTitle.textContent.includes("Terms"), "Terms link did not open its document.");
+        doc.querySelector("[data-close-modal]").click();
+
+        dispatchInput(doc.getElementById("fullname"), "Test Customer");
+        dispatchInput(doc.getElementById("contactMobile"), "9123456789");
+        dispatchInput(doc.getElementById("email"), "customer@example.test");
+        dispatchInput(doc.getElementById("password"), "ValidPass123!");
+        dispatchInput(doc.getElementById("confirmPassword"), "ValidPass123!");
+
+        input.checked = false;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        assert(submit.disabled, "Unchecked agreement did not keep registration blocked.");
+        assert(!form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), "Unchecked form submission was not blocked.");
+
+        input.checked = true;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        assert(!submit.disabled, "Checked agreement did not allow the valid registration form.");
+
+        document.body.dataset.testStatus = "passed";
+        results.textContent = "Register agreement browser checks passed.";
+        new Image().src = `register-agreement-browser-passed?ts=${Date.now()}`;
+      } catch (error) {
+        document.body.dataset.testStatus = "failed";
+        results.textContent = error.stack || error.message;
+        new Image().src = `register-agreement-browser-failed?message=${encodeURIComponent(error.message)}`;
+      }
+    }, 100);
+
+    setTimeout(() => {
+      if (!testStarted) {
+        clearInterval(readinessTimer);
+        document.body.dataset.testStatus = "failed";
+        results.textContent = "Timed out waiting for the Register page test fixture.";
+      }
+    }, 8000);
+  </script>
+</body>
+</html>

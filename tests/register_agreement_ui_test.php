@@ -16,8 +16,8 @@ $pageSource = register_agreement_source("auth/regis.php");
 $handlerSource = register_agreement_source("auth/register.php");
 $cssSource = register_agreement_source("assets/css/style.css");
 
-// Cases A-C: the real control is visible, associated with its label, and the
-// complete agreement row remains the click/tap target.
+// Cases A-C: the required input remains associated with its label, and a
+// separate visual box cannot be collapsed by native checkbox rendering.
 register_agreement_assert(
     preg_match('/<label\s+class="agreement-row"\s+for="privacyConsent">/', $pageSource) === 1,
     "The agreement label is not associated with the checkbox."
@@ -27,15 +27,22 @@ register_agreement_assert(
     "The required agreement checkbox wiring changed."
 );
 register_agreement_assert(
-    str_contains($cssSource, 'body.auth-page--register .agreement-row__native[type="checkbox"]'),
-    "The checkbox styling is not scoped to the Register page."
+    str_contains($pageSource, 'id="register-agreement-critical-styles"'),
+    "The Register page is missing its critical checkbox fallback styles."
+);
+register_agreement_assert(
+    str_contains($pageSource, 'class="agreement-row__box" aria-hidden="true"'),
+    "The visible agreement checkbox box is missing."
 );
 foreach ([
+    "grid-template-columns: 20px minmax(0, 1fr);",
+    'body.auth-page--register .agreement-row__box',
     "width: 20px;",
     "height: 20px;",
     "border: 2px solid #7a0808;",
-    "appearance: none;",
-    "background-image: url(",
+    "visibility: visible;",
+    'body.auth-page--register .agreement-row__native[type="checkbox"]:checked + .agreement-row__box',
+    'body.auth-page--register .agreement-row__native[type="checkbox"]:focus-visible + .agreement-row__box',
 ] as $requiredStyle) {
     register_agreement_assert(
         str_contains($cssSource, $requiredStyle),
@@ -63,6 +70,7 @@ foreach ([
     'data-doc-trigger="privacy">Data Privacy Policy',
     'data-doc-trigger="terms">Terms &amp; Conditions',
     'document.querySelectorAll("[data-doc-trigger]")',
+    "event.stopPropagation();",
 ] as $requiredLinkWiring) {
     register_agreement_assert(
         str_contains($pageSource, $requiredLinkWiring),
