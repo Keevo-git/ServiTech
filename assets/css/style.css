@@ -5217,25 +5217,51 @@ body.auth-page--register .form-section--consent .consent-card {
 
 body.auth-page--register .agreement-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
   width: 100%;
   line-height: 1.45;
 }
 
 body.auth-page--register .agreement-row__native[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  margin: 0;
-  accent-color: #7a0808;
-  appearance: auto;
-  -webkit-appearance: checkbox;
+  display: block;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  flex: 0 0 20px;
+  margin: 1px 0 0;
+  padding: 0;
+  border: 2px solid #7a0808;
+  border-radius: 4px;
+  background-color: #ffffff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 14px 14px;
+  box-shadow: 0 1px 2px rgba(74, 5, 5, 0.12);
+  appearance: none;
+  -webkit-appearance: none;
   cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+body.auth-page--register .agreement-row:hover .agreement-row__native[type="checkbox"] {
+  border-color: #a64b0a;
+  box-shadow: 0 0 0 3px rgba(255, 139, 44, 0.12);
+}
+
+body.auth-page--register .agreement-row__native[type="checkbox"]:checked {
+  border-color: #7a0808;
+  background-color: #7a0808;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.4' d='m3.2 8.2 3 3.1 6.6-7'/%3E%3C/svg%3E");
+}
+
+body.auth-page--register .agreement-row__native[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 body.auth-page--register .agreement-row__native[type="checkbox"]:focus-visible {
-  outline: 3px solid rgba(122, 8, 8, 0.18);
+  outline: 3px solid rgba(255, 139, 44, 0.35);
   outline-offset: 2px;
 }
 
@@ -5414,10 +5440,10 @@ body.auth-page--register .agreement-row__error:not(:empty) {
 
 @media (max-width: 480px) {
   body.auth-page--register .agreement-row__native[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    flex-basis: 16px;
-    margin-top: 2px;
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    margin-top: 1px;
   }
 
   body.auth-page--register .agreement-row__text {
@@ -5425,7 +5451,7 @@ body.auth-page--register .agreement-row__error:not(:empty) {
   }
 
   body.auth-page--register .agreement-row__error {
-    margin-left: 26px;
+    margin-left: 32px;
   }
 }
 
