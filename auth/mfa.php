@@ -25,7 +25,6 @@ unset($_SESSION["mfa_flash_message"], $_SESSION["mfa_flash_type"]);
 $qrCode = trim((string)($_SESSION["mfa_enrollment_qr"] ?? ""));
 $pendingFactorId = trim((string)($_SESSION["mfa_pending_factor_id"] ?? ""));
 $verifiedFactors = [];
-$unverifiedFactors = [];
 
 function servitech_mfa_safe_qr_data_uri(string $candidate): string
 {
@@ -53,22 +52,11 @@ function servitech_mfa_safe_qr_data_uri(string $candidate): string
 }
 
 try {
-    $factorResponse = servitech_supabase_mfa_list_factors($accessToken);
-    $factorRows = [];
-    foreach (["all", "totp", "factors"] as $factorCollection) {
-        if (isset($factorResponse[$factorCollection]) && is_array($factorResponse[$factorCollection])) {
-            $factorRows = array_merge($factorRows, $factorResponse[$factorCollection]);
-        }
-    }
-    if (!$factorRows && array_is_list($factorResponse)) {
-        $factorRows = $factorResponse;
-    }
-    if (!$factorRows) {
-        $authUser = servitech_supabase_get_user($accessToken);
-        $factorRows = (array)($authUser["factors"] ?? []);
-    }
-
-    foreach ($factorRows as $factor) {
+    // Supabase's normal user response exposes verified factors. Abandoned,
+    // unverified factors are intentionally not relied on here because several
+    // hosted Auth versions do not return them to an AAL1 user session.
+    $authUser = servitech_supabase_get_user($accessToken);
+    foreach ((array)($authUser["factors"] ?? []) as $factor) {
         if (!is_array($factor)) {
             continue;
         }
@@ -80,8 +68,6 @@ try {
         }
         if ($factorStatus === "verified") {
             $verifiedFactors[$factorId] = $factor;
-        } else {
-            $unverifiedFactors[$factorId] = $factor;
         }
     }
 } catch (Throwable $exception) {
@@ -99,10 +85,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $message === "") {
             if (!servitech_supabase_admin_mfa_enrollment_allowed() || $verifiedFactors) {
                 throw new DomainException("MFA enrollment is not available for this account.");
             }
-            if ($unverifiedFactors) {
-                throw new DomainException("Remove the incomplete authenticator setup before starting again.");
-            }
-            $enrollment = servitech_supabase_mfa_enroll_totp($accessToken, "ServiTech Admin");
+            // A unique label prevents an abandoned unverified factor from a
+            // previous QR attempt blocking a safe new enrollment.
+            $friendlyName = "ServiTech Admin "
+                . gmdate("Ymd-His")
+                . "-"
+                . bin2hex(random_bytes(3));
+            $enrollment = servitech_supabase_mfa_enroll_totp($accessToken, $friendlyName);
             $factorId = trim((string)($enrollment["id"] ?? ""));
             $candidateQr = servitech_mfa_safe_qr_data_uri(
                 (string)($enrollment["totp"]["qr_code"] ?? "")
@@ -114,26 +103,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $message === "") {
             $_SESSION["mfa_enrollment_qr"] = $candidateQr;
             $pendingFactorId = $factorId;
             $qrCode = $candidateQr;
-            $unverifiedFactors[$factorId] = [
-                "id" => $factorId,
-                "status" => "unverified",
-                "factor_type" => "totp",
-            ];
             $message = "Authenticator setup started. Scan the QR code before leaving this page.";
             $messageType = "success";
-        } elseif ($action === "reset_incomplete") {
-            $factorId = trim((string)($_POST["factor_id"] ?? ""));
-            $isIncompleteFactor = isset($unverifiedFactors[$factorId])
-                || ($pendingFactorId !== "" && hash_equals($pendingFactorId, $factorId));
-            if (!$isIncompleteFactor || isset($verifiedFactors[$factorId])) {
-                throw new DomainException("The incomplete MFA factor could not be identified safely.");
-            }
-            servitech_supabase_mfa_unenroll($accessToken, $factorId);
-            unset($_SESSION["mfa_pending_factor_id"], $_SESSION["mfa_enrollment_qr"]);
-            $_SESSION["mfa_flash_message"] = "The incomplete authenticator setup was removed. You can start again now.";
-            $_SESSION["mfa_flash_type"] = "success";
-            header("Location: " . servitech_url("/auth/mfa.php"));
-            exit();
         } elseif ($action === "verify") {
             $factorId = trim((string)($_POST["factor_id"] ?? ""));
             $code = trim((string)($_POST["code"] ?? ""));
@@ -219,17 +190,7 @@ $csrfToken = servitech_csrf_token();
           <input id="mfa-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus>
           <button type="submit" class="auth-submit">Verify and continue</button>
         </form>
-      <?php elseif ($unverifiedFactors): ?>
-        <div class="form-alert form-alert--error" role="alert">
-          An authenticator setup was started but not verified. Its original QR code cannot be shown again safely. Remove it, then create a new setup.
-        </div>
-        <form method="post" action="<?= htmlspecialchars(servitech_url('/auth/mfa.php'), ENT_QUOTES, 'UTF-8') ?>">
-          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
-          <input type="hidden" name="action" value="reset_incomplete">
-          <input type="hidden" name="factor_id" value="<?= htmlspecialchars((string)array_key_first($unverifiedFactors), ENT_QUOTES, 'UTF-8') ?>">
-          <button type="submit" class="auth-submit">Remove incomplete setup</button>
-        </form>
-      <?php elseif (servitech_supabase_admin_mfa_enrollment_allowed()): ?>
+      <?php elseif ($message === "" && servitech_supabase_admin_mfa_enrollment_allowed()): ?>
         <form method="post" action="<?= htmlspecialchars(servitech_url('/auth/mfa.php'), ENT_QUOTES, 'UTF-8') ?>">
           <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
           <input type="hidden" name="action" value="enroll">

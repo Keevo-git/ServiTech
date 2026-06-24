@@ -194,21 +194,6 @@ function servitech_supabase_mfa_enroll_totp(string $accessToken, string $friendl
     ], $accessToken);
 }
 
-function servitech_supabase_mfa_list_factors(string $accessToken): array
-{
-    return servitech_supabase_auth_request("factors", "GET", null, $accessToken);
-}
-
-function servitech_supabase_mfa_unenroll(string $accessToken, string $factorId): array
-{
-    return servitech_supabase_auth_request(
-        "factors/" . rawurlencode($factorId),
-        "DELETE",
-        null,
-        $accessToken
-    );
-}
-
 function servitech_supabase_mfa_challenge(string $accessToken, string $factorId): array
 {
     return servitech_supabase_auth_request(
