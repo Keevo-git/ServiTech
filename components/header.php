@@ -59,9 +59,9 @@ if (!function_exists("servitech_notification_normalize_row")) {
 }
 
 if (!function_exists("servitech_notification_fetch_all")) {
-    function servitech_notification_fetch_all(PDO $pdo, int $userId, int $limit = 20): array
+    function servitech_notification_fetch_all(PDO $pdo, int $userId, int $readLimit = 20): array
     {
-        $limit = max(1, min($limit, 100));
+        $readLimit = max(1, min($readLimit, 100));
         servitech_cleanup_customer_status_notification_duplicates($pdo, $userId);
 
         $stmt = $pdo->prepare("
@@ -87,13 +87,23 @@ if (!function_exists("servitech_notification_fetch_all")) {
                 LEFT JOIN queues q ON q.id = n.reference_id
                 WHERE n.user_id = :user_id
                   AND n.deleted_at IS NULL
+            ),
+            visible_notifications AS (
+                SELECT
+                    ranked_notifications.*,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY COALESCE(is_read, FALSE)
+                        ORDER BY created_at DESC, id DESC
+                    ) AS read_state_rank
+                FROM ranked_notifications
+                WHERE duplicate_rank = 1
             )
             SELECT id, user_id, type, reference_id, message, is_read, created_at,
                    notification_category, queue_code, queue_status
-            FROM ranked_notifications
-            WHERE duplicate_rank = 1
+            FROM visible_notifications
+            WHERE COALESCE(is_read, FALSE) = FALSE
+               OR read_state_rank <= {$readLimit}
             ORDER BY created_at DESC, id DESC
-            LIMIT {$limit}
         ");
         $stmt->execute([":user_id" => $userId]);
 
@@ -1475,6 +1485,9 @@ $notificationRoutes = [
       var selectedNotificationIds = new Set();
       var notificationPollTimer = null;
       var notificationRefreshInFlight = false;
+      var notificationRefreshQueued = false;
+      var notificationRefreshPromise = null;
+      var lastNotificationSnapshotSignature = "";
       var realtimeConnected = false;
       var realtimeClient = null;
       var realtimeChannel = null;
@@ -1868,6 +1881,7 @@ $notificationRoutes = [
       async function fetchJson(url, options) {
         var response = await fetch(url, options || {
           credentials: "same-origin",
+          cache: "no-store",
           headers: {
             "Accept": "application/json",
             "X-Requested-With": "XMLHttpRequest"
@@ -1902,6 +1916,7 @@ $notificationRoutes = [
         return fetchJson(config.endpoint, {
           method: "POST",
           credentials: "same-origin",
+          cache: "no-store",
           headers: {
             "Accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -1917,13 +1932,57 @@ $notificationRoutes = [
         url.searchParams.set("notifications_action", "get_notifications");
 
         var data = await fetchJson(url.toString());
-        list.querySelectorAll(".notification-item").forEach(function (item) {
-          item.remove();
-        });
+        var notifications = (data.notifications || []).map(normalizeNotification);
+        var snapshotSignature = JSON.stringify(notifications.map(function (notification) {
+          return [
+            notification.id,
+            notification.type,
+            notification.reference_id,
+            notification.message,
+            notification.is_read,
+            notification.category,
+            notification.queue_code,
+            notification.queue_status,
+            notification.created_at
+          ];
+        }));
 
-        (data.notifications || []).slice().reverse().forEach(function (notification) {
-          addNotificationToUI(notification);
-        });
+        if (snapshotSignature !== lastNotificationSnapshotSignature) {
+          var previousScrollTop = list.scrollTop;
+          var focusedItem = document.activeElement && document.activeElement.closest
+            ? document.activeElement.closest(".notification-item")
+            : null;
+          var focusedNotificationId = focusedItem
+            ? Number(focusedItem.dataset.notificationId || 0)
+            : 0;
+          var focusedControl = document.activeElement && document.activeElement.matches("[data-notification-select]")
+            ? "select"
+            : document.activeElement && document.activeElement.matches("[data-notification-open]")
+              ? "open"
+              : "";
+
+          list.querySelectorAll(".notification-item").forEach(function (item) {
+            item.remove();
+          });
+
+          notifications.slice().reverse().forEach(function (notification) {
+            addNotificationToUI(notification);
+          });
+          lastNotificationSnapshotSignature = snapshotSignature;
+          list.scrollTop = previousScrollTop;
+
+          if (focusedNotificationId > 0 && focusedControl) {
+            var refreshedFocusedItem = getNotificationItem(focusedNotificationId);
+            var refreshedControl = refreshedFocusedItem
+              ? refreshedFocusedItem.querySelector(focusedControl === "select"
+                ? "[data-notification-select]"
+                : "[data-notification-open]")
+              : null;
+            if (refreshedControl) {
+              refreshedControl.focus({ preventScroll: true });
+            }
+          }
+        }
 
         setBadgeCount(data.unread_count || 0);
 
@@ -1945,19 +2004,31 @@ $notificationRoutes = [
       }
 
       async function refreshNotifications() {
-        if (notificationRefreshInFlight || document.hidden) {
-          return;
+        if (document.hidden) {
+          return notificationRefreshPromise;
+        }
+
+        if (notificationRefreshInFlight) {
+          notificationRefreshQueued = true;
+          return notificationRefreshPromise;
         }
 
         notificationRefreshInFlight = true;
-
-        try {
-          await loadNotifications();
-        } catch (error) {
-          console.error(error);
-        } finally {
+        notificationRefreshPromise = (async function () {
+          do {
+            notificationRefreshQueued = false;
+            try {
+              await loadNotifications();
+            } catch (error) {
+              console.error(error);
+            }
+          } while (notificationRefreshQueued && !document.hidden);
+        })().finally(function () {
           notificationRefreshInFlight = false;
-        }
+          notificationRefreshPromise = null;
+        });
+
+        return notificationRefreshPromise;
       }
 
       function startNotificationPolling() {
@@ -2065,18 +2136,14 @@ $notificationRoutes = [
           .on(
             "postgres_changes",
             {
-              event: "INSERT",
+              event: "*",
               schema: "public",
               table: "notifications",
               filter: "user_id=eq." + config.userId
             },
-            function (payload) {
-              var notification = normalizeNotification(payload.new);
-              var alreadyRendered = Boolean(getNotificationItem(notification.id));
-              var item = addNotificationToUI(notification);
-              if (item && !alreadyRendered && !notification.is_read) {
-                incrementBadge();
-              }
+            function () {
+              // INSERT, read-state UPDATE, and soft-delete UPDATE all reconcile
+              // through the same authenticated snapshot used by the badge.
               refreshNotifications();
             }
           )
@@ -2127,24 +2194,28 @@ $notificationRoutes = [
         script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
         script.async = true;
         script.onload = function () {
+          supabaseClientScriptLoading = false;
           supabaseClientScriptLoaded = true;
           callback();
         };
         script.onerror = function () {
+          supabaseClientScriptLoading = false;
           startNotificationPolling();
         };
         document.head.appendChild(script);
       }
 
       function initRequiredNotifications() {
+        // Polling is always kept as the secure delivery fallback, including
+        // while the realtime client is loading or reconnecting.
+        startNotificationPolling();
+
         if (!config.supabaseUrl || !config.supabaseAnonKey) {
-          startNotificationPolling();
           return;
         }
 
         loadSupabaseClientScript(function () {
           initRealtime();
-          startNotificationPolling();
         });
       }
 
@@ -2184,7 +2255,16 @@ $notificationRoutes = [
       window.addEventListener("pagehide", function () {
         stopNotificationPolling();
         stopRealtime();
-      }, { once: true });
+      });
+
+      window.addEventListener("pageshow", function (event) {
+        if (!event.persisted) {
+          return;
+        }
+
+        refreshNotifications();
+        initRequiredNotifications();
+      });
 
       list.addEventListener("click", function (event) {
         var item = event.target.closest(".notification-item");

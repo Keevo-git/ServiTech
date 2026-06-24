@@ -22,7 +22,12 @@ realtime_audit_assert(str_contains($customerHeader, 'filter: "user_id=eq." + con
 realtime_audit_assert(str_contains($customerHeader, 'await loadNotifications();'), "Customer list and unread badge must refresh from one synchronized snapshot.");
 realtime_audit_assert(str_contains($customerHeader, 'refreshNotifications();') && str_contains($customerHeader, 'function openDropdown()'), "Opening the customer panel must refresh stale data.");
 realtime_audit_assert(str_contains($customerHeader, 'window.addEventListener("pagehide"'), "Customer polling/subscriptions must be cleaned up during navigation.");
-realtime_audit_assert(str_contains($customerHeader, "alreadyRendered"), "Customer realtime inserts must not increment the badge twice for an existing item.");
+realtime_audit_assert(str_contains($customerHeader, 'window.addEventListener("pageshow"') && str_contains($customerHeader, "event.persisted"), "Customer polling/subscriptions must resume after back-forward cache navigation.");
+realtime_audit_assert(str_contains($customerHeader, "notificationRefreshQueued") && str_contains($customerHeader, "if (notificationRefreshInFlight)"), "A customer refresh arriving during an in-flight snapshot must be queued instead of dropped.");
+realtime_audit_assert(str_contains($customerHeader, 'event: "*"'), "Customer realtime changes must reconcile inserts, reads, and soft deletes.");
+realtime_audit_assert(str_contains($customerHeader, 'cache: "no-store"'), "Customer notification snapshots must bypass browser HTTP caches.");
+realtime_audit_assert(str_contains($customerHeader, "COALESCE(is_read, FALSE) = FALSE") && str_contains($customerHeader, "read_state_rank <="), "The customer snapshot must include every unread notification while only capping read history.");
+realtime_audit_assert(str_contains($customerHeader, "lastNotificationSnapshotSignature") && str_contains($customerHeader, "previousScrollTop"), "Unchanged customer polling snapshots must not churn the panel or reset its scroll position.");
 
 $adminCenter = realtime_audit_source("pages/admin/_includes/admin_notification_center.php");
 $adminSnapshot = realtime_audit_source("pages/admin/_includes/admin_notification_snapshot.php");
