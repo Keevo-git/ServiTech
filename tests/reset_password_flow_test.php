@@ -19,6 +19,7 @@ function reset_flow_source(string $path): string
 }
 
 $forgot = reset_flow_source("auth/forgot_password.php");
+$landing = reset_flow_source("index.php");
 $reset = reset_flow_source("auth/reset_password.php");
 $login = reset_flow_source("auth/log_in.php");
 $supabase = reset_flow_source("config/supabase_auth.php");
@@ -48,6 +49,13 @@ reset_flow_assert(
         && str_contains($reset, 'reset_password_store_supabase_recovery')
         && str_contains($reset, 'window.history.replaceState'),
     "Case B: query-token and fragment-session callbacks must both enter reset mode and clear browser history."
+);
+reset_flow_assert(
+    str_contains($landing, 'recoveryType === "recovery"')
+        && str_contains($landing, 'window.location.replace')
+        && str_contains($landing, 'servitech_url("/auth/reset_password.php")')
+        && str_contains($landing, '$landingRecoveryType === "recovery"'),
+    "Case B: homepage fallback must route Supabase recovery callbacks into the reset page instead of ignoring the token hash."
 );
 reset_flow_assert(
     str_contains($reset, 'id="newPassword"')

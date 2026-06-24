@@ -1,10 +1,28 @@
 <?php
 require_once __DIR__ . "/config/session_check.php"; // use your consistent session setup
 require_once __DIR__ . "/config/app.php";
+
+$landingRecoveryType = strtolower(trim((string)($_GET["type"] ?? "")));
+$landingRecoveryQuery = (string)($_SERVER["QUERY_STRING"] ?? "");
+if (
+  $landingRecoveryType === "recovery"
+  && $landingRecoveryQuery !== ""
+  && (
+    isset($_GET["token_hash"])
+    || isset($_GET["error"])
+    || isset($_GET["error_code"])
+    || isset($_GET["error_description"])
+  )
+) {
+  header("Location: " . servitech_url("/auth/reset_password.php") . "?" . $landingRecoveryQuery, true, 303);
+  exit();
+}
+
 require_once __DIR__ . "/config/db.php";
 require_once __DIR__ . "/config/store_availability.php";
 require_once __DIR__ . "/api/service_catalog.php";
 servitech_store_send_no_cache_headers();
+
 $is_logged_in = servitech_is_logged_in();
 $is_admin = servitech_is_admin();
 $queue_url = $is_admin
@@ -44,6 +62,31 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ServiTech: JC Repair Shop</title>
   <?= servitech_favicon_link() ?>
+  <script>
+    (() => {
+      try {
+        if (!window.location.hash || window.location.hash.length <= 1) {
+          return;
+        }
+
+        const recoveryParams = new URLSearchParams(window.location.hash.slice(1));
+        const recoveryType = (recoveryParams.get("type") || "").toLowerCase();
+        const hasRecoveryResult = Boolean(
+          recoveryParams.get("access_token")
+          || recoveryParams.get("refresh_token")
+          || recoveryParams.get("error")
+          || recoveryParams.get("error_code")
+          || recoveryParams.get("error_description")
+        );
+
+        if (recoveryType === "recovery" && hasRecoveryResult) {
+          window.location.replace(<?= json_encode(servitech_url("/auth/reset_password.php"), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?> + window.location.hash);
+        }
+      } catch (error) {
+        // If parsing fails, leave the normal public homepage untouched.
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260623-landing-modal-close'), ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/landing-store-details.css?v=20260615'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
