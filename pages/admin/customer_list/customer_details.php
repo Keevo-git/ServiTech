@@ -203,6 +203,7 @@ if ($customerId > 0) {
     FROM users
     WHERE id = :id
       AND LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'customer'
+      AND (auth_user_id IS NULL OR email_verified_at IS NOT NULL)
     LIMIT 1
   ");
   $stmt->execute([":id" => $customerId]);

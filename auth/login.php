@@ -7,6 +7,7 @@ require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
 require_once __DIR__ . "/../config/remember_me.php";
+require_once __DIR__ . "/registration_notifications.php";
 
 servitech_enforce_same_origin(false);
 servitech_enforce_csrf_token(false);
@@ -77,7 +78,15 @@ if (servitech_supabase_auth_enabled()) {
         $authResponse = servitech_supabase_sign_in($email, $password);
 
         servitech_login_throttle_clear($privilegedPdo, $email);
-        $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse, "password");
+        if (($profile["role"] ?? "customer") !== "admin") {
+            servitech_notify_admin_new_customer(
+                $privilegedPdo,
+                (int)($profile["id"] ?? 0),
+                (string)($profile["fullname"] ?? ""),
+                (string)($profile["email"] ?? $email)
+            );
+        }
         servitech_apply_password_login_persistence(
             $privilegedPdo,
             (int)($profile["id"] ?? 0),
@@ -94,6 +103,18 @@ if (servitech_supabase_auth_enabled()) {
         exit();
     } catch (DomainException $e) {
         error_log("Supabase login rejected: " . $e->getMessage());
+        servitech_supabase_clear_auth_session();
+        servitech_supabase_clear_application_session();
+        if (servitech_supabase_error_requires_email_verification($e->getMessage())) {
+            $_SESSION["verification_email_hint"] = $email;
+            if ($privilegedPdo instanceof PDO) {
+                try {
+                    servitech_login_throttle_clear($privilegedPdo, $email);
+                } catch (Throwable $ignored) {
+                }
+            }
+            servitech_login_failure_redirect("verify_email", $rememberMe);
+        }
         if ($privilegedPdo instanceof PDO) {
             try {
                 servitech_login_throttle_record_failure($privilegedPdo, $email);
@@ -103,6 +124,8 @@ if (servitech_supabase_auth_enabled()) {
         servitech_login_failure_redirect("fail", $rememberMe);
     } catch (Throwable $e) {
         error_log("Supabase login error: " . $e->getMessage());
+        servitech_supabase_clear_auth_session();
+        servitech_supabase_clear_application_session();
         if ($privilegedPdo instanceof PDO) {
             try {
                 servitech_login_throttle_record_failure($privilegedPdo, $email);

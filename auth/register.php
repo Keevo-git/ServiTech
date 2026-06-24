@@ -83,7 +83,7 @@ if (servitech_supabase_auth_enabled()) {
             "contact" => $contact,
             "privacy_consent" => "1",
             "consent_version" => servitech_account_consent_version(),
-        ]);
+        ], servitech_account_public_url("/auth/log_in.php?verification=success"));
 
         $hasSession = trim((string)($authResponse["access_token"] ?? "")) !== ""
             && trim((string)($authResponse["refresh_token"] ?? "")) !== "";
@@ -93,24 +93,22 @@ if (servitech_supabase_auth_enabled()) {
             // profile trigger runs, but no login session is issued until verification.
             // Do not notify admins yet; unconfirmed signups can be abandoned or
             // automated. Operational reporting should count confirmed accounts.
+            $_SESSION["verification_email_hint"] = $email;
             header("Location: " . servitech_url("/auth/log_in.php?registered=verify"));
             exit();
         }
 
-        $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
-        if (($profile["role"] ?? "customer") !== "admin") {
-            servitech_notify_admin_new_customer(
-                $privilegedPdo,
-                (int)($profile["id"] ?? 0),
-                $fullname,
-                $email
-            );
+        // A password signup returning a session means Supabase email
+        // confirmation is disabled. Fail closed: never turn that response into
+        // a ServiTech login or active profile.
+        $accessToken = trim((string)($authResponse["access_token"] ?? ""));
+        if ($accessToken !== "") {
+            servitech_supabase_logout_token($accessToken);
         }
-        header("Location: " . servitech_url(
-            ($profile["role"] ?? "customer") === "admin"
-                ? "/pages/admin/admin_dashboard.php"
-                : "/pages/customer/customer_dash.php"
-        ));
+        servitech_supabase_clear_auth_session();
+        servitech_supabase_clear_application_session();
+        error_log("Supabase registration blocked because email confirmation is disabled.");
+        header("Location: " . servitech_url("/auth/regis.php?error=verification_unavailable"));
         exit();
     } catch (DomainException $e) {
         error_log("Supabase registration rejected: " . $e->getMessage());

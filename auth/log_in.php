@@ -28,6 +28,7 @@ unset($_SESSION["login_remember_retry"]);
       </div>
 
       <div id="loginMessage" class="form-alert" role="alert" hidden></div>
+      <a id="resendVerificationLink" href="<?= auth_url("/auth/resend_verification.php") ?>" class="back-login" hidden>Didn't receive the email? Resend verification</a>
 
       <form id="loginForm" action="<?= auth_url("/auth/login.php") ?>" method="POST" class="register-form login-form" novalidate autocomplete="on">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
@@ -134,6 +135,7 @@ unset($_SESSION["login_remember_retry"]);
     const loginForm = document.getElementById("loginForm");
     const loginSubmit = document.getElementById("loginSubmit");
     const loginMessage = document.getElementById("loginMessage");
+    const resendVerificationLink = document.getElementById("resendVerificationLink");
     const loginEmail = document.getElementById("loginEmail");
     const loginPassword = document.getElementById("loginPassword");
     const loginEmailError = document.getElementById("loginEmailError");
@@ -470,9 +472,11 @@ unset($_SESSION["login_remember_retry"]);
       if (registeredCode === "1") {
         setMessage("success", "Registration successful. You can now log in to your account.");
       } else if (registeredCode === "verify") {
-        setMessage("success", "Registration successful. Check your email and verify your address before logging in.");
+        setMessage("success", "Your account is almost ready. We sent a verification email to your inbox. Confirm your email before logging in.");
+        resendVerificationLink.hidden = false;
       } else if (registeredCode === "exists") {
         setMessage("error", "That email is already registered. Try logging in instead.");
+        resendVerificationLink.hidden = false;
       } else if (logoutCode === "1") {
         setMessage("success", "You have been logged out.");
       } else if (loginCode === "required") {
@@ -485,6 +489,7 @@ unset($_SESSION["login_remember_retry"]);
         setMessage("error", "Your session expired or your account access changed. Please log in again.");
       } else if (loginCode === "verify_email") {
         setMessage("error", "Verify your email address before logging in. Check your inbox for the verification link.");
+        resendVerificationLink.hidden = false;
       } else if (loginCode === "throttled") {
         setMessage("error", "Too many failed login attempts. Wait a few minutes before trying again.");
       } else if (loginCode === "fail") {

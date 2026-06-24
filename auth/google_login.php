@@ -80,7 +80,7 @@ if (servitech_supabase_auth_enabled()) {
             ]);
         }
 
-        $applicationProfile = servitech_supabase_complete_login($privilegedPdo, $authResponse);
+        $applicationProfile = servitech_supabase_complete_login($privilegedPdo, $authResponse, "google");
         $_SESSION["remember_me"] = false;
         unset($_SESSION["remember_selector"]);
         servitech_apply_session_cookie_lifetime(false);
@@ -131,10 +131,14 @@ if (servitech_supabase_auth_enabled()) {
         ]);
         exit();
     } catch (DomainException $e) {
+        servitech_supabase_clear_auth_session();
+        servitech_supabase_clear_application_session();
         http_response_code(401);
         echo json_encode(["ok" => false, "error" => "Google authentication failed."]);
         exit();
     } catch (Throwable $e) {
+        servitech_supabase_clear_auth_session();
+        servitech_supabase_clear_application_session();
         error_log("Supabase Google login error: " . $e->getMessage());
         http_response_code(500);
         echo json_encode(["ok" => false, "error" => "Google sign-in could not be completed right now."]);

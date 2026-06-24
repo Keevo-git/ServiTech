@@ -557,7 +557,8 @@ $csrfToken = servitech_csrf_token();
         mismatch: "Passwords do not match.",
         password: `Password must be ${passwordMinLength} to ${passwordMaxLength} characters.`,
         privacy: "You must agree to the Data Privacy Policy before creating an account.",
-        error: "We could not create your account right now. Please try again."
+        error: "We could not create your account right now. Please try again.",
+        verification_unavailable: "Account activation is temporarily unavailable because email verification is not configured. Please contact support."
       };
 
       const errorCode = params.get("error");

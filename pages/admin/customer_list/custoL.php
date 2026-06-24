@@ -19,6 +19,7 @@ $stmt = $pdo->prepare("
       'customer'
     )
   ) = 'customer'
+    AND (auth_user_id IS NULL OR email_verified_at IS NOT NULL)
   ORDER BY id ASC
 ");
 $stmt->execute();

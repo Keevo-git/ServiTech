@@ -29,15 +29,15 @@ if (session_status() === PHP_SESSION_NONE) {
 
 if (servitech_supabase_auth_enabled()) {
     $hadApplicationSession = !empty($_SESSION["user_id"]);
-    if (!servitech_supabase_refresh_session_if_needed() && $hadApplicationSession) {
-        unset(
-            $_SESSION["user_id"],
-            $_SESSION["role"],
-            $_SESSION["admin_logged_in"],
-            $_SESSION["admin_email"],
-            $_SESSION["remember_me"],
-            $_SESSION["remember_selector"]
-        );
+    if (
+        $hadApplicationSession
+        && (
+            !servitech_supabase_refresh_session_if_needed()
+            || empty($_SESSION["supabase_identity_verified"])
+        )
+    ) {
+        servitech_supabase_clear_auth_session();
+        servitech_supabase_clear_application_session();
     }
 
     $idleSetting = servitech_supabase_env("SESSION_IDLE_TIMEOUT_SECONDS", "1800");

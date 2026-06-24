@@ -2,18 +2,12 @@
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
 servitech_require_guest_page();
-
-if (servitech_supabase_auth_enabled()) {
-    header("Location: " . auth_url_raw("/auth/log_in.php?verification=disabled"));
-    exit();
-}
-
-require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/account.php";
-require_once __DIR__ . "/../config/mail.php";
 
 $message = "";
-$submittedEmail = "";
+$messageType = "success";
+$submittedEmail = strtolower(trim((string)($_SESSION["verification_email_hint"] ?? "")));
+unset($_SESSION["verification_email_hint"]);
 $csrfToken = servitech_csrf_token();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -23,11 +17,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $submittedEmail = strtolower(trim((string)($_POST["email"] ?? "")));
     if ($submittedEmail === "" || !filter_var($submittedEmail, FILTER_VALIDATE_EMAIL)) {
         $message = "Enter a valid email address.";
+        $messageType = "error";
     } else {
         $message = "If the account exists and still needs verification, a new link will be sent shortly.";
 
         try {
-            if (servitech_account_email_verification_required()) {
+            if (servitech_supabase_auth_enabled()) {
+                if (!servitech_supabase_auth_configured()) {
+                    throw new RuntimeException("Supabase Auth is enabled but not configured.");
+                }
+                servitech_supabase_resend_signup(
+                    $submittedEmail,
+                    servitech_account_public_url("/auth/log_in.php?verification=success")
+                );
+            } elseif (servitech_account_email_verification_required()) {
+                require_once __DIR__ . "/../config/db.php";
+                require_once __DIR__ . "/../config/mail.php";
                 $token = servitech_email_verification_token();
                 $stmt = $pdo->prepare("
                     UPDATE users
@@ -59,8 +64,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
                 }
             }
+        } catch (DomainException $e) {
+            error_log("Supabase resend verification rejected: " . $e->getMessage());
+            $messageType = "error";
+            $message = str_contains(strtolower($e->getMessage()), "rate")
+                ? "Please wait a moment before requesting another verification email."
+                : "We could not send a verification email right now. Please try again shortly.";
         } catch (Throwable $e) {
             error_log("resend verification error: " . $e->getMessage());
+            $messageType = "error";
+            $message = "We could not send a verification email right now. Please try again shortly.";
         }
     }
 }
@@ -87,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       </div>
 
       <?php if ($message !== ""): ?>
-        <div class="form-alert <?= strpos($message, "Enter") === 0 ? "form-alert--error" : "form-alert--success" ?>" role="alert">
+        <div class="form-alert <?= $messageType === "error" ? "form-alert--error" : "form-alert--success" ?>" role="alert">
           <?= htmlspecialchars($message, ENT_QUOTES, "UTF-8") ?>
         </div>
       <?php endif; ?>

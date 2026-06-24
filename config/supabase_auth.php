@@ -144,12 +144,35 @@ function servitech_supabase_auth_request(
     return $payload;
 }
 
-function servitech_supabase_sign_up(string $email, string $password, array $metadata): array
+function servitech_supabase_sign_up(
+    string $email,
+    string $password,
+    array $metadata,
+    string $redirectUrl = ""
+): array
 {
-    return servitech_supabase_auth_request("signup", "POST", [
+    $path = "signup";
+    if ($redirectUrl !== "") {
+        $path .= "?redirect_to=" . rawurlencode($redirectUrl);
+    }
+
+    return servitech_supabase_auth_request($path, "POST", [
         "email" => $email,
         "password" => $password,
         "data" => $metadata,
+    ]);
+}
+
+function servitech_supabase_resend_signup(string $email, string $redirectUrl = ""): array
+{
+    $path = "resend";
+    if ($redirectUrl !== "") {
+        $path .= "?redirect_to=" . rawurlencode($redirectUrl);
+    }
+
+    return servitech_supabase_auth_request($path, "POST", [
+        "type" => "signup",
+        "email" => $email,
     ]);
 }
 
@@ -184,6 +207,86 @@ function servitech_supabase_update_user(string $accessToken, array $updates): ar
 function servitech_supabase_get_user(string $accessToken): array
 {
     return servitech_supabase_auth_request("user", "GET", null, $accessToken);
+}
+
+function servitech_supabase_user_identity_providers(array $user): array
+{
+    $providers = [];
+    $appMetadata = is_array($user["app_metadata"] ?? null) ? $user["app_metadata"] : [];
+    $metadataProviders = $appMetadata["providers"] ?? [];
+    if (is_string($metadataProviders)) {
+        $metadataProviders = [$metadataProviders];
+    }
+    if (is_array($metadataProviders)) {
+        foreach ($metadataProviders as $provider) {
+            $provider = strtolower(trim((string)$provider));
+            if ($provider !== "") {
+                $providers[] = $provider;
+            }
+        }
+    }
+
+    $primaryProvider = strtolower(trim((string)($appMetadata["provider"] ?? "")));
+    if ($primaryProvider !== "") {
+        $providers[] = $primaryProvider;
+    }
+    foreach ((array)($user["identities"] ?? []) as $identity) {
+        if (!is_array($identity)) {
+            continue;
+        }
+        $provider = strtolower(trim((string)($identity["provider"] ?? "")));
+        if ($provider !== "") {
+            $providers[] = $provider;
+        }
+    }
+
+    return array_values(array_unique($providers));
+}
+
+function servitech_supabase_user_has_provider(array $user, string $provider): bool
+{
+    return in_array(
+        strtolower(trim($provider)),
+        servitech_supabase_user_identity_providers($user),
+        true
+    );
+}
+
+function servitech_supabase_user_email_confirmed_at(array $user): string
+{
+    return trim((string)($user["email_confirmed_at"] ?? $user["confirmed_at"] ?? ""));
+}
+
+function servitech_supabase_user_is_usable(array $user, string $authMethod): bool
+{
+    if (servitech_supabase_user_email_confirmed_at($user) === "") {
+        return false;
+    }
+
+    $authMethod = strtolower(trim($authMethod));
+    if ($authMethod === "google") {
+        return servitech_supabase_user_has_provider($user, "google");
+    }
+
+    return $authMethod === "password";
+}
+
+function servitech_supabase_error_requires_email_verification(string $message): bool
+{
+    $message = strtolower(trim($message));
+    foreach ([
+        "email not confirmed",
+        "email_not_confirmed",
+        "email is not confirmed",
+        "confirm your email",
+        "email confirmation required",
+        "email verification is required",
+    ] as $marker) {
+        if (str_contains($message, $marker)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function servitech_supabase_mfa_enroll_totp(string $accessToken, string $friendlyName): array
@@ -286,7 +389,7 @@ function servitech_supabase_store_auth_session(array $authResponse): array
 
     if ($accessToken === "" || $refreshToken === "" || !preg_match('/^[0-9a-f-]{36}$/i', $authUserId)) {
         throw new RuntimeException(
-            "Supabase did not return an active session. Confirm that email confirmation is disabled for this testing phase."
+            "Supabase did not return an active session."
         );
     }
 
@@ -304,9 +407,11 @@ function servitech_supabase_store_auth_session(array $authResponse): array
 function servitech_supabase_bind_application_profile(PDO $pdo, string $authUserId): array
 {
     $stmt = $pdo->prepare("
-        SELECT id, email, COALESCE(NULLIF(LOWER(TRIM(role)), ''), 'customer') AS role
+        SELECT id, fullname, email,
+               COALESCE(NULLIF(LOWER(TRIM(role)), ''), 'customer') AS role
         FROM users
         WHERE auth_user_id = :auth_user_id
+          AND email_verified_at IS NOT NULL
         LIMIT 1
     ");
     $stmt->execute([":auth_user_id" => $authUserId]);
@@ -328,10 +433,40 @@ function servitech_supabase_bind_application_profile(PDO $pdo, string $authUserI
     return $profile;
 }
 
-function servitech_supabase_complete_login(PDO $pdo, array $authResponse): array
+function servitech_supabase_complete_login(
+    PDO $pdo,
+    array $authResponse,
+    string $authMethod = "password"
+): array
 {
+    $authUser = is_array($authResponse["user"] ?? null) ? $authResponse["user"] : [];
+    if (!servitech_supabase_user_is_usable($authUser, $authMethod)) {
+        throw new DomainException("Email verification is required before this account can be used.");
+    }
+
+    $authUserId = strtolower(trim((string)($authUser["id"] ?? "")));
+    if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId)) {
+        throw new RuntimeException("Supabase did not return a valid authenticated user.");
+    }
+
+    // The auth.users trigger normally performs this synchronization. Repeating
+    // it here makes late confirmation resilient to deployment-order or trigger
+    // failures while still deriving activation only from Supabase's confirmed user.
+    $activateProfile = $pdo->prepare("
+        UPDATE users
+        SET email_verified_at = COALESCE(email_verified_at, :confirmed_at),
+            updated_at = NOW()
+        WHERE auth_user_id = :auth_user_id
+    ");
+    $activateProfile->execute([
+        ":confirmed_at" => servitech_supabase_user_email_confirmed_at($authUser),
+        ":auth_user_id" => $authUserId,
+    ]);
+
     $user = servitech_supabase_store_auth_session($authResponse);
     $authUserId = trim((string)($user["id"] ?? $_SESSION["auth_user_id"] ?? ""));
+    $_SESSION["supabase_auth_method"] = strtolower(trim($authMethod));
+    $_SESSION["supabase_identity_verified"] = true;
     $profile = servitech_supabase_bind_application_profile($pdo, $authUserId);
     $_SESSION["supabase_profile_bound_at"] = time();
     $_SESSION["supabase_last_activity_at"] = time();
@@ -360,6 +495,10 @@ function servitech_supabase_rebind_application_profile(
 ): bool {
     if (!servitech_supabase_auth_enabled()) {
         return true;
+    }
+
+    if (empty($_SESSION["supabase_identity_verified"])) {
+        return false;
     }
 
     $authUserId = strtolower(trim((string)($_SESSION["auth_user_id"] ?? "")));
@@ -399,6 +538,8 @@ function servitech_supabase_clear_auth_session(): void
         $_SESSION["supabase_expires_at"],
         $_SESSION["supabase_claims"],
         $_SESSION["auth_user_id"],
+        $_SESSION["supabase_auth_method"],
+        $_SESSION["supabase_identity_verified"],
         $_SESSION["supabase_profile_bound_at"],
         $_SESSION["supabase_last_activity_at"]
     );
@@ -421,7 +562,13 @@ function servitech_supabase_refresh_session_if_needed(): bool
     }
 
     try {
-        servitech_supabase_store_auth_session(servitech_supabase_refresh($refreshToken));
+        $refreshed = servitech_supabase_refresh($refreshToken);
+        $refreshedUser = is_array($refreshed["user"] ?? null) ? $refreshed["user"] : [];
+        $authMethod = strtolower(trim((string)($_SESSION["supabase_auth_method"] ?? "")));
+        if ($refreshedUser && !servitech_supabase_user_is_usable($refreshedUser, $authMethod)) {
+            throw new DomainException("The refreshed Supabase identity is not verified.");
+        }
+        servitech_supabase_store_auth_session($refreshed);
         // Refreshing proves the Auth session is current, but the application role
         // still comes from public.users and must be re-read on the next guard.
         $_SESSION["supabase_profile_bound_at"] = 0;

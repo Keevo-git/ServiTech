@@ -18,6 +18,13 @@ writes for orders/payments/uploads, synchronizes confirmed Auth email changes,
 and requires Supabase AAL2 for admin RLS authority. Enroll and verify the known
 admin's MFA factor in staging before applying this final cutover migration.
 
+Then apply `20260625_require_verified_supabase_accounts.sql`. It makes the
+public profile inactive until Supabase confirms the email, excludes inactive
+profiles from user-scoped RLS access, and keeps the existing AAL2 admin rule.
+Supabase Dashboard must also have **Confirm email** enabled under
+Authentication > Providers > Email; the application deliberately fails closed
+if an email/password signup unexpectedly returns an immediate session.
+
 If `20260612_add_supabase_auth_rls_foundation.sql` was applied before the
 catalog delete-grant hardening, also run
 `20260612_revoke_public_catalog_delete_grants.sql`. New installs should still
