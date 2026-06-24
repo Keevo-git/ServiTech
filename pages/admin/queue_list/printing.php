@@ -60,6 +60,7 @@ function service_label($category, $details = null): string {
     "photocopy" => "Photocopy",
     "rush-id" => "Rush ID",
     "laminating" => "Laminating",
+    "scanning" => "Scanning",
   ];
   $key = strtolower(trim((string)$category));
   return $map[$key] ?? ucfirst($key);
@@ -82,6 +83,10 @@ function payment_amount_label($amount, $detailsTotal = null): string {
   return "";
 }
 
+$queueVisibilityPredicate = admin_order_soft_delete_column_ready($pdo)
+  ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
+  : "";
+
 $stmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount,
     q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
@@ -101,7 +106,7 @@ $stmt = $pdo->prepare("
   WHERE (
     LOWER(TRIM(q.category)) IN (
       'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
-      'xerox', 'rush-id', 'laminating'
+      'xerox', 'photocopy', 'rush-id', 'laminating', 'scanning'
     )
     OR (
       LOWER(TRIM(q.category)) = 'printing'
@@ -110,6 +115,7 @@ $stmt = $pdo->prepare("
     OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
   )
     AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
+    {$queueVisibilityPredicate}
   ORDER BY q.created_at ASC, q.id ASC
 ");
 $stmt->execute();

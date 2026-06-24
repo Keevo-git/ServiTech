@@ -7,6 +7,9 @@ header("Content-Type: application/json; charset=utf-8");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 
 $scope = strtolower(trim((string)($_GET["scope"] ?? "")));
+$recordVisibilityPredicate = admin_order_soft_delete_column_ready($pdo)
+    ? "q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
+    : "1 = 1";
 $orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL" : "";
 $predicates = [
     "queue_printing" => "
@@ -14,7 +17,7 @@ $predicates = [
         AND (
             LOWER(TRIM(COALESCE(q.category, ''))) IN (
                 'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
-                'xerox', 'rush-id', 'laminating'
+                'xerox', 'photocopy', 'rush-id', 'laminating', 'scanning'
             )
             OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
         )
@@ -22,7 +25,10 @@ $predicates = [
     "queue_online" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
         AND (
-            LOWER(TRIM(COALESCE(q.category, ''))) IN ('online_printorder', 'printing_online', 'xerox', 'rush-id', 'laminating')
+            LOWER(TRIM(COALESCE(q.category, ''))) IN (
+                'online_printorder', 'printing_online', 'xerox', 'photocopy',
+                'rush-id', 'laminating', 'scanning'
+            )
             OR (
                 LOWER(TRIM(COALESCE(q.category, ''))) = 'printing'
                 AND LOWER(TRIM(COALESCE(q.details->>'order_type', ''))) = 'online'
@@ -54,7 +60,7 @@ $predicates = [
         AND (
             LOWER(TRIM(COALESCE(q.category, ''))) IN (
                 'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
-                'xerox', 'rush-id', 'laminating'
+                'xerox', 'photocopy', 'rush-id', 'laminating', 'scanning'
             )
             OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
         )
@@ -129,7 +135,8 @@ try {
             ORDER BY id DESC
             LIMIT 1
         ) p ON TRUE
-        WHERE {$predicates[$scope]}
+        WHERE {$recordVisibilityPredicate}
+          AND ({$predicates[$scope]})
         ORDER BY q.id ASC
     ");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);

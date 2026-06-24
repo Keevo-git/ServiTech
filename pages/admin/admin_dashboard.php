@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/_includes/admin_auth.php";
 require_once __DIR__ . "/../../config/app.php";
-require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/_includes/admin_db.php";
 require_once __DIR__ . "/_includes/dashboard_stats.php";
 require_once __DIR__ . "/_includes/queue_files.php";
 
@@ -11,12 +11,15 @@ function project_url(string $path): string
 }
 
 $dashboardStats = fetch_admin_dashboard_stats($pdo);
-$customers = $dashboardStats["customers"];
-$printingOrders = $dashboardStats["printingOrders"] ?? $dashboardStats["onlineOrders"] ?? 0;
-$activeQueue = $dashboardStats["activeQueue"];
+$analyticsAvailable = (bool)($dashboardStats["available"] ?? false);
+$analyticsError = trim((string)($dashboardStats["error"] ?? ""));
+$activeRequests = (int)($dashboardStats["activeRequests"] ?? 0);
+$activeQueue = (int)($dashboardStats["activeQueue"] ?? 0);
+$visibleOrders = (int)($dashboardStats["visibleOrders"] ?? 0);
 $dashboardAnalytics = $dashboardStats["analytics"] ?? [];
-$mostRequested = is_array($dashboardAnalytics["mostRequested"] ?? null) ? $dashboardAnalytics["mostRequested"] : [];
-$serviceMix = is_array($dashboardAnalytics["serviceMix"] ?? null) ? $dashboardAnalytics["serviceMix"] : [];
+$statusAnalytics = is_array($dashboardAnalytics["status"] ?? null) ? $dashboardAnalytics["status"] : [];
+$topServices = is_array($dashboardAnalytics["topServices"] ?? null) ? $dashboardAnalytics["topServices"] : [];
+$categoryMix = is_array($dashboardAnalytics["categoryMix"] ?? null) ? $dashboardAnalytics["categoryMix"] : [];
 $todayAnalytics = is_array($dashboardAnalytics["today"] ?? null) ? $dashboardAnalytics["today"] : [];
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $adminNotificationCount = admin_queue_notification_count($pdo);
@@ -29,11 +32,12 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <title>ServiTech Admin Dashboard</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260615-quick-access-grid') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260624-analytics-rebuild') ?>">
 </head>
 <body
   class="admin-dashboard"
   data-dashboard-stats-url="<?= project_url('/pages/admin/get_dashboard_stats.php') ?>"
+  data-analytics-available="<?= $analyticsAvailable ? 'true' : 'false' ?>"
 >
 
 <?php
@@ -60,42 +64,50 @@ require __DIR__ . "/_includes/admin_header.php";
   <section class="stats">
 
     <div class="stat stat--customers">
-      <h4>CUSTOMERS</h4>
+      <h4>ACTIVE REQUESTS</h4>
       <div 
         class="value" 
-        id="customersCount" 
-        data-count="<?= $customers ?>"
+        id="activeRequestsCount"
+        data-count="<?= $activeRequests ?>"
       >
-        <?= $customers ?>
+        <?= $analyticsAvailable ? $activeRequests : "—" ?>
       </div>
-      <p class="stat-note">Registered user accounts</p>
+      <p class="stat-note">Pending through For Pick-Up, excluding Bin</p>
     </div>
 
     <div class="stat stat--orders">
-      <h4>PRINTING ORDERS</h4>
-      <div 
-        class="value" 
-        id="ordersCount" 
-        data-count="<?= $printingOrders ?>"
-      >
-        <?= $printingOrders ?>
-      </div>
-      <p class="stat-note">Visible in Order Management</p>
-    </div>
-
-    <div class="stat stat--queue">
       <h4>ACTIVE QUEUE</h4>
       <div 
         class="value" 
-        id="queueCount" 
+        id="queueCount"
         data-count="<?= $activeQueue ?>"
       >
-        <?= $activeQueue ?>
+        <?= $analyticsAvailable ? $activeQueue : "—" ?>
       </div>
-      <p class="stat-note">Active in Queue Management</p>
+      <p class="stat-note">Active rows in Queue Management</p>
+    </div>
+
+    <div class="stat stat--queue">
+      <h4>VISIBLE ORDERS</h4>
+      <div 
+        class="value" 
+        id="ordersCount"
+        data-count="<?= $visibleOrders ?>"
+      >
+        <?= $analyticsAvailable ? $visibleOrders : "—" ?>
+      </div>
+      <p class="stat-note">All rows in Order Management, excluding Bin</p>
     </div>
 
   </section>
+
+  <?php if (!$analyticsAvailable): ?>
+    <div class="analytics-warning" id="analyticsWarning" role="status">
+      <?= htmlspecialchars($analyticsError !== "" ? $analyticsError : "Analytics are temporarily unavailable.", ENT_QUOTES, "UTF-8") ?>
+    </div>
+  <?php else: ?>
+    <div class="analytics-warning" id="analyticsWarning" role="status" hidden></div>
+  <?php endif; ?>
 
   <header class="admin-quick-access-header">
     <h3 class="section-title">Admin Quick Access</h3>
@@ -165,28 +177,56 @@ require __DIR__ . "/_includes/admin_header.php";
   </header>
 
   <section class="analytics-grid analytics-grid--visual">
+    <article class="analytics-card analytics-card--status">
+      <div class="analytics-head">
+        <div>
+          <h4>Active Requests by Status</h4>
+          <p>Current non-binned requests across Queue and Order Management</p>
+        </div>
+        <span class="live-pill">Current</span>
+      </div>
+      <div class="operational-status-metrics">
+        <div class="status-metric status-metric--pending">
+          <span>Pending</span>
+          <strong id="statusPendingCount"><?= (int)($statusAnalytics["pending"] ?? 0) ?></strong>
+        </div>
+        <div class="status-metric status-metric--approved">
+          <span>Approved</span>
+          <strong id="statusApprovedCount"><?= (int)($statusAnalytics["approved"] ?? 0) ?></strong>
+        </div>
+        <div class="status-metric status-metric--ongoing">
+          <span>Ongoing</span>
+          <strong id="statusOngoingCount"><?= (int)($statusAnalytics["ongoing"] ?? 0) ?></strong>
+        </div>
+        <div class="status-metric status-metric--pickup">
+          <span>For Pick-Up</span>
+          <strong id="statusForPickupCount"><?= (int)($statusAnalytics["forPickup"] ?? 0) ?></strong>
+        </div>
+      </div>
+    </article>
+
     <article class="analytics-card analytics-card--wide analytics-card--dark">
       <div class="analytics-head">
         <div>
-          <h4>Most Requested Services</h4>
-          <p>All-time requests by service</p>
+          <h4>Top Requested Services</h4>
+          <p>Visible requests created in the last 30 Manila calendar days</p>
         </div>
-        <span class="live-pill">All-time</span>
+        <span class="live-pill">30 days</span>
       </div>
       <div class="analytics-chart-shell">
-        <div class="analytics-list analytics-list--ranked" id="mostRequestedList">
-        <?php if (!$mostRequested): ?>
-          <p class="analytics-empty">No queue requests yet.</p>
+        <div class="analytics-list analytics-list--ranked" id="topServicesList">
+        <?php if (!$topServices): ?>
+          <p class="analytics-empty">No visible requests in this period.</p>
         <?php else: ?>
           <?php
-            $maxMostRequested = max(array_map(static fn($item) => (int)($item["total"] ?? 0), $mostRequested));
-            $maxMostRequested = max(1, $maxMostRequested);
+            $maxTopServices = max(array_map(static fn($item) => (int)($item["total"] ?? 0), $topServices));
+            $maxTopServices = max(1, $maxTopServices);
           ?>
-          <?php foreach ($mostRequested as $index => $item): ?>
+          <?php foreach ($topServices as $index => $item): ?>
             <?php
               $label = trim((string)($item["label"] ?? "Service"));
               $total = (int)($item["total"] ?? 0);
-              $width = max(8, (int)round(($total / $maxMostRequested) * 100));
+              $width = max(8, (int)round(($total / $maxTopServices) * 100));
             ?>
             <div class="analytics-row">
               <span class="analytics-rank"><?= $index + 1 ?></span>
@@ -205,23 +245,23 @@ require __DIR__ . "/_includes/admin_header.php";
     <article class="analytics-card analytics-card--chart">
       <div class="analytics-head">
         <div>
-          <h4>Service Mix</h4>
-          <p>All-time request share</p>
+          <h4>Active Requests by Category</h4>
+          <p>Current non-binned Print, Repair, and Installation requests</p>
         </div>
       </div>
-      <div class="analytics-bars analytics-bars--visual" id="serviceMixBars">
-        <?php if (!$serviceMix): ?>
-          <p class="analytics-empty">No service data yet.</p>
+      <div class="analytics-bars analytics-bars--visual" id="categoryMixBars">
+        <?php if (!$categoryMix): ?>
+          <p class="analytics-empty">No active requests.</p>
         <?php else: ?>
           <?php
-            $maxServiceMix = max(array_map(static fn($item) => (int)($item["total"] ?? 0), $serviceMix));
-            $maxServiceMix = max(1, $maxServiceMix);
+            $maxCategoryMix = max(array_map(static fn($item) => (int)($item["total"] ?? 0), $categoryMix));
+            $maxCategoryMix = max(1, $maxCategoryMix);
           ?>
-          <?php foreach ($serviceMix as $item): ?>
+          <?php foreach ($categoryMix as $item): ?>
             <?php
               $label = trim((string)($item["label"] ?? "Service"));
               $total = (int)($item["total"] ?? 0);
-              $width = max(6, (int)round(($total / $maxServiceMix) * 100));
+              $width = $total > 0 ? max(6, (int)round(($total / $maxCategoryMix) * 100)) : 0;
             ?>
             <div class="analytics-bar">
               <div class="analytics-bar__meta">
@@ -241,23 +281,23 @@ require __DIR__ . "/_includes/admin_header.php";
       <div class="analytics-head">
         <div>
           <h4>Today</h4>
-          <p>Activity by Manila calendar day</p>
+          <p>Visible activity by Manila calendar day</p>
         </div>
       </div>
       <div class="today-metrics">
         <div>
           <i aria-hidden="true"></i>
-          <span>New requests</span>
-          <strong id="todayQueuesCount"><?= (int)($todayAnalytics["queues"] ?? 0) ?></strong>
+          <span>New Requests</span>
+          <strong id="todayNewRequestsCount"><?= (int)($todayAnalytics["newRequests"] ?? 0) ?></strong>
         </div>
         <div>
           <i aria-hidden="true"></i>
-          <span>Completed</span>
+          <span>Completed Today</span>
           <strong id="todayCompletedCount"><?= (int)($todayAnalytics["completed"] ?? 0) ?></strong>
         </div>
         <div>
           <i aria-hidden="true"></i>
-          <span>Cancelled</span>
+          <span>Cancelled Today</span>
           <strong id="todayCancelledCount"><?= (int)($todayAnalytics["cancelled"] ?? 0) ?></strong>
         </div>
       </div>
@@ -269,7 +309,7 @@ require __DIR__ . "/_includes/admin_header.php";
 
 <?php require_once __DIR__ . "/_includes/admin_footer.php"; ?>
 
-<script src="<?= project_url('/pages/admin/admin_dashboard.js?v=20260624-metric-alignment') ?>" defer></script>
+<script src="<?= project_url('/pages/admin/admin_dashboard.js?v=20260624-analytics-rebuild') ?>" defer></script>
 
 <script src="<?= project_url('/assets/js/header-menu.js') ?>" defer></script>
 

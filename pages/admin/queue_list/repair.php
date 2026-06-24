@@ -22,6 +22,10 @@ function status_class($status): string {
   };
 }
 
+$queueVisibilityPredicate = admin_order_soft_delete_column_ready($pdo)
+  ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
+  : "";
+
 $stmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
     q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
@@ -36,6 +40,7 @@ $stmt = $pdo->prepare("
   ) p ON TRUE
   WHERE q.category = 'repair'
     AND UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
+    {$queueVisibilityPredicate}
   ORDER BY q.created_at ASC, q.id ASC
 ");
 $stmt->execute();

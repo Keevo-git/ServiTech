@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . "/_includes/admin_auth.php";
-require_once __DIR__ . "/../../config/db.php";
+require_once __DIR__ . "/_includes/admin_db.php";
 require_once __DIR__ . "/_includes/dashboard_stats.php";
 
 $dashboardStats = fetch_admin_dashboard_stats($pdo);

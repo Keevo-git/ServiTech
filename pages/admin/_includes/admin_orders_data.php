@@ -54,7 +54,7 @@ try {
       WHERE UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
         {$orderRecyclePredicate}
         AND (
-          LOWER(TRIM(COALESCE(q.category, ''))) IN ('online_printorder', 'printing_online')
+          LOWER(TRIM(COALESCE(q.category, ''))) IN ('online_printorder', 'printing_online', 'xerox', 'photocopy', 'rush-id', 'laminating', 'scanning')
           OR (
             LOWER(TRIM(COALESCE(q.category, ''))) = 'printing'
             AND LOWER(TRIM(COALESCE(q.details->>'order_type', ''))) = 'online'

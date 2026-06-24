@@ -77,7 +77,7 @@ $onlineStmt = $pdo->prepare("
     AND (
       LOWER(TRIM(COALESCE(q.category, ''))) IN (
         'online_printorder', 'printing_online', 'printing', 'walkin', 'printing_walkin',
-        'xerox', 'rush-id', 'laminating'
+        'xerox', 'photocopy', 'rush-id', 'laminating', 'scanning'
       )
       OR UPPER(TRIM(COALESCE(q.queue_code, ''))) LIKE 'OP%'
     )
