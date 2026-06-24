@@ -125,22 +125,38 @@ function updateAnalytics(analytics) {
   if (todayCancelledEl) todayCancelledEl.textContent = Number(today.cancelled || 0);
 }
 
+const dashboardRefreshStorageKey = "servitech:admin-dashboard-refresh";
+let dashboardStatsRequestInFlight = false;
+
 async function fetchStats() {
+  if (dashboardStatsRequestInFlight) return;
+
+  const endpoint = document.body?.dataset.dashboardStatsUrl;
+  if (!endpoint) return;
+
+  dashboardStatsRequestInFlight = true;
   try {
-    const res = await fetch("/pages/admin/get_dashboard_stats.php");
+    const res = await fetch(endpoint, {
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { "Accept": "application/json" },
+    });
+    if (!res.ok) throw new Error(`Dashboard stats request failed (${res.status})`);
     const data = await res.json();
 
     const customersEl = document.getElementById("customersCount");
     const ordersEl = document.getElementById("ordersCount");
     const queueEl = document.getElementById("queueCount");
 
-    if (customersEl) customersEl.textContent = data.customers;
-    if (ordersEl) ordersEl.textContent = data.onlineOrders;
-    if (queueEl) queueEl.textContent = data.activeQueue;
+    if (customersEl) customersEl.textContent = Number(data.customers || 0);
+    if (ordersEl) ordersEl.textContent = Number(data.onlineOrders || 0);
+    if (queueEl) queueEl.textContent = Number(data.activeQueue || 0);
     updateAnalytics(data.analytics);
 
   } catch (err) {
     console.error("Failed to fetch stats:", err);
+  } finally {
+    dashboardStatsRequestInFlight = false;
   }
 }
 
@@ -149,3 +165,14 @@ fetchStats();
 
 // refresh every 5 seconds
 setInterval(fetchStats, 5000);
+
+// Reconcile immediately when an Order Management tab moves/restores an order.
+window.addEventListener("storage", (event) => {
+  if (event.key === dashboardRefreshStorageKey) fetchStats();
+});
+
+window.addEventListener("servitech:admin-dashboard-refresh", fetchStats);
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) fetchStats();
+});

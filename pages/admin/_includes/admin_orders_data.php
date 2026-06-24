@@ -10,6 +10,9 @@ try {
   if (!in_array($view, ["online", "walkin"], true)) {
     $view = "online";
   }
+  $orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo)
+    ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
+    : "";
 
   if ($view === "walkin") {
     $stmt = $pdo->prepare("
@@ -17,6 +20,7 @@ try {
       FROM queues q
       JOIN users u ON u.id = q.user_id
       WHERE UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        {$orderRecyclePredicate}
         AND (
           LOWER(TRIM(COALESCE(q.category, ''))) IN ('walkin', 'printing_walkin')
           OR (
@@ -48,6 +52,7 @@ try {
         LIMIT 1
       ) p ON TRUE
       WHERE UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'ORDER'
+        {$orderRecyclePredicate}
         AND (
           LOWER(TRIM(COALESCE(q.category, ''))) IN ('online_printorder', 'printing_online')
           OR (

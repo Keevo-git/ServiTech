@@ -31,7 +31,10 @@ $adminNotificationCount = admin_queue_notification_count($pdo);
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260615-quick-access-grid') ?>">
 </head>
-<body class="admin-dashboard">
+<body
+  class="admin-dashboard"
+  data-dashboard-stats-url="<?= project_url('/pages/admin/get_dashboard_stats.php') ?>"
+>
 
 <?php
 $adminHeaderVariant = "dashboard";
@@ -266,7 +269,7 @@ require __DIR__ . "/_includes/admin_header.php";
 
 <?php require_once __DIR__ . "/_includes/admin_footer.php"; ?>
 
-<script src="<?= project_url('/pages/admin/admin_dashboard.js') ?>" defer></script>
+<script src="<?= project_url('/pages/admin/admin_dashboard.js?v=20260624-live-bin-sync') ?>" defer></script>
 
 <script src="<?= project_url('/assets/js/header-menu.js') ?>" defer></script>
 

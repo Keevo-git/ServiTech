@@ -9,10 +9,20 @@
   const cancelButton = overlay.querySelector("[data-order-confirm-cancel]");
   const submitButton = overlay.querySelector("[data-order-confirm-submit]");
   const endpoint = overlay.dataset.orderRecycleEndpoint || "";
+  const dashboardRefreshStorageKey = "servitech:admin-dashboard-refresh";
   let pending = null;
   let trigger = null;
 
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
+
+  function notifyDashboardRefresh() {
+    try {
+      window.localStorage.setItem(dashboardRefreshStorageKey, String(Date.now()));
+    } catch (error) {
+      // The dashboard's periodic polling remains the fallback when storage is unavailable.
+    }
+    window.dispatchEvent(new CustomEvent("servitech:admin-dashboard-refresh"));
+  }
 
   const configurations = {
     soft_delete: {
@@ -152,6 +162,7 @@
     }
 
     window.servitechAdminToast?.persist(result.message || "Order updated.");
+    notifyDashboardRefresh();
     closeModal();
     window.location.reload();
   }

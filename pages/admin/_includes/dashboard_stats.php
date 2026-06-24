@@ -7,6 +7,7 @@ function admin_dashboard_safe_count(PDO $pdo, string $sql, array $params = []): 
         $stmt->execute($params);
         return (int)$stmt->fetchColumn();
     } catch (Throwable $e) {
+        error_log("admin dashboard count query error: " . $e->getMessage());
         return 0;
     }
 }
@@ -18,13 +19,44 @@ function admin_dashboard_fetch_rows(PDO $pdo, string $sql, array $params = []): 
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Throwable $e) {
+        error_log("admin dashboard rows query error: " . $e->getMessage());
         return [];
     }
 }
 
+function admin_dashboard_live_order_predicate(PDO $pdo, string $tableAlias = ""): string
+{
+    if (function_exists("admin_order_soft_delete_column_ready")) {
+        $columnsReady = admin_order_soft_delete_column_ready($pdo);
+    } else {
+        try {
+            $stmt = $pdo->query("
+              SELECT COUNT(DISTINCT column_name)
+              FROM information_schema.columns
+              WHERE table_schema = ANY(current_schemas(false))
+                AND table_name = 'queues'
+                AND column_name IN ('deleted_at', 'permanently_hidden_at')
+            ");
+            $columnsReady = (int)$stmt->fetchColumn() === 2;
+        } catch (Throwable $exception) {
+            error_log("admin dashboard recycle schema check failed: " . $exception->getMessage());
+            $columnsReady = false;
+        }
+    }
+
+    if (!$columnsReady) {
+        return "1 = 1";
+    }
+
+    $prefix = $tableAlias !== "" ? rtrim($tableAlias, ".") . "." : "";
+    return "{$prefix}deleted_at IS NULL AND {$prefix}permanently_hidden_at IS NULL";
+}
+
 function fetch_admin_dashboard_stats(PDO $pdo): array
 {
-    // ✅ CUSTOMERS
+    $liveOrderPredicate = admin_dashboard_live_order_predicate($pdo);
+
+    // Registered customer accounts are independent of order recycle state.
     $customers = admin_dashboard_safe_count(
         $pdo,
         "
@@ -34,7 +66,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
     );
 
-    // ✅ ONLINE ORDERS (BRUTE-FORCE FIX - WILL NOT RETURN 0 UNLESS NO DATA)
+    // Current printing orders are operational data and exclude recycled records.
     $onlineOrders = admin_dashboard_safe_count(
         $pdo,
         "
@@ -48,10 +80,11 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
             )
             OR UPPER(TRIM(COALESCE(queue_code, ''))) LIKE 'OP%'
         )
+        AND {$liveOrderPredicate}
         "
     );
 
-    // ✅ ACTIVE QUEUE (CLEAN + NO OVERLAP WITH ONLINE)
+    // Current non-online work excludes recycled records without changing status semantics.
     $activeQueue = admin_dashboard_safe_count(
         $pdo,
         "
@@ -66,6 +99,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
             )
         )
         AND UPPER(TRIM(COALESCE(status, 'PENDING'))) NOT IN ('DONE', 'CANCELLED')
+        AND {$liveOrderPredicate}
         "
     );
 
@@ -88,6 +122,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         END
     ";
 
+    // Historical reporting intentionally retains recycled records.
     $mostRequested = admin_dashboard_fetch_rows(
         $pdo,
         "
@@ -119,6 +154,7 @@ function fetch_admin_dashboard_stats(PDO $pdo): array
         "
     );
 
+    // Today's figures describe activity/events, so they also retain recycled records.
     $todayQueues = admin_dashboard_safe_count(
         $pdo,
         "
