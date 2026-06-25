@@ -68,9 +68,7 @@
         </section>
 
         <div class="order-modal-action-stack">
-          <div class="order-modal-actions">
-            
-          </div>
+          
           <button class="om-btn om-btn--light" type="button" id="omCancel">Cancel</button>
           <button class="om-btn om-btn--primary order-modal-update" type="button" id="omSave">Update</button>
 
