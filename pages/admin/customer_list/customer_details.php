@@ -3,6 +3,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
 require_once __DIR__ . "/_auth_backed_customer_scope.php";
+require_once __DIR__ . "/_customer_display_code.php";
 require_once __DIR__ . "/../_includes/queue_files.php";
 require_once __DIR__ . "/../../../api/queue_payment.php";
 
@@ -10,10 +11,6 @@ $customerId = (int)($_GET["id"] ?? 0);
 
 function cd_esc($value): string {
   return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
-}
-
-function cd_customer_code(int $id): string {
-  return "C-" . str_pad((string)$id, 3, "0", STR_PAD_LEFT);
 }
 
 function cd_format_date($value): string {
@@ -265,6 +262,8 @@ if ($customer) {
     }
   }
 }
+
+$customerDisplayCode = $customer ? admin_customer_display_code_for_customer_id($customerPdo, (int)$customer["id"]) : admin_customer_display_code(0);
 ?>
 <!doctype html>
 <html lang="en">
@@ -1179,7 +1178,7 @@ if ($customer) {
                 <div class="cd-infoGrid">
                   <div class="cd-infoItem">
                     <span>Customer ID</span>
-                    <strong><?= cd_esc(cd_customer_code((int)$customer["id"])) ?></strong>
+                    <strong><?= cd_esc($customerDisplayCode) ?></strong>
                   </div>
                   <div class="cd-infoItem">
                     <span>Internal ID</span>
@@ -1219,7 +1218,7 @@ if ($customer) {
                 type="button"
                 data-detail-message
                 data-customer-id="<?= (int)$customer["id"] ?>"
-                data-customer-code="<?= cd_esc(cd_customer_code((int)$customer["id"])) ?>"
+                        data-customer-code="<?= cd_esc($customerDisplayCode) ?>"
                 data-customer-name="<?= cd_esc($customer["fullname"] ?? "") ?>"
                 data-customer-email="<?= cd_esc($customer["email"] ?? "") ?>"
               >Message Customer</button>
@@ -1334,7 +1333,7 @@ if ($customer) {
                           type="button"
                           data-detail-message
                           data-customer-id="<?= (int)$customer["id"] ?>"
-                          data-customer-code="<?= cd_esc(cd_customer_code((int)$customer["id"])) ?>"
+                          data-customer-code="<?= cd_esc($customerDisplayCode) ?>"
                           data-customer-name="<?= cd_esc($customer["fullname"] ?? "") ?>"
                           data-customer-email="<?= cd_esc($customer["email"] ?? "") ?>"
                         >Message</button>
@@ -1423,7 +1422,7 @@ if ($customer) {
           <div class="cl-modalHead">
             <div>
               <h3 id="customerMessageTitle">Message Customer</h3>
-              <span class="cl-pill cl-pill--inline" id="messageCustomerCode"><?= cd_esc(cd_customer_code((int)$customer["id"])) ?></span>
+              <span class="cl-pill cl-pill--inline" id="messageCustomerCode"><?= cd_esc($customerDisplayCode) ?></span>
             </div>
             <button class="cl-modalX" type="button" id="customerMessageClose" aria-label="Close">&times;</button>
           </div>

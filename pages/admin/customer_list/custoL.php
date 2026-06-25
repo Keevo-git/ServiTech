@@ -3,6 +3,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../_includes/url.php";
 require_once __DIR__ . "/_auth_backed_customer_scope.php";
+require_once __DIR__ . "/_customer_display_code.php";
 
 $customerPdo = admin_auth_backed_customer_connection();
 $customerScopeSql = admin_auth_backed_customer_scope_sql();
@@ -20,10 +21,6 @@ $stmt = $customerPdo->prepare("
 ");
 $stmt->execute();
 $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-function customer_code_from_sequence(int $sequence): string {
-  return "C-" . str_pad((string)$sequence, 3, "0", STR_PAD_LEFT);
-}
 ?>
 <!doctype html>
 <html lang="en">
@@ -87,7 +84,7 @@ function customer_code_from_sequence(int $sequence): string {
               <?php else: ?>
                 <?php foreach ($customers as $index => $c): ?>
                   <?php
-                    $code = customer_code_from_sequence($index + 1);
+                    $code = admin_customer_display_code($index + 1);
                     $name = (string)($c["fullname"] ?? "");
                     $email = (string)($c["email"] ?? "");
                     $contact = (string)($c["contacts"] ?? "");
