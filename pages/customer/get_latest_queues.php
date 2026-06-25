@@ -69,6 +69,10 @@ function queue_category_meta(string $categoryKey): array {
   };
 }
 
+function store_today_sql(): string {
+  return "COALESCE(q.queue_cycle_date, (q.created_at AT TIME ZONE 'Asia/Manila')::date) = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Manila')::date";
+}
+
 function normalize_service_label(string $serviceLabel, string $fallbackLabel): string {
   $serviceLabel = trim($serviceLabel);
   if ($serviceLabel === "") return $fallbackLabel;
@@ -202,6 +206,7 @@ function fetch_latest_queue_items(PDO $pdo, string $categoryKey, int $limit): ar
     SELECT q.queue_code, q.status, q.details, q.created_at
     FROM queues q
     WHERE {$meta['sql']}
+      AND " . store_today_sql() . "
     ORDER BY q.created_at DESC
     LIMIT {$limit}
   ";
