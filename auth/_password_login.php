@@ -6,6 +6,7 @@ require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
 require_once __DIR__ . "/../config/remember_me.php";
 require_once __DIR__ . "/../config/activity_log.php";
+require_once __DIR__ . "/../config/employee_setup.php";
 require_once __DIR__ . "/registration_notifications.php";
 
 function servitech_login_context_config(string $context): array
@@ -81,9 +82,13 @@ function servitech_apply_password_login_persistence(PDO $pdo, int $userId, bool 
     servitech_apply_session_cookie_lifetime(false);
 }
 
-function servitech_password_login_redirect_path(string $role): string
+function servitech_password_login_redirect_path(string $role, ?PDO $pdo = null, ?int $userId = null): string
 {
     $role = servitech_normalize_role($role);
+    if ($role === "admin" && $pdo instanceof PDO && servitech_employee_setup_required($pdo, $userId)) {
+        return servitech_employee_setup_path();
+    }
+
     if (in_array($role, ["admin", "super_admin"], true)) {
         return servitech_supabase_auth_enabled()
             && servitech_supabase_admin_mfa_required()
@@ -198,8 +203,18 @@ function servitech_handle_password_login(string $context): void
                 );
             }
             servitech_password_login_log($privilegedPdo, $config, "success", $email, $profile);
+            if ($profileRole === "admin" && servitech_employee_setup_required($privilegedPdo, (int)($profile["id"] ?? 0))) {
+                servitech_activity_log($privilegedPdo, [
+                    "actor_id" => (int)($profile["id"] ?? 0),
+                    "role" => "admin",
+                    "action_type" => "employee_first_login",
+                    "module" => "employee_setup",
+                    "target_record_id" => (string)($profile["id"] ?? ""),
+                    "description" => "Employee " . (string)($profile["fullname"] ?? $email) . " logged in and was sent to first-time setup.",
+                ]);
+            }
             servitech_apply_password_login_persistence($privilegedPdo, (int)($profile["id"] ?? 0), $rememberMe);
-            header("Location: " . servitech_url(servitech_password_login_redirect_path($profileRole)));
+            header("Location: " . servitech_url(servitech_password_login_redirect_path($profileRole, $privilegedPdo, (int)($profile["id"] ?? 0))));
             exit();
         } catch (DomainException $exception) {
             error_log("Supabase login rejected: " . $exception->getMessage());
@@ -324,7 +339,17 @@ function servitech_handle_password_login(string $context): void
             }
 
             servitech_password_login_log($pdo, $config, "success", $email, $user);
-            header("Location: " . servitech_url(servitech_password_login_redirect_path($_SESSION["role"])));
+            if ($_SESSION["role"] === "admin" && servitech_employee_setup_required($pdo, (int)$user["id"])) {
+                servitech_activity_log($pdo, [
+                    "actor_id" => (int)$user["id"],
+                    "role" => "admin",
+                    "action_type" => "employee_first_login",
+                    "module" => "employee_setup",
+                    "target_record_id" => (string)$user["id"],
+                    "description" => "Employee " . (string)($user["fullname"] ?? $email) . " logged in and was sent to first-time setup.",
+                ]);
+            }
+            header("Location: " . servitech_url(servitech_password_login_redirect_path($_SESSION["role"], $pdo, (int)$user["id"])));
             exit();
         }
 

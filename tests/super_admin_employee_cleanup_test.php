@@ -71,9 +71,12 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "LOWER(TRIM(COALESCE(
 super_admin_cleanup_assert(str_contains($employeeAccounts, "auth_account.deleted_at IS NULL"), "Employee Accounts must exclude deleted Supabase Auth users.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "IN ('admin', 'super_admin')"), "Employee Accounts must not list owner accounts beside employees.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, 'value="super_admin"'), "Employee Accounts must not provide a Super Admin role option.");
-super_admin_cleanup_assert(!str_contains($employeeAccounts, "new_password"), "Employee Accounts must not accept or display a manual password reset field.");
-super_admin_cleanup_assert(!str_contains($employeeAccounts, "Temporary Password"), "Employee Accounts must not show temporary password fields.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_send_recovery"), "Employee Accounts password resets must use Supabase recovery email.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Temporary Password"), "Employee Accounts must support one-time temporary password input.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "temporary_password_confirm"), "Employee Accounts must require temporary password confirmation.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_admin_create_user"), "Employee creation must use Supabase Admin Auth.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_admin_update_user"), "Employee password reset must update Supabase Auth securely.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "force_password_change = TRUE"), "Employee creation/reset must force password change.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "profile_completed = FALSE"), "New employees must start with pending profile setup.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_admin_flash_toast"), "Employee Accounts form feedback must use shared toast flash.");
 
 foreach ([

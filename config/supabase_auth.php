@@ -81,6 +81,12 @@ function servitech_supabase_auth_configured(): bool
     return true;
 }
 
+function servitech_supabase_admin_configured(): bool
+{
+    return servitech_supabase_auth_configured()
+        && servitech_supabase_env("SUPABASE_SERVICE_ROLE_KEY") !== "";
+}
+
 function servitech_supabase_confirmation_redirect_url(): string
 {
     $baseUrl = rtrim(servitech_supabase_env("APP_PUBLIC_URL", "https://servitech.store"), "/");
@@ -196,6 +202,88 @@ function servitech_supabase_auth_request(
         throw new DomainException($message !== "" ? $message : "Supabase Auth request failed.", $status);
     }
     return $payload;
+}
+
+function servitech_supabase_admin_auth_request(
+    string $path,
+    string $method = "GET",
+    ?array $body = null
+): array {
+    if (!function_exists("curl_init")) {
+        throw new RuntimeException("PHP cURL is required for Supabase Auth.");
+    }
+
+    $baseUrl = rtrim(servitech_supabase_env("SUPABASE_URL"), "/");
+    $serviceRoleKey = servitech_supabase_env("SUPABASE_SERVICE_ROLE_KEY");
+    if ($baseUrl === "" || $serviceRoleKey === "") {
+        throw new RuntimeException("Supabase service role configuration is incomplete.");
+    }
+
+    $curl = curl_init($baseUrl . "/auth/v1/" . ltrim($path, "/"));
+    if ($curl === false) {
+        throw new RuntimeException("Unable to initialize Supabase Admin Auth request.");
+    }
+
+    $headers = [
+        "Accept: application/json",
+        "Content-Type: application/json",
+        "apikey: " . $serviceRoleKey,
+        "Authorization: Bearer " . $serviceRoleKey,
+    ];
+    curl_setopt_array($curl, [
+        CURLOPT_CUSTOMREQUEST => strtoupper($method),
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT => 25,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+    ]);
+    if ($body !== null) {
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_SLASHES));
+    }
+
+    $raw = curl_exec($curl);
+    $status = (int)curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    $curlError = curl_error($curl);
+    curl_close($curl);
+
+    if (!is_string($raw)) {
+        throw new RuntimeException("Supabase Admin Auth request failed: " . $curlError);
+    }
+    $decoded = json_decode($raw, true);
+    $payload = is_array($decoded) ? $decoded : [];
+    if ($status < 200 || $status >= 300) {
+        $message = trim((string)(
+            $payload["msg"]
+            ?? $payload["message"]
+            ?? $payload["error_description"]
+            ?? $payload["error"]
+            ?? "Supabase Admin Auth request failed."
+        ));
+        throw new DomainException($message !== "" ? $message : "Supabase Admin Auth request failed.", $status);
+    }
+    return $payload;
+}
+
+function servitech_supabase_admin_create_user(string $email, string $password, array $metadata = []): array
+{
+    return servitech_supabase_admin_auth_request("admin/users", "POST", [
+        "email" => $email,
+        "password" => $password,
+        "email_confirm" => true,
+        "user_metadata" => $metadata,
+    ]);
+}
+
+function servitech_supabase_admin_update_user(string $authUserId, array $updates): array
+{
+    $authUserId = strtolower(trim($authUserId));
+    if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId)) {
+        throw new DomainException("A valid Supabase Auth user ID is required.");
+    }
+
+    return servitech_supabase_admin_auth_request("admin/users/" . rawurlencode($authUserId), "PUT", $updates);
 }
 
 function servitech_supabase_sign_up(

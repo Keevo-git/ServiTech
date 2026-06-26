@@ -2,10 +2,15 @@
 // Admin/_includes/admin_auth.php
 require_once __DIR__ . "/../../../config/session_check.php";
 require_once __DIR__ . "/url.php";
+require_once __DIR__ . "/../../../config/employee_setup.php";
 
 if (!servitech_is_logged_in()) {
     header("Location: " . admin_url_raw("/auth/log_in.php"));
     exit();
+}
+
+if (!isset($pdo) || !($pdo instanceof PDO)) {
+    require_once __DIR__ . "/../../../config/db.php";
 }
 
 if (servitech_supabase_auth_enabled()) {
@@ -37,6 +42,35 @@ if (
     && servitech_supabase_session_aal() !== "aal2"
 ) {
     header("Location: " . admin_url_raw("/auth/mfa.php"));
+    exit();
+}
+
+$adminAuthRequestPath = (string)(parse_url((string)($_SERVER["REQUEST_URI"] ?? ""), PHP_URL_PATH) ?: "");
+$adminAuthAllowsPendingSetup = str_ends_with($adminAuthRequestPath, "/pages/admin/admin_first_time_setup.php")
+    || str_ends_with($adminAuthRequestPath, "/pages/admin/logout.php");
+if (
+    servitech_current_role() === "admin"
+    && !$adminAuthAllowsPendingSetup
+    && ($pdo ?? null) instanceof PDO
+    && servitech_employee_setup_required($pdo)
+) {
+    try {
+        require_once __DIR__ . "/../../../config/activity_log.php";
+        servitech_activity_log($pdo, [
+            "actor_id" => (int)($_SESSION["user_id"] ?? 0),
+            "role" => "admin",
+            "action_type" => "employee_pending_setup_access_denied",
+            "module" => "employee_setup",
+            "target_record_id" => $adminAuthRequestPath,
+            "new_value" => ["requested_url" => (string)($_SERVER["REQUEST_URI"] ?? "")],
+            "description" => "Employee attempted to access an admin page before completing first-time setup.",
+            "status" => "failed",
+        ]);
+    } catch (Throwable $exception) {
+        error_log("employee pending setup access log failed: " . $exception->getMessage());
+    }
+    servitech_admin_flash_toast("Complete your employee account setup before accessing the Admin Dashboard.", "warning");
+    header("Location: " . admin_url_raw(servitech_employee_setup_path()));
     exit();
 }
 
