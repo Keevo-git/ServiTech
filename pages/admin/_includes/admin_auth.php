@@ -47,6 +47,24 @@ if (!function_exists("servitech_require_super_admin")) {
             return;
         }
 
+        try {
+            require_once __DIR__ . "/../../../config/db.php";
+            require_once __DIR__ . "/../../../config/activity_log.php";
+            $target = (string)($_SERVER["REQUEST_URI"] ?? "");
+            servitech_activity_log(servitech_db_connect_privileged(), [
+                "actor_id" => (int)($_SESSION["user_id"] ?? 0),
+                "role" => servitech_current_role(),
+                "action_type" => "unauthorized_access",
+                "module" => "super_admin_access",
+                "target_record_id" => $target,
+                "new_value" => ["requested_url" => $target],
+                "description" => "Admin attempted to access a Super Admin-only page and was denied.",
+                "status" => "failed",
+            ]);
+        } catch (Throwable $exception) {
+            error_log("super admin access-denied activity log failed: " . $exception->getMessage());
+        }
+
         header("Location: " . admin_url_raw("/pages/admin/access_denied.php"));
         exit();
     }

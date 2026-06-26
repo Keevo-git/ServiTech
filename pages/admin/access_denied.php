@@ -2,7 +2,8 @@
 require_once __DIR__ . "/_includes/admin_auth.php";
 require_once __DIR__ . "/_includes/url.php";
 
-$roleLabel = servitech_role_label();
+$currentRole = servitech_current_role();
+$roleLabel = $currentRole === "admin" ? "Admin / Employee" : servitech_role_label($currentRole);
 ?>
 <!DOCTYPE html>
 <html lang="en">

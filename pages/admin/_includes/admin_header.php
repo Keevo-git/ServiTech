@@ -31,7 +31,7 @@ if (($pdo ?? null) instanceof PDO) {
 $adminHeaderShowHome = $adminHeaderVariant !== "dashboard";
 $adminHeaderRole = servitech_current_role();
 $adminHeaderIsSuperAdmin = servitech_is_super_admin();
-$adminHeaderRoleLabel = servitech_role_label($adminHeaderRole);
+$adminHeaderRoleLabel = $adminHeaderRole === "admin" ? "Admin / Employee" : servitech_role_label($adminHeaderRole);
 $adminHeaderNavItems = $adminHeaderIsSuperAdmin
     ? [
         ["label" => "Home", "href" => "/pages/admin/admin_dashboard.php", "roles" => ["super_admin"]],
@@ -40,7 +40,7 @@ $adminHeaderNavItems = $adminHeaderIsSuperAdmin
     : [
         ["label" => "Dashboard", "href" => "/pages/admin/admin_dashboard.php", "roles" => ["admin"]],
         ["label" => "Orders", "href" => "/pages/admin/order_management/printM.php", "roles" => ["admin"]],
-        ["label" => "Queue Monitor", "href" => "/pages/admin/queue_list/printing.php", "roles" => ["admin"]],
+        ["label" => "Queue", "href" => "/pages/admin/queue_list/printing.php", "roles" => ["admin"]],
         ["label" => "Customers", "href" => "/pages/admin/customer_list/custoL.php", "roles" => ["admin"]],
     ];
 ?>

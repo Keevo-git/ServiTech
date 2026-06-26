@@ -158,6 +158,14 @@ require __DIR__ . "/_includes/admin_header.php";
         <p>Review customer updates and operation alerts</p>
       </article>
     </a>
+
+    <a href="<?= project_url('/pages/admin/admin_profile.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon admin-quick-icon">ME</div>
+        <h4>My Profile</h4>
+        <p>View your staff account and password options</p>
+      </article>
+    </a>
     <?php endif; ?>
 
     <?php if ($isSuperAdmin): ?>

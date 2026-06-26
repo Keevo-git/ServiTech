@@ -192,6 +192,32 @@
   color: #64748b;
 }
 
+.admin-profile-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-profile-table th,
+.admin-profile-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e1e8f2;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-profile-table th {
+  width: 34%;
+  color: #475569;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.admin-profile-table td {
+  color: #112338;
+  font-weight: 700;
+}
+
 .admin-owner-pill {
   display: inline-flex;
   align-items: center;
