@@ -13,6 +13,19 @@ function super_admin_cleanup_source(string $path): string
     return file_get_contents(__DIR__ . "/../" . $path) ?: "";
 }
 
+function super_admin_cleanup_between(string $source, string $start, string $end): string
+{
+    $startPosition = strpos($source, $start);
+    if ($startPosition === false) {
+        return "";
+    }
+    $endPosition = strpos($source, $end, $startPosition);
+    if ($endPosition === false) {
+        return substr($source, $startPosition);
+    }
+    return substr($source, $startPosition, $endPosition - $startPosition);
+}
+
 $dashboard = super_admin_cleanup_source("pages/super_admin/super_admin_dashboard.php");
 $adminDashboard = super_admin_cleanup_source("pages/admin/admin_dashboard.php");
 $employeeAccounts = super_admin_cleanup_source("pages/super_admin/super_admin_employee_accounts.php");
@@ -23,6 +36,8 @@ $adminStaffStub = super_admin_cleanup_source("pages/admin/staff_accounts.php");
 $adminLogsStub = super_admin_cleanup_source("pages/admin/activity_logs.php");
 $header = super_admin_cleanup_source("pages/admin/_includes/admin_header.php");
 $session = super_admin_cleanup_source("config/session_check.php");
+$ownerCss = super_admin_cleanup_source("pages/admin/admin_owner.css");
+$createForm = super_admin_cleanup_between($employeeAccounts, 'data-create-employee-form', "</form>");
 
 foreach ([
     "Queue Management",
@@ -76,8 +91,24 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "temporary_password_c
 super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_admin_create_user"), "Employee creation must use Supabase Admin Auth.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_admin_update_user"), "Employee password reset must update Supabase Auth securely.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "force_password_change = TRUE"), "Employee creation/reset must force password change.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "profile_completed = FALSE"), "New employees must start with pending profile setup.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "profile_completed") && str_contains($employeeAccounts, "'active', TRUE, FALSE"), "New employees must start with pending profile setup.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_admin_flash_toast"), "Employee Accounts form feedback must use shared toast flash.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-open-create-employee-modal"), "Employee creation must be opened from a modal trigger.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-modal"), "Employee creation modal must exist.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-form"), "Employee creation form must be inside the modal.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Create an employee login account with a temporary password. The employee will complete their profile during first login."), "Create modal must explain first-login profile setup.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "<aside class=\"admin-owner-panel\">\n      <h2>Create Employee Account</h2>"), "Create Employee Account form must not render as an always-visible side panel.");
+super_admin_cleanup_assert(!str_contains($createForm, 'name="contact"'), "Create Employee Account form must not ask for contact.");
+super_admin_cleanup_assert(!str_contains($createForm, 'name="position_title"'), "Create Employee Account form must not ask for position/job title.");
+super_admin_cleanup_assert(!str_contains($createForm, 'name="employee_notes"'), "Create Employee Account form must not ask for notes.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "employee_account_assert_create_email_available"), "Employee creation must use role-aware email conflict checks.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "This employee account already exists."), "Duplicate employee toast must be explicit.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "This email is already used by a customer account."), "Customer email conflict toast must be explicit.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "This email is already used by a Super Admin account."), "Super Admin email conflict toast must be explicit.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "An employee profile exists but is not linked to an auth account. Please review or link it manually."), "Unlinked employee profile toast must be explicit.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "That employee account is already linked."), "Old misleading duplicate toast must be removed.");
+super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal-overlay"), "Owner CSS must include modal overlay styling.");
+super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal"), "Owner CSS must include modal panel styling.");
 
 foreach ([
     $oldStaffStub,

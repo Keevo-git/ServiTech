@@ -60,6 +60,25 @@ function employee_account_load_auth_user_by_email(PDO $pdo, string $email): ?arr
     return is_array($authUser) ? $authUser : null;
 }
 
+function employee_account_auth_user_exists(PDO $pdo, string $authUserId): bool
+{
+    $authUserId = strtolower(trim($authUserId));
+    if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId)) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT EXISTS (
+            SELECT 1
+            FROM auth.users
+            WHERE id = CAST(:auth_user_id AS uuid)
+              AND deleted_at IS NULL
+        )
+    ");
+    $stmt->execute([":auth_user_id" => $authUserId]);
+    return (bool)$stmt->fetchColumn();
+}
+
 function employee_account_load_profile_by_auth(PDO $pdo, string $authUserId): ?array
 {
     $stmt = $pdo->prepare("
@@ -71,6 +90,25 @@ function employee_account_load_profile_by_auth(PDO $pdo, string $authUserId): ?a
     $stmt->execute([":auth_user_id" => $authUserId]);
     $profile = $stmt->fetch(PDO::FETCH_ASSOC);
     return is_array($profile) ? $profile : null;
+}
+
+function employee_account_load_profiles_by_email(PDO $pdo, string $email): array
+{
+    $stmt = $pdo->prepare("
+        SELECT id, fullname, email, role, auth_user_id::text AS auth_user_id
+        FROM users
+        WHERE LOWER(email) = LOWER(:email)
+        ORDER BY
+          CASE LOWER(TRIM(COALESCE(role, 'customer')))
+            WHEN 'admin' THEN 1
+            WHEN 'super_admin' THEN 2
+            WHEN 'customer' THEN 3
+            ELSE 4
+          END,
+          id ASC
+    ");
+    $stmt->execute([":email" => $email]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
 function employee_account_load_by_id(PDO $pdo, int $id): ?array
@@ -99,21 +137,44 @@ function employee_account_load_by_id(PDO $pdo, int $id): ?array
 function employee_account_validate_password(string $password, string $confirmation): void
 {
     if ($password === "" || $confirmation === "") {
-        throw new DomainException("Temporary password and confirmation are required.");
+        throw new DomainException("Please complete all required fields.");
     }
     if (!hash_equals($password, $confirmation)) {
-        throw new DomainException("Temporary password confirmation does not match.");
+        throw new DomainException("Temporary passwords do not match.");
     }
     if (strlen($password) < 8) {
-        throw new DomainException("Temporary password must be at least 8 characters.");
+        throw new DomainException("Temporary password does not meet the password requirements.");
     }
     if (!preg_match('/[A-Z]/', $password)
         || !preg_match('/[a-z]/', $password)
         || !preg_match('/\d/', $password)
         || !preg_match('/[^A-Za-z0-9]/', $password)
     ) {
-        throw new DomainException("Temporary password must include uppercase, lowercase, number, and special character.");
+        throw new DomainException("Temporary password does not meet the password requirements.");
     }
+}
+
+function employee_account_safe_create_error(Throwable $exception): string
+{
+    $message = trim($exception->getMessage());
+    $publicMessages = [
+        "Please complete all required fields.",
+        "Temporary passwords do not match.",
+        "Temporary password does not meet the password requirements.",
+        "This employee account already exists.",
+        "This email is already used by a customer account.",
+        "This email is already used by a Super Admin account.",
+        "An employee profile exists but is not linked to an auth account. Please review or link it manually.",
+        "This email is already used by another ServiTech account.",
+        "Supabase Admin service role is not configured. Set SUPABASE_SERVICE_ROLE_KEY on the server before creating employee accounts.",
+        "Employee Accounts needs the employee setup migration and Supabase Auth linkage before account changes can be made.",
+    ];
+
+    if (in_array($message, $publicMessages, true)) {
+        return $message;
+    }
+
+    return "Unable to create employee account. Please check the details and try again.";
 }
 
 function employee_account_assert_email_not_taken(PDO $pdo, string $email, string $authUserId, int $ignoreUserId = 0): void
@@ -140,17 +201,28 @@ function employee_account_assert_email_not_taken(PDO $pdo, string $email, string
     }
 }
 
-function employee_account_assert_no_unlinked_email(PDO $pdo, string $email): void
+function employee_account_assert_create_email_available(PDO $pdo, string $email): void
 {
-    $stmt = $pdo->prepare("
-        SELECT id
-        FROM users
-        WHERE LOWER(email) = LOWER(:email)
-        LIMIT 1
-    ");
-    $stmt->execute([":email" => $email]);
-    if ($stmt->fetchColumn()) {
-        throw new DomainException("That email already belongs to a ServiTech profile. Link or review that profile before creating an employee account.");
+    foreach (employee_account_load_profiles_by_email($pdo, $email) as $profile) {
+        $role = servitech_normalize_role($profile["role"] ?? "customer");
+        $authUserId = trim((string)($profile["auth_user_id"] ?? ""));
+
+        if ($role === "admin") {
+            if ($authUserId !== "" && employee_account_auth_user_exists($pdo, $authUserId)) {
+                throw new DomainException("This employee account already exists.");
+            }
+            throw new DomainException("An employee profile exists but is not linked to an auth account. Please review or link it manually.");
+        }
+
+        if ($role === "super_admin") {
+            throw new DomainException("This email is already used by a Super Admin account.");
+        }
+
+        if ($role === "customer") {
+            throw new DomainException("This email is already used by a customer account.");
+        }
+
+        throw new DomainException("This email is already used by another ServiTech account.");
     }
 }
 
@@ -172,14 +244,17 @@ function employee_account_resolve_auth_user(PDO $pdo, string $email, string $pas
         $existingProfile = employee_account_load_profile_by_auth($pdo, $authUserId);
         if (is_array($existingProfile)) {
             $role = servitech_normalize_role($existingProfile["role"] ?? "customer");
+            if ($role === "admin") {
+                throw new DomainException("This employee account already exists.");
+            }
             if ($role === "super_admin") {
-                throw new DomainException("Owner Super Admin accounts cannot be managed as employee accounts.");
+                throw new DomainException("This email is already used by a Super Admin account.");
             }
             if ($role === "customer") {
-                throw new DomainException("This email already belongs to a customer account and cannot be converted into an employee account here.");
+                throw new DomainException("This email is already used by a customer account.");
             }
+            throw new DomainException("This email is already used by another ServiTech account.");
         }
-        employee_account_assert_email_not_taken($pdo, $email, $authUserId, (int)($existingProfile["id"] ?? 0));
 
         servitech_supabase_admin_update_user($authUserId, [
             "password" => $password,
@@ -197,7 +272,6 @@ function employee_account_resolve_auth_user(PDO $pdo, string $email, string $pas
         ];
     }
 
-    employee_account_assert_no_unlinked_email($pdo, $email);
     $created = servitech_supabase_admin_create_user($email, $password, [
         "fullname" => $fullname,
         "role" => "admin",
@@ -254,78 +328,39 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         if ($action === "create") {
             $fullname = trim((string)($_POST["fullname"] ?? ""));
             $email = strtolower(trim((string)($_POST["email"] ?? "")));
-            $contact = trim((string)($_POST["contact"] ?? ""));
-            $positionTitle = trim((string)($_POST["position_title"] ?? ""));
-            $notes = trim((string)($_POST["employee_notes"] ?? ""));
             $password = (string)($_POST["temporary_password"] ?? "");
             $passwordConfirm = (string)($_POST["temporary_password_confirm"] ?? "");
 
             if ($fullname === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new DomainException("Enter a valid employee name and email.");
+                throw new DomainException("Please complete all required fields.");
             }
+            employee_account_assert_create_email_available($pdo, $email);
             employee_account_validate_password($password, $passwordConfirm);
 
             $authResult = employee_account_resolve_auth_user($pdo, $email, $password, $fullname);
             $authUserId = strtolower((string)$authResult["auth_user_id"]);
-            employee_account_assert_email_not_taken($pdo, $email, $authUserId);
-            $existingProfile = is_array($authResult["existing_profile"] ?? null) ? $authResult["existing_profile"] : null;
-
-            if ($existingProfile) {
-                $stmt = $pdo->prepare("
-                    UPDATE users
-                    SET fullname = :fullname,
-                        email = :email,
-                        contact = :contact,
-                        role = 'admin',
-                        account_status = 'active',
-                        force_password_change = TRUE,
-                        profile_completed = FALSE,
-                        first_login_completed_at = NULL,
-                        position_title = :position_title,
-                        employee_notes = :employee_notes,
-                        email_verified_at = COALESCE(email_verified_at, :confirmed_at),
-                        password_hash = NULL,
-                        updated_at = NOW()
-                    WHERE id = :id
-                    RETURNING id
-                ");
-                $stmt->execute([
-                    ":fullname" => $fullname,
-                    ":email" => $email,
-                    ":contact" => $contact !== "" ? $contact : null,
-                    ":position_title" => $positionTitle,
-                    ":employee_notes" => $notes,
-                    ":confirmed_at" => $authResult["email_confirmed_at"],
-                    ":id" => (int)$existingProfile["id"],
-                ]);
-                $employeeId = (int)$stmt->fetchColumn();
-            } else {
-                $stmt = $pdo->prepare("
-                    INSERT INTO users (
-                        auth_user_id, fullname, email, contact, password_hash, role,
-                        account_status, force_password_change, profile_completed,
-                        first_login_completed_at, email_verified_at, position_title,
-                        employee_notes, created_by, created_at, updated_at
-                    ) VALUES (
-                        CAST(:auth_user_id AS uuid), :fullname, :email, :contact, NULL, 'admin',
-                        'active', TRUE, FALSE,
-                        NULL, :confirmed_at, :position_title,
-                        :employee_notes, :created_by, NOW(), NOW()
-                    )
-                    RETURNING id
-                ");
-                $stmt->execute([
-                    ":auth_user_id" => $authUserId,
-                    ":fullname" => $fullname,
-                    ":email" => $email,
-                    ":contact" => $contact !== "" ? $contact : null,
-                    ":confirmed_at" => $authResult["email_confirmed_at"],
-                    ":position_title" => $positionTitle,
-                    ":employee_notes" => $notes,
-                    ":created_by" => $currentAdminId > 0 ? $currentAdminId : null,
-                ]);
-                $employeeId = (int)$stmt->fetchColumn();
-            }
+            $stmt = $pdo->prepare("
+                INSERT INTO users (
+                    auth_user_id, fullname, email, password_hash, role,
+                    account_status, force_password_change, profile_completed,
+                    first_login_completed_at, email_verified_at, created_by,
+                    created_at, updated_at
+                ) VALUES (
+                    CAST(:auth_user_id AS uuid), :fullname, :email, NULL, 'admin',
+                    'active', TRUE, FALSE,
+                    NULL, :confirmed_at, :created_by,
+                    NOW(), NOW()
+                )
+                RETURNING id
+            ");
+            $stmt->execute([
+                ":auth_user_id" => $authUserId,
+                ":fullname" => $fullname,
+                ":email" => $email,
+                ":confirmed_at" => $authResult["email_confirmed_at"],
+                ":created_by" => $currentAdminId > 0 ? $currentAdminId : null,
+            ]);
+            $employeeId = (int)$stmt->fetchColumn();
 
             servitech_activity_log($pdo, [
                 "action_type" => "employee_account_create",
@@ -334,7 +369,7 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 "new_value" => ["email" => $email, "role" => "admin", "auth_user_id" => $authUserId, "profile_completed" => false],
                 "description" => "Super Admin created an employee account for {$fullname}.",
             ]);
-            servitech_admin_flash_toast("Employee account created. Give the temporary password to the employee securely; it will not be shown again.", "success");
+            servitech_admin_flash_toast("Employee account created successfully.", "success");
         } elseif ($action === "update") {
             $employeeId = (int)($_POST["employee_id"] ?? 0);
             $account = employee_account_load_by_id($pdo, $employeeId);
@@ -471,13 +506,22 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             servitech_admin_flash_toast("Employee will be required to change password on next login.", "success");
         }
     } catch (PDOException $exception) {
-        $message = str_contains(strtolower($exception->getMessage()), "unique")
-            ? "That employee account is already linked."
+        $message = $action === "create"
+            ? "Unable to create employee account. Please check the details and try again."
             : "Unable to save the employee account.";
         error_log("employee account save error: " . $exception->getMessage());
         servitech_admin_flash_toast($message, "error");
+        if ($action === "create") {
+            $_SESSION["employee_account_create_modal_open"] = true;
+        }
     } catch (Throwable $exception) {
-        servitech_admin_flash_toast($exception->getMessage(), "error");
+        servitech_admin_flash_toast(
+            $action === "create" ? employee_account_safe_create_error($exception) : $exception->getMessage(),
+            "error"
+        );
+        if ($action === "create") {
+            $_SESSION["employee_account_create_modal_open"] = true;
+        }
     }
 
     employee_account_redirect_self();
@@ -509,6 +553,8 @@ if ($pageReady) {
 }
 
 $csrfToken = servitech_csrf_token();
+$openCreateModal = !empty($_SESSION["employee_account_create_modal_open"]);
+unset($_SESSION["employee_account_create_modal_open"]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -541,52 +587,11 @@ $csrfToken = servitech_csrf_token();
   <?php endif; ?>
   <div class="admin-owner-alert">Temporary passwords are never stored in ServiTech tables and are only sent to Supabase Auth. Give them to employees securely.</div>
 
-  <section class="admin-owner-grid">
-    <aside class="admin-owner-panel">
-      <h2>Create Employee Account</h2>
-      <form class="admin-owner-form employee-account-password-form" method="post">
-        <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
-        <input type="hidden" name="action" value="create">
-        <div class="admin-owner-field">
-          <label for="fullname">Full Name</label>
-          <input id="fullname" name="fullname" autocomplete="name" required>
-        </div>
-        <div class="admin-owner-field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="email" required>
-        </div>
-        <div class="admin-owner-field">
-          <label for="contact">Contact</label>
-          <input id="contact" name="contact" autocomplete="tel">
-        </div>
-        <div class="admin-owner-field">
-          <label for="position_title">Position / Job Title</label>
-          <input id="position_title" name="position_title" maxlength="120">
-        </div>
-        <div class="admin-owner-field">
-          <label>Role</label>
-          <input value="Admin / Employee" readonly>
-        </div>
-        <div class="admin-owner-field">
-          <label for="temporary_password">Temporary Password</label>
-          <input id="temporary_password" name="temporary_password" type="password" autocomplete="new-password" required>
-        </div>
-        <div class="admin-owner-field">
-          <label for="temporary_password_confirm">Confirm Temporary Password</label>
-          <input id="temporary_password_confirm" name="temporary_password_confirm" type="password" autocomplete="new-password" required>
-        </div>
-        <div class="admin-owner-actions">
-          <button class="admin-owner-button-secondary" type="button" data-generate-temp-password>Generate Temporary Password</button>
-          <button class="admin-owner-button-secondary" type="button" data-copy-temp-password>Copy Temporary Password</button>
-        </div>
-        <div class="admin-owner-field">
-          <label for="employee_notes">Notes</label>
-          <textarea id="employee_notes" name="employee_notes" rows="4"></textarea>
-        </div>
-        <button class="admin-owner-button" type="submit"<?= $pageReady && $supabaseAdminReady ? "" : " disabled" ?>>Create Employee Account</button>
-      </form>
-    </aside>
+  <div class="admin-owner-toolbar">
+    <button class="admin-owner-button" type="button" data-open-create-employee-modal<?= $pageReady && $supabaseAdminReady ? "" : " disabled" ?>>Create Employee Account</button>
+  </div>
 
+  <section class="admin-owner-grid admin-owner-grid--single">
     <section class="admin-owner-panel">
       <h2>Employee Admin Accounts</h2>
       <div class="admin-owner-table-wrap">
@@ -725,9 +730,115 @@ $csrfToken = servitech_csrf_token();
       </div>
     </section>
   </section>
+
+  <div class="admin-owner-modal-overlay" data-create-employee-modal aria-hidden="<?= $openCreateModal ? "false" : "true" ?>"<?= $openCreateModal ? "" : " hidden" ?>>
+    <section class="admin-owner-modal" role="dialog" aria-modal="true" aria-labelledby="create-employee-title" aria-describedby="create-employee-help">
+      <div class="admin-owner-modal__header">
+        <div>
+          <h2 id="create-employee-title">Create Employee Account</h2>
+          <p id="create-employee-help">Create an employee login account with a temporary password. The employee will complete their profile during first login.</p>
+        </div>
+        <button class="admin-owner-modal__close" type="button" aria-label="Close create employee modal" data-close-create-employee-modal>&times;</button>
+      </div>
+      <form class="admin-owner-form employee-account-password-form" method="post" data-create-employee-form>
+        <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
+        <input type="hidden" name="action" value="create">
+        <div class="admin-owner-field">
+          <label for="create_employee_fullname">Full Name</label>
+          <input id="create_employee_fullname" name="fullname" autocomplete="name" required>
+        </div>
+        <div class="admin-owner-field">
+          <label for="create_employee_email">Email Address</label>
+          <input id="create_employee_email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="admin-owner-modal__meta">
+          <span><strong>Role</strong> Admin / Employee</span>
+          <span><strong>Status</strong> Active</span>
+        </div>
+        <div class="admin-owner-field">
+          <label for="create_employee_temporary_password">Temporary Password</label>
+          <input id="create_employee_temporary_password" name="temporary_password" type="password" autocomplete="new-password" required>
+        </div>
+        <div class="admin-owner-field">
+          <label for="create_employee_temporary_password_confirm">Confirm Temporary Password</label>
+          <input id="create_employee_temporary_password_confirm" name="temporary_password_confirm" type="password" autocomplete="new-password" required>
+        </div>
+        <div class="admin-owner-actions">
+          <button class="admin-owner-button-secondary" type="button" data-generate-temp-password>Generate Temporary Password</button>
+          <button class="admin-owner-button-secondary" type="button" data-copy-temp-password>Copy Temporary Password</button>
+        </div>
+        <div class="admin-owner-modal__actions">
+          <button class="admin-owner-button-secondary" type="button" data-close-create-employee-modal>Cancel</button>
+          <button class="admin-owner-button" type="submit" data-create-employee-submit<?= $pageReady && $supabaseAdminReady ? "" : " disabled" ?>>Create Account</button>
+        </div>
+      </form>
+    </section>
+  </div>
 </main>
 <script>
   (function () {
+    var modal = document.querySelector("[data-create-employee-modal]");
+    var createForm = document.querySelector("[data-create-employee-form]");
+    var openButton = document.querySelector("[data-open-create-employee-modal]");
+    var submitButton = document.querySelector("[data-create-employee-submit]");
+
+    function firstModalField() {
+      return modal ? modal.querySelector("input[name='fullname']") : null;
+    }
+
+    function openCreateModal() {
+      if (!modal) return;
+      modal.hidden = false;
+      modal.setAttribute("aria-hidden", "false");
+      window.setTimeout(function () {
+        var field = firstModalField();
+        if (field) field.focus();
+      }, 0);
+    }
+
+    function closeCreateModal(resetForm) {
+      if (!modal) return;
+      modal.hidden = true;
+      modal.setAttribute("aria-hidden", "true");
+      if (resetForm && createForm) {
+        createForm.reset();
+        createForm.querySelectorAll("input[type='text'][name^='temporary_password']").forEach(function (input) {
+          input.type = "password";
+        });
+      }
+      if (submitButton) {
+        submitButton.disabled = <?= $pageReady && $supabaseAdminReady ? "false" : "true" ?>;
+        submitButton.textContent = "Create Account";
+      }
+      if (openButton) openButton.focus();
+    }
+
+    if (openButton) {
+      openButton.addEventListener("click", openCreateModal);
+    }
+
+    if (modal) {
+      modal.addEventListener("click", function (event) {
+        if (event.target === modal || event.target.closest("[data-close-create-employee-modal]")) {
+          closeCreateModal(true);
+        }
+      });
+    }
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && modal && !modal.hidden) {
+        closeCreateModal(true);
+      }
+    });
+
+    if (createForm) {
+      createForm.addEventListener("submit", function () {
+        if (!submitButton) return;
+        submitButton.disabled = true;
+        submitButton.textContent = "Creating...";
+      });
+    }
+
     function makePassword() {
       var upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
       var lower = "abcdefghijkmnopqrstuvwxyz";

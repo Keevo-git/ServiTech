@@ -53,7 +53,6 @@ foreach ([
     "servitech_supabase_admin_create_user",
     "servitech_supabase_admin_update_user",
     "force_password_change = TRUE",
-    "profile_completed = FALSE",
     "Pending Setup",
     "employee_password_reset",
     "employee_force_password_change",
@@ -61,6 +60,7 @@ foreach ([
 ] as $accountsText) {
     employee_setup_assert(str_contains($accounts, $accountsText), "Employee Accounts page must include {$accountsText}.");
 }
+employee_setup_assert(str_contains($accounts, "profile_completed") && str_contains($accounts, "'active', TRUE, FALSE"), "Employee Accounts page must create employees with pending profile setup.");
 
 foreach ([
     "Complete Your Employee Account",
