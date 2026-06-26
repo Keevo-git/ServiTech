@@ -61,6 +61,7 @@ verification_assert(
 
 $register = verification_source("auth/register.php");
 $login = verification_source("auth/login.php");
+$passwordLogin = verification_source("auth/_password_login.php");
 $loginPage = verification_source("auth/log_in.php");
 $pendingPage = verification_source("auth/verification_pending.php");
 $resend = verification_source("auth/resend_verification.php");
@@ -99,8 +100,9 @@ verification_assert(
     "A rejected delivery must be shown as a specific actionable issue, never as a normal sent state."
 );
 verification_assert(
-    str_contains($login, 'servitech_supabase_complete_login($privilegedPdo, $authResponse, "password")')
-        && str_contains($login, 'servitech_login_failure_redirect("verify_email", $rememberMe)'),
+    str_contains($login, 'servitech_handle_password_login("customer")')
+        && str_contains($passwordLogin, 'servitech_supabase_complete_login($privilegedPdo, $authResponse, "password")')
+        && str_contains($passwordLogin, 'servitech_login_failure_redirect($config, "verify_email", $rememberMe)'),
     "Case B/C: password login must enforce confirmation and expose the verification state."
 );
 verification_assert(

@@ -21,6 +21,7 @@ unset($_SESSION["login_remember_retry"]);
   <title>ServiTech: Login</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260625-auth-verification") ?>">
+  <?php render_auth_toast_assets(); ?>
 </head>
 <body class="auth-page auth-page--login">
 
@@ -359,6 +360,9 @@ unset($_SESSION["login_remember_retry"]);
       loginMessage.className = "form-alert " + (type === "success" ? "form-alert--success" : "form-alert--error");
       loginMessage.textContent = text;
       loginMessage.hidden = false;
+      if (window.servitechToast) {
+        window.servitechToast(text, { tone: type === "success" ? "success" : "error" });
+      }
     }
 
     function clearMessage() {
@@ -408,6 +412,8 @@ unset($_SESSION["login_remember_retry"]);
         setMessage("error", "This account is deactivated. Please contact a Super Admin.");
       } else if (loginCode === "fail") {
         setMessage("error", "Invalid email or password.");
+      } else if (loginCode === "wrong_role_customer") {
+        setMessage("error", "Internal accounts must use the correct Super Admin or Admin login page.");
       } else if (params.get("verification") === "success") {
         setMessage("success", "Email verified. You can now log in.");
       } else if (params.get("verification") === "invalid") {
@@ -517,6 +523,9 @@ unset($_SESSION["login_remember_retry"]);
 
       if (!validateLoginForm()) {
         event.preventDefault();
+        if (window.servitechToast) {
+          window.servitechToast("Enter a valid email address and password.", { tone: "error" });
+        }
         return;
       }
 

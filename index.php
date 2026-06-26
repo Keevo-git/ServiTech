@@ -289,6 +289,7 @@ try {
   <script src="/assets/js/csrf.js"></script>
   <script src="/assets/js/main.js?v=20260623-live-service-catalog"></script>
   <script src="/assets/js/header-menu.js?v=20260613-customer-logout-gap" defer></script>
+  <script src="/assets/js/internal-login-shortcuts.js?v=20260626-internal-login-shortcuts" defer></script>
 </body>
 </html>
 

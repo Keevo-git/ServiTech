@@ -6,6 +6,7 @@ require_once __DIR__ . "/../config/google_auth.php";
 require_once __DIR__ . "/../config/account.php";
 require_once __DIR__ . "/../config/google_account_completion.php";
 require_once __DIR__ . "/../config/remember_me.php";
+require_once __DIR__ . "/../config/activity_log.php";
 require_once __DIR__ . "/registration_notifications.php";
 
 servitech_enforce_same_origin(true);
@@ -110,6 +111,23 @@ if (servitech_supabase_auth_enabled()) {
             (int)($applicationProfile["id"] ?? 0)
         );
         $applicationRole = servitech_normalize_role($applicationProfile["role"] ?? "customer");
+        if (in_array($applicationRole, ["admin", "super_admin"], true)) {
+            servitech_activity_log($privilegedPdo, [
+                "actor_id" => (int)($applicationProfile["id"] ?? 0),
+                "role" => $applicationRole,
+                "action_type" => "customer_wrong_role_login",
+                "module" => "authentication",
+                "target_record_id" => (string)($applicationProfile["id"] ?? ""),
+                "new_value" => ["email" => $authEmail, "login_context" => "customer_google", "resolved_role" => $applicationRole],
+                "description" => servitech_role_label($applicationRole) . " account attempted to use Customer Google login and was blocked.",
+                "status" => "failed",
+            ]);
+            servitech_supabase_clear_auth_session();
+            servitech_supabase_clear_application_session();
+            http_response_code(403);
+            echo json_encode(["ok" => false, "error" => "Internal accounts must use the correct Super Admin or Admin login page."]);
+            exit();
+        }
         if (!is_array($existing) && !in_array($applicationRole, ["admin", "super_admin"], true)) {
             $profileFullname = trim((string)($authUser["user_metadata"]["full_name"] ?? $authUser["user_metadata"]["name"] ?? ""));
             servitech_notify_admin_new_customer(
@@ -283,6 +301,23 @@ try {
 
     if ($userId <= 0) {
         throw new RuntimeException("Could not resolve authenticated user.");
+    }
+    if (in_array(servitech_normalize_role($role), ["admin", "super_admin"], true)) {
+        servitech_activity_log($pdo, [
+            "actor_id" => $userId,
+            "role" => servitech_normalize_role($role),
+            "action_type" => "customer_wrong_role_login",
+            "module" => "authentication",
+            "target_record_id" => (string)$userId,
+            "new_value" => ["email" => $email, "login_context" => "customer_google", "resolved_role" => servitech_normalize_role($role)],
+            "description" => servitech_role_label($role) . " account attempted to use Customer Google login and was blocked.",
+            "status" => "failed",
+        ]);
+        servitech_supabase_clear_auth_session();
+        servitech_supabase_clear_application_session();
+        http_response_code(403);
+        echo json_encode(["ok" => false, "error" => "Internal accounts must use the correct Super Admin or Admin login page."]);
+        exit();
     }
     if ($createdCustomer) {
         servitech_notify_admin_new_customer($pdo, $userId, $fullName, $email);

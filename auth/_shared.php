@@ -81,6 +81,16 @@ if (!function_exists("render_auth_header")) {
     }
 }
 
+if (!function_exists("render_auth_toast_assets")) {
+    function render_auth_toast_assets(): void
+    {
+        ?>
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/customer-toast.css?v=20260626-auth-login-toast") ?>">
+  <script src="<?= auth_url("/assets/js/customer_toast.js?v=20260626-auth-login-toast") ?>"></script>
+<?php
+    }
+}
+
 if (!function_exists("render_auth_footer")) {
     function render_auth_footer(): void
     {
@@ -127,6 +137,7 @@ if (!function_exists("render_auth_footer")) {
     <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>
   </footer>
 <?php require_once __DIR__ . "/../components/cookie_consent.php"; ?>
+  <script src="<?= auth_url("/assets/js/internal-login-shortcuts.js?v=20260626-internal-login-shortcuts") ?>" defer></script>
 <?php
     }
 }
