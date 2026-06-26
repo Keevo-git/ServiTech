@@ -47,6 +47,10 @@
   grid-template-columns: 1fr;
 }
 
+.admin-owner-grid--single > * {
+  min-width: 0;
+}
+
 .admin-owner-toolbar {
   display: flex;
   justify-content: flex-end;
@@ -60,6 +64,10 @@
   border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(27, 51, 79, 0.09);
+}
+
+.admin-owner-panel--full {
+  width: 100%;
 }
 
 .admin-owner-panel h2,
@@ -86,7 +94,8 @@
 }
 
 .admin-owner-field input,
-.admin-owner-field select {
+.admin-owner-field select,
+.admin-owner-field textarea {
   width: 100%;
   min-height: 42px;
   border: 1px solid #cfdbea;
@@ -95,6 +104,11 @@
   color: #112338;
   background: #ffffff;
   font: inherit;
+}
+
+.admin-owner-field textarea {
+  min-height: 90px;
+  resize: vertical;
 }
 
 .admin-owner-check {
@@ -180,7 +194,7 @@
 
 .admin-owner-table {
   width: 100%;
-  min-width: 820px;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
@@ -207,6 +221,13 @@
 
 .admin-owner-table small {
   color: #64748b;
+}
+
+.admin-owner-empty-state {
+  padding: 26px 12px;
+  color: #64748b;
+  text-align: center;
+  font-weight: 800;
 }
 
 .admin-profile-table {
@@ -299,6 +320,7 @@
   place-items: center;
   padding: 18px;
   background: rgba(15, 23, 42, 0.54);
+  backdrop-filter: blur(2px);
 }
 
 .admin-owner-modal-overlay[hidden] {
@@ -306,7 +328,7 @@
 }
 
 .admin-owner-modal {
-  width: min(560px, 100%);
+  width: min(620px, 100%);
   max-height: min(720px, calc(100vh - 36px));
   overflow-y: auto;
   padding: 20px;
@@ -314,6 +336,10 @@
   border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
+
+.admin-owner-modal-open {
+  overflow: hidden;
 }
 
 .admin-owner-modal__header {

@@ -564,9 +564,9 @@ unset($_SESSION["employee_account_create_modal_open"]);
   <title>Employee Accounts | ServiTech Admin</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260626-roles') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260626-employee-accounts-modal') ?>">
 </head>
-<body>
+<body class="<?= $openCreateModal ? "admin-owner-modal-open" : "" ?>">
 <?php require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
 
 <main class="admin-owner-shell">
@@ -592,23 +592,24 @@ unset($_SESSION["employee_account_create_modal_open"]);
   </div>
 
   <section class="admin-owner-grid admin-owner-grid--single">
-    <section class="admin-owner-panel">
+    <section class="admin-owner-panel admin-owner-panel--full">
       <h2>Employee Admin Accounts</h2>
       <div class="admin-owner-table-wrap">
         <table class="admin-owner-table">
           <thead>
             <tr>
               <th>Employee</th>
+              <th>Email</th>
               <th>Role</th>
-              <th>Status</th>
-              <th>Profile</th>
-              <th>Dates</th>
+              <th>Account Status</th>
+              <th>Profile Status</th>
+              <th>Created Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
           <?php if (!$employeeAccounts): ?>
-            <tr><td colspan="6">No linked employee admin accounts found.</td></tr>
+            <tr><td colspan="7" class="admin-owner-empty-state">No linked employee admin accounts found.</td></tr>
           <?php endif; ?>
           <?php foreach ($employeeAccounts as $account): ?>
             <?php
@@ -621,9 +622,9 @@ unset($_SESSION["employee_account_create_modal_open"]);
             <tr>
               <td>
                 <strong>#<?= $employeeId ?> - <?= employee_account_h($account["fullname"] ?? "") ?></strong>
-                <small><?= employee_account_h($account["email"] ?? "") ?></small><br>
                 <small><?= employee_account_h($account["contact"] ?? "-") ?></small>
               </td>
+              <td><?= employee_account_h($account["email"] ?? "") ?></td>
               <td><span class="admin-owner-pill">Admin / Employee</span></td>
               <td>
                 <span class="admin-owner-pill<?= $isActive ? "" : " admin-owner-pill--danger" ?>"><?= employee_account_h(ucfirst($status)) ?></span>
@@ -637,7 +638,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
                 </span>
               </td>
               <td>
-                <small>Created: <?= employee_account_h(employee_account_format_datetime($account["created_at"] ?? "")) ?></small><br>
+                <strong><?= employee_account_h(employee_account_format_datetime($account["created_at"] ?? "")) ?></strong>
                 <small>Last login: <?= employee_account_h(employee_account_format_datetime($account["last_login_at"] ?? "")) ?></small><br>
                 <small>Created by: <?= employee_account_h($account["created_by_name"] ?: "-") ?></small>
               </td>
@@ -790,6 +791,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
       if (!modal) return;
       modal.hidden = false;
       modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("admin-owner-modal-open");
       window.setTimeout(function () {
         var field = firstModalField();
         if (field) field.focus();
@@ -800,6 +802,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
       if (!modal) return;
       modal.hidden = true;
       modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("admin-owner-modal-open");
       if (resetForm && createForm) {
         createForm.reset();
         createForm.querySelectorAll("input[type='text'][name^='temporary_password']").forEach(function (input) {

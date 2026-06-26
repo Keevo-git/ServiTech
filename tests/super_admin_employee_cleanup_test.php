@@ -96,6 +96,8 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_admin_flas
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-open-create-employee-modal"), "Employee creation must be opened from a modal trigger.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-modal"), "Employee creation modal must exist.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-form"), "Employee creation form must be inside the modal.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260626-employee-accounts-modal"), "Employee Accounts page must load the cache-busted owner modal CSS.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "admin-owner-panel admin-owner-panel--full"), "Employee Accounts table card must use the full-width owner panel.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Create an employee login account with a temporary password. The employee will complete their profile during first login."), "Create modal must explain first-login profile setup.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "<aside class=\"admin-owner-panel\">\n      <h2>Create Employee Account</h2>"), "Create Employee Account form must not render as an always-visible side panel.");
 super_admin_cleanup_assert(!str_contains($createForm, 'name="contact"'), "Create Employee Account form must not ask for contact.");
@@ -109,6 +111,9 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "An employee profile 
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "That employee account is already linked."), "Old misleading duplicate toast must be removed.");
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal-overlay"), "Owner CSS must include modal overlay styling.");
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal"), "Owner CSS must include modal panel styling.");
+super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-grid--single > *"), "Owner CSS must keep single-column panels full width.");
+super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-panel--full"), "Owner CSS must include a full-width panel helper.");
+super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal-open"), "Owner CSS must prevent background scroll while modal is open.");
 
 foreach ([
     $oldStaffStub,
