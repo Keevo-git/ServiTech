@@ -32,18 +32,17 @@ $adminHeaderShowHome = $adminHeaderVariant !== "dashboard";
 $adminHeaderRole = servitech_current_role();
 $adminHeaderIsSuperAdmin = servitech_is_super_admin();
 $adminHeaderRoleLabel = servitech_role_label($adminHeaderRole);
-$adminHeaderNavItems = [
-    ["label" => "Dashboard", "href" => "/pages/admin/admin_dashboard.php", "roles" => ["admin", "super_admin"]],
-    ["label" => "Orders", "href" => "/pages/admin/order_management/printM.php", "roles" => ["admin", "super_admin"]],
-    ["label" => "Queue Monitor", "href" => "/pages/admin/queue_list/printing.php", "roles" => ["admin", "super_admin"]],
-    ["label" => "Customers", "href" => "/pages/admin/customer_list/custoL.php", "roles" => ["admin", "super_admin"]],
-    ["label" => "Services", "href" => "/pages/admin/Services/edit_services.php", "roles" => ["super_admin"]],
-    ["label" => "Store Availability", "href" => "/pages/admin/store_availability.php", "roles" => ["super_admin"]],
-    ["label" => "Staff Accounts", "href" => "/pages/admin/staff_accounts.php", "roles" => ["super_admin"]],
-    ["label" => "Activity Logs", "href" => "/pages/admin/activity_logs.php", "roles" => ["super_admin"]],
-    ["label" => "Reports", "href" => "/pages/admin/admin_dashboard.php#operations-analytics", "roles" => ["super_admin"]],
-    ["label" => "System Settings", "href" => "/pages/admin/system_settings.php", "roles" => ["super_admin"]],
-];
+$adminHeaderNavItems = $adminHeaderIsSuperAdmin
+    ? [
+        ["label" => "Home", "href" => "/pages/admin/admin_dashboard.php", "roles" => ["super_admin"]],
+        ["label" => "Services", "href" => "/index.php", "roles" => ["super_admin"]],
+    ]
+    : [
+        ["label" => "Dashboard", "href" => "/pages/admin/admin_dashboard.php", "roles" => ["admin"]],
+        ["label" => "Orders", "href" => "/pages/admin/order_management/printM.php", "roles" => ["admin"]],
+        ["label" => "Queue Monitor", "href" => "/pages/admin/queue_list/printing.php", "roles" => ["admin"]],
+        ["label" => "Customers", "href" => "/pages/admin/customer_list/custoL.php", "roles" => ["admin"]],
+    ];
 ?>
 <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260621-modal-stack-toast') ?>">
 <script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
@@ -79,6 +78,7 @@ $adminHeaderNavItems = [
   .admin-shared-header nav[data-collapsible-menu] {
     order: 2;
     margin-left: auto;
+    flex: 0 1 auto;
   }
 
   .admin-shared-header nav[data-collapsible-menu] a,
@@ -102,6 +102,10 @@ $adminHeaderNavItems = [
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
+  }
+
+  .admin-shared-header .admin-header-actions--super {
+    gap: 12px;
   }
 
   .admin-shared-header .admin-role-badge {
@@ -341,13 +345,15 @@ $adminHeaderNavItems = [
   <nav id="<?= htmlspecialchars($adminHeaderMenuId, ENT_QUOTES, 'UTF-8') ?>" data-collapsible-menu>
     <?php foreach ($adminHeaderNavItems as $item): ?>
       <?php if (in_array($adminHeaderRole, $item["roles"], true)): ?>
-        <?php if (!$adminHeaderShowHome && $item["href"] === "/pages/admin/admin_dashboard.php") continue; ?>
+        <?php if (!$adminHeaderIsSuperAdmin && !$adminHeaderShowHome && $item["href"] === "/pages/admin/admin_dashboard.php") continue; ?>
         <a href="<?= admin_url($item["href"]) ?>"><?= htmlspecialchars($item["label"], ENT_QUOTES, 'UTF-8') ?></a>
       <?php endif; ?>
     <?php endforeach; ?>
   </nav>
-  <div class="admin-header-actions">
-    <span class="admin-role-badge"><?= htmlspecialchars($adminHeaderRoleLabel, ENT_QUOTES, 'UTF-8') ?></span>
+  <div class="admin-header-actions<?= $adminHeaderIsSuperAdmin ? ' admin-header-actions--super' : '' ?>">
+    <?php if (!$adminHeaderIsSuperAdmin): ?>
+      <span class="admin-role-badge"><?= htmlspecialchars($adminHeaderRoleLabel, ENT_QUOTES, 'UTF-8') ?></span>
+    <?php endif; ?>
     <a
       href="<?= admin_queue_notification_link() ?>"
       class="admin-notification-btn"
