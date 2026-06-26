@@ -101,6 +101,20 @@ function servitech_supabase_confirmation_redirect_url(): string
     return $baseUrl . "/auth/verification_callback.php";
 }
 
+function servitech_supabase_admin_confirmation_redirect_url(): string
+{
+    $baseUrl = rtrim(servitech_supabase_env("APP_PUBLIC_URL", "https://servitech.store"), "/");
+    $parts = parse_url($baseUrl);
+    $scheme = strtolower((string)($parts["scheme"] ?? ""));
+    $host = trim((string)($parts["host"] ?? ""));
+
+    if (!in_array($scheme, ["http", "https"], true) || $host === "") {
+        throw new RuntimeException("APP_PUBLIC_URL is not a valid public URL.");
+    }
+
+    return $baseUrl . "/auth/verification_callback.php?login=admin";
+}
+
 function servitech_supabase_recovery_redirect_url(): string
 {
     $baseUrl = rtrim(servitech_supabase_env("APP_PUBLIC_URL", "https://servitech.store"), "/");
@@ -266,12 +280,17 @@ function servitech_supabase_admin_auth_request(
     return $payload;
 }
 
-function servitech_supabase_admin_create_user(string $email, string $password, array $metadata = []): array
+function servitech_supabase_admin_create_user(
+    string $email,
+    string $password,
+    array $metadata = [],
+    bool $emailConfirm = true
+): array
 {
     return servitech_supabase_admin_auth_request("admin/users", "POST", [
         "email" => $email,
         "password" => $password,
-        "email_confirm" => true,
+        "email_confirm" => $emailConfirm,
         "user_metadata" => $metadata,
     ]);
 }

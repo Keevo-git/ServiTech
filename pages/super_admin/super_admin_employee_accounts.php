@@ -60,6 +60,12 @@ function employee_account_load_auth_user_by_email(PDO $pdo, string $email): ?arr
     return is_array($authUser) ? $authUser : null;
 }
 
+function employee_account_confirmed_at($value): ?string
+{
+    $value = trim((string)$value);
+    return $value !== "" ? $value : null;
+}
+
 function employee_account_auth_user_exists(PDO $pdo, string $authUserId): bool
 {
     $authUserId = strtolower(trim($authUserId));
@@ -166,6 +172,9 @@ function employee_account_safe_create_error(Throwable $exception): string
         "This email is already used by a Super Admin account.",
         "An employee profile exists but is not linked to an auth account. Please review or link it manually.",
         "This email is already used by another ServiTech account.",
+        "Unable to create Supabase Auth account. Please check the email and password requirements.",
+        "Employee account was created, but the verification email could not be sent. Please check SMTP/Resend settings.",
+        "Auth account was created, but employee profile linking failed. Please review the account.",
         "Supabase Admin service role is not configured. Set SUPABASE_SERVICE_ROLE_KEY on the server before creating employee accounts.",
         "Employee Accounts needs the employee setup migration and Supabase Auth linkage before account changes can be made.",
     ];
@@ -232,6 +241,19 @@ function employee_account_redirect_self(): void
     exit();
 }
 
+function employee_account_send_verification_email(string $email): void
+{
+    try {
+        servitech_supabase_resend_signup($email, servitech_supabase_admin_confirmation_redirect_url());
+    } catch (DomainException $exception) {
+        error_log("employee verification email rejected: " . $exception->getMessage());
+        throw new DomainException("Employee account was created, but the verification email could not be sent. Please check SMTP/Resend settings.");
+    } catch (Throwable $exception) {
+        error_log("employee verification email failed: " . $exception->getMessage());
+        throw new DomainException("Employee account was created, but the verification email could not be sent. Please check SMTP/Resend settings.");
+    }
+}
+
 function employee_account_resolve_auth_user(PDO $pdo, string $email, string $password, string $fullname): array
 {
     if (!servitech_supabase_auth_enabled() || !servitech_supabase_admin_configured()) {
@@ -258,35 +280,105 @@ function employee_account_resolve_auth_user(PDO $pdo, string $email, string $pas
 
         servitech_supabase_admin_update_user($authUserId, [
             "password" => $password,
-            "email_confirm" => true,
             "user_metadata" => [
                 "fullname" => $fullname,
                 "role" => "admin",
                 "servitech_internal_role" => "admin",
             ],
         ]);
+        $confirmedAt = employee_account_confirmed_at($existingAuth["email_confirmed_at"] ?? null);
         return [
             "auth_user_id" => $authUserId,
-            "email_confirmed_at" => trim((string)($existingAuth["email_confirmed_at"] ?? "")) !== "" ? $existingAuth["email_confirmed_at"] : date("c"),
+            "email_confirmed_at" => $confirmedAt,
+            "verification_required" => $confirmedAt === null,
             "existing_profile" => $existingProfile,
         ];
     }
 
-    $created = servitech_supabase_admin_create_user($email, $password, [
-        "fullname" => $fullname,
-        "role" => "admin",
-        "servitech_internal_role" => "admin",
-    ]);
+    try {
+        $created = servitech_supabase_admin_create_user($email, $password, [
+            "fullname" => $fullname,
+            "role" => "admin",
+            "servitech_internal_role" => "admin",
+        ], false);
+    } catch (DomainException $exception) {
+        error_log("employee Supabase Auth create rejected: " . $exception->getMessage());
+        throw new DomainException("Unable to create Supabase Auth account. Please check the email and password requirements.");
+    } catch (Throwable $exception) {
+        error_log("employee Supabase Auth create failed: " . $exception->getMessage());
+        throw new DomainException("Unable to create Supabase Auth account. Please check the email and password requirements.");
+    }
     $authUserId = strtolower(trim((string)($created["id"] ?? $created["user"]["id"] ?? "")));
     if (!preg_match('/^[0-9a-f-]{36}$/i', $authUserId)) {
         throw new RuntimeException("Supabase did not return a valid employee Auth user ID.");
     }
+    $confirmedAt = employee_account_confirmed_at($created["email_confirmed_at"] ?? $created["user"]["email_confirmed_at"] ?? null);
 
     return [
         "auth_user_id" => $authUserId,
-        "email_confirmed_at" => trim((string)($created["email_confirmed_at"] ?? $created["user"]["email_confirmed_at"] ?? "")) ?: date("c"),
+        "email_confirmed_at" => $confirmedAt,
+        "verification_required" => $confirmedAt === null,
         "existing_profile" => null,
     ];
+}
+
+function employee_account_link_profile(PDO $pdo, string $authUserId, string $fullname, string $email, ?string $confirmedAt, ?int $createdBy): int
+{
+    $existingProfile = employee_account_load_profile_by_auth($pdo, $authUserId);
+    try {
+        if ($existingProfile) {
+            $stmt = $pdo->prepare("
+                UPDATE users
+                SET fullname = :fullname,
+                    email = :email,
+                    role = 'admin',
+                    account_status = 'active',
+                    force_password_change = TRUE,
+                    profile_completed = FALSE,
+                    first_login_completed_at = NULL,
+                    email_verified_at = :confirmed_at,
+                    password_hash = NULL,
+                    created_by = COALESCE(created_by, :created_by),
+                    updated_at = NOW()
+                WHERE id = :id
+                RETURNING id
+            ");
+            $stmt->execute([
+                ":fullname" => $fullname,
+                ":email" => $email,
+                ":confirmed_at" => $confirmedAt,
+                ":created_by" => $createdBy,
+                ":id" => (int)$existingProfile["id"],
+            ]);
+            return (int)$stmt->fetchColumn();
+        }
+
+        $stmt = $pdo->prepare("
+            INSERT INTO users (
+                auth_user_id, fullname, email, password_hash, role,
+                account_status, force_password_change, profile_completed,
+                first_login_completed_at, email_verified_at, created_by,
+                created_at, updated_at
+            ) VALUES (
+                CAST(:auth_user_id AS uuid), :fullname, :email, NULL, 'admin',
+                'active', TRUE, FALSE,
+                NULL, :confirmed_at, :created_by,
+                NOW(), NOW()
+            )
+            RETURNING id
+        ");
+        $stmt->execute([
+            ":auth_user_id" => $authUserId,
+            ":fullname" => $fullname,
+            ":email" => $email,
+            ":confirmed_at" => $confirmedAt,
+            ":created_by" => $createdBy,
+        ]);
+        return (int)$stmt->fetchColumn();
+    } catch (Throwable $exception) {
+        error_log("employee profile link failed after Auth create for {$email}: " . $exception->getMessage());
+        throw new DomainException("Auth account was created, but employee profile linking failed. Please review the account.");
+    }
 }
 
 $schemaReady = admin_table_has_columns($pdo, "users", [
@@ -339,37 +431,69 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
 
             $authResult = employee_account_resolve_auth_user($pdo, $email, $password, $fullname);
             $authUserId = strtolower((string)$authResult["auth_user_id"]);
-            $stmt = $pdo->prepare("
-                INSERT INTO users (
-                    auth_user_id, fullname, email, password_hash, role,
-                    account_status, force_password_change, profile_completed,
-                    first_login_completed_at, email_verified_at, created_by,
-                    created_at, updated_at
-                ) VALUES (
-                    CAST(:auth_user_id AS uuid), :fullname, :email, NULL, 'admin',
-                    'active', TRUE, FALSE,
-                    NULL, :confirmed_at, :created_by,
-                    NOW(), NOW()
-                )
-                RETURNING id
-            ");
-            $stmt->execute([
-                ":auth_user_id" => $authUserId,
-                ":fullname" => $fullname,
-                ":email" => $email,
-                ":confirmed_at" => $authResult["email_confirmed_at"],
-                ":created_by" => $currentAdminId > 0 ? $currentAdminId : null,
-            ]);
-            $employeeId = (int)$stmt->fetchColumn();
+            $confirmedAt = employee_account_confirmed_at($authResult["email_confirmed_at"] ?? null);
+            $employeeId = employee_account_link_profile(
+                $pdo,
+                $authUserId,
+                $fullname,
+                $email,
+                $confirmedAt,
+                $currentAdminId > 0 ? $currentAdminId : null
+            );
+
+            $verificationEmailSent = false;
+            $verificationEmailFailed = false;
+            if (!empty($authResult["verification_required"])) {
+                try {
+                    employee_account_send_verification_email($email);
+                    $verificationEmailSent = true;
+                    servitech_activity_log($pdo, [
+                        "action_type" => "employee_verification_email_sent",
+                        "module" => "employee_accounts",
+                        "target_record_id" => (string)$employeeId,
+                        "new_value" => [
+                            "email" => $email,
+                            "redirect_url" => servitech_supabase_admin_confirmation_redirect_url(),
+                        ],
+                        "description" => "Verification email was sent for employee {$fullname}.",
+                    ]);
+                } catch (DomainException $emailException) {
+                    $verificationEmailFailed = true;
+                    servitech_activity_log($pdo, [
+                        "action_type" => "employee_verification_email_failed",
+                        "module" => "employee_accounts",
+                        "target_record_id" => (string)$employeeId,
+                        "new_value" => ["email" => $email],
+                        "description" => "Verification email could not be sent for employee {$fullname}.",
+                        "status" => "failed",
+                    ]);
+                    error_log("employee account verification email failed for {$email}: " . $emailException->getMessage());
+                }
+            }
 
             servitech_activity_log($pdo, [
                 "action_type" => "employee_account_create",
                 "module" => "employee_accounts",
                 "target_record_id" => (string)$employeeId,
-                "new_value" => ["email" => $email, "role" => "admin", "auth_user_id" => $authUserId, "profile_completed" => false],
-                "description" => "Super Admin created an employee account for {$fullname}.",
+                "new_value" => [
+                    "email" => $email,
+                    "role" => "admin",
+                    "auth_user_id" => $authUserId,
+                    "profile_completed" => false,
+                    "email_verified" => $confirmedAt !== null,
+                    "verification_email_sent" => $verificationEmailSent,
+                ],
+                "description" => $verificationEmailSent
+                    ? "Super Admin created an employee account for {$fullname} and sent a verification email."
+                    : "Super Admin created an employee account for {$fullname}.",
             ]);
-            servitech_admin_flash_toast("Employee account created successfully.", "success");
+            if ($verificationEmailFailed) {
+                servitech_admin_flash_toast("Employee account was created, but the verification email could not be sent. Please check SMTP/Resend settings.", "warning");
+            } elseif ($verificationEmailSent) {
+                servitech_admin_flash_toast("Employee account created. A verification email has been sent.", "success");
+            } else {
+                servitech_admin_flash_toast("Employee account created successfully.", "success");
+            }
         } elseif ($action === "update") {
             $employeeId = (int)($_POST["employee_id"] ?? 0);
             $account = employee_account_load_by_id($pdo, $employeeId);
@@ -411,7 +535,7 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 ":contact" => $contact !== "" ? $contact : null,
                 ":position_title" => $positionTitle,
                 ":employee_notes" => $notes,
-                ":confirmed_at" => trim((string)($authUser["email_confirmed_at"] ?? "")) ?: date("c"),
+                ":confirmed_at" => employee_account_confirmed_at($authUser["email_confirmed_at"] ?? null),
                 ":id" => $employeeId,
             ]);
             servitech_activity_log($pdo, [
@@ -535,7 +659,8 @@ if ($pageReady) {
                u.last_login_at, u.created_at, u.updated_at, creator.fullname AS created_by_name,
                u.address, u.emergency_contact_name, u.emergency_contact_relationship,
                u.emergency_contact_address, u.emergency_contact_number,
-               u.position_title, u.employee_notes, u.first_login_completed_at
+               u.position_title, u.employee_notes, u.first_login_completed_at,
+               auth_account.email_confirmed_at AS auth_email_confirmed_at
         FROM users u
         INNER JOIN auth.users auth_account
           ON auth_account.id = u.auth_user_id
@@ -601,15 +726,16 @@ unset($_SESSION["employee_account_create_modal_open"]);
               <th>Employee</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Account Status</th>
+              <th>Auth Status</th>
               <th>Profile Status</th>
+              <th>Account Status</th>
               <th>Created Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
           <?php if (!$employeeAccounts): ?>
-            <tr><td colspan="7" class="admin-owner-empty-state">No linked employee admin accounts found.</td></tr>
+            <tr><td colspan="8" class="admin-owner-empty-state">No linked employee admin accounts found.</td></tr>
           <?php endif; ?>
           <?php foreach ($employeeAccounts as $account): ?>
             <?php
@@ -618,6 +744,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
               $isActive = $status === "active";
               $profileCompleted = filter_var($account["profile_completed"] ?? false, FILTER_VALIDATE_BOOLEAN);
               $forcePasswordChange = filter_var($account["force_password_change"] ?? false, FILTER_VALIDATE_BOOLEAN);
+              $authVerified = trim((string)($account["auth_email_confirmed_at"] ?? "")) !== "";
             ?>
             <tr>
               <td>
@@ -627,15 +754,20 @@ unset($_SESSION["employee_account_create_modal_open"]);
               <td><?= employee_account_h($account["email"] ?? "") ?></td>
               <td><span class="admin-owner-pill">Admin / Employee</span></td>
               <td>
-                <span class="admin-owner-pill<?= $isActive ? "" : " admin-owner-pill--danger" ?>"><?= employee_account_h(ucfirst($status)) ?></span>
-                <?php if ($forcePasswordChange): ?>
-                  <br><small>Password change required</small>
-                <?php endif; ?>
+                <span class="admin-owner-pill<?= $authVerified ? "" : " admin-owner-pill--danger" ?>">
+                  <?= $authVerified ? "Verified" : "Pending Email Verification" ?>
+                </span>
               </td>
               <td>
                 <span class="admin-owner-pill<?= $profileCompleted && !$forcePasswordChange ? "" : " admin-owner-pill--danger" ?>">
-                  <?= $profileCompleted && !$forcePasswordChange ? "Completed" : "Pending Setup" ?>
+                  <?= $profileCompleted && !$forcePasswordChange ? "Completed" : "Pending First-Time Setup" ?>
                 </span>
+              </td>
+              <td>
+                <span class="admin-owner-pill<?= $isActive ? "" : " admin-owner-pill--danger" ?>"><?= $isActive ? "Active" : "Inactive" ?></span>
+                <?php if ($forcePasswordChange): ?>
+                  <br><small>Password change required</small>
+                <?php endif; ?>
               </td>
               <td>
                 <strong><?= employee_account_h(employee_account_format_datetime($account["created_at"] ?? "")) ?></strong>

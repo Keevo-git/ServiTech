@@ -89,6 +89,8 @@ super_admin_cleanup_assert(!str_contains($employeeAccounts, 'value="super_admin"
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Temporary Password"), "Employee Accounts must support one-time temporary password input.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "temporary_password_confirm"), "Employee Accounts must require temporary password confirmation.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_admin_create_user"), "Employee creation must use Supabase Admin Auth.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_resend_signup"), "Employee creation must request a Supabase verification email.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_admin_confirmation_redirect_url"), "Employee verification emails must use the Admin login redirect.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_admin_update_user"), "Employee password reset must update Supabase Auth securely.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "force_password_change = TRUE"), "Employee creation/reset must force password change.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "profile_completed") && str_contains($employeeAccounts, "'active', TRUE, FALSE"), "New employees must start with pending profile setup.");
@@ -108,6 +110,12 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "This employee accoun
 super_admin_cleanup_assert(str_contains($employeeAccounts, "This email is already used by a customer account."), "Customer email conflict toast must be explicit.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "This email is already used by a Super Admin account."), "Super Admin email conflict toast must be explicit.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "An employee profile exists but is not linked to an auth account. Please review or link it manually."), "Unlinked employee profile toast must be explicit.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Unable to create Supabase Auth account. Please check the email and password requirements."), "Supabase Auth create failures must have a specific toast.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Employee account created. A verification email has been sent."), "Employee verification email success toast must be present.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Employee account was created, but the verification email could not be sent. Please check SMTP/Resend settings."), "Employee verification email failure toast must be present.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Auth account was created, but employee profile linking failed. Please review the account."), "Profile link failures after Auth creation must have a specific toast.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Pending Email Verification"), "Employee table must show pending email verification.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Pending First-Time Setup"), "Employee table must show pending first-time setup.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "That employee account is already linked."), "Old misleading duplicate toast must be removed.");
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal-overlay"), "Owner CSS must include modal overlay styling.");
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal"), "Owner CSS must include modal panel styling.");

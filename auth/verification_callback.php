@@ -42,9 +42,12 @@ header("Referrer-Policy: no-referrer");
 <?php render_auth_footer(); ?>
   <script>
     (() => {
-      const loginUrl = <?= auth_json_url("/auth/log_in.php") ?>;
       const query = new URLSearchParams(window.location.search);
       const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const loginTarget = (query.get("login") || fragment.get("login") || "").toLowerCase();
+      const loginUrl = loginTarget === "admin"
+        ? <?= auth_json_url("/auth/admin_login.php") ?>
+        : <?= auth_json_url("/auth/log_in.php") ?>;
       const getValue = (name) => fragment.get(name) || query.get(name) || "";
       const error = getValue("error") || getValue("error_code") || getValue("error_description");
       const type = getValue("type");

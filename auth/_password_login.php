@@ -151,6 +151,61 @@ function servitech_password_login_role_allowed(array $config, string $role): boo
     return in_array(servitech_normalize_role($role), $config["allowed_roles"], true);
 }
 
+function servitech_log_employee_unverified_login_attempt(PDO $pdo, string $email): void
+{
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id, fullname, email, role
+            FROM users
+            WHERE LOWER(email) = LOWER(:email)
+              AND LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+            LIMIT 1
+        ");
+        $stmt->execute([":email" => $email]);
+        $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($profile)) {
+            return;
+        }
+        $label = trim((string)($profile["fullname"] ?? "")) !== ""
+            ? (string)$profile["fullname"]
+            : $email;
+        servitech_activity_log($pdo, [
+            "actor_id" => (int)$profile["id"],
+            "role" => "admin",
+            "action_type" => "employee_login_before_email_verification",
+            "module" => "authentication",
+            "target_record_id" => (string)$profile["id"],
+            "new_value" => ["email" => $email],
+            "description" => "Employee {$label} attempted to log in before verifying email.",
+            "status" => "failed",
+        ]);
+    } catch (Throwable $exception) {
+        error_log("employee unverified login activity log failed: " . $exception->getMessage());
+    }
+}
+
+function servitech_employee_pending_verification_profile(PDO $pdo, string $email): ?array
+{
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id, fullname, email, role, email_verified_at
+            FROM users
+            WHERE LOWER(email) = LOWER(:email)
+              AND LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+            LIMIT 1
+        ");
+        $stmt->execute([":email" => $email]);
+        $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($profile) || trim((string)($profile["email_verified_at"] ?? "")) !== "") {
+            return null;
+        }
+        return $profile;
+    } catch (Throwable $exception) {
+        error_log("employee pending verification lookup failed: " . $exception->getMessage());
+        return null;
+    }
+}
+
 function servitech_handle_password_login(string $context): void
 {
     servitech_redirect_authenticated_user();
@@ -184,6 +239,9 @@ function servitech_handle_password_login(string $context): void
             }
 
             $authResponse = servitech_supabase_sign_in($email, $password);
+            $pendingEmployeeVerification = ($config["context"] ?? "") === "admin"
+                ? servitech_employee_pending_verification_profile($privilegedPdo, $email)
+                : null;
             servitech_login_throttle_clear($privilegedPdo, $email);
             $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse, "password");
             $profileRole = servitech_normalize_role($profile["role"] ?? "customer");
@@ -201,6 +259,17 @@ function servitech_handle_password_login(string $context): void
                     (string)($profile["fullname"] ?? ""),
                     (string)($profile["email"] ?? $email)
                 );
+            }
+            if ($profileRole === "admin" && is_array($pendingEmployeeVerification)) {
+                servitech_activity_log($privilegedPdo, [
+                    "actor_id" => (int)($profile["id"] ?? $pendingEmployeeVerification["id"] ?? 0),
+                    "role" => "admin",
+                    "action_type" => "employee_email_verified",
+                    "module" => "authentication",
+                    "target_record_id" => (string)($profile["id"] ?? $pendingEmployeeVerification["id"] ?? ""),
+                    "new_value" => ["email" => $email],
+                    "description" => "Employee " . (string)($profile["fullname"] ?? $pendingEmployeeVerification["fullname"] ?? $email) . " verified email and logged in.",
+                ]);
             }
             servitech_password_login_log($privilegedPdo, $config, "success", $email, $profile);
             if ($profileRole === "admin" && servitech_employee_setup_required($privilegedPdo, (int)($profile["id"] ?? 0))) {
@@ -222,6 +291,9 @@ function servitech_handle_password_login(string $context): void
                 servitech_password_login_clear_session($privilegedPdo);
                 if (servitech_supabase_error_requires_email_verification($exception->getMessage())) {
                     $_SESSION["verification_email_hint"] = $email;
+                    if (($config["context"] ?? "") === "admin") {
+                        servitech_log_employee_unverified_login_attempt($privilegedPdo, $email);
+                    }
                     try {
                         servitech_login_throttle_clear($privilegedPdo, $email);
                     } catch (Throwable $ignored) {

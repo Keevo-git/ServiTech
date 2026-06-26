@@ -134,9 +134,11 @@ verification_assert(
 verification_assert(
     str_contains($callback, 'window.location.replace(loginUrl + "?verification=success")')
         && str_contains($callback, 'window.location.replace(loginUrl + "?verification=invalid")')
+        && str_contains($callback, '"/auth/admin_login.php"')
+        && str_contains($callback, 'query.get("login")')
         && str_contains($callback, "window.history.replaceState")
         && str_contains($callback, "Cache-Control: no-store"),
-    "Case D: the Supabase confirmation callback must clear token-bearing history and report success or failure cleanly."
+    "Case D: the Supabase confirmation callback must clear token-bearing history and report success or failure cleanly, including internal Admin redirects."
 );
 
 $loginCss = verification_source("assets/css/style.css");
@@ -168,6 +170,11 @@ verification_assert(
     str_contains($supabaseAuth, "function servitech_supabase_ensure_application_profile")
         && str_contains($supabaseAuth, "servitech_supabase_ensure_application_profile(\$pdo, \$authUser)"),
     "A verified first login must repair a profile that the signup trigger could not create."
+);
+verification_assert(
+    str_contains($supabaseAuth, "function servitech_supabase_admin_confirmation_redirect_url")
+        && str_contains($supabaseAuth, "/auth/verification_callback.php?login=admin"),
+    "Employee verification emails must redirect verified users to the internal Admin login."
 );
 
 if ($failures) {

@@ -60,12 +60,15 @@ foreach ([
     "super_admin_wrong_role_login",
     "admin_wrong_role_login",
     "customer_wrong_role_login",
+    "employee_login_before_email_verification",
+    "employee_email_verified",
 ] as $requiredHelperText) {
     internal_login_split_assert(str_contains($passwordHelper, $requiredHelperText), "Shared password login helper must include {$requiredHelperText}.");
 }
 
 internal_login_split_assert(str_contains($adminShim, "/auth/admin_login.php"), "Legacy pages/admin/admin_login.php must redirect guests to the new Admin login page.");
 internal_login_split_assert(str_contains($internalPage, "window.servitechToast"), "Internal login pages must use toast feedback.");
+internal_login_split_assert(str_contains($internalPage, "Please verify your email before logging in."), "Internal login pages must show the employee verification message.");
 internal_login_split_assert(str_contains($customerLoginPage, "window.servitechToast"), "Customer login feedback must use toast notifications.");
 internal_login_split_assert(str_contains($authShared, "render_auth_toast_assets"), "Auth shared helpers must expose toast assets.");
 internal_login_split_assert(str_contains($authShared, "internal-login-shortcuts.js"), "Auth shared footer must load internal login shortcuts.");

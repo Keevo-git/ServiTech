@@ -8,7 +8,7 @@ function servitech_internal_login_message_map(string $ownerLabel): array
         "required" => ["error", "Enter your email address and password to continue."],
         "google_required" => ["error", "This account uses Google sign-in. Use the customer login page for Google account access."],
         "session_expired" => ["error", "Your session expired or your account access changed. Please log in again."],
-        "verify_email" => ["error", "Verify your email address before logging in."],
+        "verify_email" => ["error", "Please verify your email before logging in."],
         "throttled" => ["error", "Too many failed login attempts. Wait a few minutes before trying again."],
         "inactive" => ["error", "This account is deactivated. Please contact a Super Admin."],
         "fail" => ["error", "Invalid email or password."],

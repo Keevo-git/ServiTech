@@ -39,6 +39,7 @@ foreach ([
     "servitech_supabase_admin_auth_request",
     "servitech_supabase_admin_create_user",
     "servitech_supabase_admin_update_user",
+    "servitech_supabase_admin_confirmation_redirect_url",
     "SUPABASE_SERVICE_ROLE_KEY",
 ] as $helperText) {
     employee_setup_assert(str_contains($supabaseAuth, $helperText), "Supabase helper must include {$helperText}.");
@@ -52,15 +53,23 @@ foreach ([
     "Copy Temporary Password",
     "servitech_supabase_admin_create_user",
     "servitech_supabase_admin_update_user",
+    "servitech_supabase_resend_signup",
+    "servitech_supabase_admin_confirmation_redirect_url",
     "force_password_change = TRUE",
-    "Pending Setup",
+    "Pending Email Verification",
+    "Pending First-Time Setup",
     "employee_password_reset",
     "employee_force_password_change",
+    "employee_verification_email_sent",
+    "employee_verification_email_failed",
     "SUPABASE_SERVICE_ROLE_KEY",
 ] as $accountsText) {
     employee_setup_assert(str_contains($accounts, $accountsText), "Employee Accounts page must include {$accountsText}.");
 }
 employee_setup_assert(str_contains($accounts, "profile_completed") && str_contains($accounts, "'active', TRUE, FALSE"), "Employee Accounts page must create employees with pending profile setup.");
+employee_setup_assert(str_contains($accounts, "email_confirm\" => false") || str_contains($accounts, "], false)"), "Employee Accounts must create Supabase Auth employees as unconfirmed pending verification.");
+employee_setup_assert(str_contains($accounts, "Employee account created. A verification email has been sent."), "Employee creation must show verification-email success toast.");
+employee_setup_assert(str_contains($accounts, "Employee account was created, but the verification email could not be sent. Please check SMTP/Resend settings."), "Employee creation must show specific verification delivery failure toast.");
 
 foreach ([
     "Complete Your Employee Account",
@@ -87,5 +96,7 @@ employee_setup_assert(str_contains($adminAuth, "employee_pending_setup_access_de
 employee_setup_assert(str_contains($adminAuth, "admin_first_time_setup.php"), "Admin guard must allow the first-time setup page.");
 employee_setup_assert(str_contains($passwordLogin, "servitech_employee_setup_required"), "Password login must route pending employees to first-time setup.");
 employee_setup_assert(str_contains($passwordLogin, "employee_first_login"), "Password login must log first-time employee login.");
+employee_setup_assert(str_contains($passwordLogin, "employee_login_before_email_verification"), "Password login must log employee attempts before email verification.");
+employee_setup_assert(str_contains($passwordLogin, "employee_email_verified"), "Password login must log employee verification detection.");
 
 echo "Employee first-time setup checks passed.\n";
