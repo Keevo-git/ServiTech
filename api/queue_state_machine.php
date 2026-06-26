@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/queue_payment.php";
+require_once __DIR__ . "/../config/activity_log.php";
 
 function servitech_queue_normalize_status(string $status): string {
   $status = strtoupper(trim($status));
@@ -258,6 +259,16 @@ function servitech_send_queue_back_to_customer(PDO $pdo, int $queueId, int $admi
       true
     );
 
+    $actorName = servitech_queue_actor_name($pdo, $adminId);
+    servitech_activity_log($pdo, [
+      "actor_id" => $adminId,
+      "action_type" => "queue_send_back",
+      "module" => "queue_management",
+      "target_record_id" => $queueCode,
+      "new_value" => ["message" => $message],
+      "description" => trim(($actorName !== "" ? "Admin {$actorName}" : "Admin") . " sent Queue {$queueCode} back to the customer for editing."),
+    ]);
+
     if ($ownsTransaction) $pdo->commit();
     return [
       "status" => $currentStatus,
@@ -426,6 +437,33 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
         true
       );
     }
+
+    $actorName = servitech_queue_actor_name($pdo, $adminId);
+    $actorLabel = $actorName !== "" ? "Admin {$actorName}" : "Admin";
+    $actionType = match ($newStatus) {
+      "DONE" => "order_mark_done",
+      "APPROVED" => servitech_queue_is_online_payment_method($queue) ? "payment_approve" : "order_status_update",
+      "CANCELLED" => "order_cancel",
+      default => "order_status_update",
+    };
+    $module = strtoupper((string)($queue["lifecycle_stage"] ?? "QUEUE")) === "ORDER" ? "order_management" : "queue_management";
+    $statusPhrase = match ($newStatus) {
+      "DONE" => "marked Order {$queueCode} as Done",
+      "APPROVED" => servitech_queue_is_online_payment_method($queue)
+        ? "approved payment for Queue {$queueCode}"
+        : "updated Queue {$queueCode} to Approved",
+      "CANCELLED" => "cancelled Order {$queueCode}",
+      default => "updated Queue {$queueCode} from {$currentStatus} to {$newStatus}",
+    };
+    servitech_activity_log($pdo, [
+      "actor_id" => $adminId,
+      "action_type" => $actionType,
+      "module" => $module,
+      "target_record_id" => $queueCode,
+      "old_value" => ["status" => $currentStatus],
+      "new_value" => ["status" => $newStatus],
+      "description" => "{$actorLabel} {$statusPhrase}.",
+    ]);
 
     if ($ownsTransaction) $pdo->commit();
 

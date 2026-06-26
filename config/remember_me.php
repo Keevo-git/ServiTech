@@ -157,12 +157,12 @@ function servitech_remember_restore(PDO $pdo): bool
     }
 
     session_regenerate_id(true);
-    $role = strtolower((string)($token["role"] ?? "customer")) === "admin" ? "admin" : "customer";
+    $role = servitech_normalize_role($token["role"] ?? "customer");
     $_SESSION["user_id"] = (int)$token["user_id"];
     $_SESSION["role"] = $role;
     $_SESSION["remember_me"] = true;
     $_SESSION["remember_selector"] = $cookie["selector"];
-    if ($role === "admin") {
+    if (in_array($role, ["admin", "super_admin"], true)) {
         $_SESSION["admin_logged_in"] = true;
         $_SESSION["admin_email"] = (string)($token["email"] ?? "");
     } else {

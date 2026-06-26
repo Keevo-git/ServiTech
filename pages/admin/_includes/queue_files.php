@@ -247,7 +247,7 @@ function admin_notifications_cleanup_duplicates(PDO $pdo): void
               AND n.user_id IN (
                   SELECT id
                   FROM users
-                  WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                  WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
               )
         ");
 
@@ -269,7 +269,7 @@ function admin_notifications_cleanup_duplicates(PDO $pdo): void
                   AND review.user_id IN (
                       SELECT id
                       FROM users
-                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
                   )
             ),
             preserved_review_notifications AS (
@@ -316,7 +316,7 @@ function admin_notifications_cleanup_duplicates(PDO $pdo): void
                   AND n.user_id IN (
                       SELECT id
                       FROM users
-                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
                   )
             ),
             preserved_notifications AS (
@@ -378,7 +378,7 @@ function admin_notifications_sync_stalled(PDO $pdo): void
                   AND n.user_id IN (
                       SELECT id
                       FROM users
-                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                      WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
                   )
             ) last_stalled_notification ON TRUE
             WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) IN ('PENDING', 'APPROVED', 'ONGOING')
@@ -439,7 +439,7 @@ function admin_notification_unread_count(PDO $pdo): int
             WHERE n.user_id IN (
                 SELECT id
                 FROM users
-                WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
             )
               AND n.deleted_at IS NULL
         )

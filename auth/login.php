@@ -7,6 +7,7 @@ require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
 require_once __DIR__ . "/../config/remember_me.php";
+require_once __DIR__ . "/../config/activity_log.php";
 require_once __DIR__ . "/registration_notifications.php";
 
 servitech_enforce_same_origin(false);
@@ -79,7 +80,8 @@ if (servitech_supabase_auth_enabled()) {
 
         servitech_login_throttle_clear($privilegedPdo, $email);
         $profile = servitech_supabase_complete_login($privilegedPdo, $authResponse, "password");
-        if (($profile["role"] ?? "customer") !== "admin") {
+        $profileRole = servitech_normalize_role($profile["role"] ?? "customer");
+        if (!in_array($profileRole, ["admin", "super_admin"], true)) {
             servitech_notify_admin_new_customer(
                 $privilegedPdo,
                 (int)($profile["id"] ?? 0),
@@ -87,13 +89,20 @@ if (servitech_supabase_auth_enabled()) {
                 (string)($profile["email"] ?? $email)
             );
         }
+        servitech_activity_log($privilegedPdo, [
+            "actor_id" => (int)($profile["id"] ?? 0),
+            "action_type" => "login",
+            "module" => "authentication",
+            "target_record_id" => (string)($profile["id"] ?? ""),
+            "description" => servitech_role_label($profileRole) . " " . (string)($profile["fullname"] ?? $email) . " logged in.",
+        ]);
         servitech_apply_password_login_persistence(
             $privilegedPdo,
             (int)($profile["id"] ?? 0),
             $rememberMe
         );
         header("Location: " . servitech_url(
-            ($profile["role"] ?? "customer") === "admin"
+            in_array($profileRole, ["admin", "super_admin"], true)
                 ? (servitech_supabase_admin_mfa_required()
                     && servitech_supabase_session_aal() !== "aal2"
                     ? "/auth/mfa.php"
@@ -142,8 +151,9 @@ try {
     }
 
     $stmt = $pdo->prepare("
-        SELECT id, email,
+        SELECT id, email, fullname,
                COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer') AS role,
+               COALESCE(NULLIF(to_jsonb(users)->>'account_status', ''), 'active') AS account_status,
                COALESCE(NULLIF(to_jsonb(users)->>'google_id', ''), '') AS google_id,
                COALESCE(NULLIF(to_jsonb(users)->>'email_verified_at', ''), '') AS email_verified_at,
                NULLIF(to_jsonb(users)->>'password_hash', '') AS auth_hash
@@ -170,6 +180,18 @@ try {
     if ($user && $is_valid) {
         servitech_login_throttle_clear($pdo, $email);
 
+        if (strtolower(trim((string)($user["account_status"] ?? "active"))) !== "active") {
+            servitech_activity_log($pdo, [
+                "actor_id" => (int)($user["id"] ?? 0),
+                "action_type" => "login",
+                "module" => "authentication",
+                "target_record_id" => (string)($user["id"] ?? ""),
+                "description" => "Inactive account login attempt for {$email}.",
+                "status" => "failed",
+            ]);
+            servitech_login_failure_redirect("inactive", $rememberMe);
+        }
+
         if (
             servitech_account_email_verification_required()
             && trim((string)($user["email_verified_at"] ?? "")) === ""
@@ -191,14 +213,28 @@ try {
         session_regenerate_id(true);
         unset($_SESSION["verification_registration_state"], $_SESSION["verification_email_hint"]);
         $_SESSION["user_id"] = (int)$user["id"];
-        $_SESSION["role"] = strtolower((string)($user["role"] ?? "customer"));
+        $_SESSION["role"] = servitech_normalize_role($user["role"] ?? "customer");
         servitech_apply_password_login_persistence(
             $pdo,
             (int)$user["id"],
             $rememberMe
         );
 
-        if ($_SESSION["role"] === "admin") {
+        try {
+            $updateLogin = $pdo->prepare("UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE id = :id");
+            $updateLogin->execute([":id" => (int)$user["id"]]);
+        } catch (Throwable $metadataException) {
+            error_log("login metadata update failed: " . $metadataException->getMessage());
+        }
+        servitech_activity_log($pdo, [
+            "actor_id" => (int)$user["id"],
+            "action_type" => "login",
+            "module" => "authentication",
+            "target_record_id" => (string)$user["id"],
+            "description" => servitech_role_label($_SESSION["role"]) . " " . (string)($user["fullname"] ?? $email) . " logged in.",
+        ]);
+
+        if (servitech_is_admin()) {
             $_SESSION["admin_logged_in"] = true;
             $_SESSION["admin_email"] = (string)($user["email"] ?? $email);
             header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
@@ -211,6 +247,14 @@ try {
     }
 
     servitech_login_throttle_record_failure($pdo, $email);
+    servitech_activity_log($pdo, [
+        "actor_id" => isset($user["id"]) ? (int)$user["id"] : null,
+        "action_type" => "login",
+        "module" => "authentication",
+        "target_record_id" => isset($user["id"]) ? (string)$user["id"] : null,
+        "description" => "Failed login attempt for {$email}.",
+        "status" => "failed",
+    ]);
 
     $googleId = trim((string)($user["google_id"] ?? ""));
     if ($user && $googleId !== "" && $storedHash === "") {

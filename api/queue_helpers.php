@@ -283,7 +283,7 @@ function servitech_notification_target_is_customer(PDO $pdo, int $userId): bool 
   }
 
   $stmt = $pdo->prepare("
-    SELECT LOWER(TRIM(COALESCE(NULLIF(role, ''), 'customer'))) <> 'admin'
+    SELECT LOWER(TRIM(COALESCE(NULLIF(role, ''), 'customer'))) NOT IN ('admin', 'super_admin')
     FROM users
     WHERE id = :id
     LIMIT 1
@@ -514,7 +514,7 @@ function servitech_notify_admins(PDO $pdo, string $type, ?int $referenceId, stri
   $stmt = $pdo->query("
     SELECT id
     FROM users
-    WHERE LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'admin'
+    WHERE LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) IN ('admin', 'super_admin')
     ORDER BY id ASC
     LIMIT 1
   ");

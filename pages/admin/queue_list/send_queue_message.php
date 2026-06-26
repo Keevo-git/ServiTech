@@ -3,6 +3,7 @@ require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../../../config/mail.php";
+require_once __DIR__ . "/../../../config/activity_log.php";
 require_once __DIR__ . "/../../../api/queue_helpers.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -68,6 +69,13 @@ $warning = "";
 
 try {
     servitech_add_notification($pdo, (int)$queue["user_id"], "admin_message", $queueId, $notificationMessage);
+    servitech_activity_log($pdo, [
+        "action_type" => "customer_message_send",
+        "module" => "queue_messages",
+        "target_record_id" => $queueCode,
+        "new_value" => ["subject" => $subject, "message" => $message],
+        "description" => "Admin sent a customer message for Queue {$queueCode}.",
+    ]);
 } catch (Throwable $exception) {
     error_log("queue message notification insert failed: " . $exception->getMessage());
     respond(["ok" => false, "error" => "The customer notification could not be created."], 500);

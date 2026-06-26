@@ -404,6 +404,8 @@ unset($_SESSION["login_remember_retry"]);
         resendVerificationPrompt.hidden = false;
       } else if (loginCode === "throttled") {
         setMessage("error", "Too many failed login attempts. Wait a few minutes before trying again.");
+      } else if (loginCode === "inactive") {
+        setMessage("error", "This account is deactivated. Please contact a Super Admin.");
       } else if (loginCode === "fail") {
         setMessage("error", "Invalid email or password.");
       } else if (params.get("verification") === "success") {

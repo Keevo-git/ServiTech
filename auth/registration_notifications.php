@@ -24,7 +24,7 @@ if (!function_exists("servitech_notify_admin_new_customer")) {
                 WITH admin_target AS (
                     SELECT id
                     FROM users
-                    WHERE LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'admin'
+                    WHERE LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) IN ('admin', 'super_admin')
                     ORDER BY id ASC
                     LIMIT 1
                 )

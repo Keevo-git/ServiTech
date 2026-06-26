@@ -2,7 +2,7 @@
 require_once __DIR__ . "/../config/session_check.php";
 
 $debug = (getenv("APP_DEBUG") === "1");
-$isAdmin = !empty($_SESSION["user_id"]) && strtolower((string)($_SESSION["role"] ?? "")) === "admin";
+$isAdmin = function_exists("servitech_is_admin") && servitech_is_admin();
 
 if (!$debug || !$isAdmin) {
   http_response_code(404);

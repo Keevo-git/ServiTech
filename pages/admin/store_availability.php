@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/_includes/admin_auth.php";
+servitech_require_super_admin();
 require_once __DIR__ . "/_includes/admin_db.php";
 require_once __DIR__ . "/_includes/url.php";
 require_once __DIR__ . "/../../config/csrf.php";

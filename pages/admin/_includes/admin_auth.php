@@ -39,3 +39,28 @@ if (
     header("Location: " . admin_url_raw("/auth/mfa.php"));
     exit();
 }
+
+if (!function_exists("servitech_require_super_admin")) {
+    function servitech_require_super_admin(): void
+    {
+        if (servitech_is_super_admin()) {
+            return;
+        }
+
+        header("Location: " . admin_url_raw("/pages/admin/access_denied.php"));
+        exit();
+    }
+}
+
+if (!function_exists("servitech_require_admin_role")) {
+    function servitech_require_admin_role(array $allowedRoles): void
+    {
+        $allowedRoles = array_map("servitech_normalize_role", $allowedRoles);
+        if (in_array(servitech_current_role(), $allowedRoles, true)) {
+            return;
+        }
+
+        header("Location: " . admin_url_raw("/pages/admin/access_denied.php"));
+        exit();
+    }
+}

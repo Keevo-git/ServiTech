@@ -30,7 +30,7 @@ try {
     SET deleted_at = NOW()
     WHERE id IN ({$placeholders})
       AND deleted_at IS NULL
-      AND (user_id = ? OR user_id IN (SELECT id FROM users WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'))
+      AND (user_id = ? OR user_id IN (SELECT id FROM users WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')))
   ");
   $stmt->execute(array_merge($ids, [$_SESSION["user_id"] ?? 0]));
 

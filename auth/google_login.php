@@ -109,7 +109,8 @@ if (servitech_supabase_auth_enabled()) {
             $privilegedPdo,
             (int)($applicationProfile["id"] ?? 0)
         );
-        if (!is_array($existing) && ($applicationProfile["role"] ?? "customer") !== "admin") {
+        $applicationRole = servitech_normalize_role($applicationProfile["role"] ?? "customer");
+        if (!is_array($existing) && !in_array($applicationRole, ["admin", "super_admin"], true)) {
             $profileFullname = trim((string)($authUser["user_metadata"]["full_name"] ?? $authUser["user_metadata"]["name"] ?? ""));
             servitech_notify_admin_new_customer(
                 $privilegedPdo,
@@ -120,7 +121,7 @@ if (servitech_supabase_auth_enabled()) {
         }
         echo json_encode([
             "ok" => true,
-            "redirect" => ($applicationProfile["role"] ?? "customer") === "admin"
+            "redirect" => in_array($applicationRole, ["admin", "super_admin"], true)
                 ? (servitech_supabase_admin_mfa_required()
                     && servitech_supabase_session_aal() !== "aal2"
                     ? "/auth/mfa.php"
@@ -175,6 +176,7 @@ try {
         SELECT id, email,
                COALESCE(NULLIF(to_jsonb(users)->>'fullname', ''), :full_name) AS fullname,
                COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer') AS role,
+               COALESCE(NULLIF(to_jsonb(users)->>'account_status', ''), 'active') AS account_status,
                COALESCE(NULLIF(to_jsonb(users)->>'google_id', ''), '') AS google_id
         FROM users
         WHERE COALESCE(NULLIF(to_jsonb(users)->>'google_id', ''), '') = :google_id
@@ -193,6 +195,12 @@ try {
     $user = $findUser->fetch();
 
     if ($user) {
+        if (strtolower(trim((string)($user["account_status"] ?? "active"))) !== "active") {
+            http_response_code(403);
+            echo json_encode(["ok" => false, "error" => "This account is deactivated. Please contact a Super Admin."]);
+            exit();
+        }
+
         $existingGoogleId = trim((string)($user["google_id"] ?? ""));
         if ($existingGoogleId !== "" && $existingGoogleId !== $googleId) {
             http_response_code(409);
@@ -227,7 +235,7 @@ try {
         ]);
 
         $userId = (int)$user["id"];
-        $role = strtolower((string)($user["role"] ?? "customer"));
+        $role = servitech_normalize_role($user["role"] ?? "customer");
     } else {
         if ($privacyConsent !== "1") {
             http_response_code(422);
@@ -269,8 +277,8 @@ try {
 
         $inserted = $insertUser->fetch();
         $userId = (int)($inserted["id"] ?? 0);
-        $role = strtolower((string)($inserted["role"] ?? "customer"));
-        $createdCustomer = $role !== "admin";
+        $role = servitech_normalize_role($inserted["role"] ?? "customer");
+        $createdCustomer = !in_array($role, ["admin", "super_admin"], true);
     }
 
     if ($userId <= 0) {
@@ -282,7 +290,7 @@ try {
 
     session_regenerate_id(true);
     $_SESSION["user_id"] = $userId;
-    $_SESSION["role"] = ($role === "admin") ? "admin" : "customer";
+    $_SESSION["role"] = servitech_normalize_role($role);
     $_SESSION["remember_me"] = false;
     unset($_SESSION["remember_selector"]);
     servitech_apply_session_cookie_lifetime(false);
@@ -290,13 +298,13 @@ try {
 
     $completionStatus = servitech_refresh_google_account_completion_state($pdo, $userId);
 
-    $redirect = ($_SESSION["role"] === "admin")
+    $redirect = servitech_is_admin()
         ? "/pages/admin/admin_dashboard.php"
         : ($completionStatus["required"]
             ? servitech_google_account_completion_path()
             : "/pages/customer/customer_dash.php");
 
-    if ($_SESSION["role"] === "admin") {
+    if (servitech_is_admin()) {
         $_SESSION["admin_logged_in"] = true;
         $_SESSION["admin_email"] = $email;
     } else {

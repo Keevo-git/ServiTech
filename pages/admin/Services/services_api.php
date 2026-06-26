@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . "/../_includes/admin_auth.php";
+servitech_require_super_admin();
 require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
+require_once __DIR__ . "/../../../config/activity_log.php";
 require_once __DIR__ . "/../../../api/service_catalog.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -141,6 +143,20 @@ if ($action === "save") {
         $savedCatalog = servitech_catalog_fetch($pdo, $id, false);
         $savedService = $savedCatalog["service"];
         $availability = servitech_catalog_customer_availability($savedService, $savedCatalog);
+        servitech_activity_log($pdo, [
+            "action_type" => "service_update",
+            "module" => "service_management",
+            "target_record_id" => (string)$id,
+            "old_value" => $existing,
+            "new_value" => [
+                "name" => $name,
+                "description" => $description,
+                "active" => $active ? 1 : 0,
+                "sort_order" => $sort_order,
+                "price_range" => $priceRange,
+            ],
+            "description" => "Super Admin updated service settings for {$name}.",
+        ]);
         $pdo->commit();
         respond([
             "ok" => true,

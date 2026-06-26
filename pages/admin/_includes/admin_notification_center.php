@@ -163,7 +163,7 @@ if (!function_exists("admin_notification_realtime_config")) {
             $targetUserId = (int)($pdo->query("
                 SELECT id
                 FROM users
-                WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
                 ORDER BY id ASC
                 LIMIT 1
             ")->fetchColumn() ?: 0);
@@ -266,7 +266,7 @@ if (!function_exists("admin_notification_center_data")) {
                 WHERE n.user_id IN (
                     SELECT id
                     FROM users
-                    WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+                    WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
                 )
                   AND n.deleted_at IS NULL
             )

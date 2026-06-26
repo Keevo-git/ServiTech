@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../_includes/admin_auth.php";
 require_once __DIR__ . "/../_includes/admin_db.php";
 require_once __DIR__ . "/../../../config/csrf.php";
+require_once __DIR__ . "/../../../config/activity_log.php";
 require_once __DIR__ . "/../../../api/queue_helpers.php";
 require_once __DIR__ . "/_auth_backed_customer_scope.php";
 
@@ -50,6 +51,13 @@ $eventKey = "customer_message:{$customerId}:" . str_replace(" ", "", (string)mic
 
 try {
     servitech_add_notification($pdo, $customerId, "admin_message", $customerId, $notificationMessage, $eventKey);
+    servitech_activity_log($pdo, [
+        "action_type" => "customer_message_send",
+        "module" => "customer_messages",
+        "target_record_id" => (string)$customerId,
+        "new_value" => ["message" => $message],
+        "description" => "Admin sent a customer message to " . ($customerName !== "" ? $customerName : "customer #{$customerId}") . ".",
+    ]);
 } catch (Throwable $exception) {
     error_log("customer message notification insert failed: " . $exception->getMessage());
     customer_message_respond(["ok" => false, "error" => "The customer notification could not be created."], 500);

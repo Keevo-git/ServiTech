@@ -475,7 +475,8 @@ function servitech_supabase_bind_application_profile(PDO $pdo, string $authUserI
 {
     $stmt = $pdo->prepare("
         SELECT id, fullname, email,
-               COALESCE(NULLIF(LOWER(TRIM(role)), ''), 'customer') AS role
+               COALESCE(NULLIF(LOWER(TRIM(role)), ''), 'customer') AS role,
+               COALESCE(NULLIF(to_jsonb(users)->>'account_status', ''), 'active') AS account_status
         FROM users
         WHERE auth_user_id = :auth_user_id
           AND email_verified_at IS NOT NULL
@@ -486,12 +487,14 @@ function servitech_supabase_bind_application_profile(PDO $pdo, string $authUserI
     if (!is_array($profile)) {
         throw new RuntimeException("The authenticated account is not linked to a ServiTech profile.");
     }
+    if (strtolower(trim((string)($profile["account_status"] ?? "active"))) !== "active") {
+        throw new RuntimeException("This ServiTech account is deactivated.");
+    }
 
-    $role = strtolower(trim((string)($profile["role"] ?? "customer")));
-    $role = $role === "admin" ? "admin" : "customer";
+    $role = servitech_normalize_role($profile["role"] ?? "customer");
     $_SESSION["user_id"] = (int)$profile["id"];
     $_SESSION["role"] = $role;
-    if ($role === "admin") {
+    if (in_array($role, ["admin", "super_admin"], true)) {
         $_SESSION["admin_logged_in"] = true;
         $_SESSION["admin_email"] = (string)($profile["email"] ?? "");
     } else {

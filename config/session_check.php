@@ -78,13 +78,21 @@ if (
     }
 }
 
+if (!function_exists("servitech_normalize_role")) {
+    function servitech_normalize_role($role): string
+    {
+        $role = strtolower(trim((string)$role));
+        return match ($role) {
+            "super_admin", "owner" => "super_admin",
+            "admin", "employee", "staff" => "admin",
+            default => "customer",
+        };
+    }
+}
+
 // Normalize role once per request for consistent access checks.
 if (!empty($_SESSION["user_id"]) && (int)$_SESSION["user_id"] > 0) {
-    $role = strtolower(trim((string)($_SESSION["role"] ?? "customer")));
-    if ($role !== "admin" && $role !== "customer") {
-        $role = "customer";
-    }
-    $_SESSION["role"] = $role;
+    $_SESSION["role"] = servitech_normalize_role($_SESSION["role"] ?? "customer");
 } else {
     unset($_SESSION["role"], $_SESSION["admin_logged_in"], $_SESSION["admin_email"]);
 }
@@ -144,15 +152,21 @@ if (!function_exists("servitech_current_role")) {
         if (!servitech_is_logged_in()) {
             return "guest";
         }
-        $role = strtolower(trim((string)($_SESSION["role"] ?? "customer")));
-        return ($role === "admin") ? "admin" : "customer";
+        return servitech_normalize_role($_SESSION["role"] ?? "customer");
     }
 }
 
 if (!function_exists("servitech_is_admin")) {
     function servitech_is_admin(): bool
     {
-        return servitech_current_role() === "admin";
+        return in_array(servitech_current_role(), ["admin", "super_admin"], true);
+    }
+}
+
+if (!function_exists("servitech_is_super_admin")) {
+    function servitech_is_super_admin(): bool
+    {
+        return servitech_current_role() === "super_admin";
     }
 }
 
@@ -173,6 +187,18 @@ if (!function_exists("servitech_brand_home_path")) {
         return servitech_is_admin()
             ? "/pages/admin/admin_dashboard.php"
             : "/pages/customer/customer_dash.php";
+    }
+}
+
+if (!function_exists("servitech_role_label")) {
+    function servitech_role_label(?string $role = null): string
+    {
+        return match (servitech_normalize_role($role ?? servitech_current_role())) {
+            "super_admin" => "Super Admin",
+            "admin" => "Admin",
+            "customer" => "Customer",
+            default => "Guest",
+        };
     }
 }
 

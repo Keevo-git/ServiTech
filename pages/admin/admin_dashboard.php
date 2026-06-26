@@ -23,6 +23,8 @@ $categoryMix = is_array($dashboardAnalytics["categoryMix"] ?? null) ? $dashboard
 $todayAnalytics = is_array($dashboardAnalytics["today"] ?? null) ? $dashboardAnalytics["today"] : [];
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $adminNotificationCount = admin_queue_notification_count($pdo);
+$isSuperAdmin = servitech_is_super_admin();
+$roleLabel = servitech_role_label();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,8 +54,7 @@ require __DIR__ . "/_includes/admin_header.php";
     <p>Live overview of customer activity, orders, and service queue.</p>
     <div class="hero-meta">
       <span class="hero-chip">
-        <span>&#x1F512;</span>
-        Admin Access
+        <?= htmlspecialchars($roleLabel, ENT_QUOTES, "UTF-8") ?> Access
       </span>
       <span class="hero-time" id="adminNow">
         <?= htmlspecialchars($dashboardNow->format("M d, Y, h:i:s A"), ENT_QUOTES, "UTF-8") ?>
@@ -110,7 +111,7 @@ require __DIR__ . "/_includes/admin_header.php";
   <?php endif; ?>
 
   <header class="admin-quick-access-header">
-    <h3 class="section-title">Admin Quick Access</h3>
+    <h3 class="section-title"><?= $isSuperAdmin ? "Super Admin Quick Access" : "Admin Quick Access" ?></h3>
     <div class="admin-section-divider" aria-hidden="true"></div>
   </header>
 
@@ -145,6 +146,7 @@ require __DIR__ . "/_includes/admin_header.php";
       </article>
     </a>
 
+    <?php if ($isSuperAdmin): ?>
     <a href="<?= project_url('/pages/admin/Services/edit_services.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
         <div class="icon admin-quick-icon">&#x270F;&#xFE0F;</div>
@@ -169,9 +171,34 @@ require __DIR__ . "/_includes/admin_header.php";
       </article>
     </a>
 
+    <a href="<?= project_url('/pages/admin/staff_accounts.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon admin-quick-icon" aria-hidden="true">SA</div>
+        <h4>Staff Accounts</h4>
+        <p>Create, update, deactivate, and reset admin accounts</p>
+      </article>
+    </a>
+
+    <a href="<?= project_url('/pages/admin/activity_logs.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon admin-quick-icon" aria-hidden="true">LOG</div>
+        <h4>Activity Logs</h4>
+        <p>Review employee actions and account changes</p>
+      </article>
+    </a>
+
+    <a href="<?= project_url('/pages/admin/system_settings.php') ?>" class="card-link admin-quick-card-link">
+      <article class="card admin-quick-card">
+        <div class="icon admin-quick-icon" aria-hidden="true">SET</div>
+        <h4>System Settings</h4>
+        <p>Open owner-level configuration and diagnostics</p>
+      </article>
+    </a>
+    <?php endif; ?>
+
   </section>
 
-  <header class="admin-quick-access-header admin-analytics-header">
+  <header class="admin-quick-access-header admin-analytics-header" id="operations-analytics">
     <h3 class="section-title">Operations Analytics</h3>
     <div class="admin-section-divider" aria-hidden="true"></div>
   </header>

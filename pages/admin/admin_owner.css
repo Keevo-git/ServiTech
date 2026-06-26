@@ -1,0 +1,261 @@
+.admin-owner-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 24px auto 42px;
+  display: grid;
+  gap: 18px;
+}
+
+.admin-owner-hero {
+  border-radius: 16px;
+  padding: 24px;
+  color: #f7fbff;
+  background: linear-gradient(135deg, #19375f, #24588f 58%, #2e6fae);
+  box-shadow: 0 14px 34px rgba(23, 45, 74, 0.22);
+}
+
+.admin-owner-kicker {
+  display: inline-flex;
+  margin-bottom: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.admin-owner-hero h1 {
+  margin: 0;
+  font-size: clamp(25px, 3vw, 34px);
+}
+
+.admin-owner-hero p {
+  max-width: 780px;
+  margin: 8px 0 0;
+  color: rgba(244, 250, 255, 0.92);
+}
+
+.admin-owner-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.38fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.admin-owner-panel {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #d8e1ec;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(27, 51, 79, 0.09);
+}
+
+.admin-owner-panel h2,
+.admin-owner-panel h3 {
+  margin: 0 0 12px;
+  color: #132235;
+}
+
+.admin-owner-form {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-owner-field {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-owner-field label,
+.admin-owner-check {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-owner-field input,
+.admin-owner-field select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #cfdbea;
+  border-radius: 10px;
+  padding: 9px 11px;
+  color: #112338;
+  background: #ffffff;
+  font: inherit;
+}
+
+.admin-owner-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-owner-check input {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-owner-button,
+.admin-owner-button-secondary,
+.admin-owner-button-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.admin-owner-button {
+  background: #1f4a8a;
+  color: #ffffff;
+}
+
+.admin-owner-button-secondary {
+  border: 1px solid #bfd0e5;
+  background: #eef6ff;
+  color: #1f4a8a;
+}
+
+.admin-owner-button-danger {
+  background: #b42337;
+  color: #ffffff;
+}
+
+.admin-owner-muted {
+  color: #5d6f86;
+  font-size: 13px;
+}
+
+.admin-owner-alert {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #bad7ff;
+  background: #eef6ff;
+  color: #1f4a8a;
+  font-weight: 800;
+}
+
+.admin-owner-alert--error {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #9f1239;
+}
+
+.admin-owner-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-owner-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+}
+
+.admin-owner-table th,
+.admin-owner-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e1e8f2;
+  text-align: left;
+  vertical-align: top;
+  font-size: 13px;
+}
+
+.admin-owner-table th {
+  color: #475569;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.admin-owner-table strong {
+  display: block;
+  color: #112338;
+}
+
+.admin-owner-table small {
+  color: #64748b;
+}
+
+.admin-owner-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #e0f2fe;
+  color: #075985;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-owner-pill--danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.admin-owner-filters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-owner-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.admin-owner-card-link {
+  display: grid;
+  gap: 7px;
+  min-height: 128px;
+  padding: 16px;
+  border: 1px solid #d8e1ec;
+  border-radius: 12px;
+  background: #f8fbff;
+  color: #112338;
+  text-decoration: none;
+}
+
+.admin-owner-card-link:hover {
+  border-color: #9fc2ef;
+  background: #eef6ff;
+}
+
+.admin-owner-card-link strong {
+  color: #1f4a8a;
+}
+
+.admin-owner-card-link span {
+  color: #5d6f86;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .admin-owner-grid,
+  .admin-owner-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-owner-shell {
+    width: min(100% - 22px, 1180px);
+    margin-top: 16px;
+  }
+}

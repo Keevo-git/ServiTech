@@ -29,7 +29,21 @@ if (($pdo ?? null) instanceof PDO) {
     }
 }
 $adminHeaderShowHome = $adminHeaderVariant !== "dashboard";
-$adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"], true);
+$adminHeaderRole = servitech_current_role();
+$adminHeaderIsSuperAdmin = servitech_is_super_admin();
+$adminHeaderRoleLabel = servitech_role_label($adminHeaderRole);
+$adminHeaderNavItems = [
+    ["label" => "Dashboard", "href" => "/pages/admin/admin_dashboard.php", "roles" => ["admin", "super_admin"]],
+    ["label" => "Orders", "href" => "/pages/admin/order_management/printM.php", "roles" => ["admin", "super_admin"]],
+    ["label" => "Queue Monitor", "href" => "/pages/admin/queue_list/printing.php", "roles" => ["admin", "super_admin"]],
+    ["label" => "Customers", "href" => "/pages/admin/customer_list/custoL.php", "roles" => ["admin", "super_admin"]],
+    ["label" => "Services", "href" => "/pages/admin/Services/edit_services.php", "roles" => ["super_admin"]],
+    ["label" => "Store Availability", "href" => "/pages/admin/store_availability.php", "roles" => ["super_admin"]],
+    ["label" => "Staff Accounts", "href" => "/pages/admin/staff_accounts.php", "roles" => ["super_admin"]],
+    ["label" => "Activity Logs", "href" => "/pages/admin/activity_logs.php", "roles" => ["super_admin"]],
+    ["label" => "Reports", "href" => "/pages/admin/admin_dashboard.php#operations-analytics", "roles" => ["super_admin"]],
+    ["label" => "System Settings", "href" => "/pages/admin/system_settings.php", "roles" => ["super_admin"]],
+];
 ?>
 <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260621-modal-stack-toast') ?>">
 <script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
@@ -88,6 +102,21 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
+  }
+
+  .admin-shared-header .admin-role-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
   }
 
   .admin-shared-header .admin-header-actions .admin-notification-btn,
@@ -214,6 +243,12 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
       font-size: 14px;
     }
 
+    .admin-shared-header .admin-role-badge {
+      min-height: 30px;
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+
     .admin-shared-header nav[data-collapsible-menu] {
       grid-area: menu !important;
       display: none !important;
@@ -304,14 +339,15 @@ $adminHeaderShowServices = in_array($adminHeaderVariant, ["dashboard", "special"
     <h1>ServiTech Admin</h1>
   </a>
   <nav id="<?= htmlspecialchars($adminHeaderMenuId, ENT_QUOTES, 'UTF-8') ?>" data-collapsible-menu>
-    <?php if ($adminHeaderShowHome): ?>
-      <a href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Home</a>
-    <?php endif; ?>
-    <?php if ($adminHeaderShowServices): ?>
-      <a href="<?= admin_url('/index.php') ?>">Services</a>
-    <?php endif; ?>
+    <?php foreach ($adminHeaderNavItems as $item): ?>
+      <?php if (in_array($adminHeaderRole, $item["roles"], true)): ?>
+        <?php if (!$adminHeaderShowHome && $item["href"] === "/pages/admin/admin_dashboard.php") continue; ?>
+        <a href="<?= admin_url($item["href"]) ?>"><?= htmlspecialchars($item["label"], ENT_QUOTES, 'UTF-8') ?></a>
+      <?php endif; ?>
+    <?php endforeach; ?>
   </nav>
   <div class="admin-header-actions">
+    <span class="admin-role-badge"><?= htmlspecialchars($adminHeaderRoleLabel, ENT_QUOTES, 'UTF-8') ?></span>
     <a
       href="<?= admin_queue_notification_link() ?>"
       class="admin-notification-btn"

@@ -54,6 +54,7 @@ function payment_amount_label($amount, $detailsTotal = null): string
 }
 
 $orderRecycleReady = admin_order_recycle_schema_ready($pdo);
+$orderRecycleControlsAllowed = $orderRecycleReady && servitech_is_super_admin();
 $orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL" : "";
 
 $onlineStmt = $pdo->prepare("
@@ -134,7 +135,7 @@ require __DIR__ . "/../_includes/admin_header.php";
           <div class="panel-heading__copy">
             <h3>All Orders <small>Manage and update order statuses</small></h3>
           </div>
-          <?php if ($orderRecycleReady): ?>
+          <?php if ($orderRecycleControlsAllowed): ?>
             <a class="recycle-bin-link" href="<?= admin_url('/pages/admin/order_management/recycle_bin.php') ?>">Recycle Bin</a>
           <?php endif; ?>
         </div>
@@ -150,17 +151,17 @@ require __DIR__ . "/../_includes/admin_header.php";
             <div class="table-section">
               <div class="section-title-small">Print - Document print requests</div>
               <?php om_render_filter_toolbar("onlineOrdersTable", true, $online); ?>
-              <?php if ($orderRecycleReady && $online): ?>
+              <?php if ($orderRecycleControlsAllowed && $online): ?>
                 <div class="order-bulk-toolbar" data-order-bulk-toolbar data-table-id="onlineOrdersTable">
                   <span data-order-bulk-count>No orders selected</span>
                   <button type="button" class="delete-order-btn order-bulk-delete" data-order-bulk-delete disabled>Move Selected to Bin</button>
                 </div>
               <?php endif; ?>
               <div class="table-scroll-wrapper">
-                <table id="onlineOrdersTable" class="orders table-content order-table order-table--online order-table--selectable order-management-table<?= $orderRecycleReady ? ' order-management-table--selectable' : '' ?>">
+                <table id="onlineOrdersTable" class="orders table-content order-table order-table--online order-table--selectable order-management-table<?= $orderRecycleControlsAllowed ? ' order-management-table--selectable' : '' ?>">
                   <thead>
                     <tr>
-                      <?php if ($orderRecycleReady): ?>
+                      <?php if ($orderRecycleControlsAllowed): ?>
                         <th class="select-cell">
                           <input type="checkbox" data-order-select-all aria-label="Select visible orders">
                         </th>
@@ -170,7 +171,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                   </thead>
                   <tbody>
                     <?php if (!$online): ?>
-                      <tr><td colspan="<?= $orderRecycleReady ? 7 : 6 ?>" style="color:#777;padding:14px;">No printing orders yet.</td></tr>
+                      <tr><td colspan="<?= $orderRecycleControlsAllowed ? 7 : 6 ?>" style="color:#777;padding:14px;">No printing orders yet.</td></tr>
                     <?php else: ?>
                       <?php foreach ($online as $r): ?>
                         <?php $cls = status_class($r["status"]); ?>
@@ -185,7 +186,7 @@ require __DIR__ . "/../_includes/admin_header.php";
                           data-submitted-date="<?= htmlspecialchars(om_order_filter_date($r["created_at"]), ENT_QUOTES, "UTF-8") ?>"
                           data-submitted-at="<?= htmlspecialchars((string)$r["created_at"], ENT_QUOTES, "UTF-8") ?>"
                         >
-                          <?php if ($orderRecycleReady): ?>
+                          <?php if ($orderRecycleControlsAllowed): ?>
                             <td class="select-cell">
                               <input
                                 type="checkbox"
@@ -214,14 +215,14 @@ require __DIR__ . "/../_includes/admin_header.php";
                             </span>
                           </td>
                           <td class="order-actions">
-                            <div class="action-buttons<?= $orderRecycleReady ? ' order-action-buttons' : '' ?>">
+                            <div class="action-buttons<?= $orderRecycleControlsAllowed ? ' order-action-buttons' : '' ?>">
                               <button
                                 class="btn-primary view-order-btn"
                                 type="button"
                                 data-id="<?= (int)$r["id"] ?>"
                                 data-order="<?= om_order_payload_attr(array_merge($r, ["canMessage" => true, "allowApproved" => true]), "Print", "Document Print") ?>"
                               >View</button>
-                              <?php if ($orderRecycleReady): ?>
+                              <?php if ($orderRecycleControlsAllowed): ?>
                                 <button class="delete-order-btn order-bin-icon-btn" type="button" data-order-delete data-id="<?= (int)$r["id"] ?>" data-code="<?= htmlspecialchars($r["queue_code"], ENT_QUOTES, "UTF-8") ?>" aria-label="Move to Bin" title="Move to Bin">
                                   <svg class="order-bin-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
                                     <path d="M3 6h18"></path>
@@ -252,10 +253,10 @@ require __DIR__ . "/../_includes/admin_header.php";
 <?php require_once __DIR__ . "/../_includes/admin_footer.php"; ?>
 
 <?php require_once __DIR__ . "/_order_details_modal.php"; ?>
-<?php if ($orderRecycleReady) require_once __DIR__ . "/_order_delete_modal.php"; ?>
+<?php if ($orderRecycleControlsAllowed) require_once __DIR__ . "/_order_delete_modal.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
-<?php if ($orderRecycleReady): ?>
+<?php if ($orderRecycleControlsAllowed): ?>
   <script src="<?= admin_url('/pages/admin/order_management/order_recycle.js?v=20260623-action-isolation') ?>" defer></script>
 <?php endif; ?>
 <?php require_once __DIR__ . "/../queue_list/_queue_message_modal.php"; ?>

@@ -30,7 +30,7 @@ try {
       WHERE user_id IN (
         SELECT id
         FROM users
-        WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+        WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
       )
         AND is_read = FALSE
         AND deleted_at IS NULL
@@ -56,7 +56,7 @@ try {
           OR user_id IN (
             SELECT id
             FROM users
-            WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+            WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
           )
         )
     ");
@@ -85,7 +85,7 @@ try {
           OR user_id IN (
             SELECT id
             FROM users
-            WHERE LOWER(TRIM(COALESCE(role, 'customer'))) = 'admin'
+            WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
           )
         )
     ");
