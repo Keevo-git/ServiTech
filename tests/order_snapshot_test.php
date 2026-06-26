@@ -46,7 +46,7 @@ $displayedTotal = servitech_queue_payment_price([
 ]);
 order_snapshot_assert($displayedTotal === 10.00, "Historical display pricing must use the saved queue total, not a current catalog price.");
 
-$serviceApi = file_get_contents(__DIR__ . "/../pages/admin/Services/services_api.php") ?: "";
+$serviceApi = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_services_api.php") ?: "";
 order_snapshot_assert(!preg_match('/\\b(?:UPDATE|INSERT\\s+INTO)\\s+(?:queues|payments)\\b/i', $serviceApi), "Admin Edit Services must not update queue or payment records.");
 
 $finalSubmissionFiles = [

@@ -116,7 +116,7 @@ require __DIR__ . "/../_includes/admin_header.php";
             <h3>All Orders <small>Manage and update order statuses</small></h3>
           </div>
           <?php if ($orderRecycleControlsAllowed): ?>
-            <a class="recycle-bin-link" href="<?= admin_url('/pages/admin/order_management/recycle_bin.php') ?>">Recycle Bin</a>
+            <a class="recycle-bin-link" href="<?= admin_url('/pages/super_admin/super_admin_order_recycle_bin.php') ?>">Recycle Bin</a>
           <?php endif; ?>
         </div>
 

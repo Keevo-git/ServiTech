@@ -125,7 +125,7 @@ if (servitech_supabase_auth_enabled()) {
                 ? (servitech_supabase_admin_mfa_required()
                     && servitech_supabase_session_aal() !== "aal2"
                     ? "/auth/mfa.php"
-                    : "/pages/admin/admin_dashboard.php")
+                    : servitech_internal_dashboard_path($applicationRole))
                 : ($completionStatus["required"]
                     ? servitech_google_account_completion_path()
                     : "/pages/customer/customer_dash.php"),
@@ -299,7 +299,7 @@ try {
     $completionStatus = servitech_refresh_google_account_completion_state($pdo, $userId);
 
     $redirect = servitech_is_admin()
-        ? "/pages/admin/admin_dashboard.php"
+        ? servitech_internal_dashboard_path()
         : ($completionStatus["required"]
             ? servitech_google_account_completion_path()
             : "/pages/customer/customer_dash.php");

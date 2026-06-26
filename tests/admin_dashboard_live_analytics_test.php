@@ -127,7 +127,7 @@ dashboard_analytics_assert($binned["activeRequests"] === array_sum($binned["stat
 dashboard_analytics_assert($binned["activeQueue"] === 1 && $binned["visibleOrders"] === 5, "Queue and Order cards must align with their corresponding active views.");
 
 $statsSource = file_get_contents(__DIR__ . "/../pages/admin/_includes/dashboard_stats.php") ?: "";
-$dashboardPage = file_get_contents(__DIR__ . "/../pages/admin/admin_dashboard.php") ?: "";
+$dashboardPage = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_dashboard.php") ?: "";
 $dashboardScript = file_get_contents(__DIR__ . "/../pages/admin/admin_dashboard.js") ?: "";
 $queuePages = [
     file_get_contents(__DIR__ . "/../pages/admin/queue_list/printing.php") ?: "",

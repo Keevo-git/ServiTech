@@ -106,7 +106,7 @@ if (servitech_supabase_auth_enabled()) {
                 ? (servitech_supabase_admin_mfa_required()
                     && servitech_supabase_session_aal() !== "aal2"
                     ? "/auth/mfa.php"
-                    : "/pages/admin/admin_dashboard.php")
+                    : servitech_internal_dashboard_path($profileRole))
                 : "/pages/customer/customer_dash.php"
         ));
         exit();
@@ -237,7 +237,7 @@ try {
         if (servitech_is_admin()) {
             $_SESSION["admin_logged_in"] = true;
             $_SESSION["admin_email"] = (string)($user["email"] ?? $email);
-            header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+            header("Location: " . servitech_url(servitech_internal_dashboard_path()));
             exit();
         }
 

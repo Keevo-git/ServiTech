@@ -29,7 +29,7 @@ header("Pragma: no-cache");
 header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
 
 if (servitech_is_admin()) {
-    header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+    header("Location: " . servitech_url(servitech_internal_dashboard_path()));
     exit();
 }
 

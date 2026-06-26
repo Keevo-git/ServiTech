@@ -14,7 +14,7 @@ if (!servitech_supabase_auth_enabled() || !servitech_is_logged_in() || !servitec
 }
 
 if (servitech_supabase_session_aal() === "aal2") {
-    header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+    header("Location: " . servitech_url(servitech_internal_dashboard_path()));
     exit();
 }
 
@@ -134,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $message === "") {
             }
             unset($_SESSION["mfa_pending_factor_id"], $_SESSION["mfa_enrollment_qr"]);
             session_regenerate_id(true);
-            header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+            header("Location: " . servitech_url(servitech_internal_dashboard_path()));
             exit();
         } else {
             throw new DomainException("Invalid MFA action.");

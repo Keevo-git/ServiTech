@@ -5,7 +5,7 @@ if (!function_exists("servitech_authenticated_home_path")) {
     function servitech_authenticated_home_path(): string
     {
         return servitech_is_admin()
-            ? "/pages/admin/admin_dashboard.php"
+            ? servitech_internal_dashboard_path()
             : "/pages/customer/customer_dash.php";
     }
 }

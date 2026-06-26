@@ -177,6 +177,15 @@ if (!function_exists("servitech_is_customer")) {
     }
 }
 
+if (!function_exists("servitech_internal_dashboard_path")) {
+    function servitech_internal_dashboard_path(?string $role = null): string
+    {
+        return servitech_normalize_role($role ?? servitech_current_role()) === "super_admin"
+            ? "/pages/super_admin/super_admin_dashboard.php"
+            : "/pages/admin/admin_dashboard.php";
+    }
+}
+
 if (!function_exists("servitech_brand_home_path")) {
     function servitech_brand_home_path(): string
     {
@@ -185,7 +194,7 @@ if (!function_exists("servitech_brand_home_path")) {
         }
 
         return servitech_is_admin()
-            ? "/pages/admin/admin_dashboard.php"
+            ? servitech_internal_dashboard_path()
             : "/pages/customer/customer_dash.php";
     }
 }

@@ -14,7 +14,7 @@ if (!servitech_is_logged_in()) {
     exit();
 }
 if (servitech_is_admin()) {
-    header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+    header("Location: " . servitech_url(servitech_internal_dashboard_path()));
     exit();
 }
 

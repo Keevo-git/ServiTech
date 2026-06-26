@@ -1,7 +1,7 @@
 <div
   class="order-confirm-overlay"
   id="orderRecycleConfirm"
-  data-order-recycle-endpoint="<?= htmlspecialchars(admin_url_raw('/pages/admin/order_management/order_recycle_action.php'), ENT_QUOTES, 'UTF-8') ?>"
+  data-order-recycle-endpoint="<?= htmlspecialchars(admin_url_raw('/pages/super_admin/super_admin_order_recycle_action.php'), ENT_QUOTES, 'UTF-8') ?>"
   aria-hidden="true"
 >
   <div class="order-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="orderRecycleConfirmTitle">

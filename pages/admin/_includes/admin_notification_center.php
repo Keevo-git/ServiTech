@@ -1257,7 +1257,7 @@ if (!function_exists("admin_notification_render_center")) {
         <?php if ($isOverlay): ?>
           <button type="button" class="admin-notification-close" data-admin-notification-close aria-label="Close notifications">Close</button>
         <?php else: ?>
-          <a class="admin-notification-link" href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Back to Dashboard</a>
+          <a class="admin-notification-link" href="<?= admin_url(servitech_internal_dashboard_path()) ?>">Back to Dashboard</a>
         <?php endif; ?>
       </div>
 

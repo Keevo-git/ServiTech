@@ -4,6 +4,7 @@ require_once __DIR__ . "/_includes/url.php";
 
 $currentRole = servitech_current_role();
 $roleLabel = $currentRole === "admin" ? "Admin / Employee" : servitech_role_label($currentRole);
+$dashboardPath = servitech_internal_dashboard_path($currentRole);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -27,7 +28,7 @@ $roleLabel = $currentRole === "admin" ? "Admin / Employee" : servitech_role_labe
 
   <section class="admin-owner-panel">
     <p class="admin-owner-muted">If you need this page for your work, ask a Super Admin owner to update your permissions.</p>
-    <a class="admin-owner-button" href="<?= admin_url('/pages/admin/admin_dashboard.php') ?>">Return to Dashboard</a>
+    <a class="admin-owner-button" href="<?= admin_url($dashboardPath) ?>">Return to Dashboard</a>
   </section>
 </main>
 </body>

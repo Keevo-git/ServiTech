@@ -32,9 +32,10 @@ $adminHeaderShowHome = $adminHeaderVariant !== "dashboard";
 $adminHeaderRole = servitech_current_role();
 $adminHeaderIsSuperAdmin = servitech_is_super_admin();
 $adminHeaderRoleLabel = $adminHeaderRole === "admin" ? "Admin / Employee" : servitech_role_label($adminHeaderRole);
+$adminHeaderDashboardHref = servitech_internal_dashboard_path($adminHeaderRole);
 $adminHeaderNavItems = $adminHeaderIsSuperAdmin
     ? [
-        ["label" => "Home", "href" => "/pages/admin/admin_dashboard.php", "roles" => ["super_admin"]],
+        ["label" => "Home", "href" => "/pages/super_admin/super_admin_dashboard.php", "roles" => ["super_admin"]],
         ["label" => "Services", "href" => "/index.php", "roles" => ["super_admin"]],
     ]
     : [
@@ -56,7 +57,7 @@ $adminHeaderNavItems = $adminHeaderIsSuperAdmin
       return;
     }
 
-    window.location.href = "<?= admin_url('/pages/admin/admin_dashboard.php') ?>";
+    window.location.href = "<?= admin_url($adminHeaderDashboardHref) ?>";
   }
 </script>
 <style>

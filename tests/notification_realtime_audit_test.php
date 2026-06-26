@@ -94,8 +94,8 @@ $adminPages = [
     "pages/admin/admin_dashboard.php",
     "pages/admin/queue_list/printing.php",
     "pages/admin/order_management/printM.php",
-    "pages/admin/store_availability.php",
-    "pages/admin/announcement.php",
+    "pages/super_admin/super_admin_store_availability.php",
+    "pages/super_admin/super_admin_announcement.php",
     "pages/admin/customer_list/custoL.php",
 ];
 foreach ($adminPages as $path) {

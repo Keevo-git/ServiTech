@@ -7,10 +7,10 @@ function manage_services_ui_assert(bool $condition, string $message): void {
     }
 }
 
-$page = file_get_contents(__DIR__ . "/../pages/admin/Services/edit_services.php") ?: "";
+$page = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_service_management.php") ?: "";
 $script = file_get_contents(__DIR__ . "/../pages/admin/Services/manage_services.js") ?: "";
 $styles = file_get_contents(__DIR__ . "/../pages/admin/Services/manage_services.css") ?: "";
-$api = file_get_contents(__DIR__ . "/../pages/admin/Services/services_api.php") ?: "";
+$api = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_services_api.php") ?: "";
 $catalog = file_get_contents(__DIR__ . "/../api/service_catalog.php") ?: "";
 $publicApi = file_get_contents(__DIR__ . "/../api/services_public.php") ?: "";
 $pricing = file_get_contents(__DIR__ . "/../api/service_pricing.php") ?: "";
@@ -42,8 +42,8 @@ manage_services_ui_assert(!str_contains($page, "ms-legacy-note"), "Manage Servic
 manage_services_ui_assert(str_contains($page, "ms-setup-note"), "Unsupported services should use setup guidance, not legacy/archive wording.");
 
 foreach ([
-    "edit_services.php" => $page,
-    "services_api.php" => $api,
+    "super_admin_service_management.php" => $page,
+    "super_admin_services_api.php" => $api,
     "service_catalog.php" => $catalog,
     "services_public.php" => $publicApi,
     "service_pricing.php" => $pricing,

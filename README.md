@@ -77,7 +77,7 @@
   `SMTP_FROM_NAME=ServiTech`
 - The forgot-password mailer reads SMTP values from Hostinger environment variables, `.env`, then `config/mail.local.php`. It logs only whether `SMTP_PASSWORD` is `present` or `missing`.
 - Forgot-password requests are rate limited per email and IP address to reduce repeated SMTP/login attempts against Google.
-- Admin diagnostic page: visit `/pages/admin/smtp_diagnostics.php` while logged in as an admin to verify SMTP values are loaded without displaying secrets.
+- Super Admin diagnostic page: visit `/pages/super_admin/super_admin_smtp_diagnostics.php` while logged in as a Super Admin to verify SMTP values are loaded without displaying secrets.
 - Private SMTP logs are written to `logs/forgot_password_mail.log` and `logs/mail_error.log`; the web server rules deny browser access to log files.
 
 ## Google Account Sign-In

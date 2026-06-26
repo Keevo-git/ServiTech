@@ -2,7 +2,7 @@
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
-  const apiUrl = window.MS_API_URL || "/pages/admin/Services/services_api.php";
+  const apiUrl = window.MS_API_URL || "/pages/super_admin/super_admin_services_api.php";
 
   const overlay = qs("#msOverlay");
   const editorDialog = overlay ? qs(".ms-modal", overlay) : null;

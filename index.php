@@ -112,7 +112,7 @@ try {
     <nav id="landing-header-menu" data-collapsible-menu>
       <?php if ($is_logged_in): ?>
         <?php if ($is_admin): ?>
-          <a href="<?= htmlspecialchars(servitech_url('/pages/admin/admin_dashboard.php'), ENT_QUOTES, 'UTF-8') ?>">Admin Dashboard</a>
+          <a href="<?= htmlspecialchars(servitech_url(servitech_internal_dashboard_path()), ENT_QUOTES, 'UTF-8') ?>">Admin Dashboard</a>
           <a href="<?= htmlspecialchars(servitech_url('/pages/admin/logout.php'), ENT_QUOTES, 'UTF-8') ?>">Logout</a>
         <?php else: ?>
           <a href="<?= htmlspecialchars(servitech_url('/pages/customer/customer_dash.php'), ENT_QUOTES, 'UTF-8') ?>">Home</a>

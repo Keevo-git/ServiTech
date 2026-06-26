@@ -13,7 +13,7 @@ if ($user_id <= 0) {
   exit();
 }
 if (!servitech_is_customer()) {
-  header("Location: " . servitech_url("/pages/admin/admin_dashboard.php"));
+  header("Location: " . servitech_url(servitech_internal_dashboard_path()));
   exit();
 }
 
