@@ -120,7 +120,13 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
   <section class="quick-grid quick-access-section quick-access-grid admin-quick-grid">
     <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon">Q</div>
+        <div class="icon admin-quick-icon" aria-hidden="true">
+          <img
+            src="<?= project_url('/pages/admin/IMAGES/LANDING_QUEUEING.png?v=20260626-owner-icons') ?>"
+            alt=""
+            class="icon-image icon-image--queue-management"
+          >
+        </div>
         <h4>Queue Management</h4>
         <p>Oversee queue flow across service categories</p>
       </article>
@@ -128,7 +134,13 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
 
     <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon">O</div>
+        <div class="icon admin-quick-icon" aria-hidden="true">
+          <img
+            src="<?= project_url('/pages/admin/IMAGES/LANDING_PRINT-ORD.png?v=20260626-owner-icons') ?>"
+            alt=""
+            class="icon-image icon-image--order-management"
+          >
+        </div>
         <h4>Order Management</h4>
         <p>Review and manage order workflow</p>
       </article>
@@ -148,59 +160,19 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
       </article>
     </a>
 
-    <a href="<?= project_url('/pages/super_admin/super_admin_service_management.php') ?>" class="card-link admin-quick-card-link">
+    <a href="<?= project_url('/pages/super_admin/super_admin_employee_accounts.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon">SV</div>
-        <h4>Service Management</h4>
-        <p>Manage service options, visibility, and pricing rules</p>
+        <div class="icon admin-quick-icon" aria-hidden="true">EA</div>
+        <h4>Employee Accounts</h4>
+        <p>Create, update, deactivate, and reset employee admin accounts</p>
       </article>
     </a>
 
-    <a href="<?= project_url('/pages/super_admin/super_admin_announcement.php') ?>" class="card-link admin-quick-card-link">
-      <article class="card card--announcement admin-quick-card">
-        <div class="icon admin-quick-icon" aria-hidden="true">AN</div>
-        <h4>Announcement</h4>
-        <p>Post a notice on the landing page</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/super_admin/super_admin_store_availability.php') ?>" class="card-link admin-quick-card-link">
-      <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon" aria-hidden="true">HR</div>
-        <h4>Store Availability</h4>
-        <p>Manage shop hours, cutoffs, holidays, and service status</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/super_admin/super_admin_staff_accounts.php') ?>" class="card-link admin-quick-card-link">
-      <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon" aria-hidden="true">SA</div>
-        <h4>Staff Accounts</h4>
-        <p>Create, update, deactivate, and reset admin accounts</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/super_admin/super_admin_activity_logs.php') ?>" class="card-link admin-quick-card-link">
+    <a href="<?= project_url('/pages/super_admin/super_admin_employee_activity_logs.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
         <div class="icon admin-quick-icon" aria-hidden="true">LOG</div>
-        <h4>Activity Logs</h4>
+        <h4>Employee Activity Logs</h4>
         <p>Review employee actions and account changes</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/super_admin/super_admin_dashboard.php#operations-analytics') ?>" class="card-link admin-quick-card-link">
-      <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon" aria-hidden="true">REP</div>
-        <h4>Reports / Analytics</h4>
-        <p>Review owner-level operational reports and service trends</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link admin-quick-card-link">
-      <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon" aria-hidden="true">PAY</div>
-        <h4>Payment Management</h4>
-        <p>Review order payment details and approval flow</p>
       </article>
     </a>
 

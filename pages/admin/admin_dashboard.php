@@ -121,7 +121,13 @@ require __DIR__ . "/_includes/admin_header.php";
   <section class="quick-grid quick-access-section quick-access-grid admin-quick-grid">
     <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon">Q</div>
+        <div class="icon admin-quick-icon" aria-hidden="true">
+          <img
+            src="<?= project_url('/pages/admin/IMAGES/LANDING_QUEUEING.png?v=20260626-employee-icons') ?>"
+            alt=""
+            class="icon-image icon-image--queue-management"
+          >
+        </div>
         <h4>Today's Queue</h4>
         <p>Process walk-in and active queue requests</p>
       </article>
@@ -129,7 +135,13 @@ require __DIR__ . "/_includes/admin_header.php";
 
     <a href="<?= project_url('/pages/admin/order_management/printM.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon">O</div>
+        <div class="icon admin-quick-icon" aria-hidden="true">
+          <img
+            src="<?= project_url('/pages/admin/IMAGES/LANDING_PRINT-ORD.png?v=20260626-employee-icons') ?>"
+            alt=""
+            class="icon-image icon-image--order-management"
+          >
+        </div>
         <h4>Active Orders</h4>
         <p>Update processing, ready, and done statuses</p>
       </article>

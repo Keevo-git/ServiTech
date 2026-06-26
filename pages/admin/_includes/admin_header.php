@@ -33,6 +33,9 @@ $adminHeaderRole = servitech_current_role();
 $adminHeaderIsSuperAdmin = servitech_is_super_admin();
 $adminHeaderRoleLabel = $adminHeaderRole === "admin" ? "Admin / Employee" : servitech_role_label($adminHeaderRole);
 $adminHeaderDashboardHref = servitech_internal_dashboard_path($adminHeaderRole);
+$adminHeaderFlashToast = function_exists("servitech_consume_admin_flash_toast")
+    ? servitech_consume_admin_flash_toast()
+    : null;
 $adminHeaderNavItems = $adminHeaderIsSuperAdmin
     ? [
         ["label" => "Home", "href" => "/pages/super_admin/super_admin_dashboard.php", "roles" => ["super_admin"]],
@@ -47,6 +50,16 @@ $adminHeaderNavItems = $adminHeaderIsSuperAdmin
 ?>
 <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_toast.css?v=20260621-modal-stack-toast') ?>">
 <script src="<?= admin_url('/pages/admin/admin_toast.js?v=20260602-admin-toast') ?>"></script>
+<?php if (is_array($adminHeaderFlashToast)): ?>
+<script>
+  window.addEventListener("DOMContentLoaded", function () {
+    window.servitechAdminToast?.show(
+      <?= json_encode((string)$adminHeaderFlashToast["message"], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>,
+      <?= json_encode((string)$adminHeaderFlashToast["type"], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>
+    );
+  }, { once: true });
+</script>
+<?php endif; ?>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-controller') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260608-admin-logout-confirm-global') ?>" defer></script>

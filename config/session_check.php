@@ -211,6 +211,53 @@ if (!function_exists("servitech_role_label")) {
     }
 }
 
+if (!function_exists("servitech_admin_flash_toast")) {
+    function servitech_admin_flash_toast(string $message, string $type = "info"): void
+    {
+        $message = trim($message);
+        if ($message === "") {
+            return;
+        }
+
+        $type = strtolower(trim($type));
+        if (!in_array($type, ["success", "error", "warning", "info"], true)) {
+            $type = "info";
+        }
+
+        $_SESSION["servitech_admin_flash_toast"] = [
+            "message" => $message,
+            "type" => $type,
+        ];
+    }
+}
+
+if (!function_exists("servitech_consume_admin_flash_toast")) {
+    function servitech_consume_admin_flash_toast(): ?array
+    {
+        $toast = $_SESSION["servitech_admin_flash_toast"] ?? null;
+        unset($_SESSION["servitech_admin_flash_toast"]);
+
+        if (!is_array($toast)) {
+            return null;
+        }
+
+        $message = trim((string)($toast["message"] ?? ""));
+        if ($message === "") {
+            return null;
+        }
+
+        $type = strtolower(trim((string)($toast["type"] ?? "info")));
+        if (!in_array($type, ["success", "error", "warning", "info"], true)) {
+            $type = "info";
+        }
+
+        return [
+            "message" => $message,
+            "type" => $type,
+        ];
+    }
+}
+
 if (!function_exists("servitech_brand_home_url")) {
     function servitech_brand_home_url(): string
     {

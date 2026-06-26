@@ -2,5 +2,5 @@
 require_once __DIR__ . "/_includes/admin_auth.php";
 servitech_require_super_admin();
 
-header("Location: " . admin_url_raw("/pages/super_admin/super_admin_activity_logs.php"), true, 302);
+header("Location: " . admin_url_raw("/pages/super_admin/super_admin_employee_activity_logs.php"), true, 302);
 exit();
