@@ -5,6 +5,7 @@ require_once __DIR__ . "/_includes/admin_db.php";
 require_once __DIR__ . "/_includes/url.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../config/activity_log.php";
 
 function store_admin_h($value): string
 {
@@ -71,6 +72,7 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 ];
             }
 
+            $previousSnapshot = servitech_store_fetch_snapshot($pdo);
             $pdo->beginTransaction();
             $settingsStmt = $pdo->prepare("
                 INSERT INTO store_availability_settings
@@ -106,6 +108,22 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 ]);
             }
             $pdo->commit();
+            servitech_activity_log($pdo, [
+                "action_type" => "store_settings_update",
+                "module" => "system_settings",
+                "target_record_id" => "store_availability",
+                "old_value" => [
+                    "store_status" => $previousSnapshot["store_status"] ?? "",
+                    "queue_cutoff_time" => $previousSnapshot["queue_cutoff_time"] ?? "",
+                    "hours" => $previousSnapshot["hours"] ?? [],
+                ],
+                "new_value" => [
+                    "store_status" => $status,
+                    "queue_cutoff_time" => $cutoff,
+                    "hours" => $validatedHours,
+                ],
+                "description" => "Super Admin updated store hours, availability, and queue cutoff settings.",
+            ]);
             $notice = "Store availability and cutoff settings saved successfully.";
             $toastType = "success";
             $toastMessage = $notice;
@@ -139,6 +157,9 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             }
 
             if ($holidayId > 0) {
+                $oldHolidayStmt = $pdo->prepare("SELECT id, holiday_date::text AS holiday_date, title, note FROM store_holidays WHERE id = :id LIMIT 1");
+                $oldHolidayStmt->execute([":id" => $holidayId]);
+                $oldHoliday = $oldHolidayStmt->fetch(PDO::FETCH_ASSOC) ?: null;
                 $stmt = $pdo->prepare("
                     UPDATE store_holidays
                     SET holiday_date = :holiday_date, title = :title, note = :note, updated_at = NOW()
@@ -154,10 +175,19 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                     throw new RuntimeException("Closed date not found.");
                 }
                 $notice = "Closed date updated successfully.";
+                servitech_activity_log($pdo, [
+                    "action_type" => "store_holiday_update",
+                    "module" => "system_settings",
+                    "target_record_id" => (string)$holidayId,
+                    "old_value" => $oldHoliday,
+                    "new_value" => ["holiday_date" => $holidayDate, "title" => $title, "note" => $note],
+                    "description" => "Super Admin updated store closed date {$holidayDate}.",
+                ]);
             } else {
                 $stmt = $pdo->prepare("
                     INSERT INTO store_holidays (holiday_date, title, note, created_by)
                     VALUES (:holiday_date, :title, :note, :created_by)
+                    RETURNING id
                 ");
                 $stmt->execute([
                     ":holiday_date" => $holidayDate,
@@ -165,7 +195,15 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                     ":note" => $note,
                     ":created_by" => (int)($_SESSION["user_id"] ?? 0) ?: null,
                 ]);
+                $createdHolidayId = (int)($stmt->fetchColumn() ?: 0);
                 $notice = "Closed date added successfully.";
+                servitech_activity_log($pdo, [
+                    "action_type" => "store_holiday_create",
+                    "module" => "system_settings",
+                    "target_record_id" => (string)$createdHolidayId,
+                    "new_value" => ["holiday_date" => $holidayDate, "title" => $title, "note" => $note],
+                    "description" => "Super Admin added store closed date {$holidayDate}.",
+                ]);
             }
             $toastType = "success";
             $toastMessage = $notice;
@@ -174,8 +212,18 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             if ($holidayId <= 0) {
                 throw new RuntimeException("Invalid closed date.");
             }
+            $oldHolidayStmt = $pdo->prepare("SELECT id, holiday_date::text AS holiday_date, title, note FROM store_holidays WHERE id = :id LIMIT 1");
+            $oldHolidayStmt->execute([":id" => $holidayId]);
+            $oldHoliday = $oldHolidayStmt->fetch(PDO::FETCH_ASSOC) ?: null;
             $stmt = $pdo->prepare("DELETE FROM store_holidays WHERE id = :id");
             $stmt->execute([":id" => $holidayId]);
+            servitech_activity_log($pdo, [
+                "action_type" => "store_holiday_delete",
+                "module" => "system_settings",
+                "target_record_id" => (string)$holidayId,
+                "old_value" => $oldHoliday,
+                "description" => "Super Admin deleted a store closed date.",
+            ]);
             $notice = "Closed date deleted.";
         }
     } catch (Throwable $exception) {

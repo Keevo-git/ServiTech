@@ -290,6 +290,53 @@ body.admin-dashboard .admin-section-divider{
   background: #2563eb;
 }
 
+body.admin-dashboard .employee-focus-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+body.admin-dashboard .employee-focus-card{
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #d8e1ec;
+  border-left: 5px solid #178b9e;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(27, 51, 79, 0.09);
+}
+
+body.admin-dashboard .employee-focus-card h4{
+  margin: 0 0 8px;
+  color: #132b49;
+  font-size: 17px;
+}
+
+body.admin-dashboard .employee-focus-card p{
+  margin: 0 0 14px;
+  color: var(--adm-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+body.admin-dashboard .employee-focus-card a{
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #1f4a8a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+body.admin-dashboard .employee-focus-card a:hover{
+  background: #306dc2;
+}
+
 body.admin-dashboard .analytics-grid{
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.9fr);
@@ -858,7 +905,9 @@ body.admin-dashboard .dashboard-content .admin-quick-card .admin-quick-icon{
   min-height: 60px !important;
   margin: 0 auto 2px !important;
   border-radius: 13px;
-  font-size: 26px !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
 }
 
 body.admin-dashboard .dashboard-content .admin-quick-card h4{
@@ -997,6 +1046,10 @@ body.admin-dashboard .admin-shared-footer .footer-legal-links + .footer-bottom{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  body.admin-dashboard .employee-focus-grid{
+    grid-template-columns: 1fr;
+  }
+
 }
 
 @media (max-width: 1024px){
@@ -1013,6 +1066,7 @@ body.admin-dashboard .admin-shared-footer .footer-legal-links + .footer-bottom{
   body.admin-dashboard .quick-access,
   body.admin-dashboard .quick-grid,
   body.admin-dashboard .quick-access-grid,
+  body.admin-dashboard .employee-focus-grid,
   body.admin-dashboard .analytics-section,
   body.admin-dashboard .today-metrics,
   body.admin-dashboard .operational-status-metrics{

@@ -4,6 +4,23 @@ require_once __DIR__ . "/../../config/session_check.php";
 require_once __DIR__ . "/_includes/url.php";
 require_once __DIR__ . "/../../config/remember_me.php";
 
+$logoutUserId = (int)($_SESSION["user_id"] ?? 0);
+if ($logoutUserId > 0) {
+    try {
+        require_once __DIR__ . "/../../config/db.php";
+        require_once __DIR__ . "/../../config/activity_log.php";
+        servitech_activity_log(servitech_db_connect_privileged(), [
+            "actor_id" => $logoutUserId,
+            "action_type" => "logout",
+            "module" => "authentication",
+            "target_record_id" => (string)$logoutUserId,
+            "description" => servitech_role_label() . " logged out from the admin area.",
+        ]);
+    } catch (Throwable $exception) {
+        error_log("Admin logout activity log failed: " . $exception->getMessage());
+    }
+}
+
 if (!empty($_COOKIE[servitech_remember_cookie_name()])) {
     try {
         require_once __DIR__ . "/../../config/db.php";
