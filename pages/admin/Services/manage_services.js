@@ -42,6 +42,7 @@
   let selectedLaminationTypeKey = null;
   let selectedRepairDeviceKey = null;
   let selectedInstallationDeviceKey = null;
+  let selectedSimpleInstallationTypeKey = null;
   const serviceModalStack = [];
   const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
   const modalBaseZIndex = 2147483100;
@@ -908,6 +909,47 @@
     </section>`;
   }
 
+  function simpleInstallationEditor() {
+    const types = group("installation_type")?.values || [];
+    const selectedType = types.find((t) => t.value_key === selectedSimpleInstallationTypeKey);
+    const selectedRule = selectedType ? findRule({ installation_type: selectedType.value_key }) : null;
+
+    return `<section class="ms-option-section">
+      <div class="ms-section-head">
+        <div><h4>Installation Types</h4><p>Select an installation type from the dropdown to edit it.</p></div>
+      </div>
+      <div class="ms-value-list">
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-simple-installation-select">Select Installation Type:</label>
+          <select id="ms-simple-installation-select" data-select-simple-installation-type aria-label="Select installation type to edit">
+            <option value="">-- Select a type --</option>
+            ${types.map((type) => `<option value="${escapeHtml(type.value_key)}" ${selectedSimpleInstallationTypeKey === type.value_key ? "selected" : ""}>${escapeHtml(type.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedType ? `<div class="ms-value-row ${Number(selectedType.active) ? "" : "is-inactive"}" data-group-key="installation_type" data-value-key="${escapeHtml(selectedType.value_key)}">
+          <div class="ms-size-edit-header"><strong>${escapeHtml(selectedType.label)}</strong></div>
+          <input data-value-label value="${escapeHtml(selectedType.label)}" maxlength="${optionLabelMaxLength}" aria-label="Installation type name" class="ms-size-input">
+          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00"></div>
+          <select data-rule-price-type aria-label="Price type"><option value="fixed" ${selectedRule?.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${selectedRule?.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
+          <div class="ms-status-cell">
+            <span class="ms-control-label">Status</span>
+            <label class="ms-switch ms-switch--compact">
+              <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedType.label)} active status" ${Number(selectedType.active) ? "checked" : ""}>
+              <span aria-hidden="true"></span><em>${Number(selectedType.active) ? "Active" : "Inactive"}</em>
+            </label>
+          </div>
+        </div>` : ""}
+      </div>
+      <div class="ms-inline-add">
+        <input data-new-value="installation_type" maxlength="${optionLabelMaxLength}" placeholder="New installation type">
+        <div class="ms-price-input"><span>PHP</span><input data-new-price="installation_type" type="number" min="0" step="0.01" placeholder="Price"></div>
+        <select data-new-price-type="installation_type"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select>
+        <label class="ms-switch ms-switch--compact"><input data-new-active="installation_type" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
+        <button type="button" data-add-value="installation_type">Add</button>
+      </div>
+    </section>`;
+  }
+
   function installationDeviceEditor() {
     const devices = group("device_type")?.values || [];
     const selectedDevice = devices.find((d) => d.value_key === selectedInstallationDeviceKey);
@@ -951,7 +993,7 @@
     return `<section class="ms-option-section ms-mode-section"><div><h4>Pricing Setup</h4><p>Use a simple service list, or enable device-specific installation pricing.</p></div><label class="ms-switch"><input data-installation-device-mode type="checkbox" ${deviceMode ? "checked" : ""}><span aria-hidden="true"></span><em>Use Device Category</em></label></section>
       ${deviceMode
         ? installationDeviceEditor()
-        : simpleRuleRows("installation_type", "Installation Types", "New installation service", { nameLabel: "Installation Type" })}`;
+        : simpleInstallationEditor()}`;
   }
 
   function render() {
@@ -1244,6 +1286,13 @@
       return;
     }
 
+    if (event.target.matches("[data-select-simple-installation-type]")) {
+      event.stopPropagation();
+      selectedSimpleInstallationTypeKey = event.target.value || null;
+      render();
+      return;
+    }
+
     if (event.target.matches("[data-installation-device-mode]")) {
       const enabled = event.target.checked;
       if (!await confirmAction({
@@ -1336,6 +1385,7 @@
     selectedLaminationTypeKey = null;
     selectedRepairDeviceKey = null;
     selectedInstallationDeviceKey = null;
+    selectedSimpleInstallationTypeKey = null;
     editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
     try {
       const fetchedCatalog = await fetchCatalog(data.id);
@@ -1363,6 +1413,7 @@
     selectedLaminationTypeKey = null;
     selectedRepairDeviceKey = null;
     selectedInstallationDeviceKey = null;
+    selectedSimpleInstallationTypeKey = null;
     hideError();
   }
 
