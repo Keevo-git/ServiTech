@@ -742,10 +742,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
   <?php if (!$supabaseAdminReady): ?>
     <div class="admin-owner-alert admin-owner-alert--error">Set SUPABASE_SERVICE_ROLE_KEY on the server to create employees or reset temporary passwords.</div>
   <?php endif; ?>
-  <div class="admin-owner-alert employee-account-security-note">
-    <span>Temporary passwords are never stored in ServiTech tables and are only sent to Supabase Auth. Give them to employees securely.</span>
-    <small>Shortcut: Press Ctrl + Alt + E to create an employee account.</small>
-  </div>
+  <div class="admin-owner-alert employee-account-security-note">Temporary passwords are never stored in ServiTech tables and are only sent to Supabase Auth. Give them to employees securely.</div>
 
   <section class="admin-owner-grid admin-owner-grid--single">
     <section class="admin-owner-panel admin-owner-panel--full employee-accounts-panel">
@@ -754,7 +751,10 @@ unset($_SESSION["employee_account_create_modal_open"]);
           <h2>Employee Admin Accounts</h2>
           <p>Manage employee admin access, verification status, and required setup steps.</p>
         </div>
-        <span class="employee-account-shortcut-chip">Ctrl + Alt + E</span>
+        <label class="employee-account-search" for="employee_account_search">
+          <span class="employee-account-search__icon" aria-hidden="true"></span>
+          <input id="employee_account_search" type="search" placeholder="Search by name or email" autocomplete="off" data-employee-account-search>
+        </label>
       </div>
       <div class="admin-owner-table-wrap">
         <table class="admin-owner-table employee-accounts-table">
@@ -782,13 +782,19 @@ unset($_SESSION["employee_account_create_modal_open"]);
           </thead>
           <tbody>
           <?php if (!$employeeAccounts): ?>
-            <tr>
+            <tr data-employee-empty-state="no-records">
               <td colspan="8" class="admin-owner-empty-state employee-accounts-empty-state">
                 <strong>No linked employee admin accounts found.</strong>
-                <span>Use the employee account shortcut to create a new employee login account.</span>
+                <span>No linked employee login accounts are available yet.</span>
               </td>
             </tr>
           <?php endif; ?>
+            <tr data-employee-empty-state="search" hidden>
+              <td colspan="8" class="admin-owner-empty-state employee-accounts-empty-state">
+                <strong>No employee accounts match your search.</strong>
+                <span>Try searching with a different name or email.</span>
+              </td>
+            </tr>
           <?php foreach ($employeeAccounts as $account): ?>
             <?php
               $employeeId = (int)$account["id"];
@@ -798,7 +804,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
               $forcePasswordChange = filter_var($account["force_password_change"] ?? false, FILTER_VALIDATE_BOOLEAN);
               $authVerified = trim((string)($account["auth_email_confirmed_at"] ?? "")) !== "";
             ?>
-            <tr class="employee-account-row">
+            <tr class="employee-account-row" data-employee-search-text="<?= employee_account_h(trim((string)($account["fullname"] ?? "")) . " " . trim((string)($account["email"] ?? ""))) ?>">
               <td class="employee-account-cell employee-account-cell--employee">
                 <strong><?= employee_account_h($account["fullname"] ?? "") ?></strong>
                 <small>
@@ -1028,6 +1034,9 @@ unset($_SESSION["employee_account_create_modal_open"]);
     var confirmModal = document.querySelector("[data-employee-confirm-modal]");
     var confirmMessage = document.querySelector("#employee-confirm-message");
     var confirmButton = document.querySelector("[data-confirm-employee-status]");
+    var searchInput = document.querySelector("[data-employee-account-search]");
+    var employeeRows = Array.prototype.slice.call(document.querySelectorAll(".employee-account-row"));
+    var searchEmptyState = document.querySelector("[data-employee-empty-state='search']");
     var pendingStatusForm = null;
 
     function firstModalField() {
@@ -1160,6 +1169,38 @@ unset($_SESSION["employee_account_create_modal_open"]);
         submitButton.disabled = true;
         submitButton.textContent = "Creating...";
       });
+    }
+
+    function closeRowMenus(row) {
+      row.querySelectorAll("details[open]").forEach(function (details) {
+        details.open = false;
+      });
+    }
+
+    function filterEmployeeRows() {
+      if (!searchInput) return;
+      var query = searchInput.value.trim().toLowerCase();
+      var visibleCount = 0;
+
+      employeeRows.forEach(function (row) {
+        var haystack = (row.getAttribute("data-employee-search-text") || "").toLowerCase();
+        var visible = query === "" || haystack.indexOf(query) !== -1;
+        row.hidden = !visible;
+        if (visible) {
+          visibleCount += 1;
+        } else {
+          closeRowMenus(row);
+        }
+      });
+
+      if (searchEmptyState) {
+        searchEmptyState.hidden = query === "" || visibleCount > 0 || employeeRows.length === 0;
+      }
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", filterEmployeeRows);
+      filterEmployeeRows();
     }
 
     function makePassword() {

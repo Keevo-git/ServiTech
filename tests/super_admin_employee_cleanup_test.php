@@ -96,9 +96,15 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "force_password_chang
 super_admin_cleanup_assert(str_contains($employeeAccounts, "profile_completed") && str_contains($employeeAccounts, "'active', TRUE, FALSE"), "New employees must start with pending profile setup.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_admin_flash_toast"), "Employee Accounts form feedback must use shared toast flash.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "data-open-create-employee-modal"), "Employee creation must not expose a visible page button trigger.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "Ctrl + Alt + E"), "Employee creation shortcut hint must be shown.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "Ctrl + Alt + E"), "Employee creation shortcut combination must not be visible in page source.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "Shortcut:"), "Employee creation shortcut helper text must not render.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "employee-account-shortcut-chip"), "Employee creation shortcut badge must not render.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "event.ctrlKey && event.altKey"), "Employee creation shortcut must be wired in page JavaScript.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "isTypingTarget"), "Employee creation shortcut must ignore typing targets.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Search by name or email"), "Employee Accounts page must include name/email search.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-account-search"), "Employee search must be wired for client-side filtering.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-search-text"), "Employee rows must expose searchable name/email text.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "No employee accounts match your search."), "Employee search must include a distinct no-results empty state.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-modal"), "Employee creation modal must exist.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-form"), "Employee creation form must be inside the modal.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-accounts-polish"), "Employee Accounts page must load the cache-busted owner CSS.");

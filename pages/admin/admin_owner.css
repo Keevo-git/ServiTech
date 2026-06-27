@@ -597,22 +597,12 @@ body.admin-first-time-setup .employee-setup-password-fields {
 }
 
 body.admin-employee-accounts .employee-account-security-note {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  display: block;
   font-size: 13px;
 }
 
-body.admin-employee-accounts .employee-account-security-note small {
-  flex: 0 0 auto;
-  color: #48627f;
-  font-size: 12px;
-  font-weight: 800;
-}
-
 body.admin-employee-accounts .employee-accounts-panel {
-  padding: 0;
+  padding: 0 0 24px;
   overflow: hidden;
   border-radius: 12px;
 }
@@ -621,9 +611,8 @@ body.admin-employee-accounts .employee-accounts-panel__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding: 18px 18px 14px;
-  border-bottom: 1px solid #e2e9f2;
+  gap: 24px;
+  padding: 24px 26px 20px;
   background: #ffffff;
 }
 
@@ -638,18 +627,69 @@ body.admin-employee-accounts .employee-accounts-panel__header p {
   font-size: 13px;
 }
 
-body.admin-employee-accounts .employee-account-shortcut-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 5px 9px;
-  border: 1px solid #c7d8ed;
-  border-radius: 8px;
-  background: #f5f9ff;
-  color: #1f4a8a;
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
+body.admin-employee-accounts .employee-account-search {
+  position: relative;
+  flex: 0 1 320px;
+  width: min(320px, 100%);
+  margin-top: 2px;
+}
+
+body.admin-employee-accounts .employee-account-search input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #cbd8ea;
+  border-radius: 10px;
+  padding: 9px 12px 9px 38px;
+  background: #f8fbff;
+  color: #112338;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+body.admin-employee-accounts .employee-account-search input:focus {
+  outline: none;
+  border-color: #2e6fae;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(46, 111, 174, 0.14);
+}
+
+body.admin-employee-accounts .employee-account-search input::placeholder {
+  color: #6d7f96;
+  font-weight: 700;
+}
+
+body.admin-employee-accounts .employee-account-search__icon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  width: 15px;
+  height: 15px;
+  transform: translateY(-50%);
+  border: 2px solid #6a83a2;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+body.admin-employee-accounts .employee-account-search__icon::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  bottom: -5px;
+  width: 7px;
+  height: 2px;
+  border-radius: 999px;
+  background: #6a83a2;
+  transform: rotate(45deg);
+}
+
+body.admin-employee-accounts .employee-accounts-panel .admin-owner-table-wrap {
+  width: auto;
+  margin: 0 26px;
+  overflow-x: auto;
+  border: 1px solid #dbe5f1;
+  border-radius: 10px;
+  background: #ffffff;
 }
 
 body.admin-employee-accounts .employee-accounts-table {
@@ -683,7 +723,7 @@ body.admin-employee-accounts .employee-accounts-table__col-actions {
 
 body.admin-employee-accounts .employee-accounts-table th,
 body.admin-employee-accounts .employee-accounts-table td {
-  padding: 12px 10px;
+  padding: 15px 14px;
   vertical-align: middle;
   line-height: 1.35;
 }
@@ -1142,18 +1182,18 @@ body.admin-employee-accounts .admin-owner-table-wrap:has(details[open]) {
     grid-template-columns: 1fr;
   }
 
-  body.admin-employee-accounts .employee-account-security-note,
   body.admin-employee-accounts .employee-accounts-panel__header {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  body.admin-employee-accounts .employee-account-security-note small {
-    flex-basis: auto;
-  }
-
   body.admin-employee-accounts .employee-accounts-table {
     min-width: 1080px;
+  }
+
+  body.admin-employee-accounts .employee-account-search {
+    flex-basis: auto;
+    width: 100%;
   }
 
   body.admin-employee-accounts .employee-account-action-panel {
@@ -1224,6 +1264,11 @@ body.admin-employee-accounts .admin-owner-table-wrap:has(details[open]) {
 
   body.admin-employee-accounts .employee-accounts-panel__header {
     padding: 16px;
+  }
+
+  body.admin-employee-accounts .employee-accounts-panel .admin-owner-table-wrap {
+    margin-right: 16px;
+    margin-left: 16px;
   }
 
   body.admin-employee-accounts .employee-account-action-panel,
