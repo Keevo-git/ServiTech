@@ -896,14 +896,6 @@
   }
 
   editor?.addEventListener("click", async (event) => {
-    const selectPaperSize = event.target.closest("[data-select-paper-size]");
-    if (selectPaperSize) {
-      event.stopPropagation();
-      selectedPaperSizeKey = selectPaperSize.value || null;
-      render();
-      return;
-    }
-
     const toggleTarget = event.target.closest('input[data-action="toggle-active"]');
     if (toggleTarget) {
       event.stopPropagation();
