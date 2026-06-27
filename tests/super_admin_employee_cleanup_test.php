@@ -107,7 +107,7 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-search
 super_admin_cleanup_assert(str_contains($employeeAccounts, "No employee accounts match your search."), "Employee search must include a distinct no-results empty state.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-modal"), "Employee creation modal must exist.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-form"), "Employee creation form must be inside the modal.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-responsive-modal"), "Employee Accounts page must load the cache-busted owner CSS.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-modal-stack"), "Employee Accounts page must load the cache-busted owner CSS.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "admin-owner-panel admin-owner-panel--full"), "Employee Accounts table card must use the full-width owner panel.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "<th>Role</th>"), "Employee Accounts table must not show a redundant Role column.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-open-employee-modal"), "Employee table View Details action must open the details modal.");
@@ -151,6 +151,10 @@ super_admin_cleanup_assert(str_contains($ownerCss, "min-width: 1080px;"), "Emplo
 super_admin_cleanup_assert(str_contains($ownerCss, "min-width: 112px;"), "Employee View Details button must keep a readable minimum width.");
 super_admin_cleanup_assert(str_contains($ownerCss, "width: calc(100vw - 20px);"), "Employee details modal must fit phone-width screens.");
 super_admin_cleanup_assert(str_contains($ownerCss, "max-height: 92dvh;"), "Employee details modal must use dynamic viewport height on mobile.");
+super_admin_cleanup_assert(str_contains($ownerCss, "z-index: 9000;"), "Employee details modal overlay must sit above the shared admin header.");
+super_admin_cleanup_assert(str_contains($ownerCss, "z-index: 9200;"), "Employee confirmation modal must sit above the details modal.");
+super_admin_cleanup_assert(str_contains($ownerCss, "min-height: 100dvh;"), "Owner modal overlay must cover the dynamic mobile viewport.");
+super_admin_cleanup_assert(str_contains($ownerCss, "overscroll-behavior: none;"), "Owner modal body lock must prevent background overscroll.");
 
 foreach ([
     $oldStaffStub,

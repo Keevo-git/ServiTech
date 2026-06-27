@@ -760,7 +760,7 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
   <title>Employee Accounts | ServiTech Admin</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-responsive-modal') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-modal-stack') ?>">
 </head>
 <body class="admin-employee-accounts<?= $openCreateModal || $openEmployeeDetailsModalId > 0 ? " admin-owner-modal-open" : "" ?>">
 <?php require __DIR__ . "/../admin/_includes/admin_header.php"; ?>

@@ -851,14 +851,16 @@ body.admin-employee-accounts .employee-account-confirm-modal {
 }
 
 body.admin-employee-accounts .employee-details-modal-overlay {
-  z-index: 1300;
+  z-index: 9000;
 }
 
 body.admin-employee-accounts .employee-account-confirm-overlay {
-  z-index: 1400;
+  z-index: 9200;
 }
 
 body.admin-employee-accounts .employee-details-modal {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   width: min(95vw, 1050px);
@@ -1170,12 +1172,17 @@ body.admin-employee-accounts .employee-details-password-reset form {
 .admin-owner-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 9000;
   display: grid;
   place-items: center;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
   padding: 18px;
+  overflow: hidden;
   background: rgba(15, 23, 42, 0.54);
   backdrop-filter: blur(2px);
+  isolation: isolate;
 }
 
 .admin-owner-modal-overlay[hidden] {
@@ -1183,6 +1190,8 @@ body.admin-employee-accounts .employee-details-password-reset form {
 }
 
 .admin-owner-modal {
+  position: relative;
+  z-index: 1;
   width: min(620px, 100%);
   max-height: min(720px, calc(100vh - 36px));
   overflow-y: auto;
@@ -1195,6 +1204,7 @@ body.admin-employee-accounts .employee-details-password-reset form {
 
 .admin-owner-modal-open {
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .admin-owner-modal__header {
