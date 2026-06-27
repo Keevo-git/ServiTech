@@ -942,7 +942,7 @@
       </div>
       <div class="ms-inline-add">
         <input data-new-value="installation_type" maxlength="${optionLabelMaxLength}" placeholder="New installation type">
-        <div class="ms-price-input"><span>PHP</span><input data-new-price="installation_type" type="number" min="0" step="0.01" placeholder="Price"></div>
+        <div class="ms-price-input"><input data-new-price="installation_type" type="number" min="0" step="0.01" placeholder="Price"></div>
         <select data-new-price-type="installation_type"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select>
         <label class="ms-switch ms-switch--compact"><input data-new-active="installation_type" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
         <button type="button" data-add-value="installation_type">Add</button>
