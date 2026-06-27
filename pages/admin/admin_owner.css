@@ -1683,14 +1683,6 @@ body.admin-profile-page .admin-profile-form-grid__wide {
 
 body.admin-profile-page .admin-profile-form-grid--profile-info {
   grid-template-columns: minmax(0, 1fr);
-  width: min(100%, 820px);
-  align-items: stretch;
-}
-
-body.admin-profile-page .admin-profile-form-grid--profile-info > .admin-owner-field {
-  grid-column: 1 / -1;
-  width: 100%;
-  min-width: 0;
 }
 
 body.admin-profile-page .admin-owner-field {
