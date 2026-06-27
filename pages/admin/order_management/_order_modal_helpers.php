@@ -333,7 +333,7 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
           <input type="search" data-order-filter-search placeholder="Search by Customer Name or Order ID" autocomplete="off">
         </label>
 
-        <label class="order-filter-control">
+        <label class="order-filter-control order-filter-control--month">
           <span>Month</span>
           <select data-order-filter-month>
             <option value="">All months</option>
@@ -343,7 +343,7 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
           </select>
         </label>
 
-        <label class="order-filter-control">
+        <label class="order-filter-control order-filter-control--year">
           <span>Year</span>
           <select data-order-filter-year>
             <option value="">All years</option>
@@ -353,7 +353,7 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
           </select>
         </label>
 
-        <div class="order-filter-control">
+        <div class="order-filter-control order-filter-control--status">
           <span>Status</span>
           <details class="order-status-filter">
             <summary>
@@ -371,7 +371,7 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
         </div>
 
         <?php if ($includePayment): ?>
-          <label class="order-filter-control">
+          <label class="order-filter-control order-filter-control--payment">
             <span>Mode of Payment</span>
             <select data-order-filter-payment>
               <option value="">All payment modes</option>

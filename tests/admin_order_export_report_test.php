@@ -68,6 +68,11 @@ foreach (["password", "auth_user_id", "refresh_token", "access_token"] as $sensi
 }
 
 admin_order_export_assert(str_contains($css, ".order-filter-export"), "Export button must have ServiTech styling.");
+admin_order_export_assert(str_contains($css, ".order-filter-actions"), "Filter action buttons must be grouped for layout.");
+admin_order_export_assert(str_contains($css, "grid-template-columns: repeat(14, minmax(0, 1fr))"), "Desktop filter layout must use the full-width column grid.");
+admin_order_export_assert(str_contains($css, "width: 150px;"), "Desktop filter action buttons must share a stable width.");
+admin_order_export_assert(str_contains($css, "min-height: 44px;"), "Filter controls and buttons must share a readable height.");
+admin_order_export_assert(str_contains($helper, "order-filter-control--search"), "Filter controls must expose layout classes.");
 admin_order_export_assert(str_contains($css, "@media (max-width: 560px)"), "Filter/export controls must keep mobile responsive styling.");
 
 echo "Admin order export report checks passed.\n";

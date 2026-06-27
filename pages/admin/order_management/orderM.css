@@ -179,27 +179,39 @@ body.admin-dashboard .page-frame {
   position: relative;
   z-index: 100;
   margin: 0 0 12px;
-  padding: 14px;
+  padding: 20px;
   border: 1px solid #dce5f0;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #f8fbff;
 }
 
 .order-filter-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 1.8fr) repeat(3, minmax(135px, 0.85fr)) minmax(140px, auto);
-  gap: 14px;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 16px;
   align-items: end;
+  width: 100%;
 }
 
 .order-filter-toolbar--payment .order-filter-grid {
-  grid-template-columns: minmax(280px, 1.8fr) repeat(3, minmax(135px, 0.82fr)) minmax(160px, 0.9fr) minmax(150px, auto);
+  grid-template-columns: repeat(14, minmax(0, 1fr));
 }
 
 .order-filter-control {
   display: grid;
   gap: 6px;
   min-width: 0;
+}
+
+.order-filter-control--search {
+  grid-column: span 4;
+}
+
+.order-filter-control--month,
+.order-filter-control--year,
+.order-filter-control--status,
+.order-filter-control--payment {
+  grid-column: span 2;
 }
 
 .order-filter-control > span {
@@ -212,12 +224,12 @@ body.admin-dashboard .page-frame {
 .order-filter-control select,
 .order-status-filter summary {
   width: 100%;
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid #cbd8e8;
   border-radius: 8px;
   background: #fff;
   color: #173760;
-  padding: 9px 11px;
+  padding: 10px 12px;
   font: inherit;
   font-size: 13px;
   line-height: 1.3;
@@ -316,17 +328,21 @@ body.admin-dashboard .page-frame {
 
 .order-filter-actions {
   display: grid;
+  grid-column: span 2;
   gap: 8px;
-  min-width: 0;
+  width: 150px;
+  min-width: 150px;
+  justify-self: end;
+  align-self: end;
 }
 
 .order-filter-clear {
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid #b9c9dc;
   border-radius: 8px;
   background: #fff;
   color: #28486d;
-  padding: 9px 13px;
+  padding: 10px 14px;
   cursor: pointer;
   font: inherit;
   font-size: 13px;
@@ -341,12 +357,12 @@ body.admin-dashboard .page-frame {
 }
 
 .order-filter-export {
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid #1f4a8a;
   border-radius: 8px;
   background: linear-gradient(145deg, #1f4a8a, #2f6fa8);
   color: #fff;
-  padding: 9px 15px;
+  padding: 10px 14px;
   cursor: pointer;
   font: inherit;
   font-size: 13px;
@@ -368,7 +384,7 @@ body.admin-dashboard .page-frame {
 }
 
 .order-filter-results {
-  margin: 10px 0 0;
+  margin: 14px 0 0;
   color: #5d728c;
   font-size: 13px;
   font-weight: 700;
@@ -1675,21 +1691,30 @@ body.order-confirm-open {
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .order-filter-grid,
   .order-filter-toolbar--payment .order-filter-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .order-filter-control--search {
-    grid-column: 1 / -1;
+    grid-column: span 6;
+  }
+
+  .order-filter-control--month,
+  .order-filter-control--year,
+  .order-filter-control--status,
+  .order-filter-control--payment {
+    grid-column: span 3;
   }
 
   .order-filter-clear,
   .order-filter-export,
   .order-filter-actions {
-    justify-self: start;
+    grid-column: span 3;
+    justify-self: stretch;
     width: 100%;
+    min-width: 0;
   }
 }
 
@@ -1708,15 +1733,21 @@ body.order-confirm-open {
   }
 
   .order-filter-toolbar {
-    padding: 12px;
+    padding: 14px;
   }
 
   .order-filter-grid,
   .order-filter-toolbar--payment .order-filter-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .order-filter-control--search {
+  .order-filter-control--search,
+  .order-filter-control--month,
+  .order-filter-control--year,
+  .order-filter-control--status,
+  .order-filter-control--payment,
+  .order-filter-actions {
     grid-column: auto;
   }
 
