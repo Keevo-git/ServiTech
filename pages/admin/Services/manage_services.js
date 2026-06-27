@@ -929,7 +929,7 @@
         ${selectedType ? `<div class="ms-value-row ${Number(selectedType.active) ? "" : "is-inactive"}" data-group-key="installation_type" data-value-key="${escapeHtml(selectedType.value_key)}">
           <div class="ms-size-edit-header"><strong>${escapeHtml(selectedType.label)}</strong></div>
           <input data-value-label value="${escapeHtml(selectedType.label)}" maxlength="${optionLabelMaxLength}" aria-label="Installation type name" class="ms-size-input">
-          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00"></div>
+          <div class="ms-price-input"><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00"></div>
           <select data-rule-price-type aria-label="Price type"><option value="fixed" ${selectedRule?.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${selectedRule?.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
           <div class="ms-status-cell">
             <span class="ms-control-label">Status</span>
