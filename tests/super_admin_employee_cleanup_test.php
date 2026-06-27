@@ -107,12 +107,18 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-search
 super_admin_cleanup_assert(str_contains($employeeAccounts, "No employee accounts match your search."), "Employee search must include a distinct no-results empty state.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-modal"), "Employee creation modal must exist.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-form"), "Employee creation form must be inside the modal.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-accounts-modal"), "Employee Accounts page must load the cache-busted owner CSS.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-details-two-column"), "Employee Accounts page must load the cache-busted owner CSS.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "admin-owner-panel admin-owner-panel--full"), "Employee Accounts table card must use the full-width owner panel.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "<th>Role</th>"), "Employee Accounts table must not show a redundant Role column.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-open-employee-modal"), "Employee table View Details action must open the details modal.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Employee Details"), "Employee details modal must be present.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-modal-edit"), "Employee details modal must support edit mode.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, 'data-employee-details-layout-version="two-column-20260627"'), "Employee details modal must render the two-column layout version marker.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, '<div class="employee-details-layout">'), "Employee details modal must use the two-column layout wrapper.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, '<aside class="employee-details-side">'), "Employee details modal must render account actions in the right column.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-view-actions"), "Employee details modal must keep view actions separate from edit actions.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-edit-actions"), "Employee details modal must keep Save/Cancel edit actions separate from default actions.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "employee-details-modal__actions"), "Employee details modal must not render the old bottom edit action bar.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "employee-account-more-menu"), "Employee table must not render the old More dropdown.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "employee-account-action-disclosure"), "Employee table must not render inline details panels.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Create an employee login account with a temporary password. The employee will complete their profile during first login."), "Create modal must explain first-login profile setup.");
@@ -139,6 +145,8 @@ super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal"), "Owner
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-grid--single > *"), "Owner CSS must keep single-column panels full width.");
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-panel--full"), "Owner CSS must include a full-width panel helper.");
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal-open"), "Owner CSS must prevent background scroll while modal is open.");
+super_admin_cleanup_assert(str_contains($ownerCss, "width: min(95vw, 1050px);"), "Employee details modal CSS must keep the wide desktop layout.");
+super_admin_cleanup_assert(str_contains($ownerCss, "[data-employee-modal-edit][hidden]"), "Employee details modal CSS must force hidden edit mode content to stay hidden.");
 
 foreach ([
     $oldStaffStub,

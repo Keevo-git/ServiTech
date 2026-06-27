@@ -760,7 +760,7 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
   <title>Employee Accounts | ServiTech Admin</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-accounts-modal') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-details-two-column') ?>">
 </head>
 <body class="admin-employee-accounts<?= $openCreateModal || $openEmployeeDetailsModalId > 0 ? " admin-owner-modal-open" : "" ?>">
 <?php require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
@@ -898,7 +898,7 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
       $profileStatusLabel = $profileCompleted && !$forcePasswordChange ? "Completed" : "Pending Setup";
       $accountStatusLabel = $isActive ? "Active" : "Inactive";
     ?>
-    <div class="admin-owner-modal-overlay employee-details-modal-overlay" id="employee-details-<?= $employeeId ?>" data-employee-details-modal aria-hidden="<?= $openEmployeeDetailsModalId === $employeeId ? "false" : "true" ?>"<?= $openEmployeeDetailsModalId === $employeeId ? "" : " hidden" ?>>
+    <div class="admin-owner-modal-overlay employee-details-modal-overlay" id="employee-details-<?= $employeeId ?>" data-employee-details-modal data-employee-details-layout-version="two-column-20260627" aria-hidden="<?= $openEmployeeDetailsModalId === $employeeId ? "false" : "true" ?>"<?= $openEmployeeDetailsModalId === $employeeId ? "" : " hidden" ?>>
       <section class="admin-owner-modal employee-details-modal" role="dialog" aria-modal="true" aria-labelledby="employee-details-title-<?= $employeeId ?>">
         <div class="admin-owner-modal__header employee-details-modal__header">
           <div>
