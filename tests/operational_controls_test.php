@@ -36,6 +36,8 @@ foreach ([
     "operational_service_settings",
     "operational_payment_method_settings",
     "servitech_is_super_admin",
+    "servitech_prevent_all_payment_methods_disabled",
+    "At least one payment method must remain available.",
     "all_services_closed",
     "manual_status",
     "payment_method_key",
@@ -48,6 +50,8 @@ $helper = operational_controls_source("config/operational_controls.php");
 operational_controls_assert(str_contains($helper, "Services are temporarily unavailable. Please check back later."), "Helper must return all-services closure message.");
 operational_controls_assert(str_contains($helper, "This service is temporarily unavailable. Please try again later."), "Helper must return service closure message.");
 operational_controls_assert(str_contains($helper, "This payment method is currently unavailable."), "Helper must return payment closure message.");
+operational_controls_assert(str_contains($helper, "At least one payment method must remain available."), "Helper must block disabling all payment methods.");
+operational_controls_assert(str_contains($helper, "Document Printing is unavailable while the store is closed and GCash payment is disabled."), "Helper must return closed-store Document Printing payment dependency message.");
 
 foreach ([
     "api/queue_create.php",
@@ -63,6 +67,11 @@ foreach ([
 
 $publicApi = operational_controls_source("api/services_public.php");
 operational_controls_assert(str_contains($publicApi, "servitech_operational_customer_service_unavailable"), "Public services API must filter manually closed services.");
+
+$operationalPage = operational_controls_source("pages/super_admin/super_admin_operational_controls.php");
+operational_controls_assert(str_contains($operationalPage, "servitech_operational_assert_payment_methods_safe"), "Operational Controls page must block disabling all payment methods server-side.");
+operational_controls_assert(str_contains($operationalPage, "paymentSafetyMessage"), "Operational Controls page must block disabling all payment methods in the UI.");
+operational_controls_assert(str_contains($operationalPage, "servitech_operational_document_printing_requires_enabled_gcash"), "Operational Controls page must show computed Document Printing availability.");
 
 foreach ([
     "pages/customer/customer_dash.php",
@@ -89,5 +98,9 @@ foreach ([
     $source = operational_controls_source($path);
     operational_controls_assert(str_contains($source, "servitech_operational_customer_payment_options"), "{$path} must render payment options from operational settings.");
 }
+
+$documentPrintingPage = operational_controls_source("pages/customer/custo2_docu_printing.php");
+operational_controls_assert(str_contains($documentPrintingPage, "servitech_operational_document_printing_unavailable_message"), "Document Printing page must use the closed-store GCash-disabled message.");
+operational_controls_assert(str_contains($documentPrintingPage, 'servitech_operational_customer_payment_options($pdo, $closedStoreDocumentPrinting)'), "Document Printing page must hide Cash during closed-store online mode.");
 
 echo "Operational controls static checks passed.\n";

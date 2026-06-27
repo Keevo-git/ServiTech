@@ -1215,7 +1215,8 @@ body.admin-operational-controls-page .operational-status--enabled {
 }
 
 body.admin-operational-controls-page .operational-status--closed,
-body.admin-operational-controls-page .operational-status--disabled {
+body.admin-operational-controls-page .operational-status--disabled,
+body.admin-operational-controls-page .operational-status--unavailable {
   border: 1px solid #fecdd3;
   background: #fff1f2;
   color: #9f1239;

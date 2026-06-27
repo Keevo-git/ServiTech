@@ -66,6 +66,50 @@ VALUES
   ('gcash', 'GCash / Online Payment', TRUE)
 ON CONFLICT (payment_method_key) DO NOTHING;
 
+CREATE OR REPLACE FUNCTION public.servitech_prevent_all_payment_methods_disabled()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE
+  cash_enabled BOOLEAN;
+  gcash_enabled BOOLEAN;
+BEGIN
+  SELECT COALESCE(is_enabled, TRUE)
+    INTO cash_enabled
+  FROM public.operational_payment_method_settings
+  WHERE payment_method_key = 'cash';
+
+  SELECT COALESCE(is_enabled, TRUE)
+    INTO gcash_enabled
+  FROM public.operational_payment_method_settings
+  WHERE payment_method_key = 'gcash';
+
+  cash_enabled := COALESCE(cash_enabled, TRUE);
+  gcash_enabled := COALESCE(gcash_enabled, TRUE);
+
+  IF LOWER(TRIM(NEW.payment_method_key)) = 'cash' THEN
+    cash_enabled := NEW.is_enabled;
+  ELSIF LOWER(TRIM(NEW.payment_method_key)) = 'gcash' THEN
+    gcash_enabled := NEW.is_enabled;
+  END IF;
+
+  IF cash_enabled = FALSE AND gcash_enabled = FALSE THEN
+    RAISE EXCEPTION 'At least one payment method must remain available.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_operational_payment_methods_keep_one_enabled
+  ON operational_payment_method_settings;
+CREATE TRIGGER trg_operational_payment_methods_keep_one_enabled
+  BEFORE INSERT OR UPDATE ON operational_payment_method_settings
+  FOR EACH ROW
+  EXECUTE FUNCTION public.servitech_prevent_all_payment_methods_disabled();
+
 CREATE INDEX IF NOT EXISTS idx_operational_service_settings_status
   ON operational_service_settings (manual_status, service_id);
 

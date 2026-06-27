@@ -116,6 +116,18 @@ if (in_array($serviceKind, $paymentRequiredKinds, true) && $payment_method === "
   echo json_encode(["ok" => false, "error" => "Select a payment method."]);
   exit();
 }
+try {
+  servitech_operational_assert_service_available(
+    $pdo,
+    $category,
+    $service_label,
+    isset($data["catalog_service_id"]) ? max(0, (int)$data["catalog_service_id"]) : 0
+  );
+} catch (DomainException $e) {
+  http_response_code(422);
+  echo json_encode(["ok" => false, "error" => $e->getMessage()]);
+  exit();
+}
 if ($payment_method !== "") {
   try {
     servitech_operational_assert_payment_method_available($pdo, $payment_method);
@@ -184,12 +196,6 @@ foreach ($details as $key => $value) {
 }
 
 try {
-  servitech_operational_assert_service_available(
-    $pdo,
-    $category,
-    $service_label,
-    isset($details["catalog_service_id"]) ? (int)$details["catalog_service_id"] : 0
-  );
   servitech_store_assert_queue_available($pdo, $category, $service_label);
   $pdo->beginTransaction();
   if (!$supportsFileUploads && !empty($details["uploaded_files"])) {

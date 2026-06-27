@@ -19,7 +19,7 @@ $documentCatalog = null;
 $documentPaperOptions = [];
 $documentColorOptions = [];
 $documentRules = [];
-$paymentOptions = servitech_operational_customer_payment_options($pdo);
+$paymentOptions = servitech_operational_customer_payment_options($pdo, $closedStoreDocumentPrinting);
 
 try {
   $documentCatalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "document_printing");
@@ -44,7 +44,7 @@ if (!is_array($documentCatalog)) {
 }
 servitech_operational_redirect_customer_unavailable_service($pdo, "printing", "Document Printing", "/pages/customer/custo1_printing_option.php", $documentCatalogServiceId);
 if ($closedStoreDocumentPrinting && empty($paymentOptions["gcash"]["enabled"])) {
-  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "This payment method is currently unavailable."];
+  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => servitech_operational_document_printing_unavailable_message()];
   header("Location: /pages/customer/custo1_printing_option.php");
   exit;
 }

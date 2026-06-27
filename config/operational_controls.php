@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/app.php";
+require_once __DIR__ . "/store_availability.php";
 require_once __DIR__ . "/../api/service_catalog.php";
 
 function servitech_operational_schema_ready(PDO $pdo): bool
@@ -167,11 +168,31 @@ function servitech_operational_payment_enabled(PDO $pdo, string $paymentMethod):
     return !isset($methods[$key]) || !empty($methods[$key]["is_enabled"]);
 }
 
-function servitech_operational_customer_payment_options(PDO $pdo): array
+function servitech_operational_at_least_one_payment_method_enabled(array $methods): bool
+{
+    foreach (["cash", "gcash"] as $key) {
+        if (!empty($methods[$key]["is_enabled"])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function servitech_operational_assert_payment_methods_safe(array $methods): void
+{
+    if (!servitech_operational_at_least_one_payment_method_enabled($methods)) {
+        throw new DomainException("At least one payment method must remain available.");
+    }
+}
+
+function servitech_operational_customer_payment_options(PDO $pdo, bool $onlineOnly = false): array
 {
     $methods = servitech_operational_fetch_payment_methods($pdo);
     $options = [];
     foreach (["cash", "gcash"] as $key) {
+        if ($onlineOnly && $key !== "gcash") {
+            continue;
+        }
         $method = $methods[$key] ?? [
             "payment_method_key" => $key,
             "payment_method_name" => servitech_operational_payment_method_label($key),
@@ -248,6 +269,41 @@ function servitech_operational_service_closed(PDO $pdo, int $serviceId): ?array
     }
 }
 
+function servitech_operational_is_document_printing_request(string $category, string $serviceLabel, int $requestedServiceId = 0, ?PDO $pdo = null): bool
+{
+    if (servitech_catalog_service_kind([
+        "category" => $category,
+        "name" => $serviceLabel,
+    ]) === "document_printing") {
+        return true;
+    }
+
+    if ($requestedServiceId > 0 && $pdo instanceof PDO) {
+        try {
+            $service = servitech_catalog_fetch_service($pdo, $requestedServiceId, false);
+            return is_array($service) && servitech_catalog_service_kind($service) === "document_printing";
+        } catch (Throwable $exception) {
+            error_log("operational document printing lookup failed: " . $exception->getMessage());
+        }
+    }
+
+    return false;
+}
+
+function servitech_operational_document_printing_unavailable_message(): string
+{
+    return "Document Printing is unavailable while the store is closed and GCash payment is disabled.";
+}
+
+function servitech_operational_document_printing_requires_enabled_gcash(PDO $pdo, ?array $storeAvailability = null): bool
+{
+    $storeAvailability = $storeAvailability ?? servitech_store_current_availability($pdo);
+    $closedStoreDocumentPrinting = !empty($storeAvailability["document_printing_requires_gcash"])
+        || empty($storeAvailability["regular_queue_allowed"]);
+
+    return $closedStoreDocumentPrinting && !servitech_operational_payment_enabled($pdo, "gcash");
+}
+
 function servitech_operational_assert_service_available(PDO $pdo, string $category, string $serviceLabel, int $requestedServiceId = 0): void
 {
     if (!servitech_operational_schema_ready($pdo)) {
@@ -262,6 +318,13 @@ function servitech_operational_assert_service_available(PDO $pdo, string $catego
     $serviceId = servitech_operational_fetch_service_id_for_request($pdo, $category, $serviceLabel, $requestedServiceId);
     if (servitech_operational_service_closed($pdo, $serviceId) !== null) {
         throw new DomainException("This service is temporarily unavailable. Please try again later.");
+    }
+
+    if (
+        servitech_operational_is_document_printing_request($category, $serviceLabel, $requestedServiceId, $pdo)
+        && servitech_operational_document_printing_requires_enabled_gcash($pdo)
+    ) {
+        throw new DomainException(servitech_operational_document_printing_unavailable_message());
     }
 }
 

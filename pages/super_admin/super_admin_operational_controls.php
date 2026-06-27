@@ -49,6 +49,11 @@ function op_log_update(PDO $pdo, string $targetId, array $oldValue, array $newVa
     ]);
 }
 
+function op_payment_short_label(string $paymentKey): string
+{
+    return strtolower(trim($paymentKey)) === "gcash" ? "GCash" : "Cash";
+}
+
 $notice = "";
 $error = "";
 $toastType = "";
@@ -157,6 +162,11 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $oldMethods = servitech_operational_fetch_payment_methods($pdo);
             $old = $oldMethods[$paymentKey] ?? [];
             $paymentName = servitech_operational_payment_method_label($paymentKey);
+            $proposedMethods = $oldMethods;
+            $proposedMethods[$paymentKey] = array_merge($proposedMethods[$paymentKey] ?? [], [
+                "is_enabled" => $enabled,
+            ]);
+            servitech_operational_assert_payment_methods_safe($proposedMethods);
             $stmt = $pdo->prepare("
                 INSERT INTO operational_payment_method_settings
                   (payment_method_key, payment_method_name, is_enabled, disabled_reason, updated_by, updated_at)
@@ -177,13 +187,14 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             ]);
 
             $new = servitech_operational_fetch_payment_methods($pdo)[$paymentKey] ?? [];
+            $paymentShortName = op_payment_short_label($paymentKey);
             $description = $enabled
-                ? "Super Admin enabled {$paymentName} payment method."
-                : "Super Admin disabled {$paymentName} payment method.";
+                ? "Super Admin enabled {$paymentShortName} payment method."
+                : "Super Admin disabled {$paymentShortName} payment method.";
             op_log_update($pdo, "payment:{$paymentKey}", $old, $new, $description);
             $notice = $enabled
-                ? "{$paymentName} payment has been enabled."
-                : "{$paymentName} payment has been disabled.";
+                ? "{$paymentShortName} payment has been enabled."
+                : "{$paymentShortName} payment has been disabled.";
         }
 
         if ($notice !== "") {
@@ -198,6 +209,7 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
 }
 
 $schemaReady = servitech_operational_schema_ready($pdo);
+$currentStoreAvailability = servitech_store_current_availability($pdo);
 $overall = servitech_operational_fetch_overall($pdo);
 $services = servitech_operational_fetch_services($pdo);
 $paymentMethods = servitech_operational_fetch_payment_methods($pdo);
@@ -278,15 +290,27 @@ $adminHeaderVariant = "special";
         $serviceId = (int)($service["id"] ?? 0);
         $manualStatus = strtolower(trim((string)($service["manual_status"] ?? "open"))) === "closed" ? "closed" : "open";
         $serviceName = trim((string)($service["name"] ?? "Service"));
+        $serviceKind = servitech_catalog_service_kind($service);
+        $effectiveStatus = $manualStatus;
+        $effectiveNote = "";
+        if (
+            $manualStatus === "open"
+            && $serviceKind === "document_printing"
+            && servitech_operational_document_printing_requires_enabled_gcash($pdo, $currentStoreAvailability)
+        ) {
+            $effectiveStatus = "unavailable";
+            $effectiveNote = servitech_operational_document_printing_unavailable_message();
+        }
       ?>
         <article class="operational-control-row">
           <div class="operational-control-row__main">
             <span class="operational-kicker"><?= op_h(ucfirst((string)($service["category"] ?? "service"))) ?></span>
             <h3><?= op_h($serviceName) ?></h3>
             <small>Last updated: <?= op_h(op_format_timestamp($service["updated_at"] ?? null)) ?></small>
+            <?php if ($effectiveNote !== ""): ?><small><?= op_h($effectiveNote) ?></small><?php endif; ?>
           </div>
-          <span class="operational-status operational-status--<?= $manualStatus ?>">
-            <?= $manualStatus === "closed" ? "Closed" : "Open" ?>
+          <span class="operational-status operational-status--<?= op_h($effectiveStatus) ?>">
+            <?= $effectiveStatus === "unavailable" ? "Unavailable" : ($manualStatus === "closed" ? "Closed" : "Open") ?>
           </span>
           <form method="post" class="operational-row-form" data-operational-confirm="<?= $manualStatus === "closed" ? "open-service" : "close-service" ?>">
             <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
@@ -311,6 +335,7 @@ $adminHeaderVariant = "special";
       <div>
         <h2 id="paymentControlsTitle">Payment Method Controls</h2>
         <p>Disabled payment methods are hidden from new customer forms and rejected by backend validation.</p>
+        <p>Cash and GCash cannot both be disabled at the same time.</p>
       </div>
     </div>
     <div class="operational-control-list">
@@ -328,7 +353,13 @@ $adminHeaderVariant = "special";
           <span class="operational-status operational-status--<?= $enabled ? "enabled" : "disabled" ?>">
             <?= $enabled ? "Enabled" : "Disabled" ?>
           </span>
-          <form method="post" class="operational-row-form" data-operational-confirm="<?= $enabled ? "disable-payment" : "enable-payment" ?>">
+          <form
+            method="post"
+            class="operational-row-form"
+            data-operational-confirm="<?= $enabled ? "disable-payment" : "enable-payment" ?>"
+            data-payment-control="true"
+            data-payment-key="<?= op_h($key) ?>"
+            data-payment-enabled="<?= $enabled ? "true" : "false" ?>">
             <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
             <input type="hidden" name="action" value="save_payment">
             <input type="hidden" name="payment_method_key" value="<?= op_h($key) ?>">
@@ -380,6 +411,7 @@ if (operationalToast.message && window.servitechAdminToast) {
   const submit = overlay?.querySelector("[data-operational-confirm-submit]");
   let pendingForm = null;
   let confirmedForm = null;
+  const paymentSafetyMessage = "At least one payment method must remain available.";
   const messages = {
     "close-all": "Close all services for new customer requests until a Super Admin reopens them?",
     "reopen-all": "Reopen all services for new customer requests?",
@@ -398,6 +430,17 @@ if (operationalToast.message && window.servitechAdminToast) {
   }
 
   function openConfirm(form) {
+    if (form.dataset.paymentControl === "true" && form.dataset.paymentEnabled === "true") {
+      const key = form.dataset.paymentKey || "";
+      const otherKey = key === "cash" ? "gcash" : "cash";
+      const otherForm = document.querySelector(`form[data-payment-control="true"][data-payment-key="${otherKey}"]`);
+      if (otherForm && otherForm.dataset.paymentEnabled === "false") {
+        if (window.servitechAdminToast) {
+          window.servitechAdminToast.show(paymentSafetyMessage, "error");
+        }
+        return;
+      }
+    }
     pendingForm = form;
     message.textContent = messages[form.dataset.operationalConfirm] || "Save this operational control change?";
     overlay.hidden = false;
