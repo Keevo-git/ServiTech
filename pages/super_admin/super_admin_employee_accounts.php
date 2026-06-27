@@ -541,8 +541,12 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $emergencyRelationship = trim((string)($_POST["emergency_contact_relationship"] ?? ""));
             $emergencyAddress = trim((string)($_POST["emergency_contact_address"] ?? ""));
             $emergencyNumber = trim((string)($_POST["emergency_contact_number"] ?? ""));
-            $positionTitle = trim((string)($_POST["position_title"] ?? ""));
-            $notes = trim((string)($_POST["employee_notes"] ?? ""));
+            $positionTitle = array_key_exists("position_title", $_POST)
+                ? trim((string)$_POST["position_title"])
+                : (string)($account["position_title"] ?? "");
+            $notes = array_key_exists("employee_notes", $_POST)
+                ? trim((string)$_POST["employee_notes"])
+                : (string)($account["employee_notes"] ?? "");
 
             if ($fullname === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 throw new DomainException("Enter a valid employee name and email.");
@@ -602,6 +606,7 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 "description" => "Super Admin updated the employee account for {$fullname}.",
             ]);
             servitech_admin_flash_toast("Employee account updated.", "success");
+            $_SESSION["employee_account_detail_modal_open"] = $employeeId;
         } elseif ($action === "set_status") {
             $employeeId = (int)($_POST["employee_id"] ?? 0);
             $status = strtolower(trim((string)($_POST["status"] ?? "")));
@@ -692,6 +697,8 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         servitech_admin_flash_toast($message, "error");
         if ($action === "create") {
             $_SESSION["employee_account_create_modal_open"] = true;
+        } elseif ($action === "update") {
+            $_SESSION["employee_account_detail_modal_open"] = (int)($_POST["employee_id"] ?? 0);
         }
     } catch (Throwable $exception) {
         servitech_admin_flash_toast(
@@ -700,6 +707,8 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
         );
         if ($action === "create") {
             $_SESSION["employee_account_create_modal_open"] = true;
+        } elseif ($action === "update") {
+            $_SESSION["employee_account_detail_modal_open"] = (int)($_POST["employee_id"] ?? 0);
         }
     }
 
@@ -735,6 +744,8 @@ if ($pageReady) {
 $csrfToken = servitech_csrf_token();
 $openCreateModal = !empty($_SESSION["employee_account_create_modal_open"]);
 unset($_SESSION["employee_account_create_modal_open"]);
+$openEmployeeDetailsModalId = (int)($_SESSION["employee_account_detail_modal_open"] ?? 0);
+unset($_SESSION["employee_account_detail_modal_open"]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -746,7 +757,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-accounts-modal') ?>">
 </head>
-<body class="admin-employee-accounts<?= $openCreateModal ? " admin-owner-modal-open" : "" ?>">
+<body class="admin-employee-accounts<?= $openCreateModal || $openEmployeeDetailsModalId > 0 ? " admin-owner-modal-open" : "" ?>">
 <?php require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
 
 <main class="admin-owner-shell">
@@ -882,7 +893,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
       $profileStatusLabel = $profileCompleted && !$forcePasswordChange ? "Completed" : "Pending Setup";
       $accountStatusLabel = $isActive ? "Active" : "Inactive";
     ?>
-    <div class="admin-owner-modal-overlay employee-details-modal-overlay" id="employee-details-<?= $employeeId ?>" data-employee-details-modal aria-hidden="true" hidden>
+    <div class="admin-owner-modal-overlay employee-details-modal-overlay" id="employee-details-<?= $employeeId ?>" data-employee-details-modal aria-hidden="<?= $openEmployeeDetailsModalId === $employeeId ? "false" : "true" ?>"<?= $openEmployeeDetailsModalId === $employeeId ? "" : " hidden" ?>>
       <section class="admin-owner-modal employee-details-modal" role="dialog" aria-modal="true" aria-labelledby="employee-details-title-<?= $employeeId ?>">
         <div class="admin-owner-modal__header employee-details-modal__header">
           <div>
@@ -893,6 +904,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
           <button class="admin-owner-modal__close" type="button" aria-label="Close employee details modal" data-close-employee-details-modal>&times;</button>
         </div>
 
+        <div class="employee-details-modal__content">
         <div class="employee-details-modal__body" data-employee-modal-view>
           <section class="employee-details-section">
             <div class="employee-details-section__header">
@@ -915,6 +927,14 @@ unset($_SESSION["employee_account_create_modal_open"]);
                 <dt>Created By</dt>
                 <dd><?= employee_account_h($account["created_by_name"] ?: "-") ?></dd>
               </div>
+              <div>
+                <dt>Created Date</dt>
+                <dd><?= employee_account_h(employee_account_format_datetime($account["created_at"] ?? "")) ?></dd>
+              </div>
+              <div>
+                <dt>Last Login</dt>
+                <dd><?= employee_account_h(employee_account_format_datetime($account["last_login_at"] ?? "")) ?></dd>
+              </div>
             </dl>
           </section>
 
@@ -927,7 +947,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
                 <dt>Contact Number</dt>
                 <dd><?= employee_account_h($account["contact"] ?: "-") ?></dd>
               </div>
-              <div>
+              <div class="employee-details-list__wide">
                 <dt>Address</dt>
                 <dd><?= employee_account_h($account["address"] ?: "-") ?></dd>
               </div>
@@ -947,7 +967,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
                 <dt>Relationship</dt>
                 <dd><?= employee_account_h($account["emergency_contact_relationship"] ?: "-") ?></dd>
               </div>
-              <div>
+              <div class="employee-details-list__wide">
                 <dt>Address</dt>
                 <dd><?= employee_account_h($account["emergency_contact_address"] ?: "-") ?></dd>
               </div>
@@ -976,14 +996,6 @@ unset($_SESSION["employee_account_create_modal_open"]);
                 <dd><span class="admin-owner-pill<?= $isActive ? "" : " admin-owner-pill--danger" ?>"><?= employee_account_h($accountStatusLabel) ?></span></dd>
               </div>
               <div>
-                <dt>Created Date</dt>
-                <dd><?= employee_account_h(employee_account_format_datetime($account["created_at"] ?? "")) ?></dd>
-              </div>
-              <div>
-                <dt>Last Login</dt>
-                <dd><?= employee_account_h(employee_account_format_datetime($account["last_login_at"] ?? "")) ?></dd>
-              </div>
-              <div>
                 <dt>Setup Completed</dt>
                 <dd><?= employee_account_h(employee_account_format_datetime($account["first_login_completed_at"] ?? "")) ?></dd>
               </div>
@@ -998,7 +1010,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
           <section class="employee-details-section">
             <div class="employee-details-section__header">
               <h3>Edit Details</h3>
-              <p>Email is read-only here because login email changes must be completed through the linked Supabase Auth account first.</p>
+              <p>Email changes must be completed through the linked Supabase Auth account.</p>
             </div>
             <div class="employee-account-form-grid">
               <div class="admin-owner-field">
@@ -1012,10 +1024,6 @@ unset($_SESSION["employee_account_create_modal_open"]);
               <div class="admin-owner-field">
                 <label for="employee_contact_<?= $employeeId ?>">Contact Number</label>
                 <input id="employee_contact_<?= $employeeId ?>" name="contact" value="<?= employee_account_h($account["contact"] ?? "") ?>">
-              </div>
-              <div class="admin-owner-field">
-                <label for="employee_position_<?= $employeeId ?>">Position / Job Title</label>
-                <input id="employee_position_<?= $employeeId ?>" name="position_title" value="<?= employee_account_h($account["position_title"] ?? "") ?>">
               </div>
               <div class="admin-owner-field employee-account-form-grid__wide">
                 <label for="employee_address_<?= $employeeId ?>">Address</label>
@@ -1036,10 +1044,6 @@ unset($_SESSION["employee_account_create_modal_open"]);
               <div class="admin-owner-field">
                 <label for="employee_emergency_number_<?= $employeeId ?>">Emergency Contact Number</label>
                 <input id="employee_emergency_number_<?= $employeeId ?>" name="emergency_contact_number" value="<?= employee_account_h($account["emergency_contact_number"] ?? "") ?>">
-              </div>
-              <div class="admin-owner-field">
-                <label for="employee_notes_<?= $employeeId ?>">Notes</label>
-                <textarea id="employee_notes_<?= $employeeId ?>" name="employee_notes" rows="2"><?= employee_account_h($account["employee_notes"] ?? "") ?></textarea>
               </div>
             </div>
           </section>
@@ -1095,6 +1099,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
             </form>
           </div>
         </section>
+        </div>
       </section>
     </div>
   <?php endforeach; ?>

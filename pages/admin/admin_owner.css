@@ -973,15 +973,26 @@ body.admin-employee-accounts .employee-account-confirm-modal {
   width: min(460px, 100%);
 }
 
+body.admin-employee-accounts .employee-details-modal-overlay {
+  z-index: 1300;
+}
+
+body.admin-employee-accounts .employee-account-confirm-overlay {
+  z-index: 1400;
+}
+
 body.admin-employee-accounts .employee-details-modal {
-  width: min(840px, calc(100% - 28px));
-  max-height: min(780px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+  width: min(95vw, 1000px);
+  max-height: 90vh;
   padding: 0;
   overflow: hidden;
   border-radius: 14px;
 }
 
 body.admin-employee-accounts .employee-details-modal__header {
+  flex: 0 0 auto;
   padding: 22px 24px 18px;
   border-bottom: 1px solid #e2e9f2;
   background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
@@ -1004,6 +1015,13 @@ body.admin-employee-accounts .employee-details-modal__eyebrow {
   text-transform: uppercase;
 }
 
+body.admin-employee-accounts .employee-details-modal__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 body.admin-employee-accounts .employee-details-modal__body,
 body.admin-employee-accounts .employee-details-edit-form,
 body.admin-employee-accounts .employee-details-actions {
@@ -1011,8 +1029,7 @@ body.admin-employee-accounts .employee-details-actions {
 }
 
 body.admin-employee-accounts .employee-details-modal__body {
-  max-height: calc(100vh - 250px);
-  overflow-y: auto;
+  overflow: visible;
 }
 
 body.admin-employee-accounts .employee-details-section {
@@ -1060,6 +1077,10 @@ body.admin-employee-accounts .employee-details-list div {
   background: #fbfdff;
 }
 
+body.admin-employee-accounts .employee-details-list__wide {
+  grid-column: 1 / -1;
+}
+
 body.admin-employee-accounts .employee-details-list dt {
   color: #64748b;
   font-size: 11px;
@@ -1081,8 +1102,7 @@ body.admin-employee-accounts .employee-details-list--status dd {
 }
 
 body.admin-employee-accounts .employee-details-edit-form {
-  max-height: calc(100vh - 190px);
-  overflow-y: auto;
+  overflow: visible;
 }
 
 body.admin-employee-accounts .employee-details-edit-form input[readonly] {
@@ -1432,7 +1452,7 @@ body.admin-employee-accounts .employee-details-password-reset form {
   }
 
   body.admin-employee-accounts .employee-details-modal {
-    width: min(100% - 16px, 840px);
+    width: min(100% - 16px, 1000px);
     max-height: calc(100vh - 20px);
   }
 
