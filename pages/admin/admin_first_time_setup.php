@@ -96,7 +96,7 @@ function employee_setup_phone_error(string $value, string $label): string
     $value = trim($value);
     return preg_match('/^(09\d{9}|\+639\d{9})$/', $value)
         ? ""
-        : "{$label} must use 09XXXXXXXXX or +639XXXXXXXXX format.";
+        : "Enter a valid {$label}.";
 }
 
 function employee_setup_name_error(string $value, string $label): string
@@ -190,12 +190,12 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
     $passwordErrors = employee_setup_password_errors($newPassword, $confirmPassword);
     $formErrors["new_password"] = $passwordErrors["new_password"];
     $formErrors["confirm_password"] = $passwordErrors["confirm_password"];
-    $formErrors["contact"] = employee_setup_phone_error($contact, "Contact number");
+    $formErrors["contact"] = employee_setup_phone_error($contact, "contact number");
     $formErrors["address"] = employee_setup_textarea_error($address, "Address");
     $formErrors["emergency_contact_name"] = employee_setup_name_error($emergencyName, "emergency contact name");
     $formErrors["emergency_contact_relationship"] = employee_setup_relationship_error($emergencyRelationship);
     $formErrors["emergency_contact_address"] = employee_setup_textarea_error($emergencyAddress, "Emergency contact address");
-    $formErrors["emergency_contact_number"] = employee_setup_phone_error($emergencyNumber, "Emergency contact number");
+    $formErrors["emergency_contact_number"] = employee_setup_phone_error($emergencyNumber, "emergency contact number");
 
     if (employee_setup_has_errors($formErrors)) {
         $formMessage = "Please correct the highlighted fields before completing setup.";
@@ -294,7 +294,7 @@ $csrfToken = servitech_csrf_token();
   <title>Complete Your Employee Account | ServiTech Admin</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260626-roles') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-setup-polish') ?>">
 </head>
 <body class="admin-first-time-setup">
 <?php require __DIR__ . "/_includes/admin_header.php"; ?>
@@ -312,44 +312,46 @@ $csrfToken = servitech_csrf_token();
   <?php endif; ?>
 
   <section class="admin-owner-panel employee-setup-panel">
-    <form id="employeeSetupForm" class="admin-owner-form employee-setup-form" method="post" autocomplete="on" novalidate>
+    <form id="employeeSetupForm" class="admin-owner-form employee-setup-form" method="post" autocomplete="on" data-accepted-phone-formats="09XXXXXXXXX +639XXXXXXXXX" novalidate>
       <input type="hidden" name="csrf_token" value="<?= employee_setup_h($csrfToken) ?>">
 
-      <section class="employee-setup-section" aria-labelledby="employee-password-heading">
+      <section class="employee-setup-section employee-setup-section--password" aria-labelledby="employee-password-heading">
         <div class="employee-setup-section__header">
           <h2 id="employee-password-heading">Change Password</h2>
           <p>Create a permanent password before using employee admin tools.</p>
         </div>
 
-        <div class="employee-setup-field-grid">
-          <div class="admin-owner-field employee-setup-field">
-            <label for="new_password">New Password</label>
-            <div class="password-input-wrap">
-              <input id="new_password" class="<?= $formErrors["new_password"] !== "" ? "is-invalid" : "" ?>" name="new_password" type="password" placeholder="Create a secure password" autocomplete="new-password" minlength="<?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>" aria-describedby="passwordRequirements newPasswordError" aria-invalid="<?= $formErrors["new_password"] !== "" ? "true" : "false" ?>" required>
-              <button type="button" class="password-toggle" data-password-toggle="new_password" aria-label="Show new password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
+        <div class="employee-setup-password-layout">
+          <div class="employee-setup-password-fields">
+            <div class="admin-owner-field employee-setup-field">
+              <label for="new_password">New Password</label>
+              <div class="password-input-wrap">
+                <input id="new_password" class="<?= $formErrors["new_password"] !== "" ? "is-invalid" : "" ?>" name="new_password" type="password" placeholder="Create a secure password" autocomplete="new-password" minlength="<?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>" aria-describedby="passwordRequirements newPasswordError" aria-invalid="<?= $formErrors["new_password"] !== "" ? "true" : "false" ?>" required>
+                <button type="button" class="password-toggle" data-password-toggle="new_password" aria-label="Show new password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
+              </div>
+              <p class="field-error" id="newPasswordError" aria-live="polite"><?= employee_setup_h($formErrors["new_password"]) ?></p>
             </div>
-            <p class="field-error" id="newPasswordError" aria-live="polite"><?= employee_setup_h($formErrors["new_password"]) ?></p>
+
+            <div class="admin-owner-field employee-setup-field">
+              <label for="confirm_password">Confirm New Password</label>
+              <div class="password-input-wrap">
+                <input id="confirm_password" class="<?= $formErrors["confirm_password"] !== "" ? "is-invalid" : "" ?>" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="<?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>" aria-describedby="confirmPasswordError" aria-invalid="<?= $formErrors["confirm_password"] !== "" ? "true" : "false" ?>" required>
+                <button type="button" class="password-toggle" data-password-toggle="confirm_password" aria-label="Show confirm password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
+              </div>
+              <p class="field-error" id="confirmPasswordError" aria-live="polite"><?= employee_setup_h($formErrors["confirm_password"]) ?></p>
+            </div>
           </div>
 
-          <div class="admin-owner-field employee-setup-field">
-            <label for="confirm_password">Confirm New Password</label>
-            <div class="password-input-wrap">
-              <input id="confirm_password" class="<?= $formErrors["confirm_password"] !== "" ? "is-invalid" : "" ?>" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="<?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>" aria-describedby="confirmPasswordError" aria-invalid="<?= $formErrors["confirm_password"] !== "" ? "true" : "false" ?>" required>
-              <button type="button" class="password-toggle" data-password-toggle="confirm_password" aria-label="Show confirm password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
-            </div>
-            <p class="field-error" id="confirmPasswordError" aria-live="polite"><?= employee_setup_h($formErrors["confirm_password"]) ?></p>
+          <div class="employee-setup-requirements" id="passwordRequirements" aria-label="Password requirements">
+            <span>Password requirements</span>
+            <ul>
+              <li data-password-rule="length">At least <?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?> characters</li>
+              <li data-password-rule="uppercase">One uppercase letter</li>
+              <li data-password-rule="lowercase">One lowercase letter</li>
+              <li data-password-rule="number">One number</li>
+              <li data-password-rule="special">One special character</li>
+            </ul>
           </div>
-        </div>
-
-        <div class="employee-setup-requirements" id="passwordRequirements" aria-label="Password requirements">
-          <span>Password requirements</span>
-          <ul>
-            <li data-password-rule="length">At least <?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?> characters</li>
-            <li data-password-rule="uppercase">One uppercase letter</li>
-            <li data-password-rule="lowercase">One lowercase letter</li>
-            <li data-password-rule="number">One number</li>
-            <li data-password-rule="special">One special character</li>
-          </ul>
         </div>
       </section>
 
@@ -364,10 +366,9 @@ $csrfToken = servitech_csrf_token();
             <label for="contact_mobile">Contact Number</label>
             <div id="contactControl" class="contact-number-control<?= $formErrors["contact"] !== "" ? " is-invalid" : "" ?>">
               <span class="contact-number-prefix" aria-label="Philippine country code">+63</span>
-              <input id="contact_mobile" name="contact_mobile" type="tel" inputmode="numeric" value="<?= employee_setup_h($formValues["contact_mobile"]) ?>" placeholder="9XXXXXXXXX" autocomplete="tel-national" maxlength="10" pattern="9[0-9]{9}" title="Enter the 10-digit Philippine mobile number after +63, starting with 9." aria-describedby="contactHint contactError" aria-invalid="<?= $formErrors["contact"] !== "" ? "true" : "false" ?>" required>
+              <input id="contact_mobile" name="contact_mobile" type="tel" inputmode="numeric" value="<?= employee_setup_h($formValues["contact_mobile"]) ?>" placeholder="9XXXXXXXXX" autocomplete="tel-national" maxlength="10" pattern="9[0-9]{9}" title="Enter the 10-digit mobile number after +63." aria-describedby="contactError" aria-invalid="<?= $formErrors["contact"] !== "" ? "true" : "false" ?>" required>
             </div>
             <input id="contact" name="contact" type="hidden" value="<?= employee_setup_h($formValues["contact"]) ?>">
-            <p class="field-hint" id="contactHint">Enter the 10-digit mobile number after +63, starting with 9.</p>
             <p class="field-error" id="contactError" aria-live="polite"><?= employee_setup_h($formErrors["contact"]) ?></p>
           </div>
 
@@ -413,10 +414,9 @@ $csrfToken = servitech_csrf_token();
             <label for="emergency_contact_mobile">Contact Number</label>
             <div id="emergencyContactControl" class="contact-number-control<?= $formErrors["emergency_contact_number"] !== "" ? " is-invalid" : "" ?>">
               <span class="contact-number-prefix" aria-label="Philippine country code">+63</span>
-              <input id="emergency_contact_mobile" name="emergency_contact_mobile" type="tel" inputmode="numeric" value="<?= employee_setup_h($formValues["emergency_contact_mobile"]) ?>" placeholder="9XXXXXXXXX" autocomplete="tel-national" maxlength="10" pattern="9[0-9]{9}" title="Enter the 10-digit Philippine mobile number after +63, starting with 9." aria-describedby="emergencyContactHint emergencyContactError" aria-invalid="<?= $formErrors["emergency_contact_number"] !== "" ? "true" : "false" ?>" required>
+              <input id="emergency_contact_mobile" name="emergency_contact_mobile" type="tel" inputmode="numeric" value="<?= employee_setup_h($formValues["emergency_contact_mobile"]) ?>" placeholder="9XXXXXXXXX" autocomplete="tel-national" maxlength="10" pattern="9[0-9]{9}" title="Enter the 10-digit mobile number after +63." aria-describedby="emergencyContactError" aria-invalid="<?= $formErrors["emergency_contact_number"] !== "" ? "true" : "false" ?>" required>
             </div>
             <input id="emergency_contact_number" name="emergency_contact_number" type="hidden" value="<?= employee_setup_h($formValues["emergency_contact_number"]) ?>">
-            <p class="field-hint" id="emergencyContactHint">Enter the 10-digit mobile number after +63, starting with 9.</p>
             <p class="field-error" id="emergencyContactError" aria-live="polite"><?= employee_setup_h($formErrors["emergency_contact_number"]) ?></p>
           </div>
         </div>
@@ -463,7 +463,7 @@ $csrfToken = servitech_csrf_token();
         error: document.getElementById("contactError"),
         control: document.getElementById("contactControl"),
         validate(value) {
-          return /^9\d{9}$/.test(value) ? "" : "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.";
+          return /^9\d{9}$/.test(value) ? "" : "Enter a valid contact number.";
         }
       },
       address: {
@@ -506,7 +506,7 @@ $csrfToken = servitech_csrf_token();
         error: document.getElementById("emergencyContactError"),
         control: document.getElementById("emergencyContactControl"),
         validate(value) {
-          return /^9\d{9}$/.test(value) ? "" : "Enter a valid 10-digit Philippine mobile number after +63, starting with 9.";
+          return /^9\d{9}$/.test(value) ? "" : "Enter a valid emergency contact number.";
         }
       }
     };
