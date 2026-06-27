@@ -5,9 +5,11 @@ servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../config/operational_controls.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 $storeAvailability = servitech_store_current_availability($pdo);
+$paymentOptions = servitech_operational_customer_payment_options($pdo);
 
 $laminatingCatalogServiceId = 0;
 $laminatingCatalogRules = [];
@@ -45,6 +47,7 @@ if (!is_array($catalog ?? null)) {
   header("Location: /pages/customer/custo1_printing_option.php");
   exit;
 }
+servitech_operational_redirect_customer_unavailable_service($pdo, "printing", $laminatingServiceName, "/pages/customer/custo1_printing_option.php", $laminatingCatalogServiceId);
 ?>
 
 <!DOCTYPE html>
@@ -102,8 +105,11 @@ if (!is_array($catalog ?? null)) {
             <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
             <select class="form-select" id="paymentMethodSelect">
               <option value="" selected disabled>Select payment method</option>
-              <option value="cash">Cash</option>
-              <option value="gcash">GCash</option>
+              <?php foreach ($paymentOptions as $option): ?>
+                <option value="<?= htmlspecialchars($option["value"], ENT_QUOTES, "UTF-8") ?>" <?= !empty($option["enabled"]) ? "" : "disabled" ?>>
+                  <?= htmlspecialchars($option["label"], ENT_QUOTES, "UTF-8") ?><?= !empty($option["enabled"]) ? "" : " - unavailable" ?>
+                </option>
+              <?php endforeach; ?>
             </select>
 
             <label for="notes">Additional Instructions / Edit Request</label>

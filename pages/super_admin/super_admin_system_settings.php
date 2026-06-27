@@ -20,9 +20,9 @@ $settingsLinks = [
         "href" => "/pages/super_admin/super_admin_announcement.php",
     ],
     [
-        "title" => "SMTP Diagnostics",
-        "description" => "Check password-reset email configuration without exposing SMTP secrets.",
-        "href" => "/pages/super_admin/super_admin_smtp_diagnostics.php",
+        "title" => "Operational Controls",
+        "description" => "Temporarily close services or disable payment methods during store operations.",
+        "href" => "/pages/super_admin/super_admin_operational_controls.php",
     ],
 ];
 ?>

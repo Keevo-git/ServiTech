@@ -3,6 +3,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../config/operational_controls.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
@@ -10,6 +11,7 @@ servitech_redirect_completed_join_queue();
 $storeAvailability = servitech_store_current_availability($pdo);
 $installationServiceId = 0;
 $installationServiceName = "Installation Services";
+servitech_operational_redirect_customer_unavailable_service($pdo, "installation", $installationServiceName, "/pages/customer/customer_dash.php");
 servitech_store_redirect_customer_unavailable_service($storeAvailability, $installationServiceName);
 $installationRules = [];
 $installationDeviceOptions = [];
@@ -48,6 +50,7 @@ if (!is_array($catalog ?? null)) {
   header("Location: /pages/customer/customer_dash.php");
   exit;
 }
+servitech_operational_redirect_customer_unavailable_service($pdo, "installation", $installationServiceName, "/pages/customer/customer_dash.php", $installationServiceId);
 ?>
 
 <!DOCTYPE html>

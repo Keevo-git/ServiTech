@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../config/operational_controls.php";
 require_once __DIR__ . "/../../api/upload_helpers.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
 
@@ -33,16 +34,34 @@ function format_fullname($name) {
 $display_name = format_fullname($fullname);
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $storeAvailability = servitech_store_current_availability($pdo, $dashboardNow);
-$dashboardDocumentPrintingAvailable = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "document_printing") !== null;
+$dashboardOperationalOverall = servitech_operational_fetch_overall($pdo);
+function dashboard_customer_catalog_available(PDO $pdo, string $kind, string $category, string $label): bool {
+  try {
+    $catalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, $kind);
+    if (!is_array($catalog)) return false;
+    $service = $catalog["service"] ?? [];
+    $serviceId = (int)($service["id"] ?? 0);
+    return servitech_operational_customer_service_unavailable($pdo, $category, $label, $serviceId) === "";
+  } catch (Throwable $e) {
+    return false;
+  }
+}
+$dashboardDocumentPrintingAvailable = dashboard_customer_catalog_available($pdo, "document_printing", "printing", "Document Printing");
 $dashboardPrintingAvailable = $dashboardDocumentPrintingAvailable;
 foreach (["photocopy", "rush_id", "laminating", "scanning"] as $printingKind) {
-  if (servitech_catalog_fetch_customer_catalog_by_kind($pdo, $printingKind) !== null) {
+  $printingLabel = [
+    "photocopy" => "Photocopy",
+    "rush_id" => "Rush ID",
+    "laminating" => "Laminating",
+    "scanning" => "Scanning",
+  ][$printingKind] ?? "Printing";
+  if (dashboard_customer_catalog_available($pdo, $printingKind, "printing", $printingLabel)) {
     $dashboardPrintingAvailable = true;
     break;
   }
 }
-$dashboardRepairAvailable = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "repair") !== null;
-$dashboardInstallationAvailable = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "installation") !== null;
+$dashboardRepairAvailable = dashboard_customer_catalog_available($pdo, "repair", "repair", "Repair Services");
+$dashboardInstallationAvailable = dashboard_customer_catalog_available($pdo, "installation", "installation", "Installation Services");
 $dashboardPrintingCurrentlyUsable = $dashboardDocumentPrintingAvailable
   || ($storeAvailability["regular_queue_allowed"] && $dashboardPrintingAvailable);
 $dashboardStatusKey = strtolower((string)($storeAvailability["effective_status"] ?? $storeAvailability["reason_code"] ?? "closed"));
@@ -72,6 +91,9 @@ $dashboardRestrictionMessages = [
 ];
 $dashboardRestrictionMessage = $dashboardRestrictionMessages[$storeAvailability["reason_code"]]
   ?? "Regular queue is unavailable.";
+if (!empty($dashboardOperationalOverall["all_services_closed"])) {
+  $dashboardRestrictionMessage = "Services are temporarily unavailable. Please check back later.";
+}
 $customerToast = $_SESSION["servitech_customer_toast"] ?? null;
 unset($_SESSION["servitech_customer_toast"]);
 ?>

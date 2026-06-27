@@ -8,6 +8,7 @@ require_once __DIR__ . "/queue_state_machine.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/../config/join_queue_flow.php";
 require_once __DIR__ . "/../config/store_availability.php";
+require_once __DIR__ . "/../config/operational_controls.php";
 require_once __DIR__ . "/../config/input_limits.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -115,6 +116,15 @@ if (in_array($serviceKind, $paymentRequiredKinds, true) && $payment_method === "
   echo json_encode(["ok" => false, "error" => "Select a payment method."]);
   exit();
 }
+if ($payment_method !== "") {
+  try {
+    servitech_operational_assert_payment_method_available($pdo, $payment_method);
+  } catch (DomainException $e) {
+    http_response_code(422);
+    echo json_encode(["ok" => false, "error" => $e->getMessage()]);
+    exit();
+  }
+}
 
 if (in_array($serviceKind, $catalogManagedKinds, true)
     && (!isset($data["catalog_option_value_ids"]) || !is_array($data["catalog_option_value_ids"]) || !$data["catalog_option_value_ids"])) {
@@ -174,6 +184,12 @@ foreach ($details as $key => $value) {
 }
 
 try {
+  servitech_operational_assert_service_available(
+    $pdo,
+    $category,
+    $service_label,
+    isset($details["catalog_service_id"]) ? (int)$details["catalog_service_id"] : 0
+  );
   servitech_store_assert_queue_available($pdo, $category, $service_label);
   $pdo->beginTransaction();
   if (!$supportsFileUploads && !empty($details["uploaded_files"])) {

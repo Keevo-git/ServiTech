@@ -110,6 +110,7 @@ if (!function_exists("servitech_activity_success_action_types")) {
             "employee_first_time_setup_complete",
             "admin_profile_update",
             "admin_password_change",
+            "operational_controls_update",
         ];
     }
 }

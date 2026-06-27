@@ -3,6 +3,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/join_queue_flow.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../config/operational_controls.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 servitech_start_new_join_queue_if_requested();
@@ -117,7 +118,13 @@ error_log("ServiTech printing service selection: " . json_encode([
           $service = $option["service"];
           $route = (string)$option["route"];
           $requiresRegularQueue = servitech_catalog_service_kind($service) !== "document_printing";
-          $disabled = $requiresRegularQueue && !$storeAvailability["regular_queue_allowed"];
+          $manualUnavailable = servitech_operational_customer_service_unavailable(
+            $pdo,
+            (string)($service["category"] ?? ""),
+            (string)($service["name"] ?? ""),
+            (int)($service["id"] ?? 0)
+          );
+          $disabled = ($manualUnavailable !== "") || ($requiresRegularQueue && !$storeAvailability["regular_queue_allowed"]);
         ?>
           <option value="<?= htmlspecialchars($route, ENT_QUOTES, "UTF-8") ?>" <?= $disabled ? "disabled" : "" ?>>
             <?= htmlspecialchars(printing_service_display_name((string)$service["name"]), ENT_QUOTES, "UTF-8") ?><?= $disabled ? " - unavailable now" : "" ?>
@@ -129,6 +136,9 @@ error_log("ServiTech printing service selection: " . json_encode([
       <?php endif; ?>
       <?php if (!$storeAvailability["regular_queue_allowed"]): ?>
         <p class="queue-unavailable-note"><?= htmlspecialchars($storeAvailability["message"], ENT_QUOTES, "UTF-8") ?></p>
+      <?php endif; ?>
+      <?php if (!empty(servitech_operational_fetch_overall($pdo)["all_services_closed"])): ?>
+        <p class="queue-unavailable-note">Services are temporarily unavailable. Please check back later.</p>
       <?php endif; ?>
     </div>
 

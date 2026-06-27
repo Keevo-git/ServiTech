@@ -5,6 +5,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/store_availability.php";
+require_once __DIR__ . "/../config/operational_controls.php";
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
@@ -108,6 +109,14 @@ if ($file_name === "") {
 }
 if (!in_array($payment_method, ["cash", "gcash"], true)) {
   $errors[] = "Payment method is missing or invalid.";
+}
+try {
+  servitech_operational_assert_service_available($pdo, "printing", "Document Printing", isset($draft["catalog_service_id"]) ? (int)$draft["catalog_service_id"] : 0);
+  if (in_array($payment_method, ["cash", "gcash"], true)) {
+    servitech_operational_assert_payment_method_available($pdo, $payment_method);
+  }
+} catch (DomainException $e) {
+  $errors[] = $e->getMessage();
 }
 if ($payment_method === "gcash" && $reference_number === "") {
   $errors[] = "Reference number is required for GCash payments.";

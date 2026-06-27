@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/operational_controls.php";
 require_once __DIR__ . "/service_catalog.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -46,6 +47,12 @@ if ($action === "list" && $category) {
                 $service["catalog"] = servitech_catalog_fetch($pdo, (int)$service["id"], true);
                 $availability = servitech_catalog_customer_availability($service, $service["catalog"]);
                 if (empty($availability["available"])) continue;
+                if (servitech_operational_customer_service_unavailable(
+                    $pdo,
+                    (string)($service["category"] ?? ""),
+                    (string)($service["name"] ?? ""),
+                    (int)($service["id"] ?? 0)
+                ) !== "") continue;
                 $service["catalog_price_range"] = (string)($service["catalog"]["service"]["catalog_price_range"] ?? "");
             } catch (Throwable $e) {
                 continue;
@@ -98,6 +105,15 @@ if ($action === "detail" && $category) {
             $availability = servitech_catalog_customer_availability($service, $service["catalog"]);
             if (empty($availability["available"])) {
                 respond(["ok" => false, "error" => "Service is not currently available"]);
+            }
+            $manualUnavailable = servitech_operational_customer_service_unavailable(
+                $pdo,
+                (string)($service["category"] ?? ""),
+                (string)($service["name"] ?? ""),
+                (int)($service["id"] ?? 0)
+            );
+            if ($manualUnavailable !== "") {
+                respond(["ok" => false, "error" => $manualUnavailable]);
             }
             $service["catalog_price_range"] = (string)($service["catalog"]["service"]["catalog_price_range"] ?? "");
         } catch (Throwable $e) {

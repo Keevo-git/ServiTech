@@ -5,6 +5,7 @@ servitech_start_new_join_queue_if_requested();
 servitech_redirect_completed_join_queue();
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/store_availability.php";
+require_once __DIR__ . "/../../config/operational_controls.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
 servitech_store_send_no_cache_headers();
 
@@ -18,6 +19,7 @@ $documentCatalog = null;
 $documentPaperOptions = [];
 $documentColorOptions = [];
 $documentRules = [];
+$paymentOptions = servitech_operational_customer_payment_options($pdo);
 
 try {
   $documentCatalog = servitech_catalog_fetch_customer_catalog_by_kind($pdo, "document_printing");
@@ -37,6 +39,12 @@ try {
 }
 if (!is_array($documentCatalog)) {
   $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "Document Printing is currently unavailable."];
+  header("Location: /pages/customer/custo1_printing_option.php");
+  exit;
+}
+servitech_operational_redirect_customer_unavailable_service($pdo, "printing", "Document Printing", "/pages/customer/custo1_printing_option.php", $documentCatalogServiceId);
+if ($closedStoreDocumentPrinting && empty($paymentOptions["gcash"]["enabled"])) {
+  $_SESSION["servitech_customer_toast"] = ["type" => "error", "message" => "This payment method is currently unavailable."];
   header("Location: /pages/customer/custo1_printing_option.php");
   exit;
 }
@@ -466,8 +474,17 @@ if ($closedStoreDocumentPrinting) {
               <label for="paymentMethodSelect">Payment Method<span class="required">*</span></label>
               <select class="form-select" id="paymentMethodSelect" <?= $closedStoreDocumentPrinting ? "disabled" : "" ?>>
                 <option value="" <?= $closedStoreDocumentPrinting ? "" : "selected" ?>>Select payment method</option>
-                <option value="cash" <?= $closedStoreDocumentPrinting ? "disabled" : "" ?>>Cash</option>
-                <option value="gcash" <?= $closedStoreDocumentPrinting ? "selected" : "" ?>>GCash</option>
+                <?php foreach ($paymentOptions as $option): ?>
+                  <?php
+                    $value = (string)$option["value"];
+                    $enabled = !empty($option["enabled"]);
+                    $selected = $closedStoreDocumentPrinting && $value === "gcash";
+                    $disabled = !$enabled || ($closedStoreDocumentPrinting && $value !== "gcash");
+                  ?>
+                  <option value="<?= htmlspecialchars($value, ENT_QUOTES, "UTF-8") ?>" <?= $selected ? "selected" : "" ?> <?= $disabled ? "disabled" : "" ?>>
+                    <?= htmlspecialchars($option["label"], ENT_QUOTES, "UTF-8") ?><?= $enabled ? "" : " - unavailable" ?>
+                  </option>
+                <?php endforeach; ?>
               </select>
               <p id="cashPaymentNote" class="payment-section__hint" <?= $closedStoreDocumentPrinting ? "" : "hidden" ?>><?= $closedStoreDocumentPrinting ? "The store is closed, so Document Printing uses GCash payment." : "You must go to the store to complete payment before printing." ?></p>
             </div>

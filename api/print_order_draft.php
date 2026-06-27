@@ -7,6 +7,7 @@ require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/../config/join_queue_flow.php";
 require_once __DIR__ . "/../config/store_availability.php";
+require_once __DIR__ . "/../config/operational_controls.php";
 require_once __DIR__ . "/../config/input_limits.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -75,6 +76,14 @@ if (!$catalog_option_value_ids) {
 }
 if (!in_array($payment_method, ["cash", "gcash"], true)) {
   $errors[] = "Select a valid payment method.";
+}
+try {
+  servitech_operational_assert_service_available($pdo, "printing", "Document Printing", isset($data["catalog_service_id"]) ? (int)$data["catalog_service_id"] : 0);
+  if (in_array($payment_method, ["cash", "gcash"], true)) {
+    servitech_operational_assert_payment_method_available($pdo, $payment_method);
+  }
+} catch (DomainException $e) {
+  $errors[] = $e->getMessage();
 }
 if (empty($uploaded_files)) {
   $errors[] = "Upload at least one file before continuing.";

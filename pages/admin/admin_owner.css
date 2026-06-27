@@ -1169,6 +1169,150 @@ body.admin-employee-accounts .employee-details-password-reset form {
   line-height: 1.45;
 }
 
+body.admin-operational-controls-page .operational-controls-shell {
+  gap: 18px;
+}
+
+body.admin-operational-controls-page .operational-controls-info p,
+body.admin-operational-controls-page .operational-section-head p {
+  margin: 0;
+  color: #5d6f86;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+body.admin-operational-controls-page .operational-section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+body.admin-operational-controls-page .operational-section-head h2 {
+  margin-bottom: 4px;
+}
+
+body.admin-operational-controls-page .operational-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+body.admin-operational-controls-page .operational-status--open,
+body.admin-operational-controls-page .operational-status--enabled {
+  border: 1px solid #bbf7d0;
+  background: #ecfdf3;
+  color: #166534;
+}
+
+body.admin-operational-controls-page .operational-status--closed,
+body.admin-operational-controls-page .operational-status--disabled {
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  color: #9f1239;
+}
+
+body.admin-operational-controls-page .operational-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1d3554;
+  font-weight: 900;
+}
+
+body.admin-operational-controls-page .operational-toggle input {
+  width: 18px;
+  height: 18px;
+}
+
+body.admin-operational-controls-page .operational-control-list {
+  display: grid;
+  gap: 12px;
+}
+
+body.admin-operational-controls-page .operational-control-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto minmax(280px, 0.9fr);
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #dce6f2;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+body.admin-operational-controls-page .operational-control-row__main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+body.admin-operational-controls-page .operational-control-row__main h3 {
+  margin: 0;
+  color: #132235;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+body.admin-operational-controls-page .operational-control-row__main small {
+  color: #63758c;
+  font-size: 12px;
+}
+
+body.admin-operational-controls-page .operational-kicker {
+  color: #1f4a8a;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+body.admin-operational-controls-page .operational-row-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+body.admin-operational-controls-page .operational-row-form .admin-owner-field {
+  gap: 4px;
+}
+
+body.admin-operational-controls-page .operational-row-form textarea {
+  min-height: 64px;
+}
+
+body.admin-operational-controls-page .operational-row-form button {
+  min-width: 92px;
+  min-height: 42px;
+}
+
+body.admin-operational-controls-page .operational-confirm-modal {
+  width: min(100%, 460px);
+}
+
+@media (max-width: 860px) {
+  body.admin-operational-controls-page .operational-section-head,
+  body.admin-operational-controls-page .operational-control-row,
+  body.admin-operational-controls-page .operational-row-form {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  body.admin-operational-controls-page .operational-status {
+    justify-self: start;
+  }
+}
+
 .admin-owner-modal-overlay {
   position: fixed;
   inset: 0;
