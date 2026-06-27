@@ -109,6 +109,18 @@ function admin_profile_phone_error(string $value, string $label): string
         : "Enter a valid {$label}.";
 }
 
+function admin_profile_relationship_options(): array
+{
+    return ["Mother", "Father", "Sibling", "Spouse", "Guardian"];
+}
+
+function admin_profile_relationship_error(string $value): string
+{
+    return in_array($value, admin_profile_relationship_options(), true)
+        ? ""
+        : "Select relationship.";
+}
+
 function admin_profile_has_errors(array $errors): bool
 {
     foreach ($errors as $message) {
@@ -206,6 +218,9 @@ $profileFormValues = [
     "emergency_contact_number" => admin_profile_phone_storage_value((string)($profile["emergency_contact_number"] ?? "")),
     "emergency_contact_mobile" => admin_profile_mobile_digits((string)($profile["emergency_contact_number"] ?? "")),
 ];
+$relationshipOptions = admin_profile_relationship_options();
+$savedRelationship = trim((string)($profileFormValues["emergency_contact_relationship"] ?? ""));
+$hasLegacyRelationship = $savedRelationship !== "" && !in_array($savedRelationship, $relationshipOptions, true);
 
 if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
     servitech_enforce_same_origin(true);
@@ -230,15 +245,18 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             "emergency_contact_mobile" => admin_profile_mobile_digits((string)($_POST["emergency_contact_mobile"] ?? $_POST["emergency_contact_number"] ?? "")),
         ];
 
-        $errors = [
-            admin_profile_name_error($profileFormValues["fullname"], "Full name"),
-            admin_profile_phone_error($profileFormValues["contact"], "contact number"),
-            admin_profile_text_error($profileFormValues["address"], "Address"),
-            admin_profile_name_error($profileFormValues["emergency_contact_name"], "Emergency contact name"),
-            admin_profile_text_error($profileFormValues["emergency_contact_relationship"], "Relationship", 80),
-            admin_profile_text_error($profileFormValues["emergency_contact_address"], "Emergency contact address"),
-            admin_profile_phone_error($profileFormValues["emergency_contact_number"], "emergency contact number"),
-        ];
+        $errors = $activeTab === "emergency"
+            ? [
+                admin_profile_name_error($profileFormValues["emergency_contact_name"], "Emergency contact name"),
+                admin_profile_relationship_error($profileFormValues["emergency_contact_relationship"]),
+                admin_profile_text_error($profileFormValues["emergency_contact_address"], "Emergency contact address"),
+                admin_profile_phone_error($profileFormValues["emergency_contact_number"], "emergency contact number"),
+            ]
+            : [
+                admin_profile_name_error($profileFormValues["fullname"], "Full name"),
+                admin_profile_phone_error($profileFormValues["contact"], "contact number"),
+                admin_profile_text_error($profileFormValues["address"], "Address"),
+            ];
 
         if (admin_profile_has_errors($errors)) {
             $toastMessage = "Please complete all required fields.";
@@ -247,29 +265,41 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             try {
                 admin_profile_verify_current_password($profile, (string)($_POST["confirm_current_password"] ?? ""));
 
-                $update = $pdo->prepare("
-                    UPDATE users
-                    SET fullname = :fullname,
-                        contact = :contact,
-                        address = :address,
-                        emergency_contact_name = :emergency_contact_name,
-                        emergency_contact_relationship = :emergency_contact_relationship,
-                        emergency_contact_address = :emergency_contact_address,
-                        emergency_contact_number = :emergency_contact_number,
-                        updated_at = NOW()
-                    WHERE id = :id
-                      AND LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'admin'
-                ");
-                $update->execute([
-                    ":fullname" => $profileFormValues["fullname"],
-                    ":contact" => $profileFormValues["contact"],
-                    ":address" => $profileFormValues["address"],
-                    ":emergency_contact_name" => $profileFormValues["emergency_contact_name"],
-                    ":emergency_contact_relationship" => $profileFormValues["emergency_contact_relationship"],
-                    ":emergency_contact_address" => $profileFormValues["emergency_contact_address"],
-                    ":emergency_contact_number" => $profileFormValues["emergency_contact_number"],
-                    ":id" => $adminId,
-                ]);
+                if ($activeTab === "emergency") {
+                    $update = $pdo->prepare("
+                        UPDATE users
+                        SET emergency_contact_name = :emergency_contact_name,
+                            emergency_contact_relationship = :emergency_contact_relationship,
+                            emergency_contact_address = :emergency_contact_address,
+                            emergency_contact_number = :emergency_contact_number,
+                            updated_at = NOW()
+                        WHERE id = :id
+                          AND LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'admin'
+                    ");
+                    $update->execute([
+                        ":emergency_contact_name" => $profileFormValues["emergency_contact_name"],
+                        ":emergency_contact_relationship" => $profileFormValues["emergency_contact_relationship"],
+                        ":emergency_contact_address" => $profileFormValues["emergency_contact_address"],
+                        ":emergency_contact_number" => $profileFormValues["emergency_contact_number"],
+                        ":id" => $adminId,
+                    ]);
+                } else {
+                    $update = $pdo->prepare("
+                        UPDATE users
+                        SET fullname = :fullname,
+                            contact = :contact,
+                            address = :address,
+                            updated_at = NOW()
+                        WHERE id = :id
+                          AND LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) = 'admin'
+                    ");
+                    $update->execute([
+                        ":fullname" => $profileFormValues["fullname"],
+                        ":contact" => $profileFormValues["contact"],
+                        ":address" => $profileFormValues["address"],
+                        ":id" => $adminId,
+                    ]);
+                }
 
                 servitech_activity_log($pdo, [
                     "actor_id" => $adminId,
@@ -379,6 +409,8 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
     $profile = admin_profile_fetch($pdo, $adminId) ?: $profile;
 }
 
+$savedRelationship = trim((string)($profileFormValues["emergency_contact_relationship"] ?? ""));
+$hasLegacyRelationship = $savedRelationship !== "" && !in_array($savedRelationship, $relationshipOptions, true);
 $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "active")));
 ?>
 <!DOCTYPE html>
@@ -457,7 +489,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
           </div>
 
           <div class="admin-profile-form-grid">
-            <div class="admin-owner-field">
+            <div class="admin-owner-field admin-profile-field--full-name">
               <label for="fullname">Full Name</label>
               <input id="fullname" name="fullname" value="<?= admin_profile_h($profileFormValues["fullname"]) ?>" maxlength="160" required>
             </div>
@@ -498,7 +530,15 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
             </div>
             <div class="admin-owner-field">
               <label for="emergency_contact_relationship">Relationship</label>
-              <input id="emergency_contact_relationship" name="emergency_contact_relationship" value="<?= admin_profile_h($profileFormValues["emergency_contact_relationship"]) ?>" maxlength="80" required>
+              <select id="emergency_contact_relationship" name="emergency_contact_relationship" required>
+                <option value="">Select relationship</option>
+                <?php if ($hasLegacyRelationship): ?>
+                  <option value="<?= admin_profile_h($savedRelationship) ?>" selected><?= admin_profile_h($savedRelationship) ?> (saved)</option>
+                <?php endif; ?>
+                <?php foreach ($relationshipOptions as $relationshipOption): ?>
+                  <option value="<?= admin_profile_h($relationshipOption) ?>" <?= $profileFormValues["emergency_contact_relationship"] === $relationshipOption ? "selected" : "" ?>><?= admin_profile_h($relationshipOption) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
             <div class="admin-owner-field admin-profile-form-grid__wide">
               <label for="emergency_contact_address">Emergency Contact Address</label>
@@ -592,10 +632,27 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
     const hiddenPassword = document.getElementById("confirm_current_password");
     const activeProfileTab = document.getElementById("active_profile_tab");
     const initialTab = <?= json_encode($activeTab, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+    const relationshipOptions = new Set(<?= json_encode($relationshipOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>);
     const editButtons = document.querySelectorAll("[data-edit-profile]");
     const cancelButtons = document.querySelectorAll("[data-cancel-edit]");
     const tabs = document.querySelectorAll("[data-profile-tab]");
     const panels = document.querySelectorAll("[data-profile-panel]");
+    const restoreFieldIds = [
+      "fullname",
+      "contact_mobile",
+      "contact",
+      "address",
+      "emergency_contact_name",
+      "emergency_contact_relationship",
+      "emergency_contact_address",
+      "emergency_contact_mobile",
+      "emergency_contact_number"
+    ];
+    const initialProfileValues = {};
+    restoreFieldIds.forEach((id) => {
+      const field = document.getElementById(id);
+      if (field) initialProfileValues[id] = field.value;
+    });
 
     function showToast(message, type) {
       if (message) window.servitechAdminToast?.show(message, type || "info");
@@ -604,8 +661,12 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
     function setEditing(isEditing) {
       const active = Boolean(isEditing);
       body.classList.toggle("is-editing-profile", active);
-      profileForm?.querySelectorAll("input:not([type='hidden']):not(#email), textarea").forEach((field) => {
-        field.readOnly = !active;
+      profileForm?.querySelectorAll("input:not([type='hidden']):not(#email), textarea, select").forEach((field) => {
+        if (field.tagName === "SELECT") {
+          field.disabled = !active;
+        } else {
+          field.readOnly = !active;
+        }
       });
     }
 
@@ -639,11 +700,27 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
       hidden.value = input.value ? `+63${input.value}` : "";
     }
 
+    function restoreProfileValues() {
+      Object.keys(initialProfileValues).forEach((id) => {
+        const field = document.getElementById(id);
+        if (field) field.value = initialProfileValues[id];
+      });
+      syncMobile("contact_mobile", "contact");
+      syncMobile("emergency_contact_mobile", "emergency_contact_number");
+    }
+
     function profileFieldsComplete() {
       syncMobile("contact_mobile", "contact");
       syncMobile("emergency_contact_mobile", "emergency_contact_number");
-      const required = profileForm.querySelectorAll("input[required], textarea[required]");
-      return Array.from(required).every((field) => String(field.value || "").trim() !== "" && (!field.pattern || new RegExp(`^${field.pattern}$`).test(field.value)));
+      const panelName = activeProfileTab?.value === "emergency" ? "emergency" : "profile";
+      const panel = profileForm.querySelector(`[data-profile-panel="${panelName}"]`);
+      const required = panel ? panel.querySelectorAll("input[required], textarea[required], select[required]") : [];
+      return Array.from(required).every((field) => {
+        const value = String(field.value || "").trim();
+        if (!value) return false;
+        if (field.id === "emergency_contact_relationship" && !relationshipOptions.has(value)) return false;
+        return !field.pattern || new RegExp(`^${field.pattern}$`).test(value);
+      });
     }
 
     function openModal() {
@@ -660,20 +737,21 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
     }
 
     editButtons.forEach((button) => button.addEventListener("click", () => {
+      const selectedTab = document.querySelector("[data-profile-tab].is-active")?.dataset.profileTab || "profile";
       setEditing(true);
-      setTab("profile");
-      document.getElementById("fullname")?.focus();
+      setTab(selectedTab === "password" ? "profile" : selectedTab);
+      const focusTarget = selectedTab === "emergency" ? "emergency_contact_name" : "fullname";
+      document.getElementById(focusTarget)?.focus();
     }));
 
     cancelButtons.forEach((button) => button.addEventListener("click", () => {
+      restoreProfileValues();
       setEditing(false);
-      setTab("profile");
     }));
 
     tabs.forEach((tab) => tab.addEventListener("click", () => {
       const nextTab = tab.dataset.profileTab || "profile";
       setTab(nextTab);
-      setEditing(nextTab !== "password");
     }));
 
     ["contact_mobile", "emergency_contact_mobile"].forEach((id) => {
