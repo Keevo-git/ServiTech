@@ -304,7 +304,7 @@ $csrfToken = servitech_csrf_token();
           <div class="form-field">
             <label for="newPassword">New Password</label>
             <input id="newPassword" name="password" type="password" placeholder="Create a new password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" aria-describedby="newPasswordHint newPasswordError" required autofocus>
-            <p class="field-hint" id="newPasswordHint">Use at least <?= SERVITECH_PASSWORD_MIN_LENGTH ?> characters.</p>
+            <p class="field-hint" id="newPasswordHint">Use <?= SERVITECH_PASSWORD_MIN_LENGTH ?> to <?= SERVITECH_PASSWORD_MAX_BYTES ?> characters.</p>
             <p class="field-error" id="newPasswordError" aria-live="polite"></p>
           </div>
 

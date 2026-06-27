@@ -57,6 +57,7 @@ $adminHeaderNavItems = $adminHeaderIsSuperAdmin
 </script>
 <?php endif; ?>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
+<script src="<?= admin_url('/assets/js/character_limit_ui.js?v=20260627-limit-ui') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js?v=20260608-admin-menu-controller') ?>" defer></script>
 <script src="<?= admin_url('/pages/admin/admin_logout_confirm.js?v=20260608-admin-logout-confirm-global') ?>" defer></script>
 <script>

@@ -349,7 +349,7 @@ $csrfToken = servitech_csrf_token();
           <div class="employee-setup-requirements" id="passwordRequirements" aria-label="Password requirements">
             <span>Password requirements</span>
             <ul>
-              <li data-password-rule="length">At least <?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?> characters</li>
+              <li data-password-rule="length"><?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?> to <?= SERVITECH_PASSWORD_MAX_BYTES ?> characters</li>
               <li data-password-rule="uppercase">One uppercase letter</li>
               <li data-password-rule="lowercase">One lowercase letter</li>
               <li data-password-rule="number">One number</li>

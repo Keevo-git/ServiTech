@@ -1110,7 +1110,8 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
                       <div class="employee-account-form-grid">
                         <div class="admin-owner-field">
                           <label>New Temporary Password</label>
-                          <input name="temporary_password" type="password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
+                          <input name="temporary_password" type="password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" aria-describedby="resetTemporaryPasswordHint_<?= $employeeId ?>" required>
+                          <small id="resetTemporaryPasswordHint_<?= $employeeId ?>">Use <?= SERVITECH_PASSWORD_MIN_LENGTH ?> to <?= SERVITECH_PASSWORD_MAX_BYTES ?> characters.</small>
                         </div>
                         <div class="admin-owner-field">
                           <label>Confirm Temporary Password</label>
@@ -1194,7 +1195,8 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
         </div>
         <div class="admin-owner-field">
           <label for="create_employee_temporary_password">Temporary Password</label>
-          <input id="create_employee_temporary_password" name="temporary_password" type="password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
+          <input id="create_employee_temporary_password" name="temporary_password" type="password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" aria-describedby="createEmployeeTemporaryPasswordHint" required>
+          <small id="createEmployeeTemporaryPasswordHint">Use <?= SERVITECH_PASSWORD_MIN_LENGTH ?> to <?= SERVITECH_PASSWORD_MAX_BYTES ?> characters.</small>
         </div>
         <div class="admin-owner-field">
           <label for="create_employee_temporary_password_confirm">Confirm Temporary Password</label>

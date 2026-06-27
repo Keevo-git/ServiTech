@@ -587,7 +587,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
             </div>
           </div>
           <ul class="admin-profile-password-rules" aria-label="Password requirements">
-            <li>Minimum 8 characters</li>
+            <li>8 to <?= SERVITECH_PASSWORD_MAX_BYTES ?> characters</li>
             <li>At least one uppercase letter</li>
             <li>At least one lowercase letter</li>
             <li>At least one number</li>

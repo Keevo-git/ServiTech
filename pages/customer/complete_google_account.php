@@ -196,7 +196,7 @@ $setupDescription = $needsBoth
                   <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" aria-describedby="passwordHint passwordError" required>
                   <button type="button" class="password-toggle" data-password-toggle="password" aria-label="Show password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
                 </div>
-                <p class="field-hint" id="passwordHint">Use at least <?= SERVITECH_PASSWORD_MIN_LENGTH ?> characters.</p>
+                <p class="field-hint" id="passwordHint">Use <?= SERVITECH_PASSWORD_MIN_LENGTH ?> to <?= SERVITECH_PASSWORD_MAX_BYTES ?> characters.</p>
                 <p class="field-error" id="passwordError" aria-live="polite"><?= htmlspecialchars($errors["password"], ENT_QUOTES, "UTF-8") ?></p>
               </div>
 

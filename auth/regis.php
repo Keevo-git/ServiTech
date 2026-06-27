@@ -135,9 +135,10 @@ $csrfToken = servitech_csrf_token();
             <div class="form-field">
               <label for="password">Password</label>
               <div class="password-input-wrap">
-                <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
+                <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" aria-describedby="passwordHint passwordError" required>
                 <button type="button" class="password-toggle" id="registrationPasswordToggle" aria-label="Show password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
               </div>
+              <p class="field-hint" id="passwordHint">Use <?= SERVITECH_PASSWORD_MIN_LENGTH ?> to <?= SERVITECH_PASSWORD_MAX_BYTES ?> characters.</p>
               <p class="field-error" id="passwordError" aria-live="polite"></p>
             </div>
 
