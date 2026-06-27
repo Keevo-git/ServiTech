@@ -95,10 +95,13 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_supabase_a
 super_admin_cleanup_assert(str_contains($employeeAccounts, "force_password_change = TRUE"), "Employee creation/reset must force password change.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "profile_completed") && str_contains($employeeAccounts, "'active', TRUE, FALSE"), "New employees must start with pending profile setup.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "servitech_admin_flash_toast"), "Employee Accounts form feedback must use shared toast flash.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "data-open-create-employee-modal"), "Employee creation must be opened from a modal trigger.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "data-open-create-employee-modal"), "Employee creation must not expose a visible page button trigger.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Ctrl + Alt + E"), "Employee creation shortcut hint must be shown.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "event.ctrlKey && event.altKey"), "Employee creation shortcut must be wired in page JavaScript.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "isTypingTarget"), "Employee creation shortcut must ignore typing targets.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-modal"), "Employee creation modal must exist.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-form"), "Employee creation form must be inside the modal.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260626-employee-accounts-modal"), "Employee Accounts page must load the cache-busted owner modal CSS.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-accounts-polish"), "Employee Accounts page must load the cache-busted owner CSS.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "admin-owner-panel admin-owner-panel--full"), "Employee Accounts table card must use the full-width owner panel.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Create an employee login account with a temporary password. The employee will complete their profile during first login."), "Create modal must explain first-login profile setup.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "<aside class=\"admin-owner-panel\">\n      <h2>Create Employee Account</h2>"), "Create Employee Account form must not render as an always-visible side panel.");
@@ -114,8 +117,10 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "Unable to create Sup
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Employee account created. A verification email has been sent."), "Employee verification email success toast must be present.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Employee account was created, but the verification email could not be sent. Please check SMTP/Resend settings."), "Employee verification email failure toast must be present.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Auth account was created, but employee profile linking failed. Please review the account."), "Profile link failures after Auth creation must have a specific toast.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "Pending Email Verification"), "Employee table must show pending email verification.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "Pending First-Time Setup"), "Employee table must show pending first-time setup.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Pending Verification"), "Employee table must show pending email verification.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Pending Setup"), "Employee table must show pending first-time setup.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-confirm-modal"), "Employee status changes must use the confirmation modal.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "No linked employee admin accounts found."), "Employee table must include the formal empty state.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "That employee account is already linked."), "Old misleading duplicate toast must be removed.");
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal-overlay"), "Owner CSS must include modal overlay styling.");
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal"), "Owner CSS must include modal panel styling.");
