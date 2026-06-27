@@ -37,6 +37,8 @@
   let editorLoadToken = 0;
   let selectedPaperSizeKey = null;
   let selectedColorKey = null;
+  let selectedPackageKey = null;
+  let selectedAddonKey = null;
   const serviceModalStack = [];
   const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
   const modalBaseZIndex = 2147483100;
@@ -749,9 +751,44 @@
   }
 
   function rushEditor() {
-    return `${simpleRuleRows("package", "Packages", "New package name", {
-      nameLabel: "Package Name", description: true, help: "Base price for each Rush ID package.",
-    })}
+    const packages = group("package")?.values || [];
+    const selectedPackage = packages.find((p) => p.value_key === selectedPackageKey);
+    const selectedRule = selectedPackage ? findRule({ package: selectedPackage.value_key }) : null;
+
+    return `<section class="ms-option-section">
+      <div class="ms-section-head">
+        <div><h4>Packages</h4><p>Select a package from the dropdown to edit it.</p></div>
+      </div>
+      <div class="ms-value-list">
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-package-select">Select Package:</label>
+          <select id="ms-package-select" data-select-package aria-label="Select package to edit">
+            <option value="">-- Select a package --</option>
+            ${packages.map((pkg) => `<option value="${escapeHtml(pkg.value_key)}" ${selectedPackageKey === pkg.value_key ? "selected" : ""}>${escapeHtml(pkg.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedPackage ? `<div class="ms-value-row ${Number(selectedPackage.active) ? "" : "is-inactive"}" data-group-key="package" data-value-key="${escapeHtml(selectedPackage.value_key)}">
+          <div class="ms-size-edit-header"><strong>${escapeHtml(selectedPackage.label)}</strong></div>
+          <input data-value-label value="${escapeHtml(selectedPackage.label)}" maxlength="${optionLabelMaxLength}" aria-label="Package name" class="ms-size-input">
+          <input data-rule-description value="${escapeHtml(selectedRule?.description || selectedPackage.description || "")}" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details" class="ms-size-input">
+          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00"></div>
+          <div class="ms-status-cell">
+            <span class="ms-control-label">Status</span>
+            <label class="ms-switch ms-switch--compact">
+              <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedPackage.label)} active status" ${Number(selectedPackage.active) ? "checked" : ""}>
+              <span aria-hidden="true"></span><em>${Number(selectedPackage.active) ? "Active" : "Inactive"}</em>
+            </label>
+          </div>
+        </div>` : ""}
+      </div>
+      <div class="ms-inline-add">
+        <input data-new-value="package" maxlength="${optionLabelMaxLength}" placeholder="New package name">
+        <input data-new-description="package" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details">
+        <div class="ms-price-input"><span>PHP</span><input data-new-price="package" type="number" min="0" step="0.01" placeholder="Price"></div>
+        <label class="ms-switch ms-switch--compact"><input data-new-active="package" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
+        <button type="button" data-add-value="package">Add</button>
+      </div>
+    </section>
     ${simpleRuleRows("addon", "Optional Add-Ons", "New add-on name", {
       nameLabel: "Add-On Name", description: true, fixedOnly: true,
       help: "Additional price added to the selected package. Activate only after setting a price.",
@@ -1081,6 +1118,20 @@
       return;
     }
 
+    if (event.target.matches("[data-select-package]")) {
+      event.stopPropagation();
+      selectedPackageKey = event.target.value || null;
+      render();
+      return;
+    }
+
+    if (event.target.matches("[data-select-addon]")) {
+      event.stopPropagation();
+      selectedAddonKey = event.target.value || null;
+      render();
+      return;
+    }
+
     if (event.target.matches("[data-installation-device-mode]")) {
       const enabled = event.target.checked;
       if (!await confirmAction({
@@ -1168,6 +1219,8 @@
     }
     selectedPaperSizeKey = null;
     selectedColorKey = null;
+    selectedPackageKey = null;
+    selectedAddonKey = null;
     editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
     try {
       const fetchedCatalog = await fetchCatalog(data.id);
@@ -1190,6 +1243,8 @@
     originalServiceSnapshot = null;
     selectedPaperSizeKey = null;
     selectedColorKey = null;
+    selectedPackageKey = null;
+    selectedAddonKey = null;
     hideError();
   }
 

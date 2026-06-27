@@ -225,7 +225,7 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
 </script>
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php require_once __DIR__ . "/../admin/_includes/admin_footer.php"; ?>
-<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260627-dropdown-color') ?>"></script>
+<script src="<?= admin_url('/pages/admin/Services/manage_services.js?v=20260627-dropdown-rush') ?>"></script>
 
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 </body>
