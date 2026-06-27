@@ -890,7 +890,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const rows = Array.from(tbody.querySelectorAll(".order-data-row"));
     const searchInput = toolbar.querySelector("[data-order-filter-search]");
-    const dateInput = toolbar.querySelector("[data-order-filter-date]");
     const monthInput = toolbar.querySelector("[data-order-filter-month]");
     const yearInput = toolbar.querySelector("[data-order-filter-year]");
     const statusInputs = Array.from(toolbar.querySelectorAll("[data-order-filter-status]"));
@@ -960,7 +959,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function filterState() {
       return {
         query: String(searchInput?.value || "").trim().toLowerCase(),
-        submittedDate: String(dateInput?.value || "").trim(),
         month: String(monthInput?.value || "").trim(),
         year: String(yearInput?.value || "").trim(),
         statuses: selectedStatuses(),
@@ -991,11 +989,10 @@ document.addEventListener("DOMContentLoaded", function () {
           || customer.includes(state.query)
           || customerEmail.includes(state.query)
           || customerPhone.includes(state.query);
-        const matchesDate = !state.submittedDate || rowSubmittedDate === state.submittedDate;
         const matchesMonth = !useMonthlyFilter || (rowSubmittedMonth === state.month && rowSubmittedYear === state.year);
         const matchesStatus = !state.statuses.length || state.statuses.includes(rowStatus);
         const matchesPayment = !state.paymentMethod || rowPaymentMethod === state.paymentMethod;
-        const matches = matchesSearch && matchesDate && matchesMonth && matchesStatus && matchesPayment;
+        const matches = matchesSearch && matchesMonth && matchesStatus && matchesPayment;
 
         row.hidden = !matches;
         if (matches) visibleCount += 1;
@@ -1017,7 +1014,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const service = String(toolbar.dataset.service || "").trim();
       if (service) params.set("service", service);
       if (state.query) params.set("search", state.query);
-      if (state.submittedDate) params.set("submitted_date", state.submittedDate);
       if (state.month) params.set("month", state.month);
       if (state.year) params.set("year", state.year);
       if (state.statuses.length) params.set("statuses", state.statuses.join(","));
@@ -1027,7 +1023,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     searchInput?.addEventListener("input", debounce(updateResults));
-    dateInput?.addEventListener("change", updateResults);
     monthInput?.addEventListener("change", updateResults);
     yearInput?.addEventListener("change", updateResults);
     paymentInput?.addEventListener("change", updateResults);
@@ -1035,7 +1030,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     clearButton?.addEventListener("click", () => {
       if (searchInput) searchInput.value = "";
-      if (dateInput) dateInput.value = "";
       if (monthInput) monthInput.value = "";
       if (yearInput) yearInput.value = "";
       if (paymentInput) paymentInput.value = "";

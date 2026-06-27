@@ -28,16 +28,21 @@ foreach ([
 ] as $toolbarNeedle) {
     admin_order_export_assert(str_contains($helper, $toolbarNeedle), "Order filter toolbar must include {$toolbarNeedle}.");
 }
+foreach (["data-order-filter-date", "Submitted Date</span>"] as $removedDateNeedle) {
+    admin_order_export_assert(!str_contains($helper, $removedDateNeedle), "Order filter toolbar must not include {$removedDateNeedle}.");
+}
 
 foreach ([
     "monthlyFilterValid",
     "Please select a year for the monthly filter.",
     "buildExportUrl",
-    "submitted_date",
     "statuses",
     "No orders found for the selected filters.",
 ] as $scriptNeedle) {
     admin_order_export_assert(str_contains($script, $scriptNeedle), "Order filter script must include {$scriptNeedle}.");
+}
+foreach (["data-order-filter-date", "submitted_date", "dateInput"] as $removedScriptNeedle) {
+    admin_order_export_assert(!str_contains($script, $removedScriptNeedle), "Order filter script must not include {$removedScriptNeedle}.");
 }
 
 foreach ([
@@ -56,6 +61,7 @@ foreach ([
 ] as $exportNeedle) {
     admin_order_export_assert(str_contains($export, $exportNeedle), "Export handler must include {$exportNeedle}.");
 }
+admin_order_export_assert(!str_contains($export, '$_GET["submitted_date"]'), "Export handler must ignore legacy submitted-date query filters.");
 
 foreach (["password", "auth_user_id", "refresh_token", "access_token"] as $sensitiveNeedle) {
     admin_order_export_assert(!str_contains(strtolower($export), $sensitiveNeedle), "Export handler must not include sensitive {$sensitiveNeedle} fields.");

@@ -187,13 +187,13 @@ body.admin-dashboard .page-frame {
 
 .order-filter-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.7fr) repeat(4, minmax(110px, 0.8fr)) repeat(2, minmax(110px, auto));
-  gap: 12px;
+  grid-template-columns: minmax(280px, 1.8fr) repeat(3, minmax(135px, 0.85fr)) minmax(140px, auto);
+  gap: 14px;
   align-items: end;
 }
 
 .order-filter-toolbar--payment .order-filter-grid {
-  grid-template-columns: minmax(220px, 1.6fr) repeat(5, minmax(110px, 0.78fr)) repeat(2, minmax(110px, auto));
+  grid-template-columns: minmax(280px, 1.8fr) repeat(3, minmax(135px, 0.82fr)) minmax(160px, 0.9fr) minmax(150px, auto);
 }
 
 .order-filter-control {
@@ -209,7 +209,6 @@ body.admin-dashboard .page-frame {
 }
 
 .order-filter-control input[type="search"],
-.order-filter-control input[type="date"],
 .order-filter-control select,
 .order-status-filter summary {
   width: 100%;
@@ -315,6 +314,12 @@ body.admin-dashboard .page-frame {
   accent-color: #214f91;
 }
 
+.order-filter-actions {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
 .order-filter-clear {
   min-height: 40px;
   border: 1px solid #b9c9dc;
@@ -327,6 +332,7 @@ body.admin-dashboard .page-frame {
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
+  width: 100%;
 }
 
 .order-filter-clear:hover {
@@ -347,6 +353,7 @@ body.admin-dashboard .page-frame {
   font-weight: 800;
   white-space: nowrap;
   box-shadow: 0 8px 18px rgba(31, 74, 138, 0.18);
+  width: 100%;
 }
 
 .order-filter-export:hover {
@@ -1679,8 +1686,10 @@ body.order-confirm-open {
   }
 
   .order-filter-clear,
-  .order-filter-export {
+  .order-filter-export,
+  .order-filter-actions {
     justify-self: start;
+    width: 100%;
   }
 }
 
@@ -1712,7 +1721,8 @@ body.order-confirm-open {
   }
 
   .order-filter-clear,
-  .order-filter-export {
+  .order-filter-export,
+  .order-filter-actions {
     width: 100%;
   }
 

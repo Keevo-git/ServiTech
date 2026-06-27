@@ -116,9 +116,7 @@ function order_export_filename(string $service, array $filters): string
     if (($filters["payment"] ?? "") !== "") {
         $parts[] = strtolower($filters["payment"]);
     }
-    if (($filters["submitted_date"] ?? "") !== "") {
-        $parts[] = $filters["submitted_date"];
-    } elseif (($filters["month"] ?? "") !== "" && ($filters["year"] ?? "") !== "") {
+    if (($filters["month"] ?? "") !== "" && ($filters["year"] ?? "") !== "") {
         $monthName = strtolower(order_export_month_name($filters["month"]));
         if ($monthName !== "") {
             $parts[] = $monthName;
@@ -141,7 +139,6 @@ if (!in_array($service, ["print", "repair", "installation"], true)) {
 }
 
 $search = order_export_clean(strtolower((string)($_GET["search"] ?? "")));
-$submittedDate = trim((string)($_GET["submitted_date"] ?? ""));
 $month = str_pad((string)($_GET["month"] ?? ""), 2, "0", STR_PAD_LEFT);
 $year = trim((string)($_GET["year"] ?? ""));
 $payment = strtolower(trim((string)($_GET["payment"] ?? "")));
@@ -158,9 +155,6 @@ if ($month !== "" && !preg_match('/^(0[1-9]|1[0-2])$/', $month)) {
 }
 if ($year !== "" && !preg_match('/^\d{4}$/', $year)) {
     $year = "";
-}
-if ($submittedDate !== "" && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $submittedDate)) {
-    $submittedDate = "";
 }
 if ($payment !== "" && !in_array($payment, ["cash", "gcash"], true)) {
     $payment = "";
@@ -205,10 +199,6 @@ if ($search !== "") {
         OR LOWER(COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', ''), '')) LIKE :search
     )";
     $params[":search"] = "%" . $search . "%";
-}
-if ($submittedDate !== "") {
-    $where[] = "(q.created_at AT TIME ZONE 'Asia/Manila')::date = CAST(:submitted_date AS date)";
-    $params[":submitted_date"] = $submittedDate;
 }
 if ($month !== "" && $year !== "") {
     $where[] = "EXTRACT(MONTH FROM q.created_at AT TIME ZONE 'Asia/Manila') = :month";
@@ -295,7 +285,6 @@ if (!$orders) {
 
 $filters = [
     "search" => $search,
-    "submitted_date" => $submittedDate,
     "month" => $month,
     "year" => $year,
     "statuses" => $statuses,
@@ -305,7 +294,6 @@ $filters = [
 $serviceLabel = order_export_service_label($service);
 $filterSummary = [];
 if ($search !== "") $filterSummary[] = "search '{$search}'";
-if ($submittedDate !== "") $filterSummary[] = "submitted date {$submittedDate}";
 if ($month !== "" && $year !== "") $filterSummary[] = order_export_month_name($month) . " {$year}";
 elseif ($year !== "") $filterSummary[] = "year {$year}";
 if ($statuses) $filterSummary[] = "status " . implode(", ", $statuses);
