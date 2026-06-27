@@ -3051,3 +3051,119 @@ body.order-confirm-open {
   outline: none !important;
   transform: translateY(-1px) !important;
 }
+
+/* Order filters: keep controls on a clean top row and actions side by side below. */
+body.admin-dashboard .order-filter-toolbar {
+  padding: 22px 20px 20px;
+}
+
+body.admin-dashboard .order-filter-toolbar .order-filter-grid,
+body.admin-dashboard .order-filter-toolbar.order-filter-toolbar--payment .order-filter-grid {
+  align-items: end;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(300px, 2fr) repeat(4, minmax(150px, 1fr));
+  width: 100%;
+}
+
+body.admin-dashboard .order-filter-toolbar .order-filter-footer {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+body.admin-dashboard .order-filter-toolbar .order-filter-actions {
+  align-items: center;
+  display: flex !important;
+  flex: 0 0 auto;
+  flex-direction: row !important;
+  gap: 12px;
+  justify-content: flex-end;
+  min-width: 0;
+  width: auto;
+}
+
+body.admin-dashboard .order-filter-toolbar .order-filter-actions .order-filter-clear,
+body.admin-dashboard .order-filter-toolbar .order-filter-actions .order-filter-export {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 146px;
+  height: 44px;
+  justify-content: center;
+  margin: 0;
+  min-height: 44px;
+  min-width: 146px;
+  padding: 10px 14px;
+  width: 146px;
+}
+
+@media (max-width: 1180px) {
+  body.admin-dashboard .order-filter-toolbar .order-filter-grid,
+  body.admin-dashboard .order-filter-toolbar.order-filter-toolbar--payment .order-filter-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--search {
+    grid-column: span 6;
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--month,
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--year,
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--status,
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--payment {
+    grid-column: span 3;
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-footer {
+    align-items: center;
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-actions .order-filter-clear,
+  body.admin-dashboard .order-filter-toolbar .order-filter-actions .order-filter-export {
+    flex-basis: 140px;
+    min-width: 140px;
+    width: 140px;
+  }
+}
+
+@media (max-width: 560px) {
+  body.admin-dashboard .order-filter-toolbar {
+    padding: 16px 14px;
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-grid,
+  body.admin-dashboard .order-filter-toolbar.order-filter-toolbar--payment .order-filter-grid {
+    gap: 12px;
+    grid-template-columns: 1fr;
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--search,
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--month,
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--year,
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--status,
+  body.admin-dashboard .order-filter-toolbar .order-filter-control--payment {
+    grid-column: auto;
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  body.admin-dashboard .order-filter-toolbar .order-filter-actions .order-filter-clear,
+  body.admin-dashboard .order-filter-toolbar .order-filter-actions .order-filter-export {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+  }
+}

@@ -72,10 +72,16 @@ admin_order_export_assert(str_contains($css, ".order-filter-actions"), "Filter a
 admin_order_export_assert(str_contains($helper, "order-filter-footer"), "Filter results and actions must render in a footer row.");
 admin_order_export_assert(str_contains($css, ".order-filter-footer"), "Filter footer row must be styled.");
 admin_order_export_assert(str_contains($css, "justify-content: space-between;"), "Filter footer must separate results and actions.");
-admin_order_export_assert(str_contains($css, "display: flex") && str_contains($css, "gap: 12px;"), "Filter actions must sit side by side with a clear gap.");
-admin_order_export_assert(str_contains($css, "width: 142px;"), "Desktop filter action buttons must share a stable width.");
+admin_order_export_assert(str_contains($css, "flex-direction: row !important;"), "Filter actions must stay side by side on the footer row.");
+admin_order_export_assert(str_contains($css, "grid-template-columns: minmax(300px, 2fr) repeat(4, minmax(150px, 1fr));"), "Filter controls must spread across the available desktop width.");
+admin_order_export_assert(str_contains($css, "width: 146px;"), "Desktop filter action buttons must share a stable width.");
 admin_order_export_assert(str_contains($css, "min-height: 44px;"), "Filter controls and buttons must share a readable height.");
 admin_order_export_assert(str_contains($helper, "order-filter-control--search"), "Filter controls must expose layout classes.");
 admin_order_export_assert(str_contains($css, "@media (max-width: 560px)"), "Filter/export controls must keep mobile responsive styling.");
+
+foreach (["printM.php", "repairM.php", "installationM.php"] as $orderPage) {
+    $page = admin_order_export_source("pages/admin/order_management/{$orderPage}");
+    admin_order_export_assert(str_contains($page, "orderM.css?v=20260627-filter-footer-row"), "{$orderPage} must load the latest filter layout stylesheet.");
+}
 
 echo "Admin order export report checks passed.\n";
