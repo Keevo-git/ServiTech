@@ -252,9 +252,41 @@ function om_order_filter_date($value): string
     }
 }
 
-function om_render_filter_toolbar(string $tableId, bool $includePayment = false, array $rows = []): void
+function om_order_filter_years(array $rows): array
+{
+    $years = [];
+    foreach ($rows as $row) {
+        $submittedAt = trim((string)($row["created_at"] ?? ""));
+        if ($submittedAt === "") {
+            continue;
+        }
+
+        try {
+            $year = (new DateTimeImmutable($submittedAt))
+                ->setTimezone(new DateTimeZone("Asia/Manila"))
+                ->format("Y");
+            if ($year !== "") {
+                $years[$year] = true;
+            }
+        } catch (Throwable $exception) {
+            continue;
+        }
+    }
+
+    if (!$years) {
+        $years[(new DateTimeImmutable("now", new DateTimeZone("Asia/Manila")))->format("Y")] = true;
+    }
+
+    $years = array_keys($years);
+    rsort($years, SORT_NUMERIC);
+    return $years;
+}
+
+function om_render_filter_toolbar(string $tableId, bool $includePayment = false, array $rows = [], string $serviceKey = ""): void
 {
     $safeTableId = htmlspecialchars($tableId, ENT_QUOTES, "UTF-8");
+    $safeServiceKey = htmlspecialchars($serviceKey, ENT_QUOTES, "UTF-8");
+    $exportUrl = htmlspecialchars(admin_url('/pages/admin/order_management/export_report.php'), ENT_QUOTES, "UTF-8");
     $statuses = [
         "PENDING" => "Pending",
         "ONGOING" => "Ongoing",
@@ -271,9 +303,30 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
         "cash" => "Cash",
         "gcash" => "GCash",
     ];
+    $months = [
+        "01" => "January",
+        "02" => "February",
+        "03" => "March",
+        "04" => "April",
+        "05" => "May",
+        "06" => "June",
+        "07" => "July",
+        "08" => "August",
+        "09" => "September",
+        "10" => "October",
+        "11" => "November",
+        "12" => "December",
+    ];
+    $years = om_order_filter_years($rows);
 
     ?>
-    <div class="order-filter-toolbar<?= $includePayment ? " order-filter-toolbar--payment" : "" ?>" data-order-filter-toolbar data-table-id="<?= $safeTableId ?>">
+    <div
+      class="order-filter-toolbar<?= $includePayment ? " order-filter-toolbar--payment" : "" ?>"
+      data-order-filter-toolbar
+      data-table-id="<?= $safeTableId ?>"
+      data-service="<?= $safeServiceKey ?>"
+      data-export-url="<?= $exportUrl ?>"
+    >
       <div class="order-filter-grid">
         <label class="order-filter-control order-filter-control--search">
           <span>Search</span>
@@ -283,6 +336,26 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
         <label class="order-filter-control">
           <span>Submitted Date</span>
           <input type="date" data-order-filter-date>
+        </label>
+
+        <label class="order-filter-control">
+          <span>Month</span>
+          <select data-order-filter-month>
+            <option value="">All months</option>
+            <?php foreach ($months as $value => $label): ?>
+              <option value="<?= htmlspecialchars($value, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($label, ENT_QUOTES, "UTF-8") ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+
+        <label class="order-filter-control">
+          <span>Year</span>
+          <select data-order-filter-year>
+            <option value="">All years</option>
+            <?php foreach ($years as $year): ?>
+              <option value="<?= htmlspecialchars($year, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($year, ENT_QUOTES, "UTF-8") ?></option>
+            <?php endforeach; ?>
+          </select>
         </label>
 
         <div class="order-filter-control">
@@ -315,6 +388,7 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
         <?php endif; ?>
 
         <button class="order-filter-clear" type="button" data-order-filter-clear>Clear Filters</button>
+        <button class="order-filter-export" type="button" data-order-export>Export Report</button>
       </div>
 
       <p class="order-filter-results" data-order-filter-results aria-live="polite">0 results found</p>

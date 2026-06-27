@@ -891,12 +891,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const rows = Array.from(tbody.querySelectorAll(".order-data-row"));
     const searchInput = toolbar.querySelector("[data-order-filter-search]");
     const dateInput = toolbar.querySelector("[data-order-filter-date]");
+    const monthInput = toolbar.querySelector("[data-order-filter-month]");
+    const yearInput = toolbar.querySelector("[data-order-filter-year]");
     const statusInputs = Array.from(toolbar.querySelectorAll("[data-order-filter-status]"));
     const statusLabel = toolbar.querySelector("[data-order-filter-status-label]");
     const paymentInput = toolbar.querySelector("[data-order-filter-payment]");
     const clearButton = toolbar.querySelector("[data-order-filter-clear]");
+    const exportButton = toolbar.querySelector("[data-order-export]");
     const resultsEl = toolbar.querySelector("[data-order-filter-results]");
     const statusDetails = toolbar.querySelector(".order-status-filter");
+    let monthYearToastShown = false;
 
     Array.from(tbody.children).forEach((row) => {
       if (!row.classList.contains("order-data-row")) {
@@ -939,11 +943,34 @@ document.addEventListener("DOMContentLoaded", function () {
       statusLabel.textContent = statuses.length ? `${statuses.length} selected` : "All statuses";
     }
 
+    function monthlyFilterValid(notify = false) {
+      const month = String(monthInput?.value || "").trim();
+      const year = String(yearInput?.value || "").trim();
+      const valid = !month || Boolean(year);
+      if (!valid && notify && !monthYearToastShown) {
+        window.servitechAdminToast?.warning("Please select a year for the monthly filter.");
+        monthYearToastShown = true;
+      }
+      if (valid) {
+        monthYearToastShown = false;
+      }
+      return valid;
+    }
+
+    function filterState() {
+      return {
+        query: String(searchInput?.value || "").trim().toLowerCase(),
+        submittedDate: String(dateInput?.value || "").trim(),
+        month: String(monthInput?.value || "").trim(),
+        year: String(yearInput?.value || "").trim(),
+        statuses: selectedStatuses(),
+        paymentMethod: String(paymentInput?.value || "").trim().toLowerCase()
+      };
+    }
+
     function updateResults() {
-      const query = String(searchInput?.value || "").trim().toLowerCase();
-      const submittedDate = String(dateInput?.value || "").trim();
-      const statuses = selectedStatuses();
-      const paymentMethod = String(paymentInput?.value || "").trim().toLowerCase();
+      const state = filterState();
+      const useMonthlyFilter = monthlyFilterValid(true) && state.month && state.year;
       let visibleCount = 0;
 
       sortFifoWithTerminalLast();
@@ -953,19 +980,22 @@ document.addEventListener("DOMContentLoaded", function () {
         const customer = String(row.dataset.customer || "").toLowerCase();
         const customerEmail = String(row.dataset.customerEmail || "").toLowerCase();
         const customerPhone = String(row.dataset.customerPhone || "").toLowerCase();
-        const rowStatus = String(row.dataset.status || "").toUpperCase();
+        const rowStatus = normalizeStatus(row.dataset.status || "");
         const rowPaymentMethod = String(row.dataset.paymentMethod || "").toLowerCase();
         const rowSubmittedDate = String(row.dataset.submittedDate || "");
+        const rowSubmittedMonth = rowSubmittedDate.length >= 7 ? rowSubmittedDate.slice(5, 7) : "";
+        const rowSubmittedYear = rowSubmittedDate.length >= 4 ? rowSubmittedDate.slice(0, 4) : "";
 
-        const matchesSearch = !query
-          || orderId.includes(query)
-          || customer.includes(query)
-          || customerEmail.includes(query)
-          || customerPhone.includes(query);
-        const matchesDate = !submittedDate || rowSubmittedDate === submittedDate;
-        const matchesStatus = !statuses.length || statuses.includes(rowStatus);
-        const matchesPayment = !paymentMethod || rowPaymentMethod === paymentMethod;
-        const matches = matchesSearch && matchesDate && matchesStatus && matchesPayment;
+        const matchesSearch = !state.query
+          || orderId.includes(state.query)
+          || customer.includes(state.query)
+          || customerEmail.includes(state.query)
+          || customerPhone.includes(state.query);
+        const matchesDate = !state.submittedDate || rowSubmittedDate === state.submittedDate;
+        const matchesMonth = !useMonthlyFilter || (rowSubmittedMonth === state.month && rowSubmittedYear === state.year);
+        const matchesStatus = !state.statuses.length || state.statuses.includes(rowStatus);
+        const matchesPayment = !state.paymentMethod || rowPaymentMethod === state.paymentMethod;
+        const matches = matchesSearch && matchesDate && matchesMonth && matchesStatus && matchesPayment;
 
         row.hidden = !matches;
         if (matches) visibleCount += 1;
@@ -975,23 +1005,65 @@ document.addEventListener("DOMContentLoaded", function () {
       if (resultsEl) {
         resultsEl.textContent = `${visibleCount} ${visibleCount === 1 ? "result" : "results"} found`;
       }
-      updateStatusLabel(statuses);
+      updateStatusLabel(state.statuses);
+    }
+
+    function buildExportUrl() {
+      const exportUrl = String(toolbar.dataset.exportUrl || "").trim();
+      if (!exportUrl) return "";
+
+      const state = filterState();
+      const params = new URLSearchParams();
+      const service = String(toolbar.dataset.service || "").trim();
+      if (service) params.set("service", service);
+      if (state.query) params.set("search", state.query);
+      if (state.submittedDate) params.set("submitted_date", state.submittedDate);
+      if (state.month) params.set("month", state.month);
+      if (state.year) params.set("year", state.year);
+      if (state.statuses.length) params.set("statuses", state.statuses.join(","));
+      if (state.paymentMethod) params.set("payment", state.paymentMethod);
+
+      return `${exportUrl}${exportUrl.includes("?") ? "&" : "?"}${params.toString()}`;
     }
 
     searchInput?.addEventListener("input", debounce(updateResults));
     dateInput?.addEventListener("change", updateResults);
+    monthInput?.addEventListener("change", updateResults);
+    yearInput?.addEventListener("change", updateResults);
     paymentInput?.addEventListener("change", updateResults);
     statusInputs.forEach((input) => input.addEventListener("change", updateResults));
 
     clearButton?.addEventListener("click", () => {
       if (searchInput) searchInput.value = "";
       if (dateInput) dateInput.value = "";
+      if (monthInput) monthInput.value = "";
+      if (yearInput) yearInput.value = "";
       if (paymentInput) paymentInput.value = "";
       statusInputs.forEach((input) => {
         input.checked = false;
       });
       if (statusDetails) statusDetails.open = false;
+      monthYearToastShown = false;
       updateResults();
+    });
+
+    exportButton?.addEventListener("click", () => {
+      if (!monthlyFilterValid(true)) {
+        yearInput?.focus();
+        return;
+      }
+      const visibleCount = rows.filter((row) => !row.hidden).length;
+      if (visibleCount === 0) {
+        window.servitechAdminToast?.warning("No orders found for the selected filters.");
+        return;
+      }
+
+      const url = buildExportUrl();
+      if (!url) {
+        window.servitechAdminToast?.error("Unable to export report. Please try again.");
+        return;
+      }
+      window.location.href = url;
     });
 
     updateResults();

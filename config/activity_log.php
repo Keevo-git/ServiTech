@@ -98,6 +98,7 @@ if (!function_exists("servitech_activity_success_action_types")) {
             "order_mark_done",
             "order_cancel",
             "order_reject",
+            "order_report_export",
             "queue_send_back",
             "queue_status_update",
             "queue_currently_serving_update",

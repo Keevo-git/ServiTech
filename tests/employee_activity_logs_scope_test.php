@@ -48,6 +48,7 @@ foreach ([
     "order_status_update",
     "order_mark_done",
     "order_cancel",
+    "order_report_export",
     "queue_status_update",
     "customer_message_send",
     "payment_approve",

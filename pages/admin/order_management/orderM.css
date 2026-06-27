@@ -187,13 +187,13 @@ body.admin-dashboard .page-frame {
 
 .order-filter-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 1.8fr) minmax(150px, 0.8fr) minmax(170px, 0.9fr) auto;
+  grid-template-columns: minmax(220px, 1.7fr) repeat(4, minmax(110px, 0.8fr)) repeat(2, minmax(110px, auto));
   gap: 12px;
   align-items: end;
 }
 
 .order-filter-toolbar--payment .order-filter-grid {
-  grid-template-columns: minmax(240px, 1.6fr) minmax(145px, 0.75fr) minmax(165px, 0.85fr) minmax(170px, 0.9fr) auto;
+  grid-template-columns: minmax(220px, 1.6fr) repeat(5, minmax(110px, 0.78fr)) repeat(2, minmax(110px, auto));
 }
 
 .order-filter-control {
@@ -332,6 +332,32 @@ body.admin-dashboard .page-frame {
 .order-filter-clear:hover {
   border-color: #8fa8c6;
   background: #edf4fb;
+}
+
+.order-filter-export {
+  min-height: 40px;
+  border: 1px solid #1f4a8a;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #1f4a8a, #2f6fa8);
+  color: #fff;
+  padding: 9px 15px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(31, 74, 138, 0.18);
+}
+
+.order-filter-export:hover {
+  border-color: #163c73;
+  background: linear-gradient(145deg, #173f78, #245c94);
+}
+
+.order-filter-clear:focus-visible,
+.order-filter-export:focus-visible {
+  outline: 3px solid rgba(73, 125, 185, 0.2);
+  outline-offset: 2px;
 }
 
 .order-filter-results {
@@ -1652,7 +1678,8 @@ body.order-confirm-open {
     grid-column: 1 / -1;
   }
 
-  .order-filter-clear {
+  .order-filter-clear,
+  .order-filter-export {
     justify-self: start;
   }
 }
@@ -1684,7 +1711,8 @@ body.order-confirm-open {
     grid-column: auto;
   }
 
-  .order-filter-clear {
+  .order-filter-clear,
+  .order-filter-export {
     width: 100%;
   }
 
