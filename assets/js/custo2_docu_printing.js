@@ -47,6 +47,8 @@
     var cashPaymentNote = document.getElementById("cashPaymentNote");
     var joinQueueBtn = document.getElementById("joinQueueBtn");
     var notesInput = document.getElementById("notes");
+    var notesMaxLength = 1000;
+    if (notesInput) notesInput.maxLength = notesMaxLength;
     var summaryPaperSize = document.getElementById("summaryPaperSize");
     var summaryColorOption = document.getElementById("summaryColorOption");
     var summaryQty = document.getElementById("summaryQty");
@@ -1123,6 +1125,11 @@
         file_analysis: Array.isArray(state.files) ? state.files : [],
         uploaded_files: Array.isArray(state.uploaded_files) ? state.uploaded_files : []
       };
+      if (payload.notes && payload.notes.length > notesMaxLength) {
+        setFeedback("Additional instructions must not exceed " + notesMaxLength + " characters.", "error");
+        notesInput.focus();
+        return;
+      }
     }
 
     function validatePayload(payload) {

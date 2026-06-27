@@ -131,7 +131,7 @@ if (!is_array($catalog ?? null)) {
       <div class="form-grid">
         <div>
           <label for="installationNotes">Additional Information/Other Request:</label>
-          <textarea id="installationNotes" class="form-textarea"></textarea>
+          <textarea id="installationNotes" class="form-textarea" maxlength="1000"></textarea>
         </div>
 
         <div>

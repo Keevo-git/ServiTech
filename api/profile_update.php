@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/input_limits.php";
 
 servitech_enforce_csrf_token(false);
 
@@ -30,8 +31,15 @@ $current_password = (string)($_POST["current_password"] ?? "");
 $new_password     = (string)($_POST["new_password"] ?? "");
 $confirm_password = (string)($_POST["confirm_password"] ?? "");
 
-if ($fullname === "" || $email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-  header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode("Full name and email are required."));
+$nameError = servitech_person_name_validation_error($fullname, "Full name");
+if ($nameError !== "") {
+  header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode($nameError));
+  exit();
+}
+
+$emailError = servitech_email_validation_error($email);
+if ($emailError !== "") {
+  header("Location: /pages/customer/custo_edit_profile.php?err=" . urlencode($emailError));
   exit();
 }
 

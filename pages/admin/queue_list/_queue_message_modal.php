@@ -32,7 +32,7 @@
 
     <label class="qmsg-field" for="queueMessageText">
       <span>Message</span>
-      <textarea id="queueMessageText" rows="6" placeholder="Type your queue update here..."></textarea>
+      <textarea id="queueMessageText" rows="6" maxlength="1000" placeholder="Type your queue update here..."></textarea>
     </label>
 
     <p class="qmsg-status" id="queueMessageStatus" aria-live="polite"></p>
@@ -56,6 +56,7 @@
   const customerEl = document.getElementById("queueMessageCustomer");
   const serviceEl = document.getElementById("queueMessageService");
   const endpoint = <?= json_encode(admin_url_raw("/pages/admin/queue_list/send_queue_message.php")) ?>;
+  const messageMaxLength = 1000;
   const csrf = () => (window.servitechCsrfToken ? window.servitechCsrfToken() : "");
 
   const templates = {
@@ -125,6 +126,12 @@
     if (!message) {
       setStatus("Please enter a message before sending.", "error");
       window.servitechAdminToast?.warning("Please enter a message before sending.");
+      return;
+    }
+    if (message.length > messageMaxLength) {
+      setStatus(`Message must not exceed ${messageMaxLength} characters.`, "error");
+      window.servitechAdminToast?.warning(`Message must not exceed ${messageMaxLength} characters.`);
+      messageEl.focus();
       return;
     }
 

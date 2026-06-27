@@ -2,6 +2,7 @@
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/input_limits.php";
 require_once __DIR__ . "/../components/privacy_policy_content.php";
 servitech_require_guest_page();
 $csrfToken = servitech_csrf_token();
@@ -101,7 +102,7 @@ $csrfToken = servitech_csrf_token();
           <div class="registration-field-stack">
             <div class="form-field">
               <label for="fullname">Full Name</label>
-              <input id="fullname" name="fullname" type="text" placeholder="Enter your full name" autocomplete="name" required>
+              <input id="fullname" name="fullname" type="text" placeholder="Enter your full name" autocomplete="name" maxlength="<?= SERVITECH_LIMIT_FULLNAME ?>" required>
               <p class="field-error" id="fullnameError" aria-live="polite"></p>
             </div>
 
@@ -118,7 +119,7 @@ $csrfToken = servitech_csrf_token();
 
             <div class="form-field">
               <label for="email">Email Address</label>
-              <input id="email" name="email" type="email" placeholder="Enter your email address" autocomplete="email" required>
+              <input id="email" name="email" type="email" placeholder="Enter your email address" autocomplete="email" maxlength="<?= SERVITECH_LIMIT_EMAIL ?>" required>
               <p class="field-error" id="emailError" aria-live="polite"></p>
             </div>
           </div>
@@ -243,7 +244,13 @@ $csrfToken = servitech_csrf_token();
       fullname: {
         input: document.getElementById("fullname"),
         error: document.getElementById("fullnameError"),
-        validate: (value) => value.trim() ? "" : "Full name is required."
+        validate: (value) => {
+          const trimmedValue = value.trim();
+          if (!trimmedValue) {
+            return "Full name is required.";
+          }
+          return trimmedValue.length <= <?= SERVITECH_LIMIT_FULLNAME ?> ? "" : "Full name is too long.";
+        }
       },
       contact: {
         input: document.getElementById("contactMobile"),
@@ -267,6 +274,9 @@ $csrfToken = servitech_csrf_token();
           const trimmedValue = value.trim();
           if (!trimmedValue) {
             return "Email address is required.";
+          }
+          if (trimmedValue.length > <?= SERVITECH_LIMIT_EMAIL ?>) {
+            return "Email address must not exceed <?= SERVITECH_LIMIT_EMAIL ?> characters.";
           }
 
           const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -445,6 +455,7 @@ $csrfToken = servitech_csrf_token();
       const errorMap = {
         required: "Please complete all required fields before creating your account.",
         invalid_email: "Please enter a valid email address.",
+        name_length: "Full name is too long.",
         invalid_contact: "Please enter a valid Philippine mobile number after +63, starting with 9.",
         mismatch: "Passwords do not match.",
         password: `Password must be ${passwordMinLength} to ${passwordMaxLength} characters.`,

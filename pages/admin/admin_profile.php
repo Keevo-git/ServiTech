@@ -4,6 +4,7 @@ require_once __DIR__ . "/_includes/admin_db.php";
 require_once __DIR__ . "/_includes/url.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/account.php";
+require_once __DIR__ . "/../../config/input_limits.php";
 require_once __DIR__ . "/../../config/activity_log.php";
 
 const ADMIN_PROFILE_PASSWORD_MIN_LENGTH = 8;
@@ -85,7 +86,7 @@ function admin_profile_password_strength_error(string $password): string
 function admin_profile_name_error(string $value, string $label): string
 {
     $value = trim($value);
-    if ($value === "" || strlen($value) > 160 || !preg_match('/^[\pL\s.\'-]+$/u', $value)) {
+    if ($value === "" || servitech_text_length($value) > SERVITECH_LIMIT_FULLNAME || !preg_match('/^[\pL\s.\'-]+$/u', $value)) {
         return "{$label} is required.";
     }
 
@@ -95,8 +96,11 @@ function admin_profile_name_error(string $value, string $label): string
 function admin_profile_text_error(string $value, string $label, int $maxLength = 500): string
 {
     $value = trim($value);
-    if ($value === "" || strlen($value) > $maxLength) {
+    if ($value === "") {
         return "{$label} is required.";
+    }
+    if (servitech_text_length($value) > $maxLength) {
+        return "{$label} must not exceed {$maxLength} characters.";
     }
 
     return "";
@@ -491,7 +495,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
           <div class="admin-profile-form-grid admin-profile-form-grid--profile-info">
             <div class="admin-owner-field admin-profile-field--full-name">
               <label for="fullname">Full Name</label>
-              <input id="fullname" name="fullname" value="<?= admin_profile_h($profileFormValues["fullname"]) ?>" maxlength="160" required>
+              <input id="fullname" name="fullname" value="<?= admin_profile_h($profileFormValues["fullname"]) ?>" maxlength="<?= SERVITECH_LIMIT_FULLNAME ?>" required>
             </div>
             <div class="admin-owner-field">
               <label for="email">Email</label>
@@ -508,7 +512,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
             </div>
             <div class="admin-owner-field admin-profile-form-grid__wide">
               <label for="address">Address</label>
-              <textarea id="address" name="address" rows="4" maxlength="500" required><?= admin_profile_h($profileFormValues["address"]) ?></textarea>
+              <textarea id="address" name="address" rows="4" maxlength="<?= SERVITECH_LIMIT_ADDRESS ?>" required><?= admin_profile_h($profileFormValues["address"]) ?></textarea>
             </div>
           </div>
           <div class="admin-profile-actions">
@@ -526,7 +530,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
           <div class="admin-profile-form-grid">
             <div class="admin-owner-field">
               <label for="emergency_contact_name">Emergency Contact Name</label>
-              <input id="emergency_contact_name" name="emergency_contact_name" value="<?= admin_profile_h($profileFormValues["emergency_contact_name"]) ?>" maxlength="160" required>
+              <input id="emergency_contact_name" name="emergency_contact_name" value="<?= admin_profile_h($profileFormValues["emergency_contact_name"]) ?>" maxlength="<?= SERVITECH_LIMIT_FULLNAME ?>" required>
             </div>
             <div class="admin-owner-field">
               <label for="emergency_contact_relationship">Relationship</label>
@@ -542,7 +546,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
             </div>
             <div class="admin-owner-field admin-profile-form-grid__wide">
               <label for="emergency_contact_address">Emergency Contact Address</label>
-              <textarea id="emergency_contact_address" name="emergency_contact_address" rows="4" maxlength="500" required><?= admin_profile_h($profileFormValues["emergency_contact_address"]) ?></textarea>
+              <textarea id="emergency_contact_address" name="emergency_contact_address" rows="4" maxlength="<?= SERVITECH_LIMIT_ADDRESS ?>" required><?= admin_profile_h($profileFormValues["emergency_contact_address"]) ?></textarea>
             </div>
             <div class="admin-owner-field">
               <label for="emergency_contact_mobile">Emergency Contact Number</label>
@@ -571,15 +575,15 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
           <div class="admin-profile-form-grid">
             <div class="admin-owner-field">
               <label for="current_password">Current Password</label>
-              <input id="current_password" name="current_password" type="password" autocomplete="current-password" required>
+              <input id="current_password" name="current_password" type="password" autocomplete="current-password" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
             </div>
             <div class="admin-owner-field">
               <label for="new_password">New Password</label>
-              <input id="new_password" name="new_password" type="password" autocomplete="new-password" minlength="<?= ADMIN_PROFILE_PASSWORD_MIN_LENGTH ?>" required>
+              <input id="new_password" name="new_password" type="password" autocomplete="new-password" minlength="<?= ADMIN_PROFILE_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
             </div>
             <div class="admin-owner-field">
               <label for="confirm_password">Confirm New Password</label>
-              <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" minlength="<?= ADMIN_PROFILE_PASSWORD_MIN_LENGTH ?>" required>
+              <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" minlength="<?= ADMIN_PROFILE_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
             </div>
           </div>
           <ul class="admin-profile-password-rules" aria-label="Password requirements">
@@ -610,7 +614,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
     <div class="admin-owner-form">
       <div class="admin-owner-field">
         <label for="profileConfirmPassword">Current Password</label>
-        <input id="profileConfirmPassword" type="password" autocomplete="current-password" required>
+        <input id="profileConfirmPassword" type="password" autocomplete="current-password" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
       </div>
       <div class="admin-profile-modal-actions">
         <button class="admin-owner-button-secondary" type="button" data-close-profile-confirm>Cancel</button>

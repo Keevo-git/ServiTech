@@ -1437,7 +1437,7 @@ $customerDisplayCode = $customer ? admin_customer_display_code_for_customer_id($
           </div>
           <div class="cl-section">
             <label class="cl-sectionTitle" for="customerMessageText">Message</label>
-            <textarea class="cl-textarea" id="customerMessageText" rows="6" placeholder="Type your message to this customer..."></textarea>
+            <textarea class="cl-textarea" id="customerMessageText" rows="6" maxlength="1000" placeholder="Type your message to this customer..."></textarea>
             <p class="cl-msgStatus" id="customerMessageStatus" aria-live="polite"></p>
           </div>
           <div class="cl-actions">
@@ -1454,6 +1454,7 @@ $customerDisplayCode = $customer ? admin_customer_display_code_for_customer_id($
       const messageStatus = document.getElementById('customerMessageStatus');
       const sendBtn = document.getElementById('customerMessageSend');
       const endpoint = <?= json_encode(admin_url_raw('/pages/admin/customer_list/send_customer_message.php')) ?>;
+      const messageMaxLength = 1000;
       const customerId = <?= (int)$customer["id"] ?>;
 
       function setStatus(text, tone = '') {
@@ -1484,6 +1485,11 @@ $customerDisplayCode = $customer ? admin_customer_display_code_for_customer_id($
         const message = (messageText.value || '').trim();
         if (!message) {
           setStatus('Please type a message before sending.', 'error');
+          messageText.focus();
+          return;
+        }
+        if (message.length > messageMaxLength) {
+          setStatus(`Message must not exceed ${messageMaxLength} characters.`, 'error');
           messageText.focus();
           return;
         }

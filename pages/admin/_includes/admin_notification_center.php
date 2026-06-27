@@ -1304,7 +1304,7 @@ if (!function_exists("admin_notification_render_center")) {
             </label>
             <label class="admin-notification-field" data-admin-notification-order-field>
               <span>Order ID</span>
-              <input type="search" data-admin-notification-search placeholder="Search Queue or Order ID" autocomplete="off">
+              <input type="search" data-admin-notification-search maxlength="120" placeholder="Search Queue or Order ID" autocomplete="off">
             </label>
             <label class="admin-notification-field">
               <span>Date</span>

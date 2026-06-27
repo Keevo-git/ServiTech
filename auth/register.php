@@ -5,6 +5,7 @@ servitech_redirect_authenticated_user();
 require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/input_limits.php";
 
 servitech_enforce_same_origin(false);
 servitech_enforce_csrf_token(false);
@@ -26,7 +27,14 @@ if ($fullname === "" || $contact === "" || $email === "" || $password_raw === ""
     exit();
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+$nameError = servitech_person_name_validation_error($fullname, "Full name");
+if ($nameError !== "") {
+    header("Location: " . servitech_url("/auth/regis.php?error=name_length"));
+    exit();
+}
+
+$emailError = servitech_email_validation_error($email);
+if ($emailError !== "") {
     header("Location: " . servitech_url("/auth/regis.php?error=invalid_email"));
     exit();
 }

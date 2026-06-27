@@ -5,6 +5,7 @@ require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../../../config/activity_log.php";
 require_once __DIR__ . "/../../../api/queue_helpers.php";
 require_once __DIR__ . "/_auth_backed_customer_scope.php";
+require_once __DIR__ . "/../../../config/input_limits.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -27,6 +28,9 @@ if ($customerId <= 0) {
 
 if ($message === "") {
     customer_message_respond(["ok" => false, "error" => "Please enter a message before sending."], 422);
+}
+if (servitech_text_length($message) > SERVITECH_LIMIT_MESSAGE_BODY) {
+    customer_message_respond(["ok" => false, "error" => "Message must not exceed " . SERVITECH_LIMIT_MESSAGE_BODY . " characters."], 422);
 }
 
 $customerPdo = admin_auth_backed_customer_connection();

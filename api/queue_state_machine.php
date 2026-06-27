@@ -2,6 +2,7 @@
 require_once __DIR__ . "/queue_helpers.php";
 require_once __DIR__ . "/queue_payment.php";
 require_once __DIR__ . "/../config/activity_log.php";
+require_once __DIR__ . "/../config/input_limits.php";
 
 function servitech_queue_normalize_status(string $status): string {
   $status = strtoupper(trim($status));
@@ -191,7 +192,7 @@ function servitech_send_queue_back_to_customer(PDO $pdo, int $queueId, int $admi
   $message = trim($message);
   if ($queueId <= 0) throw new DomainException("Invalid queue/order ID.");
   if ($message === "") throw new DomainException("Send-back message is required.");
-  if (mb_strlen($message) > 1000) throw new DomainException("Send-back message cannot exceed 1000 characters.");
+  if (servitech_text_length($message) > SERVITECH_LIMIT_SEND_BACK_REASON) throw new DomainException("Send-back message cannot exceed " . SERVITECH_LIMIT_SEND_BACK_REASON . " characters.");
 
   $ownsTransaction = !$pdo->inTransaction();
   if ($ownsTransaction) $pdo->beginTransaction();
@@ -303,8 +304,8 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
   if ($newStatus === "CANCELLED" && $notes === "") {
     throw new DomainException("Cancellation reason is required.");
   }
-  if (strlen($notes) > 1000) {
-    throw new DomainException("Status notes cannot exceed 1000 characters.");
+  if (servitech_text_length($notes) > SERVITECH_LIMIT_STATUS_NOTES) {
+    throw new DomainException("Status notes cannot exceed " . SERVITECH_LIMIT_STATUS_NOTES . " characters.");
   }
 
   $ownsTransaction = !$pdo->inTransaction();

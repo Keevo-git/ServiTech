@@ -4,6 +4,7 @@ servitech_require_super_admin();
 require_once __DIR__ . "/../admin/_includes/admin_db.php";
 require_once __DIR__ . "/../admin/_includes/url.php";
 require_once __DIR__ . "/../../config/csrf.php";
+require_once __DIR__ . "/../../config/input_limits.php";
 
 function ann_h($value): string
 {
@@ -93,6 +94,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($title === "" || $message === "") {
                 throw new RuntimeException("Title and message are required.");
             }
+            servitech_assert_max_length($title, "Announcement title", SERVITECH_LIMIT_ANNOUNCEMENT_TITLE);
+            servitech_assert_max_length($message, "Announcement message", SERVITECH_LIMIT_ANNOUNCEMENT_MESSAGE);
 
             if (!in_array($status, ["active", "hidden"], true)) {
                 throw new RuntimeException("Invalid announcement status.");
@@ -138,6 +141,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($title === "" || $message === "") {
                 throw new RuntimeException("Title and message are required.");
             }
+            servitech_assert_max_length($title, "Announcement title", SERVITECH_LIMIT_ANNOUNCEMENT_TITLE);
+            servitech_assert_max_length($message, "Announcement message", SERVITECH_LIMIT_ANNOUNCEMENT_MESSAGE);
 
             if ($active) {
                 $pdo->exec("UPDATE announcements SET active = FALSE, updated_at = NOW() WHERE 1 = 1{$notDeletedPredicate}");
@@ -419,12 +424,12 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
 
           <label>
             <span>Title</span>
-            <input name="title" type="text" maxlength="90" placeholder="e.g., Holiday Schedule" required>
+            <input name="title" type="text" maxlength="<?= SERVITECH_LIMIT_ANNOUNCEMENT_TITLE ?>" placeholder="e.g., Holiday Schedule" required>
           </label>
 
           <label>
             <span>Message</span>
-            <textarea name="message" maxlength="420" rows="6" placeholder="Type the announcement customers should see..." required></textarea>
+            <textarea name="message" maxlength="<?= SERVITECH_LIMIT_ANNOUNCEMENT_MESSAGE ?>" rows="6" placeholder="Type the announcement customers should see..." required></textarea>
           </label>
 
           <label class="announcement-toggle">
@@ -535,12 +540,12 @@ $recentAnnouncements = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
 
         <label>
           <span>Title</span>
-          <input name="title" id="editAnnouncementTitle" type="text" maxlength="90" required>
+          <input name="title" id="editAnnouncementTitle" type="text" maxlength="<?= SERVITECH_LIMIT_ANNOUNCEMENT_TITLE ?>" required>
         </label>
 
         <label>
           <span>Message</span>
-          <textarea name="message" id="editAnnouncementMessage" maxlength="420" rows="6" required></textarea>
+          <textarea name="message" id="editAnnouncementMessage" maxlength="<?= SERVITECH_LIMIT_ANNOUNCEMENT_MESSAGE ?>" rows="6" required></textarea>
         </label>
 
         <label>

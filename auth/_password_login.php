@@ -4,6 +4,7 @@ require_once __DIR__ . "/../config/csrf.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/input_limits.php";
 require_once __DIR__ . "/../config/remember_me.php";
 require_once __DIR__ . "/../config/activity_log.php";
 require_once __DIR__ . "/../config/employee_setup.php";
@@ -222,7 +223,7 @@ function servitech_handle_password_login(string $context): void
     $password = (string)($_POST["password"] ?? "");
     $rememberMe = isset($_POST["remember_me"]) && (string)$_POST["remember_me"] === "1";
 
-    if ($email === "" || $password === "") {
+    if ($email === "" || $password === "" || servitech_text_length($email) > SERVITECH_LIMIT_EMAIL) {
         servitech_login_failure_redirect($config, "required", $rememberMe);
     }
 

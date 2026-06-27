@@ -4,6 +4,7 @@ servitech_require_super_admin();
 require_once __DIR__ . "/../admin/_includes/admin_db.php";
 require_once __DIR__ . "/../admin/_includes/url.php";
 require_once __DIR__ . "/../../config/activity_log.php";
+require_once __DIR__ . "/../../config/input_limits.php";
 
 function activity_h($value): string
 {
@@ -187,6 +188,11 @@ $filters = [
     "date_from" => trim((string)($_GET["date_from"] ?? "")),
     "date_to" => trim((string)($_GET["date_to"] ?? "")),
 ];
+if (servitech_text_length($filters["q"]) > SERVITECH_LIMIT_SEARCH) {
+    $filters["q"] = function_exists("mb_substr")
+        ? mb_substr($filters["q"], 0, SERVITECH_LIMIT_SEARCH, "UTF-8")
+        : substr($filters["q"], 0, SERVITECH_LIMIT_SEARCH);
+}
 
 $staffOptions = [];
 $logs = [];
@@ -279,7 +285,7 @@ if ($schemaReady) {
     <form class="admin-owner-filters" method="get">
       <div class="admin-owner-field">
         <label for="q">Search</label>
-        <input id="q" name="q" value="<?= activity_h($filters["q"]) ?>" placeholder="Name, description, record ID, email">
+        <input id="q" name="q" value="<?= activity_h($filters["q"]) ?>" maxlength="120" placeholder="Name, description, record ID, email">
       </div>
       <div class="admin-owner-field">
         <label for="user_id">Employee</label>

@@ -3,6 +3,7 @@ require_once __DIR__ . "/../admin/_includes/admin_auth.php";
 servitech_require_super_admin();
 require_once __DIR__ . "/../admin/_includes/admin_db.php";
 require_once __DIR__ . "/../admin/_includes/url.php";
+require_once __DIR__ . "/../../config/input_limits.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
 
 
@@ -177,11 +178,11 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
         <summary>Customer-facing service description</summary>
         <div class="ms-field" id="msServiceNameField" hidden>
           <label for="ms_name">Service name</label>
-          <input id="ms_name" type="text" maxlength="40">
+          <input id="ms_name" type="text" maxlength="<?= SERVITECH_LIMIT_SERVICE_NAME ?>">
           <small>Use Laminating or Lamination.</small>
         </div>
         <div class="ms-field">
-          <textarea id="ms_description" placeholder="Short customer-facing note for this service"></textarea>
+          <textarea id="ms_description" placeholder="Short customer-facing note for this service" maxlength="<?= SERVITECH_LIMIT_SERVICE_DESCRIPTION ?>"></textarea>
           <small>This text appears with the service on customer-facing pages.</small>
         </div>
         <div class="ms-field">

@@ -7,6 +7,7 @@ require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/../config/join_queue_flow.php";
 require_once __DIR__ . "/../config/store_availability.php";
+require_once __DIR__ . "/../config/input_limits.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -40,6 +41,7 @@ $quantity = max(0, (int)($data["quantity"] ?? 0));
 $color_option = trim((string)($data["color_option"] ?? ""));
 $payment_method = strtolower(trim((string)($data["payment_method"] ?? "")));
 $uploaded_files = isset($data["uploaded_files"]) && is_array($data["uploaded_files"]) ? $data["uploaded_files"] : [];
+$notes = trim((string)($data["notes"] ?? ""));
 $catalog_pricing_rule_id = isset($data["catalog_pricing_rule_id"]) ? max(0, (int)$data["catalog_pricing_rule_id"]) : 0;
 $catalog_option_value_ids = isset($data["catalog_option_value_ids"]) && is_array($data["catalog_option_value_ids"])
   ? $data["catalog_option_value_ids"]
@@ -76,6 +78,9 @@ if (!in_array($payment_method, ["cash", "gcash"], true)) {
 }
 if (empty($uploaded_files)) {
   $errors[] = "Upload at least one file before continuing.";
+}
+if (servitech_text_length($notes) > SERVITECH_LIMIT_QUEUE_NOTES) {
+  $errors[] = "Additional instructions must not exceed " . SERVITECH_LIMIT_QUEUE_NOTES . " characters.";
 }
 
 if ($errors) {
@@ -124,7 +129,7 @@ $draft = [
   "paper_size" => $paper_size,
   "quantity" => $quantity,
   "color_option" => $color_option,
-  "notes" => trim((string)($data["notes"] ?? "")),
+  "notes" => $notes,
   "file_name" => trim((string)($data["file_name"] ?? "")),
   "file_names" => isset($data["file_names"]) && is_array($data["file_names"]) ? array_values($data["file_names"]) : [],
   "payment_method" => $payment_method,

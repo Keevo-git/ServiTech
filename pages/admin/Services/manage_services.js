@@ -25,6 +25,8 @@
     activeLabel: qs("#ms_active_label"),
     sort: qs("#ms_sort"),
   };
+  const optionLabelMaxLength = 120;
+  const optionDescriptionMaxLength = 255;
 
   let catalog = null;
   let originalSnapshot = "";
@@ -522,7 +524,7 @@
         <div class="ms-value-list__head" aria-hidden="true"><span>Name</span><span>Status</span><span>Arrange</span></div>
         ${values.map((value, index) => `<div class="ms-value-row ${Number(value.active) ? "" : "is-inactive"}"
           data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
-          <input data-value-label value="${escapeHtml(value.label)}" aria-label="${escapeHtml(title)} name">
+          <input data-value-label value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}" aria-label="${escapeHtml(title)} name">
           <div class="ms-status-cell">
             <span class="ms-control-label">Status</span>
             <label class="ms-switch ms-switch--compact">
@@ -535,7 +537,7 @@
         </div>`).join("")}
       </div>
       <div class="ms-inline-add">
-        <input data-new-value="${groupKey}" placeholder="${escapeHtml(addLabel)}">
+        <input data-new-value="${groupKey}" maxlength="${optionLabelMaxLength}" placeholder="${escapeHtml(addLabel)}">
         <button type="button" data-add-value="${groupKey}">Add</button>
       </div>
     </section>`;
@@ -586,8 +588,8 @@
         ${values.map((value, index) => {
           const rule = findRule({ [groupKey]: value.value_key });
           return `<div class="ms-rule-row ${Number(value.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(rule.rule_key)}" data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
-            <input data-value-label value="${escapeHtml(value.label)}" aria-label="${escapeHtml(options.nameLabel || "Name")}">
-            ${options.description ? `<input data-rule-description value="${escapeHtml(rule.description || value.description || "")}" placeholder="Details shown to customers">` : ""}
+            <input data-value-label value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}" aria-label="${escapeHtml(options.nameLabel || "Name")}">
+            ${options.description ? `<input data-rule-description value="${escapeHtml(rule.description || value.description || "")}" maxlength="${optionDescriptionMaxLength}" placeholder="Details shown to customers">` : ""}
             <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
             ${options.fixedOnly ? '<input type="hidden" data-rule-price-type value="fixed"><span class="ms-fixed-label">Fixed Price</span>' : `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>`}
             ${toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
@@ -596,8 +598,8 @@
         }).join("")}
       </div>
       <div class="ms-inline-add ms-inline-add--rule">
-        <input data-new-value="${groupKey}" placeholder="${escapeHtml(addLabel)}">
-        ${options.description ? `<input data-new-description="${groupKey}" placeholder="Inclusions or details">` : ""}
+        <input data-new-value="${groupKey}" maxlength="${optionLabelMaxLength}" placeholder="${escapeHtml(addLabel)}">
+        ${options.description ? `<input data-new-description="${groupKey}" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details">` : ""}
         <div class="ms-price-input"><span>PHP</span><input data-new-price="${groupKey}" type="number" min="0" step="0.01" placeholder="Price"></div>
         ${options.fixedOnly
           ? `<input type="hidden" data-new-price-type="${groupKey}" value="fixed"><span class="ms-fixed-label">Fixed Price</span>`
@@ -709,14 +711,14 @@
                 const value = groupValue("repair_type", rule.option_value_keys?.repair_type);
                 if (!value) return "";
                 return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
-                  <input data-value-label data-group-key="repair_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}">
+                  <input data-value-label data-group-key="repair_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}">
                   <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
                   <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
                   ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
                   ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
                 </div>`;
               }).join("")}
-              <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Service</button></div>
+              <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(device.value_key)}" maxlength="${optionLabelMaxLength}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Service</button></div>
             </div>
           </details>`;
         }).join("")}</div>
@@ -739,14 +741,14 @@
                 const value = groupValue("installation_type", rule.option_value_keys?.installation_type);
                 if (!value) return "";
                 return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
-                  <input data-value-label data-group-key="installation_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}">
+                  <input data-value-label data-group-key="installation_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}">
                   <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
                   <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
                   ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
                   ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
                 </div>`;
               }).join("")}
-              <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(device.value_key)}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(device.value_key)}">Add Service</button></div>
+              <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(device.value_key)}" maxlength="${optionLabelMaxLength}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(device.value_key)}">Add Service</button></div>
             </div>
           </details>`;
         }).join("")}</div>

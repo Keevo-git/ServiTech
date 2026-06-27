@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
+require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/input_limits.php";
 
 function servitech_internal_login_message_map(string $ownerLabel): array
 {
@@ -68,14 +70,14 @@ function servitech_render_internal_login_page(array $config): void
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
         <div class="form-field">
           <label for="loginEmail">Email Address</label>
-          <input id="loginEmail" name="email" type="email" placeholder="Enter your email address" autocomplete="email" required>
+          <input id="loginEmail" name="email" type="email" placeholder="Enter your email address" autocomplete="email" maxlength="<?= SERVITECH_LIMIT_EMAIL ?>" required>
           <p class="field-error" id="loginEmailError" aria-live="polite"></p>
         </div>
 
         <div class="form-field">
           <label for="loginPassword">Password</label>
           <div class="password-input-wrap">
-            <input id="loginPassword" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+            <input id="loginPassword" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
             <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
           </div>
           <p class="field-error" id="loginPasswordError" aria-live="polite"></p>

@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
+require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/input_limits.php";
 require_once __DIR__ . "/../components/privacy_policy_content.php";
 servitech_require_guest_page();
 $legacyRegistrationState = strtolower(trim((string)($_GET["registered"] ?? "")));
@@ -47,6 +49,7 @@ unset($_SESSION["login_remember_retry"]);
             type="email"
             placeholder="Enter your email address"
             autocomplete="email"
+            maxlength="<?= SERVITECH_LIMIT_EMAIL ?>"
             required
           >
           <p class="field-error" id="loginEmailError" aria-live="polite"></p>
@@ -61,6 +64,7 @@ unset($_SESSION["login_remember_retry"]);
               type="password"
               placeholder="Enter your password"
               autocomplete="current-password"
+              maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>"
               required
             >
             <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>

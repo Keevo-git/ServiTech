@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../config/input_limits.php";
+
 function servitech_catalog_slug(string $value): string {
   $slug = strtolower(trim($value));
   $slug = preg_replace('/[^a-z0-9]+/', '_', $slug);
@@ -608,6 +610,8 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
     $groupKey = servitech_catalog_slug((string)($group["group_key"] ?? $group["name"] ?? "group_" . $groupIndex));
     $groupName = trim((string)($group["name"] ?? $groupKey));
     if ($groupName === "") $groupName = $groupKey;
+    servitech_assert_max_length($groupKey, "Service option key", SERVITECH_LIMIT_SERVICE_OPTION_KEY);
+    servitech_assert_max_length($groupName, "Service option group name", SERVITECH_LIMIT_SERVICE_OPTION_LABEL);
     $groupStmt->execute([
       ":service_id" => $serviceId,
       ":group_key" => $groupKey,
@@ -623,11 +627,15 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
       $label = trim((string)($value["label"] ?? ""));
       if ($label === "") continue;
       $valueKey = servitech_catalog_slug((string)($value["value_key"] ?? $label));
+      $valueDescription = trim((string)($value["description"] ?? ""));
+      servitech_assert_max_length($valueKey, "Service option key", SERVITECH_LIMIT_SERVICE_OPTION_KEY);
+      servitech_assert_max_length($label, "Service option label", SERVITECH_LIMIT_SERVICE_OPTION_LABEL);
+      servitech_assert_max_length($valueDescription, "Service option description", SERVITECH_LIMIT_SERVICE_OPTION_DESCRIPTION);
       $valueStmt->execute([
         ":group_id" => $groupId,
         ":value_key" => $valueKey,
         ":label" => $label,
-        ":description" => trim((string)($value["description"] ?? "")),
+        ":description" => $valueDescription,
         ":active" => servitech_catalog_bool_param($value["active"] ?? false),
         ":sort_order" => (int)($value["sort_order"] ?? $valueIndex),
       ]);
@@ -658,6 +666,11 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
     }
     if (!$ids) continue;
     $ruleKey = servitech_catalog_slug((string)($rule["rule_key"] ?? implode("__", $ruleParts)));
+    $ruleLabel = trim((string)($rule["label"] ?? ""));
+    $ruleDescription = trim((string)($rule["description"] ?? ""));
+    servitech_assert_max_length($ruleKey, "Service pricing rule key", SERVITECH_LIMIT_SERVICE_OPTION_KEY);
+    servitech_assert_max_length($ruleLabel, "Service pricing label", SERVITECH_LIMIT_SERVICE_OPTION_LABEL);
+    servitech_assert_max_length($ruleDescription, "Service pricing description", SERVITECH_LIMIT_SERVICE_OPTION_DESCRIPTION);
     $priceType = (string)($rule["price_type"] ?? "fixed");
     if (!in_array($priceType, ["fixed", "assessment"], true)) $priceType = "assessment";
     $price = null;
@@ -668,8 +681,8 @@ function servitech_catalog_upsert(PDO $pdo, int $serviceId, array $catalog): voi
       ":service_id" => $serviceId,
       ":rule_key" => $ruleKey,
       ":option_value_ids" => json_encode($ids),
-      ":label" => trim((string)($rule["label"] ?? "")),
-      ":description" => trim((string)($rule["description"] ?? "")),
+      ":label" => $ruleLabel,
+      ":description" => $ruleDescription,
       ":price" => $price,
       ":price_type" => $priceType,
       ":active" => servitech_catalog_bool_param($rule["active"] ?? false),

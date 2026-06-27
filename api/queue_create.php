@@ -8,6 +8,7 @@ require_once __DIR__ . "/queue_state_machine.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/../config/join_queue_flow.php";
 require_once __DIR__ . "/../config/store_availability.php";
+require_once __DIR__ . "/../config/input_limits.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -38,6 +39,10 @@ $reference_number = trim((string)($data["reference_number"] ?? ""));
 
 if ($service_label === "") {
   echo json_encode(["ok" => false, "error" => "Service label required"]);
+  exit();
+}
+if (servitech_text_length($service_label) > SERVITECH_LIMIT_SERVICE_NAME) {
+  echo json_encode(["ok" => false, "error" => "Service label must not exceed " . SERVITECH_LIMIT_SERVICE_NAME . " characters."]);
   exit();
 }
 $normalizedServiceLabel = strtolower((string)preg_replace('/\s+/', ' ', $service_label));
@@ -96,6 +101,13 @@ if ($payment_method === "gcash" && $reference_number !== "" && !preg_match('/^\d
   exit();
 }
 
+$notesInput = trim((string)($data["notes"] ?? ""));
+if (servitech_text_length($notesInput) > SERVITECH_LIMIT_QUEUE_NOTES) {
+  http_response_code(422);
+  echo json_encode(["ok" => false, "error" => "Additional instructions must not exceed " . SERVITECH_LIMIT_QUEUE_NOTES . " characters."]);
+  exit();
+}
+
 $supportsFileUploads = in_array($serviceKind, ["document_printing", "rush_id"], true);
 $catalogManagedKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning", "repair", "installation"];
 $paymentRequiredKinds = ["document_printing", "xerox", "rush_id", "laminating", "scanning"];
@@ -126,7 +138,7 @@ $details = [
   "device_type" => $data["device_type"] ?? null,
   "device_type_key" => isset($data["device_type_key"]) ? trim((string)$data["device_type_key"]) : null,
   "repair_type_key" => isset($data["repair_type_key"]) ? trim((string)$data["repair_type_key"]) : null,
-  "notes" => $data["notes"] ?? null,
+  "notes" => $notesInput,
   "file_name" => $data["file_name"] ?? null,
   "file_names" => isset($data["file_names"]) && is_array($data["file_names"]) ? $data["file_names"] : null,
   "total_files" => isset($data["total_files"]) ? max(0, (int)$data["total_files"]) : null,

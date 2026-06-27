@@ -4,6 +4,7 @@ servitech_require_super_admin();
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../admin/_includes/admin_db.php";
 require_once __DIR__ . "/../../config/activity_log.php";
+require_once __DIR__ . "/../../config/input_limits.php";
 require_once __DIR__ . "/../../api/service_catalog.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -73,6 +74,13 @@ if ($action === "save") {
     $sort_order = max(0, min(9999, (int)($_POST["sort_order"] ?? 0)));
 
     if ($id <= 0) respond(["ok" => false, "error" => "New top-level services cannot be added here. Edit one of the configured services instead."]);
+    if ($name === "") respond(["ok" => false, "error" => "Service name is required."]);
+    if (servitech_text_length($name) > SERVITECH_LIMIT_SERVICE_NAME) {
+        respond(["ok" => false, "error" => "Service name must not exceed " . SERVITECH_LIMIT_SERVICE_NAME . " characters."]);
+    }
+    if (servitech_text_length($description) > SERVITECH_LIMIT_SERVICE_DESCRIPTION) {
+        respond(["ok" => false, "error" => "Service description must not exceed " . SERVITECH_LIMIT_SERVICE_DESCRIPTION . " characters."]);
+    }
 
     if ($catalogJsonRaw !== "") {
         $catalogData = json_decode($catalogJsonRaw, true);

@@ -6,6 +6,8 @@ require_once __DIR__ . "/../admin/_includes/url.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/activity_log.php";
 require_once __DIR__ . "/../../config/employee_setup.php";
+require_once __DIR__ . "/../../config/account.php";
+require_once __DIR__ . "/../../config/input_limits.php";
 
 function employee_account_h($value): string
 {
@@ -183,6 +185,9 @@ function employee_account_validate_password(string $password, string $confirmati
     if (strlen($password) < 8) {
         throw new DomainException("Temporary password does not meet the password requirements.");
     }
+    if (strlen($password) > SERVITECH_PASSWORD_MAX_BYTES) {
+        throw new DomainException("Temporary password must not exceed " . SERVITECH_PASSWORD_MAX_BYTES . " bytes.");
+    }
     if (!preg_match('/[A-Z]/', $password)
         || !preg_match('/[a-z]/', $password)
         || !preg_match('/\d/', $password)
@@ -197,8 +202,14 @@ function employee_account_safe_create_error(Throwable $exception): string
     $message = trim($exception->getMessage());
     $publicMessages = [
         "Please complete all required fields.",
+        "Full name is required.",
+        "Full name must not exceed 160 characters.",
+        "Email address is required.",
+        "Email address must not exceed 255 characters.",
+        "Enter a valid email address.",
         "Temporary passwords do not match.",
         "Temporary password does not meet the password requirements.",
+        "Temporary password must not exceed 72 bytes.",
         "This employee account already exists.",
         "This email is already used by a customer account.",
         "This email is already used by a Super Admin account.",
@@ -455,8 +466,10 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $password = (string)($_POST["temporary_password"] ?? "");
             $passwordConfirm = (string)($_POST["temporary_password_confirm"] ?? "");
 
-            if ($fullname === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new DomainException("Please complete all required fields.");
+            $nameError = servitech_person_name_validation_error($fullname, "Full name");
+            $emailError = servitech_email_validation_error($email);
+            if ($nameError !== "" || $emailError !== "") {
+                throw new DomainException($nameError !== "" ? $nameError : $emailError);
             }
             employee_account_assert_create_email_available($pdo, $email);
             employee_account_validate_password($password, $passwordConfirm);
@@ -548,8 +561,32 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 ? trim((string)$_POST["employee_notes"])
                 : (string)($account["employee_notes"] ?? "");
 
-            if ($fullname === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new DomainException("Enter a valid employee name and email.");
+            $nameError = servitech_person_name_validation_error($fullname, "Full name");
+            $emailError = servitech_email_validation_error($email);
+            if ($nameError !== "" || $emailError !== "") {
+                throw new DomainException($nameError !== "" ? $nameError : $emailError);
+            }
+            servitech_assert_max_length($address, "Address", SERVITECH_LIMIT_ADDRESS);
+            servitech_assert_max_length($emergencyRelationship, "Emergency contact relationship", SERVITECH_LIMIT_EMERGENCY_RELATIONSHIP);
+            servitech_assert_max_length($emergencyAddress, "Emergency contact address", SERVITECH_LIMIT_ADDRESS);
+            servitech_assert_max_length($positionTitle, "Position title", SERVITECH_LIMIT_POSITION_TITLE);
+            servitech_assert_max_length($notes, "Employee notes", SERVITECH_LIMIT_EMPLOYEE_NOTES);
+
+            $emergencyNameError = servitech_person_name_validation_error($emergencyName, "Emergency contact name", false);
+            if ($emergencyNameError !== "") {
+                throw new DomainException($emergencyNameError);
+            }
+            if ($contact !== "" && $contact !== trim((string)($account["contact"] ?? ""))) {
+                $contactError = servitech_ph_mobile_validation_error($contact, "contact number", false);
+                if ($contactError !== "") {
+                    throw new DomainException($contactError);
+                }
+            }
+            if ($emergencyNumber !== "" && $emergencyNumber !== trim((string)($account["emergency_contact_number"] ?? ""))) {
+                $emergencyPhoneError = servitech_ph_mobile_validation_error($emergencyNumber, "emergency contact number", false);
+                if ($emergencyPhoneError !== "") {
+                    throw new DomainException($emergencyPhoneError);
+                }
             }
 
             $authUser = employee_account_load_auth_user_by_email($pdo, $email);
@@ -792,7 +829,7 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
         </div>
         <label class="employee-account-search" for="employee_account_search">
           <span class="employee-account-search__icon" aria-hidden="true"></span>
-          <input id="employee_account_search" type="search" placeholder="Search by name or email" autocomplete="off" data-employee-account-search>
+          <input id="employee_account_search" type="search" maxlength="<?= SERVITECH_LIMIT_SEARCH ?>" placeholder="Search by name or email" autocomplete="off" data-employee-account-search>
         </label>
       </div>
       <div class="admin-owner-table-wrap">
@@ -998,35 +1035,35 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
                   <div class="employee-account-form-grid">
                     <div class="admin-owner-field">
                       <label for="employee_fullname_<?= $employeeId ?>">Name</label>
-                      <input id="employee_fullname_<?= $employeeId ?>" name="fullname" value="<?= employee_account_h($account["fullname"] ?? "") ?>" required>
+                      <input id="employee_fullname_<?= $employeeId ?>" name="fullname" value="<?= employee_account_h($account["fullname"] ?? "") ?>" maxlength="<?= SERVITECH_LIMIT_FULLNAME ?>" required>
                     </div>
                     <div class="admin-owner-field">
                       <label for="employee_email_<?= $employeeId ?>">Email</label>
-                      <input id="employee_email_<?= $employeeId ?>" name="email" type="email" value="<?= employee_account_h($account["email"] ?? "") ?>" readonly required>
+                      <input id="employee_email_<?= $employeeId ?>" name="email" type="email" value="<?= employee_account_h($account["email"] ?? "") ?>" maxlength="<?= SERVITECH_LIMIT_EMAIL ?>" readonly required>
                     </div>
                     <div class="admin-owner-field">
                       <label for="employee_contact_<?= $employeeId ?>">Contact Number</label>
-                      <input id="employee_contact_<?= $employeeId ?>" name="contact" value="<?= employee_account_h($account["contact"] ?? "") ?>">
+                      <input id="employee_contact_<?= $employeeId ?>" name="contact" value="<?= employee_account_h($account["contact"] ?? "") ?>" maxlength="<?= SERVITECH_LIMIT_CONTACT ?>" pattern="\+639[0-9]{9}">
                     </div>
                     <div class="admin-owner-field employee-account-form-grid__wide">
                       <label for="employee_address_<?= $employeeId ?>">Address</label>
-                      <textarea id="employee_address_<?= $employeeId ?>" name="address" rows="2"><?= employee_account_h($account["address"] ?? "") ?></textarea>
+                      <textarea id="employee_address_<?= $employeeId ?>" name="address" rows="2" maxlength="<?= SERVITECH_LIMIT_ADDRESS ?>"><?= employee_account_h($account["address"] ?? "") ?></textarea>
                     </div>
                     <div class="admin-owner-field">
                       <label for="employee_emergency_name_<?= $employeeId ?>">Emergency Contact Name</label>
-                      <input id="employee_emergency_name_<?= $employeeId ?>" name="emergency_contact_name" value="<?= employee_account_h($account["emergency_contact_name"] ?? "") ?>">
+                      <input id="employee_emergency_name_<?= $employeeId ?>" name="emergency_contact_name" value="<?= employee_account_h($account["emergency_contact_name"] ?? "") ?>" maxlength="<?= SERVITECH_LIMIT_FULLNAME ?>">
                     </div>
                     <div class="admin-owner-field">
                       <label for="employee_emergency_relationship_<?= $employeeId ?>">Emergency Contact Relationship</label>
-                      <input id="employee_emergency_relationship_<?= $employeeId ?>" name="emergency_contact_relationship" value="<?= employee_account_h($account["emergency_contact_relationship"] ?? "") ?>">
+                      <input id="employee_emergency_relationship_<?= $employeeId ?>" name="emergency_contact_relationship" value="<?= employee_account_h($account["emergency_contact_relationship"] ?? "") ?>" maxlength="<?= SERVITECH_LIMIT_EMERGENCY_RELATIONSHIP ?>">
                     </div>
                     <div class="admin-owner-field employee-account-form-grid__wide">
                       <label for="employee_emergency_address_<?= $employeeId ?>">Emergency Contact Address</label>
-                      <textarea id="employee_emergency_address_<?= $employeeId ?>" name="emergency_contact_address" rows="2"><?= employee_account_h($account["emergency_contact_address"] ?? "") ?></textarea>
+                      <textarea id="employee_emergency_address_<?= $employeeId ?>" name="emergency_contact_address" rows="2" maxlength="<?= SERVITECH_LIMIT_ADDRESS ?>"><?= employee_account_h($account["emergency_contact_address"] ?? "") ?></textarea>
                     </div>
                     <div class="admin-owner-field">
                       <label for="employee_emergency_number_<?= $employeeId ?>">Emergency Contact Number</label>
-                      <input id="employee_emergency_number_<?= $employeeId ?>" name="emergency_contact_number" value="<?= employee_account_h($account["emergency_contact_number"] ?? "") ?>">
+                      <input id="employee_emergency_number_<?= $employeeId ?>" name="emergency_contact_number" value="<?= employee_account_h($account["emergency_contact_number"] ?? "") ?>" maxlength="<?= SERVITECH_LIMIT_CONTACT ?>" pattern="\+639[0-9]{9}">
                     </div>
                   </div>
                 </section>
@@ -1073,11 +1110,11 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
                       <div class="employee-account-form-grid">
                         <div class="admin-owner-field">
                           <label>New Temporary Password</label>
-                          <input name="temporary_password" type="password" autocomplete="new-password" required>
+                          <input name="temporary_password" type="password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
                         </div>
                         <div class="admin-owner-field">
                           <label>Confirm Temporary Password</label>
-                          <input name="temporary_password_confirm" type="password" autocomplete="new-password" required>
+                          <input name="temporary_password_confirm" type="password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
                         </div>
                       </div>
                       <div class="admin-owner-actions employee-account-menu-actions">
@@ -1145,11 +1182,11 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
         <input type="hidden" name="action" value="create">
         <div class="admin-owner-field">
           <label for="create_employee_fullname">Full Name</label>
-          <input id="create_employee_fullname" name="fullname" autocomplete="name" required>
+          <input id="create_employee_fullname" name="fullname" autocomplete="name" maxlength="<?= SERVITECH_LIMIT_FULLNAME ?>" required>
         </div>
         <div class="admin-owner-field">
           <label for="create_employee_email">Email Address</label>
-          <input id="create_employee_email" name="email" type="email" autocomplete="email" required>
+          <input id="create_employee_email" name="email" type="email" autocomplete="email" maxlength="<?= SERVITECH_LIMIT_EMAIL ?>" required>
         </div>
         <div class="admin-owner-modal__meta">
           <span><strong>Role</strong> Admin</span>
@@ -1157,11 +1194,11 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
         </div>
         <div class="admin-owner-field">
           <label for="create_employee_temporary_password">Temporary Password</label>
-          <input id="create_employee_temporary_password" name="temporary_password" type="password" autocomplete="new-password" required>
+          <input id="create_employee_temporary_password" name="temporary_password" type="password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
         </div>
         <div class="admin-owner-field">
           <label for="create_employee_temporary_password_confirm">Confirm Temporary Password</label>
-          <input id="create_employee_temporary_password_confirm" name="temporary_password_confirm" type="password" autocomplete="new-password" required>
+          <input id="create_employee_temporary_password_confirm" name="temporary_password_confirm" type="password" autocomplete="new-password" minlength="<?= SERVITECH_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
         </div>
         <div class="admin-owner-actions">
           <button class="admin-owner-button-secondary" type="button" data-generate-temp-password>Generate Temporary Password</button>

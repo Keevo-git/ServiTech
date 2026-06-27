@@ -3,6 +3,7 @@ require_once __DIR__ . "/../../components/auth_guard.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/db.php";
 require_once __DIR__ . "/../../config/account.php";
+require_once __DIR__ . "/../../config/input_limits.php";
 require_once __DIR__ . "/../../config/customer_profile_feedback.php";
 
 function e(?string $value): string
@@ -263,18 +264,12 @@ function validateProfileInput(array $formData, array $changedFields): array
 {
     $errors = profileErrorDefaults();
 
-    if (!empty($changedFields["name"]) && $formData["name"] === "") {
-        $errors["name"] = "Full name is required.";
-    } elseif (!empty($changedFields["name"]) && mb_strlen($formData["name"]) > 100) {
-        $errors["name"] = "Full name must be 100 characters or fewer.";
+    if (!empty($changedFields["name"])) {
+        $errors["name"] = servitech_person_name_validation_error($formData["name"], "Full name");
     }
 
-    if (!empty($changedFields["email"]) && $formData["email"] === "") {
-        $errors["email"] = "Email is required.";
-    } elseif (!empty($changedFields["email"]) && !filter_var($formData["email"], FILTER_VALIDATE_EMAIL)) {
-        $errors["email"] = "Enter a valid email address.";
-    } elseif (!empty($changedFields["email"]) && mb_strlen($formData["email"]) > 150) {
-        $errors["email"] = "Email must be 150 characters or fewer.";
+    if (!empty($changedFields["email"])) {
+        $errors["email"] = servitech_email_validation_error($formData["email"]);
     }
 
     if (!empty($changedFields["phone"]) && $formData["phone"] === "") {
@@ -2419,7 +2414,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                 value="<?php echo e($formData["name"]); ?>"
                 placeholder="Enter your full name"
                 autocomplete="name"
-                maxlength="100"
+                maxlength="<?php echo SERVITECH_LIMIT_FULLNAME; ?>"
                 required
                 readonly
                 data-profile-field="name"
@@ -2442,7 +2437,7 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
                 value="<?php echo e($formData["email"]); ?>"
                 placeholder="name@example.com"
                 autocomplete="email"
-                maxlength="150"
+                maxlength="<?php echo SERVITECH_LIMIT_EMAIL; ?>"
                 required
                 readonly
                 data-profile-field="email"
@@ -3189,11 +3184,17 @@ $phoneStatusLabel = $formData["phone"] !== "" ? "Ready for queue and service upd
       if (changedFields.name && name === "") {
         setError("name", "Full name is required.");
         hasErrors = true;
+      } else if (changedFields.name && name.length > <?php echo SERVITECH_LIMIT_FULLNAME; ?>) {
+        setError("name", "Full name is too long.");
+        hasErrors = true;
       }
 
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (changedFields.email && email === "") {
         setError("email", "Email is required.");
+        hasErrors = true;
+      } else if (changedFields.email && email.length > <?php echo SERVITECH_LIMIT_EMAIL; ?>) {
+        setError("email", "Email address must not exceed <?php echo SERVITECH_LIMIT_EMAIL; ?> characters.");
         hasErrors = true;
       } else if (changedFields.email && !emailPattern.test(email)) {
         setError("email", "Enter a valid email address.");

@@ -62,7 +62,7 @@ $customerListTitle = servitech_admin_employee_banner_title($pdo, "Customer List"
       <div class="cl-card">
         <div class="cl-toolbar">
           <div class="cl-search">
-            <input id="searchInput" type="text" placeholder="Search customers by name, email, or contact..." />
+            <input id="searchInput" type="text" maxlength="120" placeholder="Search customers by name, email, or contact..." />
           </div>
         </div>
 
@@ -159,7 +159,7 @@ $customerListTitle = servitech_admin_employee_banner_title($pdo, "Customer List"
 
         <div class="cl-section cl-messageSection">
           <label class="cl-sectionTitle" for="customerMessageText">Message</label>
-          <textarea class="cl-textarea" id="customerMessageText" rows="6" placeholder="Type your message to this customer..."></textarea>
+          <textarea class="cl-textarea" id="customerMessageText" rows="6" maxlength="1000" placeholder="Type your message to this customer..."></textarea>
           <p class="cl-msgStatus" id="customerMessageStatus" aria-live="polite"></p>
         </div>
 
@@ -189,6 +189,7 @@ $customerListTitle = servitech_admin_employee_banner_title($pdo, "Customer List"
     const messageCustomerName = document.getElementById('messageCustomerName');
     const messageCustomerEmail = document.getElementById('messageCustomerEmail');
     const sendEndpoint = <?= json_encode(admin_url_raw('/pages/admin/customer_list/send_customer_message.php')) ?>;
+    const messageMaxLength = 1000;
 
     function setMessageStatus(text, tone = '') {
       if (!messageStatus) return;
@@ -244,6 +245,11 @@ $customerListTitle = servitech_admin_employee_banner_title($pdo, "Customer List"
       }
       if (!message) {
         setMessageStatus('Please type a message before sending.', 'error');
+        messageText?.focus();
+        return;
+      }
+      if (message.length > messageMaxLength) {
+        setMessageStatus(`Message must not exceed ${messageMaxLength} characters.`, 'error');
         messageText?.focus();
         return;
       }

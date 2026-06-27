@@ -3,6 +3,7 @@ require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
 servitech_require_guest_page();
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/input_limits.php";
 
 $message = "";
 $messageType = "success";
@@ -16,8 +17,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $submittedEmail = strtolower(trim((string)($_POST["email"] ?? "")));
     $returnToPending = (string)($_POST["return_to"] ?? "") === "pending";
-    if ($submittedEmail === "" || !filter_var($submittedEmail, FILTER_VALIDATE_EMAIL)) {
-        $message = "Enter a valid email address.";
+    $emailError = servitech_email_validation_error($submittedEmail);
+    if ($emailError !== "") {
+        $message = $emailError;
         $messageType = "error";
     } else {
         try {
@@ -136,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
         <div class="form-field">
           <label for="verificationEmail">Email Address</label>
-          <input id="verificationEmail" name="email" type="email" value="<?= htmlspecialchars($submittedEmail, ENT_QUOTES, "UTF-8") ?>" autocomplete="email" required>
+          <input id="verificationEmail" name="email" type="email" value="<?= htmlspecialchars($submittedEmail, ENT_QUOTES, "UTF-8") ?>" autocomplete="email" maxlength="<?= SERVITECH_LIMIT_EMAIL ?>" required>
         </div>
         <button type="submit" class="auth-submit">Send verification link</button>
       </form>

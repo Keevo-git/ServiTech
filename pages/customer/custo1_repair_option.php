@@ -114,7 +114,7 @@ if (!is_array($catalog ?? null)) {
 
     <div class="form-card" id="repairIssueCard" hidden>
       <label for="repairNotes">Describe the issue/request<span class="required">*</span></label>
-      <textarea class="form-textarea" id="repairNotes"></textarea>
+      <textarea class="form-textarea" id="repairNotes" maxlength="1000"></textarea>
       <p class="form-note">A description is required when you select Others.</p>
     </div>
 

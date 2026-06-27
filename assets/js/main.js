@@ -935,6 +935,8 @@ document.addEventListener("DOMContentLoaded", () => {
     fileUpload: document.getElementById("fileUpload"),
     rushAddonInputs: Array.from(document.querySelectorAll('input[name="rushAddon"]')),
   };
+  const notesMaxLength = 1000;
+  if (refs.notesEl) refs.notesEl.maxLength = notesMaxLength;
   const svc = (document.body?.dataset?.service || "").toLowerCase();
   const serviceMode = (document.body?.dataset?.serviceKind || svc).toLowerCase();
   const isPhotocopy = serviceMode === "photocopy" || serviceMode === "xerox";
@@ -1074,6 +1076,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter((id) => id > 0),
       catalog_option_value_ids: {},
     };
+    if (refs.notesEl && String(payload.notes || "").trim().length > notesMaxLength) {
+      showFormMessage(`Additional instructions must not exceed ${notesMaxLength} characters.`, "error");
+      setFieldInvalid(refs.notesEl, true);
+      refs.notesEl.focus();
+      return;
+    }
 
     if (refs.repairServiceSelect) {
       const selectedOption = refs.repairServiceSelect.options[refs.repairServiceSelect.selectedIndex];

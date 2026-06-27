@@ -5,6 +5,8 @@ require_once __DIR__ . "/_includes/url.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/activity_log.php";
 require_once __DIR__ . "/../../config/employee_setup.php";
+require_once __DIR__ . "/../../config/input_limits.php";
+require_once __DIR__ . "/../../config/account.php";
 
 if (servitech_current_role() !== "admin") {
     header("Location: " . admin_url_raw(servitech_internal_dashboard_path()));
@@ -74,6 +76,8 @@ function employee_setup_password_errors(string $password, string $confirmation):
         $errors["new_password"] = "New password is required.";
     } elseif (strlen($password) < EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH) {
         $errors["new_password"] = "Password must be at least " . EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH . " characters.";
+    } elseif (strlen($password) > SERVITECH_PASSWORD_MAX_BYTES) {
+        $errors["new_password"] = "Password must not exceed " . SERVITECH_PASSWORD_MAX_BYTES . " bytes.";
     } elseif (!preg_match('/[A-Z]/', $password)
         || !preg_match('/[a-z]/', $password)
         || !preg_match('/\d/', $password)
@@ -102,7 +106,7 @@ function employee_setup_phone_error(string $value, string $label): string
 function employee_setup_name_error(string $value, string $label): string
 {
     $value = trim($value);
-    return $value !== "" && strlen($value) <= 160 && preg_match('/^[\pL\s.\'-]+$/u', $value)
+    return $value !== "" && servitech_text_length($value) <= SERVITECH_LIMIT_FULLNAME && preg_match('/^[\pL\s.\'-]+$/u', $value)
         ? ""
         : "Enter a valid {$label}.";
 }
@@ -110,9 +114,9 @@ function employee_setup_name_error(string $value, string $label): string
 function employee_setup_textarea_error(string $value, string $label): string
 {
     $value = trim($value);
-    return $value !== "" && strlen($value) <= 500
+    return $value !== "" && servitech_text_length($value) <= SERVITECH_LIMIT_ADDRESS
         ? ""
-        : "{$label} is required and must be 500 characters or fewer.";
+        : "{$label} is required and must be " . SERVITECH_LIMIT_ADDRESS . " characters or fewer.";
 }
 
 function employee_setup_relationship_error(string $value): string
@@ -326,7 +330,7 @@ $csrfToken = servitech_csrf_token();
             <div class="admin-owner-field employee-setup-field">
               <label for="new_password">New Password</label>
               <div class="password-input-wrap">
-                <input id="new_password" class="<?= $formErrors["new_password"] !== "" ? "is-invalid" : "" ?>" name="new_password" type="password" placeholder="Create a secure password" autocomplete="new-password" minlength="<?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>" aria-describedby="passwordRequirements newPasswordError" aria-invalid="<?= $formErrors["new_password"] !== "" ? "true" : "false" ?>" required>
+                <input id="new_password" class="<?= $formErrors["new_password"] !== "" ? "is-invalid" : "" ?>" name="new_password" type="password" placeholder="Create a secure password" autocomplete="new-password" minlength="<?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" aria-describedby="passwordRequirements newPasswordError" aria-invalid="<?= $formErrors["new_password"] !== "" ? "true" : "false" ?>" required>
                 <button type="button" class="password-toggle" data-password-toggle="new_password" aria-label="Show new password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
               </div>
               <p class="field-error" id="newPasswordError" aria-live="polite"><?= employee_setup_h($formErrors["new_password"]) ?></p>
@@ -335,7 +339,7 @@ $csrfToken = servitech_csrf_token();
             <div class="admin-owner-field employee-setup-field">
               <label for="confirm_password">Confirm New Password</label>
               <div class="password-input-wrap">
-                <input id="confirm_password" class="<?= $formErrors["confirm_password"] !== "" ? "is-invalid" : "" ?>" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="<?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>" aria-describedby="confirmPasswordError" aria-invalid="<?= $formErrors["confirm_password"] !== "" ? "true" : "false" ?>" required>
+                <input id="confirm_password" class="<?= $formErrors["confirm_password"] !== "" ? "is-invalid" : "" ?>" name="confirm_password" type="password" placeholder="Re-enter your password" autocomplete="new-password" minlength="<?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" aria-describedby="confirmPasswordError" aria-invalid="<?= $formErrors["confirm_password"] !== "" ? "true" : "false" ?>" required>
                 <button type="button" class="password-toggle" data-password-toggle="confirm_password" aria-label="Show confirm password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
               </div>
               <p class="field-error" id="confirmPasswordError" aria-live="polite"><?= employee_setup_h($formErrors["confirm_password"]) ?></p>
@@ -374,7 +378,7 @@ $csrfToken = servitech_csrf_token();
 
           <div class="admin-owner-field employee-setup-field employee-setup-field--wide">
             <label for="address">Address</label>
-            <textarea id="address" class="<?= $formErrors["address"] !== "" ? "is-invalid" : "" ?>" name="address" rows="4" placeholder="Enter your complete address" maxlength="500" aria-describedby="addressError" aria-invalid="<?= $formErrors["address"] !== "" ? "true" : "false" ?>" required><?= employee_setup_h($formValues["address"]) ?></textarea>
+            <textarea id="address" class="<?= $formErrors["address"] !== "" ? "is-invalid" : "" ?>" name="address" rows="4" placeholder="Enter your complete address" maxlength="<?= SERVITECH_LIMIT_ADDRESS ?>" aria-describedby="addressError" aria-invalid="<?= $formErrors["address"] !== "" ? "true" : "false" ?>" required><?= employee_setup_h($formValues["address"]) ?></textarea>
             <p class="field-error" id="addressError" aria-live="polite"><?= employee_setup_h($formErrors["address"]) ?></p>
           </div>
         </div>
@@ -389,7 +393,7 @@ $csrfToken = servitech_csrf_token();
         <div class="employee-setup-field-grid">
           <div class="admin-owner-field employee-setup-field">
             <label for="emergency_contact_name">Full Name</label>
-            <input id="emergency_contact_name" class="<?= $formErrors["emergency_contact_name"] !== "" ? "is-invalid" : "" ?>" name="emergency_contact_name" value="<?= employee_setup_h($formValues["emergency_contact_name"]) ?>" placeholder="Enter full name" maxlength="160" aria-describedby="emergencyNameError" aria-invalid="<?= $formErrors["emergency_contact_name"] !== "" ? "true" : "false" ?>" required>
+            <input id="emergency_contact_name" class="<?= $formErrors["emergency_contact_name"] !== "" ? "is-invalid" : "" ?>" name="emergency_contact_name" value="<?= employee_setup_h($formValues["emergency_contact_name"]) ?>" placeholder="Enter full name" maxlength="<?= SERVITECH_LIMIT_FULLNAME ?>" aria-describedby="emergencyNameError" aria-invalid="<?= $formErrors["emergency_contact_name"] !== "" ? "true" : "false" ?>" required>
             <p class="field-error" id="emergencyNameError" aria-live="polite"><?= employee_setup_h($formErrors["emergency_contact_name"]) ?></p>
           </div>
 
@@ -406,7 +410,7 @@ $csrfToken = servitech_csrf_token();
 
           <div class="admin-owner-field employee-setup-field employee-setup-field--wide">
             <label for="emergency_contact_address">Address</label>
-            <textarea id="emergency_contact_address" class="<?= $formErrors["emergency_contact_address"] !== "" ? "is-invalid" : "" ?>" name="emergency_contact_address" rows="4" placeholder="Enter emergency contact address" maxlength="500" aria-describedby="emergencyAddressError" aria-invalid="<?= $formErrors["emergency_contact_address"] !== "" ? "true" : "false" ?>" required><?= employee_setup_h($formValues["emergency_contact_address"]) ?></textarea>
+            <textarea id="emergency_contact_address" class="<?= $formErrors["emergency_contact_address"] !== "" ? "is-invalid" : "" ?>" name="emergency_contact_address" rows="4" placeholder="Enter emergency contact address" maxlength="<?= SERVITECH_LIMIT_ADDRESS ?>" aria-describedby="emergencyAddressError" aria-invalid="<?= $formErrors["emergency_contact_address"] !== "" ? "true" : "false" ?>" required><?= employee_setup_h($formValues["emergency_contact_address"]) ?></textarea>
             <p class="field-error" id="emergencyAddressError" aria-live="polite"><?= employee_setup_h($formErrors["emergency_contact_address"]) ?></p>
           </div>
 
@@ -435,6 +439,7 @@ $csrfToken = servitech_csrf_token();
 
     const submitButton = document.getElementById("employeeSetupSubmit");
     const passwordMinLength = <?= EMPLOYEE_SETUP_PASSWORD_MIN_LENGTH ?>;
+    const passwordMaxLength = <?= SERVITECH_PASSWORD_MAX_BYTES ?>;
 
     const fields = {
       new_password: {
@@ -443,6 +448,7 @@ $csrfToken = servitech_csrf_token();
         validate(value) {
           if (!value) return "New password is required.";
           if (value.length < passwordMinLength) return `Password must be at least ${passwordMinLength} characters.`;
+          if (value.length > passwordMaxLength) return `Password must not exceed ${passwordMaxLength} characters.`;
           if (!/[A-Z]/.test(value) || !/[a-z]/.test(value) || !/\d/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
             return "Use uppercase, lowercase, number, and special character.";
           }
@@ -472,7 +478,7 @@ $csrfToken = servitech_csrf_token();
         validate(value) {
           const trimmed = value.trim();
           if (!trimmed) return "Address is required.";
-          return trimmed.length <= 500 ? "" : "Address must be 500 characters or fewer.";
+          return trimmed.length <= <?= SERVITECH_LIMIT_ADDRESS ?> ? "" : "Address must be <?= SERVITECH_LIMIT_ADDRESS ?> characters or fewer.";
         }
       },
       emergency_contact_name: {
@@ -481,7 +487,7 @@ $csrfToken = servitech_csrf_token();
         validate(value) {
           const trimmed = value.trim();
           if (!trimmed) return "Emergency contact full name is required.";
-          return /^[\p{L}\s.'-]+$/u.test(trimmed) && trimmed.length <= 160 ? "" : "Enter a valid emergency contact name.";
+          return /^[\p{L}\s.'-]+$/u.test(trimmed) && trimmed.length <= <?= SERVITECH_LIMIT_FULLNAME ?> ? "" : "Enter a valid emergency contact name.";
         }
       },
       emergency_contact_relationship: {
@@ -497,7 +503,7 @@ $csrfToken = servitech_csrf_token();
         validate(value) {
           const trimmed = value.trim();
           if (!trimmed) return "Emergency contact address is required.";
-          return trimmed.length <= 500 ? "" : "Emergency contact address must be 500 characters or fewer.";
+          return trimmed.length <= <?= SERVITECH_LIMIT_ADDRESS ?> ? "" : "Emergency contact address must be <?= SERVITECH_LIMIT_ADDRESS ?> characters or fewer.";
         }
       },
       emergency_contact_number: {

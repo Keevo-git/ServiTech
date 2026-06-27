@@ -5,6 +5,7 @@ require_once __DIR__ . "/../../../config/csrf.php";
 require_once __DIR__ . "/../../../config/mail.php";
 require_once __DIR__ . "/../../../config/activity_log.php";
 require_once __DIR__ . "/../../../api/queue_helpers.php";
+require_once __DIR__ . "/../../../config/input_limits.php";
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -29,9 +30,15 @@ if ($queueId <= 0) {
 if ($message === "") {
     respond(["ok" => false, "error" => "Please enter a message before sending."], 422);
 }
+if (servitech_text_length($message) > SERVITECH_LIMIT_MESSAGE_BODY) {
+    respond(["ok" => false, "error" => "Message must not exceed " . SERVITECH_LIMIT_MESSAGE_BODY . " characters."], 422);
+}
 
 if ($subject === "") {
     $subject = "ServiTech Queue Update";
+}
+if (servitech_text_length($subject) > SERVITECH_LIMIT_MESSAGE_SUBJECT) {
+    respond(["ok" => false, "error" => "Message subject must not exceed " . SERVITECH_LIMIT_MESSAGE_SUBJECT . " characters."], 422);
 }
 
 $stmt = $pdo->prepare("

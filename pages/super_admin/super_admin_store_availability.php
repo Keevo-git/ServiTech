@@ -6,6 +6,7 @@ require_once __DIR__ . "/../admin/_includes/url.php";
 require_once __DIR__ . "/../../config/csrf.php";
 require_once __DIR__ . "/../../config/store_availability.php";
 require_once __DIR__ . "/../../config/activity_log.php";
+require_once __DIR__ . "/../../config/input_limits.php";
 
 function store_admin_h($value): string
 {
@@ -139,9 +140,8 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             if ($title === "") {
                 throw new RuntimeException("Enter a title or reason for the closed date.");
             }
-            if (strlen($title) > 120 || strlen($note) > 500) {
-                throw new RuntimeException("The holiday title or note is too long.");
-            }
+            servitech_assert_max_length($title, "Title / Reason", SERVITECH_LIMIT_HOLIDAY_TITLE);
+            servitech_assert_max_length($note, "Optional note", SERVITECH_LIMIT_HOLIDAY_NOTE);
 
             $duplicateStmt = $pdo->prepare("
                 SELECT id FROM store_holidays
@@ -481,8 +481,8 @@ $adminHeaderVariant = "special";
       <input type="hidden" name="action" value="save_holiday">
       <input type="hidden" name="holiday_id" id="holidayId" value="0">
       <label>Date<input type="date" name="holiday_date" id="holidayDate" required></label>
-      <label>Title / Reason<input type="text" name="title" id="holidayTitle" maxlength="120" required></label>
-      <label class="holiday-note-field">Optional note<textarea name="note" id="holidayNote" maxlength="500" rows="2"></textarea></label>
+      <label>Title / Reason<input type="text" name="title" id="holidayTitle" maxlength="<?= SERVITECH_LIMIT_HOLIDAY_TITLE ?>" required></label>
+      <label class="holiday-note-field">Optional note<textarea name="note" id="holidayNote" maxlength="<?= SERVITECH_LIMIT_HOLIDAY_NOTE ?>" rows="2"></textarea></label>
       <div class="holiday-form__actions">
         <button class="store-primary-btn" type="submit" <?= !$snapshot["settings_available"] ? "disabled" : "" ?>>Save Closed Date</button>
         <button class="store-secondary-btn" type="button" id="cancelHolidayEdit" hidden>Cancel Edit</button>

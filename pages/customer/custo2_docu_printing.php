@@ -496,7 +496,7 @@ if ($closedStoreDocumentPrinting) {
 
             <div class="printing-field">
               <label for="notes">Additional Instructions / Edit Request</label>
-              <textarea class="form-textarea" id="notes"></textarea>
+              <textarea class="form-textarea" id="notes" maxlength="1000"></textarea>
             </div>
           </div>
 

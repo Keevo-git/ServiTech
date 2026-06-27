@@ -418,7 +418,7 @@ function queue_ui_render_filter_toolbar(string $tableId, bool $includePayment = 
       <div class="queue-filter-grid">
         <label class="queue-filter-control queue-filter-control--search">
           <span>Search</span>
-          <input type="search" data-queue-filter-search placeholder="Search by Customer Name or Queue ID" autocomplete="off">
+          <input type="search" data-queue-filter-search maxlength="120" placeholder="Search by Customer Name or Queue ID" autocomplete="off">
         </label>
 
         <label class="queue-filter-control">

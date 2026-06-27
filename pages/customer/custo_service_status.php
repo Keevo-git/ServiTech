@@ -2112,11 +2112,13 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     `;
   }
 
+  const editNotesMaxLength = 1000;
+
   function editTextarea(name, label, value = ""){
     return `
       <label class="status-edit-field status-edit-field--full" for="edit_${esc(name)}">
         <span class="status-edit-label">${esc(label)}</span>
-        <textarea id="edit_${esc(name)}" class="status-edit-control" name="${esc(name)}">${esc(value)}</textarea>
+        <textarea id="edit_${esc(name)}" class="status-edit-control" name="${esc(name)}" maxlength="${editNotesMaxLength}">${esc(value)}</textarea>
       </label>
     `;
   }
@@ -2762,6 +2764,11 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
         removed_file_tokens: Array.from(editRemovedFileTokens),
         removed_file_indexes: Array.from(editRemovedFileIndexes)
       };
+      if (payload.notes && payload.notes.length > editNotesMaxLength) {
+        if (statusEditError) statusEditError.textContent = `Additional instructions must not exceed ${editNotesMaxLength} characters.`;
+        document.getElementById("edit_notes")?.focus();
+        return;
+      }
 
       const response = await fetch(servitechUrl("/api/queue_update_details.php"), {
         method: "POST",

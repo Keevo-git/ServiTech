@@ -7,6 +7,7 @@ require_once __DIR__ . "/service_pricing.php";
 require_once __DIR__ . "/queue_state_machine.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/../config/store_availability.php";
+require_once __DIR__ . "/../config/input_limits.php";
 
 header("Content-Type: application/json; charset=utf-8");
 servitech_enforce_csrf_token(true);
@@ -159,10 +160,12 @@ try {
   if ($details["service_label"] === "") {
     throw new DomainException("Service label is required.");
   }
+  servitech_assert_max_length($details["service_label"], "Service label", SERVITECH_LIMIT_SERVICE_NAME);
 
   $quantity = max(1, (int)($data["quantity"] ?? ($currentDetails["quantity"] ?? 1)));
   $details["quantity"] = $quantity;
   $details["notes"] = trim((string)($data["notes"] ?? ""));
+  servitech_assert_max_length($details["notes"], "Additional instructions", SERVITECH_LIMIT_QUEUE_NOTES);
 
   $serviceKind = servitech_pricing_service_kind($category, (string)$details["service_label"]);
   $isDocumentPrintingPaymentFlow = $serviceKind === "document_printing";

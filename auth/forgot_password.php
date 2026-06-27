@@ -3,6 +3,7 @@ require_once __DIR__ . "/_shared.php";
 require_once __DIR__ . "/guest_guard.php";
 require_once __DIR__ . "/../config/mail.php";
 require_once __DIR__ . "/../config/account.php";
+require_once __DIR__ . "/../config/input_limits.php";
 servitech_require_guest_page();
 
 $messageType = "";
@@ -113,9 +114,12 @@ if ($requestMethod === "POST") {
     $submittedEmail = strtolower(trim((string)($_POST["email"] ?? "")));
     servitech_forgot_password_mail_log("Forgot password submit started. Server time: " . date(DATE_ATOM) . "; submitted email={$submittedEmail}");
 
-    if ($submittedEmail === "" || !filter_var($submittedEmail, FILTER_VALIDATE_EMAIL)) {
+    $emailError = servitech_email_validation_error($submittedEmail);
+    if ($emailError !== "") {
         $messageType = "error";
-        $messageText = "Enter a valid email address to request a reset link.";
+        $messageText = $emailError === "Email address is required."
+            ? "Enter a valid email address to request a reset link."
+            : $emailError;
         servitech_forgot_password_mail_log("Forgot password validation failed: invalid email.");
     } else {
         try {
@@ -229,6 +233,7 @@ $csrfToken = servitech_csrf_token();
             placeholder="Enter your email address"
             autocomplete="email"
             value="<?= htmlspecialchars($submittedEmail, ENT_QUOTES, "UTF-8") ?>"
+            maxlength="<?= SERVITECH_LIMIT_EMAIL ?>"
             required
           >
           <p class="field-error" id="resetEmailError" aria-live="polite"></p>
@@ -257,6 +262,8 @@ $csrfToken = servitech_csrf_token();
 
       if (!value) {
         message = "Email address is required.";
+      } else if (value.length > <?= SERVITECH_LIMIT_EMAIL ?>) {
+        message = "Email address must not exceed <?= SERVITECH_LIMIT_EMAIL ?> characters.";
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
         message = "Enter a valid email address.";
       }

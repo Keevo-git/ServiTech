@@ -330,7 +330,7 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
       <div class="order-filter-grid">
         <label class="order-filter-control order-filter-control--search">
           <span>Search</span>
-          <input type="search" data-order-filter-search placeholder="Search by Customer Name or Order ID" autocomplete="off">
+          <input type="search" data-order-filter-search maxlength="120" placeholder="Search by Customer Name or Order ID" autocomplete="off">
         </label>
 
         <label class="order-filter-control order-filter-control--month">
