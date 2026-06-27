@@ -240,30 +240,32 @@ $adminHeaderVariant = "special";
   </section>
 
   <section class="admin-owner-panel operational-controls-overall" aria-labelledby="overallAvailabilityTitle">
-    <div class="operational-section-head">
-      <div>
+    <div class="operational-overall-layout">
+      <div class="operational-overall-copy">
         <h2 id="overallAvailabilityTitle">Overall Availability</h2>
         <p>Temporarily close or reopen all customer service requests.</p>
       </div>
-      <span class="operational-status operational-status--<?= !empty($overall["all_services_closed"]) ? "closed" : "open" ?>">
-        <?= !empty($overall["all_services_closed"]) ? "Closed" : "Open" ?>
-      </span>
-    </div>
-    <form method="post" class="operational-compact-form" data-operational-confirm="overall-availability" data-overall-control="true">
-      <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
-      <input type="hidden" name="action" value="save_overall">
-      <div class="operational-segmented" role="radiogroup" aria-label="Overall availability">
-        <label class="<?= empty($overall["all_services_closed"]) ? "is-active" : "" ?>">
-          <input type="radio" name="all_services_closed" value="0" <?= empty($overall["all_services_closed"]) ? "checked" : "" ?>>
-          <span>Open</span>
-        </label>
-        <label class="<?= !empty($overall["all_services_closed"]) ? "is-active" : "" ?>">
-          <input type="radio" name="all_services_closed" value="1" <?= !empty($overall["all_services_closed"]) ? "checked" : "" ?>>
-          <span>Closed</span>
-        </label>
+      <div class="operational-overall-controls">
+        <span class="operational-status operational-status--<?= !empty($overall["all_services_closed"]) ? "closed" : "open" ?>">
+          <?= !empty($overall["all_services_closed"]) ? "Closed" : "Open" ?>
+        </span>
+        <form method="post" class="operational-compact-form" data-operational-confirm="overall-availability" data-overall-control="true">
+          <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
+          <input type="hidden" name="action" value="save_overall">
+          <div class="operational-segmented" role="radiogroup" aria-label="Overall availability">
+            <label class="<?= empty($overall["all_services_closed"]) ? "is-active" : "" ?>">
+              <input type="radio" name="all_services_closed" value="0" <?= empty($overall["all_services_closed"]) ? "checked" : "" ?>>
+              <span>Open</span>
+            </label>
+            <label class="<?= !empty($overall["all_services_closed"]) ? "is-active" : "" ?>">
+              <input type="radio" name="all_services_closed" value="1" <?= !empty($overall["all_services_closed"]) ? "checked" : "" ?>>
+              <span>Closed</span>
+            </label>
+          </div>
+          <button class="admin-owner-button" type="submit">Save Changes</button>
+        </form>
       </div>
-      <button class="admin-owner-button" type="submit">Save Changes</button>
-    </form>
+    </div>
   </section>
 
   <section class="admin-owner-panel" aria-labelledby="serviceControlsTitle">
@@ -272,65 +274,64 @@ $adminHeaderVariant = "special";
         <h2 id="serviceControlsTitle">Service Controls</h2>
         <p>Manual service closure blocks new customer requests only.</p>
       </div>
+      <span class="operational-rule-note">Document Printing requires GCash when the store is closed.</span>
     </div>
     <?php if (!$services): ?>
       <div class="admin-owner-empty-state">No configured service controls were found.</div>
     <?php else: ?>
-      <div class="operational-table-wrap">
-        <table class="operational-table">
-          <thead>
-            <tr>
-              <th>Service</th>
-              <th>Category</th>
-              <th>Effective Status</th>
-              <th>Manual Control</th>
-              <th>Last Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($services as $service):
-              $serviceId = (int)($service["id"] ?? 0);
-              $manualStatus = strtolower(trim((string)($service["manual_status"] ?? "open"))) === "closed" ? "closed" : "open";
-              $serviceName = trim((string)($service["name"] ?? "Service"));
-              $serviceKind = servitech_catalog_service_kind($service);
-              $effectiveStatus = $manualStatus;
-              $effectiveLabel = $manualStatus === "closed" ? "Closed" : "Open";
-              $effectiveNote = "";
-              if (
-                  $manualStatus === "open"
-                  && $serviceKind === "document_printing"
-                  && servitech_operational_document_printing_requires_enabled_gcash($pdo, $currentStoreAvailability)
-              ) {
-                  $effectiveStatus = "unavailable";
-                  $effectiveLabel = "Unavailable";
-                  $effectiveNote = servitech_operational_document_printing_unavailable_message();
-              }
-            ?>
-              <tr>
-                <td data-label="Service">
-                  <strong><?= op_h($serviceName) ?></strong>
-                  <?php if ($effectiveNote !== ""): ?><small><?= op_h($effectiveNote) ?></small><?php endif; ?>
-                </td>
-                <td data-label="Category"><?= op_h(ucfirst((string)($service["category"] ?? "Service"))) ?></td>
-                <td data-label="Effective Status">
-                  <span class="operational-status operational-status--<?= op_h($effectiveStatus) ?>"><?= op_h($effectiveLabel) ?></span>
-                </td>
-                <td data-label="Manual Control">
-                  <form method="post" class="operational-inline-form" data-operational-confirm="<?= $manualStatus === "closed" ? "open-service" : "close-service" ?>" data-target-label="<?= op_h($serviceName) ?>">
-                    <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
-                    <input type="hidden" name="action" value="save_service">
-                    <input type="hidden" name="service_id" value="<?= $serviceId ?>">
-                    <input type="hidden" name="manual_status" value="<?= $manualStatus === "closed" ? "open" : "closed" ?>">
-                    <button class="<?= $manualStatus === "closed" ? "admin-owner-button-secondary" : "admin-owner-button-danger" ?>" type="submit">
-                      <?= $manualStatus === "closed" ? "Open" : "Close" ?>
-                    </button>
-                  </form>
-                </td>
-                <td data-label="Last Updated"><?= op_h(op_format_timestamp($service["updated_at"] ?? null)) ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
+      <div class="operational-card-grid operational-service-grid">
+        <?php foreach ($services as $service):
+          $serviceId = (int)($service["id"] ?? 0);
+          $manualStatus = strtolower(trim((string)($service["manual_status"] ?? "open"))) === "closed" ? "closed" : "open";
+          $serviceName = trim((string)($service["name"] ?? "Service"));
+          $serviceCategory = ucfirst((string)($service["category"] ?? "Service"));
+          $serviceKind = servitech_catalog_service_kind($service);
+          $effectiveStatus = $manualStatus;
+          $effectiveLabel = $manualStatus === "closed" ? "Closed" : "Open";
+          $effectiveNote = "";
+          if (
+              $manualStatus === "open"
+              && $serviceKind === "document_printing"
+              && servitech_operational_document_printing_requires_enabled_gcash($pdo, $currentStoreAvailability)
+          ) {
+              $effectiveStatus = "unavailable";
+              $effectiveLabel = "Unavailable";
+              $effectiveNote = servitech_operational_document_printing_unavailable_message();
+          }
+        ?>
+          <article class="operational-control-card">
+            <div class="operational-control-card__top">
+              <span class="operational-kicker"><?= op_h($serviceCategory) ?></span>
+              <span class="operational-status operational-status--<?= op_h($effectiveStatus) ?>"><?= op_h($effectiveLabel) ?></span>
+            </div>
+            <div class="operational-control-card__body">
+              <h3><?= op_h($serviceName) ?></h3>
+              <?php if ($effectiveNote !== ""): ?>
+                <p class="operational-card-warning"><?= op_h($effectiveNote) ?></p>
+              <?php else: ?>
+                <p>Manual control applies to new customer requests only.</p>
+              <?php endif; ?>
+            </div>
+            <div class="operational-control-card__meta">
+              <span>Category</span>
+              <strong><?= op_h($serviceCategory) ?></strong>
+              <span>Last Updated</span>
+              <strong><?= op_h(op_format_timestamp($service["updated_at"] ?? null)) ?></strong>
+            </div>
+            <div class="operational-control-card__footer">
+              <span class="operational-manual-state">Manual: <?= $manualStatus === "closed" ? "Closed" : "Open" ?></span>
+              <form method="post" class="operational-inline-form" data-operational-confirm="<?= $manualStatus === "closed" ? "open-service" : "close-service" ?>" data-target-label="<?= op_h($serviceName) ?>">
+                <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
+                <input type="hidden" name="action" value="save_service">
+                <input type="hidden" name="service_id" value="<?= $serviceId ?>">
+                <input type="hidden" name="manual_status" value="<?= $manualStatus === "closed" ? "open" : "closed" ?>">
+                <button class="<?= $manualStatus === "closed" ? "admin-owner-button-secondary" : "admin-owner-button-danger" ?>" type="submit">
+                  <?= $manualStatus === "closed" ? "Open" : "Close" ?>
+                </button>
+              </form>
+            </div>
+          </article>
+        <?php endforeach; ?>
       </div>
     <?php endif; ?>
   </section>
@@ -341,53 +342,50 @@ $adminHeaderVariant = "special";
         <h2 id="paymentControlsTitle">Payment Method Controls</h2>
         <p>Disabled payment methods are hidden from new customer forms and rejected by backend validation. Cash and GCash cannot both be disabled.</p>
       </div>
+      <span class="operational-rule-note">At least one payment method must remain enabled.</span>
     </div>
-    <div class="operational-table-wrap">
-      <table class="operational-table operational-table--payment">
-        <thead>
-          <tr>
-            <th>Payment Method</th>
-            <th>Status</th>
-            <th>Control</th>
-            <th>Last Updated</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($paymentMethods as $method):
-            $key = (string)($method["payment_method_key"] ?? "");
-            $enabled = !empty($method["is_enabled"]);
-            $name = op_payment_short_label($key);
-          ?>
-            <tr>
-              <td data-label="Payment Method"><strong><?= op_h($name) ?></strong></td>
-              <td data-label="Status">
-                <span class="operational-status operational-status--<?= $enabled ? "enabled" : "disabled" ?>">
-                  <?= $enabled ? "Enabled" : "Disabled" ?>
-                </span>
-              </td>
-              <td data-label="Control">
-                <form
-                  method="post"
-                  class="operational-inline-form"
-                  data-operational-confirm="<?= $enabled ? "disable-payment" : "enable-payment" ?>"
-                  data-payment-control="true"
-                  data-payment-key="<?= op_h($key) ?>"
-                  data-payment-enabled="<?= $enabled ? "true" : "false" ?>"
-                  data-target-label="<?= op_h($name) ?>">
-                  <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
-                  <input type="hidden" name="action" value="save_payment">
-                  <input type="hidden" name="payment_method_key" value="<?= op_h($key) ?>">
-                  <?php if (!$enabled): ?><input type="hidden" name="is_enabled" value="1"><?php endif; ?>
-                  <button class="<?= $enabled ? "admin-owner-button-danger" : "admin-owner-button-secondary" ?>" type="submit">
-                    <?= $enabled ? "Disable" : "Enable" ?>
-                  </button>
-                </form>
-              </td>
-              <td data-label="Last Updated"><?= op_h(op_format_timestamp($method["updated_at"] ?? null)) ?></td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+    <div class="operational-card-grid operational-payment-grid">
+      <?php foreach ($paymentMethods as $method):
+        $key = (string)($method["payment_method_key"] ?? "");
+        $enabled = !empty($method["is_enabled"]);
+        $name = op_payment_short_label($key);
+      ?>
+        <article class="operational-control-card operational-payment-card">
+          <div class="operational-control-card__top">
+            <span class="operational-kicker">Payment Method</span>
+            <span class="operational-status operational-status--<?= $enabled ? "enabled" : "disabled" ?>">
+              <?= $enabled ? "Enabled" : "Disabled" ?>
+            </span>
+          </div>
+          <div class="operational-control-card__body">
+            <h3><?= op_h($name) ?></h3>
+            <p><?= $enabled ? "Available for new customer requests when service rules allow it." : "Hidden from new customer forms and blocked by validation." ?></p>
+          </div>
+          <div class="operational-control-card__meta operational-control-card__meta--single">
+            <span>Last Updated</span>
+            <strong><?= op_h(op_format_timestamp($method["updated_at"] ?? null)) ?></strong>
+          </div>
+          <div class="operational-control-card__footer">
+            <span class="operational-manual-state"><?= $enabled ? "Currently enabled" : "Currently disabled" ?></span>
+            <form
+              method="post"
+              class="operational-inline-form"
+              data-operational-confirm="<?= $enabled ? "disable-payment" : "enable-payment" ?>"
+              data-payment-control="true"
+              data-payment-key="<?= op_h($key) ?>"
+              data-payment-enabled="<?= $enabled ? "true" : "false" ?>"
+              data-target-label="<?= op_h($name) ?>">
+              <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
+              <input type="hidden" name="action" value="save_payment">
+              <input type="hidden" name="payment_method_key" value="<?= op_h($key) ?>">
+              <?php if (!$enabled): ?><input type="hidden" name="is_enabled" value="1"><?php endif; ?>
+              <button class="<?= $enabled ? "admin-owner-button-danger" : "admin-owner-button-secondary" ?>" type="submit">
+                <?= $enabled ? "Disable" : "Enable" ?>
+              </button>
+            </form>
+          </div>
+        </article>
+      <?php endforeach; ?>
     </div>
   </section>
 </main>
