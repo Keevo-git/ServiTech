@@ -29,6 +29,12 @@ operational_controls_assert(str_contains($page, "servitech_require_super_admin()
 operational_controls_assert(str_contains($page, "operational_controls_update"), "Operational Controls changes must be activity logged.");
 operational_controls_assert(str_contains($page, "window.servitechAdminToast"), "Operational Controls page must use admin toasts.");
 operational_controls_assert(str_contains($page, "data-operational-confirm"), "Operational Controls sensitive actions must use confirmation modals.");
+operational_controls_assert(str_contains($page, "operational-table"), "Operational Controls page must use compact tables.");
+operational_controls_assert(str_contains($page, "operational-segmented"), "Overall Availability must use a compact segmented control.");
+operational_controls_assert(!str_contains($page, "<textarea"), "Operational Controls page must not render reason textareas.");
+foreach (["Reason for closure", "Closure reason", "Disabled reason", "Optional reason", "Optional note"] as $removedText) {
+    operational_controls_assert(!str_contains($page, $removedText), "Operational Controls page must not render {$removedText}.");
+}
 
 $migration = operational_controls_source("database/migrations/20260627_add_operational_controls.sql");
 foreach ([
