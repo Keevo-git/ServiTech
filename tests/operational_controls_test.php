@@ -31,9 +31,13 @@ operational_controls_assert(str_contains($page, "window.servitechAdminToast"), "
 operational_controls_assert(str_contains($page, "data-operational-confirm"), "Operational Controls sensitive actions must use confirmation modals.");
 operational_controls_assert(str_contains($page, "operational-card-grid"), "Operational Controls page must use polished card grids.");
 operational_controls_assert(str_contains($page, "operational-control-card"), "Operational Controls page must render compact control cards.");
+operational_controls_assert(str_contains($page, "service-control-grid"), "Service Controls must use a scoped responsive card grid.");
+operational_controls_assert(str_contains($page, "payment-control-grid"), "Payment Method Controls must use a scoped responsive card grid.");
+operational_controls_assert(str_contains($page, "20260627-operational-controls-v2"), "Operational Controls stylesheet cache key must load the card redesign.");
 operational_controls_assert(!str_contains($page, "operational-table"), "Operational Controls page must not render raw operational tables.");
 operational_controls_assert(str_contains($page, "operational-segmented"), "Overall Availability must use a compact segmented control.");
 operational_controls_assert(str_contains($page, "Document Printing requires GCash when the store is closed."), "Service Controls must surface the closed-store GCash rule.");
+operational_controls_assert(!str_contains($page, "Manual control applies to new customer requests only."), "Service cards must not repeat cluttered helper text.");
 operational_controls_assert(!str_contains($page, "<textarea"), "Operational Controls page must not render reason textareas.");
 foreach (["Reason for closure", "Closure reason", "Disabled reason", "Optional reason", "Optional note"] as $removedText) {
     operational_controls_assert(!str_contains($page, $removedText), "Operational Controls page must not render {$removedText}.");

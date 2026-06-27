@@ -212,9 +212,9 @@ $adminHeaderVariant = "special";
   <title>Operational Controls | ServiTech Admin</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-operational-controls') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-operational-controls-v2') ?>">
 </head>
-<body class="admin-operational-controls-page">
+<body class="admin-operational-controls-page operational-controls-page">
 <?php require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
 
 <main class="admin-owner-shell operational-controls-shell">
@@ -236,7 +236,7 @@ $adminHeaderVariant = "special";
       <h2>Manual Override Rules</h2>
       <p>These controls affect new customer requests only. Existing orders remain available for staff processing.</p>
     </div>
-    <a class="admin-owner-button-secondary" href="<?= admin_url('/pages/super_admin/super_admin_system_settings.php') ?>">System Settings</a>
+    <a class="admin-owner-button-secondary" href="<?= admin_url('/pages/super_admin/super_admin_system_settings.php') ?>">Back to System Settings</a>
   </section>
 
   <section class="admin-owner-panel operational-controls-overall" aria-labelledby="overallAvailabilityTitle">
@@ -268,18 +268,18 @@ $adminHeaderVariant = "special";
     </div>
   </section>
 
-  <section class="admin-owner-panel" aria-labelledby="serviceControlsTitle">
+  <section class="admin-owner-panel operational-controls-section operational-controls-section--services" aria-labelledby="serviceControlsTitle">
     <div class="operational-section-head">
       <div>
         <h2 id="serviceControlsTitle">Service Controls</h2>
-        <p>Manual service closure blocks new customer requests only.</p>
+        <p>Manual service controls affect new customer requests only.</p>
       </div>
       <span class="operational-rule-note">Document Printing requires GCash when the store is closed.</span>
     </div>
     <?php if (!$services): ?>
       <div class="admin-owner-empty-state">No configured service controls were found.</div>
     <?php else: ?>
-      <div class="operational-card-grid operational-service-grid">
+      <div class="operational-card-grid operational-service-grid service-control-grid">
         <?php foreach ($services as $service):
           $serviceId = (int)($service["id"] ?? 0);
           $manualStatus = strtolower(trim((string)($service["manual_status"] ?? "open"))) === "closed" ? "closed" : "open";
@@ -299,27 +299,28 @@ $adminHeaderVariant = "special";
               $effectiveNote = servitech_operational_document_printing_unavailable_message();
           }
         ?>
-          <article class="operational-control-card">
-            <div class="operational-control-card__top">
-              <span class="operational-kicker"><?= op_h($serviceCategory) ?></span>
+          <article class="operational-card operational-control-card service-control-card">
+            <div class="operational-card__top service-control-card__top">
+              <span class="operational-kicker operational-card__category"><?= op_h($serviceCategory) ?></span>
               <span class="operational-status operational-status--<?= op_h($effectiveStatus) ?>"><?= op_h($effectiveLabel) ?></span>
             </div>
-            <div class="operational-control-card__body">
+            <div class="operational-card__body service-control-card__body">
               <h3><?= op_h($serviceName) ?></h3>
               <?php if ($effectiveNote !== ""): ?>
                 <p class="operational-card-warning"><?= op_h($effectiveNote) ?></p>
-              <?php else: ?>
-                <p>Manual control applies to new customer requests only.</p>
               <?php endif; ?>
             </div>
-            <div class="operational-control-card__meta">
-              <span>Category</span>
-              <strong><?= op_h($serviceCategory) ?></strong>
-              <span>Last Updated</span>
-              <strong><?= op_h(op_format_timestamp($service["updated_at"] ?? null)) ?></strong>
-            </div>
-            <div class="operational-control-card__footer">
-              <span class="operational-manual-state">Manual: <?= $manualStatus === "closed" ? "Closed" : "Open" ?></span>
+            <dl class="operational-detail-list">
+              <div>
+                <dt>Manual Control</dt>
+                <dd><?= $manualStatus === "closed" ? "Closed" : "Open" ?></dd>
+              </div>
+              <div>
+                <dt>Last Updated</dt>
+                <dd><?= op_h(op_format_timestamp($service["updated_at"] ?? null)) ?></dd>
+              </div>
+            </dl>
+            <div class="operational-card__actions service-control-card__actions">
               <form method="post" class="operational-inline-form" data-operational-confirm="<?= $manualStatus === "closed" ? "open-service" : "close-service" ?>" data-target-label="<?= op_h($serviceName) ?>">
                 <input type="hidden" name="csrf_token" value="<?= op_h($csrfToken) ?>">
                 <input type="hidden" name="action" value="save_service">
@@ -336,37 +337,34 @@ $adminHeaderVariant = "special";
     <?php endif; ?>
   </section>
 
-  <section class="admin-owner-panel" aria-labelledby="paymentControlsTitle">
+  <section class="admin-owner-panel operational-controls-section operational-controls-section--payments" aria-labelledby="paymentControlsTitle">
     <div class="operational-section-head">
       <div>
         <h2 id="paymentControlsTitle">Payment Method Controls</h2>
-        <p>Disabled payment methods are hidden from new customer forms and rejected by backend validation. Cash and GCash cannot both be disabled.</p>
+        <p>Disabled payment methods are hidden from new customer forms and rejected by backend validation. At least one payment method must remain enabled.</p>
       </div>
       <span class="operational-rule-note">At least one payment method must remain enabled.</span>
     </div>
-    <div class="operational-card-grid operational-payment-grid">
+    <div class="operational-card-grid operational-payment-grid payment-control-grid">
       <?php foreach ($paymentMethods as $method):
         $key = (string)($method["payment_method_key"] ?? "");
         $enabled = !empty($method["is_enabled"]);
         $name = op_payment_short_label($key);
       ?>
-        <article class="operational-control-card operational-payment-card">
-          <div class="operational-control-card__top">
-            <span class="operational-kicker">Payment Method</span>
+        <article class="operational-card operational-control-card operational-payment-card payment-control-card">
+          <div class="operational-card__top payment-control-card__top">
+            <h3><?= op_h($name) ?></h3>
             <span class="operational-status operational-status--<?= $enabled ? "enabled" : "disabled" ?>">
               <?= $enabled ? "Enabled" : "Disabled" ?>
             </span>
           </div>
-          <div class="operational-control-card__body">
-            <h3><?= op_h($name) ?></h3>
-            <p><?= $enabled ? "Available for new customer requests when service rules allow it." : "Hidden from new customer forms and blocked by validation." ?></p>
-          </div>
-          <div class="operational-control-card__meta operational-control-card__meta--single">
-            <span>Last Updated</span>
-            <strong><?= op_h(op_format_timestamp($method["updated_at"] ?? null)) ?></strong>
-          </div>
-          <div class="operational-control-card__footer">
-            <span class="operational-manual-state"><?= $enabled ? "Currently enabled" : "Currently disabled" ?></span>
+          <dl class="operational-detail-list operational-detail-list--single">
+            <div>
+              <dt>Last Updated</dt>
+              <dd><?= op_h(op_format_timestamp($method["updated_at"] ?? null)) ?></dd>
+            </div>
+          </dl>
+          <div class="operational-card__actions payment-control-card__actions">
             <form
               method="post"
               class="operational-inline-form"

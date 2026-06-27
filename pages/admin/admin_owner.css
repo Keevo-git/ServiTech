@@ -1498,6 +1498,265 @@ body.admin-operational-controls-page .operational-confirm-modal {
   }
 }
 
+body.operational-controls-page .operational-controls-shell {
+  gap: 20px;
+}
+
+body.operational-controls-page .operational-controls-info,
+body.operational-controls-page .operational-controls-overall,
+body.operational-controls-page .operational-controls-section {
+  padding: 18px;
+  border: 1px solid #d8e3f0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(27, 51, 79, 0.08);
+}
+
+body.operational-controls-page .operational-controls-info {
+  align-items: center;
+}
+
+body.operational-controls-page .operational-controls-info .admin-owner-button-secondary {
+  white-space: nowrap;
+}
+
+body.operational-controls-page .operational-overall-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.44fr);
+  gap: 24px;
+}
+
+body.operational-controls-page .operational-overall-copy h2,
+body.operational-controls-page .operational-section-head h2 {
+  margin: 0 0 6px;
+  color: #10243b;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+body.operational-controls-page .operational-overall-copy p,
+body.operational-controls-page .operational-section-head p,
+body.operational-controls-page .operational-controls-info p {
+  color: #516982;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+body.operational-controls-page .operational-overall-controls {
+  justify-items: stretch;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #dbe7f5;
+  border-radius: 14px;
+  background: #f8fbff;
+}
+
+body.operational-controls-page .operational-overall-controls > .operational-status {
+  justify-self: end;
+}
+
+body.operational-controls-page .operational-compact-form {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+body.operational-controls-page .operational-segmented {
+  width: 100%;
+}
+
+body.operational-controls-page .operational-status {
+  min-width: 82px;
+  min-height: 28px;
+  padding: 5px 10px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+body.operational-controls-page .operational-status--unavailable {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+body.operational-controls-page .operational-rule-note {
+  max-width: 390px;
+  border-radius: 12px;
+  background: #f7fbff;
+}
+
+body.operational-controls-page .operational-card-grid {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+body.operational-controls-page .service-control-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+body.operational-controls-page .payment-control-grid {
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+}
+
+body.operational-controls-page .operational-card {
+  display: grid;
+  grid-template-rows: auto minmax(44px, auto) 1fr auto;
+  min-height: 210px;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #d7e4f2;
+  border-radius: 14px;
+  background: #fbfdff;
+  box-shadow: 0 8px 18px rgba(27, 51, 79, 0.06);
+}
+
+body.operational-controls-page .payment-control-card {
+  grid-template-rows: auto 1fr auto;
+  min-height: 170px;
+}
+
+body.operational-controls-page .operational-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+body.operational-controls-page .operational-card__category {
+  max-width: calc(100% - 96px);
+  padding-top: 7px;
+  color: #24588f;
+}
+
+body.operational-controls-page .operational-card__body {
+  min-width: 0;
+}
+
+body.operational-controls-page .operational-card__body h3,
+body.operational-controls-page .payment-control-card__top h3 {
+  margin: 0;
+  color: #10243b;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+body.operational-controls-page .operational-card-warning {
+  margin: 8px 0 0;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+body.operational-controls-page .operational-detail-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid #e3ecf6;
+}
+
+body.operational-controls-page .operational-detail-list > div {
+  display: grid;
+  grid-template-columns: minmax(112px, auto) minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+
+body.operational-controls-page .operational-detail-list dt {
+  color: #6b7f96;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body.operational-controls-page .operational-detail-list dd {
+  min-width: 0;
+  margin: 0;
+  color: #10243b;
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+body.operational-controls-page .operational-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid #e3ecf6;
+}
+
+body.operational-controls-page .operational-inline-form button {
+  min-width: 92px;
+  min-height: 36px;
+  border-radius: 9px;
+  padding: 8px 13px;
+  font-size: 13px;
+}
+
+@media (min-width: 1180px) {
+  body.operational-controls-page .service-control-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  body.operational-controls-page .payment-control-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  body.operational-controls-page .operational-controls-info,
+  body.operational-controls-page .operational-section-head,
+  body.operational-controls-page .operational-overall-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  body.operational-controls-page .operational-overall-controls > .operational-status {
+    justify-self: start;
+  }
+
+  body.operational-controls-page .operational-compact-form {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  body.operational-controls-page .service-control-grid,
+  body.operational-controls-page .payment-control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.operational-controls-page .operational-card {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  body.operational-controls-page .operational-detail-list > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  body.operational-controls-page .operational-card__top {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  body.operational-controls-page .operational-card__actions {
+    justify-content: stretch;
+  }
+
+  body.operational-controls-page .operational-inline-form,
+  body.operational-controls-page .operational-inline-form button {
+    width: 100%;
+  }
+}
+
 .admin-owner-modal-overlay {
   position: fixed;
   inset: 0;
