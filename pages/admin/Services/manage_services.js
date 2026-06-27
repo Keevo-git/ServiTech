@@ -35,6 +35,7 @@
   let confirmResolver = null;
   let confirmReturnFocus = null;
   let editorLoadToken = 0;
+  let selectedPaperSizeKey = null;
   const serviceModalStack = [];
   const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
   const modalBaseZIndex = 2147483100;
@@ -560,22 +561,53 @@
     let order = 0;
     const activePapers = papers.filter((item) => Number(item.active));
     const activeColors = colors.filter((item) => Number(item.active));
-    return `${valueManager("paper_size", "Paper Sizes", "New paper size")}
-      ${valueManager("color_option", "Color Options", "New color option")}
-      <section class="ms-pricing-section">
-        <div class="ms-section-head"><div><h4>Price Matrix</h4><p>Each cell controls one paper size and color combination.</p></div></div>
-        ${activePapers.length && activeColors.length ? `<div class="ms-matrix-wrap"><table class="ms-catalog-matrix">
-          <thead><tr><th>Paper Size</th>${activeColors.map((color) => `<th>${escapeHtml(color.label)}</th>`).join("")}</tr></thead>
-          <tbody>${activePapers.map((paper) => `<tr><th>${escapeHtml(paper.label)}</th>${activeColors.map((color) => {
-            const rule = ensureRule(
-              { paper_size: paper.value_key, color_option: color.value_key },
-              `${paper.label} / ${color.label}`,
-              order++
-            );
-            return `<td>${priceCell(rule)}</td>`;
-          }).join("")}</tr>`).join("")}</tbody>
-        </table></div>` : `<p class="ms-empty-inline">Activate at least one paper size and color option to edit prices.</p>`}
-      </section>`;
+    const selectedSize = papers.find((p) => p.value_key === selectedPaperSizeKey);
+
+    return `<section class="ms-option-section">
+      <div class="ms-section-head">
+        <div><h4>Paper Sizes</h4><p>Select a paper size from the dropdown to edit it.</p></div>
+      </div>
+      <div class="ms-value-list">
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-paper-size-select">Select Paper Size:</label>
+          <select id="ms-paper-size-select" data-select-paper-size aria-label="Select paper size to edit">
+            <option value="">-- Select a paper size --</option>
+            ${papers.map((paper) => `<option value="${escapeHtml(paper.value_key)}" ${selectedPaperSizeKey === paper.value_key ? "selected" : ""}>${escapeHtml(paper.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedSize ? `<div class="ms-value-row ${Number(selectedSize.active) ? "" : "is-inactive"}" data-group-key="paper_size" data-value-key="${escapeHtml(selectedSize.value_key)}">
+          <div class="ms-size-edit-header"><strong>${escapeHtml(selectedSize.label)}</strong></div>
+          <input data-value-label value="${escapeHtml(selectedSize.label)}" maxlength="${optionLabelMaxLength}" aria-label="Paper size name" class="ms-size-input">
+          <div class="ms-status-cell">
+            <span class="ms-control-label">Status</span>
+            <label class="ms-switch ms-switch--compact">
+              <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedSize.label)} active status" ${Number(selectedSize.active) ? "checked" : ""}>
+              <span aria-hidden="true"></span><em>${Number(selectedSize.active) ? "Active" : "Inactive"}</em>
+            </label>
+          </div>
+          ${optionVisibilityWarning("paper_size", selectedSize) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning("paper_size", selectedSize))}</p>` : ""}
+        </div>` : ""}
+      </div>
+      <div class="ms-inline-add">
+        <input data-new-value="paper_size" maxlength="${optionLabelMaxLength}" placeholder="New paper size">
+        <button type="button" data-add-value="paper_size">Add</button>
+      </div>
+    </section>
+    ${valueManager("color_option", "Color Options", "New color option")}
+    <section class="ms-pricing-section">
+      <div class="ms-section-head"><div><h4>Price Matrix</h4><p>Each cell controls one paper size and color combination.</p></div></div>
+      ${activePapers.length && activeColors.length ? `<div class="ms-matrix-wrap"><table class="ms-catalog-matrix">
+        <thead><tr><th>Paper Size</th>${activeColors.map((color) => `<th>${escapeHtml(color.label)}</th>`).join("")}</tr></thead>
+        <tbody>${activePapers.map((paper) => `<tr><th>${escapeHtml(paper.label)}</th>${activeColors.map((color) => {
+          const rule = ensureRule(
+            { paper_size: paper.value_key, color_option: color.value_key },
+            `${paper.label} / ${color.label}`,
+            order++
+          );
+          return `<td>${priceCell(rule)}</td>`;
+        }).join("")}</tr>`).join("")}</tbody>
+      </table></div>` : `<p class="ms-empty-inline">Activate at least one paper size and color option to edit prices.</p>`}
+    </section>`;
   }
 
   function simpleRuleRows(groupKey, title, addLabel, options = {}) {
@@ -864,6 +896,14 @@
   }
 
   editor?.addEventListener("click", async (event) => {
+    const selectPaperSize = event.target.closest("[data-select-paper-size]");
+    if (selectPaperSize) {
+      event.stopPropagation();
+      selectedPaperSizeKey = selectPaperSize.value || null;
+      render();
+      return;
+    }
+
     const toggleTarget = event.target.closest('input[data-action="toggle-active"]');
     if (toggleTarget) {
       event.stopPropagation();
@@ -1004,6 +1044,13 @@
   });
 
   editor?.addEventListener("change", async (event) => {
+    if (event.target.matches("[data-select-paper-size]")) {
+      event.stopPropagation();
+      selectedPaperSizeKey = event.target.value || null;
+      render();
+      return;
+    }
+
     if (event.target.matches("[data-installation-device-mode]")) {
       const enabled = event.target.checked;
       if (!await confirmAction({
@@ -1089,6 +1136,7 @@
     if (!openModalLayer(overlay, editorDialog, editorDialog, closeEditor)) {
       throw new Error("The editor modal layer could not be opened.");
     }
+    selectedPaperSizeKey = null;
     editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
     try {
       const fetchedCatalog = await fetchCatalog(data.id);
@@ -1109,6 +1157,7 @@
     catalog = null;
     originalSnapshot = "";
     originalServiceSnapshot = null;
+    selectedPaperSizeKey = null;
     hideError();
   }
 

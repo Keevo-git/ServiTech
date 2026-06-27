@@ -45,6 +45,10 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
 @media(max-width:850px){.ms-value-list__head{display:none}.ms-control-label{display:block}.ms-value-row{grid-template-columns:minmax(0,1fr) auto auto}.ms-repair-row{grid-template-columns:1fr 1fr}.ms-repair-row>.ms-arrange-cell{grid-column:1/-1}}
 @media(max-width:520px){.ms-value-row{grid-template-columns:1fr 1fr}.ms-value-row>input{grid-column:1/-1}.ms-status-cell{align-self:stretch}.ms-arrange-cell{align-self:stretch;justify-self:end}.ms-repair-row{grid-template-columns:1fr}.ms-repair-row>.ms-arrange-cell{grid-column:1}.ms-rule-row .ms-arrange-cell{justify-self:start}.ms-option-warning{grid-column:1/-1}}
 
+/* Paper Size Dropdown Selector */
+.ms-dropdown-wrapper{display:grid;gap:8px;margin-bottom:12px}.ms-dropdown-wrapper label{color:#294b70;font-size:13px;font-weight:800}.ms-dropdown-wrapper select{border:1px solid #c9d5e2;border-radius:7px;background:#fff;color:#294b70;cursor:pointer;font-size:13px;min-height:42px;padding:8px 12px;width:100%}.ms-dropdown-wrapper select:focus{border-color:#2368a8;outline:none;box-shadow:0 0 0 3px rgba(35,104,168,.15)}.ms-dropdown-wrapper select option{background:#fff;color:#294b70;padding:8px}.ms-size-edit-header{background:#edf3f9;border-bottom:1px solid #dce5ef;color:var(--ms-navy);display:block;font-weight:800;grid-column:1/-1;margin:-8px -8px 8px -8px;padding:10px 8px}.ms-size-input{grid-column:1/-1}
+@media(max-width:520px){.ms-dropdown-wrapper select{font-size:16px}.ms-size-edit-header{margin:-11px -11px 8px -11px;padding:10px 11px}}
+
 /* Authoritative modal stack contract for Manage Services. */
 .ms-overlay,
 .ms-confirm-overlay {
