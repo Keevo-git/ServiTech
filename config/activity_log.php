@@ -108,6 +108,7 @@ if (!function_exists("servitech_activity_success_action_types")) {
             "payment_reject",
             "payment_update",
             "employee_first_time_setup_complete",
+            "admin_profile_update",
             "admin_password_change",
         ];
     }
