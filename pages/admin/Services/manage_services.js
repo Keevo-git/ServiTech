@@ -39,6 +39,9 @@
   let selectedColorKey = null;
   let selectedPackageKey = null;
   let selectedAddonKey = null;
+  let selectedLaminationTypeKey = null;
+  let selectedRepairDeviceKey = null;
+  let selectedInstallationDeviceKey = null;
   const serviceModalStack = [];
   const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
   const modalBaseZIndex = 2147483100;
@@ -830,61 +833,116 @@
 
   function repairEditor() {
     const devices = group("device_type")?.values || [];
+    const selectedDevice = devices.find((d) => d.value_key === selectedRepairDeviceKey);
+    const rules = selectedDevice
+      ? (catalog.rules || []).filter((rule) => rule.option_value_keys?.device_type === selectedDevice.value_key)
+          .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
+      : [];
+
     return `${valueManager("device_type", "Devices", "New device")}
       <section class="ms-pricing-section">
-        <div class="ms-section-head"><div><h4>Repair Services by Device</h4><p>Each device has its own available service types and prices.</p></div></div>
-        <div class="ms-device-stack">${devices.filter((device) => Number(device.active)).map((device) => {
-          const rules = (catalog.rules || []).filter((rule) => rule.option_value_keys?.device_type === device.value_key)
-            .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
-          return `<details class="ms-device-card" open>
-            <summary><strong>${escapeHtml(device.label)}</strong><span>${rules.filter((rule) => Number(rule.active)).length} active services</span></summary>
-            <div class="ms-device-card__body">
-              ${rules.length ? "" : '<p class="ms-device-guidance">Add repair services available for this device.</p>'}
-              ${rules.map((rule, ruleIndex) => {
-                const value = groupValue("repair_type", rule.option_value_keys?.repair_type);
-                if (!value) return "";
-                return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
-                  <input data-value-label data-group-key="repair_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}">
-                  <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
-                  <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
-                  ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
-                  ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
-                </div>`;
-              }).join("")}
-              <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(device.value_key)}" maxlength="${optionLabelMaxLength}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(device.value_key)}">Add Service</button></div>
-            </div>
-          </details>`;
-        }).join("")}</div>
+        <div class="ms-section-head"><div><h4>Repair Services by Device</h4><p>Select a device from the dropdown to manage its services.</p></div></div>
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-repair-device-select">Select Device:</label>
+          <select id="ms-repair-device-select" data-select-repair-device aria-label="Select device to edit">
+            <option value="">-- Select a device --</option>
+            ${devices.filter((device) => Number(device.active)).map((device) => `<option value="${escapeHtml(device.value_key)}" ${selectedRepairDeviceKey === device.value_key ? "selected" : ""}>${escapeHtml(device.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedDevice ? `<div class="ms-device-card-wrapper">
+          <div class="ms-device-card__body">
+            ${rules.length ? "" : '<p class="ms-device-guidance">Add repair services available for this device.</p>'}
+            ${rules.map((rule, ruleIndex) => {
+              const value = groupValue("repair_type", rule.option_value_keys?.repair_type);
+              if (!value) return "";
+              return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
+                <input data-value-label data-group-key="repair_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}">
+                <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
+                <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
+                ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
+                ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
+              </div>`;
+            }).join("")}
+            <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(selectedDevice.value_key)}" maxlength="${optionLabelMaxLength}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(selectedDevice.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(selectedDevice.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(selectedDevice.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(selectedDevice.value_key)}">Add Service</button></div>
+          </div>
+        </div>` : ""}
       </section>`;
+  }
+
+  function laminatingEditor() {
+    const types = group("lamination_type")?.values || [];
+    const selectedType = types.find((t) => t.value_key === selectedLaminationTypeKey);
+    const selectedRule = selectedType ? findRule({ lamination_type: selectedType.value_key }) : null;
+
+    return `<section class="ms-option-section">
+      <div class="ms-section-head">
+        <div><h4>Laminating Types</h4><p>Select a laminating type from the dropdown to edit it.</p></div>
+      </div>
+      <div class="ms-value-list">
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-laminating-type-select">Select Type:</label>
+          <select id="ms-laminating-type-select" data-select-laminating-type aria-label="Select laminating type to edit">
+            <option value="">-- Select a type --</option>
+            ${types.map((type) => `<option value="${escapeHtml(type.value_key)}" ${selectedLaminationTypeKey === type.value_key ? "selected" : ""}>${escapeHtml(type.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedType ? `<div class="ms-value-row ${Number(selectedType.active) ? "" : "is-inactive"}" data-group-key="lamination_type" data-value-key="${escapeHtml(selectedType.value_key)}">
+          <div class="ms-size-edit-header"><strong>${escapeHtml(selectedType.label)}</strong></div>
+          <input data-value-label value="${escapeHtml(selectedType.label)}" maxlength="${optionLabelMaxLength}" aria-label="Laminating type name" class="ms-size-input">
+          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00"></div>
+          <div class="ms-status-cell">
+            <span class="ms-control-label">Status</span>
+            <label class="ms-switch ms-switch--compact">
+              <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedType.label)} active status" ${Number(selectedType.active) ? "checked" : ""}>
+              <span aria-hidden="true"></span><em>${Number(selectedType.active) ? "Active" : "Inactive"}</em>
+            </label>
+          </div>
+        </div>` : ""}
+      </div>
+      <div class="ms-inline-add">
+        <input data-new-value="lamination_type" maxlength="${optionLabelMaxLength}" placeholder="New laminating type">
+        <div class="ms-price-input"><span>PHP</span><input data-new-price="lamination_type" type="number" min="0" step="0.01" placeholder="Price"></div>
+        <label class="ms-switch ms-switch--compact"><input data-new-active="lamination_type" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
+        <button type="button" data-add-value="lamination_type">Add</button>
+      </div>
+    </section>`;
   }
 
   function installationDeviceEditor() {
     const devices = group("device_type")?.values || [];
+    const selectedDevice = devices.find((d) => d.value_key === selectedInstallationDeviceKey);
+    const rules = selectedDevice
+      ? (catalog.rules || []).filter((rule) => rule.option_value_keys?.device_type === selectedDevice.value_key)
+          .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
+      : [];
+
     return `${valueManager("device_type", "Devices", "New device")}
       <section class="ms-pricing-section">
-        <div class="ms-section-head"><div><h4>Installation Services by Device</h4><p>Add installation services available for each device.</p></div></div>
-        <div class="ms-device-stack">${devices.filter((device) => Number(device.active)).map((device) => {
-          const rules = (catalog.rules || []).filter((rule) => rule.option_value_keys?.device_type === device.value_key)
-            .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
-          return `<details class="ms-device-card" open>
-            <summary><strong>${escapeHtml(device.label)}</strong><span>${rules.filter((rule) => Number(rule.active)).length} active services</span></summary>
-            <div class="ms-device-card__body">
-              ${rules.length ? "" : '<p class="ms-device-guidance">Add installation services available for this device.</p>'}
-              ${rules.map((rule, ruleIndex) => {
-                const value = groupValue("installation_type", rule.option_value_keys?.installation_type);
-                if (!value) return "";
-                return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
-                  <input data-value-label data-group-key="installation_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}">
-                  <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
-                  <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
-                  ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
-                  ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
-                </div>`;
-              }).join("")}
-              <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(device.value_key)}" maxlength="${optionLabelMaxLength}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(device.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(device.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(device.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(device.value_key)}">Add Service</button></div>
-            </div>
-          </details>`;
-        }).join("")}</div>
+        <div class="ms-section-head"><div><h4>Installation Services by Device</h4><p>Select a device from the dropdown to manage its services.</p></div></div>
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-installation-device-select">Select Device:</label>
+          <select id="ms-installation-device-select" data-select-installation-device aria-label="Select device to edit">
+            <option value="">-- Select a device --</option>
+            ${devices.filter((device) => Number(device.active)).map((device) => `<option value="${escapeHtml(device.value_key)}" ${selectedInstallationDeviceKey === device.value_key ? "selected" : ""}>${escapeHtml(device.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedDevice ? `<div class="ms-device-card-wrapper">
+          <div class="ms-device-card__body">
+            ${rules.length ? "" : '<p class="ms-device-guidance">Add installation services available for this device.</p>'}
+            ${rules.map((rule, ruleIndex) => {
+              const value = groupValue("installation_type", rule.option_value_keys?.installation_type);
+              if (!value) return "";
+              return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
+                <input data-value-label data-group-key="installation_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}">
+                <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
+                <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
+                ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
+                ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
+              </div>`;
+            }).join("")}
+            <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(selectedDevice.value_key)}" maxlength="${optionLabelMaxLength}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(selectedDevice.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(selectedDevice.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(selectedDevice.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(selectedDevice.value_key)}">Add Service</button></div>
+          </div>
+        </div>` : ""}
       </section>`;
   }
 
@@ -901,7 +959,7 @@
     let content = "";
     if (currentKind === "document_printing" || currentKind === "photocopy") content = matrixEditor();
     else if (currentKind === "rush_id") content = rushEditor();
-    else if (currentKind === "laminating") content = simpleRuleRows("lamination_type", "Laminating Options", "New laminating type", { nameLabel: "Type" });
+    else if (currentKind === "laminating") content = laminatingEditor();
     else if (currentKind === "scanning") content = simpleRuleRows("paper_size", "Scanning Paper Sizes", "New paper size", { nameLabel: "Paper Size" });
     else if (currentKind === "repair") content = repairEditor();
     else if (currentKind === "installation") content = installationEditor();
@@ -1165,6 +1223,27 @@
       return;
     }
 
+    if (event.target.matches("[data-select-laminating-type]")) {
+      event.stopPropagation();
+      selectedLaminationTypeKey = event.target.value || null;
+      render();
+      return;
+    }
+
+    if (event.target.matches("[data-select-repair-device]")) {
+      event.stopPropagation();
+      selectedRepairDeviceKey = event.target.value || null;
+      render();
+      return;
+    }
+
+    if (event.target.matches("[data-select-installation-device]")) {
+      event.stopPropagation();
+      selectedInstallationDeviceKey = event.target.value || null;
+      render();
+      return;
+    }
+
     if (event.target.matches("[data-installation-device-mode]")) {
       const enabled = event.target.checked;
       if (!await confirmAction({
@@ -1254,6 +1333,9 @@
     selectedColorKey = null;
     selectedPackageKey = null;
     selectedAddonKey = null;
+    selectedLaminationTypeKey = null;
+    selectedRepairDeviceKey = null;
+    selectedInstallationDeviceKey = null;
     editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
     try {
       const fetchedCatalog = await fetchCatalog(data.id);
@@ -1278,6 +1360,9 @@
     selectedColorKey = null;
     selectedPackageKey = null;
     selectedAddonKey = null;
+    selectedLaminationTypeKey = null;
+    selectedRepairDeviceKey = null;
+    selectedInstallationDeviceKey = null;
     hideError();
   }
 
