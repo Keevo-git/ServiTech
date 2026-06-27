@@ -752,8 +752,11 @@
 
   function rushEditor() {
     const packages = group("package")?.values || [];
+    const addons = group("addon")?.values || [];
     const selectedPackage = packages.find((p) => p.value_key === selectedPackageKey);
-    const selectedRule = selectedPackage ? findRule({ package: selectedPackage.value_key }) : null;
+    const selectedPackageRule = selectedPackage ? findRule({ package: selectedPackage.value_key }) : null;
+    const selectedAddon = addons.find((a) => a.value_key === selectedAddonKey);
+    const selectedAddonRule = selectedAddon ? findRule({ addon: selectedAddon.value_key }) : null;
 
     return `<section class="ms-option-section">
       <div class="ms-section-head">
@@ -770,8 +773,8 @@
         ${selectedPackage ? `<div class="ms-value-row ${Number(selectedPackage.active) ? "" : "is-inactive"}" data-group-key="package" data-value-key="${escapeHtml(selectedPackage.value_key)}">
           <div class="ms-size-edit-header"><strong>${escapeHtml(selectedPackage.label)}</strong></div>
           <input data-value-label value="${escapeHtml(selectedPackage.label)}" maxlength="${optionLabelMaxLength}" aria-label="Package name" class="ms-size-input">
-          <input data-rule-description value="${escapeHtml(selectedRule?.description || selectedPackage.description || "")}" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details" class="ms-size-input">
-          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00"></div>
+          <input data-rule-description value="${escapeHtml(selectedPackageRule?.description || selectedPackage.description || "")}" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details" class="ms-size-input">
+          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedPackageRule?.price ?? "")}" placeholder="0.00"></div>
           <div class="ms-status-cell">
             <span class="ms-control-label">Status</span>
             <label class="ms-switch ms-switch--compact">
@@ -789,10 +792,40 @@
         <button type="button" data-add-value="package">Add</button>
       </div>
     </section>
-    ${simpleRuleRows("addon", "Optional Add-Ons", "New add-on name", {
-      nameLabel: "Add-On Name", description: true, fixedOnly: true,
-      help: "Additional price added to the selected package. Activate only after setting a price.",
-    })}`;
+    <section class="ms-option-section">
+      <div class="ms-section-head">
+        <div><h4>Optional Add-Ons</h4><p>Select an add-on from the dropdown to edit it. Prices are added to the selected package.</p></div>
+      </div>
+      <div class="ms-value-list">
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-addon-select">Select Add-On:</label>
+          <select id="ms-addon-select" data-select-addon aria-label="Select add-on to edit">
+            <option value="">-- Select an add-on --</option>
+            ${addons.map((addon) => `<option value="${escapeHtml(addon.value_key)}" ${selectedAddonKey === addon.value_key ? "selected" : ""}>${escapeHtml(addon.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedAddon ? `<div class="ms-value-row ${Number(selectedAddon.active) ? "" : "is-inactive"}" data-group-key="addon" data-value-key="${escapeHtml(selectedAddon.value_key)}">
+          <div class="ms-size-edit-header"><strong>${escapeHtml(selectedAddon.label)}</strong></div>
+          <input data-value-label value="${escapeHtml(selectedAddon.label)}" maxlength="${optionLabelMaxLength}" aria-label="Add-on name" class="ms-size-input">
+          <input data-rule-description value="${escapeHtml(selectedAddonRule?.description || selectedAddon.description || "")}" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details" class="ms-size-input">
+          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedAddonRule?.price ?? "")}" placeholder="0.00"></div>
+          <div class="ms-status-cell">
+            <span class="ms-control-label">Status</span>
+            <label class="ms-switch ms-switch--compact">
+              <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedAddon.label)} active status" ${Number(selectedAddon.active) ? "checked" : ""}>
+              <span aria-hidden="true"></span><em>${Number(selectedAddon.active) ? "Active" : "Inactive"}</em>
+            </label>
+          </div>
+        </div>` : ""}
+      </div>
+      <div class="ms-inline-add">
+        <input data-new-value="addon" maxlength="${optionLabelMaxLength}" placeholder="New add-on name">
+        <input data-new-description="addon" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details">
+        <div class="ms-price-input"><span>PHP</span><input data-new-price="addon" type="number" min="0" step="0.01" placeholder="Price"></div>
+        <label class="ms-switch ms-switch--compact"><input data-new-active="addon" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
+        <button type="button" data-add-value="addon">Add</button>
+      </div>
+    </section>`;
   }
 
   function repairEditor() {
