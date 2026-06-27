@@ -1483,7 +1483,7 @@ body.admin-profile-page .admin-profile-shell {
 }
 
 body.admin-profile-page .admin-profile-grid {
-  grid-template-columns: minmax(280px, 0.34fr) minmax(0, 0.66fr);
+  grid-template-columns: minmax(340px, 35%) minmax(0, 1fr);
   gap: 20px;
 }
 
@@ -1512,13 +1512,27 @@ body.admin-profile-page .admin-profile-modal-actions {
 body.admin-profile-page .admin-profile-panel-header {
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
   padding-bottom: 14px;
   border-bottom: 1px solid #e1e8f2;
 }
 
 body.admin-profile-page .admin-profile-panel-header h2 {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
-  font-size: 22px;
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+body.admin-profile-page .admin-profile-panel-header [data-edit-profile] {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  font-size: 14px;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 body.admin-profile-page.is-editing-profile .admin-profile-panel-header [data-edit-profile] {
@@ -1547,10 +1561,11 @@ body.admin-profile-page .admin-profile-summary-list {
 
 body.admin-profile-page .admin-profile-summary-list div {
   display: grid;
-  grid-template-columns: minmax(96px, 0.42fr) minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(112px, 38%) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
   min-width: 0;
-  padding: 11px 0;
+  padding: 10px 0;
   border-bottom: 1px solid #e5edf6;
 }
 
@@ -1564,6 +1579,7 @@ body.admin-profile-page .admin-profile-summary-list dt {
   font-weight: 900;
   letter-spacing: 0.03em;
   line-height: 1.25;
+  text-align: left;
   text-transform: uppercase;
 }
 
@@ -1574,7 +1590,8 @@ body.admin-profile-page .admin-profile-summary-list dd {
   font-size: 13px;
   font-weight: 800;
   line-height: 1.4;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  text-align: left;
 }
 
 body.admin-profile-page .admin-profile-summary-list .admin-owner-pill {
@@ -1683,6 +1700,10 @@ body.admin-profile-page .admin-profile-form-grid__wide {
 
 body.admin-profile-page .admin-profile-form-grid--profile-info {
   grid-template-columns: minmax(0, 1fr);
+}
+
+body.admin-profile-page .admin-profile-form-grid--profile-info > .admin-owner-field {
+  grid-column: 1 / -1;
 }
 
 body.admin-profile-page .admin-owner-field {
@@ -1912,16 +1933,10 @@ body.admin-profile-page .admin-profile-modal-actions {
   }
 
   body.admin-profile-page .admin-profile-section-header,
-  body.admin-profile-page .admin-profile-panel-header,
   body.admin-profile-page .admin-profile-actions,
   body.admin-profile-page .admin-profile-modal-actions {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  body.admin-profile-page .admin-profile-summary-list div {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
   }
 
   body.admin-profile-page .admin-profile-password-rules {
@@ -1931,12 +1946,19 @@ body.admin-profile-page .admin-profile-modal-actions {
   body.admin-profile-page .admin-profile-actions .admin-owner-button,
   body.admin-profile-page .admin-profile-actions .admin-owner-button-secondary,
   body.admin-profile-page .admin-profile-modal-actions .admin-owner-button,
-  body.admin-profile-page .admin-profile-modal-actions .admin-owner-button-secondary,
-  body.admin-profile-page .admin-profile-panel-header .admin-owner-button-secondary {
+  body.admin-profile-page .admin-profile-modal-actions .admin-owner-button-secondary {
     width: 100%;
   }
 
   body.admin-profile-page .admin-profile-confirm-overlay {
     padding: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  body.admin-profile-page .admin-profile-summary-list div {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 5px;
   }
 }

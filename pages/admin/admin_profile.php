@@ -425,7 +425,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
   <title>My Admin Profile | ServiTech</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-admin-profile') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-admin-profile-layout') ?>">
 </head>
 <body class="admin-profile-page<?= $openEditMode ? ' is-editing-profile' : '' ?>">
 <?php require __DIR__ . "/_includes/admin_header.php"; ?>
