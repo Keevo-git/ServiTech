@@ -193,6 +193,7 @@ $csrfToken = servitech_csrf_token();
 $toastMessage = "";
 $toastType = "info";
 $openEditMode = false;
+$activeTab = "profile";
 $passwordFormValues = ["current_password" => "", "new_password" => "", "confirm_password" => ""];
 $profileFormValues = [
     "fullname" => (string)($profile["fullname"] ?? ""),
@@ -214,6 +215,9 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
 
     if ($action === "profile_update") {
         $openEditMode = true;
+        $activeTab = in_array((string)($_POST["active_profile_tab"] ?? "profile"), ["profile", "emergency"], true)
+            ? (string)$_POST["active_profile_tab"]
+            : "profile";
         $profileFormValues = [
             "fullname" => trim((string)($_POST["fullname"] ?? "")),
             "contact" => admin_profile_phone_storage_value((string)($_POST["contact"] ?? ""), (string)($_POST["contact_mobile"] ?? "")),
@@ -276,7 +280,10 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                     "description" => $roleLabel . " " . $profileFormValues["fullname"] . " updated their profile information.",
                 ]);
 
-                servitech_admin_flash_toast("Profile updated successfully.", "success");
+                servitech_admin_flash_toast(
+                    $activeTab === "emergency" ? "Emergency contact updated successfully." : "Profile updated successfully.",
+                    "success"
+                );
                 header("Location: " . admin_url_raw("/pages/admin/admin_profile.php"), true, 303);
                 exit();
             } catch (DomainException $exception) {
@@ -291,6 +298,7 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             }
         }
     } elseif ($action === "password_change") {
+        $activeTab = "password";
         $currentPassword = (string)($_POST["current_password"] ?? "");
         $newPassword = (string)($_POST["new_password"] ?? "");
         $confirmPassword = (string)($_POST["confirm_password"] ?? "");
@@ -390,38 +398,48 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
   <section class="admin-owner-hero">
     <span class="admin-owner-kicker"><?= admin_profile_h($roleLabel) ?></span>
     <h1><?= admin_profile_h($profileTitle) ?></h1>
-    <p>Manage your staff profile, emergency contact details, and password with current-password verification.</p>
+    <p>Manage your profile information, emergency contact, and account password.</p>
   </section>
 
   <section class="admin-owner-grid admin-profile-grid">
     <article class="admin-owner-panel admin-profile-summary">
       <div class="admin-profile-panel-header">
-        <h2>Account Details</h2>
+        <h2>Account Summary</h2>
         <button class="admin-owner-button-secondary" type="button" data-edit-profile>Edit Profile</button>
       </div>
-      <table class="admin-profile-table">
-        <tr><th>Full Name</th><td><?= admin_profile_h($profile["fullname"] ?? "") ?></td></tr>
-        <tr><th>Email</th><td><?= admin_profile_h($profile["email"] ?? "") ?></td></tr>
-        <tr><th>Contact Number</th><td><?= admin_profile_h(admin_profile_blank($profile["contact"] ?? "")) ?></td></tr>
-        <tr><th>Address</th><td><?= admin_profile_h(admin_profile_blank($profile["address"] ?? "")) ?></td></tr>
-        <tr><th>Role</th><td><?= admin_profile_h($roleLabel) ?></td></tr>
-        <tr><th>Account Status</th><td><?= admin_profile_h($accountStatus) ?></td></tr>
-        <tr><th>Last Login</th><td><?= admin_profile_h(admin_profile_datetime($profile["last_login_at"] ?? "")) ?></td></tr>
-        <tr><th>Created Date</th><td><?= admin_profile_h(admin_profile_datetime($profile["created_at"] ?? "")) ?></td></tr>
-      </table>
+      <section class="admin-profile-summary-section" aria-labelledby="account-summary-heading">
+        <h3 id="account-summary-heading">Basic Information</h3>
+        <dl class="admin-profile-summary-list">
+          <div><dt>Full Name</dt><dd><?= admin_profile_h($profile["fullname"] ?? "") ?></dd></div>
+          <div><dt>Email</dt><dd><?= admin_profile_h($profile["email"] ?? "") ?></dd></div>
+          <div><dt>Contact Number</dt><dd><?= admin_profile_h(admin_profile_blank($profile["contact"] ?? "")) ?></dd></div>
+          <div><dt>Address</dt><dd><?= admin_profile_h(admin_profile_blank($profile["address"] ?? "")) ?></dd></div>
+        </dl>
+      </section>
 
-      <h3>Emergency Contact</h3>
-      <table class="admin-profile-table">
-        <tr><th>Name</th><td><?= admin_profile_h(admin_profile_blank($profile["emergency_contact_name"] ?? "")) ?></td></tr>
-        <tr><th>Relationship</th><td><?= admin_profile_h(admin_profile_blank($profile["emergency_contact_relationship"] ?? "")) ?></td></tr>
-        <tr><th>Address</th><td><?= admin_profile_h(admin_profile_blank($profile["emergency_contact_address"] ?? "")) ?></td></tr>
-        <tr><th>Contact Number</th><td><?= admin_profile_h(admin_profile_blank($profile["emergency_contact_number"] ?? "")) ?></td></tr>
-      </table>
+      <section class="admin-profile-summary-section" aria-labelledby="account-status-heading">
+        <h3 id="account-status-heading">Account Status</h3>
+        <dl class="admin-profile-summary-list">
+          <div><dt>Role</dt><dd><?= admin_profile_h($roleLabel) ?></dd></div>
+          <div><dt>Status</dt><dd><span class="admin-owner-pill"><?= admin_profile_h($accountStatus) ?></span></dd></div>
+          <div><dt>Last Login</dt><dd><?= admin_profile_h(admin_profile_datetime($profile["last_login_at"] ?? "")) ?></dd></div>
+          <div><dt>Created Date</dt><dd><?= admin_profile_h(admin_profile_datetime($profile["created_at"] ?? "")) ?></dd></div>
+        </dl>
+      </section>
+
+      <section class="admin-profile-summary-section" aria-labelledby="emergency-summary-heading">
+        <h3 id="emergency-summary-heading">Emergency Contact</h3>
+        <dl class="admin-profile-summary-list">
+          <div><dt>Name</dt><dd><?= admin_profile_h(admin_profile_blank($profile["emergency_contact_name"] ?? "")) ?></dd></div>
+          <div><dt>Relationship</dt><dd><?= admin_profile_h(admin_profile_blank($profile["emergency_contact_relationship"] ?? "")) ?></dd></div>
+          <div><dt>Contact Number</dt><dd><?= admin_profile_h(admin_profile_blank($profile["emergency_contact_number"] ?? "")) ?></dd></div>
+        </dl>
+      </section>
     </article>
 
     <article class="admin-owner-panel admin-profile-workspace">
       <div class="admin-profile-tabs" role="tablist" aria-label="Profile management">
-        <button class="admin-profile-tab is-active" type="button" data-profile-tab="profile" role="tab" aria-selected="true">Profile Information</button>
+        <button class="admin-profile-tab" type="button" data-profile-tab="profile" role="tab" aria-selected="false">Profile Information</button>
         <button class="admin-profile-tab" type="button" data-profile-tab="emergency" role="tab" aria-selected="false">Emergency Contact</button>
         <button class="admin-profile-tab" type="button" data-profile-tab="password" role="tab" aria-selected="false">Change Password</button>
       </div>
@@ -429,6 +447,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
       <form id="adminProfileForm" class="admin-owner-form admin-profile-form" method="post" autocomplete="on" novalidate>
         <input type="hidden" name="csrf_token" value="<?= admin_profile_h($csrfToken) ?>">
         <input type="hidden" name="profile_action" value="profile_update">
+        <input type="hidden" id="active_profile_tab" name="active_profile_tab" value="<?= admin_profile_h($activeTab === "emergency" ? "emergency" : "profile") ?>">
         <input type="hidden" id="confirm_current_password" name="confirm_current_password" value="">
 
         <section class="admin-profile-tab-panel" data-profile-panel="profile">
@@ -460,6 +479,10 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
               <textarea id="address" name="address" rows="4" maxlength="500" required><?= admin_profile_h($profileFormValues["address"]) ?></textarea>
             </div>
           </div>
+          <div class="admin-profile-actions">
+            <button class="admin-owner-button" type="submit">Save Changes</button>
+            <button class="admin-owner-button-secondary" type="button" data-cancel-edit>Cancel</button>
+          </div>
         </section>
 
         <section class="admin-profile-tab-panel" data-profile-panel="emergency" hidden>
@@ -490,12 +513,11 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
               <input id="emergency_contact_number" name="emergency_contact_number" type="hidden" value="<?= admin_profile_h($profileFormValues["emergency_contact_number"]) ?>">
             </div>
           </div>
+          <div class="admin-profile-actions">
+            <button class="admin-owner-button" type="submit">Save Changes</button>
+            <button class="admin-owner-button-secondary" type="button" data-cancel-edit>Cancel</button>
+          </div>
         </section>
-
-        <div class="admin-profile-actions">
-          <button class="admin-owner-button" type="submit">Save Changes</button>
-          <button class="admin-owner-button-secondary" type="button" data-cancel-edit>Cancel</button>
-        </div>
       </form>
 
       <form id="adminPasswordForm" class="admin-owner-form admin-profile-password-form" method="post" autocomplete="on" novalidate>
@@ -527,7 +549,9 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
             <li>At least one number</li>
             <li>At least one special character</li>
           </ul>
-          <button class="admin-owner-button" type="submit">Change Password</button>
+          <div class="admin-profile-actions admin-profile-actions--password">
+            <button class="admin-owner-button" type="submit">Change Password</button>
+          </div>
         </section>
       </form>
     </article>
@@ -566,6 +590,8 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
     const modal = document.getElementById("adminProfileConfirmModal");
     const modalPassword = document.getElementById("profileConfirmPassword");
     const hiddenPassword = document.getElementById("confirm_current_password");
+    const activeProfileTab = document.getElementById("active_profile_tab");
+    const initialTab = <?= json_encode($activeTab, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
     const editButtons = document.querySelectorAll("[data-edit-profile]");
     const cancelButtons = document.querySelectorAll("[data-cancel-edit]");
     const tabs = document.querySelectorAll("[data-profile-tab]");
@@ -584,6 +610,10 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
     }
 
     function setTab(name) {
+      const isPassword = name === "password";
+      if (profileForm) profileForm.hidden = isPassword;
+      if (passwordForm) passwordForm.hidden = !isPassword;
+      if (activeProfileTab && !isPassword) activeProfileTab.value = name === "emergency" ? "emergency" : "profile";
       tabs.forEach((tab) => {
         const active = tab.dataset.profileTab === name;
         tab.classList.toggle("is-active", active);
@@ -643,7 +673,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
     tabs.forEach((tab) => tab.addEventListener("click", () => {
       const nextTab = tab.dataset.profileTab || "profile";
       setTab(nextTab);
-      if (nextTab !== "password") setEditing(true);
+      setEditing(nextTab !== "password");
     }));
 
     ["contact_mobile", "emergency_contact_mobile"].forEach((id) => {
@@ -705,7 +735,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
 
     window.addEventListener("DOMContentLoaded", () => showToast(toastMessage, toastType), { once: true });
     setEditing(body.classList.contains("is-editing-profile"));
-    setTab("profile");
+    setTab(initialTab || "profile");
     syncMobile("contact_mobile", "contact");
     syncMobile("emergency_contact_mobile", "emergency_contact_number");
   })();
