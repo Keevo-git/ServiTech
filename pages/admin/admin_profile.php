@@ -493,18 +493,20 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
               <label for="fullname">Full Name</label>
               <input id="fullname" name="fullname" value="<?= admin_profile_h($profileFormValues["fullname"]) ?>" maxlength="160" required>
             </div>
-            <div class="admin-owner-field">
-              <label for="email">Email</label>
-              <input id="email" value="<?= admin_profile_h($profile["email"] ?? "") ?>" readonly>
-              <p class="admin-owner-muted">Email changes must be handled through account verification.</p>
-            </div>
-            <div class="admin-owner-field">
-              <label for="contact_mobile">Contact Number</label>
-              <div class="contact-number-control">
-                <span class="contact-number-prefix" aria-label="Philippine country code">+63</span>
-                <input id="contact_mobile" name="contact_mobile" type="tel" inputmode="numeric" value="<?= admin_profile_h($profileFormValues["contact_mobile"]) ?>" placeholder="9XXXXXXXXX" maxlength="10" pattern="9[0-9]{9}" required>
+            <div class="admin-profile-two-column-row admin-profile-form-grid__wide">
+              <div class="admin-owner-field">
+                <label for="email">Email</label>
+                <input id="email" value="<?= admin_profile_h($profile["email"] ?? "") ?>" readonly>
+                <p class="admin-owner-muted admin-profile-field-note">Email changes must be handled through account verification.</p>
               </div>
-              <input id="contact" name="contact" type="hidden" value="<?= admin_profile_h($profileFormValues["contact"]) ?>">
+              <div class="admin-owner-field">
+                <label for="contact_mobile">Contact Number</label>
+                <div class="contact-number-control">
+                  <span class="contact-number-prefix" aria-label="Philippine country code">+63</span>
+                  <input id="contact_mobile" name="contact_mobile" type="tel" inputmode="numeric" value="<?= admin_profile_h($profileFormValues["contact_mobile"]) ?>" placeholder="9XXXXXXXXX" maxlength="10" pattern="9[0-9]{9}" required>
+                </div>
+                <input id="contact" name="contact" type="hidden" value="<?= admin_profile_h($profileFormValues["contact"]) ?>">
+              </div>
             </div>
             <div class="admin-owner-field admin-profile-form-grid__wide">
               <label for="address">Address</label>
