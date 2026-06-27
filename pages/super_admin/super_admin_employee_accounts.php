@@ -536,6 +536,11 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $fullname = trim((string)($_POST["fullname"] ?? ""));
             $email = strtolower(trim((string)($_POST["email"] ?? "")));
             $contact = trim((string)($_POST["contact"] ?? ""));
+            $address = trim((string)($_POST["address"] ?? ""));
+            $emergencyName = trim((string)($_POST["emergency_contact_name"] ?? ""));
+            $emergencyRelationship = trim((string)($_POST["emergency_contact_relationship"] ?? ""));
+            $emergencyAddress = trim((string)($_POST["emergency_contact_address"] ?? ""));
+            $emergencyNumber = trim((string)($_POST["emergency_contact_number"] ?? ""));
             $positionTitle = trim((string)($_POST["position_title"] ?? ""));
             $notes = trim((string)($_POST["employee_notes"] ?? ""));
 
@@ -554,6 +559,11 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 SET fullname = :fullname,
                     email = :email,
                     contact = :contact,
+                    address = :address,
+                    emergency_contact_name = :emergency_contact_name,
+                    emergency_contact_relationship = :emergency_contact_relationship,
+                    emergency_contact_address = :emergency_contact_address,
+                    emergency_contact_number = :emergency_contact_number,
                     position_title = :position_title,
                     employee_notes = :employee_notes,
                     role = 'admin',
@@ -565,6 +575,11 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 ":fullname" => $fullname,
                 ":email" => $email,
                 ":contact" => $contact !== "" ? $contact : null,
+                ":address" => $address !== "" ? $address : null,
+                ":emergency_contact_name" => $emergencyName !== "" ? $emergencyName : null,
+                ":emergency_contact_relationship" => $emergencyRelationship !== "" ? $emergencyRelationship : null,
+                ":emergency_contact_address" => $emergencyAddress !== "" ? $emergencyAddress : null,
+                ":emergency_contact_number" => $emergencyNumber !== "" ? $emergencyNumber : null,
                 ":position_title" => $positionTitle,
                 ":employee_notes" => $notes,
                 ":confirmed_at" => employee_account_confirmed_at($authUser["email_confirmed_at"] ?? null),
@@ -575,7 +590,15 @@ if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
                 "module" => "employee_accounts",
                 "target_record_id" => (string)$employeeId,
                 "old_value" => $account,
-                "new_value" => ["fullname" => $fullname, "email" => $email, "contact" => $contact],
+                "new_value" => [
+                    "fullname" => $fullname,
+                    "email" => $email,
+                    "contact" => $contact,
+                    "address" => $address,
+                    "emergency_contact_name" => $emergencyName,
+                    "emergency_contact_relationship" => $emergencyRelationship,
+                    "emergency_contact_number" => $emergencyNumber,
+                ],
                 "description" => "Super Admin updated the employee account for {$fullname}.",
             ]);
             servitech_admin_flash_toast("Employee account updated.", "success");
@@ -721,7 +744,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
   <title>Employee Accounts | ServiTech Admin</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-accounts-polish') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-accounts-modal') ?>">
 </head>
 <body class="admin-employee-accounts<?= $openCreateModal ? " admin-owner-modal-open" : "" ?>">
 <?php require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
@@ -761,7 +784,6 @@ unset($_SESSION["employee_account_create_modal_open"]);
           <colgroup>
             <col class="employee-accounts-table__col-employee">
             <col class="employee-accounts-table__col-email">
-            <col class="employee-accounts-table__col-role">
             <col class="employee-accounts-table__col-status">
             <col class="employee-accounts-table__col-status">
             <col class="employee-accounts-table__col-status">
@@ -772,7 +794,6 @@ unset($_SESSION["employee_account_create_modal_open"]);
             <tr>
               <th>Employee</th>
               <th>Email</th>
-              <th>Role</th>
               <th>Auth Status</th>
               <th>Profile Status</th>
               <th>Account Status</th>
@@ -783,14 +804,14 @@ unset($_SESSION["employee_account_create_modal_open"]);
           <tbody>
           <?php if (!$employeeAccounts): ?>
             <tr data-employee-empty-state="no-records">
-              <td colspan="8" class="admin-owner-empty-state employee-accounts-empty-state">
+              <td colspan="7" class="admin-owner-empty-state employee-accounts-empty-state">
                 <strong>No linked employee admin accounts found.</strong>
                 <span>No linked employee login accounts are available yet.</span>
               </td>
             </tr>
           <?php endif; ?>
             <tr data-employee-empty-state="search" hidden>
-              <td colspan="8" class="admin-owner-empty-state employee-accounts-empty-state">
+              <td colspan="7" class="admin-owner-empty-state employee-accounts-empty-state">
                 <strong>No employee accounts match your search.</strong>
                 <span>Try searching with a different name or email.</span>
               </td>
@@ -815,7 +836,6 @@ unset($_SESSION["employee_account_create_modal_open"]);
                 </small>
               </td>
               <td class="employee-account-cell employee-account-cell--email"><?= employee_account_h($account["email"] ?? "") ?></td>
-              <td><span class="admin-owner-pill">Employee Admin</span></td>
               <td>
                 <span class="admin-owner-pill<?= $authVerified ? "" : " admin-owner-pill--danger" ?>">
                   <?= $authVerified ? "Verified" : "Pending Verification" ?>
@@ -839,121 +859,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
               </td>
               <td class="employee-account-actions-cell">
                 <div class="employee-account-actions">
-                  <details class="employee-account-action-disclosure" data-view-details-id="employee-details-<?= $employeeId ?>">
-                    <summary class="admin-owner-button-secondary employee-account-action-button">View Details</summary>
-                    <div class="employee-account-action-panel">
-                      <form class="admin-owner-form employee-account-inline-form" method="post">
-                        <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
-                        <input type="hidden" name="action" value="update">
-                        <input type="hidden" name="employee_id" value="<?= $employeeId ?>">
-                        <div class="employee-account-action-panel__header">
-                          <strong>Edit Details</strong>
-                          <span>Created by: <?= employee_account_h($account["created_by_name"] ?: "-") ?></span>
-                        </div>
-                        <div class="employee-account-form-grid">
-                          <div class="admin-owner-field">
-                            <label>Name</label>
-                            <input name="fullname" value="<?= employee_account_h($account["fullname"] ?? "") ?>" required>
-                          </div>
-                          <div class="admin-owner-field">
-                            <label>Email</label>
-                            <input name="email" type="email" value="<?= employee_account_h($account["email"] ?? "") ?>" required>
-                          </div>
-                          <div class="admin-owner-field">
-                            <label>Contact</label>
-                            <input name="contact" value="<?= employee_account_h($account["contact"] ?? "") ?>">
-                          </div>
-                          <div class="admin-owner-field">
-                            <label>Position / Job Title</label>
-                            <input name="position_title" value="<?= employee_account_h($account["position_title"] ?? "") ?>">
-                          </div>
-                          <div class="admin-owner-field employee-account-form-grid__wide">
-                            <label>Notes</label>
-                            <textarea name="employee_notes" rows="3"><?= employee_account_h($account["employee_notes"] ?? "") ?></textarea>
-                          </div>
-                        </div>
-                        <div class="admin-owner-actions">
-                          <button class="admin-owner-button-secondary" type="submit">Save Details</button>
-                        </div>
-                      </form>
-                      <dl class="employee-account-profile-list">
-                        <div>
-                          <dt>Address</dt>
-                          <dd><?= employee_account_h($account["address"] ?: "-") ?></dd>
-                        </div>
-                        <div>
-                          <dt>Emergency Contact</dt>
-                          <dd><?= employee_account_h($account["emergency_contact_name"] ?: "-") ?></dd>
-                        </div>
-                        <div>
-                          <dt>Relationship</dt>
-                          <dd><?= employee_account_h($account["emergency_contact_relationship"] ?: "-") ?></dd>
-                        </div>
-                        <div>
-                          <dt>Emergency Address</dt>
-                          <dd><?= employee_account_h($account["emergency_contact_address"] ?: "-") ?></dd>
-                        </div>
-                        <div>
-                          <dt>Emergency Number</dt>
-                          <dd><?= employee_account_h($account["emergency_contact_number"] ?: "-") ?></dd>
-                        </div>
-                        <div>
-                          <dt>Setup Completed</dt>
-                          <dd><?= employee_account_h(employee_account_format_datetime($account["first_login_completed_at"] ?? "")) ?></dd>
-                        </div>
-                        <div>
-                          <dt>Last Updated</dt>
-                          <dd><?= employee_account_h(employee_account_format_datetime($account["updated_at"] ?? "")) ?></dd>
-                        </div>
-                      </dl>
-                    </div>
-                  </details>
-
-                  <details class="employee-account-more-menu">
-                    <summary class="admin-owner-button-secondary employee-account-action-button employee-account-action-button--more">More</summary>
-                    <div class="employee-account-more-menu__panel">
-                      <button class="employee-account-menu-item" type="button" data-open-employee-details="employee-details-<?= $employeeId ?>">Edit Details</button>
-
-                      <details class="employee-account-more-section">
-                        <summary>Reset Temporary Password</summary>
-                        <form class="admin-owner-form employee-account-password-form" method="post">
-                          <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
-                          <input type="hidden" name="action" value="reset_password">
-                          <input type="hidden" name="employee_id" value="<?= $employeeId ?>">
-                          <div class="admin-owner-field">
-                            <label>New Temporary Password</label>
-                            <input name="temporary_password" type="password" autocomplete="new-password" required>
-                          </div>
-                          <div class="admin-owner-field">
-                            <label>Confirm Temporary Password</label>
-                            <input name="temporary_password_confirm" type="password" autocomplete="new-password" required>
-                          </div>
-                          <div class="admin-owner-actions employee-account-menu-actions">
-                            <button class="admin-owner-button-secondary" type="button" data-generate-temp-password>Generate</button>
-                            <button class="admin-owner-button-secondary" type="button" data-copy-temp-password>Copy</button>
-                            <button class="admin-owner-button-secondary" type="submit"<?= $supabaseAdminReady ? "" : " disabled" ?>>Reset</button>
-                          </div>
-                        </form>
-                      </details>
-
-                      <form method="post" class="employee-account-menu-form">
-                        <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
-                        <input type="hidden" name="action" value="force_password_change">
-                        <input type="hidden" name="employee_id" value="<?= $employeeId ?>">
-                        <button class="employee-account-menu-item" type="submit">Force Password Change</button>
-                      </form>
-
-                      <form method="post" class="employee-account-menu-form" data-employee-status-form data-employee-name="<?= employee_account_h($account["fullname"] ?? $account["email"] ?? "this employee") ?>" data-employee-status-action="<?= $isActive ? "deactivate" : "reactivate" ?>">
-                        <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
-                        <input type="hidden" name="action" value="set_status">
-                        <input type="hidden" name="employee_id" value="<?= $employeeId ?>">
-                        <input type="hidden" name="status" value="<?= $isActive ? "deactivated" : "active" ?>">
-                        <button class="employee-account-menu-item employee-account-menu-item--danger" type="submit">
-                          <?= $isActive ? "Deactivate" : "Reactivate" ?>
-                        </button>
-                      </form>
-                    </div>
-                  </details>
+                  <button class="admin-owner-button-secondary employee-account-action-button" type="button" data-open-employee-modal="employee-details-<?= $employeeId ?>">View Details</button>
                 </div>
               </td>
             </tr>
@@ -963,6 +869,235 @@ unset($_SESSION["employee_account_create_modal_open"]);
       </div>
     </section>
   </section>
+
+  <?php foreach ($employeeAccounts as $account): ?>
+    <?php
+      $employeeId = (int)$account["id"];
+      $status = strtolower(trim((string)($account["account_status"] ?? "active")));
+      $isActive = $status === "active";
+      $profileCompleted = filter_var($account["profile_completed"] ?? false, FILTER_VALIDATE_BOOLEAN);
+      $forcePasswordChange = filter_var($account["force_password_change"] ?? false, FILTER_VALIDATE_BOOLEAN);
+      $authVerified = trim((string)($account["auth_email_confirmed_at"] ?? "")) !== "";
+      $authStatusLabel = $authVerified ? "Verified" : "Pending Verification";
+      $profileStatusLabel = $profileCompleted && !$forcePasswordChange ? "Completed" : "Pending Setup";
+      $accountStatusLabel = $isActive ? "Active" : "Inactive";
+    ?>
+    <div class="admin-owner-modal-overlay employee-details-modal-overlay" id="employee-details-<?= $employeeId ?>" data-employee-details-modal aria-hidden="true" hidden>
+      <section class="admin-owner-modal employee-details-modal" role="dialog" aria-modal="true" aria-labelledby="employee-details-title-<?= $employeeId ?>">
+        <div class="admin-owner-modal__header employee-details-modal__header">
+          <div>
+            <span class="employee-details-modal__eyebrow">Employee Admin Account</span>
+            <h2 id="employee-details-title-<?= $employeeId ?>">Employee Details</h2>
+            <p><?= employee_account_h($account["fullname"] ?? "") ?></p>
+          </div>
+          <button class="admin-owner-modal__close" type="button" aria-label="Close employee details modal" data-close-employee-details-modal>&times;</button>
+        </div>
+
+        <div class="employee-details-modal__body" data-employee-modal-view>
+          <section class="employee-details-section">
+            <div class="employee-details-section__header">
+              <h3>Basic Information</h3>
+            </div>
+            <dl class="employee-details-list">
+              <div>
+                <dt>Employee Name</dt>
+                <dd><?= employee_account_h($account["fullname"] ?: "-") ?></dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd><?= employee_account_h($account["email"] ?: "-") ?></dd>
+              </div>
+              <div>
+                <dt>Role</dt>
+                <dd>Employee Admin</dd>
+              </div>
+              <div>
+                <dt>Created By</dt>
+                <dd><?= employee_account_h($account["created_by_name"] ?: "-") ?></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="employee-details-section">
+            <div class="employee-details-section__header">
+              <h3>Contact Details</h3>
+            </div>
+            <dl class="employee-details-list">
+              <div>
+                <dt>Contact Number</dt>
+                <dd><?= employee_account_h($account["contact"] ?: "-") ?></dd>
+              </div>
+              <div>
+                <dt>Address</dt>
+                <dd><?= employee_account_h($account["address"] ?: "-") ?></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="employee-details-section">
+            <div class="employee-details-section__header">
+              <h3>Emergency Contact</h3>
+            </div>
+            <dl class="employee-details-list">
+              <div>
+                <dt>Name</dt>
+                <dd><?= employee_account_h($account["emergency_contact_name"] ?: "-") ?></dd>
+              </div>
+              <div>
+                <dt>Relationship</dt>
+                <dd><?= employee_account_h($account["emergency_contact_relationship"] ?: "-") ?></dd>
+              </div>
+              <div>
+                <dt>Address</dt>
+                <dd><?= employee_account_h($account["emergency_contact_address"] ?: "-") ?></dd>
+              </div>
+              <div>
+                <dt>Number</dt>
+                <dd><?= employee_account_h($account["emergency_contact_number"] ?: "-") ?></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="employee-details-section">
+            <div class="employee-details-section__header">
+              <h3>Account Status</h3>
+            </div>
+            <dl class="employee-details-list employee-details-list--status">
+              <div>
+                <dt>Auth Status</dt>
+                <dd><span class="admin-owner-pill<?= $authVerified ? "" : " admin-owner-pill--danger" ?>"><?= employee_account_h($authStatusLabel) ?></span></dd>
+              </div>
+              <div>
+                <dt>Profile Status</dt>
+                <dd><span class="admin-owner-pill<?= $profileCompleted && !$forcePasswordChange ? "" : " admin-owner-pill--danger" ?>"><?= employee_account_h($profileStatusLabel) ?></span></dd>
+              </div>
+              <div>
+                <dt>Account Status</dt>
+                <dd><span class="admin-owner-pill<?= $isActive ? "" : " admin-owner-pill--danger" ?>"><?= employee_account_h($accountStatusLabel) ?></span></dd>
+              </div>
+              <div>
+                <dt>Created Date</dt>
+                <dd><?= employee_account_h(employee_account_format_datetime($account["created_at"] ?? "")) ?></dd>
+              </div>
+              <div>
+                <dt>Last Login</dt>
+                <dd><?= employee_account_h(employee_account_format_datetime($account["last_login_at"] ?? "")) ?></dd>
+              </div>
+              <div>
+                <dt>Setup Completed</dt>
+                <dd><?= employee_account_h(employee_account_format_datetime($account["first_login_completed_at"] ?? "")) ?></dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+
+        <form class="admin-owner-form employee-details-edit-form" method="post" data-employee-modal-edit hidden>
+          <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
+          <input type="hidden" name="action" value="update">
+          <input type="hidden" name="employee_id" value="<?= $employeeId ?>">
+          <section class="employee-details-section">
+            <div class="employee-details-section__header">
+              <h3>Edit Details</h3>
+              <p>Email is read-only here because login email changes must be completed through the linked Supabase Auth account first.</p>
+            </div>
+            <div class="employee-account-form-grid">
+              <div class="admin-owner-field">
+                <label for="employee_fullname_<?= $employeeId ?>">Name</label>
+                <input id="employee_fullname_<?= $employeeId ?>" name="fullname" value="<?= employee_account_h($account["fullname"] ?? "") ?>" required>
+              </div>
+              <div class="admin-owner-field">
+                <label for="employee_email_<?= $employeeId ?>">Email</label>
+                <input id="employee_email_<?= $employeeId ?>" name="email" type="email" value="<?= employee_account_h($account["email"] ?? "") ?>" readonly required>
+              </div>
+              <div class="admin-owner-field">
+                <label for="employee_contact_<?= $employeeId ?>">Contact Number</label>
+                <input id="employee_contact_<?= $employeeId ?>" name="contact" value="<?= employee_account_h($account["contact"] ?? "") ?>">
+              </div>
+              <div class="admin-owner-field">
+                <label for="employee_position_<?= $employeeId ?>">Position / Job Title</label>
+                <input id="employee_position_<?= $employeeId ?>" name="position_title" value="<?= employee_account_h($account["position_title"] ?? "") ?>">
+              </div>
+              <div class="admin-owner-field employee-account-form-grid__wide">
+                <label for="employee_address_<?= $employeeId ?>">Address</label>
+                <textarea id="employee_address_<?= $employeeId ?>" name="address" rows="2"><?= employee_account_h($account["address"] ?? "") ?></textarea>
+              </div>
+              <div class="admin-owner-field">
+                <label for="employee_emergency_name_<?= $employeeId ?>">Emergency Contact Name</label>
+                <input id="employee_emergency_name_<?= $employeeId ?>" name="emergency_contact_name" value="<?= employee_account_h($account["emergency_contact_name"] ?? "") ?>">
+              </div>
+              <div class="admin-owner-field">
+                <label for="employee_emergency_relationship_<?= $employeeId ?>">Emergency Contact Relationship</label>
+                <input id="employee_emergency_relationship_<?= $employeeId ?>" name="emergency_contact_relationship" value="<?= employee_account_h($account["emergency_contact_relationship"] ?? "") ?>">
+              </div>
+              <div class="admin-owner-field employee-account-form-grid__wide">
+                <label for="employee_emergency_address_<?= $employeeId ?>">Emergency Contact Address</label>
+                <textarea id="employee_emergency_address_<?= $employeeId ?>" name="emergency_contact_address" rows="2"><?= employee_account_h($account["emergency_contact_address"] ?? "") ?></textarea>
+              </div>
+              <div class="admin-owner-field">
+                <label for="employee_emergency_number_<?= $employeeId ?>">Emergency Contact Number</label>
+                <input id="employee_emergency_number_<?= $employeeId ?>" name="emergency_contact_number" value="<?= employee_account_h($account["emergency_contact_number"] ?? "") ?>">
+              </div>
+              <div class="admin-owner-field">
+                <label for="employee_notes_<?= $employeeId ?>">Notes</label>
+                <textarea id="employee_notes_<?= $employeeId ?>" name="employee_notes" rows="2"><?= employee_account_h($account["employee_notes"] ?? "") ?></textarea>
+              </div>
+            </div>
+          </section>
+          <div class="employee-details-modal__actions">
+            <button class="admin-owner-button-secondary" type="button" data-cancel-employee-edit>Cancel</button>
+            <button class="admin-owner-button" type="submit">Save Details</button>
+          </div>
+        </form>
+
+        <section class="employee-details-section employee-details-actions" data-employee-modal-actions>
+          <div class="employee-details-section__header">
+            <h3>Actions</h3>
+          </div>
+          <div class="employee-details-action-grid">
+            <button class="admin-owner-button-secondary" type="button" data-edit-employee-details>Edit Details</button>
+            <details class="employee-details-password-reset">
+              <summary class="admin-owner-button-secondary">Reset Temporary Password</summary>
+              <form class="admin-owner-form employee-account-password-form" method="post">
+                <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
+                <input type="hidden" name="action" value="reset_password">
+                <input type="hidden" name="employee_id" value="<?= $employeeId ?>">
+                <div class="employee-account-form-grid">
+                  <div class="admin-owner-field">
+                    <label>New Temporary Password</label>
+                    <input name="temporary_password" type="password" autocomplete="new-password" required>
+                  </div>
+                  <div class="admin-owner-field">
+                    <label>Confirm Temporary Password</label>
+                    <input name="temporary_password_confirm" type="password" autocomplete="new-password" required>
+                  </div>
+                </div>
+                <div class="admin-owner-actions employee-account-menu-actions">
+                  <button class="admin-owner-button-secondary" type="button" data-generate-temp-password>Generate</button>
+                  <button class="admin-owner-button-secondary" type="button" data-copy-temp-password>Copy</button>
+                  <button class="admin-owner-button-secondary" type="submit"<?= $supabaseAdminReady ? "" : " disabled" ?>>Reset Password</button>
+                </div>
+              </form>
+            </details>
+            <form method="post" class="employee-account-menu-form">
+              <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
+              <input type="hidden" name="action" value="force_password_change">
+              <input type="hidden" name="employee_id" value="<?= $employeeId ?>">
+              <button class="admin-owner-button-secondary" type="submit">Force Password Change</button>
+            </form>
+            <form method="post" class="employee-account-menu-form" data-employee-status-form data-employee-name="<?= employee_account_h($account["fullname"] ?? $account["email"] ?? "this employee") ?>" data-employee-status-action="<?= $isActive ? "deactivate" : "reactivate" ?>">
+              <input type="hidden" name="csrf_token" value="<?= employee_account_h($csrfToken) ?>">
+              <input type="hidden" name="action" value="set_status">
+              <input type="hidden" name="employee_id" value="<?= $employeeId ?>">
+              <input type="hidden" name="status" value="<?= $isActive ? "deactivated" : "active" ?>">
+              <button class="<?= $isActive ? "admin-owner-button-danger" : "admin-owner-button" ?>" type="submit">
+                <?= $isActive ? "Deactivate" : "Reactivate" ?>
+              </button>
+            </form>
+          </div>
+        </section>
+      </section>
+    </div>
+  <?php endforeach; ?>
 
   <div class="admin-owner-modal-overlay employee-account-confirm-overlay" data-employee-confirm-modal aria-hidden="true" hidden>
     <section class="admin-owner-modal employee-account-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="employee-confirm-title" aria-describedby="employee-confirm-message">
@@ -1036,6 +1171,7 @@ unset($_SESSION["employee_account_create_modal_open"]);
     var confirmButton = document.querySelector("[data-confirm-employee-status]");
     var searchInput = document.querySelector("[data-employee-account-search]");
     var employeeRows = Array.prototype.slice.call(document.querySelectorAll(".employee-account-row"));
+    var detailModals = Array.prototype.slice.call(document.querySelectorAll("[data-employee-details-modal]"));
     var searchEmptyState = document.querySelector("[data-employee-empty-state='search']");
     var pendingStatusForm = null;
 
@@ -1046,7 +1182,10 @@ unset($_SESSION["employee_account_create_modal_open"]);
     function setBodyModalLock() {
       var createOpen = modal && !modal.hidden;
       var confirmOpen = confirmModal && !confirmModal.hidden;
-      document.body.classList.toggle("admin-owner-modal-open", !!(createOpen || confirmOpen));
+      var detailsOpen = detailModals.some(function (detailModal) {
+        return !detailModal.hidden;
+      });
+      document.body.classList.toggle("admin-owner-modal-open", !!(createOpen || confirmOpen || detailsOpen));
     }
 
     function isTypingTarget(target) {
@@ -1123,6 +1262,66 @@ unset($_SESSION["employee_account_create_modal_open"]);
       }
     }
 
+    function resetEmployeeModal(detailModal) {
+      if (!detailModal) return;
+      var view = detailModal.querySelector("[data-employee-modal-view]");
+      var edit = detailModal.querySelector("[data-employee-modal-edit]");
+      var actions = detailModal.querySelector("[data-employee-modal-actions]");
+      if (view) view.hidden = false;
+      if (edit) {
+        edit.hidden = true;
+        edit.reset();
+      }
+      if (actions) actions.hidden = false;
+      detailModal.querySelectorAll("details[open]").forEach(function (details) {
+        details.open = false;
+      });
+    }
+
+    function openEmployeeModal(modalId) {
+      var detailModal = document.getElementById(modalId);
+      if (!detailModal) {
+        window.servitechAdminToast?.error?.("Unable to load employee details.");
+        return;
+      }
+      lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      resetEmployeeModal(detailModal);
+      detailModal.hidden = false;
+      detailModal.setAttribute("aria-hidden", "false");
+      setBodyModalLock();
+      window.setTimeout(function () {
+        var closeButton = detailModal.querySelector("[data-close-employee-details-modal]");
+        if (closeButton) closeButton.focus();
+      }, 0);
+    }
+
+    function closeEmployeeModal(detailModal) {
+      if (!detailModal) return;
+      resetEmployeeModal(detailModal);
+      detailModal.hidden = true;
+      detailModal.setAttribute("aria-hidden", "true");
+      setBodyModalLock();
+      if (lastFocusedElement && document.contains(lastFocusedElement)) {
+        lastFocusedElement.focus();
+      }
+    }
+
+    function setEmployeeEditMode(detailModal, editMode) {
+      if (!detailModal) return;
+      var view = detailModal.querySelector("[data-employee-modal-view]");
+      var edit = detailModal.querySelector("[data-employee-modal-edit]");
+      var actions = detailModal.querySelector("[data-employee-modal-actions]");
+      if (view) view.hidden = editMode;
+      if (edit) edit.hidden = !editMode;
+      if (actions) actions.hidden = editMode;
+      if (editMode && edit) {
+        window.setTimeout(function () {
+          var firstField = edit.querySelector("input:not([type='hidden']):not([readonly]), textarea");
+          if (firstField) firstField.focus();
+        }, 0);
+      }
+    }
+
     if (modal) {
       modal.addEventListener("click", function (event) {
         if (event.target === modal || event.target.closest("[data-close-create-employee-modal]")) {
@@ -1147,6 +1346,22 @@ unset($_SESSION["employee_account_create_modal_open"]);
       });
     }
 
+    detailModals.forEach(function (detailModal) {
+      detailModal.addEventListener("click", function (event) {
+        if (event.target === detailModal || event.target.closest("[data-close-employee-details-modal]")) {
+          closeEmployeeModal(detailModal);
+          return;
+        }
+        if (event.target.closest("[data-edit-employee-details]")) {
+          setEmployeeEditMode(detailModal, true);
+          return;
+        }
+        if (event.target.closest("[data-cancel-employee-edit]")) {
+          setEmployeeEditMode(detailModal, false);
+        }
+      });
+    });
+
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && modal && !modal.hidden) {
         closeCreateModal(true);
@@ -1154,6 +1369,13 @@ unset($_SESSION["employee_account_create_modal_open"]);
       }
       if (event.key === "Escape" && confirmModal && !confirmModal.hidden) {
         closeConfirmModal();
+        return;
+      }
+      var openDetailModal = detailModals.find(function (detailModal) {
+        return !detailModal.hidden;
+      });
+      if (event.key === "Escape" && openDetailModal) {
+        closeEmployeeModal(openDetailModal);
         return;
       }
       if (event.ctrlKey && event.altKey && !event.shiftKey && String(event.key).toLowerCase() === "e") {
@@ -1222,21 +1444,9 @@ unset($_SESSION["employee_account_create_modal_open"]);
     }
 
     document.addEventListener("click", function (event) {
-      var detailsButton = event.target.closest("[data-open-employee-details]");
-      if (detailsButton) {
-        var detailsId = detailsButton.getAttribute("data-open-employee-details");
-        var details = null;
-        document.querySelectorAll("[data-view-details-id]").forEach(function (candidate) {
-          if (candidate.getAttribute("data-view-details-id") === detailsId) {
-            details = candidate;
-          }
-        });
-        var moreMenu = detailsButton.closest(".employee-account-more-menu");
-        if (details) {
-          details.open = true;
-          details.scrollIntoView({ block: "nearest", inline: "nearest" });
-        }
-        if (moreMenu) moreMenu.open = false;
+      var modalButton = event.target.closest("[data-open-employee-modal]");
+      if (modalButton) {
+        openEmployeeModal(modalButton.getAttribute("data-open-employee-modal"));
         return;
       }
 
@@ -1283,15 +1493,6 @@ unset($_SESSION["employee_account_create_modal_open"]);
       openConfirmModal(statusForm);
     });
 
-    document.addEventListener("toggle", function (event) {
-      var openedDetails = event.target;
-      if (!openedDetails.open || !openedDetails.matches(".employee-account-action-disclosure, .employee-account-more-menu")) return;
-      document.querySelectorAll(".employee-account-action-disclosure[open], .employee-account-more-menu[open]").forEach(function (details) {
-        if (details !== openedDetails && details.closest("tr") === openedDetails.closest("tr")) {
-          details.open = false;
-        }
-      });
-    }, true);
   })();
 </script>
 </body>

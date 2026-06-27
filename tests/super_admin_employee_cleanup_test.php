@@ -107,8 +107,14 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-search
 super_admin_cleanup_assert(str_contains($employeeAccounts, "No employee accounts match your search."), "Employee search must include a distinct no-results empty state.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-modal"), "Employee creation modal must exist.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-form"), "Employee creation form must be inside the modal.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-accounts-polish"), "Employee Accounts page must load the cache-busted owner CSS.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-accounts-modal"), "Employee Accounts page must load the cache-busted owner CSS.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "admin-owner-panel admin-owner-panel--full"), "Employee Accounts table card must use the full-width owner panel.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "<th>Role</th>"), "Employee Accounts table must not show a redundant Role column.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-open-employee-modal"), "Employee table View Details action must open the details modal.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "Employee Details"), "Employee details modal must be present.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-modal-edit"), "Employee details modal must support edit mode.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "employee-account-more-menu"), "Employee table must not render the old More dropdown.");
+super_admin_cleanup_assert(!str_contains($employeeAccounts, "employee-account-action-disclosure"), "Employee table must not render inline details panels.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Create an employee login account with a temporary password. The employee will complete their profile during first login."), "Create modal must explain first-login profile setup.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "<aside class=\"admin-owner-panel\">\n      <h2>Create Employee Account</h2>"), "Create Employee Account form must not render as an always-visible side panel.");
 super_admin_cleanup_assert(!str_contains($createForm, 'name="contact"'), "Create Employee Account form must not ask for contact.");

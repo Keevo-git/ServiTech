@@ -602,7 +602,7 @@ body.admin-employee-accounts .employee-account-security-note {
 }
 
 body.admin-employee-accounts .employee-accounts-panel {
-  padding: 0 0 24px;
+  padding: 0 0 28px;
   overflow: hidden;
   border-radius: 12px;
 }
@@ -611,8 +611,8 @@ body.admin-employee-accounts .employee-accounts-panel__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  padding: 24px 26px 20px;
+  gap: 28px;
+  padding: 26px 28px 22px;
   background: #ffffff;
 }
 
@@ -629,22 +629,24 @@ body.admin-employee-accounts .employee-accounts-panel__header p {
 
 body.admin-employee-accounts .employee-account-search {
   position: relative;
-  flex: 0 1 320px;
-  width: min(320px, 100%);
+  flex: 0 1 360px;
+  width: min(360px, 100%);
   margin-top: 2px;
 }
 
 body.admin-employee-accounts .employee-account-search input {
   width: 100%;
-  min-height: 40px;
-  border: 1px solid #cbd8ea;
-  border-radius: 10px;
-  padding: 9px 12px 9px 38px;
-  background: #f8fbff;
+  min-height: 44px;
+  border: 1px solid #b9cce5;
+  border-radius: 12px;
+  padding: 10px 14px 10px 42px;
+  background: linear-gradient(180deg, #fbfdff 0%, #f3f8ff 100%);
   color: #112338;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
+  appearance: none;
+  box-shadow: 0 1px 0 rgba(31, 74, 138, 0.04);
 }
 
 body.admin-employee-accounts .employee-account-search input:focus {
@@ -662,9 +664,9 @@ body.admin-employee-accounts .employee-account-search input::placeholder {
 body.admin-employee-accounts .employee-account-search__icon {
   position: absolute;
   top: 50%;
-  left: 13px;
-  width: 15px;
-  height: 15px;
+  left: 15px;
+  width: 16px;
+  height: 16px;
   transform: translateY(-50%);
   border: 2px solid #6a83a2;
   border-radius: 50%;
@@ -685,7 +687,7 @@ body.admin-employee-accounts .employee-account-search__icon::after {
 
 body.admin-employee-accounts .employee-accounts-panel .admin-owner-table-wrap {
   width: auto;
-  margin: 0 26px;
+  margin: 0 28px;
   overflow-x: auto;
   border: 1px solid #dbe5f1;
   border-radius: 10px;
@@ -693,37 +695,33 @@ body.admin-employee-accounts .employee-accounts-panel .admin-owner-table-wrap {
 }
 
 body.admin-employee-accounts .employee-accounts-table {
-  min-width: 1120px;
+  min-width: 980px;
   table-layout: fixed;
 }
 
 body.admin-employee-accounts .employee-accounts-table__col-employee {
-  width: 15%;
+  width: 17%;
 }
 
 body.admin-employee-accounts .employee-accounts-table__col-email {
-  width: 18%;
-}
-
-body.admin-employee-accounts .employee-accounts-table__col-role {
-  width: 11%;
+  width: 21%;
 }
 
 body.admin-employee-accounts .employee-accounts-table__col-status {
-  width: 11%;
-}
-
-body.admin-employee-accounts .employee-accounts-table__col-created {
   width: 13%;
 }
 
-body.admin-employee-accounts .employee-accounts-table__col-actions {
+body.admin-employee-accounts .employee-accounts-table__col-created {
   width: 14%;
+}
+
+body.admin-employee-accounts .employee-accounts-table__col-actions {
+  width: 9%;
 }
 
 body.admin-employee-accounts .employee-accounts-table th,
 body.admin-employee-accounts .employee-accounts-table td {
-  padding: 15px 14px;
+  padding: 16px 16px;
   vertical-align: middle;
   line-height: 1.35;
 }
@@ -783,7 +781,8 @@ body.admin-employee-accounts .employee-account-actions-cell {
 
 body.admin-employee-accounts .employee-account-actions {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-start;
   gap: 7px;
 }
 
@@ -974,8 +973,168 @@ body.admin-employee-accounts .employee-account-confirm-modal {
   width: min(460px, 100%);
 }
 
-body.admin-employee-accounts .admin-owner-table-wrap:has(details[open]) {
-  padding-bottom: 260px;
+body.admin-employee-accounts .employee-details-modal {
+  width: min(840px, calc(100% - 28px));
+  max-height: min(780px, calc(100vh - 32px));
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+body.admin-employee-accounts .employee-details-modal__header {
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #e2e9f2;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+body.admin-employee-accounts .employee-details-modal__header h2 {
+  margin-top: 3px;
+}
+
+body.admin-employee-accounts .employee-details-modal__header p {
+  color: #334155;
+  font-weight: 800;
+}
+
+body.admin-employee-accounts .employee-details-modal__eyebrow {
+  color: #1f4a8a;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+body.admin-employee-accounts .employee-details-modal__body,
+body.admin-employee-accounts .employee-details-edit-form,
+body.admin-employee-accounts .employee-details-actions {
+  padding: 20px 24px;
+}
+
+body.admin-employee-accounts .employee-details-modal__body {
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+}
+
+body.admin-employee-accounts .employee-details-section {
+  display: grid;
+  gap: 12px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid #e5edf6;
+}
+
+body.admin-employee-accounts .employee-details-section + .employee-details-section {
+  padding-top: 18px;
+}
+
+body.admin-employee-accounts .employee-details-section:last-child,
+body.admin-employee-accounts .employee-details-edit-form .employee-details-section {
+  border-bottom: 0;
+}
+
+body.admin-employee-accounts .employee-details-section__header h3 {
+  margin: 0;
+  color: #132235;
+  font-size: 15px;
+}
+
+body.admin-employee-accounts .employee-details-section__header p {
+  max-width: 68ch;
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+body.admin-employee-accounts .employee-details-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+  margin: 0;
+}
+
+body.admin-employee-accounts .employee-details-list div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #e2e9f2;
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+body.admin-employee-accounts .employee-details-list dt {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+body.admin-employee-accounts .employee-details-list dd {
+  margin: 4px 0 0;
+  color: #112338;
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+body.admin-employee-accounts .employee-details-list--status dd {
+  display: flex;
+}
+
+body.admin-employee-accounts .employee-details-edit-form {
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+}
+
+body.admin-employee-accounts .employee-details-edit-form input[readonly] {
+  background: #eef4fb;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+body.admin-employee-accounts .employee-details-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+}
+
+body.admin-employee-accounts .employee-details-actions {
+  border-top: 1px solid #e2e9f2;
+  background: #f8fbff;
+}
+
+body.admin-employee-accounts .employee-details-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+body.admin-employee-accounts .employee-details-action-grid > *,
+body.admin-employee-accounts .employee-details-action-grid button,
+body.admin-employee-accounts .employee-details-action-grid summary {
+  width: 100%;
+}
+
+body.admin-employee-accounts .employee-details-password-reset {
+  position: relative;
+}
+
+body.admin-employee-accounts .employee-details-password-reset summary {
+  list-style: none;
+}
+
+body.admin-employee-accounts .employee-details-password-reset summary::-webkit-details-marker {
+  display: none;
+}
+
+body.admin-employee-accounts .employee-details-password-reset form {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #dbe5f1;
+  border-radius: 10px;
+  background: #ffffff;
 }
 
 .admin-profile-table {
@@ -1188,7 +1347,7 @@ body.admin-employee-accounts .admin-owner-table-wrap:has(details[open]) {
   }
 
   body.admin-employee-accounts .employee-accounts-table {
-    min-width: 1080px;
+    min-width: 940px;
   }
 
   body.admin-employee-accounts .employee-account-search {
@@ -1196,8 +1355,9 @@ body.admin-employee-accounts .admin-owner-table-wrap:has(details[open]) {
     width: 100%;
   }
 
-  body.admin-employee-accounts .employee-account-action-panel {
-    width: min(560px, calc(100vw - 34px));
+  body.admin-employee-accounts .employee-details-list,
+  body.admin-employee-accounts .employee-details-action-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   body.admin-first-time-setup .employee-setup-shell {
@@ -1263,7 +1423,7 @@ body.admin-employee-accounts .admin-owner-table-wrap:has(details[open]) {
   }
 
   body.admin-employee-accounts .employee-accounts-panel__header {
-    padding: 16px;
+    padding: 18px 16px;
   }
 
   body.admin-employee-accounts .employee-accounts-panel .admin-owner-table-wrap {
@@ -1271,11 +1431,17 @@ body.admin-employee-accounts .admin-owner-table-wrap:has(details[open]) {
     margin-left: 16px;
   }
 
-  body.admin-employee-accounts .employee-account-action-panel,
-  body.admin-employee-accounts .employee-account-more-menu__panel {
-    right: -8px;
-    width: min(420px, calc(100vw - 24px));
-    padding: 12px;
+  body.admin-employee-accounts .employee-details-modal {
+    width: min(100% - 16px, 840px);
+    max-height: calc(100vh - 20px);
+  }
+
+  body.admin-employee-accounts .employee-details-modal__header,
+  body.admin-employee-accounts .employee-details-modal__body,
+  body.admin-employee-accounts .employee-details-edit-form,
+  body.admin-employee-accounts .employee-details-actions {
+    padding-right: 16px;
+    padding-left: 16px;
   }
 
   body.admin-employee-accounts .employee-account-form-grid,
