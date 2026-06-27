@@ -85,9 +85,22 @@ foreach ([
     "employee_first_time_setup_failed",
     "09XXXXXXXXX",
     "+639XXXXXXXXX",
+    "employeeSetupForm",
+    "novalidate",
+    "password-input-wrap",
+    "passwordRequirements",
+    "contact-number-control",
+    "field-error",
+    "employee_setup_relationship_options",
 ] as $setupText) {
     employee_setup_assert(str_contains($setupPage, $setupText), "First-time setup page must include {$setupText}.");
 }
+employee_setup_assert(str_contains($setupPage, '<select id="emergency_contact_relationship"'), "First-time setup relationship must be a dropdown.");
+employee_setup_assert(!str_contains($setupPage, 'placeholder="Parent, Sibling, Spouse, Guardian"'), "First-time setup relationship must no longer be free text.");
+foreach (["Mother", "Father", "Sibling", "Spouse", "Guardian"] as $relationshipOption) {
+    employee_setup_assert(str_contains($setupPage, '"' . $relationshipOption . '"'), "Relationship dropdown must include {$relationshipOption}.");
+}
+employee_setup_assert(str_contains($setupPage, "Use uppercase, lowercase, number, and special character."), "Password requirements must show the enforced complexity rule.");
 
 employee_setup_assert(str_contains($setupHelper, "function servitech_employee_setup_required"), "Shared setup helper must expose setup-required check.");
 employee_setup_assert(str_contains($setupHelper, "function servitech_employee_setup_path"), "Shared setup helper must expose setup path.");
