@@ -69,8 +69,11 @@ foreach (["password", "auth_user_id", "refresh_token", "access_token"] as $sensi
 
 admin_order_export_assert(str_contains($css, ".order-filter-export"), "Export button must have ServiTech styling.");
 admin_order_export_assert(str_contains($css, ".order-filter-actions"), "Filter action buttons must be grouped for layout.");
-admin_order_export_assert(str_contains($css, "grid-template-columns: repeat(14, minmax(0, 1fr))"), "Desktop filter layout must use the full-width column grid.");
-admin_order_export_assert(str_contains($css, "width: 150px;"), "Desktop filter action buttons must share a stable width.");
+admin_order_export_assert(str_contains($helper, "order-filter-footer"), "Filter results and actions must render in a footer row.");
+admin_order_export_assert(str_contains($css, ".order-filter-footer"), "Filter footer row must be styled.");
+admin_order_export_assert(str_contains($css, "justify-content: space-between;"), "Filter footer must separate results and actions.");
+admin_order_export_assert(str_contains($css, "display: flex") && str_contains($css, "gap: 12px;"), "Filter actions must sit side by side with a clear gap.");
+admin_order_export_assert(str_contains($css, "width: 142px;"), "Desktop filter action buttons must share a stable width.");
 admin_order_export_assert(str_contains($css, "min-height: 44px;"), "Filter controls and buttons must share a readable height.");
 admin_order_export_assert(str_contains($helper, "order-filter-control--search"), "Filter controls must expose layout classes.");
 admin_order_export_assert(str_contains($css, "@media (max-width: 560px)"), "Filter/export controls must keep mobile responsive styling.");

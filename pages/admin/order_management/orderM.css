@@ -187,14 +187,14 @@ body.admin-dashboard .page-frame {
 
 .order-filter-grid {
   display: grid;
-  grid-template-columns: repeat(14, minmax(0, 1fr));
+  grid-template-columns: minmax(300px, 1.75fr) repeat(3, minmax(140px, 0.8fr));
   gap: 16px;
   align-items: end;
   width: 100%;
 }
 
 .order-filter-toolbar--payment .order-filter-grid {
-  grid-template-columns: repeat(14, minmax(0, 1fr));
+  grid-template-columns: minmax(300px, 1.75fr) minmax(140px, 0.8fr) minmax(140px, 0.8fr) minmax(150px, 0.85fr) minmax(180px, 0.95fr);
 }
 
 .order-filter-control {
@@ -204,14 +204,14 @@ body.admin-dashboard .page-frame {
 }
 
 .order-filter-control--search {
-  grid-column: span 4;
+  grid-column: auto;
 }
 
 .order-filter-control--month,
 .order-filter-control--year,
 .order-filter-control--status,
 .order-filter-control--payment {
-  grid-column: span 2;
+  grid-column: auto;
 }
 
 .order-filter-control > span {
@@ -326,18 +326,26 @@ body.admin-dashboard .page-frame {
   accent-color: #214f91;
 }
 
+.order-filter-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+}
+
 .order-filter-actions {
-  display: grid;
-  grid-column: span 2;
-  gap: 8px;
-  width: 150px;
-  min-width: 150px;
-  justify-self: end;
-  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex: 0 0 auto;
 }
 
 .order-filter-clear {
   min-height: 44px;
+  width: 142px;
+  min-width: 142px;
   border: 1px solid #b9c9dc;
   border-radius: 8px;
   background: #fff;
@@ -348,7 +356,6 @@ body.admin-dashboard .page-frame {
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
-  width: 100%;
 }
 
 .order-filter-clear:hover {
@@ -358,6 +365,8 @@ body.admin-dashboard .page-frame {
 
 .order-filter-export {
   min-height: 44px;
+  width: 142px;
+  min-width: 142px;
   border: 1px solid #1f4a8a;
   border-radius: 8px;
   background: linear-gradient(145deg, #1f4a8a, #2f6fa8);
@@ -369,7 +378,6 @@ body.admin-dashboard .page-frame {
   font-weight: 800;
   white-space: nowrap;
   box-shadow: 0 8px 18px rgba(31, 74, 138, 0.18);
-  width: 100%;
 }
 
 .order-filter-export:hover {
@@ -384,10 +392,11 @@ body.admin-dashboard .page-frame {
 }
 
 .order-filter-results {
-  margin: 14px 0 0;
+  margin: 0;
   color: #5d728c;
   font-size: 13px;
   font-weight: 700;
+  min-width: 0;
 }
 
 .order-no-results-row td {
@@ -1708,13 +1717,18 @@ body.order-confirm-open {
     grid-column: span 3;
   }
 
-  .order-filter-clear,
-  .order-filter-export,
+  .order-filter-footer {
+    align-items: flex-end;
+  }
+
   .order-filter-actions {
-    grid-column: span 3;
-    justify-self: stretch;
-    width: 100%;
-    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  .order-filter-clear,
+  .order-filter-export {
+    width: 136px;
+    min-width: 136px;
   }
 }
 
@@ -1746,15 +1760,28 @@ body.order-confirm-open {
   .order-filter-control--month,
   .order-filter-control--year,
   .order-filter-control--status,
-  .order-filter-control--payment,
-  .order-filter-actions {
+  .order-filter-control--payment {
     grid-column: auto;
   }
 
-  .order-filter-clear,
-  .order-filter-export,
+  .order-filter-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
   .order-filter-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
     width: 100%;
+  }
+
+  .order-filter-clear,
+  .order-filter-export {
+    width: 100%;
+    min-width: 0;
   }
 
   .action-buttons {

@@ -381,14 +381,15 @@ function om_render_filter_toolbar(string $tableId, bool $includePayment = false,
             </select>
           </label>
         <?php endif; ?>
+      </div>
 
+      <div class="order-filter-footer">
+        <p class="order-filter-results" data-order-filter-results aria-live="polite">0 results found</p>
         <div class="order-filter-actions" aria-label="Order filter actions">
           <button class="order-filter-clear" type="button" data-order-filter-clear>Clear Filters</button>
           <button class="order-filter-export" type="button" data-order-export>Export Report</button>
         </div>
       </div>
-
-      <p class="order-filter-results" data-order-filter-results aria-live="polite">0 results found</p>
     </div>
     <?php
 }
