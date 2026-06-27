@@ -1681,6 +1681,10 @@ body.admin-profile-page .admin-profile-form-grid__wide {
   grid-column: 1 / -1;
 }
 
+body.admin-profile-page .admin-profile-form-grid--profile-info {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 body.admin-profile-page .admin-owner-field {
   gap: 7px;
 }

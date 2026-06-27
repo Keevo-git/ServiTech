@@ -488,7 +488,7 @@ $accountStatus = ucfirst(strtolower((string)($profile["account_status"] ?? "acti
             <p>Email changes must be handled through account verification.</p>
           </div>
 
-          <div class="admin-profile-form-grid">
+          <div class="admin-profile-form-grid admin-profile-form-grid--profile-info">
             <div class="admin-owner-field admin-profile-field--full-name">
               <label for="fullname">Full Name</label>
               <input id="fullname" name="fullname" value="<?= admin_profile_h($profileFormValues["fullname"]) ?>" maxlength="160" required>
