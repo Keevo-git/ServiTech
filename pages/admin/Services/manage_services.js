@@ -36,6 +36,7 @@
   let confirmReturnFocus = null;
   let editorLoadToken = 0;
   let selectedPaperSizeKey = null;
+  let selectedColorKey = null;
   const serviceModalStack = [];
   const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
   const modalBaseZIndex = 2147483100;
@@ -562,6 +563,7 @@
     const activePapers = papers.filter((item) => Number(item.active));
     const activeColors = colors.filter((item) => Number(item.active));
     const selectedSize = papers.find((p) => p.value_key === selectedPaperSizeKey);
+    const selectedColor = colors.find((c) => c.value_key === selectedColorKey);
 
     return `<section class="ms-option-section">
       <div class="ms-section-head">
@@ -593,7 +595,36 @@
         <button type="button" data-add-value="paper_size">Add</button>
       </div>
     </section>
-    ${valueManager("color_option", "Color Options", "New color option")}
+    <section class="ms-option-section">
+      <div class="ms-section-head">
+        <div><h4>Color Options</h4><p>Select a color option from the dropdown to edit it.</p></div>
+      </div>
+      <div class="ms-value-list">
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-color-select">Select Color Option:</label>
+          <select id="ms-color-select" data-select-color aria-label="Select color option to edit">
+            <option value="">-- Select a color option --</option>
+            ${colors.map((color) => `<option value="${escapeHtml(color.value_key)}" ${selectedColorKey === color.value_key ? "selected" : ""}>${escapeHtml(color.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedColor ? `<div class="ms-value-row ${Number(selectedColor.active) ? "" : "is-inactive"}" data-group-key="color_option" data-value-key="${escapeHtml(selectedColor.value_key)}">
+          <div class="ms-size-edit-header"><strong>${escapeHtml(selectedColor.label)}</strong></div>
+          <input data-value-label value="${escapeHtml(selectedColor.label)}" maxlength="${optionLabelMaxLength}" aria-label="Color option name" class="ms-size-input">
+          <div class="ms-status-cell">
+            <span class="ms-control-label">Status</span>
+            <label class="ms-switch ms-switch--compact">
+              <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedColor.label)} active status" ${Number(selectedColor.active) ? "checked" : ""}>
+              <span aria-hidden="true"></span><em>${Number(selectedColor.active) ? "Active" : "Inactive"}</em>
+            </label>
+          </div>
+          ${optionVisibilityWarning("color_option", selectedColor) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning("color_option", selectedColor))}</p>` : ""}
+        </div>` : ""}
+      </div>
+      <div class="ms-inline-add">
+        <input data-new-value="color_option" maxlength="${optionLabelMaxLength}" placeholder="New color option">
+        <button type="button" data-add-value="color_option">Add</button>
+      </div>
+    </section>
     <section class="ms-pricing-section">
       <div class="ms-section-head"><div><h4>Price Matrix</h4><p>Each cell controls one paper size and color combination.</p></div></div>
       ${activePapers.length && activeColors.length ? `<div class="ms-matrix-wrap"><table class="ms-catalog-matrix">
@@ -1043,6 +1074,13 @@
       return;
     }
 
+    if (event.target.matches("[data-select-color]")) {
+      event.stopPropagation();
+      selectedColorKey = event.target.value || null;
+      render();
+      return;
+    }
+
     if (event.target.matches("[data-installation-device-mode]")) {
       const enabled = event.target.checked;
       if (!await confirmAction({
@@ -1129,6 +1167,7 @@
       throw new Error("The editor modal layer could not be opened.");
     }
     selectedPaperSizeKey = null;
+    selectedColorKey = null;
     editor.innerHTML = '<div class="ms-loading">Loading current options...</div>';
     try {
       const fetchedCatalog = await fetchCatalog(data.id);
@@ -1150,6 +1189,7 @@
     originalSnapshot = "";
     originalServiceSnapshot = null;
     selectedPaperSizeKey = null;
+    selectedColorKey = null;
     hideError();
   }
 
