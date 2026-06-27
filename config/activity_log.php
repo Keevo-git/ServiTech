@@ -87,6 +87,71 @@ if (!function_exists("servitech_activity_log_table_ready")) {
     }
 }
 
+if (!function_exists("servitech_activity_success_action_types")) {
+    function servitech_activity_success_action_types(): array
+    {
+        return [
+            "super_admin_login_success",
+            "admin_login_success",
+            "logout",
+            "order_status_update",
+            "order_mark_done",
+            "order_cancel",
+            "order_reject",
+            "queue_send_back",
+            "queue_status_update",
+            "queue_currently_serving_update",
+            "queue_update",
+            "customer_message_send",
+            "payment_approve",
+            "payment_reject",
+            "payment_update",
+            "employee_first_time_setup_complete",
+            "admin_password_change",
+        ];
+    }
+}
+
+if (!function_exists("servitech_activity_security_action_types")) {
+    function servitech_activity_security_action_types(): array
+    {
+        return [
+            "unauthorized_access",
+            "super_admin_wrong_role_login",
+            "admin_wrong_role_login",
+            "customer_wrong_role_login",
+            "employee_login_before_email_verification",
+            "repeated_failed_login",
+        ];
+    }
+}
+
+if (!function_exists("servitech_activity_allowed_action_types")) {
+    function servitech_activity_allowed_action_types(bool $includeSecurity = true): array
+    {
+        $actions = servitech_activity_success_action_types();
+        if ($includeSecurity) {
+            $actions = array_merge($actions, servitech_activity_security_action_types());
+        }
+
+        return array_values(array_unique($actions));
+    }
+}
+
+if (!function_exists("servitech_activity_should_store_event")) {
+    function servitech_activity_should_store_event(string $actionType, string $status): bool
+    {
+        $actionType = trim($actionType);
+        $status = strtolower(trim($status)) === "failed" ? "failed" : "success";
+
+        if ($status === "failed") {
+            return in_array($actionType, servitech_activity_security_action_types(), true);
+        }
+
+        return in_array($actionType, servitech_activity_success_action_types(), true);
+    }
+}
+
 if (!function_exists("servitech_activity_log")) {
     function servitech_activity_log(PDO $pdo, array $event): void
     {
@@ -103,6 +168,10 @@ if (!function_exists("servitech_activity_log")) {
         $module = trim((string)($event["module"] ?? ""));
         $description = trim((string)($event["description"] ?? ""));
         if ($actionType === "" || $module === "" || $description === "") {
+            return;
+        }
+        $status = trim((string)($event["status"] ?? "success")) === "failed" ? "failed" : "success";
+        if (!servitech_activity_should_store_event($actionType, $status)) {
             return;
         }
 
@@ -130,7 +199,7 @@ if (!function_exists("servitech_activity_log")) {
                 ":description" => $description,
                 ":ip_address" => servitech_activity_request_ip() ?: null,
                 ":user_agent" => substr((string)($_SERVER["HTTP_USER_AGENT"] ?? ""), 0, 500),
-                ":status" => trim((string)($event["status"] ?? "success")) === "failed" ? "failed" : "success",
+                ":status" => $status,
             ]);
         } catch (Throwable $exception) {
             error_log("activity log insert failed: " . $exception->getMessage());
