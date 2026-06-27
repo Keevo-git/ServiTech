@@ -116,3 +116,67 @@ if (!function_exists("servitech_require_admin_role")) {
         exit();
     }
 }
+
+if (!function_exists("servitech_admin_employee_display_name")) {
+    function servitech_admin_employee_display_name(?PDO $pdo = null): string
+    {
+        if (servitech_current_role() !== "admin") {
+            return "";
+        }
+
+        static $cachedName = null;
+        if ($cachedName !== null) {
+            return $cachedName;
+        }
+
+        $cachedName = "";
+        $userId = (int)($_SESSION["user_id"] ?? 0);
+        if ($userId <= 0) {
+            return $cachedName;
+        }
+
+        if (!$pdo instanceof PDO) {
+            try {
+                require_once __DIR__ . "/../../../config/db.php";
+                $pdo = servitech_db_connect_privileged();
+            } catch (Throwable $exception) {
+                error_log("admin employee display name connection failed: " . $exception->getMessage());
+                return $cachedName;
+            }
+        }
+
+        try {
+            $stmt = $pdo->prepare("
+                SELECT
+                    COALESCE(
+                        NULLIF(TRIM(fullname), ''),
+                        NULLIF(TRIM(to_jsonb(users)->>'first_name'), ''),
+                        NULLIF(TRIM(to_jsonb(users)->>'name'), '')
+                    ) AS display_name
+                FROM users
+                WHERE id = :id
+                  AND LOWER(TRIM(COALESCE(NULLIF(to_jsonb(users)->>'role', ''), 'customer'))) IN ('admin', 'employee', 'staff')
+                LIMIT 1
+            ");
+            $stmt->execute([":id" => $userId]);
+            $cachedName = trim((string)($stmt->fetchColumn() ?: ""));
+        } catch (Throwable $exception) {
+            error_log("admin employee display name lookup failed: " . $exception->getMessage());
+            $cachedName = "";
+        }
+
+        return $cachedName;
+    }
+}
+
+if (!function_exists("servitech_admin_employee_banner_title")) {
+    function servitech_admin_employee_banner_title(?PDO $pdo = null, string $fallback = ""): string
+    {
+        if (servitech_current_role() !== "admin") {
+            return $fallback;
+        }
+
+        $name = servitech_admin_employee_display_name($pdo);
+        return $name !== "" ? "Hello, Admin {$name}" : "Hello, Admin";
+    }
+}

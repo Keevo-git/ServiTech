@@ -7,6 +7,8 @@ require_once __DIR__ . "/_customer_display_code.php";
 require_once __DIR__ . "/../_includes/queue_files.php";
 require_once __DIR__ . "/../../../api/queue_payment.php";
 
+servitech_require_super_admin();
+
 $customerId = (int)($_GET["id"] ?? 0);
 
 function cd_esc($value): string {

@@ -113,6 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 $role = servitech_normalize_role($profile["role"] ?? "admin");
 $roleLabel = $role === "admin" ? "Admin / Employee" : servitech_role_label($role);
+$profileTitle = servitech_admin_employee_banner_title($pdo, "My Admin Profile");
 $csrfToken = servitech_csrf_token();
 ?>
 <!DOCTYPE html>
@@ -131,7 +132,7 @@ $csrfToken = servitech_csrf_token();
 <main class="admin-owner-shell">
   <section class="admin-owner-hero">
     <span class="admin-owner-kicker"><?= admin_profile_h($roleLabel) ?></span>
-    <h1>My Admin Profile</h1>
+    <h1><?= admin_profile_h($profileTitle) ?></h1>
     <p>View your staff account details and manage your own password when local password auth is enabled.</p>
   </section>
 

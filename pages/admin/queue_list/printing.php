@@ -121,6 +121,7 @@ $stmt = $pdo->prepare("
 $stmt->execute();
 $rows = $stmt->fetchAll();
 $adminNotificationCount = admin_queue_notification_count($pdo);
+$queuePageTitle = servitech_admin_employee_banner_title($pdo, "Queue Management");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -144,8 +145,8 @@ require __DIR__ . "/../_includes/admin_header.php";
 <div class="admin-wrapper">
   <section class="admin-hero admin-hero--actions">
     <div class="admin-hero-text">
-      <h1>Queue Management</h1>
-      <p>Monitor and update all service queue entries.</p>
+      <h1><?= htmlspecialchars($queuePageTitle, ENT_QUOTES, "UTF-8") ?></h1>
+      <p>Manage today's queue and currently serving customers.</p>
     </div>
     <div class="admin-hero-actions" aria-label="Queue Management actions">
       <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>

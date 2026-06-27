@@ -21,6 +21,8 @@ $stmt = $customerPdo->prepare("
 ");
 $stmt->execute();
 $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$adminCanViewCustomerDetails = servitech_is_super_admin();
+$customerListTitle = servitech_admin_employee_banner_title($pdo, "Customer List");
 ?>
 <!doctype html>
 <html lang="en">
@@ -45,8 +47,8 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <div class="admin-wrapper">
     <section class="admin-hero admin-hero--actions">
       <div class="admin-hero-text">
-        <h1>Customer List</h1>
-        <p>View registered customers and search account details.</p>
+        <h1><?= htmlspecialchars($customerListTitle, ENT_QUOTES, "UTF-8") ?></h1>
+        <p>View registered customers and send customer messages for service requests.</p>
       </div>
       <div class="admin-hero-actions" aria-label="Customer List actions">
         <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
@@ -88,11 +90,12 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     $name = (string)($c["fullname"] ?? "");
                     $email = (string)($c["email"] ?? "");
                     $contact = (string)($c["contacts"] ?? "");
-                    $detailsUrl = admin_url('/pages/admin/customer_list/customer_details.php?id=' . (int)$c["id"]);
+                    $detailsUrl = $adminCanViewCustomerDetails
+                      ? admin_url('/pages/admin/customer_list/customer_details.php?id=' . (int)$c["id"])
+                      : "";
                   ?>
                   <tr
                     class="cl-row"
-                    data-details-url="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, "UTF-8") ?>"
                     data-customer-id="<?= (int)$c["id"] ?>"
                     data-customer-code="<?= htmlspecialchars($code, ENT_QUOTES, "UTF-8") ?>"
                     data-customer-name="<?= htmlspecialchars($name, ENT_QUOTES, "UTF-8") ?>"
@@ -100,14 +103,20 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                   >
                     <td><span class="cl-idPill"><?= htmlspecialchars($code) ?></span></td>
                     <td class="cl-name">
-                      <a class="cl-nameLink" href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($name) ?></a>
+                      <?php if ($adminCanViewCustomerDetails): ?>
+                        <a class="cl-nameLink" href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($name) ?></a>
+                      <?php else: ?>
+                        <?= htmlspecialchars($name) ?>
+                      <?php endif; ?>
                     </td>
                     <td class="cl-email"><?= htmlspecialchars($email) ?></td>
                     <td class="cl-contact"><?= htmlspecialchars($contact) ?></td>
                     <td>
                       <div class="cl-row-actions">
                         <button class="cl-btn cl-btn--message" type="button" data-message-customer>Message</button>
-                        <a class="cl-btn cl-btn--details" href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, "UTF-8") ?>">View Details</a>
+                        <?php if ($adminCanViewCustomerDetails): ?>
+                          <a class="cl-btn cl-btn--details" href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, "UTF-8") ?>">View Details</a>
+                        <?php endif; ?>
                       </div>
                     </td>
                   </tr>
@@ -212,14 +221,6 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
         event.preventDefault();
         event.stopPropagation();
         openMessageModal(button.closest('tr.cl-row'));
-      });
-    });
-
-    rows.forEach(row => {
-      row.addEventListener('click', event => {
-        if (event.target.closest('a, button, input, textarea, select')) return;
-        const url = row.dataset.detailsUrl || '';
-        if (url) window.location.href = url;
       });
     });
 

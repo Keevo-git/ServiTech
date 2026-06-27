@@ -61,8 +61,18 @@ foreach ([
 customer_auth_scope_assert(
     str_contains($listSource, "ORDER BY users.id ASC")
         && str_contains($listSource, "searchInput?.addEventListener('input'")
-        && str_contains($listSource, "data-details-url"),
-    "Customer List ordering, search, and detail-row actions must remain wired."
+        && str_contains($listSource, "data-message-customer"),
+    "Customer List ordering, search, and customer messaging must remain wired."
+);
+customer_auth_scope_assert(
+    str_contains($listSource, '$adminCanViewCustomerDetails = servitech_is_super_admin();')
+        && !str_contains($listSource, "data-details-url")
+        && !str_contains($listSource, "row.dataset.detailsUrl"),
+    "Admin Customer List must not expose row-level customer detail navigation to employees."
+);
+customer_auth_scope_assert(
+    str_contains($detailsSource, "servitech_require_super_admin();"),
+    "Customer details must be server-gated to Super Admin access."
 );
 
 if ($failures) {

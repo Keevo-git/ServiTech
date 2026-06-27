@@ -198,7 +198,7 @@ if (!function_exists("admin_notification_target_url")) {
         $type = admin_notification_type_key((string)($row["type"] ?? ""));
         if ($type === "new_customer_registration") {
             $eventKey = trim((string)($row["event_key"] ?? ""));
-            if (preg_match('/^new_customer_registration:(\d+)$/', $eventKey, $matches)) {
+            if (function_exists("servitech_is_super_admin") && servitech_is_super_admin() && preg_match('/^new_customer_registration:(\d+)$/', $eventKey, $matches)) {
                 return admin_url("/pages/admin/customer_list/customer_details.php?id=" . (int)$matches[1]);
             }
             return admin_url("/pages/admin/customer_list/custoL.php");

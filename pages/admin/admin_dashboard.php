@@ -26,8 +26,8 @@ $statusAnalytics = is_array($dashboardAnalytics["status"] ?? null) ? $dashboardA
 $pendingRequests = (int)($statusAnalytics["pending"] ?? 0);
 $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
 $adminNotificationCount = admin_queue_notification_count($pdo);
-$dashboardTitle = "Employee Operations Dashboard";
-$dashboardSubtitle = "Daily queue, order, payment, and customer-service work for store operations.";
+$dashboardTitle = servitech_admin_employee_banner_title($pdo, "Employee Operations Dashboard");
+$dashboardSubtitle = "Manage today's queue, orders, and customer service tasks.";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -158,14 +158,6 @@ require __DIR__ . "/_includes/admin_header.php";
         </div>
         <h4>Customer Lookup</h4>
         <p>Find customer details needed for service requests</p>
-      </article>
-    </a>
-
-    <a href="<?= project_url('/pages/admin/admin_notifications.php') ?>" class="card-link admin-quick-card-link">
-      <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon">MSG</div>
-        <h4>Messages & Notifications</h4>
-        <p>Review customer updates and operation alerts</p>
       </article>
     </a>
 

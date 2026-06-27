@@ -61,6 +61,7 @@ $rows = $pdo->query("
     q.id ASC
 ")->fetchAll();
 $adminNotificationCount = admin_queue_notification_count($pdo);
+$orderPageTitle = servitech_admin_employee_banner_title($pdo, "Order Management");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,8 +85,8 @@ require __DIR__ . "/../_includes/admin_header.php";
 <div class="admin-wrapper">
   <section class="admin-hero admin-hero--actions order-header">
     <div class="admin-hero-text">
-      <h1>Order Management</h1>
-      <p>Review repair orders and update statuses in real time.</p>
+      <h1><?= htmlspecialchars($orderPageTitle, ENT_QUOTES, "UTF-8") ?></h1>
+      <p>Review and update customer orders for daily operations.</p>
     </div>
     <div class="admin-hero-actions" aria-label="Order Management actions">
       <button type="button" class="hero-btn hero-btn-secondary" onclick="goAdminBack()">Back</button>
