@@ -107,7 +107,7 @@ super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-search
 super_admin_cleanup_assert(str_contains($employeeAccounts, "No employee accounts match your search."), "Employee search must include a distinct no-results empty state.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-modal"), "Employee creation modal must exist.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-create-employee-form"), "Employee creation form must be inside the modal.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-details-two-column"), "Employee Accounts page must load the cache-busted owner CSS.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "admin_owner.css?v=20260627-employee-responsive-modal"), "Employee Accounts page must load the cache-busted owner CSS.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "admin-owner-panel admin-owner-panel--full"), "Employee Accounts table card must use the full-width owner panel.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "<th>Role</th>"), "Employee Accounts table must not show a redundant Role column.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-open-employee-modal"), "Employee table View Details action must open the details modal.");
@@ -147,6 +147,10 @@ super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-panel--full"), 
 super_admin_cleanup_assert(str_contains($ownerCss, ".admin-owner-modal-open"), "Owner CSS must prevent background scroll while modal is open.");
 super_admin_cleanup_assert(str_contains($ownerCss, "width: min(95vw, 1050px);"), "Employee details modal CSS must keep the wide desktop layout.");
 super_admin_cleanup_assert(str_contains($ownerCss, "[data-employee-modal-edit][hidden]"), "Employee details modal CSS must force hidden edit mode content to stay hidden.");
+super_admin_cleanup_assert(str_contains($ownerCss, "min-width: 1080px;"), "Employee table must keep enough width for readable responsive columns.");
+super_admin_cleanup_assert(str_contains($ownerCss, "min-width: 112px;"), "Employee View Details button must keep a readable minimum width.");
+super_admin_cleanup_assert(str_contains($ownerCss, "width: calc(100vw - 20px);"), "Employee details modal must fit phone-width screens.");
+super_admin_cleanup_assert(str_contains($ownerCss, "max-height: 92dvh;"), "Employee details modal must use dynamic viewport height on mobile.");
 
 foreach ([
     $oldStaffStub,

@@ -689,34 +689,37 @@ body.admin-employee-accounts .employee-accounts-panel .admin-owner-table-wrap {
   width: auto;
   margin: 0 28px;
   overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px;
   border: 1px solid #dbe5f1;
   border-radius: 10px;
   background: #ffffff;
+  -webkit-overflow-scrolling: touch;
 }
 
 body.admin-employee-accounts .employee-accounts-table {
-  min-width: 980px;
+  min-width: 1080px;
   table-layout: fixed;
 }
 
 body.admin-employee-accounts .employee-accounts-table__col-employee {
-  width: 17%;
+  width: 18%;
 }
 
 body.admin-employee-accounts .employee-accounts-table__col-email {
-  width: 21%;
+  width: 20%;
 }
 
 body.admin-employee-accounts .employee-accounts-table__col-status {
-  width: 13%;
+  width: 12%;
 }
 
 body.admin-employee-accounts .employee-accounts-table__col-created {
-  width: 14%;
+  width: 13%;
 }
 
 body.admin-employee-accounts .employee-accounts-table__col-actions {
-  width: 9%;
+  width: 13%;
 }
 
 body.admin-employee-accounts .employee-accounts-table th,
@@ -777,21 +780,26 @@ body.admin-employee-accounts .employee-accounts-table .admin-owner-pill {
 
 body.admin-employee-accounts .employee-account-actions-cell {
   position: relative;
+  min-width: 140px;
+  padding-right: 20px;
+  padding-left: 20px;
 }
 
 body.admin-employee-accounts .employee-account-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 7px;
 }
 
 body.admin-employee-accounts .employee-account-action-button {
   min-height: 34px;
-  min-width: 0;
+  min-width: 112px;
   border-radius: 8px;
-  padding: 7px 10px;
+  padding: 7px 13px;
   font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
   white-space: nowrap;
   list-style: none;
 }
@@ -1287,7 +1295,7 @@ body.admin-employee-accounts .employee-details-password-reset form {
   }
 
   body.admin-employee-accounts .employee-accounts-table {
-    min-width: 940px;
+    min-width: 1080px;
   }
 
   body.admin-employee-accounts .employee-account-search {
@@ -1374,31 +1382,88 @@ body.admin-employee-accounts .employee-details-password-reset form {
   }
 
   body.admin-employee-accounts .employee-accounts-panel .admin-owner-table-wrap {
-    margin-right: 16px;
-    margin-left: 16px;
+    margin-right: 14px;
+    margin-left: 14px;
+  }
+
+  body.admin-employee-accounts .employee-details-modal-overlay {
+    align-items: center;
+    padding: 10px;
   }
 
   body.admin-employee-accounts .employee-details-modal {
-    width: min(100% - 16px, 1050px);
+    width: calc(100vw - 20px);
     max-height: calc(100vh - 20px);
+    max-height: 92dvh;
+    border-radius: 12px;
   }
 
   body.admin-employee-accounts .employee-details-modal__header,
   body.admin-employee-accounts .employee-details-layout {
-    padding-right: 16px;
-    padding-left: 16px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  body.admin-employee-accounts .employee-details-modal__header {
+    padding-top: 16px;
+    padding-bottom: 14px;
+  }
+
+  body.admin-employee-accounts .employee-details-modal__header h2 {
+    font-size: 20px;
+  }
+
+  body.admin-employee-accounts .employee-details-modal__content {
+    overflow-x: hidden;
+  }
+
+  body.admin-employee-accounts .employee-details-layout {
+    gap: 14px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  body.admin-employee-accounts .employee-details-main,
+  body.admin-employee-accounts .employee-details-side {
+    gap: 14px;
+  }
+
+  body.admin-employee-accounts .employee-details-section {
+    padding: 14px;
+  }
+
+  body.admin-employee-accounts .employee-details-list {
+    gap: 10px;
+  }
+
+  body.admin-employee-accounts .employee-details-list div,
+  body.admin-employee-accounts .employee-details-status-list div {
+    padding: 10px 11px;
   }
 
   body.admin-employee-accounts .employee-account-form-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  body.admin-employee-accounts .employee-account-form-grid input,
+  body.admin-employee-accounts .employee-account-form-grid textarea {
+    width: 100%;
+    min-width: 0;
+  }
+
   body.admin-employee-accounts .employee-account-actions {
     gap: 6px;
   }
 
+  body.admin-employee-accounts .employee-account-actions-cell {
+    min-width: 140px;
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
   body.admin-employee-accounts .employee-account-action-button {
-    padding-left: 9px;
-    padding-right: 9px;
+    min-width: 112px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
