@@ -74,6 +74,8 @@ document.addEventListener("DOMContentLoaded", function () {
     DONE: "Done",
     CANCELLED: "Cancelled",
   };
+  const PAYMENT_ASSESSMENT_LABEL = "To be assessed";
+  const LEGACY_PAYMENT_ASSESSMENT_LABEL = ["Payment to be assessed", "after review"].join(" ");
 
   function paymentReviewLabel(method) {
     const value = String(method || "").trim().toLowerCase();
@@ -135,15 +137,40 @@ document.addEventListener("DOMContentLoaded", function () {
     return `PHP ${amount(value).toFixed(2)}`;
   }
 
+  function cleanPaymentSummary(value) {
+    const summary = String(value || "").trim();
+    return summary === LEGACY_PAYMENT_ASSESSMENT_LABEL ? PAYMENT_ASSESSMENT_LABEL : summary;
+  }
+
+  function enteredPaymentSummary(order) {
+    const paidAmount = amount(order?.paidAmount ?? order?.paid_amount);
+    const price = amount(order?.price);
+    if (paidAmount > 0) return `Paid: ${money(paidAmount)}`;
+    if (price > 0) return `Price: ${money(price)}`;
+    return "";
+  }
+
+  function paymentNeedsAssessment(order) {
+    const method = String(order?.paymentMethod || "").trim();
+    const category = String(order?.category || order?.serviceType || "").trim().toLowerCase();
+    return !method
+      && (category === "repair" || category === "installation")
+      && amount(order?.price) <= 0
+      && amount(order?.paidAmount ?? order?.paid_amount) <= 0;
+  }
+
   function paymentSummary(order) {
-    if (order?.paymentAssessment) {
-      return order.paymentSummary || "Payment to be assessed after review";
-    }
     const method = String(order?.paymentMethod || "").trim();
     const price = amount(order?.price);
     const total = price > 0 ? money(price) : "";
     if (method && total) return `${method}: ${total}`;
-    return method || total;
+    if (method) return method;
+
+    const enteredSummary = enteredPaymentSummary(order);
+    if (enteredSummary) return enteredSummary;
+    if (paymentNeedsAssessment(order)) return PAYMENT_ASSESSMENT_LABEL;
+
+    return cleanPaymentSummary(order?.paymentSummary) || total;
   }
 
   function paymentChanged() {
@@ -212,6 +239,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (key === "done" || key === "complete") return "status-done";
     if (key === "cancelled" || key === "canceled" || key === "onhold") return "status-cancelled";
     return "status-pending";
+  }
+
+  function syncPaymentDetailRow(value) {
+    if (!detailsEl) return;
+    const cleanValue = String(value || "").trim();
+    Array.from(detailsEl.querySelectorAll(".order-detail-row")).some((row) => {
+      const label = row.querySelector("span");
+      if (label?.textContent?.trim() !== "Payment") return false;
+      const valueEl = row.querySelector("strong");
+      if (valueEl) valueEl.textContent = cleanValue || PAYMENT_ASSESSMENT_LABEL;
+      return true;
+    });
   }
 
   function fallbackAllowedStatuses(status, order = currentOrder) {
@@ -337,6 +376,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function renderOrder(order) {
+    const summary = paymentSummary(order);
+    const showPaymentSummary = order.paymentAssessment || !String(order.paymentMethod || "").trim();
     const baseRows = [
       detailRow("Queue ID", order.queueCode),
       detailRow("Customer Name", order.customer),
@@ -346,11 +387,11 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Service", order.serviceLabel),
       ...(Array.isArray(order.details) ? order.details.map((row) => detailRow(row.label, row.value)) : []),
       fileRows(order.files),
-      order.paymentAssessment
-        ? detailRow("Payment", order.paymentSummary || "Payment to be assessed after review")
+      showPaymentSummary
+        ? detailRow("Payment", summary)
         : detailRow("Payment Method", order.paymentMethod),
-      !order.paymentAssessment && order.paymentStatus ? detailRow("Payment Status", order.paymentStatus.replaceAll("_", " ")) : "",
-      !order.paymentAssessment && order.paymentReference ? detailRow("Payment Reference", order.paymentReference) : "",
+      !showPaymentSummary && order.paymentStatus ? detailRow("Payment Status", order.paymentStatus.replaceAll("_", " ")) : "",
+      !showPaymentSummary && order.paymentReference ? detailRow("Payment Reference", order.paymentReference) : "",
       detailRow("Submitted Date", order.submitted),
       detailRow("Completed Date", order.completed || "-"),
       commentsRow(order.comments),
@@ -525,10 +566,13 @@ document.addEventListener("DOMContentLoaded", function () {
     currentOrder.price = out.price;
     currentOrder.paidAmount = out.paid_amount;
     currentOrder.paidPending = out.paid_pending;
+    currentOrder.paymentAssessment = paymentNeedsAssessment(currentOrder);
+    currentOrder.paymentSummary = paymentSummary(currentOrder);
     priceEl.value = amount(out.price).toFixed(2);
     paidAmountEl.value = amount(out.paid_amount).toFixed(2);
     initialPayment = { price: priceEl.value, paidAmount: paidAmountEl.value };
     syncPaymentPreview();
+    syncPaymentDetailRow(currentOrder.paymentSummary);
   }
 
   function applyStatusResult(out) {

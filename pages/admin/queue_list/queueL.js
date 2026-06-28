@@ -57,6 +57,8 @@ document.addEventListener("DOMContentLoaded", function () {
     DONE: "Done",
     CANCELLED: "Cancelled",
   };
+  const PAYMENT_ASSESSMENT_LABEL = "To be assessed";
+  const LEGACY_PAYMENT_ASSESSMENT_LABEL = ["Payment to be assessed", "after review"].join(" ");
 
   function paymentReviewLabel(method) {
     const value = String(method || "").trim().toLowerCase();
@@ -193,12 +195,40 @@ document.addEventListener("DOMContentLoaded", function () {
     return `PHP ${amount(value).toFixed(2)}`;
   }
 
+  function cleanPaymentSummary(value) {
+    const summary = String(value || "").trim();
+    return summary === LEGACY_PAYMENT_ASSESSMENT_LABEL ? PAYMENT_ASSESSMENT_LABEL : summary;
+  }
+
+  function enteredPaymentSummary(queue) {
+    const paidAmount = amount(queue?.paidAmount ?? queue?.paid_amount);
+    const price = amount(queue?.price);
+    if (paidAmount > 0) return `Paid: ${money(paidAmount)}`;
+    if (price > 0) return `Price: ${money(price)}`;
+    return "";
+  }
+
+  function paymentNeedsAssessment(queue) {
+    const method = String(queue?.paymentMethod || "").trim();
+    const category = String(queue?.category || "").trim().toLowerCase();
+    return !method
+      && (category === "repair" || category === "installation")
+      && amount(queue?.price) <= 0
+      && amount(queue?.paidAmount ?? queue?.paid_amount) <= 0;
+  }
+
   function queuePaymentSummary(queue) {
     const method = String(queue?.paymentMethod || "").trim();
     const price = amount(queue?.price);
     const total = price > 0 ? money(price) : "";
     if (method && total) return `${method}: ${total}`;
-    return method || total || String(queue?.payment || "").trim();
+    if (method) return method;
+
+    const enteredSummary = enteredPaymentSummary(queue);
+    if (enteredSummary) return enteredSummary;
+    if (paymentNeedsAssessment(queue)) return PAYMENT_ASSESSMENT_LABEL;
+
+    return cleanPaymentSummary(queue?.payment) || total;
   }
 
   function paymentChanged() {
@@ -265,6 +295,7 @@ document.addEventListener("DOMContentLoaded", function () {
     currentQueue.paidPending = out.paid_pending;
     currentQueue.payment = queuePaymentSummary(currentQueue);
     populatePayment(currentQueue);
+    syncPaymentDetailRow(currentQueue.payment);
   }
 
   function applyStatusResult(out) {
@@ -485,6 +516,18 @@ document.addEventListener("DOMContentLoaded", function () {
     return `<div class="queue-detail-row"><span>${esc(label)}</span><strong>${esc(cleanValue)}</strong></div>`;
   }
 
+  function syncPaymentDetailRow(value) {
+    if (!detailsEl) return;
+    const cleanValue = String(value || "").trim();
+    Array.from(detailsEl.querySelectorAll(".queue-detail-row")).some((row) => {
+      const label = row.querySelector("span");
+      if (label?.textContent?.trim() !== "Payment") return false;
+      const valueEl = row.querySelector("strong");
+      if (valueEl) valueEl.textContent = cleanValue || PAYMENT_ASSESSMENT_LABEL;
+      return true;
+    });
+  }
+
   function commentsRow(value) {
     const comments = String(value || "").trim() || "No additional comments.";
     return `
@@ -691,7 +734,7 @@ document.addEventListener("DOMContentLoaded", function () {
       detailRow("Service", queue.service),
       ...(Array.isArray(queue.details) ? queue.details.map((item) => detailRow(item.label, item.value)) : []),
       fileRows(queue.files),
-      detailRow("Payment", queue.payment),
+      detailRow("Payment", queuePaymentSummary(queue)),
       queue.paymentStatus ? detailRow("Payment Status", queue.paymentStatus.replaceAll("_", " ")) : "",
       detailRow("Payment Reference", queue.paymentReference),
       detailRow("Submitted Date", queue.submitted),

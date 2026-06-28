@@ -70,7 +70,7 @@ $queuePageTitle = servitech_admin_employee_banner_title($pdo, "Queue Management"
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260621-global-ui-polish') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260628-payment-wrap') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
 </head>
 <body class="admin-dashboard" data-admin-realtime-scope="queue_installation">
@@ -109,6 +109,7 @@ require __DIR__ . "/../_includes/admin_header.php";
             <tr>
               <th>Order ID</th>
               <th>Customer Name</th>
+              <th>Payment</th>
               <th>Submitted</th>
               <th>Status</th>
               <th>Actions</th>
@@ -180,7 +181,7 @@ require __DIR__ . "/../_includes/admin_header.php";
 </script>
 
 <script src="<?= admin_url('/pages/admin/queue_list/realtime-polling.js?v=20260624-queue-inplace-sync') ?>" defer></script>
-<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260624-queue-live-sync') ?>" defer></script>
+<script src="<?= admin_url('/pages/admin/queue_list/queueL.js?v=20260628-payment-wrap') ?>" defer></script>
 <script src="<?= admin_url('/assets/js/header-menu.js') ?>" defer></script>
 
 </body>

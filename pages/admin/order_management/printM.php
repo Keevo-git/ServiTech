@@ -58,7 +58,7 @@ $orderRecycleControlsAllowed = $orderRecycleReady && servitech_is_super_admin();
 $orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL" : "";
 
 $onlineStmt = $pdo->prepare("
-  SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,
+  SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount,
     q.customer_edit_required, q.send_back_message, q.created_at, q.completed_at,
     u.fullname, u.email AS customer_email,
     COALESCE(NULLIF(to_jsonb(u)->>'contact', ''), NULLIF(to_jsonb(u)->>'contacts', '')) AS customer_phone,
@@ -104,10 +104,10 @@ $orderPageTitle = servitech_admin_employee_banner_title($pdo, "Order Management"
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_dashboard.css?v=20260530admin-ui') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260621-global-ui-polish') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260627-filter-footer-row') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/queueL.css?v=20260628-payment-wrap') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/order_management/orderM.css?v=20260628-payment-wrap') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/queue_list/css/realtime.css?v=20260530') ?>">
-  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260627-export-report') ?>" defer></script>
+  <script src="<?= admin_url('/pages/admin/order_management/orderM.js?v=20260628-payment-wrap') ?>" defer></script>
 </head>
 <body class="admin-dashboard" data-order-action-url="<?= htmlspecialchars(admin_url_raw('/pages/admin/queue_update_status.php'), ENT_QUOTES, 'UTF-8') ?>" data-admin-realtime-scope="order_printing">
 

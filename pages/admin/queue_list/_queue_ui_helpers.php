@@ -98,14 +98,38 @@ function queue_ui_payment_method(array $row): string
     return strtolower(trim((string)($row["payment_method"] ?? ($details["payment_method_snapshot"] ?? ($details["payment_method"] ?? "")))));
 }
 
+function queue_ui_payment_assessment_label(): string
+{
+    return "To be assessed";
+}
+
+function queue_ui_money_label($amount): string
+{
+    return "PHP " . number_format((float)$amount, 2);
+}
+
+function queue_ui_entered_payment_summary(array $payment): string
+{
+    $paidAmount = (float)($payment["paid_amount"] ?? 0);
+    $price = (float)($payment["price"] ?? 0);
+
+    if ($paidAmount > 0) {
+        return "Paid: " . queue_ui_money_label($paidAmount);
+    }
+
+    if ($price > 0) {
+        return "Price: " . queue_ui_money_label($price);
+    }
+
+    return "";
+}
+
 function queue_ui_payment_summary(array $row): string
 {
     $details = queue_ui_details_array($row["details"] ?? null);
     $method = queue_ui_payment_method($row);
     $category = strtolower(trim((string)($row["category"] ?? "")));
-    if ($method === "" && in_array($category, ["repair", "installation"], true)) {
-        return "Payment to be assessed after review";
-    }
+    $payment = servitech_queue_payment_values($row);
     $methodLabel = match ($method) {
         "cash" => "Cash",
         "gcash" => "GCash",
@@ -114,14 +138,34 @@ function queue_ui_payment_summary(array $row): string
     };
     $amount = $row["amount"] ?? ($details["estimated_total"] ?? null);
     $amountLabel = is_numeric($amount) && (float)$amount > 0
-        ? "PHP " . number_format((float)$amount, 2)
+        ? queue_ui_money_label($amount)
         : "";
+    if ($amountLabel === "" && (float)($payment["price"] ?? 0) > 0) {
+        $amountLabel = queue_ui_money_label($payment["price"]);
+    }
 
     if ($methodLabel !== "" && $amountLabel !== "") {
         return $methodLabel . ": " . $amountLabel;
     }
 
-    return $methodLabel !== "" ? $methodLabel : $amountLabel;
+    if (
+        in_array($category, ["repair", "installation"], true)
+        && (float)($payment["price"] ?? 0) <= 0
+        && (float)($payment["paid_amount"] ?? 0) <= 0
+    ) {
+        return queue_ui_payment_assessment_label();
+    }
+
+    if ($methodLabel !== "") {
+        return $methodLabel;
+    }
+
+    $enteredSummary = queue_ui_entered_payment_summary($payment);
+    if ($enteredSummary !== "") {
+        return $enteredSummary;
+    }
+
+    return $amountLabel;
 }
 
 function queue_ui_detail_rows(array $details): array
@@ -329,8 +373,7 @@ function queue_ui_service_label_for_scope(array $row, string $scope): string
 
 function queue_ui_render_table_rows(array $rows, string $scope): void
 {
-    $isPrinting = $scope === "queue_printing";
-    $columnCount = $isPrinting ? 6 : 5;
+    $columnCount = 6;
     $emptyLabel = match ($scope) {
         "queue_repair" => "No repair queues yet.",
         "queue_installation" => "No installation queues yet.",
@@ -348,7 +391,7 @@ function queue_ui_render_table_rows(array $rows, string $scope): void
 
     foreach ($rows as $row) {
         $serviceLabel = queue_ui_service_label_for_scope($row, $scope);
-        $paymentSummary = $isPrinting ? queue_ui_payment_summary($row) : "";
+        $paymentSummary = queue_ui_payment_summary($row);
         $contact = trim(implode(" | ", array_filter([
             (string)($row["customer_email"] ?? ""),
             (string)($row["customer_phone"] ?? ""),
@@ -364,9 +407,7 @@ function queue_ui_render_table_rows(array $rows, string $scope): void
               <?php endif; ?>
             </span>
           </td>
-          <?php if ($isPrinting): ?>
-            <td class="payment-cell"><?= htmlspecialchars($paymentSummary, ENT_QUOTES, "UTF-8") ?></td>
-          <?php endif; ?>
+          <td class="payment-cell"><?= htmlspecialchars($paymentSummary, ENT_QUOTES, "UTF-8") ?></td>
           <td>
             <span class="submitted-stack">
               <strong><?= htmlspecialchars(admin_queue_submitted_date($row["created_at"] ?? null), ENT_QUOTES, "UTF-8") ?></strong>

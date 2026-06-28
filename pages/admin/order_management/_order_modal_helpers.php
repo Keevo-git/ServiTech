@@ -54,18 +54,77 @@ function om_payment_amount_label($amount, $detailsTotal = null): string
     return "";
 }
 
+function om_payment_assessment_label(): string
+{
+    return "To be assessed";
+}
+
+function om_money_label($amount): string
+{
+    return "PHP " . number_format((float)$amount, 2);
+}
+
+function om_entered_payment_summary(array $payment): string
+{
+    $paidAmount = (float)($payment["paid_amount"] ?? 0);
+    $price = (float)($payment["price"] ?? 0);
+
+    if ($paidAmount > 0) {
+        return "Paid: " . om_money_label($paidAmount);
+    }
+
+    if ($price > 0) {
+        return "Price: " . om_money_label($price);
+    }
+
+    return "";
+}
+
+function om_payment_needs_assessment(array $row, string $categoryLabel = ""): bool
+{
+    $details = admin_queue_details_array($row["details"] ?? null);
+    $methodLabel = om_payment_method_label($row["payment_method"] ?? ($details["payment_method"] ?? ""));
+    $category = $categoryLabel !== ""
+        ? $categoryLabel
+        : ucwords(strtolower(trim((string)($row["category"] ?? ""))));
+    $payment = servitech_queue_payment_values($row);
+
+    return $methodLabel === ""
+        && in_array($category, ["Repair", "Installation"], true)
+        && (float)($payment["price"] ?? 0) <= 0
+        && (float)($payment["paid_amount"] ?? 0) <= 0;
+}
+
 function om_payment_summary(array $row): string
 {
     $details = admin_queue_details_array($row["details"] ?? null);
     $method = $row["payment_method"] ?? ($details["payment_method"] ?? "");
     $methodLabel = om_payment_method_label($method);
     $amountLabel = om_payment_amount_label($row["amount"] ?? null, $row["details_total"] ?? ($details["estimated_total"] ?? null));
+    $payment = servitech_queue_payment_values($row);
+
+    if ($amountLabel === "" && (float)($payment["price"] ?? 0) > 0) {
+        $amountLabel = om_money_label($payment["price"]);
+    }
 
     if ($methodLabel !== "" && $amountLabel !== "") {
         return $methodLabel . ": " . $amountLabel;
     }
 
-    return $methodLabel !== "" ? $methodLabel : $amountLabel;
+    if (om_payment_needs_assessment($row)) {
+        return om_payment_assessment_label();
+    }
+
+    if ($methodLabel !== "") {
+        return $methodLabel;
+    }
+
+    $enteredSummary = om_entered_payment_summary($payment);
+    if ($enteredSummary !== "") {
+        return $enteredSummary;
+    }
+
+    return $amountLabel;
 }
 
 function om_service_label(array $details, string $fallback): string
@@ -181,7 +240,7 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
         $serviceLabel = "Document Print";
     }
     $paymentMethodLabel = om_payment_method_label($paymentMethod);
-    $paymentAssessment = $paymentMethodLabel === "" && in_array($categoryLabel, ["Repair", "Installation"], true);
+    $paymentAssessment = om_payment_needs_assessment($row, $categoryLabel);
 
     return [
         "id" => (int)($row["id"] ?? 0),
@@ -199,7 +258,7 @@ function om_order_payload(array $row, string $serviceType, string $fallbackServi
             : "-",
         "paymentMethod" => $paymentMethodLabel,
         "paymentAssessment" => $paymentAssessment,
-        "paymentSummary" => $paymentAssessment ? "Payment to be assessed after review" : om_payment_summary($row),
+        "paymentSummary" => $paymentAssessment ? om_payment_assessment_label() : om_payment_summary($row),
         "paymentReference" => trim((string)$referenceNumber),
         "price" => $payment["price"],
         "paidAmount" => $payment["paid_amount"],
