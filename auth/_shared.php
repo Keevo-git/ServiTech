@@ -138,7 +138,7 @@ if (!function_exists("render_auth_footer")) {
   </footer>
 <?php require_once __DIR__ . "/../components/cookie_consent.php"; ?>
   <script src="<?= auth_url("/assets/js/internal-login-shortcuts.js?v=20260626-internal-login-shortcuts") ?>" defer></script>
-  <script src="<?= auth_url("/assets/js/character_limit_ui.js?v=20260628-feedback-row") ?>" defer></script>
+  <script src="<?= auth_url("/assets/js/character_limit_ui.js?v=20260628-context-suppression") ?>" defer></script>
 <?php
     }
 }

@@ -14,6 +14,7 @@
   var ERROR_SELECTOR = ERROR_SELECTORS.join(", ");
   var FIELD_CONTAINER_SELECTOR = ".form-field, .field, .admin-owner-field, .employee-setup-field, .service-field, .ms-field";
   var INPUT_TYPES = new Set(["", "text", "email", "search", "url"]);
+  var CONTEXT_SUPPRESS_TOKENS = ["filter", "filters", "search", "refine"];
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) {
@@ -67,12 +68,94 @@
     return String(field.getAttribute("type") || "").toLowerCase();
   }
 
+  function labelSelectorFor(id) {
+    var escapedId = window.CSS && typeof window.CSS.escape === "function"
+      ? window.CSS.escape(id)
+      : String(id).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    return 'label[for="' + escapedId + '"]';
+  }
+
+  function textForLabels(field) {
+    var labels = [];
+    if (field.labels && field.labels.length) {
+      labels = Array.from(field.labels);
+    } else if (field.id) {
+      labels = Array.from(document.querySelectorAll(labelSelectorFor(field.id)));
+    }
+
+    return labels.map(function (label) {
+      return label.textContent || "";
+    }).join(" ");
+  }
+
+  function tokenizedContextText(element) {
+    var parts = [];
+    ["id", "class", "role", "aria-label"].forEach(function (attribute) {
+      parts.push(element.getAttribute(attribute) || "");
+    });
+
+    Array.from(element.attributes || []).forEach(function (attribute) {
+      if (attribute.name.indexOf("data-") === 0) {
+        parts.push(attribute.name, attribute.value || "");
+      }
+    });
+
+    return parts.join(" ").toLowerCase();
+  }
+
+  function hasSuppressedContextToken(text) {
+    return CONTEXT_SUPPRESS_TOKENS.some(function (token) {
+      return text.indexOf(token) !== -1;
+    });
+  }
+
+  function isSearchOrFilterContext(field) {
+    if (fieldType(field) === "search") {
+      return true;
+    }
+
+    var fieldText = [
+      field.id || "",
+      field.name || "",
+      field.className || "",
+      field.getAttribute("placeholder") || "",
+      field.getAttribute("aria-label") || "",
+      textForLabels(field)
+    ].join(" ").toLowerCase();
+
+    if (hasSuppressedContextToken(fieldText)) {
+      return true;
+    }
+
+    var current = field.parentElement;
+    while (current && current !== document.body && current !== document.documentElement) {
+      if (hasSuppressedContextToken(tokenizedContextText(current))) {
+        return true;
+      }
+      current = current.parentElement;
+    }
+
+    return false;
+  }
+
+  function shouldSuppressHint(field) {
+    if (field.closest("#loginForm, [data-limit-ui-context='login']")) {
+      return true;
+    }
+
+    return isSearchOrFilterContext(field);
+  }
+
   function shouldEnhance(field) {
     if (!field || field.dataset.limitUiInitialized === "true") {
       return false;
     }
 
     if (field.dataset.limitUi === "off" || field.hasAttribute("data-character-count")) {
+      return false;
+    }
+
+    if (shouldSuppressHint(field)) {
       return false;
     }
 
