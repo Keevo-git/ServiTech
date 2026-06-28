@@ -4,7 +4,7 @@ servitech_require_super_admin();
 require_once __DIR__ . "/../admin/_includes/admin_db.php";
 require_once __DIR__ . "/../admin/_includes/url.php";
 require_once __DIR__ . "/../admin/_includes/queue_files.php";
-require_once __DIR__ . "/_order_modal_helpers.php";
+require_once __DIR__ . "/../admin/order_management/_order_modal_helpers.php";
 
 function rb_status_class(string $status): string
 {
@@ -268,7 +268,7 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
 </div>
 
 <?php require_once __DIR__ . "/../admin/_includes/admin_footer.php"; ?>
-<?php if ($schemaReady) require_once __DIR__ . "/_order_delete_modal.php"; ?>
+<?php if ($schemaReady) require_once __DIR__ . "/../admin/order_management/_order_delete_modal.php"; ?>
 
 <script src="<?= admin_url('/assets/js/csrf.js') ?>"></script>
 <?php if ($schemaReady): ?>
