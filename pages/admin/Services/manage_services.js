@@ -502,6 +502,71 @@
     </label>`;
   }
 
+  function characterHelp(maxLength, value = "") {
+    const length = String(value ?? "").length;
+    return `${length}/${maxLength} characters`;
+  }
+
+  function serviceField({ label, control, help = "", className = "", full = false }) {
+    return `<label class="service-field ${full ? "service-field--full" : ""} ${className}">
+      <span class="service-field-label">${escapeHtml(label)}</span>
+      ${control}
+      ${help ? `<small class="service-field-help" data-character-help>${escapeHtml(help)}</small>` : ""}
+    </label>`;
+  }
+
+  function textInputField({ label, value = "", maxLength = optionLabelMaxLength, inputAttrs = "", placeholder = "", className = "", full = false }) {
+    return serviceField({
+      label,
+      className,
+      full,
+      help: characterHelp(maxLength, value),
+      control: `<input ${inputAttrs} value="${escapeHtml(value)}" maxlength="${maxLength}" placeholder="${escapeHtml(placeholder)}" data-character-count>`,
+    });
+  }
+
+  function newTextInputField({ label, dataAttr, maxLength = optionLabelMaxLength, placeholder = "", className = "", full = false }) {
+    return serviceField({
+      label,
+      className,
+      full,
+      help: characterHelp(maxLength),
+      control: `<input ${dataAttr} maxlength="${maxLength}" placeholder="${escapeHtml(placeholder)}" data-character-count>`,
+    });
+  }
+
+  function priceField(inputHtml, label = "Price", className = "") {
+    return serviceField({
+      label,
+      className: `service-field--price ${className}`,
+      control: `<div class="ms-price-input price-input-group"><span>PHP</span>${inputHtml}</div>`,
+    });
+  }
+
+  function selectField({ label, control, help = "", className = "" }) {
+    return `<div class="service-field ${className}">
+      <span class="service-field-label">${escapeHtml(label)}</span>
+      ${control}
+      ${help ? `<small class="service-field-help">${escapeHtml(help)}</small>` : ""}
+    </div>`;
+  }
+
+  function statusField(control, label = "Active") {
+    return `<div class="service-status-field">
+      <span class="service-field-label">${escapeHtml(label)}</span>
+      ${control}
+    </div>`;
+  }
+
+  function syncCharacterCounters(root = editor) {
+    qsa("[data-character-count]", root).forEach((input) => {
+      const maxLength = Number(input.getAttribute("maxlength") || 0);
+      const help = input.closest(".service-field, .ms-field")?.querySelector("[data-character-help]");
+      if (!maxLength || !help) return;
+      help.textContent = characterHelp(maxLength, input.value);
+    });
+  }
+
   function movementButtons(groupKey, valueKey, valueLabel, index, total) {
     return `<div class="ms-arrange-cell">
       <span class="ms-control-label">Arrange</span>
@@ -524,15 +589,20 @@
 
   function valueManager(groupKey, title, addLabel) {
     const values = group(groupKey)?.values || [];
-    return `<section class="ms-option-section">
+    return `<section class="ms-option-section service-edit-section">
       <div class="ms-section-head">
         <div><h4>${escapeHtml(title)}</h4><p>Edit names, availability, and display order.</p></div>
       </div>
       <div class="ms-value-list">
         <div class="ms-value-list__head" aria-hidden="true"><span>Name</span><span>Status</span><span>Arrange</span></div>
-        ${values.map((value, index) => `<div class="ms-value-row ${Number(value.active) ? "" : "is-inactive"}"
+        ${values.map((value, index) => `<div class="ms-value-row service-form-grid ${Number(value.active) ? "" : "is-inactive"}"
           data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
-          <input data-value-label value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}" aria-label="${escapeHtml(title)} name">
+          ${textInputField({
+            label: `${title} name`,
+            value: value.label,
+            inputAttrs: `data-value-label aria-label="${escapeHtml(title)} name"`,
+            full: true,
+          })}
           <div class="ms-status-cell">
             <span class="ms-control-label">Status</span>
             <label class="ms-switch ms-switch--compact">
@@ -544,21 +614,28 @@
           ${optionVisibilityWarning(groupKey, value) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning(groupKey, value))}</p>` : ""}
         </div>`).join("")}
       </div>
-      <div class="ms-inline-add">
-        <input data-new-value="${groupKey}" maxlength="${optionLabelMaxLength}" placeholder="${escapeHtml(addLabel)}">
-        <button type="button" data-add-value="${groupKey}">Add</button>
+      <div class="ms-inline-add service-form-grid">
+        ${newTextInputField({
+          label: addLabel,
+          dataAttr: `data-new-value="${groupKey}"`,
+          placeholder: addLabel,
+          full: true,
+        })}
+        <div class="service-action-row">
+          <button type="button" data-add-value="${groupKey}">Add</button>
+        </div>
       </div>
     </section>`;
   }
 
   function priceCell(rule) {
     return `<div class="ms-price-cell" data-rule-key="${escapeHtml(rule.rule_key)}">
-      <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
-      <select data-rule-price-type aria-label="Price type">
+      ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00">`)}
+      ${selectField({ label: "Price type", control: `<select data-rule-price-type aria-label="Price type">
         <option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option>
         <option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option>
-      </select>
-      ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${rule.label || "price combination"} active status`)}
+      </select>` })}
+      ${statusField(toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${rule.label || "price combination"} active status`))}
     </div>`;
   }
 
@@ -571,67 +648,75 @@
     const selectedSize = papers.find((p) => p.value_key === selectedPaperSizeKey);
     const selectedColor = colors.find((c) => c.value_key === selectedColorKey);
 
-    return `<section class="ms-option-section">
+    return `<section class="ms-option-section service-edit-section">
       <div class="ms-section-head">
-        <div><h4>Paper Sizes</h4><p>Select a paper size from the dropdown to edit it.</p></div>
+        <div><h4>Paper Sizes</h4><p>Select an existing paper size to edit, or add a new paper size.</p></div>
       </div>
       <div class="ms-value-list">
         <div class="ms-dropdown-wrapper">
-          <label for="ms-paper-size-select">Select Paper Size:</label>
+          <label for="ms-paper-size-select">Select Paper Size</label>
           <select id="ms-paper-size-select" data-select-paper-size aria-label="Select paper size to edit">
             <option value="">-- Select a paper size --</option>
             ${papers.map((paper) => `<option value="${escapeHtml(paper.value_key)}" ${selectedPaperSizeKey === paper.value_key ? "selected" : ""}>${escapeHtml(paper.label)}</option>`).join("")}
           </select>
         </div>
-        ${selectedSize ? `<div class="ms-value-row ${Number(selectedSize.active) ? "" : "is-inactive"}" data-group-key="paper_size" data-value-key="${escapeHtml(selectedSize.value_key)}">
+        ${selectedSize ? `<div class="ms-value-row service-form-grid ${Number(selectedSize.active) ? "" : "is-inactive"}" data-group-key="paper_size" data-value-key="${escapeHtml(selectedSize.value_key)}">
           <div class="ms-size-edit-header"><strong>${escapeHtml(selectedSize.label)}</strong></div>
-          <input data-value-label value="${escapeHtml(selectedSize.label)}" maxlength="${optionLabelMaxLength}" aria-label="Paper size name" class="ms-size-input">
-          <div class="ms-status-cell">
-            <span class="ms-control-label">Status</span>
-            <label class="ms-switch ms-switch--compact">
+          ${textInputField({
+            label: "Paper size name",
+            value: selectedSize.label,
+            inputAttrs: `data-value-label aria-label="Paper size name" class="ms-size-input"`,
+            full: true,
+          })}
+          <div class="ms-status-cell service-action-row">
+            ${statusField(`<label class="ms-switch ms-switch--compact">
               <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedSize.label)} active status" ${Number(selectedSize.active) ? "checked" : ""}>
               <span aria-hidden="true"></span><em>${Number(selectedSize.active) ? "Active" : "Inactive"}</em>
-            </label>
+            </label>`)}
           </div>
           ${optionVisibilityWarning("paper_size", selectedSize) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning("paper_size", selectedSize))}</p>` : ""}
         </div>` : ""}
       </div>
-      <div class="ms-inline-add">
-        <input data-new-value="paper_size" maxlength="${optionLabelMaxLength}" placeholder="New paper size">
-        <button type="button" data-add-value="paper_size">Add</button>
+      <div class="ms-inline-add service-form-grid">
+        ${newTextInputField({ label: "Paper Size", dataAttr: 'data-new-value="paper_size"', placeholder: "New paper size", full: true })}
+        <div class="service-action-row"><button type="button" data-add-value="paper_size">Add</button></div>
       </div>
     </section>
-    <section class="ms-option-section">
+    <section class="ms-option-section service-edit-section">
       <div class="ms-section-head">
-        <div><h4>Color Options</h4><p>Select a color option from the dropdown to edit it.</p></div>
+        <div><h4>Color Options</h4><p>Select an existing color option to edit, or add a new color option.</p></div>
       </div>
       <div class="ms-value-list">
         <div class="ms-dropdown-wrapper">
-          <label for="ms-color-select">Select Color Option:</label>
+          <label for="ms-color-select">Select Color Option</label>
           <select id="ms-color-select" data-select-color aria-label="Select color option to edit">
             <option value="">-- Select a color option --</option>
             ${colors.map((color) => `<option value="${escapeHtml(color.value_key)}" ${selectedColorKey === color.value_key ? "selected" : ""}>${escapeHtml(color.label)}</option>`).join("")}
           </select>
         </div>
-        ${selectedColor ? `<div class="ms-value-row ${Number(selectedColor.active) ? "" : "is-inactive"}" data-group-key="color_option" data-value-key="${escapeHtml(selectedColor.value_key)}">
+        ${selectedColor ? `<div class="ms-value-row service-form-grid ${Number(selectedColor.active) ? "" : "is-inactive"}" data-group-key="color_option" data-value-key="${escapeHtml(selectedColor.value_key)}">
           <div class="ms-size-edit-header"><strong>${escapeHtml(selectedColor.label)}</strong></div>
-          <input data-value-label value="${escapeHtml(selectedColor.label)}" maxlength="${optionLabelMaxLength}" aria-label="Color option name" class="ms-size-input">
-          <div class="ms-status-cell">
-            <span class="ms-control-label">Status</span>
-            <label class="ms-switch ms-switch--compact">
+          ${textInputField({
+            label: "Color option name",
+            value: selectedColor.label,
+            inputAttrs: `data-value-label aria-label="Color option name" class="ms-size-input"`,
+            full: true,
+          })}
+          <div class="ms-status-cell service-action-row">
+            ${statusField(`<label class="ms-switch ms-switch--compact">
               <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedColor.label)} active status" ${Number(selectedColor.active) ? "checked" : ""}>
               <span aria-hidden="true"></span><em>${Number(selectedColor.active) ? "Active" : "Inactive"}</em>
-            </label>
+            </label>`)}
           </div>
           ${optionVisibilityWarning("color_option", selectedColor) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning("color_option", selectedColor))}</p>` : ""}
         </div>` : ""}
       </div>
-      <div class="ms-inline-add">
-        <input data-new-value="color_option" maxlength="${optionLabelMaxLength}" placeholder="New color option">
-        <button type="button" data-add-value="color_option">Add</button>
+      <div class="ms-inline-add service-form-grid">
+        ${newTextInputField({ label: "Color Option", dataAttr: 'data-new-value="color_option"', placeholder: "New color option", full: true })}
+        <div class="service-action-row"><button type="button" data-add-value="color_option">Add</button></div>
       </div>
     </section>
-    <section class="ms-pricing-section">
+    <section class="ms-pricing-section service-edit-section">
       <div class="ms-section-head"><div><h4>Price Matrix</h4><p>Each cell controls one paper size and color combination.</p></div></div>
       ${activePapers.length && activeColors.length ? `<div class="ms-matrix-wrap"><table class="ms-catalog-matrix">
         <thead><tr><th>Paper Size</th>${activeColors.map((color) => `<th>${escapeHtml(color.label)}</th>`).join("")}</tr></thead>
@@ -650,31 +735,53 @@
   function simpleRuleRows(groupKey, title, addLabel, options = {}) {
     const values = group(groupKey)?.values || [];
     values.forEach((value, index) => ensureRule({ [groupKey]: value.value_key }, value.label, index, options.defaultType || "fixed"));
-    return `<section class="ms-pricing-section">
+    return `<section class="ms-pricing-section service-edit-section">
       <div class="ms-section-head"><div><h4>${escapeHtml(title)}</h4><p>${escapeHtml(options.help || "Edit names, prices, and availability.")}</p></div></div>
       <div class="ms-rule-table">
         <div class="ms-rule-table__head"><span>${escapeHtml(options.nameLabel || "Name")}</span>${options.description ? "<span>Details</span>" : ""}<span>Price</span><span>Price Type</span><span>Status</span><span>Order</span></div>
         ${values.map((value, index) => {
           const rule = findRule({ [groupKey]: value.value_key });
-          return `<div class="ms-rule-row ${Number(value.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(rule.rule_key)}" data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
-            <input data-value-label value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}" aria-label="${escapeHtml(options.nameLabel || "Name")}">
-            ${options.description ? `<input data-rule-description value="${escapeHtml(rule.description || value.description || "")}" maxlength="${optionDescriptionMaxLength}" placeholder="Details shown to customers">` : ""}
-            <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
-            ${options.fixedOnly ? '<input type="hidden" data-rule-price-type value="fixed"><span class="ms-fixed-label">Fixed Price</span>' : `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>`}
-            ${toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
+          return `<div class="ms-rule-row service-form-grid ${Number(value.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(rule.rule_key)}" data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
+            ${textInputField({
+              label: options.nameLabel || "Name",
+              value: value.label,
+              inputAttrs: `data-value-label aria-label="${escapeHtml(options.nameLabel || "Name")}"`,
+              full: !options.description,
+            })}
+            ${options.description ? textInputField({
+              label: "Inclusions or Details",
+              value: rule.description || value.description || "",
+              maxLength: optionDescriptionMaxLength,
+              inputAttrs: "data-rule-description",
+              placeholder: "Details shown to customers",
+              full: true,
+            }) : ""}
+            <div class="service-action-row">
+              ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00">`)}
+              ${options.fixedOnly ? '<input type="hidden" data-rule-price-type value="fixed"><span class="ms-fixed-label">Fixed Price</span>' : selectField({ label: "Price Type", control: `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>` })}
+              ${statusField(toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`))}
+            </div>
             <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, value.label, index, values.length)}</div>
           </div>`;
         }).join("")}
       </div>
-      <div class="ms-inline-add ms-inline-add--rule">
-        <input data-new-value="${groupKey}" maxlength="${optionLabelMaxLength}" placeholder="${escapeHtml(addLabel)}">
-        ${options.description ? `<input data-new-description="${groupKey}" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details">` : ""}
-        <div class="ms-price-input"><span>PHP</span><input data-new-price="${groupKey}" type="number" min="0" step="0.01" placeholder="Price"></div>
-        ${options.fixedOnly
-          ? `<input type="hidden" data-new-price-type="${groupKey}" value="fixed"><span class="ms-fixed-label">Fixed Price</span>`
-          : `<select data-new-price-type="${groupKey}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select>`}
-        <label class="ms-switch ms-switch--compact"><input data-new-active="${groupKey}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
-        <button type="button" data-add-value="${groupKey}">Add</button>
+      <div class="ms-inline-add ms-inline-add--rule service-form-grid">
+        ${newTextInputField({ label: addLabel, dataAttr: `data-new-value="${groupKey}"`, placeholder: addLabel })}
+        ${options.description ? newTextInputField({
+          label: "Inclusions or Details",
+          dataAttr: `data-new-description="${groupKey}"`,
+          maxLength: optionDescriptionMaxLength,
+          placeholder: "Inclusions or details",
+          full: true,
+        }) : ""}
+        <div class="service-action-row">
+          ${priceField(`<input data-new-price="${groupKey}" type="number" min="0" step="0.01" placeholder="0.00">`)}
+          ${options.fixedOnly
+            ? `<input type="hidden" data-new-price-type="${groupKey}" value="fixed"><span class="ms-fixed-label">Fixed Price</span>`
+            : selectField({ label: "Price Type", control: `<select data-new-price-type="${groupKey}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select>` })}
+          ${statusField(`<label class="ms-switch ms-switch--compact"><input data-new-active="${groupKey}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>`)}
+          <button type="button" data-add-value="${groupKey}">Add</button>
+        </div>
       </div>
     </section>`;
   }
@@ -762,72 +869,96 @@
     const selectedAddon = addons.find((a) => a.value_key === selectedAddonKey);
     const selectedAddonRule = selectedAddon ? findRule({ addon: selectedAddon.value_key }) : null;
 
-    return `<section class="ms-option-section">
+    return `<section class="ms-option-section service-edit-section">
       <div class="ms-section-head">
-        <div><h4>Packages</h4><p>Select a package from the dropdown to edit it.</p></div>
+        <div><h4>Packages</h4><p>Select an existing package to edit, or add a new package.</p></div>
       </div>
       <div class="ms-value-list">
         <div class="ms-dropdown-wrapper">
-          <label for="ms-package-select">Select Package:</label>
+          <label for="ms-package-select">Select Package</label>
           <select id="ms-package-select" data-select-package aria-label="Select package to edit">
             <option value="">-- Select a package --</option>
             ${packages.map((pkg) => `<option value="${escapeHtml(pkg.value_key)}" ${selectedPackageKey === pkg.value_key ? "selected" : ""}>${escapeHtml(pkg.label)}</option>`).join("")}
           </select>
         </div>
-        ${selectedPackage ? `<div class="ms-value-row ${Number(selectedPackage.active) ? "" : "is-inactive"}" data-group-key="package" data-value-key="${escapeHtml(selectedPackage.value_key)}">
+        ${selectedPackage ? `<div class="ms-value-row service-form-grid ${Number(selectedPackage.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(selectedPackageRule?.rule_key || "")}" data-group-key="package" data-value-key="${escapeHtml(selectedPackage.value_key)}">
           <div class="ms-size-edit-header"><strong>${escapeHtml(selectedPackage.label)}</strong></div>
-          <input data-value-label value="${escapeHtml(selectedPackage.label)}" maxlength="${optionLabelMaxLength}" aria-label="Package name" class="ms-size-input">
-          <input data-rule-description value="${escapeHtml(selectedPackageRule?.description || selectedPackage.description || "")}" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details" class="ms-size-input">
-          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedPackageRule?.price ?? "")}" placeholder="0.00"></div>
-          <div class="ms-status-cell">
-            <span class="ms-control-label">Status</span>
-            <label class="ms-switch ms-switch--compact">
+          ${textInputField({
+            label: "Package Name",
+            value: selectedPackage.label,
+            inputAttrs: `data-value-label aria-label="Package name" class="ms-size-input"`,
+          })}
+          ${textInputField({
+            label: "Inclusions or Details",
+            value: selectedPackageRule?.description || selectedPackage.description || "",
+            maxLength: optionDescriptionMaxLength,
+            inputAttrs: `data-rule-description class="ms-size-input"`,
+            placeholder: "Inclusions or details",
+            full: true,
+          })}
+          <div class="ms-status-cell service-action-row">
+            ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedPackageRule?.price ?? "")}" placeholder="0.00">`)}
+            ${statusField(`<label class="ms-switch ms-switch--compact">
               <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedPackage.label)} active status" ${Number(selectedPackage.active) ? "checked" : ""}>
               <span aria-hidden="true"></span><em>${Number(selectedPackage.active) ? "Active" : "Inactive"}</em>
-            </label>
+            </label>`)}
           </div>
         </div>` : ""}
       </div>
-      <div class="ms-inline-add">
-        <input data-new-value="package" maxlength="${optionLabelMaxLength}" placeholder="New package name">
-        <input data-new-description="package" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details">
-        <div class="ms-price-input"><span>PHP</span><input data-new-price="package" type="number" min="0" step="0.01" placeholder="Price"></div>
-        <label class="ms-switch ms-switch--compact"><input data-new-active="package" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
-        <button type="button" data-add-value="package">Add</button>
+      <div class="ms-inline-add service-form-grid">
+        ${newTextInputField({ label: "Package Name", dataAttr: 'data-new-value="package"', placeholder: "New package name" })}
+        ${newTextInputField({ label: "Inclusions or Details", dataAttr: 'data-new-description="package"', maxLength: optionDescriptionMaxLength, placeholder: "Inclusions or details", full: true })}
+        <div class="service-action-row">
+          ${priceField('<input data-new-price="package" type="number" min="0" step="0.01" placeholder="0.00">')}
+          ${statusField('<label class="ms-switch ms-switch--compact"><input data-new-active="package" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>')}
+          <button type="button" data-add-value="package">Add</button>
+        </div>
       </div>
     </section>
-    <section class="ms-option-section">
+    <section class="ms-option-section service-edit-section">
       <div class="ms-section-head">
-        <div><h4>Optional Add-Ons</h4><p>Select an add-on from the dropdown to edit it. Prices are added to the selected package.</p></div>
+        <div><h4>Optional Add-Ons</h4><p>Select an existing add-on to edit, or add a new add-on for the selected package.</p></div>
       </div>
       <div class="ms-value-list">
         <div class="ms-dropdown-wrapper">
-          <label for="ms-addon-select">Select Add-On:</label>
+          <label for="ms-addon-select">Select Add-On</label>
           <select id="ms-addon-select" data-select-addon aria-label="Select add-on to edit">
             <option value="">-- Select an add-on --</option>
             ${addons.map((addon) => `<option value="${escapeHtml(addon.value_key)}" ${selectedAddonKey === addon.value_key ? "selected" : ""}>${escapeHtml(addon.label)}</option>`).join("")}
           </select>
         </div>
-        ${selectedAddon ? `<div class="ms-value-row ${Number(selectedAddon.active) ? "" : "is-inactive"}" data-group-key="addon" data-value-key="${escapeHtml(selectedAddon.value_key)}">
+        ${selectedAddon ? `<div class="ms-value-row service-form-grid ${Number(selectedAddon.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(selectedAddonRule?.rule_key || "")}" data-group-key="addon" data-value-key="${escapeHtml(selectedAddon.value_key)}">
           <div class="ms-size-edit-header"><strong>${escapeHtml(selectedAddon.label)}</strong></div>
-          <input data-value-label value="${escapeHtml(selectedAddon.label)}" maxlength="${optionLabelMaxLength}" aria-label="Add-on name" class="ms-size-input">
-          <input data-rule-description value="${escapeHtml(selectedAddonRule?.description || selectedAddon.description || "")}" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details" class="ms-size-input">
-          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedAddonRule?.price ?? "")}" placeholder="0.00"></div>
-          <div class="ms-status-cell">
-            <span class="ms-control-label">Status</span>
-            <label class="ms-switch ms-switch--compact">
+          ${textInputField({
+            label: "Add-On Name",
+            value: selectedAddon.label,
+            inputAttrs: `data-value-label aria-label="Add-on name" class="ms-size-input"`,
+          })}
+          ${textInputField({
+            label: "Inclusions or Details",
+            value: selectedAddonRule?.description || selectedAddon.description || "",
+            maxLength: optionDescriptionMaxLength,
+            inputAttrs: `data-rule-description class="ms-size-input"`,
+            placeholder: "Inclusions or details",
+            full: true,
+          })}
+          <div class="ms-status-cell service-action-row">
+            ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedAddonRule?.price ?? "")}" placeholder="0.00">`)}
+            ${statusField(`<label class="ms-switch ms-switch--compact">
               <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedAddon.label)} active status" ${Number(selectedAddon.active) ? "checked" : ""}>
               <span aria-hidden="true"></span><em>${Number(selectedAddon.active) ? "Active" : "Inactive"}</em>
-            </label>
+            </label>`)}
           </div>
         </div>` : ""}
       </div>
-      <div class="ms-inline-add">
-        <input data-new-value="addon" maxlength="${optionLabelMaxLength}" placeholder="New add-on name">
-        <input data-new-description="addon" maxlength="${optionDescriptionMaxLength}" placeholder="Inclusions or details">
-        <div class="ms-price-input"><span>PHP</span><input data-new-price="addon" type="number" min="0" step="0.01" placeholder="Price"></div>
-        <label class="ms-switch ms-switch--compact"><input data-new-active="addon" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
-        <button type="button" data-add-value="addon">Add</button>
+      <div class="ms-inline-add service-form-grid">
+        ${newTextInputField({ label: "Add-On Name", dataAttr: 'data-new-value="addon"', placeholder: "New add-on name" })}
+        ${newTextInputField({ label: "Inclusions or Details", dataAttr: 'data-new-description="addon"', maxLength: optionDescriptionMaxLength, placeholder: "Inclusions or details", full: true })}
+        <div class="service-action-row">
+          ${priceField('<input data-new-price="addon" type="number" min="0" step="0.01" placeholder="0.00">')}
+          ${statusField('<label class="ms-switch ms-switch--compact"><input data-new-active="addon" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>')}
+          <button type="button" data-add-value="addon">Add</button>
+        </div>
       </div>
     </section>`;
   }
@@ -841,10 +972,10 @@
       : [];
 
     return `${valueManager("device_type", "Devices", "New device")}
-      <section class="ms-pricing-section">
+      <section class="ms-pricing-section service-edit-section">
         <div class="ms-section-head"><div><h4>Repair Services by Device</h4><p>Select a device from the dropdown to manage its services.</p></div></div>
         <div class="ms-dropdown-wrapper">
-          <label for="ms-repair-device-select">Select Device:</label>
+          <label for="ms-repair-device-select">Select Device</label>
           <select id="ms-repair-device-select" data-select-repair-device aria-label="Select device to edit">
             <option value="">-- Select a device --</option>
             ${devices.filter((device) => Number(device.active)).map((device) => `<option value="${escapeHtml(device.value_key)}" ${selectedRepairDeviceKey === device.value_key ? "selected" : ""}>${escapeHtml(device.label)}</option>`).join("")}
@@ -856,15 +987,29 @@
             ${rules.map((rule, ruleIndex) => {
               const value = groupValue("repair_type", rule.option_value_keys?.repair_type);
               if (!value) return "";
-              return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
-                <input data-value-label data-group-key="repair_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}">
-                <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
-                <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
-                ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
+              return `<div class="ms-repair-row service-form-grid" data-rule-key="${escapeHtml(rule.rule_key)}">
+                ${textInputField({
+                  label: "Service Name",
+                  value: value.label,
+                  inputAttrs: `data-value-label data-group-key="repair_type" data-value-key="${escapeHtml(value.value_key)}"`,
+                })}
+                <div class="service-action-row">
+                  ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00">`)}
+                  ${selectField({ label: "Price Type", control: `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>` })}
+                  ${statusField(toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`))}
+                </div>
                 ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
               </div>`;
             }).join("")}
-            <div class="ms-inline-add ms-inline-add--rule"><input data-new-repair="${escapeHtml(selectedDevice.value_key)}" maxlength="${optionLabelMaxLength}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-repair-price="${escapeHtml(selectedDevice.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-repair-price-type="${escapeHtml(selectedDevice.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(selectedDevice.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-repair="${escapeHtml(selectedDevice.value_key)}">Add Service</button></div>
+            <div class="ms-inline-add ms-inline-add--rule service-form-grid">
+              ${newTextInputField({ label: "Service Name", dataAttr: `data-new-repair="${escapeHtml(selectedDevice.value_key)}"`, placeholder: "Service name" })}
+              <div class="service-action-row">
+                ${priceField(`<input data-new-repair-price="${escapeHtml(selectedDevice.value_key)}" type="number" min="0" step="0.01" placeholder="0.00">`)}
+                ${selectField({ label: "Price Type", control: `<select data-new-repair-price-type="${escapeHtml(selectedDevice.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select>` })}
+                ${statusField(`<label class="ms-switch ms-switch--compact"><input data-new-repair-active="${escapeHtml(selectedDevice.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>`)}
+                <button type="button" data-add-repair="${escapeHtml(selectedDevice.value_key)}">Add Service</button>
+              </div>
+            </div>
           </div>
         </div>` : ""}
       </section>`;
@@ -875,36 +1020,41 @@
     const selectedType = types.find((t) => t.value_key === selectedLaminationTypeKey);
     const selectedRule = selectedType ? findRule({ lamination_type: selectedType.value_key }) : null;
 
-    return `<section class="ms-option-section">
+    return `<section class="ms-option-section service-edit-section">
       <div class="ms-section-head">
-        <div><h4>Laminating Types</h4><p>Select a laminating type from the dropdown to edit it.</p></div>
+        <div><h4>Laminating Types</h4><p>Select an existing laminating type to edit, or add a new type.</p></div>
       </div>
       <div class="ms-value-list">
         <div class="ms-dropdown-wrapper">
-          <label for="ms-laminating-type-select">Select Type:</label>
+          <label for="ms-laminating-type-select">Select Type</label>
           <select id="ms-laminating-type-select" data-select-laminating-type aria-label="Select laminating type to edit">
             <option value="">-- Select a type --</option>
             ${types.map((type) => `<option value="${escapeHtml(type.value_key)}" ${selectedLaminationTypeKey === type.value_key ? "selected" : ""}>${escapeHtml(type.label)}</option>`).join("")}
           </select>
         </div>
-        ${selectedType ? `<div class="ms-value-row ${Number(selectedType.active) ? "" : "is-inactive"}" data-group-key="lamination_type" data-value-key="${escapeHtml(selectedType.value_key)}">
+        ${selectedType ? `<div class="ms-value-row service-form-grid ${Number(selectedType.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(selectedRule?.rule_key || "")}" data-group-key="lamination_type" data-value-key="${escapeHtml(selectedType.value_key)}">
           <div class="ms-size-edit-header"><strong>${escapeHtml(selectedType.label)}</strong></div>
-          <input data-value-label value="${escapeHtml(selectedType.label)}" maxlength="${optionLabelMaxLength}" aria-label="Laminating type name" class="ms-size-input">
-          <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00"></div>
-          <div class="ms-status-cell">
-            <span class="ms-control-label">Status</span>
-            <label class="ms-switch ms-switch--compact">
+          ${textInputField({
+            label: "Laminating Type Name",
+            value: selectedType.label,
+            inputAttrs: `data-value-label aria-label="Laminating type name" class="ms-size-input"`,
+          })}
+          <div class="ms-status-cell service-action-row">
+            ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00">`)}
+            ${statusField(`<label class="ms-switch ms-switch--compact">
               <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedType.label)} active status" ${Number(selectedType.active) ? "checked" : ""}>
               <span aria-hidden="true"></span><em>${Number(selectedType.active) ? "Active" : "Inactive"}</em>
-            </label>
+            </label>`)}
           </div>
         </div>` : ""}
       </div>
-      <div class="ms-inline-add">
-        <input data-new-value="lamination_type" maxlength="${optionLabelMaxLength}" placeholder="New laminating type">
-        <div class="ms-price-input"><span>PHP</span><input data-new-price="lamination_type" type="number" min="0" step="0.01" placeholder="Price"></div>
-        <label class="ms-switch ms-switch--compact"><input data-new-active="lamination_type" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
-        <button type="button" data-add-value="lamination_type">Add</button>
+      <div class="ms-inline-add service-form-grid">
+        ${newTextInputField({ label: "Laminating Type Name", dataAttr: 'data-new-value="lamination_type"', placeholder: "New laminating type" })}
+        <div class="service-action-row">
+          ${priceField('<input data-new-price="lamination_type" type="number" min="0" step="0.01" placeholder="0.00">')}
+          ${statusField('<label class="ms-switch ms-switch--compact"><input data-new-active="lamination_type" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>')}
+          <button type="button" data-add-value="lamination_type">Add</button>
+        </div>
       </div>
     </section>`;
   }
@@ -914,36 +1064,41 @@
     const selectedType = types.find((t) => t.value_key === selectedSimpleInstallationTypeKey);
     const selectedRule = selectedType ? findRule({ installation_type: selectedType.value_key }) : null;
 
-    return `<section class="ms-option-section">
+    return `<section class="ms-option-section service-edit-section">
       <div class="ms-section-head">
-        <div><h4>Installation Types</h4><p>Select an installation type from the dropdown to edit it.</p></div>
+        <div><h4>Installation Types</h4><p>Select an existing installation type to edit, or add a new type.</p></div>
       </div>
       <div class="ms-value-list">
         <div class="ms-dropdown-wrapper">
-          <label for="ms-simple-installation-select">Select Installation Type:</label>
+          <label for="ms-simple-installation-select">Select Installation Type</label>
           <select id="ms-simple-installation-select" data-select-simple-installation-type aria-label="Select installation type to edit">
             <option value="">-- Select a type --</option>
             ${types.map((type) => `<option value="${escapeHtml(type.value_key)}" ${selectedSimpleInstallationTypeKey === type.value_key ? "selected" : ""}>${escapeHtml(type.label)}</option>`).join("")}
           </select>
         </div>
-        ${selectedType ? `<div class="ms-value-row ${Number(selectedType.active) ? "" : "is-inactive"}" data-group-key="installation_type" data-value-key="${escapeHtml(selectedType.value_key)}">
+        ${selectedType ? `<div class="ms-value-row service-form-grid ${Number(selectedType.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(selectedRule?.rule_key || "")}" data-group-key="installation_type" data-value-key="${escapeHtml(selectedType.value_key)}">
           <div class="ms-size-edit-header"><strong>${escapeHtml(selectedType.label)}</strong></div>
-          <input data-value-label value="${escapeHtml(selectedType.label)}" maxlength="${optionLabelMaxLength}" aria-label="Installation type name" class="ms-size-input">
-          <div class="ms-price-input"><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00"></div>
-          <select data-rule-price-type aria-label="Price type"><option value="fixed" ${selectedRule?.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${selectedRule?.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
-          <div class="ms-status-cell">
-            <span class="ms-control-label">Status</span>
-            <label class="ms-switch ms-switch--compact">
+          ${textInputField({
+            label: "Installation Type Name",
+            value: selectedType.label,
+            inputAttrs: `data-value-label aria-label="Installation type name" class="ms-size-input"`,
+          })}
+          <div class="ms-status-cell service-action-row">
+            ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00">`)}
+            ${selectField({ label: "Price Type", control: `<select data-rule-price-type aria-label="Price type"><option value="fixed" ${selectedRule?.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${selectedRule?.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>` })}
+            ${statusField(`<label class="ms-switch ms-switch--compact">
               <input data-value-active data-action="toggle-active" type="checkbox" aria-label="Toggle ${escapeHtml(selectedType.label)} active status" ${Number(selectedType.active) ? "checked" : ""}>
               <span aria-hidden="true"></span><em>${Number(selectedType.active) ? "Active" : "Inactive"}</em>
-            </label>
+            </label>`)}
           </div>
         </div>` : ""}
       </div>
-      <div class="ms-inline-add">
-        <input data-new-value="installation_type" maxlength="${optionLabelMaxLength}" placeholder="New installation type">
-        <label class="ms-switch ms-switch--compact"><input data-new-active="installation_type" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>
-        <button type="button" data-add-value="installation_type">Add</button>
+      <div class="ms-inline-add service-form-grid">
+        ${newTextInputField({ label: "Installation Type Name", dataAttr: 'data-new-value="installation_type"', placeholder: "New installation type" })}
+        <div class="service-action-row">
+          ${statusField('<label class="ms-switch ms-switch--compact"><input data-new-active="installation_type" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>')}
+          <button type="button" data-add-value="installation_type">Add</button>
+        </div>
       </div>
     </section>`;
   }
@@ -957,10 +1112,10 @@
       : [];
 
     return `${valueManager("device_type", "Devices", "New device")}
-      <section class="ms-pricing-section">
+      <section class="ms-pricing-section service-edit-section">
         <div class="ms-section-head"><div><h4>Installation Services by Device</h4><p>Select a device from the dropdown to manage its services.</p></div></div>
         <div class="ms-dropdown-wrapper">
-          <label for="ms-installation-device-select">Select Device:</label>
+          <label for="ms-installation-device-select">Select Device</label>
           <select id="ms-installation-device-select" data-select-installation-device aria-label="Select device to edit">
             <option value="">-- Select a device --</option>
             ${devices.filter((device) => Number(device.active)).map((device) => `<option value="${escapeHtml(device.value_key)}" ${selectedInstallationDeviceKey === device.value_key ? "selected" : ""}>${escapeHtml(device.label)}</option>`).join("")}
@@ -972,15 +1127,29 @@
             ${rules.map((rule, ruleIndex) => {
               const value = groupValue("installation_type", rule.option_value_keys?.installation_type);
               if (!value) return "";
-              return `<div class="ms-repair-row" data-rule-key="${escapeHtml(rule.rule_key)}">
-                <input data-value-label data-group-key="installation_type" data-value-key="${escapeHtml(value.value_key)}" value="${escapeHtml(value.label)}" maxlength="${optionLabelMaxLength}">
-                <div class="ms-price-input"><span>PHP</span><input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00"></div>
-                <select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>
-                ${toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`)}
+              return `<div class="ms-repair-row service-form-grid" data-rule-key="${escapeHtml(rule.rule_key)}">
+                ${textInputField({
+                  label: "Service Name",
+                  value: value.label,
+                  inputAttrs: `data-value-label data-group-key="installation_type" data-value-key="${escapeHtml(value.value_key)}"`,
+                })}
+                <div class="service-action-row">
+                  ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(rule.price ?? "")}" placeholder="0.00">`)}
+                  ${selectField({ label: "Price Type", control: `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>` })}
+                  ${statusField(toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`))}
+                </div>
                 ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
               </div>`;
             }).join("")}
-            <div class="ms-inline-add ms-inline-add--rule"><input data-new-installation="${escapeHtml(selectedDevice.value_key)}" maxlength="${optionLabelMaxLength}" placeholder="Service name"><div class="ms-price-input"><span>PHP</span><input data-new-installation-price="${escapeHtml(selectedDevice.value_key)}" type="number" min="0" step="0.01" placeholder="Price"></div><select data-new-installation-price-type="${escapeHtml(selectedDevice.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select><label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(selectedDevice.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label><button type="button" data-add-installation="${escapeHtml(selectedDevice.value_key)}">Add Service</button></div>
+            <div class="ms-inline-add ms-inline-add--rule service-form-grid">
+              ${newTextInputField({ label: "Service Name", dataAttr: `data-new-installation="${escapeHtml(selectedDevice.value_key)}"`, placeholder: "Service name" })}
+              <div class="service-action-row">
+                ${priceField(`<input data-new-installation-price="${escapeHtml(selectedDevice.value_key)}" type="number" min="0" step="0.01" placeholder="0.00">`)}
+                ${selectField({ label: "Price Type", control: `<select data-new-installation-price-type="${escapeHtml(selectedDevice.value_key)}"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select>` })}
+                ${statusField(`<label class="ms-switch ms-switch--compact"><input data-new-installation-active="${escapeHtml(selectedDevice.value_key)}" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>`)}
+                <button type="button" data-add-installation="${escapeHtml(selectedDevice.value_key)}">Add Service</button>
+              </div>
+            </div>
           </div>
         </div>` : ""}
       </section>`;
@@ -988,7 +1157,7 @@
 
   function installationEditor() {
     const deviceMode = Number(group("device_type")?.active) === 1;
-    return `<section class="ms-option-section ms-mode-section"><div><h4>Pricing Setup</h4><p>Use a simple service list, or enable device-specific installation pricing.</p></div><label class="ms-switch"><input data-installation-device-mode type="checkbox" ${deviceMode ? "checked" : ""}><span aria-hidden="true"></span><em>Use Device Category</em></label></section>
+    return `<section class="ms-option-section service-edit-section ms-mode-section"><div><h4>Pricing Setup</h4><p>Use a simple service list, or enable device-specific installation pricing.</p></div><label class="ms-switch"><input data-installation-device-mode type="checkbox" ${deviceMode ? "checked" : ""}><span aria-hidden="true"></span><em>Use Device Category</em></label></section>
       ${deviceMode
         ? installationDeviceEditor()
         : simpleInstallationEditor()}`;
@@ -1005,6 +1174,7 @@
     else if (currentKind === "installation") content = installationEditor();
     const warning = serviceAvailabilityWarning();
     editor.innerHTML = `${warning ? `<div class="ms-option-warning ms-service-warning" role="status">${escapeHtml(warning)}</div>` : ""}${content}`;
+    syncCharacterCounters(editor);
   }
 
   function syncFromDom({ includeStatus = true } = {}) {
@@ -1234,6 +1404,12 @@
 
   });
 
+  editor?.addEventListener("input", (event) => {
+    if (event.target.matches("[data-character-count]")) {
+      syncCharacterCounters(editor);
+    }
+  });
+
   editor?.addEventListener("change", async (event) => {
     if (event.target.matches("[data-select-paper-size]")) {
       event.stopPropagation();
@@ -1361,6 +1537,7 @@
     fields.sort.value = data.sort_order || 0;
     fields.active.checked = Number(data.active) === 1;
     syncServiceStatusLabel();
+    syncCharacterCounters(document);
     originalServiceSnapshot = {
       name: data.name || "",
       description: data.description || "",
@@ -1455,6 +1632,8 @@
       ? "Service activated in this draft. Save changes to publish it."
       : "Service deactivated in this draft. Save changes to publish it.");
   });
+  fields.name?.addEventListener("input", () => syncCharacterCounters(document));
+  fields.description?.addEventListener("input", () => syncCharacterCounters(document));
   qs("#msX")?.addEventListener("click", closeEditor);
   qs("#msCancel")?.addEventListener("click", closeEditor);
   overlay?.addEventListener("click", (event) => {

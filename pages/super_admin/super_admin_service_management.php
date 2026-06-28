@@ -50,7 +50,7 @@ $services = servitech_catalog_dedupe_services(array_values(array_filter($service
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/assets/css/style.css?v=20260621-global-ui-polish') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260619-hero-actions') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260627-dropdown-selector') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/Services/manage_services.css?v=20260628-service-edit-layout') ?>">
 </head>
 <body>
 
@@ -146,7 +146,7 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
 </div>
 
 <div class="ms-overlay" id="msOverlay" hidden aria-hidden="true">
-  <div class="ms-modal" role="dialog" aria-modal="true" aria-labelledby="msModalTitle" tabindex="-1">
+  <div class="ms-modal service-management-modal" role="dialog" aria-modal="true" aria-labelledby="msModalTitle" tabindex="-1">
     <button class="ms-x" id="msX" type="button" aria-label="Close modal">&times;</button>
 
     <div class="ms-mhead">
@@ -178,11 +178,14 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
         <summary>Customer-facing service description</summary>
         <div class="ms-field" id="msServiceNameField" hidden>
           <label for="ms_name">Service name</label>
-          <input id="ms_name" type="text" maxlength="<?= SERVITECH_LIMIT_SERVICE_NAME ?>">
+          <input id="ms_name" type="text" maxlength="<?= SERVITECH_LIMIT_SERVICE_NAME ?>" data-character-count>
+          <small data-character-help>Maximum <?= SERVITECH_LIMIT_SERVICE_NAME ?> characters.</small>
           <small>Use Laminating or Lamination.</small>
         </div>
         <div class="ms-field">
-          <textarea id="ms_description" placeholder="Short customer-facing note for this service" maxlength="<?= SERVITECH_LIMIT_SERVICE_DESCRIPTION ?>"></textarea>
+          <label for="ms_description">Customer-facing service description</label>
+          <textarea id="ms_description" placeholder="Short customer-facing note for this service" maxlength="<?= SERVITECH_LIMIT_SERVICE_DESCRIPTION ?>" data-character-count></textarea>
+          <small data-character-help>Maximum <?= SERVITECH_LIMIT_SERVICE_DESCRIPTION ?> characters.</small>
           <small>This text appears with the service on customer-facing pages.</small>
         </div>
         <div class="ms-field">

@@ -293,3 +293,343 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
     grid-column: 1;
   }
 }
+
+/* Formal Super Admin service editor layout. */
+.service-management-modal {
+  background: #fff;
+  height: min(820px, calc(100dvh - 32px));
+  width: min(95vw, 1100px);
+}
+
+.service-management-modal .ms-mhead {
+  background: #fff;
+  border-bottom: 1px solid #dbe5f0;
+  padding: 22px 82px 16px 24px;
+}
+
+.service-management-modal .ms-mhead h3 {
+  font-size: 23px;
+  line-height: 1.25;
+  margin-bottom: 7px;
+}
+
+.service-management-modal .ms-accent {
+  display: none;
+}
+
+.service-management-modal .ms-body {
+  background: #f5f8fc;
+  display: grid;
+  gap: 14px;
+  padding: 18px 22px 22px;
+}
+
+.service-management-modal .ms-foot {
+  background: #fff;
+  border-top: 1px solid #dbe5f0;
+  gap: 10px;
+  padding: 14px 20px;
+}
+
+.service-management-modal .ms-btn {
+  min-width: 96px;
+}
+
+.service-edit-section,
+.service-management-modal .ms-service-status,
+.service-management-modal .ms-service-details {
+  background: #fff;
+  border: 1px solid #d9e4ef;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(24,63,112,.05);
+}
+
+.service-management-modal .ms-service-status {
+  align-items: center;
+  padding: 15px 16px;
+}
+
+.service-management-modal .ms-service-details {
+  border-bottom: 1px solid #d9e4ef;
+  margin: 0;
+  padding: 13px 16px 16px;
+}
+
+.service-management-modal .ms-service-details summary {
+  margin-bottom: 10px;
+}
+
+.service-edit-section {
+  padding: 16px;
+}
+
+.service-edit-section .ms-section-head {
+  border-bottom: 1px solid #e6edf5;
+  margin: -2px 0 14px;
+  padding-bottom: 12px;
+}
+
+.service-edit-section .ms-section-head h4 {
+  font-size: 16px;
+}
+
+.service-edit-section .ms-section-head p,
+.service-management-modal .ms-dropdown-wrapper label,
+.service-field-label {
+  line-height: 1.35;
+}
+
+.service-management-modal .ms-dropdown-wrapper {
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.service-management-modal .ms-dropdown-wrapper label,
+.service-field-label {
+  color: #294b70;
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.service-management-modal .ms-dropdown-wrapper select,
+.service-field input,
+.service-field textarea,
+.service-field select,
+.service-management-modal .ms-rule-row select,
+.service-management-modal .ms-repair-row select,
+.service-management-modal .ms-inline-add select,
+.service-management-modal .ms-price-cell select {
+  background: #fff;
+  border: 1px solid #c7d5e5;
+  border-radius: 7px;
+  color: #203c5c;
+  font: inherit;
+  min-height: 44px;
+  padding: 10px 11px;
+  width: 100%;
+}
+
+.service-form-grid {
+  align-items: start;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .55fr);
+}
+
+.ms-value-row.service-form-grid,
+.ms-rule-row.service-form-grid,
+.ms-repair-row.service-form-grid,
+.ms-inline-add.service-form-grid {
+  background: #fbfdff;
+  border: 1px solid #dce7f2;
+  border-radius: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .55fr);
+  padding: 14px;
+}
+
+.ms-inline-add.service-form-grid {
+  margin-top: 12px;
+}
+
+.service-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.service-field--full,
+.ms-size-edit-header,
+.service-action-row,
+.ms-option-warning {
+  grid-column: 1 / -1;
+}
+
+.service-field-help {
+  color: #6c7f92;
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.service-action-row {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: flex-start;
+}
+
+.service-action-row > button,
+.ms-inline-add.service-form-grid > .service-action-row > button {
+  align-self: end;
+  margin-left: auto;
+  min-width: 104px;
+}
+
+.service-status-field {
+  align-items: start;
+  display: grid;
+  gap: 7px;
+}
+
+.service-status-field .ms-switch {
+  background: #f2f6fb;
+  border: 1px solid #d8e4f0;
+  border-radius: 8px;
+  padding: 7px 10px;
+}
+
+.service-field--price {
+  flex: 0 1 230px;
+  max-width: 260px;
+  min-width: 190px;
+}
+
+.price-input-group,
+.service-management-modal .ms-price-input {
+  align-items: stretch;
+  background: #fff;
+  border: 1px solid #c7d5e5;
+  border-radius: 7px;
+  display: flex;
+  min-height: 44px;
+  overflow: hidden;
+}
+
+.price-input-group span,
+.service-management-modal .ms-price-input span {
+  align-items: center;
+  background: #edf3f8;
+  border-right: 1px solid #dbe5f0;
+  color: #536b83;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 900;
+  justify-content: center;
+  min-width: 46px;
+  padding: 0 10px;
+}
+
+.price-input-group input,
+.service-management-modal .ms-price-input input {
+  border: 0 !important;
+  border-radius: 0 !important;
+  min-height: 42px;
+  padding: 10px 11px;
+}
+
+.service-management-modal .ms-price-cell {
+  gap: 10px;
+}
+
+.service-management-modal .ms-price-cell .service-field--price {
+  max-width: none;
+  min-width: 0;
+}
+
+.service-management-modal .ms-fixed-label {
+  align-items: center;
+  background: #f2f6fb;
+  border: 1px solid #d8e4f0;
+  border-radius: 7px;
+  display: inline-flex;
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.service-management-modal .ms-size-edit-header {
+  background: #edf3f9;
+  border: 0;
+  border-radius: 7px;
+  color: var(--ms-navy);
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.service-management-modal .ms-row-actions {
+  grid-column: 1 / -1;
+}
+
+.service-management-modal .ms-arrange-cell {
+  align-self: end;
+  justify-self: start;
+}
+
+.service-management-modal .ms-device-card__body {
+  background: #fff;
+  border: 1px solid #e0e9f2;
+  border-radius: 8px;
+  gap: 10px;
+  padding: 12px;
+}
+
+@media(max-width:980px) {
+  .service-management-modal {
+    width: calc(100vw - 24px);
+  }
+
+  .service-form-grid,
+  .ms-value-row.service-form-grid,
+  .ms-rule-row.service-form-grid,
+  .ms-repair-row.service-form-grid,
+  .ms-inline-add.service-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .service-field--price {
+    max-width: 280px;
+  }
+}
+
+@media(max-width:760px) {
+  .service-management-modal {
+    height: calc(100dvh - 20px);
+    max-height: calc(100dvh - 20px);
+    width: calc(100vw - 20px);
+  }
+
+  .service-management-modal .ms-mhead {
+    padding: 17px 66px 13px 16px;
+  }
+
+  .service-management-modal .ms-body {
+    padding: 14px;
+  }
+
+  .service-edit-section {
+    padding: 13px;
+  }
+
+  .service-action-row {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .service-action-row > button,
+  .ms-inline-add.service-form-grid > .service-action-row > button {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .service-field--price {
+    max-width: none;
+    min-width: 0;
+  }
+}
+
+@media(max-width:520px) {
+  .service-management-modal {
+    border-radius: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    width: 100vw;
+  }
+
+  .service-management-modal .ms-foot {
+    grid-template-columns: 1fr 1fr;
+  }
+}
