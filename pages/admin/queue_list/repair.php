@@ -22,9 +22,7 @@ function status_class($status): string {
   };
 }
 
-$queueVisibilityPredicate = admin_order_soft_delete_column_ready($pdo)
-  ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
-  : "";
+$queueVisibilityPredicate = admin_queue_visibility_sql($pdo, "q");
 
 $stmt = $pdo->prepare("
   SELECT q.id, q.queue_code, q.status, q.details, q.price, q.paid_amount,

@@ -5,6 +5,7 @@ if (PHP_SAPI !== "cli") {
 }
 
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/data_lifecycle.php";
 require_once __DIR__ . "/../api/upload_helpers.php";
 
 $lockPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "servitech-upload-retention.lock";

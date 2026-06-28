@@ -98,23 +98,59 @@
 - Failed, cancelled, abandoned, and otherwise unlinked temporary uploads are deleted after 24 hours. Upload cancellation and failed multi-file uploads also attempt immediate cleanup.
 - Queue/order records and historical filenames remain after file content expires; customer and admin views show the attachment as unavailable.
 
-Apply `database/migrations/20260612_add_file_retention_policy.sql`, then schedule the CLI job once per hour. Hourly execution promptly enforces the 24-hour temporary-upload threshold while also checking the 30-day closed-request threshold.
+Apply `database/migrations/20260612_add_file_retention_policy.sql`, then schedule the upload-only CLI job once per hour. Hourly execution promptly enforces the 24-hour temporary-upload threshold while also checking the 30-day closed-request threshold.
 
 Linux/Hostinger cron example:
 
 ```text
-15 * * * * /usr/bin/php /absolute/path/to/ServiTech/scripts/cleanup_upload_retention.php >> /absolute/path/to/ServiTech/logs/upload_retention.log 2>&1
+15 * * * * /usr/bin/php /absolute/path/to/ServiTech/scripts/run_data_lifecycle_maintenance.php --mode=uploads >> /absolute/path/to/ServiTech/logs/upload_retention.log 2>&1
 ```
 
 Windows Task Scheduler action:
 
 ```text
 Program: C:\xampp\php\php.exe
-Arguments: C:\xampp\htdocs\ServiTech\scripts\cleanup_upload_retention.php
+Arguments: C:\xampp\htdocs\ServiTech\scripts\run_data_lifecycle_maintenance.php --mode=uploads
 Schedule: Hourly
 ```
 
 The cleanup script uses a process lock, so overlapping scheduled runs exit without deleting files twice. `scripts/cleanup_orphan_uploads.php` remains as a compatible wrapper and now enforces both temporary and closed-request retention.
+
+## Data Lifecycle Maintenance
+- Apply `database/migrations/20260628_add_data_lifecycle_retention.sql` after the recycle-bin and file-retention migrations.
+- Closed `DONE`/`CANCELLED` queues and orders are archived after 60 days by setting `queues.archived_at`; the queue/order, payment, and status-history rows remain stored.
+- Operational admin screens exclude archived records. Customer history and reports can still include archived records when they intentionally use history/export paths.
+- The full maintenance job logs each run to `data_lifecycle_runs` and prints a text report suitable for `logs/data_lifecycle.log`.
+- Full maintenance runs only from 2:00 AM to 4:00 AM Philippine time unless `--force` is supplied. Use `--dry-run` first on staging or production.
+- Real customer accounts are not auto-deleted by lifecycle maintenance.
+
+Dry-run examples:
+
+```text
+php scripts/run_data_lifecycle_maintenance.php --mode=full --dry-run --force
+php scripts/run_data_lifecycle_maintenance.php --mode=uploads --dry-run
+```
+
+Recommended Linux/Hostinger cron:
+
+```text
+15 2 * * * /usr/bin/php /absolute/path/to/ServiTech/scripts/run_data_lifecycle_maintenance.php --mode=full >> /absolute/path/to/ServiTech/logs/data_lifecycle.log 2>&1
+15 * * * * /usr/bin/php /absolute/path/to/ServiTech/scripts/run_data_lifecycle_maintenance.php --mode=uploads >> /absolute/path/to/ServiTech/logs/upload_retention.log 2>&1
+```
+
+Recommended Windows Task Scheduler actions:
+
+```text
+Program: C:\xampp\php\php.exe
+Arguments: C:\xampp\htdocs\ServiTech\scripts\run_data_lifecycle_maintenance.php --mode=full
+Schedule: Daily at 2:15 AM
+
+Program: C:\xampp\php\php.exe
+Arguments: C:\xampp\htdocs\ServiTech\scripts\run_data_lifecycle_maintenance.php --mode=uploads
+Schedule: Hourly
+```
+
+Retention windows can be tuned with `SERVITECH_ARCHIVE_CLOSED_DAYS`, `SERVITECH_TEMP_UPLOAD_RETENTION_HOURS`, `SERVITECH_CLOSED_UPLOAD_RETENTION_DAYS`, `SERVITECH_NOTIFICATION_SOFT_DELETED_DAYS`, `SERVITECH_NOTIFICATION_READ_DAYS`, `SERVITECH_NOTIFICATION_ARCHIVED_UNREAD_DAYS`, `SERVITECH_SOFT_DELETE_PURGE_DAYS`, and `SERVITECH_LOGIN_ATTEMPT_RETENTION_DAYS`.
 
 ## Supabase Migration Verification
 

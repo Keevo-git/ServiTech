@@ -102,16 +102,6 @@ try {
     if (!$schemaReady) {
         $rows = [];
     } else {
-    $pdo->exec("
-      UPDATE queues
-      SET permanently_hidden_at = COALESCE(permanently_hidden_at, NOW()),
-          updated_at = NOW()
-      WHERE UPPER(TRIM(COALESCE(lifecycle_stage, 'QUEUE'))) = 'ORDER'
-        AND deleted_at IS NOT NULL
-        AND permanently_hidden_at IS NULL
-        AND deleted_at <= NOW() - INTERVAL '30 days'
-    ");
-
     $stmt = $pdo->query("
       SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount,
         q.created_at, q.deleted_at, u.fullname,

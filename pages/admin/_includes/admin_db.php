@@ -86,3 +86,30 @@ function admin_order_recycle_schema_ready(PDO $pdo): bool {
 function admin_order_soft_delete_column_ready(PDO $pdo): bool {
   return admin_table_has_columns($pdo, "queues", ["deleted_at", "permanently_hidden_at"]);
 }
+
+function admin_order_archive_column_ready(PDO $pdo): bool {
+  return admin_table_has_columns($pdo, "queues", ["archived_at"]);
+}
+
+function admin_queue_visibility_predicate(PDO $pdo, string $alias = "q", bool $includeArchived = false): string {
+  $alias = rtrim(trim($alias), ".");
+  if ($alias === "" || !preg_match('/^[a-z_][a-z0-9_]*$/i', $alias)) {
+    $alias = "q";
+  }
+
+  $parts = [];
+  if (admin_order_soft_delete_column_ready($pdo)) {
+    $parts[] = "{$alias}.deleted_at IS NULL";
+    $parts[] = "{$alias}.permanently_hidden_at IS NULL";
+  }
+  if (!$includeArchived && admin_order_archive_column_ready($pdo)) {
+    $parts[] = "{$alias}.archived_at IS NULL";
+  }
+
+  return $parts ? implode(" AND ", $parts) : "1 = 1";
+}
+
+function admin_queue_visibility_sql(PDO $pdo, string $alias = "q", bool $includeArchived = false, string $prefix = "AND "): string {
+  $predicate = admin_queue_visibility_predicate($pdo, $alias, $includeArchived);
+  return $predicate === "1 = 1" ? "" : $prefix . $predicate;
+}

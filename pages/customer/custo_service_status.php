@@ -3460,26 +3460,38 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     renderListState(archiveListEl, "Loading completed queues...");
     updateCounts(0, 0);
 
-    let res;
+    let liveRes;
+    let historyRes;
     try {
-      res = await fetch(servitechUrl("/api/queue_list.php"), {
-        credentials: "same-origin",
-        headers: {
-          "Accept": "application/json",
-          "X-Requested-With": "XMLHttpRequest"
-        }
-      });
+      const headers = {
+        "Accept": "application/json",
+        "X-Requested-With": "XMLHttpRequest"
+      };
+      [liveRes, historyRes] = await Promise.all([
+        fetch(servitechUrl("/api/queue_list.php?scope=live&limit=100"), {
+          credentials: "same-origin",
+          headers
+        }),
+        fetch(servitechUrl("/api/queue_list.php?scope=history&limit=100"), {
+          credentials: "same-origin",
+          headers
+        })
+      ]);
     } catch (e) {
       renderState("Could not connect to the server.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
       return;
     }
 
-    const text = await res.text();
-    let data;
+    const liveText = await liveRes.text();
+    const historyText = await historyRes.text();
+    let liveData;
+    let historyData;
     try {
-      data = JSON.parse(text);
+      liveData = JSON.parse(liveText);
+      historyData = JSON.parse(historyText);
     } catch (e) {
-      console.error("RAW response:", text);
+      console.error("RAW live response:", liveText);
+      console.error("RAW history response:", historyText);
       renderState("Server returned an invalid response.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
       return;
     }
@@ -3487,20 +3499,25 @@ $statusClosedStoreDocumentPrinting = !empty($statusStoreAvailability["document_p
     listEl.innerHTML = "";
     if (archiveListEl) archiveListEl.innerHTML = "";
 
-    if (!data.ok) {
-      renderState(data.error || "Unable to load your queue list.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
+    if (!liveData.ok || !historyData.ok) {
+      renderState(liveData.error || historyData.error || "Unable to load your queue list.", '<button id="retryQueuesBtn" type="button" class="btn-next">Retry</button>');
       renderListState(archiveListEl, "Completed queues could not be loaded.");
       return;
     }
 
-    if (!data.queues || data.queues.length === 0) {
+    const queues = [
+      ...(Array.isArray(liveData.queues) ? liveData.queues : []),
+      ...(Array.isArray(historyData.queues) ? historyData.queues : [])
+    ];
+
+    if (queues.length === 0) {
       allQueues = [];
       renderState("No queues yet.", '<a href="/pages/customer/customer_dash.php" class="btn-next">Join Queue</a>');
       renderListState(archiveListEl, "No completed queues yet.");
       return;
     }
 
-    allQueues = data.queues;
+    allQueues = queues;
     renderFilteredQueues();
     maybeOpenRequestedQueue();
   }

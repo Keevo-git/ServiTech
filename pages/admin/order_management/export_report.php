@@ -142,6 +142,7 @@ $search = order_export_clean(strtolower((string)($_GET["search"] ?? "")));
 $month = str_pad((string)($_GET["month"] ?? ""), 2, "0", STR_PAD_LEFT);
 $year = trim((string)($_GET["year"] ?? ""));
 $payment = strtolower(trim((string)($_GET["payment"] ?? "")));
+$includeArchived = trim((string)($_GET["include_archived"] ?? "")) === "1";
 $statuses = array_values(array_filter(array_map(
     static fn($value): string => strtoupper(trim((string)$value)),
     explode(",", (string)($_GET["statuses"] ?? ""))
@@ -167,9 +168,7 @@ if ($month !== "" && $year === "") {
 }
 
 $params = [];
-$visibilityPredicate = admin_order_soft_delete_column_ready($pdo)
-    ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
-    : "";
+$visibilityPredicate = admin_queue_visibility_sql($pdo, "q", $includeArchived);
 
 $servicePredicate = match ($service) {
     "repair" => "LOWER(TRIM(COALESCE(q.category, ''))) = 'repair'",
@@ -289,6 +288,7 @@ $filters = [
     "year" => $year,
     "statuses" => $statuses,
     "payment" => $payment,
+    "include_archived" => $includeArchived,
 ];
 
 $serviceLabel = order_export_service_label($service);
@@ -298,6 +298,7 @@ if ($month !== "" && $year !== "") $filterSummary[] = order_export_month_name($m
 elseif ($year !== "") $filterSummary[] = "year {$year}";
 if ($statuses) $filterSummary[] = "status " . implode(", ", $statuses);
 if ($payment !== "") $filterSummary[] = "payment " . strtoupper($payment);
+if ($includeArchived) $filterSummary[] = "including archived records";
 $filterSummaryText = $filterSummary ? implode("; ", $filterSummary) : "all visible records";
 
 servitech_activity_log($pdo, [

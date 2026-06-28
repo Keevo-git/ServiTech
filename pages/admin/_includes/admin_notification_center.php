@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/url.php";
+require_once __DIR__ . "/admin_db.php";
 require_once __DIR__ . "/queue_files.php";
 
 if (!function_exists("admin_notification_h")) {
@@ -231,6 +232,7 @@ if (!function_exists("admin_notification_center_data")) {
     function admin_notification_center_data(PDO $pdo): array
     {
         admin_notifications_sync_stalled($pdo);
+        $queueVisibilityPredicate = admin_queue_visibility_predicate($pdo, "q");
 
         $stmt = $pdo->prepare("
             WITH ranked_notifications AS (
@@ -255,6 +257,7 @@ if (!function_exists("admin_notification_center_data")) {
                     ) AS duplicate_rank
                 FROM notifications n
                 LEFT JOIN queues q ON q.id = n.reference_id
+                  AND {$queueVisibilityPredicate}
                 LEFT JOIN LATERAL (
                     SELECT notes
                     FROM queue_status_history h
@@ -269,6 +272,11 @@ if (!function_exists("admin_notification_center_data")) {
                     WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
                 )
                   AND n.deleted_at IS NULL
+                  AND (
+                    n.reference_id IS NULL
+                    OR LOWER(TRIM(COALESCE(n.type, ''))) = 'new_customer_registration'
+                    OR q.id IS NOT NULL
+                  )
             )
             , visible_notifications AS (
                 SELECT

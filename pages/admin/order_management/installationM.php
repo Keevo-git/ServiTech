@@ -45,7 +45,7 @@ function service_label($details = null): string
 
 $orderRecycleReady = admin_order_recycle_schema_ready($pdo);
 $orderRecycleControlsAllowed = $orderRecycleReady && servitech_is_super_admin();
-$orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL" : "";
+$orderRecyclePredicate = admin_queue_visibility_sql($pdo, "q");
 
 $rows = $pdo->query("
   SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount,

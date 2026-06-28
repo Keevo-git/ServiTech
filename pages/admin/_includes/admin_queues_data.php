@@ -6,9 +6,7 @@ require_once __DIR__ . "/url.php";
 header("Content-Type: application/json; charset=utf-8");
 
 try {
-  $queueVisibilityPredicate = admin_order_soft_delete_column_ready($pdo)
-    ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
-    : "";
+  $queueVisibilityPredicate = admin_queue_visibility_sql($pdo, "q");
   $stmt = $pdo->prepare("
     SELECT q.id, q.queue_code, q.category, q.status, q.details, q.price, q.paid_amount, q.created_at, u.fullname,
       p.payment_method, p.reference_number, p.amount, p.status AS payment_status,

@@ -21,7 +21,7 @@ function admin_dashboard_sql_alias(string $tableAlias): string
 function admin_dashboard_visibility_predicate(string $tableAlias = "q"): string
 {
     $q = admin_dashboard_sql_alias($tableAlias);
-    return "{$q}.deleted_at IS NULL AND {$q}.permanently_hidden_at IS NULL";
+    return "{$q}.deleted_at IS NULL AND {$q}.permanently_hidden_at IS NULL AND {$q}.archived_at IS NULL";
 }
 
 function admin_dashboard_printing_scope_predicate(string $tableAlias = "q"): string
@@ -155,7 +155,7 @@ function admin_dashboard_schema_ready(PDO $pdo): bool
 {
     $required = [
         "status", "category", "details", "created_at", "completed_at", "closed_at",
-        "lifecycle_stage", "deleted_at", "permanently_hidden_at",
+        "lifecycle_stage", "deleted_at", "permanently_hidden_at", "archived_at",
     ];
     $placeholders = implode(",", array_fill(0, count($required), "?"));
     $stmt = $pdo->prepare("

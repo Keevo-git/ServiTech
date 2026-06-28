@@ -29,7 +29,9 @@ function dashboard_fixture_metrics(array $rows, string $today = "2026-06-24"): a
     };
     $isManaged = static fn(array $row): bool => in_array(strtolower($row["category"]), $managedCategories, true)
         || str_starts_with(strtoupper($row["code"]), "OP");
-    $isVisible = static fn(array $row): bool => $row["deleted"] === null && $row["hidden"] === null;
+    $isVisible = static fn(array $row): bool => ($row["deleted"] ?? null) === null
+        && ($row["hidden"] ?? null) === null
+        && ($row["archived"] ?? null) === null;
 
     $visible = array_values(array_filter(
         $rows,
@@ -122,7 +124,15 @@ $binned = dashboard_fixture_metrics($rows);
 dashboard_analytics_assert($binned["visibleOrders"] === 5, "A binned order must no longer inflate the visible Order Management metric.");
 dashboard_analytics_assert($binned["newToday"] === 2 && $binned["completedToday"] === 1, "A binned record must no longer appear in visible Today analytics.");
 
-// F. Cross-card invariants make the dashboard manually cross-checkable.
+// F. Archiving a closed record removes it from live operational analytics without deleting it.
+foreach ($rows as &$row) {
+    if ($row["id"] === 7) $row["archived"] = "2026-06-28";
+}
+unset($row);
+$archived = dashboard_fixture_metrics($rows);
+dashboard_analytics_assert($archived["visibleOrders"] === 4, "Archived closed records must no longer inflate live Order Management analytics.");
+
+// G. Cross-card invariants make the dashboard manually cross-checkable.
 dashboard_analytics_assert($binned["activeRequests"] === array_sum($binned["status"]), "Active Requests must equal the four active status buckets.");
 dashboard_analytics_assert($binned["activeQueue"] === 1 && $binned["visibleOrders"] === 5, "Queue and Order cards must align with their corresponding active views.");
 
@@ -135,7 +145,7 @@ $queuePages = [
     file_get_contents(__DIR__ . "/../pages/admin/queue_list/installation.php") ?: "",
 ];
 
-dashboard_analytics_assert(admin_dashboard_visibility_predicate("q") === "q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL", "The canonical visibility rule must exclude both Bin states.");
+dashboard_analytics_assert(admin_dashboard_visibility_predicate("q") === "q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL AND q.archived_at IS NULL", "The canonical visibility rule must exclude Bin and archived states.");
 dashboard_analytics_assert(str_contains(admin_dashboard_printing_scope_predicate("q"), "'scanning'"), "All real print-side services must remain in the managed scope.");
 dashboard_analytics_assert(str_contains(admin_dashboard_service_expression("q"), "service_name_snapshot"), "Actual service snapshots must be the primary service-label source.");
 dashboard_analytics_assert(substr_count($statsSource, "FROM visible_managed v") === 3, "Summary, category, and top-service queries must share one canonical record scope.");
@@ -143,7 +153,7 @@ dashboard_analytics_assert(!str_contains($dashboardPage, "All-time requests"), "
 dashboard_analytics_assert(str_contains($dashboardPage, "Active Requests by Status") && str_contains($dashboardPage, "Visible activity by Manila calendar day"), "Analytics labels must state their real scopes.");
 dashboard_analytics_assert(str_contains($dashboardScript, 'cache: "no-store"') && str_contains($dashboardScript, "dashboardRefreshStorageKey"), "Dashboard refreshes must be uncached and mutation-aware.");
 foreach ($queuePages as $queuePage) {
-    dashboard_analytics_assert(str_contains($queuePage, "q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"), "Every Queue Management tab must use the same visibility rule.");
+    dashboard_analytics_assert(str_contains($queuePage, "admin_queue_visibility_sql"), "Every Queue Management tab must use the shared visibility helper.");
 }
 
 $unavailable = admin_dashboard_empty_stats("schema unavailable");

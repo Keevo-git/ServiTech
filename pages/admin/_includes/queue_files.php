@@ -350,6 +350,9 @@ function admin_notifications_sync_stalled(PDO $pdo): void
 
     try {
         servitech_ensure_queue_lifecycle_schema($pdo);
+        $queueVisibilityPredicate = function_exists("admin_queue_visibility_predicate")
+            ? admin_queue_visibility_predicate($pdo, "q")
+            : "1 = 1";
 
         $stmt = $pdo->query("
             SELECT
@@ -382,6 +385,7 @@ function admin_notifications_sync_stalled(PDO $pdo): void
                   )
             ) last_stalled_notification ON TRUE
             WHERE UPPER(TRIM(COALESCE(q.status, 'PENDING'))) IN ('PENDING', 'APPROVED', 'ONGOING')
+              AND {$queueVisibilityPredicate}
               AND GREATEST(q.created_at, COALESCE(q.updated_at, q.created_at), COALESCE(last_admin_action.last_action_at, q.created_at)) <= NOW() - INTERVAL '14 days'
               AND (
                   last_stalled_notification.last_reminded_at IS NULL
@@ -425,6 +429,9 @@ function admin_notifications_sync_stalled(PDO $pdo): void
 function admin_notification_unread_count(PDO $pdo): int
 {
     admin_notifications_sync_stalled($pdo);
+    $queueVisibilityPredicate = function_exists("admin_queue_visibility_predicate")
+        ? admin_queue_visibility_predicate($pdo, "q")
+        : "1 = 1";
 
     $stmt = $pdo->query("
         WITH ranked_notifications AS (
@@ -436,12 +443,19 @@ function admin_notification_unread_count(PDO $pdo): int
                     ORDER BY n.created_at DESC, n.id DESC
                 ) AS duplicate_rank
             FROM notifications n
+            LEFT JOIN queues q ON q.id = n.reference_id
+              AND {$queueVisibilityPredicate}
             WHERE n.user_id IN (
                 SELECT id
                 FROM users
                 WHERE LOWER(TRIM(COALESCE(role, 'customer'))) IN ('admin', 'super_admin')
             )
               AND n.deleted_at IS NULL
+              AND (
+                  n.reference_id IS NULL
+                  OR LOWER(TRIM(COALESCE(n.type, ''))) = 'new_customer_registration'
+                  OR q.id IS NOT NULL
+              )
         )
         SELECT COUNT(*)
         FROM ranked_notifications

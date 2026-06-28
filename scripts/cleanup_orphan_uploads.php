@@ -5,6 +5,7 @@ if (PHP_SAPI !== "cli") {
 }
 
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/data_lifecycle.php";
 require_once __DIR__ . "/../api/upload_helpers.php";
 
 $ageHours = isset($argv[1]) ? max(1, (int)$argv[1]) : 24;

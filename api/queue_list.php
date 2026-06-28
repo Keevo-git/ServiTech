@@ -2,6 +2,7 @@
 require_once __DIR__ . "/../config/session_check.php";
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/app.php";
+require_once __DIR__ . "/../config/data_lifecycle.php";
 require_once __DIR__ . "/upload_helpers.php";
 require_once __DIR__ . "/queue_payment.php";
 require_once __DIR__ . "/queue_state_machine.php";
@@ -93,6 +94,28 @@ function queue_list_normalize_uploaded_files(PDO $pdo, array $details): array {
 
 try {
   servitech_ensure_queue_lifecycle_schema($pdo);
+  $scope = strtolower(trim((string)($_GET["scope"] ?? "all")));
+  if (!in_array($scope, ["all", "live", "history"], true)) {
+    $scope = "all";
+  }
+  $limit = max(1, min(200, (int)($_GET["limit"] ?? ($scope === "all" ? 200 : 100))));
+  $offset = max(0, (int)($_GET["offset"] ?? 0));
+  $hasRecycleColumns = servitech_lifecycle_table_has_columns($pdo, "queues", ["deleted_at", "permanently_hidden_at"]);
+  $hasArchiveColumn = servitech_lifecycle_table_has_columns($pdo, "queues", ["archived_at"]);
+  $where = ["q.user_id = :uid"];
+  if ($hasRecycleColumns) {
+    $where[] = "q.deleted_at IS NULL";
+    $where[] = "q.permanently_hidden_at IS NULL";
+  }
+  if ($scope === "live") {
+    $where[] = "UPPER(TRIM(COALESCE(q.status, 'PENDING'))) NOT IN ('DONE', 'COMPLETED', 'CANCEL', 'CANCELLED', 'CANCELED')";
+    if ($hasArchiveColumn) {
+      $where[] = "q.archived_at IS NULL";
+    }
+  } elseif ($scope === "history") {
+    $where[] = "UPPER(TRIM(COALESCE(q.status, 'PENDING'))) IN ('DONE', 'COMPLETED', 'CANCEL', 'CANCELLED', 'CANCELED')";
+  }
+
   $stmt = $pdo->prepare("
     SELECT
       q.id,
@@ -102,6 +125,7 @@ try {
       q.details,
       q.created_at,
       q.updated_at,
+      " . ($hasArchiveColumn ? "q.archived_at," : "NULL AS archived_at,") . "
       q.price,
       q.paid_amount,
       q.customer_edit_required,
@@ -119,10 +143,14 @@ try {
       ORDER BY id DESC
       LIMIT 1
     ) p ON TRUE
-    WHERE q.user_id = :uid
+    WHERE " . implode("\n      AND ", $where) . "
     ORDER BY q.created_at DESC
+    LIMIT :limit OFFSET :offset
   ");
-  $stmt->execute([":uid" => $user_id]);
+  $stmt->bindValue(":uid", $user_id, PDO::PARAM_INT);
+  $stmt->bindValue(":limit", $limit, PDO::PARAM_INT);
+  $stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
+  $stmt->execute();
   $rows = $stmt->fetchAll();
 
   $out = [];
@@ -145,6 +173,7 @@ try {
       "status" => $r["status"],
       "created_at" => $r["created_at"],
       "updated_at" => $r["updated_at"],
+      "archived_at" => $r["archived_at"] ?? null,
       "payment_method" => $r["payment_method"] ?? ($details["payment_method_snapshot"] ?? ($details["payment_method"] ?? null)),
       "reference_number" => $r["payment_reference_number"] ?? ($details["reference_number"] ?? null),
       "payment_status" => $r["payment_status"] ?? null,
@@ -178,7 +207,14 @@ try {
     ];
   }
 
-  echo json_encode(["ok" => true, "queues" => $out]);
+  echo json_encode([
+    "ok" => true,
+    "queues" => $out,
+    "scope" => $scope,
+    "limit" => $limit,
+    "offset" => $offset,
+    "count" => count($out),
+  ]);
   exit();
 
 } catch (PDOException $e) {

@@ -10,9 +10,7 @@ try {
   if (!in_array($view, ["online", "walkin"], true)) {
     $view = "online";
   }
-  $orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo)
-    ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
-    : "";
+  $orderRecyclePredicate = admin_queue_visibility_sql($pdo, "q");
 
   if ($view === "walkin") {
     $stmt = $pdo->prepare("

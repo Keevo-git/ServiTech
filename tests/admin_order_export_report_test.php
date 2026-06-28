@@ -50,7 +50,8 @@ foreach ([
     "Content-Type: text/csv",
     "Content-Disposition: attachment",
     "order_report_export",
-    "admin_order_soft_delete_column_ready",
+    "admin_queue_visibility_sql",
+    "include_archived",
     "LOWER(COALESCE(q.queue_code",
     "EXTRACT(MONTH FROM q.created_at AT TIME ZONE 'Asia/Manila')",
     "EXTRACT(YEAR FROM q.created_at AT TIME ZONE 'Asia/Manila')",
@@ -81,7 +82,7 @@ admin_order_export_assert(str_contains($css, "@media (max-width: 560px)"), "Filt
 
 foreach (["printM.php", "repairM.php", "installationM.php"] as $orderPage) {
     $page = admin_order_export_source("pages/admin/order_management/{$orderPage}");
-    admin_order_export_assert(str_contains($page, "orderM.css?v=20260627-filter-footer-row"), "{$orderPage} must load the latest filter layout stylesheet.");
+    admin_order_export_assert(str_contains($page, "orderM.css?v=20260628-payment-wrap"), "{$orderPage} must load the latest filter layout stylesheet.");
 }
 
 echo "Admin order export report checks passed.\n";

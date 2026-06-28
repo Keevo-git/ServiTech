@@ -85,6 +85,9 @@ For an existing ServiTech database:
 14. Run `20260624_add_remember_tokens.sql` before deploying the remember-me
     authentication update. It adds hashed, expiring, per-browser login tokens;
     raw token validators are never stored in the database.
+15. Run `20260628_add_data_lifecycle_retention.sql` after the recycle-bin and
+    file-retention migrations. It adds queue archive metadata, lifecycle run
+    audit logs, and partial indexes used by the off-peak retention job.
 
 `20260620_unify_service_catalog_pricing.sql` is a one-time catalog conversion
 and seed migration. Do not rerun it after administrators have edited catalog

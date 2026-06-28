@@ -13,10 +13,18 @@ function servitech_upload_max_file_count(): int {
 }
 
 function servitech_upload_temporary_retention_hours(): int {
+  if (function_exists("servitech_lifecycle_policy")) {
+    $policy = servitech_lifecycle_policy();
+    return (int)($policy["temporary_upload_hours"] ?? 24);
+  }
   return 24;
 }
 
 function servitech_upload_closed_retention_days(): int {
+  if (function_exists("servitech_lifecycle_policy")) {
+    $policy = servitech_lifecycle_policy();
+    return (int)($policy["closed_upload_days"] ?? 30);
+  }
   return 30;
 }
 

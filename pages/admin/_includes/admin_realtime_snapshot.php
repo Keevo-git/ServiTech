@@ -8,10 +8,8 @@ header("Content-Type: application/json; charset=utf-8");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 
 $scope = strtolower(trim((string)($_GET["scope"] ?? "")));
-$recordVisibilityPredicate = admin_order_soft_delete_column_ready($pdo)
-    ? "q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL"
-    : "1 = 1";
-$orderRecyclePredicate = admin_order_soft_delete_column_ready($pdo) ? "AND q.deleted_at IS NULL AND q.permanently_hidden_at IS NULL" : "";
+$recordVisibilityPredicate = admin_queue_visibility_predicate($pdo, "q");
+$orderRecyclePredicate = admin_queue_visibility_sql($pdo, "q");
 $predicates = [
     "queue_printing" => "
         UPPER(TRIM(COALESCE(q.lifecycle_stage, 'QUEUE'))) = 'QUEUE'
