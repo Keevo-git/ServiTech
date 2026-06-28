@@ -48,4 +48,4 @@ $footerEmail = servitech_contact_email();
 <?php require_once __DIR__ . "/cookie_consent.php"; ?>
 <link rel="stylesheet" href="/assets/css/customer-toast.css?v=20260621-modal-stack-toast">
 <script src="/assets/js/customer_toast.js?v=20260602-global-toast"></script>
-<script src="/assets/js/character_limit_ui.js?v=20260627-limit-ui" defer></script>
+<script src="/assets/js/character_limit_ui.js?v=20260628-feedback-row" defer></script>

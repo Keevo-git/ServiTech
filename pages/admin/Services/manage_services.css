@@ -456,13 +456,15 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
 .ms-field .char-counter,
 .service-field .char-counter {
   color: #6c7f92;
-  display: block;
+  display: inline-flex;
+  justify-content: flex-end;
   font-size: 11px;
   font-weight: 700;
   line-height: 1.35;
   margin-top: 2px;
   text-align: right;
   width: 100%;
+  white-space: nowrap;
 }
 
 .service-field--full,

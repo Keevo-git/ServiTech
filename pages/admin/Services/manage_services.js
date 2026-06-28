@@ -503,7 +503,7 @@
 
   function characterHelp(maxLength, value = "") {
     const length = String(value ?? "").length;
-    return `${length}/${maxLength}`;
+    return `${length} / ${maxLength}`;
   }
 
   function serviceField({ label, control, help = "", className = "", full = false }) {

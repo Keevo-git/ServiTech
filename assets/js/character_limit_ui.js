@@ -8,7 +8,11 @@
 
   var STYLE_ID = "servitech-character-limit-ui-style";
   var HINT_CLASS = "character-limit-hint";
+  var ROW_CLASS = "field-feedback-row";
   var FIELD_SELECTOR = "textarea[maxlength], input[maxlength]";
+  var ERROR_SELECTORS = [".field-error", ".invalid-feedback", ".error-message", ".form-error", "[data-field-error]"];
+  var ERROR_SELECTOR = ERROR_SELECTORS.join(", ");
+  var FIELD_CONTAINER_SELECTOR = ".form-field, .field, .admin-owner-field, .employee-setup-field, .service-field, .ms-field";
   var INPUT_TYPES = new Set(["", "text", "email", "search", "url"]);
 
   function injectStyles() {
@@ -19,18 +23,42 @@
     var style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = [
+      "." + ROW_CLASS + "{",
+      "  display:flex;",
+      "  align-items:flex-start;",
+      "  justify-content:space-between;",
+      "  gap:6px 12px;",
+      "  margin-top:4px;",
+      "  min-height:18px;",
+      "  width:100%;",
+      "}",
+      ERROR_SELECTORS.map(function (selector) { return "." + ROW_CLASS + ">" + selector; }).join(",") + "{",
+      "  flex:1 1 auto;",
+      "  min-width:0;",
+      "}",
+      ERROR_SELECTORS.map(function (selector) { return "." + ROW_CLASS + ">" + selector + ":empty"; }).join(",") + "{min-height:0;}",
       "." + HINT_CLASS + "{",
       "  display:flex;",
+      "  flex:0 0 auto;",
       "  justify-content:flex-end;",
       "  margin-top:4px;",
       "  color:#64748b;",
       "  font-size:12px;",
       "  font-weight:600;",
       "  line-height:1.35;",
+      "  white-space:nowrap;",
+      "}",
+      "." + ROW_CLASS + ">." + HINT_CLASS + "{",
+      "  margin-top:0;",
+      "  margin-left:auto;",
       "}",
       "." + HINT_CLASS + ".is-at-limit{color:#9a3412;}",
       "." + HINT_CLASS + ".is-over-limit{color:#991b1b;}",
-      "@media (max-width:520px){." + HINT_CLASS + "{font-size:11px;}}"
+      "@media (max-width:520px){",
+      "  ." + ROW_CLASS + "{flex-wrap:wrap;}",
+      "  " + ERROR_SELECTORS.map(function (selector) { return "." + ROW_CLASS + ">" + selector; }).join(",") + "{flex-basis:100%;}",
+      "  ." + HINT_CLASS + "{font-size:11px;}",
+      "}"
     ].join("\n");
     document.head.appendChild(style);
   }
@@ -89,6 +117,51 @@
     }
   }
 
+  function describedElements(field) {
+    var describedBy = String(field.getAttribute("aria-describedby") || "").trim();
+    if (!describedBy) {
+      return [];
+    }
+
+    return describedBy.split(/\s+/).map(function (id) {
+      return document.getElementById(id);
+    }).filter(Boolean);
+  }
+
+  function isErrorElement(element) {
+    return element && element.matches && element.matches(ERROR_SELECTOR);
+  }
+
+  function closestFieldContainer(field) {
+    return field.closest(FIELD_CONTAINER_SELECTOR);
+  }
+
+  function findRelatedError(field) {
+    var describedError = describedElements(field).find(isErrorElement);
+    if (describedError) {
+      return describedError;
+    }
+
+    var container = closestFieldContainer(field);
+    if (!container) {
+      return null;
+    }
+
+    var fieldId = field.id ? field.id.toLowerCase() : "";
+    var errors = Array.from(container.querySelectorAll(ERROR_SELECTOR));
+    if (fieldId) {
+      var namedError = errors.find(function (error) {
+        var errorId = String(error.id || "").toLowerCase();
+        return errorId === fieldId + "error" || errorId.indexOf(fieldId) === 0;
+      });
+      if (namedError) {
+        return namedError;
+      }
+    }
+
+    return errors[0] || null;
+  }
+
   function displayMode(field) {
     var configured = String(field.dataset.limitDisplay || "").toLowerCase();
     if (configured === "static" || configured === "counter") {
@@ -99,9 +172,27 @@
 
   function updateHint(field, hint, maxLength) {
     var length = textLength(field.value);
-    hint.textContent = length + "/" + maxLength;
+    hint.textContent = length + " / " + maxLength;
     hint.classList.toggle("is-at-limit", length === maxLength);
     hint.classList.toggle("is-over-limit", length > maxLength);
+  }
+
+  function placeHint(field, hint) {
+    var error = findRelatedError(field);
+    if (!error) {
+      field.insertAdjacentElement("afterend", hint);
+      return;
+    }
+
+    var row = error.closest("." + ROW_CLASS);
+    if (!row) {
+      row = document.createElement("div");
+      row.className = ROW_CLASS;
+      error.insertAdjacentElement("beforebegin", row);
+      row.appendChild(error);
+    }
+
+    row.appendChild(hint);
   }
 
   function enhance(field) {
@@ -119,7 +210,7 @@
     hint.id = hintId(field);
     hint.setAttribute("aria-live", "polite");
 
-    field.insertAdjacentElement("afterend", hint);
+    placeHint(field, hint);
     addDescribedBy(field, hint.id);
     field.dataset.limitUiInitialized = "true";
 
@@ -151,6 +242,17 @@
 
     var observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.target &&
+          mutation.target.nodeType === 1 &&
+          mutation.target.matches &&
+          mutation.target.matches(FIELD_SELECTOR)
+        ) {
+          enhance(mutation.target);
+          return;
+        }
+
         mutation.addedNodes.forEach(function (node) {
           if (node.nodeType === 1) {
             enhanceWithin(node);
@@ -158,7 +260,12 @@
         });
       });
     });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+    observer.observe(document.documentElement, {
+      attributeFilter: ["disabled", "readonly", "maxlength", "data-limit-ui"],
+      attributes: true,
+      childList: true,
+      subtree: true
+    });
   }
 
   if (document.readyState === "loading") {
