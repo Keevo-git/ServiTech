@@ -179,19 +179,14 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
         <div class="ms-field" id="msServiceNameField" hidden>
           <label for="ms_name">Service name</label>
           <input id="ms_name" type="text" maxlength="<?= SERVITECH_LIMIT_SERVICE_NAME ?>" data-character-count>
-          <small data-character-help>Maximum <?= SERVITECH_LIMIT_SERVICE_NAME ?> characters.</small>
+          <div class="char-counter" data-character-help aria-live="polite">0/<?= SERVITECH_LIMIT_SERVICE_NAME ?></div>
           <small>Use Laminating or Lamination.</small>
         </div>
         <div class="ms-field">
           <label for="ms_description">Customer-facing service description</label>
           <textarea id="ms_description" placeholder="Short customer-facing note for this service" maxlength="<?= SERVITECH_LIMIT_SERVICE_DESCRIPTION ?>" data-character-count></textarea>
-          <small data-character-help>Maximum <?= SERVITECH_LIMIT_SERVICE_DESCRIPTION ?> characters.</small>
+          <div class="char-counter" data-character-help aria-live="polite">0/<?= SERVITECH_LIMIT_SERVICE_DESCRIPTION ?></div>
           <small>This text appears with the service on customer-facing pages.</small>
-        </div>
-        <div class="ms-field">
-          <label for="ms_sort">Service display order</label>
-          <input id="ms_sort" type="number" min="0" max="9999" step="1">
-          <small>Lower numbers appear first in customer and admin service lists.</small>
         </div>
       </details>
 

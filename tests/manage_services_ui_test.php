@@ -82,16 +82,28 @@ foreach ([
     "Invalid or unsupported service payload",
     'installation_type: "Installation Type", device_type: "Devices"',
     'data-action="toggle-active"',
+    'class="ms-status-cell"',
+    "resequenceCatalog",
+    "This option is active, but it will not appear to customers until at least one active price combination is configured.",
+    "char-counter",
+    'data-limit-ui="off"',
+] as $requiredBehavior) {
+    manage_services_ui_assert(str_contains($script, $requiredBehavior), "Confirmation behavior must include {$requiredBehavior}.");
+}
+
+foreach ([
     'data-action="move-up"',
     'data-action="move-down"',
     'data-action="move-rule-up"',
-    'class="ms-status-cell"',
+    'data-action="move-rule-down"',
     'class="ms-arrange-cell"',
-    "resequenceCatalog",
-    "syncFromDom({ includeStatus: false })",
-    "This option is active, but it will not appear to customers until at least one active price combination is configured.",
-] as $requiredBehavior) {
-    manage_services_ui_assert(str_contains($script, $requiredBehavior), "Confirmation behavior must include {$requiredBehavior}.");
+    "ms-rule-table__head",
+    "ms-value-list__head",
+    "Maximum ",
+    " characters",
+] as $removedServiceUi) {
+    manage_services_ui_assert(!str_contains($page, $removedServiceUi), "Service Management page must not include old UI fragment {$removedServiceUi}.");
+    manage_services_ui_assert(!str_contains($script, $removedServiceUi), "Manage Services script must not include old UI fragment {$removedServiceUi}.");
 }
 
 foreach ([
@@ -118,9 +130,19 @@ foreach ([
     "contain: paint",
     "transform: translateZ(0)",
     '.ms-switch>span[aria-hidden="true"]',
-    ".ms-status-cell,.ms-arrange-cell",
+    ".ms-status-cell",
+    ".char-counter",
 ] as $requiredStyle) {
     manage_services_ui_assert(str_contains($styles, $requiredStyle), "Responsive styles must include {$requiredStyle}.");
+}
+
+foreach ([
+    ".ms-arrange-cell",
+    ".ms-order-actions",
+    ".ms-rule-table__head",
+    ".ms-value-list__head",
+] as $removedStyle) {
+    manage_services_ui_assert(!str_contains($styles, $removedStyle), "Responsive styles must not include removed arrangement/header selector {$removedStyle}.");
 }
 
 manage_services_ui_assert(substr_count($page, 'aria-label="Close modal"') >= 2, "Every Manage Services X button must use the same accessible close label.");

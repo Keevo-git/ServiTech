@@ -23,7 +23,6 @@
     description: qs("#ms_description"),
     active: qs("#ms_active"),
     activeLabel: qs("#ms_active_label"),
-    sort: qs("#ms_sort"),
   };
   const optionLabelMaxLength = 120;
   const optionDescriptionMaxLength = 255;
@@ -504,14 +503,14 @@
 
   function characterHelp(maxLength, value = "") {
     const length = String(value ?? "").length;
-    return `${length}/${maxLength} characters`;
+    return `${length}/${maxLength}`;
   }
 
   function serviceField({ label, control, help = "", className = "", full = false }) {
     return `<label class="service-field ${full ? "service-field--full" : ""} ${className}">
       <span class="service-field-label">${escapeHtml(label)}</span>
       ${control}
-      ${help ? `<small class="service-field-help" data-character-help>${escapeHtml(help)}</small>` : ""}
+      ${help ? `<div class="char-counter" data-character-help aria-live="polite">${escapeHtml(help)}</div>` : ""}
     </label>`;
   }
 
@@ -521,7 +520,7 @@
       className,
       full,
       help: characterHelp(maxLength, value),
-      control: `<input ${inputAttrs} value="${escapeHtml(value)}" maxlength="${maxLength}" placeholder="${escapeHtml(placeholder)}" data-character-count>`,
+      control: `<input ${inputAttrs} value="${escapeHtml(value)}" maxlength="${maxLength}" placeholder="${escapeHtml(placeholder)}" data-character-count data-limit-ui="off">`,
     });
   }
 
@@ -531,7 +530,7 @@
       className,
       full,
       help: characterHelp(maxLength),
-      control: `<input ${dataAttr} maxlength="${maxLength}" placeholder="${escapeHtml(placeholder)}" data-character-count>`,
+      control: `<input ${dataAttr} maxlength="${maxLength}" placeholder="${escapeHtml(placeholder)}" data-character-count data-limit-ui="off">`,
     });
   }
 
@@ -567,34 +566,13 @@
     });
   }
 
-  function movementButtons(groupKey, valueKey, valueLabel, index, total) {
-    return `<div class="ms-arrange-cell">
-      <span class="ms-control-label">Arrange</span>
-      <div class="ms-order-actions" role="group" aria-label="Arrange ${escapeHtml(valueLabel)}">
-        <button type="button" data-action="move-up" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(valueLabel)} up">&uarr;</button>
-        <button type="button" data-action="move-down" data-move-value="${groupKey}" data-value-key="${valueKey}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(valueLabel)} down">&darr;</button>
-      </div>
-    </div>`;
-  }
-
-  function ruleMovementButtons(ruleKey, ruleLabel, index, total) {
-    return `<div class="ms-arrange-cell">
-      <span class="ms-control-label">Arrange</span>
-      <div class="ms-order-actions" role="group" aria-label="Arrange ${escapeHtml(ruleLabel)}">
-        <button type="button" data-action="move-rule-up" data-rule-key="${escapeHtml(ruleKey)}" data-direction="-1" ${index === 0 ? "disabled" : ""} title="Move up" aria-label="Move ${escapeHtml(ruleLabel)} up">&uarr;</button>
-        <button type="button" data-action="move-rule-down" data-rule-key="${escapeHtml(ruleKey)}" data-direction="1" ${index === total - 1 ? "disabled" : ""} title="Move down" aria-label="Move ${escapeHtml(ruleLabel)} down">&darr;</button>
-      </div>
-    </div>`;
-  }
-
   function valueManager(groupKey, title, addLabel) {
     const values = group(groupKey)?.values || [];
     return `<section class="ms-option-section service-edit-section">
       <div class="ms-section-head">
-        <div><h4>${escapeHtml(title)}</h4><p>Edit names, availability, and display order.</p></div>
+        <div><h4>${escapeHtml(title)}</h4><p>Edit names and availability.</p></div>
       </div>
       <div class="ms-value-list">
-        <div class="ms-value-list__head" aria-hidden="true"><span>Name</span><span>Status</span><span>Arrange</span></div>
         ${values.map((value, index) => `<div class="ms-value-row service-form-grid ${Number(value.active) ? "" : "is-inactive"}"
           data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
           ${textInputField({
@@ -610,7 +588,6 @@
               <span aria-hidden="true"></span><em>${Number(value.active) ? "Active" : "Inactive"}</em>
             </label>
           </div>
-          ${movementButtons(groupKey, value.value_key, value.label, index, values.length)}
           ${optionVisibilityWarning(groupKey, value) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning(groupKey, value))}</p>` : ""}
         </div>`).join("")}
       </div>
@@ -738,7 +715,6 @@
     return `<section class="ms-pricing-section service-edit-section">
       <div class="ms-section-head"><div><h4>${escapeHtml(title)}</h4><p>${escapeHtml(options.help || "Edit names, prices, and availability.")}</p></div></div>
       <div class="ms-rule-table">
-        <div class="ms-rule-table__head"><span>${escapeHtml(options.nameLabel || "Name")}</span>${options.description ? "<span>Details</span>" : ""}<span>Price</span><span>Price Type</span><span>Status</span><span>Order</span></div>
         ${values.map((value, index) => {
           const rule = findRule({ [groupKey]: value.value_key });
           return `<div class="ms-rule-row service-form-grid ${Number(value.active) ? "" : "is-inactive"}" data-rule-key="${escapeHtml(rule.rule_key)}" data-group-key="${groupKey}" data-value-key="${escapeHtml(value.value_key)}">
@@ -761,7 +737,6 @@
               ${options.fixedOnly ? '<input type="hidden" data-rule-price-type value="fixed"><span class="ms-fixed-label">Fixed Price</span>' : selectField({ label: "Price Type", control: `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>` })}
               ${statusField(toggleControl(Number(rule.active) && Number(value.active), Number(rule.active) && Number(value.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`))}
             </div>
-            <div class="ms-row-actions">${movementButtons(groupKey, value.value_key, value.label, index, values.length)}</div>
           </div>`;
         }).join("")}
       </div>
@@ -984,7 +959,7 @@
         ${selectedDevice ? `<div class="ms-device-card-wrapper">
           <div class="ms-device-card__body">
             ${rules.length ? "" : '<p class="ms-device-guidance">Add repair services available for this device.</p>'}
-            ${rules.map((rule, ruleIndex) => {
+            ${rules.map((rule) => {
               const value = groupValue("repair_type", rule.option_value_keys?.repair_type);
               if (!value) return "";
               return `<div class="ms-repair-row service-form-grid" data-rule-key="${escapeHtml(rule.rule_key)}">
@@ -998,7 +973,6 @@
                   ${selectField({ label: "Price Type", control: `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>` })}
                   ${statusField(toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`))}
                 </div>
-                ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
               </div>`;
             }).join("")}
             <div class="ms-inline-add ms-inline-add--rule service-form-grid">
@@ -1124,7 +1098,7 @@
         ${selectedDevice ? `<div class="ms-device-card-wrapper">
           <div class="ms-device-card__body">
             ${rules.length ? "" : '<p class="ms-device-guidance">Add installation services available for this device.</p>'}
-            ${rules.map((rule, ruleIndex) => {
+            ${rules.map((rule) => {
               const value = groupValue("installation_type", rule.option_value_keys?.installation_type);
               if (!value) return "";
               return `<div class="ms-repair-row service-form-grid" data-rule-key="${escapeHtml(rule.rule_key)}">
@@ -1138,7 +1112,6 @@
                   ${selectField({ label: "Price Type", control: `<select data-rule-price-type><option value="fixed" ${rule.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${rule.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>` })}
                   ${statusField(toggleControl(Number(rule.active), Number(rule.active) ? "Active" : "Inactive", `Toggle ${value.label} active status`))}
                 </div>
-                ${ruleMovementButtons(rule.rule_key, value.label, ruleIndex, rules.length)}
               </div>`;
             }).join("")}
             <div class="ms-inline-add ms-inline-add--rule service-form-grid">
@@ -1268,44 +1241,6 @@
     const toggleTarget = event.target.closest('input[data-action="toggle-active"]');
     if (toggleTarget) {
       event.stopPropagation();
-      return;
-    }
-
-    const moveButton = event.target.closest('button[data-action="move-up"], button[data-action="move-down"]');
-    if (moveButton) {
-      event.preventDefault();
-      event.stopPropagation();
-      syncFromDom({ includeStatus: false });
-      const values = group(moveButton.dataset.moveValue)?.values || [];
-      const index = values.findIndex((value) => value.value_key === moveButton.dataset.valueKey);
-      const targetIndex = index + Number(moveButton.dataset.direction);
-      if (index >= 0 && targetIndex >= 0 && targetIndex < values.length) {
-        [values[index], values[targetIndex]] = [values[targetIndex], values[index]];
-        resequenceCatalog();
-        render();
-      }
-      return;
-    }
-
-    const moveRuleButton = event.target.closest('button[data-action="move-rule-up"], button[data-action="move-rule-down"]');
-    if (moveRuleButton) {
-      event.preventDefault();
-      event.stopPropagation();
-      syncFromDom({ includeStatus: false });
-      const rule = (catalog.rules || []).find((item) => item.rule_key === moveRuleButton.dataset.ruleKey);
-      const deviceKey = rule?.option_value_keys?.device_type;
-      const rules = (catalog.rules || [])
-        .filter((item) => item.option_value_keys?.device_type === deviceKey)
-        .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
-      const index = rules.findIndex((item) => item.rule_key === moveRuleButton.dataset.ruleKey);
-      const targetIndex = index + Number(moveRuleButton.dataset.direction);
-      if (index >= 0 && targetIndex >= 0 && targetIndex < rules.length) {
-        const currentOrder = Number(rules[index].sort_order || index);
-        rules[index].sort_order = Number(rules[targetIndex].sort_order || targetIndex);
-        rules[targetIndex].sort_order = currentOrder;
-        catalog.rules.sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
-        render();
-      }
       return;
     }
 
@@ -1534,7 +1469,6 @@
     fields.category.value = category;
     fields.name.value = name;
     fields.description.value = data.description || "";
-    fields.sort.value = data.sort_order || 0;
     fields.active.checked = Number(data.active) === 1;
     syncServiceStatusLabel();
     syncCharacterCounters(document);
@@ -1657,8 +1591,7 @@
     const serviceChanged = !originalServiceSnapshot
       || fields.name.value.trim() !== originalServiceSnapshot.name
       || fields.description.value.trim() !== originalServiceSnapshot.description
-      || fields.active.checked !== originalServiceSnapshot.active
-      || Number(fields.sort.value || 0) !== originalServiceSnapshot.sort_order;
+      || fields.active.checked !== originalServiceSnapshot.active;
     if (!catalogChanged && !serviceChanged) {
       window.servitechAdminToast?.show?.("No service changes to save.", "info");
       return;
@@ -1680,7 +1613,7 @@
     form.append("description", fields.description.value.trim());
     form.append("catalog_json", JSON.stringify(payload));
     form.append("active", fields.active.checked ? "1" : "0");
-    form.append("sort_order", fields.sort.value || "0");
+    form.append("sort_order", String(originalServiceSnapshot?.sort_order ?? 0));
 
     qs("#msSave").disabled = true;
     try {
@@ -1696,13 +1629,13 @@
         fields.name.value = data.service.name || fields.name.value;
         fields.description.value = data.service.description || "";
         fields.active.checked = Number(data.service.active) === 1;
-        fields.sort.value = data.service.sort_order || fields.sort.value;
+        if (originalServiceSnapshot) originalServiceSnapshot.sort_order = Number(data.service.sort_order || originalServiceSnapshot.sort_order || 0);
       }
       originalServiceSnapshot = {
         name: fields.name.value.trim(),
         description: fields.description.value.trim(),
         active: fields.active.checked,
-        sort_order: Number(fields.sort.value || 0),
+        sort_order: Number(data.service?.sort_order ?? originalServiceSnapshot?.sort_order ?? 0),
       };
       syncServiceStatusLabel();
       updateServiceCard(data.service);

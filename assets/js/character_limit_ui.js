@@ -44,7 +44,7 @@
       return false;
     }
 
-    if (field.dataset.limitUi === "off") {
+    if (field.dataset.limitUi === "off" || field.hasAttribute("data-character-count")) {
       return false;
     }
 
@@ -99,13 +99,7 @@
 
   function updateHint(field, hint, maxLength) {
     var length = textLength(field.value);
-    var mode = displayMode(field);
-    var focused = document.activeElement === field;
-    var showCounter = mode === "counter" || focused || length > 0;
-
-    hint.textContent = showCounter
-      ? length + " / " + maxLength
-      : "Maximum " + maxLength + " characters";
+    hint.textContent = length + "/" + maxLength;
     hint.classList.toggle("is-at-limit", length === maxLength);
     hint.classList.toggle("is-over-limit", length > maxLength);
   }

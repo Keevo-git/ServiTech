@@ -76,10 +76,10 @@ if ($action === "save") {
     if ($id <= 0) respond(["ok" => false, "error" => "New top-level services cannot be added here. Edit one of the configured services instead."]);
     if ($name === "") respond(["ok" => false, "error" => "Service name is required."]);
     if (servitech_text_length($name) > SERVITECH_LIMIT_SERVICE_NAME) {
-        respond(["ok" => false, "error" => "Service name must not exceed " . SERVITECH_LIMIT_SERVICE_NAME . " characters."]);
+        respond(["ok" => false, "error" => "Please keep the field within the character limit."]);
     }
     if (servitech_text_length($description) > SERVITECH_LIMIT_SERVICE_DESCRIPTION) {
-        respond(["ok" => false, "error" => "Service description must not exceed " . SERVITECH_LIMIT_SERVICE_DESCRIPTION . " characters."]);
+        respond(["ok" => false, "error" => "Please keep the field within the character limit."]);
     }
 
     if ($catalogJsonRaw !== "") {
