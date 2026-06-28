@@ -6429,13 +6429,15 @@ body.auth-page--internal-login .form-alert {
   border-radius: 6px;
 }
 
-body.auth-page--internal-login .footer {
+body.auth-page--internal-login .footer.internal-auth-footer,
+.footer.internal-auth-footer {
   margin-top: 0;
   padding: 28px clamp(18px, 4vw, 42px) 18px;
   border-top: 1px solid rgba(144, 176, 208, 0.22);
+  background-color: #071b2f !important;
   background:
     linear-gradient(180deg, rgba(18, 58, 99, 0.2) 0%, rgba(7, 27, 47, 0) 46%),
-    #071b2f;
+    #071b2f !important;
   color: #eaf3fb;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }

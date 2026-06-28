@@ -53,6 +53,8 @@ foreach ([
     "Super Admin" => $superAdminHtml,
 ] as $label => $html) {
     internal_login_render_assert(str_contains($html, "auth-page--internal-login"), "{$label} page must use formal internal login styling.");
+    internal_login_render_assert(str_contains($html, 'style.css?v=20260628-internal-footer-v2'), "{$label} page must load the cache-busted internal footer stylesheet.");
+    internal_login_render_assert(str_contains($html, 'class="footer internal-auth-footer"'), "{$label} page must render the internal auth footer modifier class.");
     internal_login_render_assert(str_contains($html, "Services Home"), "{$label} page must include Services Home.");
     internal_login_render_assert(str_contains($html, "Customer Login"), "{$label} page must include Customer Login.");
     internal_login_render_assert(str_contains($html, "/auth/log_in.php"), "{$label} page must link to customer login.");
@@ -63,7 +65,8 @@ foreach ([
 internal_login_render_assert(!str_contains($adminHtml, "Super Admin Login"), "Admin page must not expose Super Admin Login text.");
 internal_login_render_assert(!str_contains($adminHtml, "/auth/super_admin_login.php"), "Admin page must not link to Super Admin login.");
 internal_login_render_assert(!str_contains($superAdminHtml, "/auth/admin_login.php"), "Super Admin page must not link to Admin login.");
-internal_login_render_assert(str_contains($styleCss, "body.auth-page--internal-login .footer"), "Internal login pages must have scoped footer styling.");
+internal_login_render_assert(str_contains($styleCss, ".footer.internal-auth-footer"), "Internal login pages must have a dedicated footer modifier style.");
+internal_login_render_assert(str_contains($styleCss, "background-color: #071b2f !important;"), "Internal footer modifier must override the global maroon footer background.");
 internal_login_render_assert(str_contains($styleCss, "#071b2f"), "Internal login footer must use the navy internal theme.");
 internal_login_render_assert(str_contains($styleCss, "body.auth-page--internal-login .footer-legal-links"), "Internal footer legal links must be scoped.");
 

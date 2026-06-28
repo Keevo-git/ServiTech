@@ -92,10 +92,11 @@ if (!function_exists("render_auth_toast_assets")) {
 }
 
 if (!function_exists("render_auth_footer")) {
-    function render_auth_footer(): void
+    function render_auth_footer(string $footerClass = ""): void
     {
+        $footerClasses = trim("footer " . preg_replace('/[^a-zA-Z0-9_-]+/', " ", $footerClass));
         ?>
-  <footer class="footer">
+  <footer class="<?= htmlspecialchars($footerClasses, ENT_QUOTES, "UTF-8") ?>">
     <div class="footer-container">
       <div class="footer-left">
         <h3>Contact Us:</h3>

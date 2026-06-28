@@ -50,7 +50,7 @@ function servitech_render_internal_login_page(array $config): void
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($title, ENT_QUOTES, "UTF-8") ?> | ServiTech</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260628-internal-login-formal") ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260628-internal-footer-v2") ?>">
   <?php render_auth_toast_assets(); ?>
 </head>
 <body class="auth-page auth-page--login auth-page--internal-login">
@@ -116,7 +116,7 @@ function servitech_render_internal_login_page(array $config): void
     </section>
   </main>
 
-<?php render_auth_footer(); ?>
+<?php render_auth_footer("internal-auth-footer"); ?>
 
   <script src="<?= auth_url("/assets/js/csrf.js") ?>" defer></script>
   <script>
