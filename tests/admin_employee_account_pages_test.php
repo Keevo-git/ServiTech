@@ -35,8 +35,14 @@ admin_employee_pages_assert(str_contains($header, "admin-notification-btn"), "Ad
 admin_employee_pages_assert(str_contains($header, "admin-logout-link"), "Admin header must keep the logout link.");
 
 admin_employee_pages_assert(!str_contains($dashboard, "Messages & Notifications"), "Dashboard quick access must not include Messages & Notifications.");
-foreach (["Today's Queue", "Active Orders", "Customer Lookup", "My Profile"] as $quickCard) {
+foreach (["Queue Management", "Order Management", "Customer Lookup", "My Profile"] as $quickCard) {
     admin_employee_pages_assert(str_contains($dashboard, $quickCard), "Dashboard quick access must keep {$quickCard}.");
+}
+foreach (["Today's Queue", "Active Orders"] as $oldQuickCard) {
+    admin_employee_pages_assert(!str_contains($dashboard, "<h4>{$oldQuickCard}</h4>"), "Dashboard quick access must not use the old {$oldQuickCard} label.");
+}
+foreach (["QUEUE MANAGEMENT.png", "ORDER MANAGEMENT.png", "ADMIN_MYPROFILE.png"] as $quickAccessIcon) {
+    admin_employee_pages_assert(str_contains($dashboard, $quickAccessIcon), "Dashboard quick access must use {$quickAccessIcon}.");
 }
 
 foreach ([

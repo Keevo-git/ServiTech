@@ -37,7 +37,7 @@ $dashboardSubtitle = "Manage today's queue, orders, and customer service tasks."
   <title>ServiTech Employee Admin Dashboard</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260624-analytics-rebuild') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260628-quick-access-icons') ?>">
 </head>
 <body
   class="admin-dashboard"
@@ -123,13 +123,13 @@ require __DIR__ . "/_includes/admin_header.php";
       <article class="card admin-quick-card">
         <div class="icon admin-quick-icon" aria-hidden="true">
           <img
-            src="<?= project_url('/pages/admin/IMAGES/LANDING_QUEUEING.png?v=20260626-employee-icons') ?>"
+            src="<?= project_url('/assets/images/QUEUE MANAGEMENT.png?v=20260628-dashboard-icons') ?>"
             alt=""
-            class="icon-image icon-image--queue-management"
+            class="icon-image admin-quick-icon-image icon-image--queue-management"
           >
         </div>
-        <h4>Today's Queue</h4>
-        <p>Process walk-in and active queue requests</p>
+        <h4>Queue Management</h4>
+        <p>Manage today's queue and active service requests.</p>
       </article>
     </a>
 
@@ -137,13 +137,13 @@ require __DIR__ . "/_includes/admin_header.php";
       <article class="card admin-quick-card">
         <div class="icon admin-quick-icon" aria-hidden="true">
           <img
-            src="<?= project_url('/pages/admin/IMAGES/LANDING_PRINT-ORD.png?v=20260626-employee-icons') ?>"
+            src="<?= project_url('/assets/images/ORDER MANAGEMENT.png?v=20260628-dashboard-icons') ?>"
             alt=""
-            class="icon-image icon-image--order-management"
+            class="icon-image admin-quick-icon-image icon-image--order-management"
           >
         </div>
-        <h4>Active Orders</h4>
-        <p>Update processing, ready, and done statuses</p>
+        <h4>Order Management</h4>
+        <p>Manage and update customer order processing.</p>
       </article>
     </a>
 
@@ -153,7 +153,7 @@ require __DIR__ . "/_includes/admin_header.php";
           <img
             src="<?= project_url('/pages/admin/IMAGES/LANDING_CUSTOMER_LIST.png?v=20260411h4') ?>"
             alt=""
-            class="icon-image icon-image--customer-list"
+            class="icon-image admin-quick-icon-image icon-image--customer-list"
           >
         </div>
         <h4>Customer Lookup</h4>
@@ -163,7 +163,13 @@ require __DIR__ . "/_includes/admin_header.php";
 
     <a href="<?= project_url('/pages/admin/admin_profile.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon">ME</div>
+        <div class="icon admin-quick-icon" aria-hidden="true">
+          <img
+            src="<?= project_url('/assets/images/ADMIN_MYPROFILE.png?v=20260628-dashboard-icons') ?>"
+            alt=""
+            class="icon-image admin-quick-icon-image icon-image--my-profile"
+          >
+        </div>
         <h4>My Profile</h4>
         <p>View your staff account and password options</p>
       </article>

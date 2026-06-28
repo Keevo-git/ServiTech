@@ -61,10 +61,17 @@ foreach ([
 }
 
 foreach ([$dashboard, $adminDashboard] as $source) {
-    super_admin_cleanup_assert(str_contains($source, "LANDING_QUEUEING.png"), "Queue quick access must use the existing queue image asset.");
-    super_admin_cleanup_assert(str_contains($source, "LANDING_PRINT-ORD.png"), "Order quick access must use the existing order image asset.");
+    super_admin_cleanup_assert(str_contains($source, "QUEUE MANAGEMENT.png"), "Queue quick access must use the unified queue image asset.");
+    super_admin_cleanup_assert(str_contains($source, "ORDER MANAGEMENT.png"), "Order quick access must use the unified order image asset.");
     super_admin_cleanup_assert(str_contains($source, "icon-image--queue-management"), "Queue quick access icon must use the shared icon image styling.");
     super_admin_cleanup_assert(str_contains($source, "icon-image--order-management"), "Order quick access icon must use the shared icon image styling.");
+}
+foreach ([
+    "SUPERADMIN_EMPLOYEEACCOUNTS.png",
+    "SUPERADMIN_EMPLOYEE LOGS.png",
+    "SUPERADMIN_SYSTEMSETTINGS.png",
+] as $superAdminIcon) {
+    super_admin_cleanup_assert(str_contains($dashboard, $superAdminIcon), "Super Admin dashboard must use {$superAdminIcon}.");
 }
 
 super_admin_cleanup_assert(str_contains($dashboard, "super_admin_employee_accounts.php"), "Super Admin dashboard must link to Employee Accounts.");

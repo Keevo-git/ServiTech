@@ -36,7 +36,7 @@ $dashboardSubtitle = "Business overview, staff controls, system settings, and op
   <title>ServiTech Super Admin Dashboard</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260624-analytics-rebuild') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260628-quick-access-icons') ?>">
 </head>
 <body
   class="admin-dashboard"
@@ -122,9 +122,9 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
       <article class="card admin-quick-card">
         <div class="icon admin-quick-icon" aria-hidden="true">
           <img
-            src="<?= project_url('/pages/admin/IMAGES/LANDING_QUEUEING.png?v=20260626-owner-icons') ?>"
+            src="<?= project_url('/assets/images/QUEUE MANAGEMENT.png?v=20260628-dashboard-icons') ?>"
             alt=""
-            class="icon-image icon-image--queue-management"
+            class="icon-image admin-quick-icon-image icon-image--queue-management"
           >
         </div>
         <h4>Queue Management</h4>
@@ -136,9 +136,9 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
       <article class="card admin-quick-card">
         <div class="icon admin-quick-icon" aria-hidden="true">
           <img
-            src="<?= project_url('/pages/admin/IMAGES/LANDING_PRINT-ORD.png?v=20260626-owner-icons') ?>"
+            src="<?= project_url('/assets/images/ORDER MANAGEMENT.png?v=20260628-dashboard-icons') ?>"
             alt=""
-            class="icon-image icon-image--order-management"
+            class="icon-image admin-quick-icon-image icon-image--order-management"
           >
         </div>
         <h4>Order Management</h4>
@@ -152,7 +152,7 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
           <img
             src="<?= project_url('/pages/admin/IMAGES/LANDING_CUSTOMER_LIST.png?v=20260411h4') ?>"
             alt=""
-            class="icon-image icon-image--customer-list"
+            class="icon-image admin-quick-icon-image icon-image--customer-list"
           >
         </div>
         <h4>Customer Management</h4>
@@ -162,7 +162,13 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
 
     <a href="<?= project_url('/pages/super_admin/super_admin_employee_accounts.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon" aria-hidden="true">EA</div>
+        <div class="icon admin-quick-icon" aria-hidden="true">
+          <img
+            src="<?= project_url('/assets/images/SUPERADMIN_EMPLOYEEACCOUNTS.png?v=20260628-dashboard-icons') ?>"
+            alt=""
+            class="icon-image admin-quick-icon-image icon-image--employee-accounts"
+          >
+        </div>
         <h4>Employee Accounts</h4>
         <p>Create, update, deactivate, and reset employee admin accounts</p>
       </article>
@@ -170,7 +176,13 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
 
     <a href="<?= project_url('/pages/super_admin/super_admin_employee_activity_logs.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon" aria-hidden="true">LOG</div>
+        <div class="icon admin-quick-icon" aria-hidden="true">
+          <img
+            src="<?= project_url('/assets/images/SUPERADMIN_EMPLOYEE LOGS.png?v=20260628-dashboard-icons') ?>"
+            alt=""
+            class="icon-image admin-quick-icon-image icon-image--employee-logs"
+          >
+        </div>
         <h4>Employee Activity Logs</h4>
         <p>Review employee actions and account changes</p>
       </article>
@@ -178,7 +190,13 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
 
     <a href="<?= project_url('/pages/super_admin/super_admin_system_settings.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
-        <div class="icon admin-quick-icon" aria-hidden="true">SET</div>
+        <div class="icon admin-quick-icon" aria-hidden="true">
+          <img
+            src="<?= project_url('/assets/images/SUPERADMIN_SYSTEMSETTINGS.png?v=20260628-dashboard-icons') ?>"
+            alt=""
+            class="icon-image admin-quick-icon-image icon-image--system-settings"
+          >
+        </div>
         <h4>System Settings</h4>
         <p>Open owner-level configuration and diagnostics</p>
       </article>
