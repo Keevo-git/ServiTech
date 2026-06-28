@@ -7,6 +7,8 @@ $_SERVER["DOCUMENT_ROOT"] = dirname(__DIR__);
 
 require_once __DIR__ . "/../auth/_internal_login_page.php";
 
+$styleCss = file_get_contents(__DIR__ . "/../assets/css/style.css") ?: "";
+
 function internal_login_render_assert(bool $condition, string $message): void
 {
     if (!$condition) {
@@ -61,6 +63,9 @@ foreach ([
 internal_login_render_assert(!str_contains($adminHtml, "Super Admin Login"), "Admin page must not expose Super Admin Login text.");
 internal_login_render_assert(!str_contains($adminHtml, "/auth/super_admin_login.php"), "Admin page must not link to Super Admin login.");
 internal_login_render_assert(!str_contains($superAdminHtml, "/auth/admin_login.php"), "Super Admin page must not link to Admin login.");
+internal_login_render_assert(str_contains($styleCss, "body.auth-page--internal-login .footer"), "Internal login pages must have scoped footer styling.");
+internal_login_render_assert(str_contains($styleCss, "#071b2f"), "Internal login footer must use the navy internal theme.");
+internal_login_render_assert(str_contains($styleCss, "body.auth-page--internal-login .footer-legal-links"), "Internal footer legal links must be scoped.");
 
 $renderSessionId = session_id();
 if (session_status() === PHP_SESSION_ACTIVE) {

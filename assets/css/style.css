@@ -6429,6 +6429,133 @@ body.auth-page--internal-login .form-alert {
   border-radius: 6px;
 }
 
+body.auth-page--internal-login .footer {
+  margin-top: 0;
+  padding: 28px clamp(18px, 4vw, 42px) 18px;
+  border-top: 1px solid rgba(144, 176, 208, 0.22);
+  background:
+    linear-gradient(180deg, rgba(18, 58, 99, 0.2) 0%, rgba(7, 27, 47, 0) 46%),
+    #071b2f;
+  color: #eaf3fb;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+body.auth-page--internal-login .footer-container {
+  align-items: center;
+  max-width: 1040px;
+  gap: 20px 36px;
+}
+
+body.auth-page--internal-login .footer-left {
+  display: grid;
+  gap: 9px;
+}
+
+body.auth-page--internal-login .footer-left h3 {
+  margin: 0 0 3px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+body.auth-page--internal-login .contact-item {
+  gap: 10px;
+  margin-bottom: 0;
+  color: #c6d6e7;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+body.auth-page--internal-login .contact-item img {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  filter: brightness(0) invert(1);
+  opacity: 0.82;
+}
+
+body.auth-page--internal-login .contact-item a,
+body.auth-page--internal-login .contact-item span {
+  color: #d7e5f2;
+}
+
+body.auth-page--internal-login .footer a,
+body.auth-page--internal-login .footer button {
+  color: #d7e5f2;
+}
+
+body.auth-page--internal-login .footer a:hover,
+body.auth-page--internal-login .footer a:focus-visible,
+body.auth-page--internal-login .footer button:hover,
+body.auth-page--internal-login .footer button:focus-visible {
+  color: #9eeaf4;
+  transform: translateY(-1px);
+}
+
+body.auth-page--internal-login .footer a:focus-visible,
+body.auth-page--internal-login .footer button:focus-visible {
+  outline: 2px solid rgba(36, 168, 188, 0.9);
+  outline-offset: 3px;
+}
+
+body.auth-page--internal-login .footer .footer-logo-link {
+  gap: 10px;
+}
+
+body.auth-page--internal-login .footer-servitech-logo {
+  width: 42px;
+}
+
+body.auth-page--internal-login .footer-logo-link h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+body.auth-page--internal-login .footer .footer-logo-link:hover h1,
+body.auth-page--internal-login .footer .footer-logo-link:focus-visible h1,
+body.auth-page--internal-login .footer .footer-logo-link:active h1 {
+  color: #9eeaf4;
+}
+
+body.auth-page--internal-login .footer-legal-links {
+  width: min(100%, 1040px);
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top-color: rgba(144, 176, 208, 0.24);
+  font-size: 13px;
+}
+
+body.auth-page--internal-login .footer-legal-links a,
+body.auth-page--internal-login .footer-legal-links a:visited,
+body.auth-page--internal-login .footer-legal-links button {
+  color: #d7e5f2;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+body.auth-page--internal-login .footer-legal-links a:hover,
+body.auth-page--internal-login .footer-legal-links a:focus-visible,
+body.auth-page--internal-login .footer-legal-links button:hover,
+body.auth-page--internal-login .footer-legal-links button:focus-visible {
+  background: rgba(36, 168, 188, 0.1);
+  color: #9eeaf4;
+}
+
+body.auth-page--internal-login .footer-legal-links span {
+  background: rgba(144, 176, 208, 0.42);
+}
+
+body.auth-page--internal-login .footer-bottom {
+  margin-top: 8px;
+  color: #aebfd1;
+  opacity: 1;
+}
+
 @media (max-width: 900px) {
   body.auth-page--internal-login .site-header.auth-header nav[data-collapsible-menu] {
     display: grid;
@@ -6457,6 +6584,10 @@ body.auth-page--internal-login .form-alert {
 
   body.auth-page--internal-login .internal-login-card__brand {
     margin-bottom: 10px;
+  }
+
+  body.auth-page--internal-login .footer-container {
+    align-items: flex-start;
   }
 }
 
@@ -6494,6 +6625,35 @@ body.auth-page--internal-login .form-alert {
 
   body.auth-page--internal-login .auth-login-options .forgot-link {
     align-self: flex-start !important;
+  }
+
+  body.auth-page--internal-login .footer {
+    padding: 24px 18px 18px;
+    text-align: left;
+  }
+
+  body.auth-page--internal-login .footer-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  body.auth-page--internal-login .footer-right {
+    width: 100%;
+    text-align: left;
+  }
+
+  body.auth-page--internal-login .footer-logo-link {
+    justify-content: flex-start;
+  }
+
+  body.auth-page--internal-login .contact-item {
+    justify-content: flex-start;
+  }
+
+  body.auth-page--internal-login .footer-legal-links {
+    justify-content: flex-start;
+    text-align: left;
   }
 }
 
