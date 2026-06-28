@@ -212,7 +212,7 @@ $adminHeaderVariant = "special";
   <title>Operational Controls | ServiTech Admin</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-operational-controls-v2') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-operational-controls-v2-20260628-modal') ?>">
 </head>
 <body class="admin-operational-controls-page operational-controls-page">
 <?php require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
@@ -227,8 +227,6 @@ $adminHeaderVariant = "special";
   <?php if (!$schemaReady): ?>
     <div class="admin-owner-alert admin-owner-alert--error">Operational controls tables are not available. Apply database/migrations/20260627_add_operational_controls.sql first.</div>
   <?php endif; ?>
-  <?php if ($notice !== ""): ?><div class="admin-owner-alert"><?= op_h($notice) ?></div><?php endif; ?>
-  <?php if ($error !== ""): ?><div class="admin-owner-alert admin-owner-alert--error"><?= op_h($error) ?></div><?php endif; ?>
 
   <section class="admin-owner-panel operational-controls-info">
     <div>
@@ -390,13 +388,15 @@ $adminHeaderVariant = "special";
 
 <div class="admin-owner-modal-overlay" id="operationalConfirmOverlay" hidden aria-hidden="true">
   <section class="admin-owner-modal operational-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="operationalConfirmTitle" aria-describedby="operationalConfirmMessage" tabindex="-1">
-    <button class="admin-owner-modal__close" type="button" data-operational-confirm-cancel aria-label="Close confirmation">&times;</button>
     <div class="admin-owner-modal__header">
       <div>
-        <span class="operational-kicker">Confirm action</span>
+        <span class="modal-eyebrow operational-kicker">Confirm Action</span>
         <h2 id="operationalConfirmTitle">Confirm Change</h2>
-        <p id="operationalConfirmMessage">Save this operational control change?</p>
       </div>
+      <button class="admin-owner-modal__close" type="button" data-operational-confirm-cancel aria-label="Close confirmation">&times;</button>
+    </div>
+    <div class="admin-owner-modal__body operational-confirm-modal__body">
+      <p id="operationalConfirmMessage">Save this operational control change?</p>
     </div>
     <div class="admin-owner-modal__actions">
       <button class="admin-owner-button-secondary" type="button" data-operational-confirm-cancel>Cancel</button>
@@ -430,6 +430,7 @@ if (operationalToast.message && window.servitechAdminToast) {
     "disable-payment": "This will remove {target} from new customer payment selections.",
     "enable-payment": "This will make {target} available for new customer payment selections."
   };
+  const dangerActions = new Set(["close-all", "close-service", "disable-payment"]);
 
   function closeConfirm() {
     pendingForm = null;
@@ -457,7 +458,10 @@ if (operationalToast.message && window.servitechAdminToast) {
     }
     pendingForm = form;
     const target = form.dataset.targetLabel || "this setting";
-    message.textContent = (messages[form.dataset.operationalConfirm] || "Save this operational control change?").replace("{target}", target);
+    const action = form.dataset.operationalConfirm;
+    message.textContent = (messages[action] || "Save this operational control change?").replace("{target}", target);
+    submit?.classList.toggle("admin-owner-button-danger", dangerActions.has(action));
+    submit?.classList.toggle("admin-owner-button", !dangerActions.has(action));
     overlay.hidden = false;
     overlay.setAttribute("aria-hidden", "false");
     document.documentElement.classList.add("admin-owner-modal-open");
