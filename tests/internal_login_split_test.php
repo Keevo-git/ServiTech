@@ -32,15 +32,22 @@ internal_login_split_assert(str_contains($customerLoginPost, 'servitech_handle_p
 foreach ([
     "Super Admin Login" => $superAdminLogin,
     "Owner access for ServiTech management." => $superAdminLogin,
-    "Owner Access" => $superAdminLogin,
+    "OWNER ACCESS" => $superAdminLogin,
     "Log in as Super Admin" => $superAdminLogin,
     "Admin Login" => $adminLogin,
-    "Employee access for daily store operations." => $adminLogin,
-    "Employee Access" => $adminLogin,
+    "Sign in to manage daily store operations." => $adminLogin,
+    "EMPLOYEE ACCESS" => $adminLogin,
     "Log in as Admin" => $adminLogin,
 ] as $label => $source) {
     internal_login_split_assert(str_contains($source, $label), "Internal login page must include label: {$label}");
 }
+
+internal_login_split_assert(!str_contains($adminLogin, "Super Admin Login"), "Admin login page must not visibly link to Super Admin Login.");
+internal_login_split_assert(!str_contains($adminLogin, "/auth/super_admin_login.php"), "Admin login page must not link to the Super Admin login route.");
+internal_login_split_assert(!str_contains($superAdminLogin, '"other_label" => "Admin Login"'), "Super Admin login page must not include an Admin Login cross-link label.");
+internal_login_split_assert(!str_contains($superAdminLogin, "/auth/admin_login.php"), "Super Admin login page must not link to the Admin login route.");
+internal_login_split_assert(str_contains($internalPage, 'render_auth_header($menuId, "/auth/log_in.php", "Customer Login")'), "Internal login header must expose only public/customer navigation.");
+internal_login_split_assert(str_contains($internalPage, 'auth-page--internal-login'), "Internal login page must use the scoped formal internal design class.");
 
 foreach ([
     '"allowed_roles" => ["super_admin"]',

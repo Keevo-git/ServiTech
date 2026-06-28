@@ -35,8 +35,9 @@ function servitech_render_internal_login_page(array $config): void
     $badge = (string)$config["badge"];
     $button = (string)$config["button"];
     $path = (string)$config["path"];
-    $otherPath = (string)$config["other_path"];
-    $otherLabel = (string)$config["other_label"];
+    $helperText = (string)($config["helper_text"] ?? "Use only your assigned ServiTech internal account.");
+    $panelTitle = (string)($config["panel_title"] ?? "ServiTech Internal Access");
+    $panelText = (string)($config["panel_text"] ?? "Protected access for authorized ServiTech personnel.");
     $menuId = (string)$config["menu_id"];
     $loginCode = strtolower(trim((string)($_GET["login"] ?? "")));
     $messageMap = servitech_internal_login_message_map($title);
@@ -49,52 +50,69 @@ function servitech_render_internal_login_page(array $config): void
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($title, ENT_QUOTES, "UTF-8") ?> | ServiTech</title>
   <?= servitech_favicon_link() ?>
-  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260625-auth-verification") ?>">
+  <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260628-internal-login-formal") ?>">
   <?php render_auth_toast_assets(); ?>
 </head>
-<body class="auth-page auth-page--login">
+<body class="auth-page auth-page--login auth-page--internal-login">
 
-<?php render_auth_header($menuId, $otherPath, $otherLabel); ?>
+<?php render_auth_header($menuId, "/auth/log_in.php", "Customer Login"); ?>
 
-  <main class="auth-shell">
-    <section class="auth-card auth-card--login" aria-labelledby="internal-login-title">
-      <div class="auth-card__header">
-        <p class="auth-card__eyebrow"><?= htmlspecialchars($badge, ENT_QUOTES, "UTF-8") ?></p>
-        <h1 id="internal-login-title"><?= htmlspecialchars($title, ENT_QUOTES, "UTF-8") ?></h1>
-        <p class="auth-card__subtitle"><?= htmlspecialchars($subtitle, ENT_QUOTES, "UTF-8") ?></p>
+  <main class="auth-shell internal-auth-shell">
+    <section class="auth-card auth-card--login internal-login-card" aria-labelledby="internal-login-title">
+      <div class="internal-login-card__side">
+        <div class="internal-login-card__brand" aria-hidden="true">
+          <img src="<?= auth_url("/assets/images/LOGO_SERVITECH.png") ?>" alt="">
+          <span>ServiTech</span>
+        </div>
+        <p class="internal-login-card__kicker"><?= htmlspecialchars($badge, ENT_QUOTES, "UTF-8") ?></p>
+        <h2><?= htmlspecialchars($panelTitle, ENT_QUOTES, "UTF-8") ?></h2>
+        <p><?= htmlspecialchars($panelText, ENT_QUOTES, "UTF-8") ?></p>
+        <div class="internal-login-card__assurance">
+          <span aria-hidden="true"></span>
+          <strong>Protected role verification</strong>
+          <small>Access is validated against the assigned account role before entry.</small>
+        </div>
       </div>
 
-      <div id="loginMessage" class="form-alert" role="alert" hidden></div>
-
-      <form id="loginForm" action="<?= auth_url($path) ?>" method="POST" class="register-form login-form" novalidate autocomplete="on">
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
-        <div class="form-field">
-          <label for="loginEmail">Email Address</label>
-          <input id="loginEmail" name="email" type="email" placeholder="Enter your email address" autocomplete="email" maxlength="<?= SERVITECH_LIMIT_EMAIL ?>" required>
-          <p class="field-error" id="loginEmailError" aria-live="polite"></p>
+      <div class="internal-login-card__main">
+        <div class="auth-card__header">
+          <p class="auth-card__eyebrow"><?= htmlspecialchars($badge, ENT_QUOTES, "UTF-8") ?></p>
+          <h1 id="internal-login-title"><?= htmlspecialchars($title, ENT_QUOTES, "UTF-8") ?></h1>
+          <p class="auth-card__subtitle"><?= htmlspecialchars($subtitle, ENT_QUOTES, "UTF-8") ?></p>
         </div>
 
-        <div class="form-field">
-          <label for="loginPassword">Password</label>
-          <div class="password-input-wrap">
-            <input id="loginPassword" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
-            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
-          </div>
-          <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
-          <div class="auth-login-options">
-            <label class="remember-me-control" for="rememberMe">
-              <input id="rememberMe" name="remember_me" type="checkbox" value="1"<?= $rememberMeRetry ? " checked" : "" ?>>
-              <span class="login-option-text">Remember me</span>
-            </label>
-            <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link login-option-text">Forgot Password?</a>
-          </div>
-        </div>
+        <div id="loginMessage" class="form-alert" role="alert" hidden></div>
 
-        <button type="submit" id="loginSubmit" class="auth-submit"><?= htmlspecialchars($button, ENT_QUOTES, "UTF-8") ?></button>
-        <p class="auth-note">Use only your assigned ServiTech internal account. This page does not create or reveal credentials.</p>
-      </form>
+        <form id="loginForm" action="<?= auth_url($path) ?>" method="POST" class="register-form login-form" novalidate autocomplete="on">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
+          <div class="form-field">
+            <label for="loginEmail">Email Address</label>
+            <input id="loginEmail" name="email" type="email" placeholder="Enter your email address" autocomplete="email" maxlength="<?= SERVITECH_LIMIT_EMAIL ?>" required>
+            <p class="field-error" id="loginEmailError" aria-live="polite"></p>
+          </div>
 
-      <a href="<?= auth_url("/auth/log_in.php") ?>" class="back-login">Customer login</a>
+          <div class="form-field">
+            <label for="loginPassword">Password</label>
+            <div class="password-input-wrap">
+              <input id="loginPassword" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" maxlength="<?= SERVITECH_PASSWORD_MAX_BYTES ?>" required>
+              <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false" aria-hidden="true" tabindex="-1"></button>
+            </div>
+            <p class="field-error" id="loginPasswordError" aria-live="polite"></p>
+            <div class="auth-login-options">
+              <label class="remember-me-control" for="rememberMe">
+                <input id="rememberMe" name="remember_me" type="checkbox" value="1"<?= $rememberMeRetry ? " checked" : "" ?>>
+                <span class="login-option-text">Remember me</span>
+              </label>
+              <a href="<?= auth_url("/auth/forgot_password.php") ?>" class="forgot-link login-option-text">Forgot Password?</a>
+            </div>
+          </div>
+
+          <button type="submit" id="loginSubmit" class="auth-submit"><?= htmlspecialchars($button, ENT_QUOTES, "UTF-8") ?></button>
+          <p class="auth-note"><?= htmlspecialchars($helperText, ENT_QUOTES, "UTF-8") ?></p>
+        </form>
+
+        <a href="<?= auth_url("/auth/log_in.php") ?>" class="back-login">Customer Login</a>
+      </div>
     </section>
   </main>
 
