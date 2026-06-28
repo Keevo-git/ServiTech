@@ -36,7 +36,7 @@ $dashboardSubtitle = "Business overview, staff controls, system settings, and op
   <title>ServiTech Super Admin Dashboard</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260628-quick-access-icons') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260628-quick-access-blue-grid') ?>">
 </head>
 <body
   class="admin-dashboard"
@@ -117,7 +117,7 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
     <div class="admin-section-divider" aria-hidden="true"></div>
   </header>
 
-  <section class="quick-grid quick-access-section quick-access-grid admin-quick-grid">
+  <section class="quick-grid quick-access-section quick-access-grid admin-quick-grid admin-quick-grid--owner">
     <a href="<?= project_url('/pages/admin/queue_list/printing.php') ?>" class="card-link admin-quick-card-link">
       <article class="card admin-quick-card">
         <div class="icon admin-quick-icon" aria-hidden="true">

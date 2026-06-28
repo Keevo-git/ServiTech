@@ -795,7 +795,7 @@ body.admin-dashboard .card .icon{
   width: 52px;
   height: 52px;
   border-radius: 12px;
-  background: linear-gradient(145deg, #edf5ff, #ffffff);
+  background: linear-gradient(145deg, #1f4a8a, #306dc2);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -803,12 +803,13 @@ body.admin-dashboard .card .icon{
   font-size: 22px;
   overflow: hidden;
   box-shadow:
-    inset 0 0 0 1px rgba(31, 74, 138, 0.12),
-    0 9px 18px rgba(27, 79, 145, 0.14);
+    inset 0 1px 0 rgba(255,255,255,0.24),
+    inset 0 -2px 0 rgba(10,27,49,0.18),
+    0 10px 20px rgba(27, 79, 145, 0.22);
 }
 
 body.admin-dashboard .card .icon--customer-list{
-  background: linear-gradient(145deg, #edf5ff, #ffffff);
+  background: linear-gradient(145deg, #1f4a8a, #306dc2);
 }
 
 body.admin-dashboard .card .icon--announcement{
@@ -838,7 +839,7 @@ body.admin-dashboard .admin-quick-icon-image{
   height: 46px;
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 2px 2px rgba(18, 39, 70, 0.16));
+  filter: drop-shadow(0 2px 2px rgba(10, 27, 49, 0.24));
 }
 
 body.admin-dashboard .card h4{
@@ -862,12 +863,20 @@ body.admin-dashboard .card p{
 /* Explicit dashboard action-card layout; isolated from generic .card rules. */
 body.admin-dashboard .dashboard-content .admin-quick-grid{
   display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(var(--admin-quick-grid-columns, 4), minmax(0, 1fr)) !important;
   gap: 24px !important;
   align-items: stretch !important;
   width: 100% !important;
   max-width: none !important;
   margin-inline: 0 !important;
+}
+
+body.admin-dashboard .dashboard-content .admin-quick-grid--employee{
+  --admin-quick-grid-columns: 4;
+}
+
+body.admin-dashboard .dashboard-content .admin-quick-grid--owner{
+  --admin-quick-grid-columns: 3;
 }
 
 body.admin-dashboard .dashboard-content .admin-quick-card-link{

@@ -44,6 +44,7 @@ foreach (["Today's Queue", "Active Orders"] as $oldQuickCard) {
 foreach (["QUEUE MANAGEMENT.png", "ORDER MANAGEMENT.png", "ADMIN_MYPROFILE.png"] as $quickAccessIcon) {
     admin_employee_pages_assert(str_contains($dashboard, $quickAccessIcon), "Dashboard quick access must use {$quickAccessIcon}.");
 }
+admin_employee_pages_assert(str_contains($dashboard, "admin-quick-grid--employee"), "Admin/Employee dashboard quick access must keep the 4-column employee grid class.");
 
 foreach ([
     "pages/admin/admin_dashboard.php" => $dashboard,

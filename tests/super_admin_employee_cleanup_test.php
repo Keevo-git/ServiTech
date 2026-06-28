@@ -73,6 +73,8 @@ foreach ([
 ] as $superAdminIcon) {
     super_admin_cleanup_assert(str_contains($dashboard, $superAdminIcon), "Super Admin dashboard must use {$superAdminIcon}.");
 }
+super_admin_cleanup_assert(str_contains($adminDashboard, "admin-quick-grid--employee"), "Admin/Employee dashboard quick access must keep the employee grid class.");
+super_admin_cleanup_assert(str_contains($dashboard, "admin-quick-grid--owner"), "Super Admin dashboard quick access must use the owner grid class.");
 
 super_admin_cleanup_assert(str_contains($dashboard, "super_admin_employee_accounts.php"), "Super Admin dashboard must link to Employee Accounts.");
 super_admin_cleanup_assert(str_contains($dashboard, "super_admin_employee_activity_logs.php"), "Super Admin dashboard must link to Employee Activity Logs.");
