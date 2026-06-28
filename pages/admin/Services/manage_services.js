@@ -507,7 +507,7 @@
   }
 
   function serviceField({ label, control, help = "", className = "", full = false }) {
-    return `<label class="service-field ${full ? "service-field--full" : ""} ${className}">
+    return `<label class="service-field ${full ? "service-field--full" : "service-field--compact"} ${className}">
       <span class="service-field-label">${escapeHtml(label)}</span>
       ${control}
       ${help ? `<div class="char-counter" data-character-help aria-live="polite">${escapeHtml(help)}</div>` : ""}

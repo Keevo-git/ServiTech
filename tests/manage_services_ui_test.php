@@ -86,6 +86,7 @@ foreach ([
     "resequenceCatalog",
     "This option is active, but it will not appear to customers until at least one active price combination is configured.",
     "char-counter",
+    "service-field--compact",
     'data-limit-ui="off"',
 ] as $requiredBehavior) {
     manage_services_ui_assert(str_contains($script, $requiredBehavior), "Confirmation behavior must include {$requiredBehavior}.");
@@ -132,6 +133,8 @@ foreach ([
     '.ms-switch>span[aria-hidden="true"]',
     ".ms-status-cell",
     ".char-counter",
+    ".service-field--compact",
+    "max-width: 360px",
 ] as $requiredStyle) {
     manage_services_ui_assert(str_contains($styles, $requiredStyle), "Responsive styles must include {$requiredStyle}.");
 }
@@ -141,6 +144,7 @@ foreach ([
     ".ms-order-actions",
     ".ms-rule-table__head",
     ".ms-value-list__head",
+    ".ms-inline-add input{max-width:360px}",
 ] as $removedStyle) {
     manage_services_ui_assert(!str_contains($styles, $removedStyle), "Responsive styles must not include removed arrangement/header selector {$removedStyle}.");
 }

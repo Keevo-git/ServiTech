@@ -22,7 +22,7 @@
 .ms-value-row input,.ms-rule-row input,.ms-rule-row select,.ms-repair-row input,.ms-repair-row select,.ms-price-cell input,.ms-price-cell select,.ms-inline-add input,.ms-inline-add select{border:1px solid #c9d5e2;border-radius:6px;font-size:12px;padding:8px;min-width:0;width:100%}
 .ms-value-row .ms-price-input{min-width:180px}
 .ms-price-input{flex:1;min-width:0}
-.ms-inline-add{display:flex;gap:8px;margin-top:10px}.ms-inline-add input{max-width:360px}.ms-row-actions{align-items:center;display:flex;gap:5px}.ms-text-action{background:transparent;border:0;cursor:pointer;font-size:12px;font-weight:800}.ms-text-action.danger{color:var(--ms-danger)}
+.ms-inline-add{display:flex;gap:8px;margin-top:10px}.ms-row-actions{align-items:center;display:flex;gap:5px}.ms-text-action{background:transparent;border:0;cursor:pointer;font-size:12px;font-weight:800}.ms-text-action.danger{color:var(--ms-danger)}
 .ms-inline-add--rule{align-items:center;display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(130px,1fr) minmax(120px,.8fr) auto auto}.ms-inline-add--rule:has([data-new-description]){grid-template-columns:minmax(140px,1fr) minmax(170px,1.3fr) minmax(120px,.8fr) minmax(130px,.9fr) auto auto}.ms-inline-add--rule input{max-width:none}.ms-device-guidance{background:#fff8e8;border:1px solid #ead7a7;border-radius:6px;color:#6c5726;font-size:12px;margin:0;padding:9px}.ms-mode-section{align-items:center;display:flex;gap:20px;justify-content:space-between}.ms-mode-section h4{color:var(--ms-navy);font-size:15px;margin:0 0 3px}.ms-mode-section p{color:#6b7d90;font-size:12px;margin:0}
 .ms-matrix-wrap{overflow:auto}.ms-catalog-matrix{border-collapse:separate;border-spacing:0;min-width:760px;width:100%}.ms-catalog-matrix th,.ms-catalog-matrix td{border-bottom:1px solid #dfe7f0;border-right:1px solid #dfe7f0;padding:9px;vertical-align:top}.ms-catalog-matrix th{background:#edf3f9;color:#294b70;font-size:12px;min-width:145px}.ms-catalog-matrix td{min-width:190px}.ms-price-cell{display:grid;gap:7px}.ms-price-input{align-items:center;border:1px solid #c9d5e2;border-radius:6px;display:flex;overflow:hidden}.ms-price-input span{background:#edf3f8;color:#536b83;font-size:10px;font-weight:900;padding:9px 7px}.ms-price-input input{border:0!important;border-radius:0!important}
 .ms-rule-table{display:grid;gap:6px}.ms-rule-row{align-items:center;display:grid;gap:8px;grid-template-columns:1.2fr 1.5fr .8fr 1fr auto auto;background:#f9fbfd;border:1px solid #dfe8f1;border-radius:7px;padding:8px}.ms-fixed-label{color:#52687e;font-size:12px;font-weight:800}
@@ -433,9 +433,24 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
 }
 
 .service-field {
-  display: grid;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
   min-width: 0;
+  width: 100%;
+}
+
+.service-field--compact {
+  max-width: 360px;
+}
+
+.service-field--medium {
+  max-width: 420px;
+}
+
+.service-field--full {
+  max-width: none;
 }
 
 .ms-field .char-counter,
@@ -445,8 +460,9 @@ html.ms-modal-open,body.ms-modal-open{overflow:hidden}html.ms-modal-open{scrollb
   font-size: 11px;
   font-weight: 700;
   line-height: 1.35;
-  margin-top: -1px;
+  margin-top: 2px;
   text-align: right;
+  width: 100%;
 }
 
 .service-field--full,
