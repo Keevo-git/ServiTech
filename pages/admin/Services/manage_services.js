@@ -761,6 +761,51 @@
     </section>`;
   }
 
+  function scanningEditor() {
+    const sizes = group("paper_size")?.values || [];
+    const selectedSize = sizes.find((s) => s.value_key === selectedPaperSizeKey);
+    const selectedRule = selectedSize ? findRule({ paper_size: selectedSize.value_key }) : null;
+
+    return `<section class="ms-option-section service-edit-section">
+      <div class="ms-section-head">
+        <div><h4>Scanning Price Setup</h4><p>Select a paper size from the dropdown to edit its scanning price and availability.</p></div>
+      </div>
+      <div class="ms-value-list">
+        <div class="ms-dropdown-wrapper">
+          <label for="ms-scanning-size-select">Select Paper Size</label>
+          <select id="ms-scanning-size-select" data-select-paper-size aria-label="Select paper size to edit">
+            <option value="">-- Select a paper size --</option>
+            ${sizes.map((size) => `<option value="${escapeHtml(size.value_key)}" ${selectedPaperSizeKey === size.value_key ? "selected" : ""}>${escapeHtml(size.label)}</option>`).join("")}
+          </select>
+        </div>
+        ${selectedSize ? `<div class="ms-value-row service-form-grid ${Number(selectedSize.active) ? "" : "is-inactive"}" data-group-key="paper_size" data-value-key="${escapeHtml(selectedSize.value_key)}">
+          <div class="ms-size-edit-header"><strong>${escapeHtml(selectedSize.label)}</strong></div>
+          ${textInputField({
+            label: "Paper size name",
+            value: selectedSize.label,
+            inputAttrs: `data-value-label aria-label="Paper size name" class="ms-size-input"`,
+            full: true,
+          })}
+          <div class="service-action-row">
+            ${priceField(`<input data-rule-price type="number" min="0" step="0.01" value="${escapeHtml(selectedRule?.price ?? "")}" placeholder="0.00">`)}
+            ${selectField({ label: "Price Type", control: `<select data-rule-price-type aria-label="Price type"><option value="fixed" ${selectedRule?.price_type !== "assessment" ? "selected" : ""}>Fixed Price</option><option value="assessment" ${selectedRule?.price_type === "assessment" ? "selected" : ""}>For Assessment</option></select>` })}
+            ${statusField(toggleControl(Number(selectedRule?.active), Number(selectedRule?.active) ? "Active" : "Inactive", `Toggle ${selectedSize.label} active status`))}
+          </div>
+          ${optionVisibilityWarning("paper_size", selectedSize) ? `<p class="ms-option-warning" role="status">${escapeHtml(optionVisibilityWarning("paper_size", selectedSize))}</p>` : ""}
+        </div>` : ""}
+      </div>
+      <div class="ms-inline-add ms-inline-add--rule service-form-grid">
+        ${newTextInputField({ label: "Paper Size", dataAttr: 'data-new-value="paper_size"', placeholder: "New paper size", full: true })}
+        <div class="service-action-row">
+          ${priceField(`<input data-new-price="paper_size" type="number" min="0" step="0.01" placeholder="0.00">`)}
+          ${selectField({ label: "Price Type", control: `<select data-new-price-type="paper_size"><option value="fixed">Fixed Price</option><option value="assessment">For Assessment</option></select>` })}
+          ${statusField(`<label class="ms-switch ms-switch--compact"><input data-new-active="paper_size" type="checkbox" checked><span aria-hidden="true"></span><em>Active</em></label>`)}
+          <button type="button" data-add-value="paper_size">Add</button>
+        </div>
+      </div>
+    </section>`;
+  }
+
   function finishConfirmation(accepted) {
     if (!confirmResolver || !isTopModal(confirmOverlay)) return;
     const resolve = confirmResolver;
@@ -1142,7 +1187,7 @@
     if (currentKind === "document_printing" || currentKind === "photocopy") content = matrixEditor();
     else if (currentKind === "rush_id") content = rushEditor();
     else if (currentKind === "laminating") content = laminatingEditor();
-    else if (currentKind === "scanning") content = simpleRuleRows("paper_size", "Scanning Paper Sizes", "New paper size", { nameLabel: "Paper Size" });
+    else if (currentKind === "scanning") content = scanningEditor();
     else if (currentKind === "repair") content = repairEditor();
     else if (currentKind === "installation") content = installationEditor();
     const warning = serviceAvailabilityWarning();
