@@ -398,9 +398,10 @@ body.admin-analytics-page .analytics-metric-grid {
 
 body.admin-analytics-page .analytics-metric-card {
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 10px;
-  min-height: 124px;
+  grid-template-rows: auto auto auto;
+  align-content: space-between;
+  gap: 12px;
+  min-height: 116px;
   padding: 18px;
   border: 1px solid #d7e2ee;
   border-left: 4px solid #226f63;
@@ -421,7 +422,7 @@ body.admin-analytics-page .analytics-metric-card span {
 }
 
 body.admin-analytics-page .analytics-metric-card strong {
-  align-self: center;
+  align-self: end;
   color: #132338;
   font-size: clamp(1.18rem, 2vw, 1.64rem);
   line-height: 1.12;
@@ -820,9 +821,27 @@ body.admin-analytics-page .analytics-export-actions {
   flex: 0 1 auto;
 }
 
-body.admin-analytics-page .analytics-export-row button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+body.admin-analytics-page .analytics-export-csv-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 1px solid #1e4b7a;
+  border-radius: 8px;
+  background: #1e4b7a;
+  color: #ffffff;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 10px 22px rgba(30, 75, 122, 0.18);
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+body.admin-analytics-page .analytics-export-csv-button:hover,
+body.admin-analytics-page .analytics-export-csv-button:focus-visible {
+  border-color: #15365c;
+  background: #15365c;
+  transform: translateY(-1px);
 }
 
 body.admin-analytics-page .analytics-pagination {
@@ -971,8 +990,7 @@ body.admin-analytics-page .analytics-page-indicator {
   body.admin-analytics-page .analytics-filter-actions .admin-owner-button,
   body.admin-analytics-page .analytics-filter-actions .admin-owner-button-secondary,
   body.admin-analytics-page .analytics-cycle-actions .admin-owner-button-secondary,
-  body.admin-analytics-page .analytics-export-actions .admin-owner-button-secondary,
-  body.admin-analytics-page .analytics-export-row button {
+  body.admin-analytics-page .analytics-export-csv-button {
     flex: 1 1 100%;
     justify-content: center;
   }

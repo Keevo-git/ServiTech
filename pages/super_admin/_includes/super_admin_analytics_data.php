@@ -131,6 +131,7 @@ function super_analytics_clean_filter(array $source): array
         "category" => trim((string)($source["category"] ?? "overview")),
         "cycle_id" => max(0, (int)($source["cycle_id"] ?? 0)),
         "records_page" => max(1, (int)($source["records_page"] ?? 1)),
+        "history_page" => max(1, (int)($source["history_page"] ?? 1)),
     ];
 }
 
@@ -593,7 +594,6 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
         FROM queue_status_events e
         INNER JOIN analytics_base b ON b.id = e.queue_id
         ORDER BY e.entered_at DESC, e.queue_code ASC, e.transition_no ASC
-        LIMIT 500
     ", $params);
 
     $detailedRecords = super_analytics_fetch_all($pdo, "{$cte}
@@ -603,7 +603,6 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
                ROUND(service_processing_minutes::numeric, 2) AS service_processing_minutes
         FROM analytics_base
         ORDER BY request_created_at DESC NULLS LAST, queue_code ASC
-        LIMIT 100
     ", $params);
 
     $staffAnalytics = ["available" => false, "rows" => [], "message" => "Staff workload analytics will appear once staff handling data is available."];

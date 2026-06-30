@@ -46,7 +46,7 @@ function analytics_label(string $value): string
 
 function analytics_filter_query(array $filters, array $extra = []): string
 {
-    $allowed = ["cycle_id", "start_date", "end_date", "service_type", "status", "request_source", "staff_id", "records_page"];
+    $allowed = ["cycle_id", "start_date", "end_date", "service_type", "status", "request_source", "staff_id", "records_page", "history_page"];
     $query = [];
     foreach (array_merge($filters, $extra) as $key => $value) {
         if (!in_array((string)$key, $allowed, true) && $key !== "export") {
@@ -300,15 +300,9 @@ function analytics_render_report_header(string $title, string $description, arra
 function analytics_render_export_row(array $context, string $currentPage, bool $activeCsv = false): void
 {
     echo '<section class="analytics-export-row" aria-label="Export analytics">';
-    echo '<div class="analytics-export-row__copy"><strong>Export Report</strong><span>Download the current filtered analytics view for reporting records.</span></div>';
+    echo '<div class="analytics-export-row__copy"><strong>Export Report</strong><span>Download the current analytics report with summary, detailed records, and raw data.</span></div>';
     echo '<div class="analytics-export-actions">';
-    if ($activeCsv) {
-        echo '<a class="admin-owner-button-secondary" href="' . analytics_report_url($currentPage, $context["filters"] ?? [], ["export" => "csv"]) . '">Export CSV</a>';
-    } else {
-        echo '<a class="admin-owner-button-secondary" href="' . analytics_report_url("super_admin_analytics_exports.php", $context["filters"] ?? []) . '">Export CSV</a>';
-    }
-    echo '<button class="admin-owner-button-secondary" type="button" disabled title="Excel export is prepared in the UI and can be connected when the export service is available.">Export Excel</button>';
-    echo '<button class="admin-owner-button-secondary" type="button" disabled title="PDF export is prepared in the UI and can be connected when the export service is available.">Export PDF</button>';
+    echo '<a class="analytics-export-csv-button" href="' . analytics_report_url($currentPage, $context["filters"] ?? [], ["export" => "csv"]) . '">Export CSV</a>';
     echo '</div>';
     echo '</section>';
 }
@@ -344,6 +338,209 @@ function analytics_render_pagination(string $page, array $filters, string $pageK
     }
     echo '<span class="analytics-page-indicator">Page ' . $currentPage . ' of ' . $totalPages . '</span>';
     echo '</nav>';
+}
+
+function analytics_csv_filter_summary(array $filters): string
+{
+    $parts = [];
+    foreach ($filters as $key => $value) {
+        if (in_array((string)$key, ["records_page", "history_page", "category"], true) || trim((string)$value) === "") {
+            continue;
+        }
+        $parts[] = str_replace("_", " ", (string)$key) . ": " . (string)$value;
+    }
+    return $parts ? implode("; ", $parts) : "None";
+}
+
+function analytics_csv_section(array &$rows, string $title): void
+{
+    if ($rows) {
+        $rows[] = [];
+    }
+    $rows[] = [$title];
+}
+
+function analytics_csv_pair_rows(array &$rows, array $pairs): void
+{
+    foreach ($pairs as $pair) {
+        $rows[] = [(string)($pair[0] ?? ""), (string)($pair[1] ?? "")];
+    }
+}
+
+function analytics_csv_add_metadata(array &$rows, array $context, string $title): void
+{
+    $cycle = $context["cycle"] ?? [];
+    analytics_csv_section($rows, "Report Metadata");
+    analytics_csv_pair_rows($rows, [
+        ["Report Title", $title],
+        ["Date Range", ($cycle["start_date"] ?? "-") . " to " . ($cycle["end_date"] ?? "-")],
+        ["Analytics Cycle", (string)($cycle["cycle_key"] ?? "-")],
+        ["Generated At", (new DateTimeImmutable("now", new DateTimeZone("Asia/Manila")))->format("M d, Y h:i A")],
+        ["Filters Applied", analytics_csv_filter_summary($context["filters"] ?? [])],
+    ]);
+}
+
+function analytics_report_csv_rows(array $context, string $reportKey, string $title): array
+{
+    $analytics = $context["analytics"] ?? [];
+    $summary = $context["summary"] ?? [];
+    $rows = [];
+    analytics_csv_add_metadata($rows, $context, $title);
+
+    if ($reportKey === "service_queue") {
+        $longest = $analytics["longest_waiting_request"] ?? [];
+        analytics_csv_section($rows, "Summary");
+        analytics_csv_pair_rows($rows, [
+            ["Total Service Requests", analytics_number($summary["total_requests"] ?? 0)],
+            ["Average Queue Waiting Time", analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0)],
+            ["Median Waiting Time", analytics_minutes($summary["median_queue_waiting_minutes"] ?? 0)],
+            ["Longest Waiting Request", trim((string)($longest["queue_code"] ?? "-") . " / " . analytics_minutes($longest["queue_waiting_minutes"] ?? null))],
+            ["Most Requested Service", (string)($analytics["most_requested_service"]["service_label"] ?? "-")],
+            ["Completed Requests", analytics_number($summary["completed_requests"] ?? 0)],
+            ["Cancelled Requests", analytics_number($summary["cancelled_requests"] ?? 0)],
+        ]);
+
+        analytics_csv_section($rows, "Requests by Service Type");
+        $rows[] = ["Service Type", "Total Requests"];
+        foreach (($analytics["requests_by_service"] ?? []) as $service) {
+            $rows[] = [(string)($service["service_label"] ?? ""), (string)($service["total"] ?? 0)];
+        }
+
+        analytics_csv_section($rows, "Completion Percentage per Service Type");
+        $rows[] = ["Service Type", "Total", "Completed", "Cancelled", "Completion Percentage"];
+        foreach (($analytics["service_completion"] ?? []) as $service) {
+            $rows[] = [
+                (string)($service["service_label"] ?? ""),
+                (string)($service["total"] ?? 0),
+                (string)($service["completed"] ?? 0),
+                (string)($service["cancelled"] ?? 0),
+                analytics_percent($service["completion_percentage"] ?? 0),
+            ];
+        }
+
+        analytics_csv_section($rows, "Detailed Records");
+        $rows[] = ["Queue ID", "Customer Name", "Service Type", "Current/Final Status", "Created At", "Approved At", "Ongoing At", "Done At", "Queue Waiting Time"];
+        foreach (($analytics["detailed_records"] ?? []) as $record) {
+            $rows[] = [
+                (string)($record["queue_code"] ?? ""),
+                (string)($record["customer_name"] ?? ""),
+                (string)($record["service_label"] ?? ""),
+                (string)($record["status_group"] ?? ""),
+                analytics_datetime($record["request_created_at"] ?? ""),
+                analytics_datetime($record["approved_at"] ?? ""),
+                analytics_datetime($record["ongoing_at"] ?? ""),
+                analytics_datetime($record["done_at"] ?? ""),
+                analytics_minutes($record["queue_waiting_minutes"] ?? null),
+            ];
+        }
+    } elseif ($reportKey === "workflow") {
+        analytics_csv_section($rows, "Summary");
+        analytics_csv_pair_rows($rows, [
+            ["Transition Events", analytics_number(count($analytics["history"] ?? []))],
+            ["Stalled Requests", analytics_number(count($analytics["stale_requests"] ?? []))],
+            ["Average Pending Time", analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "PENDING"))],
+            ["Average Ongoing Time", analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "ONGOING"))],
+        ]);
+
+        analytics_csv_section($rows, "Status Duration Summary");
+        $rows[] = ["Status", "Average Duration"];
+        foreach (($analytics["status_durations"] ?? []) as $duration) {
+            $rows[] = [(string)($duration["status"] ?? ""), analytics_minutes($duration["avg_minutes"] ?? null)];
+        }
+
+        analytics_csv_section($rows, "Status Transition History Raw Data");
+        $rows[] = ["Queue ID", "Customer Name", "Service Type", "Status", "Entered At", "Exited At", "Duration Min", "Next Status", "Remarks"];
+        foreach (($analytics["history"] ?? []) as $event) {
+            $rows[] = [
+                (string)($event["queue_code"] ?? ""),
+                (string)($event["customer_name_snapshot"] ?? ""),
+                (string)($event["service_type"] ?? ""),
+                (string)($event["status"] ?? ""),
+                analytics_datetime($event["entered_at"] ?? ""),
+                analytics_datetime($event["exited_at"] ?? ""),
+                (string)($event["duration_minutes"] ?? ""),
+                (string)($event["next_status"] ?? ""),
+                (string)($event["remarks"] ?? ""),
+            ];
+        }
+    } elseif ($reportKey === "exports") {
+        $exportStatus = $context["export_status"] ?? [];
+        analytics_csv_section($rows, "Summary");
+        analytics_csv_pair_rows($rows, [
+            ["Current Report Range", ($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-")],
+            ["Export Status", !empty($exportStatus["exported"]) ? "Exported" : "Not Exported"],
+            ["Last Export", !empty($exportStatus["exported_at"]) ? analytics_datetime($exportStatus["exported_at"]) : "No export logged"],
+            ["Previous Exports", analytics_number(count($analytics["cycle_center"]["export_logs"] ?? []))],
+        ]);
+
+        analytics_csv_section($rows, "Export Logs");
+        $rows[] = ["Type", "Exported By", "Exported At", "Rows"];
+        foreach (($analytics["cycle_center"]["export_logs"] ?? []) as $log) {
+            $rows[] = [
+                strtoupper((string)($log["export_type"] ?? "")),
+                (string)($log["exported_by"] ?? "System"),
+                analytics_datetime($log["exported_at"] ?? ""),
+                (string)($log["row_count"] ?? 0),
+            ];
+        }
+    } else {
+        analytics_csv_section($rows, "Summary");
+        analytics_csv_pair_rows($rows, [
+            ["Total Service Requests", analytics_number($summary["total_requests"] ?? 0)],
+            ["Active Workload", analytics_number($summary["active_workload"] ?? 0)],
+            ["Completed Requests", analytics_number($summary["completed_requests"] ?? 0)],
+            ["Cancelled Requests", analytics_number($summary["cancelled_requests"] ?? 0)],
+            ["Completion Rate", analytics_percent($summary["completion_rate"] ?? 0)],
+            ["Most Requested Service", (string)($analytics["most_requested_service"]["service_label"] ?? "-")],
+            ["Average Queue Waiting Time", analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0)],
+        ]);
+
+        analytics_csv_section($rows, "Status Distribution");
+        $rows[] = ["Status", "Total"];
+        foreach (analytics_status_rows($analytics) as $status) {
+            $rows[] = [(string)($status["label"] ?? ""), (string)($status["total"] ?? 0)];
+        }
+
+        analytics_csv_section($rows, "Detailed Records");
+        $rows[] = ["Queue ID", "Customer Name", "Service Type", "Current/Final Status", "Created At", "Approved At", "Ongoing At", "Done At", "Queue Waiting Time"];
+        foreach (($analytics["detailed_records"] ?? []) as $record) {
+            $rows[] = [
+                (string)($record["queue_code"] ?? ""),
+                (string)($record["customer_name"] ?? ""),
+                (string)($record["service_label"] ?? ""),
+                (string)($record["status_group"] ?? ""),
+                analytics_datetime($record["request_created_at"] ?? ""),
+                analytics_datetime($record["approved_at"] ?? ""),
+                analytics_datetime($record["ongoing_at"] ?? ""),
+                analytics_datetime($record["done_at"] ?? ""),
+                analytics_minutes($record["queue_waiting_minutes"] ?? null),
+            ];
+        }
+    }
+
+    return $rows;
+}
+
+function analytics_send_csv_export(PDO $pdo, array $context, string $reportKey, string $title, string $filename): void
+{
+    $rows = analytics_report_csv_rows($context, $reportKey, $title);
+    super_analytics_record_export(
+        $pdo,
+        $context["analytics"] ?? [],
+        "csv",
+        (int)($_SESSION["user_id"] ?? 0),
+        $context["filters"] ?? [],
+        max(0, count($rows))
+    );
+
+    header("Content-Type: text/csv; charset=utf-8");
+    header("Content-Disposition: attachment; filename=" . preg_replace('/[^a-zA-Z0-9._-]+/', "-", $filename));
+    $out = fopen("php://output", "w");
+    foreach ($rows as $row) {
+        fputcsv($out, $row);
+    }
+    fclose($out);
+    exit;
 }
 
 function analytics_category_definitions(array $context): array
@@ -432,7 +629,6 @@ function analytics_render_operations(array $context): void
     echo '<article><span>Active Workload</span><strong>' . analytics_number($summary["active_workload"] ?? 0) . '</strong></article>';
     echo '<article><span>Completion Rate</span><strong>' . analytics_percent($summary["completion_rate"] ?? 0) . '</strong></article>';
     echo '</div></section>';
-    analytics_render_export_row($context, "super_admin_analytics_operations.php");
     echo '<section class="analytics-operations-grid">';
     echo '<article class="analytics-panel analytics-operational-summary"><h2>Operational Summary</h2><p>ServiTech handled <strong>' . analytics_number($summary["total_requests"] ?? 0) . '</strong> service requests in this range, with <strong>' . analytics_percent($summary["completion_rate"] ?? 0) . '</strong> completed successfully.</p><div class="analytics-definition-list">';
     echo '<div><span>Most Requested Service</span><strong>' . analytics_h($analytics["most_requested_service"]["service_label"] ?? "-") . '</strong></div>';
@@ -458,7 +654,6 @@ function analytics_render_service_queue(array $context): void
         ["label" => "Median Waiting Time", "value" => analytics_minutes($summary["median_queue_waiting_minutes"] ?? 0)],
         ["label" => "Longest Waiting Request", "value" => analytics_h($analytics["longest_waiting_request"]["queue_code"] ?? "-"), "note" => analytics_minutes($analytics["longest_waiting_request"]["queue_waiting_minutes"] ?? null)],
     ]);
-    analytics_render_export_row($context, "super_admin_analytics_service_queue.php");
 
     echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Service Demand</h2><p>Demand patterns across service types and reporting periods.</p></div><div class="analytics-panel-grid">';
     echo '<article class="analytics-panel"><h3>Requests by Service Type</h3>';
@@ -545,7 +740,6 @@ function analytics_render_workflow(array $context): void
         ["label" => "Average Pending Time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "PENDING"))],
         ["label" => "Average Ongoing Time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "ONGOING"))],
     ]);
-    analytics_render_export_row($context, "super_admin_analytics_workflow.php");
     echo '<section class="analytics-workflow-board"><article class="analytics-panel"><h2>Status Duration Summary</h2><div class="analytics-duration-card-grid">';
     if (empty($analytics["status_durations"])) {
         echo '<p class="analytics-empty">No status duration data found.</p>';
@@ -564,15 +758,23 @@ function analytics_render_workflow(array $context): void
         }
     }
     echo '</tbody></table></div></article></section>';
-    echo '<section class="analytics-panel analytics-timeline-panel"><h2>Status Transition History</h2><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer Name</th><th>Service Type</th><th>Status</th><th>Entered At</th><th>Exited At</th><th>Duration Min</th><th>Next Status</th><th>Remarks</th></tr></thead><tbody>';
-    if (empty($analytics["history"])) {
-        echo '<tr><td colspan="9">No status transition history found for the selected filters.</td></tr>';
+    $historyRows = $analytics["history"] ?? [];
+    $historyPerPage = 10;
+    $historyTotalRows = count($historyRows);
+    $historyTotalPages = max(1, (int)ceil($historyTotalRows / $historyPerPage));
+    $historyCurrentPage = max(1, min((int)($context["filters"]["history_page"] ?? 1), $historyTotalPages));
+    $visibleHistoryRows = array_slice($historyRows, ($historyCurrentPage - 1) * $historyPerPage, $historyPerPage);
+    echo '<section class="analytics-panel analytics-timeline-panel"><h2>Status Transition History</h2><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer Name</th><th>Service Type</th><th>Status</th><th>Entered At</th><th>Exited At</th><th>Duration Min</th><th>Next Status</th></tr></thead><tbody>';
+    if (empty($visibleHistoryRows)) {
+        echo '<tr><td colspan="8">No status transition history found for the selected filters.</td></tr>';
     } else {
-        foreach ($analytics["history"] as $event) {
-            echo '<tr><td>' . analytics_h($event["queue_code"] ?? "") . '</td><td>' . analytics_h($event["customer_name_snapshot"] ?? "") . '</td><td>' . analytics_h($event["service_type"] ?? "") . '</td><td><span class="analytics-status-badge">' . analytics_h($event["status"] ?? "") . '</span></td><td>' . analytics_datetime($event["entered_at"] ?? "") . '</td><td>' . analytics_datetime($event["exited_at"] ?? "") . '</td><td>' . analytics_h($event["duration_minutes"] ?? "-") . '</td><td>' . analytics_h($event["next_status"] ?? "-") . '</td><td>' . analytics_h($event["remarks"] ?? "") . '</td></tr>';
+        foreach ($visibleHistoryRows as $event) {
+            echo '<tr><td>' . analytics_h($event["queue_code"] ?? "") . '</td><td>' . analytics_h($event["customer_name_snapshot"] ?? "") . '</td><td>' . analytics_h($event["service_type"] ?? "") . '</td><td><span class="analytics-status-badge">' . analytics_h($event["status"] ?? "") . '</span></td><td>' . analytics_datetime($event["entered_at"] ?? "") . '</td><td>' . analytics_datetime($event["exited_at"] ?? "") . '</td><td>' . analytics_h($event["duration_minutes"] ?? "-") . '</td><td>' . analytics_h($event["next_status"] ?? "-") . '</td></tr>';
         }
     }
-    echo '</tbody></table></div></section>';
+    echo '</tbody></table></div>';
+    analytics_render_pagination("super_admin_analytics_workflow.php", $context["filters"] ?? [], "history_page", $historyCurrentPage, $historyTotalPages);
+    echo '</section>';
 }
 
 function analytics_render_completion(array $context): void
@@ -728,7 +930,6 @@ function analytics_render_exports(array $context): void
     echo '</div></article>';
     echo '<section class="analytics-notice-card"><strong>Analytics reset is currently disabled.</strong><p>Export functions remain available for reporting and backup purposes.</p></section>';
     echo '</section>';
-    analytics_render_export_row($context, "super_admin_analytics_exports.php", true);
     echo '<section class="analytics-panel-grid analytics-export-history-grid"><article class="analytics-panel"><h2>Archived Analytics Ranges</h2><div class="analytics-table-wrap"><table><thead><tr><th>Range</th><th>Date Range</th><th>Status</th><th>Snapshot</th></tr></thead><tbody>';
     if (empty($analytics["cycle_center"]["previous_cycles"])) {
         echo '<tr><td colspan="4">No previous analytics cycles found.</td></tr>';

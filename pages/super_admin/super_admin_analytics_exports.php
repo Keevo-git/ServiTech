@@ -7,22 +7,7 @@ require_once __DIR__ . "/_includes/super_admin_analytics_views.php";
 
 $context = analytics_load_context($pdo, $_GET);
 if ($context["ready"] && strtolower(trim((string)($_GET["export"] ?? ""))) === "csv") {
-    super_analytics_record_export(
-        $pdo,
-        $context["analytics"],
-        "csv",
-        (int)($_SESSION["user_id"] ?? 0),
-        $context["filters"],
-        count($context["analytics"]["history"] ?? [])
-    );
-    header("Content-Type: text/csv; charset=utf-8");
-    header("Content-Disposition: attachment; filename=servitech-owner-analytics-status-history.csv");
-    $out = fopen("php://output", "w");
-    foreach (super_analytics_csv_rows($context["analytics"]) as $row) {
-        fputcsv($out, $row);
-    }
-    fclose($out);
-    exit;
+    analytics_send_csv_export($pdo, $context, "exports", "Analytics Export Center", "servitech-analytics-export-center.csv");
 }
 ?>
 <!DOCTYPE html>
@@ -34,7 +19,7 @@ if ($context["ready"] && strtolower(trim((string)($_GET["export"] ?? ""))) === "
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260630-analytics') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-export-pagination') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-csv-export') ?>">
 </head>
 <body class="admin-analytics-page">
 <?php $adminHeaderVariant = "dashboard"; require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
@@ -44,6 +29,7 @@ if ($context["ready"] && strtolower(trim((string)($_GET["export"] ?? ""))) === "
     <div class="analytics-warning" role="status"><?= analytics_h($context["error"] ?: "Analytics are temporarily unavailable.") ?></div>
   <?php else: ?>
     <?php analytics_render_filters($context, "super_admin_analytics_exports.php", ["cycle", "date"]); ?>
+    <?php analytics_render_export_row($context, "super_admin_analytics_exports.php"); ?>
     <?php analytics_render_exports($context); ?>
   <?php endif; ?>
 </main>

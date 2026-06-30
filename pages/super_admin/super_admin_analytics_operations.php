@@ -6,6 +6,9 @@ require_once __DIR__ . "/../admin/_includes/admin_db.php";
 require_once __DIR__ . "/_includes/super_admin_analytics_views.php";
 
 $context = analytics_load_context($pdo, $_GET);
+if ($context["ready"] && strtolower(trim((string)($_GET["export"] ?? ""))) === "csv") {
+    analytics_send_csv_export($pdo, $context, "operations", "Operations Overview", "servitech-operations-overview.csv");
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,7 +19,7 @@ $context = analytics_load_context($pdo, $_GET);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260630-analytics') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-export-pagination') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-csv-export') ?>">
 </head>
 <body class="admin-analytics-page">
 <?php $adminHeaderVariant = "dashboard"; require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
@@ -26,6 +29,7 @@ $context = analytics_load_context($pdo, $_GET);
     <div class="analytics-warning" role="status"><?= analytics_h($context["error"] ?: "Analytics are temporarily unavailable.") ?></div>
   <?php else: ?>
     <?php analytics_render_filters($context, "super_admin_analytics_operations.php", ["cycle", "date", "status"]); ?>
+    <?php analytics_render_export_row($context, "super_admin_analytics_operations.php"); ?>
     <?php analytics_render_operations($context); ?>
   <?php endif; ?>
 </main>

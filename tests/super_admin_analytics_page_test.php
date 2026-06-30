@@ -82,10 +82,16 @@ foreach ($reportPages as $file => $title) {
     super_analytics_assert(str_contains($page . $views, "&larr; Back to Analytics"), "{$file} must provide back navigation.");
     super_analytics_assert(str_contains($page, "analytics_render_filters"), "{$file} must expose report filters.");
 }
-super_analytics_assert(substr_count($views, 'analytics_render_export_row($context, "super_admin_analytics_operations.php') >= 1, "Operations report must render export controls after summary cards.");
-super_analytics_assert(substr_count($views, 'analytics_render_export_row($context, "super_admin_analytics_service_queue.php') >= 1, "Service and queue report must render export controls after summary cards.");
-super_analytics_assert(substr_count($views, 'analytics_render_export_row($context, "super_admin_analytics_workflow.php') >= 1, "Workflow report must render export controls after summary cards.");
-super_analytics_assert(substr_count($views, 'analytics_render_export_row($context, "super_admin_analytics_exports.php') >= 1, "Export center must render export controls after its summary cards.");
+
+foreach ($reportPages as $file => $title) {
+    $page = file_get_contents(__DIR__ . "/../pages/super_admin/" . $file) ?: "";
+    $filterPos = strpos($page, "analytics_render_filters");
+    $exportPos = strpos($page, "analytics_render_export_row");
+    super_analytics_assert($filterPos !== false && $exportPos !== false && $filterPos < $exportPos, "{$file} must render export controls immediately after filters.");
+    super_analytics_assert(str_contains($page, "analytics_send_csv_export"), "{$file} must provide a page-specific CSV export.");
+}
+super_analytics_assert(str_contains($views, "Export Report") && str_contains($views, "Download the current analytics report with summary, detailed records, and raw data."), "Export toolbar must have the requested title and description.");
+super_analytics_assert(str_contains($views, "analytics-export-csv-button") && !str_contains($views, "Export Excel") && !str_contains($views, "Export PDF"), "Export toolbar must show only Export CSV.");
 
 $serviceQueue = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_analytics_service_queue.php") ?: "";
 $serviceQueueFunctionStart = strpos($views, "function analytics_render_service_queue");
@@ -102,14 +108,21 @@ super_analytics_assert(str_contains($serviceQueueFunction, "Review customer wait
 super_analytics_assert(str_contains($serviceQueueFunction, "Showing top 5 longest waiting requests.") && str_contains($serviceQueueFunction, 'array_slice($analytics["longest_waiting_requests"] ?? [], 0, 5)'), "Combined report must limit longest waiting requests.");
 super_analytics_assert(str_contains($views, "analytics_render_pagination") && str_contains($views, "records_page") && str_contains($views, "Page "), "Detailed queue records must support 10-row pagination.");
 super_analytics_assert(str_contains($serviceQueue, "analytics_render_service_queue"), "Combined route must render the service queue report function.");
+super_analytics_assert(str_contains($serviceQueue, '["cycle", "date", "service"]') && !str_contains($serviceQueue, '["cycle", "date", "service", "status"]'), "Service and queue report must remove the Status filter.");
+super_analytics_assert(str_contains($serviceQueue, 'unset($analyticsRequest["status"])'), "Service and queue report must ignore stale Status query parameters.");
 
 $workflowFunctionStart = strpos($views, "function analytics_render_workflow");
 $workflowFunctionEnd = strpos($views, "function analytics_render_completion");
 $workflowFunction = ($workflowFunctionStart !== false && $workflowFunctionEnd !== false)
     ? substr($views, $workflowFunctionStart, $workflowFunctionEnd - $workflowFunctionStart)
     : "";
+$workflowPage = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_analytics_workflow.php") ?: "";
 super_analytics_assert(str_contains($workflowFunction, "Status Transition History") && str_contains($workflowFunction, "Status Duration Summary"), "Workflow report must keep status history and duration summary.");
 super_analytics_assert(!str_contains($workflowFunction, "Requests with Incomplete Status Timestamps") && !str_contains($workflowFunction, "Most Common Workflow Route"), "Workflow report must omit removed incomplete timestamp and workflow route sections.");
+super_analytics_assert(str_contains($workflowPage, '["cycle", "date", "service"]') && !str_contains($workflowPage, '["cycle", "date", "service", "status"]'), "Workflow report must remove the Status filter.");
+super_analytics_assert(str_contains($workflowPage, 'unset($analyticsRequest["status"])'), "Workflow report must ignore stale Status query parameters.");
+super_analytics_assert(str_contains($workflowFunction, "history_page") && str_contains($workflowFunction, 'array_slice($historyRows') && !str_contains($workflowFunction, "<th>Remarks</th>"), "Workflow transition history must paginate and hide the Remarks column on-page.");
+super_analytics_assert(str_contains($views, "Status Transition History Raw Data") && str_contains($views, "Remarks"), "Workflow CSV raw data may still include remarks.");
 
 super_analytics_assert(str_contains($css, ".analytics-card-grid") && str_contains($css, "grid-template-columns: repeat(2"), "Landing page must use a 2-column desktop category card grid.");
 super_analytics_assert(str_contains($css, ".analytics-report-card") && str_contains($css, ".analytics-open-report"), "CSS must style professional category cards and Open Report buttons.");
