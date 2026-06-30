@@ -79,7 +79,7 @@ foreach ($reportPages as $file => $title) {
     super_analytics_assert(str_contains($landing . $views, $file), "Landing category cards must route to {$file}.");
     super_analytics_assert(str_contains($page, "servitech_require_super_admin();"), "{$file} must be Super Admin-only.");
     super_analytics_assert(str_contains($page, $title), "{$file} must render the {$title} title.");
-    super_analytics_assert(str_contains($page . $views, "Back to Analytics"), "{$file} must provide back navigation.");
+    super_analytics_assert(str_contains($page . $views, "&larr; Back to Analytics"), "{$file} must provide back navigation.");
     super_analytics_assert(str_contains($page, "analytics_render_filters"), "{$file} must expose report filters.");
     super_analytics_assert(str_contains($page, "analytics_render_export_row"), "{$file} must include export controls.");
 }
@@ -93,8 +93,17 @@ $serviceQueueFunction = ($serviceQueueFunctionStart !== false && $serviceQueueFu
 super_analytics_assert(str_contains($views, "Service Demand") && str_contains($views, "Queue Performance") && str_contains($views, "Status Distribution") && str_contains($views, "Detailed Records"), "Combined report must include the requested sub-sections.");
 super_analytics_assert(str_contains($views, "Queue Waiting Time"), "Combined report must show queue waiting metrics.");
 super_analytics_assert(!str_contains($serviceQueueFunction, "Average Service Processing Time") && !str_contains($serviceQueueFunction, "Service Processing Time") && !str_contains($serviceQueueFunction, "service_processing_minutes"), "Service and queue report UI must not show service processing time.");
-super_analytics_assert(str_contains($views, "Requests by Week") && str_contains($views, "Requests by Month") && str_contains($views, "Completed vs Cancelled Requests"), "Combined report must include weekly/monthly trends and completion mix.");
+super_analytics_assert(str_contains($views, "Requests by Month") && str_contains($views, "Completed vs Cancelled Requests"), "Combined report must include monthly trends and completion mix.");
+super_analytics_assert(!str_contains($serviceQueueFunction, "Requests by Day") && !str_contains($serviceQueueFunction, "Requests by Week") && !str_contains($serviceQueueFunction, "Requests That Waited Longer Than Expected"), "Combined report must omit removed day/week/delayed request sections.");
 super_analytics_assert(str_contains($serviceQueue, "analytics_render_service_queue"), "Combined route must render the service queue report function.");
+
+$workflowFunctionStart = strpos($views, "function analytics_render_workflow");
+$workflowFunctionEnd = strpos($views, "function analytics_render_completion");
+$workflowFunction = ($workflowFunctionStart !== false && $workflowFunctionEnd !== false)
+    ? substr($views, $workflowFunctionStart, $workflowFunctionEnd - $workflowFunctionStart)
+    : "";
+super_analytics_assert(str_contains($workflowFunction, "Status Transition History") && str_contains($workflowFunction, "Status Duration Summary"), "Workflow report must keep status history and duration summary.");
+super_analytics_assert(!str_contains($workflowFunction, "Requests with Incomplete Status Timestamps") && !str_contains($workflowFunction, "Most Common Workflow Route"), "Workflow report must omit removed incomplete timestamp and workflow route sections.");
 
 super_analytics_assert(str_contains($css, ".analytics-card-grid") && str_contains($css, "grid-template-columns: repeat(2"), "Landing page must use a 2-column desktop category card grid.");
 super_analytics_assert(str_contains($css, ".analytics-report-card") && str_contains($css, ".analytics-open-report"), "CSS must style professional category cards and Open Report buttons.");

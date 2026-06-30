@@ -118,12 +118,13 @@ body.admin-analytics-page .analytics-header-meta small {
 body.admin-analytics-page .analytics-back-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 36px;
   padding: 8px 12px;
-  border: 1px solid #c8d7e9;
+  border: 1px solid #1e4b7a;
   border-radius: 8px;
-  background: #f7fbff;
-  color: #1e4b7a;
+  background: #1e4b7a;
+  color: #ffffff;
   font-size: 0.88rem;
   font-weight: 800;
   text-decoration: none;
@@ -132,9 +133,17 @@ body.admin-analytics-page .analytics-back-link {
 
 body.admin-analytics-page .analytics-back-link:hover,
 body.admin-analytics-page .analytics-back-link:focus-visible {
-  border-color: #1e4b7a;
-  background: #eef6ff;
+  border-color: #15365c;
+  background: #15365c;
   transform: translateY(-1px);
+}
+
+body.admin-analytics-page .analytics-report-actions {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+  min-width: 210px;
+  flex: 0 0 auto;
 }
 
 body.admin-analytics-page .analytics-warning {
@@ -620,8 +629,13 @@ body.admin-analytics-page .analytics-export-row button:disabled {
   }
 
   body.admin-analytics-page .analytics-header-meta,
-  body.admin-analytics-page .analytics-cycle-chip {
+  body.admin-analytics-page .analytics-cycle-chip,
+  body.admin-analytics-page .analytics-report-actions {
     width: 100%;
+  }
+
+  body.admin-analytics-page .analytics-report-actions {
+    justify-items: stretch;
   }
 
   body.admin-analytics-page .analytics-panel-grid {

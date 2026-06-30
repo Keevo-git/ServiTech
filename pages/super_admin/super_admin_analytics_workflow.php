@@ -21,11 +21,10 @@ $context = analytics_load_context($pdo, $_GET);
 <body class="admin-analytics-page">
 <?php $adminHeaderVariant = "dashboard"; require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
 <main class="container main-container analytics-page analytics-report-page">
-  <?php analytics_render_report_header("Status Tracking & Workflow", "Review status transition history, workflow handling time, stalled requests, and incomplete timestamps.", $context); ?>
+  <?php analytics_render_report_header("Status Tracking & Workflow", "Review status transition history, workflow handling time, stalled requests, and status durations.", $context); ?>
   <?php if (!$context["ready"]): ?>
     <div class="analytics-warning" role="status"><?= analytics_h($context["error"] ?: "Analytics are temporarily unavailable.") ?></div>
   <?php else: ?>
-    <?php analytics_render_cycle_banner($context); ?>
     <?php analytics_render_filters($context, "super_admin_analytics_workflow.php", ["cycle", "date", "service", "status"]); ?>
     <?php analytics_render_workflow($context); ?>
     <?php analytics_render_export_row($context, "super_admin_analytics_workflow.php"); ?>

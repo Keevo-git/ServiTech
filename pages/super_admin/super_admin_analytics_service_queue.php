@@ -25,7 +25,6 @@ $context = analytics_load_context($pdo, $_GET);
   <?php if (!$context["ready"]): ?>
     <div class="analytics-warning" role="status"><?= analytics_h($context["error"] ?: "Analytics are temporarily unavailable.") ?></div>
   <?php else: ?>
-    <?php analytics_render_cycle_banner($context); ?>
     <?php analytics_render_filters($context, "super_admin_analytics_service_queue.php", ["cycle", "date", "service", "status"]); ?>
     <?php analytics_render_service_queue($context); ?>
     <?php analytics_render_export_row($context, "super_admin_analytics_service_queue.php"); ?>

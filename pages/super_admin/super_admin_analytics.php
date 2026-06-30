@@ -44,8 +44,6 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
     <div class="analytics-warning" role="status">
       <?= analytics_h($context["error"] !== "" ? $context["error"] : "Analytics are temporarily unavailable.") ?>
     </div>
-  <?php else: ?>
-    <?php analytics_render_cycle_banner($context); ?>
   <?php endif; ?>
 
   <?php analytics_render_landing_cards($context); ?>

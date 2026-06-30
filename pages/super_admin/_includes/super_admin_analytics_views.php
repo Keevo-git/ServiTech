@@ -291,9 +291,9 @@ function analytics_render_report_header(string $title, string $description, arra
 {
     $cycle = $context["cycle"] ?? [];
     echo '<section class="analytics-report-header">';
-    echo '<a class="analytics-back-link" href="' . admin_url('/pages/super_admin/super_admin_analytics.php') . '">Back to Analytics</a>';
     echo '<div><p class="analytics-eyebrow">Super Admin Report</p><h1>' . analytics_h($title) . '</h1><p>' . analytics_h($description) . '</p></div>';
-    echo '<span class="analytics-cycle-chip">' . analytics_h(($cycle["start_date"] ?? "-") . " to " . ($cycle["end_date"] ?? "-")) . '</span>';
+    echo '<div class="analytics-report-actions"><span class="analytics-cycle-chip">' . analytics_h(($cycle["start_date"] ?? "-") . " to " . ($cycle["end_date"] ?? "-")) . '</span>';
+    echo '<a class="analytics-back-link" href="' . admin_url('/pages/super_admin/super_admin_analytics.php') . '">&larr; Back to Analytics</a></div>';
     echo '</section>';
 }
 
@@ -346,7 +346,7 @@ function analytics_category_definitions(array $context): array
             "icon" => "WF",
             "title" => "Status Tracking & Workflow",
             "route" => "super_admin_analytics_workflow.php",
-            "description" => "Review status transition history, workflow handling time, stalled requests, and incomplete timestamps.",
+            "description" => "Review status transition history, workflow handling time, stalled requests, and status durations.",
             "metrics" => [
                 ["label" => "Average pending time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "PENDING"))],
                 ["label" => "Average ongoing time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "ONGOING"))],
@@ -421,12 +421,6 @@ function analytics_render_service_queue(array $context): void
     echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Service Demand</h2><p>Demand patterns across service types and reporting periods.</p></div><div class="analytics-panel-grid">';
     echo '<article class="analytics-panel"><h3>Requests by Service Type</h3>';
     analytics_render_bars($analytics["requests_by_service"] ?? [], "service_label", "total", "No service request records found.");
-    echo '</article><article class="analytics-panel"><h3>Requests by Day</h3>';
-    analytics_render_bars($analytics["requests_by_period"]["day"] ?? [], "period_label", "total", "No daily request trend found.");
-    echo '</article></div>';
-    echo '<div class="analytics-panel-grid">';
-    echo '<article class="analytics-panel"><h3>Requests by Week</h3>';
-    analytics_render_bars($analytics["requests_by_period"]["week"] ?? [], "period_label", "total", "No weekly request trend found.");
     echo '</article><article class="analytics-panel"><h3>Requests by Month</h3>';
     analytics_render_bars($analytics["requests_by_period"]["month"] ?? [], "period_label", "total", "No monthly request trend found.");
     echo '</article></div>';
@@ -455,9 +449,7 @@ function analytics_render_service_queue(array $context): void
         }
     }
     echo '</tbody></table></div></article>';
-    echo '<article class="analytics-panel"><h3>Requests That Waited Longer Than Expected</h3>';
-    analytics_render_bars($analytics["delayed_requests"] ?? [], "queue_code", "queue_waiting_minutes", "No requests exceeded the current waiting-time threshold.");
-    echo '</article></div></section>';
+    echo '</div></section>';
 
     echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Status Distribution</h2><p>Completion mix, status duration, and requests without recent movement.</p></div><div class="analytics-panel-grid">';
     echo '<article class="analytics-panel"><h3>Average Time Spent Per Status</h3>';
@@ -494,24 +486,13 @@ function analytics_render_workflow(array $context): void
     $analytics = $context["analytics"];
     analytics_render_metric_grid([
         ["label" => "Transition Events", "value" => analytics_number(count($analytics["history"] ?? []))],
-        ["label" => "Incomplete Timestamps", "value" => analytics_number(count($analytics["incomplete_timestamps"] ?? []))],
         ["label" => "Stalled Requests", "value" => analytics_number(count($analytics["stale_requests"] ?? []))],
-        ["label" => "Most Common Workflow Route", "value" => analytics_h($analytics["workflow_routes"][0]["route"] ?? "Pending -> Approved -> Ongoing -> For Pick-up -> Done")],
+        ["label" => "Average Pending Time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "PENDING"))],
+        ["label" => "Average Ongoing Time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "ONGOING"))],
     ]);
-    echo '<section class="analytics-panel-grid"><article class="analytics-panel"><h2>Average Time Spent in Each Status</h2>';
+    echo '<section class="analytics-panel"><h2>Status Duration Summary</h2>';
     analytics_render_bars($analytics["status_durations"] ?? [], "status", "avg_minutes", "No status duration data found.");
-    echo '</article><article class="analytics-panel"><h2>Most Common Workflow Route</h2>';
-    analytics_render_bars($analytics["workflow_routes"] ?? [], "route", "total", "No workflow route data found.");
-    echo '</article></section>';
-    echo '<section class="analytics-panel"><h2>Requests with Incomplete Status Timestamps</h2><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer</th><th>Service Type</th><th>Status</th><th>Created At</th><th>Approved At</th><th>Ongoing At</th><th>Done At</th></tr></thead><tbody>';
-    if (empty($analytics["incomplete_timestamps"])) {
-        echo '<tr><td colspan="8">No incomplete timestamp records found.</td></tr>';
-    } else {
-        foreach ($analytics["incomplete_timestamps"] as $row) {
-            echo '<tr><td>' . analytics_h($row["queue_code"] ?? "") . '</td><td>' . analytics_h($row["customer_name"] ?? "") . '</td><td>' . analytics_h($row["service_label"] ?? "") . '</td><td>' . analytics_h($row["status_group"] ?? "") . '</td><td>' . analytics_datetime($row["request_created_at"] ?? "") . '</td><td>' . analytics_datetime($row["approved_at"] ?? "") . '</td><td>' . analytics_datetime($row["ongoing_at"] ?? "") . '</td><td>' . analytics_datetime($row["done_at"] ?? "") . '</td></tr>';
-        }
-    }
-    echo '</tbody></table></div></section>';
+    echo '</section>';
     echo '<section class="analytics-panel"><h2>Status Transition History</h2><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer Name</th><th>Service Type</th><th>Status</th><th>Entered At</th><th>Exited At</th><th>Duration Min</th><th>Next Status</th><th>Remarks</th></tr></thead><tbody>';
     if (empty($analytics["history"])) {
         echo '<tr><td colspan="9">No status transition history found for the selected filters.</td></tr>';
