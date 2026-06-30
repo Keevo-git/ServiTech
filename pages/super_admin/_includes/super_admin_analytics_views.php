@@ -340,9 +340,9 @@ function analytics_category_definitions(array $context): array
             "route" => "super_admin_analytics_service_queue.php",
             "description" => "Analyze service demand, queue waiting time, service processing time, request trends, and status distribution.",
             "metrics" => [
+                ["label" => "Total requests", "value" => analytics_number($summary["total_requests"] ?? 0)],
                 ["label" => "Most requested service", "value" => (string)($mostRequested["service_label"] ?? "-")],
                 ["label" => "Average queue waiting time", "value" => analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0)],
-                ["label" => "Average processing time", "value" => analytics_minutes($summary["avg_service_processing_minutes"] ?? 0)],
             ],
         ],
         [

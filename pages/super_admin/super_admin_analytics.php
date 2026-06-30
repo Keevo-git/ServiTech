@@ -48,10 +48,6 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
     <?php analytics_render_cycle_banner($context); ?>
   <?php endif; ?>
 
-  <section class="analytics-loading-shell" hidden aria-live="polite">
-    <span></span><span></span><span></span>
-  </section>
-
   <?php analytics_render_landing_cards($context); ?>
 </main>
 

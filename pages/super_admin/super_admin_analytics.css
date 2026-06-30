@@ -3,9 +3,13 @@ body.admin-analytics-page {
   color: #18243a;
 }
 
+body.admin-analytics-page [hidden] {
+  display: none !important;
+}
+
 body.admin-analytics-page .analytics-page {
   display: grid;
-  gap: 22px;
+  gap: 16px;
   padding-bottom: 52px;
 }
 
@@ -204,7 +208,7 @@ body.admin-analytics-page .analytics-cycle-actions span {
 body.admin-analytics-page .analytics-card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 body.admin-analytics-page .analytics-report-card {
@@ -579,18 +583,6 @@ body.admin-analytics-page .analytics-export-row {
 body.admin-analytics-page .analytics-export-row button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-body.admin-analytics-page .analytics-loading-shell {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
-
-body.admin-analytics-page .analytics-loading-shell span {
-  min-height: 92px;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #edf2f7, #f8fafc, #edf2f7);
 }
 
 @media (max-width: 1180px) {

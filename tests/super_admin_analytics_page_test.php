@@ -46,9 +46,11 @@ super_analytics_assert(str_contains($landing, "servitech_require_super_admin();"
 super_analytics_assert(str_contains($landing, "A simplified reporting center for reviewing ServiTech operations, service requests, queue performance, workflow progress, and monthly analytics exports."), "Landing page must use the simplified requested subtitle.");
 super_analytics_assert(str_contains($landing, "analytics_render_landing_cards"), "Landing page must show category cards only.");
 super_analytics_assert(!str_contains($landing, "Status Transition History") && !str_contains($landing, "Requests by Service Type"), "Landing page must not stack full report details.");
+super_analytics_assert(!str_contains($landing, "analytics-loading-shell"), "Landing page must not render skeleton/loading placeholder rows.");
 super_analytics_assert(str_contains($views, "Open Report") && str_contains($views, "analytics-report-card"), "Category cards must use Open Report buttons and professional report-card markup.");
 super_analytics_assert(str_contains($views, "Service Requests & Queue Performance"), "Service request and queue analytics must be combined into one report category.");
 super_analytics_assert(!str_contains($views, "Service Request Analytics\"") && !str_contains($views, "Queue and Waiting Time Analytics\""), "Old separate service/queue category titles must not remain in the category list.");
+super_analytics_assert(!str_contains($views, '"Average processing time"'), "Service and queue landing card must not preview Average Processing Time.");
 foreach ([
     "super_admin_analytics_completion.php",
     "super_admin_analytics_staff.php",
@@ -90,6 +92,7 @@ super_analytics_assert(str_contains($serviceQueue, "analytics_render_service_que
 super_analytics_assert(str_contains($css, ".analytics-card-grid") && str_contains($css, "grid-template-columns: repeat(2"), "Landing page must use a 2-column desktop category card grid.");
 super_analytics_assert(str_contains($css, ".analytics-report-card") && str_contains($css, ".analytics-open-report"), "CSS must style professional category cards and Open Report buttons.");
 super_analytics_assert(str_contains($css, ".analytics-metric-card") && str_contains($css, ".analytics-filter-bar"), "CSS must style metric cards and filter bars.");
+super_analytics_assert(!str_contains($css, ".analytics-loading-shell") && str_contains($css, "[hidden]"), "CSS must not reserve space for hidden loading placeholders.");
 super_analytics_assert(str_contains($css, "@media (max-width: 880px)") && str_contains($css, "@media (max-width: 620px)"), "Analytics UI must include tablet and mobile responsive rules.");
 
 super_analytics_assert(str_contains($dashboard, "Owner Reports & Analytics") && str_contains($dashboard, "super_admin_analytics.php") && str_contains($dashboard, "View All"), "Dashboard analytics section must link to the categorized landing page.");
