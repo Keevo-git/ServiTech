@@ -309,20 +309,50 @@ function analytics_render_export_row(array $context, string $currentPage, bool $
 
 function analytics_render_pagination(string $page, array $filters, string $pageKey, int $currentPage, int $totalPages): void
 {
-    if ($totalPages <= 1) {
-        return;
+    $totalPages = max(1, $totalPages);
+    $currentPage = max(1, min($currentPage, $totalPages));
+    $visiblePages = [];
+    if ($totalPages <= 7) {
+        $visiblePages = range(1, $totalPages);
+    } else {
+        $start = max(2, $currentPage - 2);
+        $end = min($totalPages - 1, $currentPage + 2);
+        if ($currentPage <= 2) {
+            $end = 3;
+        } elseif ($currentPage === 3) {
+            $end = 4;
+        } elseif ($currentPage >= $totalPages - 1) {
+            $start = $totalPages - 2;
+        } elseif ($currentPage === $totalPages - 2) {
+            $start = $totalPages - 3;
+        }
+
+        $visiblePages[] = 1;
+        if ($start > 2) {
+            $visiblePages[] = "...";
+        }
+        for ($pageNumber = $start; $pageNumber <= $end; $pageNumber++) {
+            $visiblePages[] = $pageNumber;
+        }
+        if ($end < $totalPages - 1) {
+            $visiblePages[] = "...";
+        }
+        $visiblePages[] = $totalPages;
     }
 
-    $currentPage = max(1, min($currentPage, $totalPages));
     echo '<nav class="analytics-pagination" aria-label="Detailed records pagination">';
     if ($currentPage <= 1) {
-        echo '<span class="analytics-page-button is-disabled" aria-disabled="true">Previous</span>';
+        echo '<span class="analytics-page-button analytics-page-button--prev is-disabled" aria-disabled="true">Previous</span>';
     } else {
-        echo '<a class="analytics-page-button" href="' . analytics_report_url($page, $filters, [$pageKey => $currentPage - 1]) . '">Previous</a>';
+        echo '<a class="analytics-page-button analytics-page-button--prev" href="' . analytics_report_url($page, $filters, [$pageKey => $currentPage - 1]) . '">Previous</a>';
     }
 
     echo '<div class="analytics-page-numbers" aria-label="Page numbers">';
-    for ($pageNumber = 1; $pageNumber <= $totalPages; $pageNumber++) {
+    foreach ($visiblePages as $pageNumber) {
+        if ($pageNumber === "...") {
+            echo '<span class="analytics-page-ellipsis" aria-hidden="true">...</span>';
+            continue;
+        }
         if ($pageNumber === $currentPage) {
             echo '<span class="analytics-page-button is-current" aria-current="page">' . $pageNumber . '</span>';
         } else {
@@ -332,9 +362,9 @@ function analytics_render_pagination(string $page, array $filters, string $pageK
     echo '</div>';
 
     if ($currentPage >= $totalPages) {
-        echo '<span class="analytics-page-button is-disabled" aria-disabled="true">Next</span>';
+        echo '<span class="analytics-page-button analytics-page-button--next is-disabled" aria-disabled="true">Next</span>';
     } else {
-        echo '<a class="analytics-page-button" href="' . analytics_report_url($page, $filters, [$pageKey => $currentPage + 1]) . '">Next</a>';
+        echo '<a class="analytics-page-button analytics-page-button--next" href="' . analytics_report_url($page, $filters, [$pageKey => $currentPage + 1]) . '">Next</a>';
     }
     echo '<span class="analytics-page-indicator">Page ' . $currentPage . ' of ' . $totalPages . '</span>';
     echo '</nav>';
@@ -584,17 +614,6 @@ function analytics_category_definitions(array $context): array
                 ["label" => "Average pending time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "PENDING"))],
                 ["label" => "Average ongoing time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "ONGOING"))],
                 ["label" => "Stalled requests", "value" => analytics_number(count($analytics["stale_requests"] ?? []))],
-            ],
-        ],
-        [
-            "icon" => "EX",
-            "title" => "Analytics Export Center",
-            "route" => "super_admin_analytics_exports.php",
-            "description" => "Export current analytics reports, review export history, and keep reporting backups.",
-            "metrics" => [
-                ["label" => "Data range", "value" => (string)($cycle["cycle_key"] ?? "-")],
-                ["label" => "Export status", "value" => !empty($exportStatus["exported"]) ? "Exported" : "Not exported"],
-                ["label" => "Previous exports", "value" => analytics_number(count($analytics["cycle_center"]["export_logs"] ?? []))],
             ],
         ],
     ];

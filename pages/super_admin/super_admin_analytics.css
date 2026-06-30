@@ -226,7 +226,7 @@ body.admin-analytics-page .analytics-cycle-actions span {
 
 body.admin-analytics-page .analytics-card-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -859,6 +859,16 @@ body.admin-analytics-page .analytics-page-numbers {
   gap: 6px;
 }
 
+body.admin-analytics-page .analytics-page-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 36px;
+  color: #627289;
+  font-weight: 900;
+}
+
 body.admin-analytics-page .analytics-page-button {
   display: inline-flex;
   align-items: center;
@@ -1000,6 +1010,20 @@ body.admin-analytics-page .analytics-page-indicator {
   }
 
   body.admin-analytics-page .analytics-page-numbers {
-    width: 100%;
+    display: none;
+  }
+
+  body.admin-analytics-page .analytics-page-button--prev {
+    order: 1;
+  }
+
+  body.admin-analytics-page .analytics-page-indicator {
+    order: 2;
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  body.admin-analytics-page .analytics-page-button--next {
+    order: 3;
   }
 }

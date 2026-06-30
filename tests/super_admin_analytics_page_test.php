@@ -58,6 +58,7 @@ foreach ([
     "super_admin_analytics_notifications.php",
     "super_admin_analytics_quality.php",
     "super_admin_analytics_availability.php",
+    "super_admin_analytics_exports.php",
 ] as $hiddenRoute) {
     super_analytics_assert(!str_contains($views, '"route" => "' . $hiddenRoute . '"'), "{$hiddenRoute} must be hidden from the landing categories.");
 }
@@ -69,7 +70,6 @@ $reportPages = [
     "super_admin_analytics_operations.php" => "Operations Overview",
     "super_admin_analytics_service_queue.php" => "Service Requests & Queue Performance",
     "super_admin_analytics_workflow.php" => "Status Tracking & Workflow",
-    "super_admin_analytics_exports.php" => "Analytics Export Center",
 ];
 
 foreach ($reportPages as $file => $title) {
@@ -82,8 +82,11 @@ foreach ($reportPages as $file => $title) {
     super_analytics_assert(str_contains($page . $views, "&larr; Back to Analytics"), "{$file} must provide back navigation.");
     super_analytics_assert(str_contains($page, "analytics_render_filters"), "{$file} must expose report filters.");
 }
+super_analytics_assert(!str_contains($views, '"title" => "Analytics Export Center"'), "Analytics Export Center must be removed from landing category cards.");
+super_analytics_assert(substr_count($views, '"route" => "super_admin_analytics_') === 3, "Landing page must expose exactly three analytics category routes.");
 
-foreach ($reportPages as $file => $title) {
+$exportablePages = $reportPages + ["super_admin_analytics_exports.php" => "Analytics Export Center"];
+foreach ($exportablePages as $file => $title) {
     $page = file_get_contents(__DIR__ . "/../pages/super_admin/" . $file) ?: "";
     $filterPos = strpos($page, "analytics_render_filters");
     $exportPos = strpos($page, "analytics_render_export_row");
@@ -107,6 +110,7 @@ super_analytics_assert(!str_contains($serviceQueueFunction, "Requests by Day") &
 super_analytics_assert(str_contains($serviceQueueFunction, "Review customer waiting times, longest and shortest queue waits, and queue status performance."), "Queue Performance description must use clear user-friendly wording.");
 super_analytics_assert(str_contains($serviceQueueFunction, "Showing top 5 longest waiting requests.") && str_contains($serviceQueueFunction, 'array_slice($analytics["longest_waiting_requests"] ?? [], 0, 5)'), "Combined report must limit longest waiting requests.");
 super_analytics_assert(str_contains($views, "analytics_render_pagination") && str_contains($views, "records_page") && str_contains($views, "Page "), "Detailed queue records must support 10-row pagination.");
+super_analytics_assert(str_contains($views, "analytics-page-ellipsis") && str_contains($views, '$visiblePages') && str_contains($views, 'if ($totalPages <= 7)'), "Pagination must use compact dynamic page ranges with ellipses.");
 super_analytics_assert(str_contains($serviceQueue, "analytics_render_service_queue"), "Combined route must render the service queue report function.");
 super_analytics_assert(str_contains($serviceQueue, '["cycle", "date", "service"]') && !str_contains($serviceQueue, '["cycle", "date", "service", "status"]'), "Service and queue report must remove the Status filter.");
 super_analytics_assert(str_contains($serviceQueue, 'unset($analyticsRequest["status"])'), "Service and queue report must ignore stale Status query parameters.");
@@ -124,7 +128,8 @@ super_analytics_assert(str_contains($workflowPage, 'unset($analyticsRequest["sta
 super_analytics_assert(str_contains($workflowFunction, "history_page") && str_contains($workflowFunction, 'array_slice($historyRows') && !str_contains($workflowFunction, "<th>Remarks</th>"), "Workflow transition history must paginate and hide the Remarks column on-page.");
 super_analytics_assert(str_contains($views, "Status Transition History Raw Data") && str_contains($views, "Remarks"), "Workflow CSV raw data may still include remarks.");
 
-super_analytics_assert(str_contains($css, ".analytics-card-grid") && str_contains($css, "grid-template-columns: repeat(2"), "Landing page must use a 2-column desktop category card grid.");
+super_analytics_assert(str_contains($css, ".analytics-card-grid") && str_contains($css, "grid-template-columns: repeat(3"), "Landing page must use a 3-column desktop category card grid.");
+super_analytics_assert(str_contains($css, "@media (max-width: 880px)") && str_contains($css, "grid-template-columns: repeat(2"), "Landing page must use two category columns on tablet.");
 super_analytics_assert(str_contains($css, ".analytics-report-card") && str_contains($css, ".analytics-open-report"), "CSS must style professional category cards and Open Report buttons.");
 super_analytics_assert(str_contains($css, ".analytics-metric-card") && str_contains($css, ".analytics-filter-bar"), "CSS must style metric cards and filter bars.");
 super_analytics_assert(str_contains($views, "analytics-report-actions") && str_contains($css, "flex-direction: column"), "Report header must stack the date badge above the Back to Analytics button.");
