@@ -8,7 +8,36 @@ ALTER TABLE queues
   ADD COLUMN IF NOT EXISTS for_pickup_at TIMESTAMPTZ NULL,
   ADD COLUMN IF NOT EXISTS done_at TIMESTAMPTZ NULL,
   ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ NULL,
+  ADD COLUMN IF NOT EXISTS correction_count INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS correction_reason TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS corrected_by INTEGER NULL,
+  ADD COLUMN IF NOT EXISTS corrected_at TIMESTAMPTZ NULL,
   ADD COLUMN IF NOT EXISTS request_source VARCHAR(64) NOT NULL DEFAULT 'online';
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'queues_corrected_by_fkey'
+      AND conrelid = 'queues'::regclass
+  ) THEN
+    ALTER TABLE queues
+      ADD CONSTRAINT queues_corrected_by_fkey
+      FOREIGN KEY (corrected_by) REFERENCES users(id) ON DELETE SET NULL;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'queues_correction_count_check'
+      AND conrelid = 'queues'::regclass
+  ) THEN
+    ALTER TABLE queues
+      ADD CONSTRAINT queues_correction_count_check
+      CHECK (correction_count >= 0);
+  END IF;
+END
+$$;
 
 CREATE INDEX IF NOT EXISTS idx_queues_analytics_request_created
   ON queues (request_created_at, id)

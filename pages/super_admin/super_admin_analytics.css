@@ -179,6 +179,99 @@ body.admin-analytics-page .analytics-export-row button:disabled {
   cursor: not-allowed;
 }
 
+body.admin-analytics-page .analytics-loading {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #dbe6f3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #55657a;
+}
+
+body.admin-analytics-page .analytics-category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+body.admin-analytics-page .analytics-category-card {
+  display: grid;
+  gap: 16px;
+  align-content: space-between;
+  min-width: 0;
+  min-height: 246px;
+  padding: 18px;
+  border: 1px solid #dbe6f3;
+  border-left: 5px solid #2e6fb6;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(24, 47, 79, 0.07);
+}
+
+body.admin-analytics-page .analytics-category-card.is-selected {
+  border-left-color: #1b7f70;
+  background: #f9fffc;
+}
+
+body.admin-analytics-page .analytics-category-card h2 {
+  margin: 0;
+  color: #17253a;
+  font-size: 1.08rem;
+  letter-spacing: 0;
+}
+
+body.admin-analytics-page .analytics-category-card p {
+  margin: 8px 0 0;
+  color: #5d6e84;
+  line-height: 1.52;
+}
+
+body.admin-analytics-page .analytics-category-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+body.admin-analytics-page .analytics-category-card dl div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #e4ecf5;
+  border-radius: 8px;
+  background: #f6f9fc;
+}
+
+body.admin-analytics-page .analytics-category-card dt {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+body.admin-analytics-page .analytics-category-card dd {
+  margin: 5px 0 0;
+  color: #17253a;
+  font-size: 0.94rem;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+body.admin-analytics-page .analytics-detail-section {
+  padding-top: 4px;
+}
+
+body.admin-analytics-page .analytics-warning-text {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #f0c36b;
+  border-radius: 8px;
+  background: #fff8e8;
+  color: #6f4b12;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 body.admin-analytics-page .analytics-kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -374,8 +467,13 @@ body.admin-analytics-page tr:last-child td {
   }
 
   body.admin-analytics-page .analytics-kpis,
+  body.admin-analytics-page .analytics-category-grid,
   body.admin-analytics-page .analytics-two-column,
   body.admin-analytics-page .analytics-three-column {
+    grid-template-columns: 1fr;
+  }
+
+  body.admin-analytics-page .analytics-category-card dl {
     grid-template-columns: 1fr;
   }
 

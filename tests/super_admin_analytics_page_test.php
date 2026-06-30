@@ -36,14 +36,33 @@ super_analytics_assert(str_contains($dataSource, "queue_status_events e"), "Aver
 super_analytics_assert(str_contains($dataSource, "super_analytics_fetch_cycle") && str_contains($dataSource, "cycle_start_date"), "Analytics queries must be scoped to a monthly cycle.");
 super_analytics_assert(str_contains($dataSource, "super_analytics_record_export"), "CSV exports must be logged for cycle export reminders.");
 super_analytics_assert(str_contains(super_analytics_service_label_sql(), "Document Printing") && str_contains(super_analytics_service_label_sql(), "Lamination"), "Service request analytics must normalize key service types.");
+super_analytics_assert(str_contains($dataSource, "staff_id") && str_contains($dataSource, "request_source"), "Analytics data source must support request-source and staff filters.");
+super_analytics_assert(str_contains($dataSource, "notifications") && str_contains($dataSource, "store_availability_settings"), "Analytics data source must include notification and store availability category data.");
 
 super_analytics_assert(str_contains($page, "servitech_require_super_admin();"), "Comprehensive analytics page must be Super Admin-only.");
-super_analytics_assert(str_contains($page, "Date From") && str_contains($page, "Payment") && str_contains($page, "Source"), "Analytics page must expose the requested filters.");
+super_analytics_assert(str_contains($page, "Date From") && str_contains($page, "Source") && str_contains($page, "Staff/Admin"), "Analytics page must expose the requested non-payment filters.");
+super_analytics_assert(!str_contains($page, "<span>Payment</span>"), "Payment analytics/filtering must be excluded from the categorized page.");
 super_analytics_assert(str_contains($page, "Average Queue Waiting Time") && str_contains($page, "Status Transition History"), "Analytics page must render queue/waiting analytics.");
 super_analytics_assert(str_contains($page, "Requests by Service Type") && str_contains($page, "Most Requested Services"), "Analytics page must render service-request analytics.");
 super_analytics_assert(str_contains($page, "Export CSV") && str_contains($page, "Export Excel") && str_contains($page, "Export PDF"), "Analytics page must provide export controls.");
 super_analytics_assert(str_contains($page, "analytics-cycle-banner") && str_contains($page, "View Previous Cycles"), "Analytics page must show monthly cycle warnings and previous-cycle access.");
+foreach ([
+    "Operations Overview",
+    "Service Request Analytics",
+    "Queue and Waiting Time Analytics",
+    "Status Tracking and Workflow Analytics",
+    "Service Completion and Cancellation Analytics",
+    "Staff Workload and Productivity Analytics",
+    "Communication and Notification Analytics",
+    "Error, Correction, and Miscommunication Analytics",
+    "Store Availability and Cutoff Analytics",
+    "Monthly Analytics Cycle and Export Center",
+] as $categoryTitle) {
+    super_analytics_assert(str_contains($page, $categoryTitle), "Categorized analytics page must include {$categoryTitle}.");
+}
+super_analytics_assert(str_contains($page, "analytics-category-card") && str_contains($page, "View Details") && str_contains($page, "Back to Categories"), "Analytics page must use category cards and single-category detail navigation.");
 super_analytics_assert(!str_contains(strtolower($page), "peak-hour") && !str_contains(strtolower($page), "volume per hour"), "Excluded peak-hour analytics must not be rendered.");
+super_analytics_assert(!str_contains(strtolower($page), "customer satisfaction"), "Customer Satisfaction Analytics must be excluded for now.");
 
 super_analytics_assert(str_contains($dashboard, "Owner Reports & Analytics") && str_contains($dashboard, "super_admin_analytics.php") && str_contains($dashboard, "View All"), "Dashboard analytics section must link to the comprehensive page.");
 

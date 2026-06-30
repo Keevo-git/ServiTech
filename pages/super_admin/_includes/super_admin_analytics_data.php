@@ -70,6 +70,44 @@ function super_analytics_schema_ready(PDO $pdo): bool
     return true;
 }
 
+function super_analytics_table_exists(PDO $pdo, string $table): bool
+{
+    if (!preg_match('/^[a-z_][a-z0-9_]*$/', $table)) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT to_regclass(:table_name) IS NOT NULL");
+        $stmt->execute([":table_name" => "public." . $table]);
+        return (bool)$stmt->fetchColumn();
+    } catch (Throwable) {
+        return false;
+    }
+}
+
+function super_analytics_has_columns(PDO $pdo, string $table, array $columns): bool
+{
+    if (!preg_match('/^[a-z_][a-z0-9_]*$/', $table) || !$columns) {
+        return false;
+    }
+
+    try {
+        $columns = array_values(array_unique(array_map(static fn($column): string => strtolower(trim((string)$column)), $columns)));
+        $placeholders = implode(",", array_fill(0, count($columns), "?"));
+        $stmt = $pdo->prepare("
+            SELECT COUNT(DISTINCT column_name)
+            FROM information_schema.columns
+            WHERE table_schema = ANY(current_schemas(false))
+              AND table_name = ?
+              AND column_name IN ({$placeholders})
+        ");
+        $stmt->execute(array_merge([$table], $columns));
+        return (int)$stmt->fetchColumn() === count($columns);
+    } catch (Throwable) {
+        return false;
+    }
+}
+
 function super_analytics_clean_filter(array $source): array
 {
     $datePattern = '/^\d{4}-\d{2}-\d{2}$/';
@@ -89,6 +127,8 @@ function super_analytics_clean_filter(array $source): array
         "status" => strtoupper(trim((string)($source["status"] ?? ""))),
         "payment_method" => strtolower(trim((string)($source["payment_method"] ?? ""))),
         "request_source" => strtolower(trim((string)($source["request_source"] ?? ""))),
+        "staff_id" => max(0, (int)($source["staff_id"] ?? 0)),
+        "category" => trim((string)($source["category"] ?? "overview")),
         "cycle_id" => max(0, (int)($source["cycle_id"] ?? 0)),
     ];
 }
@@ -235,6 +275,15 @@ function super_analytics_base_sql(array $filters, array &$params): string
         $where[] = "request_source = :request_source";
         $params[":request_source"] = $filters["request_source"];
     }
+    if ((int)($filters["staff_id"] ?? 0) > 0) {
+        $where[] = "EXISTS (
+            SELECT 1
+            FROM queue_status_events staff_filter_events
+            WHERE staff_filter_events.queue_id = analytics_raw.id
+              AND staff_filter_events.updated_by = :staff_id
+        )";
+        $params[":staff_id"] = (int)$filters["staff_id"];
+    }
 
     $filterSql = implode("\n          AND ", $where);
 
@@ -314,6 +363,9 @@ function super_analytics_options(PDO $pdo): array
         "statuses" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT status_group AS value FROM analytics_raw WHERE status_group <> '' ORDER BY status_group", $params)),
         "payment_methods" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT payment_method AS value FROM analytics_raw WHERE payment_method <> '' ORDER BY payment_method", $params)),
         "request_sources" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT request_source AS value FROM analytics_raw WHERE request_source <> '' ORDER BY request_source", $params)),
+        "staff" => super_analytics_table_exists($pdo, "queue_status_events")
+            ? super_analytics_fetch_all($pdo, "SELECT DISTINCT updated_by AS id, COALESCE(NULLIF(updated_by_name, ''), 'Staff') AS name FROM queue_status_events WHERE updated_by IS NOT NULL ORDER BY name", [])
+            : [],
         "cycles" => super_analytics_previous_cycles($pdo),
     ];
 }
@@ -335,12 +387,20 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
             ROUND(COALESCE(AVG(service_processing_minutes), 0)::numeric, 2) AS avg_service_processing_minutes,
             COUNT(*) FILTER (WHERE status_group = 'DONE') AS completed_requests,
             COUNT(*) FILTER (WHERE status_group = 'CANCELLED') AS cancelled_requests,
+            COUNT(*) FILTER (WHERE status_group IN ('PENDING', 'APPROVED', 'ONGOING', 'FOR PICK-UP')) AS active_workload,
+            ROUND(COALESCE(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY queue_waiting_minutes) FILTER (WHERE queue_waiting_minutes IS NOT NULL), 0)::numeric, 2) AS median_queue_waiting_minutes,
             ROUND(
                 CASE WHEN COUNT(*) = 0 THEN 0
                      ELSE (COUNT(*) FILTER (WHERE status_group = 'DONE')::numeric / COUNT(*)::numeric) * 100
                 END,
                 2
-            ) AS completion_rate
+            ) AS completion_rate,
+            ROUND(
+                CASE WHEN COUNT(*) = 0 THEN 0
+                     ELSE (COUNT(*) FILTER (WHERE status_group = 'CANCELLED')::numeric / COUNT(*)::numeric) * 100
+                END,
+                2
+            ) AS cancellation_rate
         FROM analytics_base
     ", $params);
 
@@ -352,6 +412,48 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
         WHERE queue_waiting_minutes IS NOT NULL
         ORDER BY queue_waiting_minutes DESC, request_created_at ASC
         LIMIT 1
+    ", $params);
+
+    $shortest = super_analytics_fetch_one($pdo, "{$cte}
+        SELECT queue_code, customer_name, service_label, payment_method, status_group,
+               ROUND(queue_waiting_minutes::numeric, 2) AS queue_waiting_minutes,
+               request_created_at
+        FROM analytics_base
+        WHERE queue_waiting_minutes IS NOT NULL
+        ORDER BY queue_waiting_minutes ASC, request_created_at ASC
+        LIMIT 1
+    ", $params);
+
+    $longestWaitingRequests = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT queue_code, customer_name, service_label, payment_method, status_group,
+               ROUND(queue_waiting_minutes::numeric, 2) AS queue_waiting_minutes,
+               request_created_at
+        FROM analytics_base
+        WHERE queue_waiting_minutes IS NOT NULL
+        ORDER BY queue_waiting_minutes DESC, request_created_at ASC
+        LIMIT 10
+    ", $params);
+
+    $delayedRequests = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT queue_code, customer_name, service_label, status_group,
+               ROUND(queue_waiting_minutes::numeric, 2) AS queue_waiting_minutes,
+               request_created_at
+        FROM analytics_base
+        WHERE queue_waiting_minutes > 10
+        ORDER BY queue_waiting_minutes DESC, request_created_at ASC
+        LIMIT 25
+    ", $params);
+
+    $staleRequests = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT b.queue_code, b.customer_name, b.service_label, b.status_group,
+               MAX(e.entered_at) AS last_status_at
+        FROM analytics_base b
+        LEFT JOIN queue_status_events e ON e.queue_id = b.id
+        WHERE b.status_group IN ('PENDING', 'APPROVED', 'ONGOING', 'FOR PICK-UP')
+        GROUP BY b.id, b.queue_code, b.customer_name, b.service_label, b.status_group
+        HAVING COALESCE(MAX(e.entered_at), MIN(b.request_created_at)) < NOW() - INTERVAL '1 day'
+        ORDER BY last_status_at ASC NULLS FIRST
+        LIMIT 25
     ", $params);
 
     $statusRows = super_analytics_fetch_all($pdo, "{$cte}
@@ -420,6 +522,7 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
             COUNT(*) AS total,
             COUNT(*) FILTER (WHERE status_group = 'DONE') AS completed,
             COUNT(*) FILTER (WHERE status_group = 'CANCELLED') AS cancelled,
+            ROUND(AVG(service_processing_minutes) FILTER (WHERE status_group = 'DONE')::numeric, 2) AS avg_completion_minutes,
             ROUND(
                 CASE WHEN COUNT(*) = 0 THEN 0
                      ELSE (COUNT(*) FILTER (WHERE status_group = 'DONE')::numeric / COUNT(*)::numeric) * 100
@@ -429,6 +532,57 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
         FROM analytics_base
         GROUP BY service_label
         ORDER BY total DESC, service_label ASC
+    ", $params);
+
+    $requestSourceMix = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT request_source, COUNT(*) AS total
+        FROM analytics_base
+        GROUP BY request_source
+        ORDER BY total DESC, request_source ASC
+    ", $params);
+
+    $completionExtremes = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT service_label,
+               ROUND(AVG(service_processing_minutes) FILTER (WHERE status_group = 'DONE')::numeric, 2) AS avg_completion_minutes
+        FROM analytics_base
+        WHERE service_processing_minutes IS NOT NULL
+        GROUP BY service_label
+        ORDER BY avg_completion_minutes ASC NULLS LAST
+    ", $params);
+
+    $cancellationReasons = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT COALESCE(NULLIF(TRIM(q.details->>'cancellation_reason'), ''), 'No reason recorded') AS reason,
+               COUNT(*) AS total
+        FROM analytics_base b
+        INNER JOIN queues q ON q.id = b.id
+        WHERE b.status_group = 'CANCELLED'
+        GROUP BY reason
+        ORDER BY total DESC, reason ASC
+    ", $params);
+
+    $workflowRoutes = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT route, COUNT(*) AS total
+        FROM (
+            SELECT b.id, STRING_AGG(e.status, ' -> ' ORDER BY e.transition_no, e.entered_at) AS route
+            FROM analytics_base b
+            INNER JOIN queue_status_events e ON e.queue_id = b.id
+            GROUP BY b.id
+        ) routes
+        WHERE route IS NOT NULL AND route <> ''
+        GROUP BY route
+        ORDER BY total DESC, route ASC
+        LIMIT 10
+    ", $params);
+
+    $incompleteTimestamps = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT queue_code, customer_name, service_label, status_group,
+               request_created_at, approved_at, ongoing_at, for_pickup_at, done_at
+        FROM analytics_base
+        WHERE request_created_at IS NULL
+           OR (status_group IN ('APPROVED', 'ONGOING', 'FOR PICK-UP', 'DONE') AND ongoing_at IS NULL AND approved_at IS NULL)
+           OR (status_group = 'DONE' AND done_at IS NULL)
+        ORDER BY request_created_at DESC NULLS LAST
+        LIMIT 25
     ", $params);
 
     $history = super_analytics_fetch_all($pdo, "{$cte}
@@ -441,6 +595,192 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
         LIMIT 500
     ", $params);
 
+    $staffAnalytics = ["available" => false, "rows" => [], "message" => "Staff workload analytics will appear once staff handling data is available."];
+    if (super_analytics_has_columns($pdo, "queue_status_events", ["updated_by", "updated_by_name"])) {
+        $staffRows = super_analytics_fetch_all($pdo, "{$cte}
+            SELECT
+                e.updated_by,
+                COALESCE(NULLIF(e.updated_by_name, ''), 'Staff') AS staff_name,
+                COUNT(*) AS status_updates,
+                COUNT(DISTINCT e.queue_id) AS requests_handled,
+                COUNT(DISTINCT e.queue_id) FILTER (WHERE b.status_group = 'DONE') AS completed_requests,
+                ROUND(AVG(COALESCE(e.duration_minutes, EXTRACT(EPOCH FROM (e.exited_at - e.entered_at)) / 60.0))::numeric, 2) AS avg_handling_minutes,
+                COUNT(DISTINCT e.queue_id) FILTER (WHERE b.status_group IN ('PENDING', 'APPROVED', 'ONGOING', 'FOR PICK-UP')) AS active_workload
+            FROM queue_status_events e
+            INNER JOIN analytics_base b ON b.id = e.queue_id
+            WHERE e.updated_by IS NOT NULL
+            GROUP BY e.updated_by, staff_name
+            ORDER BY completed_requests DESC, status_updates DESC, staff_name ASC
+        ", $params);
+        $staffAnalytics = [
+            "available" => (bool)$staffRows,
+            "rows" => $staffRows,
+            "message" => $staffRows ? "" : "Staff workload analytics will appear once staff handling data is available.",
+        ];
+    }
+
+    $notificationAnalytics = [
+        "available" => super_analytics_table_exists($pdo, "notifications"),
+        "summary" => ["total" => 0, "unread" => 0, "requests_without_customer_notification" => 0, "avg_first_update_minutes" => 0],
+        "by_type" => [],
+        "latest_status_updates" => [],
+        "failed_logs" => [],
+    ];
+    if ($notificationAnalytics["available"]) {
+        $notificationAnalytics["summary"] = super_analytics_fetch_one($pdo, "
+            SELECT COUNT(*) AS total,
+                   COUNT(*) FILTER (WHERE is_read = FALSE AND deleted_at IS NULL) AS unread
+            FROM notifications
+            WHERE deleted_at IS NULL
+        ", []);
+        $withoutCustomerNotifications = super_analytics_fetch_one($pdo, "{$cte}
+            SELECT COUNT(*) AS total
+            FROM analytics_base b
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM notifications n
+                WHERE n.reference_id = b.id
+                  AND n.deleted_at IS NULL
+                  AND LOWER(TRIM(COALESCE(n.type, ''))) IN ('queue', 'status_update', 'queue_cancelled', 'send_back')
+            )
+        ", $params);
+        $notificationAnalytics["summary"]["requests_without_customer_notification"] = (int)($withoutCustomerNotifications["total"] ?? 0);
+        $firstUpdate = super_analytics_fetch_one($pdo, "{$cte}
+            SELECT ROUND(AVG(EXTRACT(EPOCH FROM (first_notice.first_notice_at - b.request_created_at)) / 60.0)::numeric, 2) AS avg_minutes
+            FROM analytics_base b
+            INNER JOIN LATERAL (
+                SELECT MIN(n.created_at) AS first_notice_at
+                FROM notifications n
+                WHERE n.reference_id = b.id
+                  AND n.deleted_at IS NULL
+            ) first_notice ON first_notice.first_notice_at IS NOT NULL
+        ", $params);
+        $notificationAnalytics["summary"]["avg_first_update_minutes"] = (float)($firstUpdate["avg_minutes"] ?? 0);
+        $notificationAnalytics["by_type"] = super_analytics_fetch_all($pdo, "
+            SELECT COALESCE(NULLIF(TRIM(type), ''), 'notification') AS type, COUNT(*) AS total
+            FROM notifications
+            WHERE deleted_at IS NULL
+            GROUP BY type
+            ORDER BY total DESC, type ASC
+            LIMIT 12
+        ", []);
+        $notificationAnalytics["latest_status_updates"] = super_analytics_fetch_all($pdo, "
+            SELECT reference_id, type, message, created_at
+            FROM notifications
+            WHERE deleted_at IS NULL
+              AND LOWER(TRIM(COALESCE(type, ''))) IN ('status_update', 'queue_cancelled', 'send_back')
+            ORDER BY created_at DESC, id DESC
+            LIMIT 20
+        ", []);
+    }
+
+    $correctionAnalytics = [
+        "correction_requests" => 0,
+        "by_service" => [],
+        "missing_details" => [],
+        "activity" => [],
+        "recommended_fields" => ["correction_count", "correction_reason", "corrected_by", "corrected_at"],
+    ];
+    $correctionConditions = [];
+    if (super_analytics_has_columns($pdo, "queues", ["customer_edit_required", "send_back_message"])) {
+        $correctionConditions[] = "COALESCE(q.customer_edit_required, FALSE) = TRUE";
+        $correctionConditions[] = "NULLIF(TRIM(q.send_back_message), '') IS NOT NULL";
+    }
+    if (super_analytics_has_columns($pdo, "queues", ["correction_count"])) {
+        $correctionConditions[] = "COALESCE(q.correction_count, 0) > 0";
+    }
+    if ($correctionConditions) {
+        $correctionWhere = implode(" OR ", $correctionConditions);
+        $correctionSummary = super_analytics_fetch_one($pdo, "{$cte}
+            SELECT COUNT(*) FILTER (WHERE {$correctionWhere}) AS total
+            FROM analytics_base b
+            INNER JOIN queues q ON q.id = b.id
+        ", $params);
+        $correctionAnalytics["correction_requests"] = (int)($correctionSummary["total"] ?? 0);
+        $correctionAnalytics["by_service"] = super_analytics_fetch_all($pdo, "{$cte}
+            SELECT b.service_label, COUNT(*) AS total
+            FROM analytics_base b
+            INNER JOIN queues q ON q.id = b.id
+            WHERE {$correctionWhere}
+            GROUP BY b.service_label
+            ORDER BY total DESC, b.service_label ASC
+        ", $params);
+    }
+    $correctionAnalytics["missing_details"] = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT queue_code, customer_name, service_label, status_group
+        FROM analytics_base
+        WHERE service_label IS NULL OR service_label = '' OR request_created_at IS NULL
+        ORDER BY request_created_at DESC NULLS LAST
+        LIMIT 25
+    ", $params);
+    if (super_analytics_table_exists($pdo, "activity_logs")) {
+        $correctionAnalytics["activity"] = super_analytics_fetch_all($pdo, "
+            SELECT action_type, target_module, target_record_id, description, created_at
+            FROM activity_logs
+            WHERE LOWER(action_type) LIKE '%send_back%'
+               OR LOWER(action_type) LIKE '%edit%'
+               OR LOWER(action_type) LIKE '%correction%'
+               OR LOWER(action_type) LIKE '%update_details%'
+            ORDER BY created_at DESC
+            LIMIT 25
+        ", []);
+    }
+
+    $storeAnalytics = [
+        "available" => super_analytics_table_exists($pdo, "store_availability_settings"),
+        "settings" => [],
+        "hours" => [],
+        "holidays" => [],
+        "changes" => [],
+        "most_active_service_day" => [],
+        "blocked_requests" => 0,
+    ];
+    if ($storeAnalytics["available"]) {
+        $storeAnalytics["settings"] = super_analytics_fetch_one($pdo, "SELECT * FROM store_availability_settings WHERE id = 1", []);
+        $storeAnalytics["hours"] = super_analytics_table_exists($pdo, "store_hours")
+            ? super_analytics_fetch_all($pdo, "SELECT * FROM store_hours ORDER BY day_of_week", [])
+            : [];
+        $storeAnalytics["holidays"] = super_analytics_table_exists($pdo, "store_holidays")
+            ? super_analytics_fetch_all($pdo, "SELECT holiday_date, title, note, created_at FROM store_holidays ORDER BY holiday_date DESC LIMIT 20", [])
+            : [];
+        $storeAnalytics["most_active_service_day"] = super_analytics_fetch_one($pdo, "{$cte}
+            SELECT TO_CHAR(request_created_at AT TIME ZONE 'Asia/Manila', 'FMDay') AS day_name, COUNT(*) AS total
+            FROM analytics_base
+            GROUP BY day_name
+            ORDER BY total DESC
+            LIMIT 1
+        ", $params);
+        if (super_analytics_table_exists($pdo, "activity_logs")) {
+            $storeAnalytics["changes"] = super_analytics_fetch_all($pdo, "
+                SELECT user_name, action_type, target_module, description, created_at
+                FROM activity_logs
+                WHERE LOWER(target_module) LIKE '%store%'
+                   OR LOWER(action_type) LIKE '%store_availability%'
+                   OR LOWER(action_type) LIKE '%operational_controls%'
+                ORDER BY created_at DESC
+                LIMIT 25
+            ", []);
+        }
+    }
+
+    $cycleCenter = [
+        "current_cycle" => $cycle,
+        "days_remaining" => super_analytics_cycle_days_remaining($cycle),
+        "warning_level" => super_analytics_cycle_warning_level(super_analytics_cycle_days_remaining($cycle)),
+        "export_status" => super_analytics_cycle_export_status($pdo, (int)($cycle["id"] ?? 0)),
+        "previous_cycles" => super_analytics_previous_cycles($pdo),
+        "export_logs" => super_analytics_table_exists($pdo, "analytics_export_logs")
+            ? super_analytics_fetch_all($pdo, "
+                SELECT l.export_type, l.exported_at, l.row_count, COALESCE(u.fullname, 'System') AS exported_by
+                FROM analytics_export_logs l
+                LEFT JOIN users u ON u.id = l.exported_by
+                WHERE l.cycle_id = :cycle_id
+                ORDER BY l.exported_at DESC, l.id DESC
+                LIMIT 20
+            ", [":cycle_id" => (int)($cycle["id"] ?? 0)])
+            : [],
+    ];
+
     $mostRequested = $byService[0] ?? ["service_label" => "-", "total" => 0];
 
     return [
@@ -451,13 +791,27 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
         "cycle_export_status" => super_analytics_cycle_export_status($pdo, (int)($cycle["id"] ?? 0)),
         "summary" => $summary,
         "longest_waiting_request" => $longest,
+        "shortest_waiting_request" => $shortest,
+        "longest_waiting_requests" => $longestWaitingRequests,
+        "delayed_requests" => $delayedRequests,
+        "stale_requests" => $staleRequests,
         "status_distribution" => $statusDistribution,
         "status_durations" => $statusDurations,
         "requests_by_service" => $byService,
         "requests_by_period" => $periods,
+        "request_source_mix" => $requestSourceMix,
         "completed_vs_cancelled" => $completedVsCancelled,
         "service_completion" => $serviceCompletion,
+        "completion_extremes" => $completionExtremes,
+        "cancellation_reasons" => $cancellationReasons,
+        "workflow_routes" => $workflowRoutes,
+        "incomplete_timestamps" => $incompleteTimestamps,
         "history" => $history,
+        "staff" => $staffAnalytics,
+        "notifications" => $notificationAnalytics,
+        "corrections" => $correctionAnalytics,
+        "store" => $storeAnalytics,
+        "cycle_center" => $cycleCenter,
         "most_requested_service" => $mostRequested,
         "options" => super_analytics_options($pdo),
     ];
