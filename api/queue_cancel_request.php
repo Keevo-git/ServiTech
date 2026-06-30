@@ -40,7 +40,7 @@ try {
   servitech_ensure_queue_lifecycle_schema($pdo);
 
   $stmt = $pdo->prepare("
-    SELECT id, user_id, queue_code, category, status, price, paid_amount, details
+    SELECT id, user_id, queue_code, category, status, price, paid_amount, details, created_at
     FROM queues
     WHERE id = :id
       AND user_id = :user_id
@@ -90,6 +90,14 @@ try {
     $pdo,
     $queueId,
     (string)($queue["category"] ?? ""),
+    $currentStatus,
+    "CANCELLED",
+    null,
+    $historyNote
+  );
+  servitech_record_queue_analytics_transition(
+    $pdo,
+    $queue,
     $currentStatus,
     "CANCELLED",
     null,

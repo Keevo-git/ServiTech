@@ -205,6 +205,7 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
 
   <header class="admin-quick-access-header admin-analytics-header" id="operations-analytics">
     <h3 class="section-title">Owner Reports & Analytics</h3>
+    <a class="admin-analytics-view-all" href="<?= project_url('/pages/super_admin/super_admin_analytics.php') ?>">View All</a>
     <div class="admin-section-divider" aria-hidden="true"></div>
   </header>
 

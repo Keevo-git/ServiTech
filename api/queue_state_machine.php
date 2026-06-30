@@ -118,6 +118,320 @@ function servitech_queue_actor_name(PDO $pdo, ?int $adminId): string {
   return trim((string)($stmt->fetchColumn() ?: ""));
 }
 
+function servitech_queue_analytics_schema_ready(PDO $pdo): bool {
+  static $ready = null;
+  if ($ready !== null) return $ready;
+
+  try {
+    $queueColumns = [
+      "request_created_at", "pending_at", "approved_at", "ongoing_at",
+      "for_pickup_at", "done_at", "cancelled_at", "request_source",
+    ];
+    $placeholders = implode(",", array_fill(0, count($queueColumns), "?"));
+    $stmt = $pdo->prepare("
+      SELECT COUNT(DISTINCT column_name)
+      FROM information_schema.columns
+      WHERE table_schema = ANY(current_schemas(false))
+        AND table_name = 'queues'
+        AND column_name IN ({$placeholders})
+    ");
+    $stmt->execute($queueColumns);
+    if ((int)$stmt->fetchColumn() !== count($queueColumns)) {
+      $ready = false;
+      return false;
+    }
+
+    $eventColumns = [
+      "queue_id", "queue_code", "transition_no", "previous_status", "status",
+      "entered_at", "exited_at", "duration_minutes", "updated_by", "remarks",
+    ];
+    $placeholders = implode(",", array_fill(0, count($eventColumns), "?"));
+    $stmt = $pdo->prepare("
+      SELECT COUNT(DISTINCT column_name)
+      FROM information_schema.columns
+      WHERE table_schema = ANY(current_schemas(false))
+        AND table_name = 'queue_status_events'
+        AND column_name IN ({$placeholders})
+    ");
+    $stmt->execute($eventColumns);
+    $ready = (int)$stmt->fetchColumn() === count($eventColumns);
+    return $ready;
+  } catch (Throwable $exception) {
+    error_log("queue analytics schema check failed: " . $exception->getMessage());
+    $ready = false;
+    return false;
+  }
+}
+
+function servitech_queue_analytics_service_type(array $queue): string {
+  $details = servitech_queue_details_array($queue["details"] ?? null);
+  return trim((string)(
+    $details["type_of_request"]
+    ?? $details["service_name_snapshot"]
+    ?? $details["catalog_service_name"]
+    ?? $details["service_label"]
+    ?? $queue["category"]
+    ?? "Service Request"
+  ));
+}
+
+function servitech_queue_analytics_request_source(array $queue): string {
+  $source = strtolower(trim((string)($queue["request_source"] ?? "")));
+  if ($source !== "") return $source;
+  $category = strtolower(trim((string)($queue["category"] ?? "")));
+  return str_contains($category, "walk") ? "walk-in" : "online";
+}
+
+function servitech_queue_analytics_payment_method(array $queue): string {
+  return strtolower(trim((string)($queue["payment_method"] ?? servitech_queue_payment_method($queue))));
+}
+
+function servitech_queue_analytics_customer_name(array $queue): string {
+  $details = servitech_queue_details_array($queue["details"] ?? null);
+  return trim((string)(
+    $details["customer_name_snapshot"]
+    ?? $queue["customer_name"]
+    ?? $queue["fullname"]
+    ?? ""
+  ));
+}
+
+function servitech_record_queue_analytics_initial_status(PDO $pdo, int $queueId, string $category): void {
+  if (!servitech_queue_analytics_schema_ready($pdo)) return;
+
+  try {
+    $stmt = $pdo->prepare("
+      SELECT q.id, q.user_id, q.queue_code, q.category, q.status, q.details, q.created_at, q.request_source,
+             COALESCE(NULLIF(TRIM(u.fullname), ''), NULLIF(TRIM(u.email), ''), '') AS customer_name,
+             p.payment_method
+      FROM queues q
+      LEFT JOIN users u ON u.id = q.user_id
+      LEFT JOIN LATERAL (
+        SELECT payment_method
+        FROM payments
+        WHERE queue_id = q.id
+        ORDER BY id DESC
+        LIMIT 1
+      ) p ON TRUE
+      WHERE q.id = :id
+      LIMIT 1
+    ");
+    $stmt->execute([":id" => $queueId]);
+    $queue = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($queue)) return;
+
+    $source = servitech_queue_analytics_request_source($queue);
+    $update = $pdo->prepare("
+      UPDATE queues
+      SET request_created_at = COALESCE(request_created_at, created_at, NOW()),
+          pending_at = COALESCE(pending_at, request_created_at, created_at, NOW()),
+          request_source = CASE WHEN NULLIF(TRIM(request_source), '') IS NULL THEN :request_source ELSE request_source END,
+          updated_at = NOW()
+      WHERE id = :id
+    ");
+    $update->execute([
+      ":request_source" => $source,
+      ":id" => $queueId,
+    ]);
+
+    $event = $pdo->prepare("
+      INSERT INTO queue_status_events (
+        queue_id, queue_code, customer_name_snapshot, service_type, payment_method,
+        transition_no, previous_status, status, entered_at, exited_at, duration_minutes,
+        next_status, updated_by, updated_by_name, remarks, created_at, updated_at
+      )
+      VALUES (
+        :queue_id, :queue_code, :customer_name, :service_type, :payment_method,
+        1, NULL, 'PENDING', COALESCE(:entered_at, NOW()), NULL, NULL,
+        NULL, NULL, '', :remarks, NOW(), NOW()
+      )
+      ON CONFLICT (queue_id, transition_no, status, entered_at)
+      DO NOTHING
+    ");
+    $event->execute([
+      ":queue_id" => $queueId,
+      ":queue_code" => trim((string)$queue["queue_code"]),
+      ":customer_name" => servitech_queue_analytics_customer_name($queue),
+      ":service_type" => servitech_queue_analytics_service_type($queue),
+      ":payment_method" => servitech_queue_analytics_payment_method($queue),
+      ":entered_at" => (string)($queue["created_at"] ?? ""),
+      ":remarks" => "Request joined the queue.",
+    ]);
+  } catch (Throwable $exception) {
+    error_log("queue analytics initial status failed: " . $exception->getMessage());
+  }
+}
+
+function servitech_record_queue_analytics_transition(
+  PDO $pdo,
+  array $queue,
+  string $oldStatus,
+  string $newStatus,
+  ?int $adminId,
+  string $remarks = ""
+): void {
+  if (!servitech_queue_analytics_schema_ready($pdo)) return;
+
+  $oldStatus = servitech_queue_normalize_status($oldStatus);
+  $newStatus = servitech_queue_normalize_status($newStatus);
+  $queueId = (int)($queue["id"] ?? 0);
+  if ($queueId <= 0 || $oldStatus === $newStatus) return;
+
+  try {
+    $actorName = servitech_queue_actor_name($pdo, $adminId);
+    $customerName = servitech_queue_analytics_customer_name($queue);
+    $serviceType = servitech_queue_analytics_service_type($queue);
+    $paymentMethod = servitech_queue_analytics_payment_method($queue);
+    $queueCode = trim((string)($queue["queue_code"] ?? ""));
+
+    $close = $pdo->prepare("
+      UPDATE queue_status_events
+      SET exited_at = COALESCE(exited_at, NOW()),
+          duration_minutes = COALESCE(duration_minutes, ROUND((EXTRACT(EPOCH FROM (NOW() - entered_at)) / 60.0)::numeric, 2)),
+          customer_name_snapshot = :customer_name,
+          service_type = :service_type,
+          payment_method = :payment_method,
+          next_status = :next_status,
+          updated_by = :updated_by,
+          updated_by_name = :updated_by_name,
+          updated_at = NOW()
+      WHERE id = (
+        SELECT id
+        FROM queue_status_events
+        WHERE queue_id = :queue_id
+          AND status = :old_status
+          AND exited_at IS NULL
+        ORDER BY entered_at DESC, transition_no DESC, id DESC
+        LIMIT 1
+      )
+    ");
+    $close->execute([
+      ":next_status" => $newStatus,
+      ":customer_name" => $customerName,
+      ":service_type" => $serviceType,
+      ":payment_method" => $paymentMethod,
+      ":updated_by" => $adminId !== null && $adminId > 0 ? $adminId : null,
+      ":updated_by_name" => $actorName,
+      ":queue_id" => $queueId,
+      ":old_status" => $oldStatus,
+    ]);
+
+    if ($close->rowCount() === 0) {
+      $fallback = $pdo->prepare("
+        INSERT INTO queue_status_events (
+          queue_id, queue_code, customer_name_snapshot, service_type, payment_method,
+          transition_no, previous_status, status, entered_at, exited_at, duration_minutes,
+          next_status, updated_by, updated_by_name, remarks, created_at, updated_at
+        )
+        VALUES (
+          :queue_id, :queue_code, :customer_name, :service_type, :payment_method,
+          GREATEST(1, COALESCE((SELECT MAX(transition_no) FROM queue_status_events WHERE queue_id = :queue_id_for_max), 0) + 1),
+          NULL, :old_status, COALESCE(:entered_at, NOW()), NOW(),
+          ROUND((EXTRACT(EPOCH FROM (NOW() - COALESCE(CAST(:entered_at_for_duration AS timestamptz), NOW()))) / 60.0)::numeric, 2),
+          :new_status, :updated_by, :updated_by_name, 'Backfilled open status during transition.', NOW(), NOW()
+        )
+        ON CONFLICT (queue_id, transition_no, status, entered_at)
+        DO UPDATE SET exited_at = EXCLUDED.exited_at,
+                      duration_minutes = EXCLUDED.duration_minutes,
+                      next_status = EXCLUDED.next_status,
+                      updated_by = EXCLUDED.updated_by,
+                      updated_by_name = EXCLUDED.updated_by_name,
+                      updated_at = NOW()
+      ");
+      $fallbackEnteredAt = trim((string)($queue["request_created_at"] ?? $queue["created_at"] ?? ""));
+      $fallbackEnteredAt = $fallbackEnteredAt !== "" ? $fallbackEnteredAt : null;
+      $fallback->execute([
+        ":queue_id" => $queueId,
+        ":queue_code" => $queueCode,
+        ":customer_name" => $customerName,
+        ":service_type" => $serviceType,
+        ":payment_method" => $paymentMethod,
+        ":queue_id_for_max" => $queueId,
+        ":old_status" => $oldStatus,
+        ":entered_at" => $fallbackEnteredAt,
+        ":entered_at_for_duration" => $fallbackEnteredAt,
+        ":new_status" => $newStatus,
+        ":updated_by" => $adminId !== null && $adminId > 0 ? $adminId : null,
+        ":updated_by_name" => $actorName,
+      ]);
+    }
+
+    $transitionNoStmt = $pdo->prepare("SELECT COALESCE(MAX(transition_no), 0) + 1 FROM queue_status_events WHERE queue_id = :queue_id");
+    $transitionNoStmt->execute([":queue_id" => $queueId]);
+    $transitionNo = max(1, (int)$transitionNoStmt->fetchColumn());
+
+    $insert = $pdo->prepare("
+      INSERT INTO queue_status_events (
+        queue_id, queue_code, customer_name_snapshot, service_type, payment_method,
+        transition_no, previous_status, status, entered_at, exited_at, duration_minutes,
+        next_status, updated_by, updated_by_name, remarks, created_at, updated_at
+      )
+      VALUES (
+        :queue_id, :queue_code, :customer_name, :service_type, :payment_method,
+        :transition_no, :previous_status, :status, NOW(), NULL, NULL,
+        NULL, :updated_by, :updated_by_name, :remarks, NOW(), NOW()
+      )
+      ON CONFLICT (queue_id, transition_no, status, entered_at)
+      DO NOTHING
+    ");
+    $insert->execute([
+      ":queue_id" => $queueId,
+      ":queue_code" => $queueCode,
+      ":customer_name" => $customerName,
+      ":service_type" => $serviceType,
+      ":payment_method" => $paymentMethod,
+      ":transition_no" => $transitionNo,
+      ":previous_status" => $oldStatus,
+      ":status" => $newStatus,
+      ":updated_by" => $adminId !== null && $adminId > 0 ? $adminId : null,
+      ":updated_by_name" => $actorName,
+      ":remarks" => trim($remarks),
+    ]);
+
+    $detailsPatch = [];
+    if ($newStatus === "DONE") {
+      $detailsPatch["completion_flag"] = 1;
+    }
+    if ($newStatus === "CANCELLED") {
+      $detailsPatch["completion_flag"] = 0;
+      $detailsPatch["cancellation_reason"] = trim($remarks);
+    }
+    $detailsPatchSql = $detailsPatch
+      ? ", details = COALESCE(details, '{}'::jsonb) || CAST(:details_patch AS jsonb)"
+      : "";
+
+    $timestampUpdate = $pdo->prepare("
+      UPDATE queues
+      SET request_created_at = COALESCE(request_created_at, created_at, NOW()),
+          pending_at = COALESCE(pending_at, request_created_at, created_at, NOW()),
+          approved_at = CASE WHEN :status_for_approved = 'APPROVED' THEN COALESCE(approved_at, NOW()) ELSE approved_at END,
+          ongoing_at = CASE WHEN :status_for_ongoing = 'ONGOING' THEN COALESCE(ongoing_at, NOW()) ELSE ongoing_at END,
+          for_pickup_at = CASE WHEN :status_for_pickup = 'FOR PICK-UP' THEN COALESCE(for_pickup_at, NOW()) ELSE for_pickup_at END,
+          done_at = CASE WHEN :status_for_done = 'DONE' THEN COALESCE(done_at, NOW()) ELSE done_at END,
+          cancelled_at = CASE WHEN :status_for_cancelled = 'CANCELLED' THEN COALESCE(cancelled_at, NOW()) ELSE cancelled_at END,
+          request_source = CASE WHEN NULLIF(TRIM(request_source), '') IS NULL THEN :request_source ELSE request_source END
+          {$detailsPatchSql},
+          updated_at = NOW()
+      WHERE id = :queue_id
+    ");
+    $params = [
+      ":status_for_approved" => $newStatus,
+      ":status_for_ongoing" => $newStatus,
+      ":status_for_pickup" => $newStatus,
+      ":status_for_done" => $newStatus,
+      ":status_for_cancelled" => $newStatus,
+      ":request_source" => servitech_queue_analytics_request_source($queue),
+      ":queue_id" => $queueId,
+    ];
+    if ($detailsPatch) {
+      $params[":details_patch"] = json_encode($detailsPatch, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    $timestampUpdate->execute($params);
+  } catch (Throwable $exception) {
+    error_log("queue analytics transition failed: " . $exception->getMessage());
+  }
+}
+
 function servitech_queue_customer_subject(array $queue): string {
   $details = servitech_queue_details_array($queue["details"] ?? null);
   $serviceLabel = trim((string)($details["service_label"] ?? ""));
@@ -182,6 +496,7 @@ function servitech_record_queue_status_history(
 
 function servitech_record_queue_initial_status(PDO $pdo, int $queueId, string $category): void {
   servitech_record_queue_status_history($pdo, $queueId, $category, null, "PENDING", null, "Queue created.");
+  servitech_record_queue_analytics_initial_status($pdo, $queueId, $category);
 }
 
 function servitech_queue_is_customer_editable_status(string $status): bool {
@@ -315,7 +630,7 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
     servitech_ensure_queue_lifecycle_schema($pdo);
     $stmt = $pdo->prepare("
       SELECT q.id, q.user_id, q.queue_code, q.category, q.status, q.lifecycle_stage,
-        q.details, q.price, q.paid_amount, p.id AS payment_id,
+        q.details, q.created_at, q.price, q.paid_amount, p.id AS payment_id,
         p.amount AS payment_amount, p.payment_method, p.reference_number,
         p.status AS payment_status
       FROM queues q
@@ -409,6 +724,14 @@ function servitech_transition_queue_status(PDO $pdo, int $queueId, string $reque
       $pdo,
       $queueId,
       (string)($queue["category"] ?? ""),
+      $currentStatus,
+      $newStatus,
+      $adminId,
+      $notes
+    );
+    servitech_record_queue_analytics_transition(
+      $pdo,
+      $queue,
       $currentStatus,
       $newStatus,
       $adminId,
