@@ -306,13 +306,14 @@ function super_analytics_fetch_one(PDO $pdo, string $sql, array $params): array
 function super_analytics_options(PDO $pdo): array
 {
     $filters = super_analytics_clean_filter([]);
+    $params = [];
     $cte = super_analytics_base_sql($filters, $params);
 
     return [
-        "services" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT service_label AS value FROM analytics_raw WHERE service_label <> '' ORDER BY service_label", [])),
-        "statuses" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT status_group AS value FROM analytics_raw WHERE status_group <> '' ORDER BY status_group", [])),
-        "payment_methods" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT payment_method AS value FROM analytics_raw WHERE payment_method <> '' ORDER BY payment_method", [])),
-        "request_sources" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT request_source AS value FROM analytics_raw WHERE request_source <> '' ORDER BY request_source", [])),
+        "services" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT service_label AS value FROM analytics_raw WHERE service_label <> '' ORDER BY service_label", $params)),
+        "statuses" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT status_group AS value FROM analytics_raw WHERE status_group <> '' ORDER BY status_group", $params)),
+        "payment_methods" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT payment_method AS value FROM analytics_raw WHERE payment_method <> '' ORDER BY payment_method", $params)),
+        "request_sources" => array_map(static fn($row): string => (string)$row["value"], super_analytics_fetch_all($pdo, "{$cte} SELECT DISTINCT request_source AS value FROM analytics_raw WHERE request_source <> '' ORDER BY request_source", $params)),
         "cycles" => super_analytics_previous_cycles($pdo),
     ];
 }
@@ -324,6 +325,7 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
     $filters["cycle_id"] = (int)($cycle["id"] ?? 0);
     $filters["cycle_start_date"] = (string)($cycle["start_date"] ?? "");
     $filters["cycle_end_date"] = (string)($cycle["end_date"] ?? "");
+    $params = [];
     $cte = super_analytics_base_sql($filters, $params);
 
     $summary = super_analytics_fetch_one($pdo, "{$cte}
