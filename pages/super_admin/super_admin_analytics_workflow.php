@@ -16,7 +16,7 @@ $context = analytics_load_context($pdo, $_GET);
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260630-analytics') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-individual-reports') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-export-pagination') ?>">
 </head>
 <body class="admin-analytics-page">
 <?php $adminHeaderVariant = "dashboard"; require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
@@ -27,7 +27,6 @@ $context = analytics_load_context($pdo, $_GET);
   <?php else: ?>
     <?php analytics_render_filters($context, "super_admin_analytics_workflow.php", ["cycle", "date", "service", "status"]); ?>
     <?php analytics_render_workflow($context); ?>
-    <?php analytics_render_export_row($context, "super_admin_analytics_workflow.php"); ?>
   <?php endif; ?>
 </main>
 <?php require_once __DIR__ . "/../admin/_includes/admin_footer.php"; ?>

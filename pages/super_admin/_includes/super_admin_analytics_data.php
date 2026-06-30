@@ -130,6 +130,7 @@ function super_analytics_clean_filter(array $source): array
         "staff_id" => max(0, (int)($source["staff_id"] ?? 0)),
         "category" => trim((string)($source["category"] ?? "overview")),
         "cycle_id" => max(0, (int)($source["cycle_id"] ?? 0)),
+        "records_page" => max(1, (int)($source["records_page"] ?? 1)),
     ];
 }
 

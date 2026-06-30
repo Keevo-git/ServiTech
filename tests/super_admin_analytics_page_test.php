@@ -81,8 +81,11 @@ foreach ($reportPages as $file => $title) {
     super_analytics_assert(str_contains($page, $title), "{$file} must render the {$title} title.");
     super_analytics_assert(str_contains($page . $views, "&larr; Back to Analytics"), "{$file} must provide back navigation.");
     super_analytics_assert(str_contains($page, "analytics_render_filters"), "{$file} must expose report filters.");
-    super_analytics_assert(str_contains($page, "analytics_render_export_row"), "{$file} must include export controls.");
 }
+super_analytics_assert(substr_count($views, 'analytics_render_export_row($context, "super_admin_analytics_operations.php') >= 1, "Operations report must render export controls after summary cards.");
+super_analytics_assert(substr_count($views, 'analytics_render_export_row($context, "super_admin_analytics_service_queue.php') >= 1, "Service and queue report must render export controls after summary cards.");
+super_analytics_assert(substr_count($views, 'analytics_render_export_row($context, "super_admin_analytics_workflow.php') >= 1, "Workflow report must render export controls after summary cards.");
+super_analytics_assert(substr_count($views, 'analytics_render_export_row($context, "super_admin_analytics_exports.php') >= 1, "Export center must render export controls after its summary cards.");
 
 $serviceQueue = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_analytics_service_queue.php") ?: "";
 $serviceQueueFunctionStart = strpos($views, "function analytics_render_service_queue");
@@ -95,6 +98,9 @@ super_analytics_assert(str_contains($views, "Queue Waiting Time"), "Combined rep
 super_analytics_assert(!str_contains($serviceQueueFunction, "Average Service Processing Time") && !str_contains($serviceQueueFunction, "Service Processing Time") && !str_contains($serviceQueueFunction, "service_processing_minutes"), "Service and queue report UI must not show service processing time.");
 super_analytics_assert(str_contains($views, "Requests by Month") && str_contains($views, "Completed vs Cancelled Requests"), "Combined report must include monthly trends and completion mix.");
 super_analytics_assert(!str_contains($serviceQueueFunction, "Requests by Day") && !str_contains($serviceQueueFunction, "Requests by Week") && !str_contains($serviceQueueFunction, "Requests That Waited Longer Than Expected"), "Combined report must omit removed day/week/delayed request sections.");
+super_analytics_assert(str_contains($serviceQueueFunction, "Review customer waiting times, longest and shortest queue waits, and queue status performance."), "Queue Performance description must use clear user-friendly wording.");
+super_analytics_assert(str_contains($serviceQueueFunction, "Showing top 5 longest waiting requests.") && str_contains($serviceQueueFunction, 'array_slice($analytics["longest_waiting_requests"] ?? [], 0, 5)'), "Combined report must limit longest waiting requests.");
+super_analytics_assert(str_contains($views, "analytics_render_pagination") && str_contains($views, "records_page") && str_contains($views, "Page "), "Detailed queue records must support 10-row pagination.");
 super_analytics_assert(str_contains($serviceQueue, "analytics_render_service_queue"), "Combined route must render the service queue report function.");
 
 $workflowFunctionStart = strpos($views, "function analytics_render_workflow");

@@ -46,7 +46,7 @@ function analytics_label(string $value): string
 
 function analytics_filter_query(array $filters, array $extra = []): string
 {
-    $allowed = ["cycle_id", "start_date", "end_date", "service_type", "status", "request_source", "staff_id"];
+    $allowed = ["cycle_id", "start_date", "end_date", "service_type", "status", "request_source", "staff_id", "records_page"];
     $query = [];
     foreach (array_merge($filters, $extra) as $key => $value) {
         if (!in_array((string)$key, $allowed, true) && $key !== "export") {
@@ -300,6 +300,8 @@ function analytics_render_report_header(string $title, string $description, arra
 function analytics_render_export_row(array $context, string $currentPage, bool $activeCsv = false): void
 {
     echo '<section class="analytics-export-row" aria-label="Export analytics">';
+    echo '<div class="analytics-export-row__copy"><strong>Export Report</strong><span>Download the current filtered analytics view for reporting records.</span></div>';
+    echo '<div class="analytics-export-actions">';
     if ($activeCsv) {
         echo '<a class="admin-owner-button-secondary" href="' . analytics_report_url($currentPage, $context["filters"] ?? [], ["export" => "csv"]) . '">Export CSV</a>';
     } else {
@@ -307,7 +309,41 @@ function analytics_render_export_row(array $context, string $currentPage, bool $
     }
     echo '<button class="admin-owner-button-secondary" type="button" disabled title="Excel export is prepared in the UI and can be connected when the export service is available.">Export Excel</button>';
     echo '<button class="admin-owner-button-secondary" type="button" disabled title="PDF export is prepared in the UI and can be connected when the export service is available.">Export PDF</button>';
+    echo '</div>';
     echo '</section>';
+}
+
+function analytics_render_pagination(string $page, array $filters, string $pageKey, int $currentPage, int $totalPages): void
+{
+    if ($totalPages <= 1) {
+        return;
+    }
+
+    $currentPage = max(1, min($currentPage, $totalPages));
+    echo '<nav class="analytics-pagination" aria-label="Detailed records pagination">';
+    if ($currentPage <= 1) {
+        echo '<span class="analytics-page-button is-disabled" aria-disabled="true">Previous</span>';
+    } else {
+        echo '<a class="analytics-page-button" href="' . analytics_report_url($page, $filters, [$pageKey => $currentPage - 1]) . '">Previous</a>';
+    }
+
+    echo '<div class="analytics-page-numbers" aria-label="Page numbers">';
+    for ($pageNumber = 1; $pageNumber <= $totalPages; $pageNumber++) {
+        if ($pageNumber === $currentPage) {
+            echo '<span class="analytics-page-button is-current" aria-current="page">' . $pageNumber . '</span>';
+        } else {
+            echo '<a class="analytics-page-button" href="' . analytics_report_url($page, $filters, [$pageKey => $pageNumber]) . '">' . $pageNumber . '</a>';
+        }
+    }
+    echo '</div>';
+
+    if ($currentPage >= $totalPages) {
+        echo '<span class="analytics-page-button is-disabled" aria-disabled="true">Next</span>';
+    } else {
+        echo '<a class="analytics-page-button" href="' . analytics_report_url($page, $filters, [$pageKey => $currentPage + 1]) . '">Next</a>';
+    }
+    echo '<span class="analytics-page-indicator">Page ' . $currentPage . ' of ' . $totalPages . '</span>';
+    echo '</nav>';
 }
 
 function analytics_category_definitions(array $context): array
@@ -396,6 +432,7 @@ function analytics_render_operations(array $context): void
     echo '<article><span>Active Workload</span><strong>' . analytics_number($summary["active_workload"] ?? 0) . '</strong></article>';
     echo '<article><span>Completion Rate</span><strong>' . analytics_percent($summary["completion_rate"] ?? 0) . '</strong></article>';
     echo '</div></section>';
+    analytics_render_export_row($context, "super_admin_analytics_operations.php");
     echo '<section class="analytics-operations-grid">';
     echo '<article class="analytics-panel analytics-operational-summary"><h2>Operational Summary</h2><p>ServiTech handled <strong>' . analytics_number($summary["total_requests"] ?? 0) . '</strong> service requests in this range, with <strong>' . analytics_percent($summary["completion_rate"] ?? 0) . '</strong> completed successfully.</p><div class="analytics-definition-list">';
     echo '<div><span>Most Requested Service</span><strong>' . analytics_h($analytics["most_requested_service"]["service_label"] ?? "-") . '</strong></div>';
@@ -421,6 +458,7 @@ function analytics_render_service_queue(array $context): void
         ["label" => "Median Waiting Time", "value" => analytics_minutes($summary["median_queue_waiting_minutes"] ?? 0)],
         ["label" => "Longest Waiting Request", "value" => analytics_h($analytics["longest_waiting_request"]["queue_code"] ?? "-"), "note" => analytics_minutes($analytics["longest_waiting_request"]["queue_waiting_minutes"] ?? null)],
     ]);
+    analytics_render_export_row($context, "super_admin_analytics_service_queue.php");
 
     echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Service Demand</h2><p>Demand patterns across service types and reporting periods.</p></div><div class="analytics-panel-grid">';
     echo '<article class="analytics-panel"><h3>Requests by Service Type</h3>';
@@ -438,17 +476,22 @@ function analytics_render_service_queue(array $context): void
     }
     echo '</tbody></table></div></article></section>';
 
-    echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Queue Performance</h2><p>Waiting-time measures used for queueing and service-flow analysis.</p></div><div class="analytics-panel-grid">';
+    echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Queue Performance</h2><p>Review customer waiting times, longest and shortest queue waits, and queue status performance.</p></div><div class="analytics-panel-grid">';
     echo '<article class="analytics-panel"><h3>Waiting Time Highlights</h3><div class="analytics-definition-list">';
     echo '<div><span>Average Queue Waiting Time</span><strong>' . analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0) . '</strong></div>';
     echo '<div><span>Longest Waiting Request</span><strong>' . analytics_h($analytics["longest_waiting_request"]["queue_code"] ?? "-") . ' / ' . analytics_minutes($analytics["longest_waiting_request"]["queue_waiting_minutes"] ?? null) . '</strong></div>';
     echo '<div><span>Shortest Waiting Request</span><strong>' . analytics_h($analytics["shortest_waiting_request"]["queue_code"] ?? "-") . ' / ' . analytics_minutes($analytics["shortest_waiting_request"]["queue_waiting_minutes"] ?? null) . '</strong></div>';
     echo '</div></article>';
-    echo '<article class="analytics-panel"><h3>Longest Waiting Requests</h3><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer</th><th>Service Type</th><th>Status</th><th>Waiting Time</th><th>Created At</th></tr></thead><tbody>';
-    if (empty($analytics["longest_waiting_requests"])) {
+    $longestWaitingRows = array_slice($analytics["longest_waiting_requests"] ?? [], 0, 5);
+    echo '<article class="analytics-panel"><h3>Longest Waiting Requests</h3>';
+    if (count($analytics["longest_waiting_requests"] ?? []) > 5) {
+        echo '<p class="analytics-table-note">Showing top 5 longest waiting requests.</p>';
+    }
+    echo '<div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer</th><th>Service Type</th><th>Status</th><th>Waiting Time</th><th>Created At</th></tr></thead><tbody>';
+    if (empty($longestWaitingRows)) {
         echo '<tr><td colspan="6">No waiting-time data available.</td></tr>';
     } else {
-        foreach ($analytics["longest_waiting_requests"] as $row) {
+        foreach ($longestWaitingRows as $row) {
             echo '<tr><td>' . analytics_h($row["queue_code"] ?? "") . '</td><td>' . analytics_h($row["customer_name"] ?? "") . '</td><td>' . analytics_h($row["service_label"] ?? "") . '</td><td>' . analytics_h($row["status_group"] ?? "") . '</td><td>' . analytics_minutes($row["queue_waiting_minutes"] ?? null) . '</td><td>' . analytics_datetime($row["request_created_at"] ?? "") . '</td></tr>';
         }
     }
@@ -474,15 +517,23 @@ function analytics_render_service_queue(array $context): void
     }
     echo '</tbody></table></div></article></section>';
 
+    $allRecords = $analytics["detailed_records"] ?? [];
+    $recordsPerPage = 10;
+    $totalRecords = count($allRecords);
+    $totalPages = max(1, (int)ceil($totalRecords / $recordsPerPage));
+    $currentPage = max(1, min((int)($context["filters"]["records_page"] ?? 1), $totalPages));
+    $visibleRecords = array_slice($allRecords, ($currentPage - 1) * $recordsPerPage, $recordsPerPage);
     echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Detailed Records</h2><p>Queue-level timestamps and computed waiting duration.</p></div><article class="analytics-panel"><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer Name</th><th>Service Type</th><th>Current/Final Status</th><th>Created At</th><th>Approved At</th><th>Ongoing At</th><th>Done At</th><th>Queue Waiting Time</th></tr></thead><tbody>';
-    if (empty($analytics["detailed_records"])) {
+    if (empty($visibleRecords)) {
         echo '<tr><td colspan="9">No detailed service and queue records found.</td></tr>';
     } else {
-        foreach ($analytics["detailed_records"] as $row) {
+        foreach ($visibleRecords as $row) {
             echo '<tr><td>' . analytics_h($row["queue_code"] ?? "") . '</td><td>' . analytics_h($row["customer_name"] ?? "") . '</td><td>' . analytics_h($row["service_label"] ?? "") . '</td><td>' . analytics_h($row["status_group"] ?? "") . '</td><td>' . analytics_datetime($row["request_created_at"] ?? "") . '</td><td>' . analytics_datetime($row["approved_at"] ?? "") . '</td><td>' . analytics_datetime($row["ongoing_at"] ?? "") . '</td><td>' . analytics_datetime($row["done_at"] ?? "") . '</td><td>' . analytics_minutes($row["queue_waiting_minutes"] ?? null) . '</td></tr>';
         }
     }
-    echo '</tbody></table></div></article></section>';
+    echo '</tbody></table></div>';
+    analytics_render_pagination("super_admin_analytics_service_queue.php", $context["filters"] ?? [], "records_page", $currentPage, $totalPages);
+    echo '</article></section>';
 }
 
 function analytics_render_workflow(array $context): void
@@ -494,6 +545,7 @@ function analytics_render_workflow(array $context): void
         ["label" => "Average Pending Time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "PENDING"))],
         ["label" => "Average Ongoing Time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "ONGOING"))],
     ]);
+    analytics_render_export_row($context, "super_admin_analytics_workflow.php");
     echo '<section class="analytics-workflow-board"><article class="analytics-panel"><h2>Status Duration Summary</h2><div class="analytics-duration-card-grid">';
     if (empty($analytics["status_durations"])) {
         echo '<p class="analytics-empty">No status duration data found.</p>';
@@ -676,6 +728,7 @@ function analytics_render_exports(array $context): void
     echo '</div></article>';
     echo '<section class="analytics-notice-card"><strong>Analytics reset is currently disabled.</strong><p>Export functions remain available for reporting and backup purposes.</p></section>';
     echo '</section>';
+    analytics_render_export_row($context, "super_admin_analytics_exports.php", true);
     echo '<section class="analytics-panel-grid analytics-export-history-grid"><article class="analytics-panel"><h2>Archived Analytics Ranges</h2><div class="analytics-table-wrap"><table><thead><tr><th>Range</th><th>Date Range</th><th>Status</th><th>Snapshot</th></tr></thead><tbody>';
     if (empty($analytics["cycle_center"]["previous_cycles"])) {
         echo '<tr><td colspan="4">No previous analytics cycles found.</td></tr>';
