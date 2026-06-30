@@ -36,7 +36,7 @@ $dashboardSubtitle = "Business overview, staff controls, system settings, and op
   <title>ServiTech Super Admin Dashboard</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= project_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
-  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260628-quick-access-blue-grid') ?>">
+  <link rel="stylesheet" href="<?= project_url('/pages/admin/admin_dashboard.css?v=20260701-analytics-view-all-button') ?>">
 </head>
 <body
   class="admin-dashboard"

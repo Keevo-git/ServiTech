@@ -319,6 +319,27 @@ body.admin-dashboard .admin-analytics-view-all:focus-visible{
   transform: translateY(-1px);
 }
 
+body.admin-dashboard .admin-analytics-header{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 10px;
+}
+
+body.admin-dashboard .admin-analytics-header .admin-analytics-view-all{
+  justify-self: end;
+}
+
+body.admin-dashboard .admin-analytics-header .admin-section-divider{
+  grid-column: 1 / -1;
+}
+
+body.admin-dashboard .admin-analytics-view-all:focus-visible{
+  outline: 3px solid rgba(48, 109, 194, 0.28);
+  outline-offset: 2px;
+}
+
 body.admin-dashboard .employee-focus-grid{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1145,6 +1166,14 @@ body.admin-dashboard .admin-shared-footer .footer-legal-links + .footer-bottom{
 
   body.admin-dashboard .admin-quick-access-header{
     margin-top: 3px;
+  }
+
+  body.admin-dashboard .admin-analytics-header{
+    grid-template-columns: 1fr;
+  }
+
+  body.admin-dashboard .admin-analytics-header .admin-analytics-view-all{
+    justify-self: stretch;
   }
 
   body.admin-dashboard .dashboard-content .admin-quick-grid{

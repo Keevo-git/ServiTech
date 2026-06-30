@@ -17,6 +17,7 @@ $views = file_get_contents(__DIR__ . "/../pages/super_admin/_includes/super_admi
 $landing = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_analytics.php") ?: "";
 $css = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_analytics.css") ?: "";
 $dashboard = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_dashboard.php") ?: "";
+$dashboardCss = file_get_contents(__DIR__ . "/../pages/admin/admin_dashboard.css") ?: "";
 
 super_analytics_assert(str_contains($migration, "CREATE TABLE IF NOT EXISTS queue_status_events"), "Migration must create the status-events analytics table.");
 super_analytics_assert(str_contains($migration, "request_created_at") && str_contains($migration, "request_source"), "Migration must add queue timestamp and request-source fields.");
@@ -129,6 +130,13 @@ super_analytics_assert(str_contains($workflowPage, 'unset($analyticsRequest["sta
 super_analytics_assert(str_contains($workflowFunction, "history_page") && str_contains($workflowFunction, 'array_slice($historyRows') && !str_contains($workflowFunction, "<th>Remarks</th>"), "Workflow transition history must paginate and hide the Remarks column on-page.");
 super_analytics_assert(str_contains($views, "Status Transition History Raw Data") && str_contains($views, "Remarks"), "Workflow CSV raw data may still include remarks.");
 
+$operationsFunctionStart = strpos($views, "function analytics_render_operations");
+$operationsFunctionEnd = strpos($views, "function analytics_render_service_queue");
+$operationsFunction = ($operationsFunctionStart !== false && $operationsFunctionEnd !== false)
+    ? substr($views, $operationsFunctionStart, $operationsFunctionEnd - $operationsFunctionStart)
+    : "";
+super_analytics_assert(!str_contains($operationsFunction, "Average Service Processing Time") && !str_contains($operationsFunction, "avg_service_processing_minutes"), "Operations Overview must not render average service processing time.");
+
 super_analytics_assert(str_contains($css, ".analytics-card-grid") && str_contains($css, "grid-template-columns: repeat(3"), "Landing page must use a 3-column desktop category card grid.");
 super_analytics_assert(str_contains($css, "@media (max-width: 880px)") && str_contains($css, "grid-template-columns: repeat(2"), "Landing page must use two category columns on tablet.");
 super_analytics_assert(str_contains($css, ".analytics-report-card") && str_contains($css, ".analytics-open-report"), "CSS must style professional category cards and Open Report buttons.");
@@ -142,6 +150,8 @@ super_analytics_assert(!str_contains($css, ".analytics-loading-shell") && str_co
 super_analytics_assert(str_contains($css, "@media (max-width: 880px)") && str_contains($css, "@media (max-width: 620px)"), "Analytics UI must include tablet and mobile responsive rules.");
 
 super_analytics_assert(str_contains($dashboard, "Owner Reports & Analytics") && str_contains($dashboard, "super_admin_analytics.php") && str_contains($dashboard, "View All"), "Dashboard analytics section must link to the categorized landing page.");
+super_analytics_assert(str_contains($dashboard, "admin-analytics-view-all") && str_contains($dashboard, "20260701-analytics-view-all-button"), "Dashboard analytics link must use the updated button stylesheet.");
+super_analytics_assert(str_contains($dashboardCss, ".admin-analytics-header") && str_contains($dashboardCss, "grid-template-columns: minmax(0, 1fr) auto") && str_contains($dashboardCss, ".admin-analytics-view-all:focus-visible"), "Dashboard View All action must be styled as a right-aligned button.");
 
 $stateMachine = file_get_contents(__DIR__ . "/../api/queue_state_machine.php") ?: "";
 $customerCancel = file_get_contents(__DIR__ . "/../api/queue_cancel_request.php") ?: "";

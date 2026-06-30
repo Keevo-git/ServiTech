@@ -652,7 +652,6 @@ function analytics_render_operations(array $context): void
     echo '<article class="analytics-panel analytics-operational-summary"><h2>Operational Summary</h2><p>ServiTech handled <strong>' . analytics_number($summary["total_requests"] ?? 0) . '</strong> service requests in this range, with <strong>' . analytics_percent($summary["completion_rate"] ?? 0) . '</strong> completed successfully.</p><div class="analytics-definition-list">';
     echo '<div><span>Most Requested Service</span><strong>' . analytics_h($analytics["most_requested_service"]["service_label"] ?? "-") . '</strong></div>';
     echo '<div><span>Average Queue Waiting Time</span><strong>' . analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0) . '</strong></div>';
-    echo '<div><span>Average Service Processing Time</span><strong>' . analytics_minutes($summary["avg_service_processing_minutes"] ?? 0) . '</strong></div>';
     echo '</div></article>';
     echo '<article class="analytics-panel"><h2>Status Distribution</h2>';
     analytics_render_bars(analytics_status_rows($analytics), "label", "total", "No queue status records found.");
