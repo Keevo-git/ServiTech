@@ -17,7 +17,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260630-analytics') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-simplified-reports') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-individual-reports') ?>">
 </head>
 <body class="admin-analytics-page">
 

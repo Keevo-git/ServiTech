@@ -35,6 +35,10 @@ body.admin-analytics-page .analytics-report-header {
   border-top: 5px solid #226f63;
 }
 
+body.admin-analytics-page .analytics-report-copy {
+  min-width: 0;
+}
+
 body.admin-analytics-page .analytics-eyebrow {
   margin: 0 0 8px;
   color: #226f63;
@@ -139,11 +143,17 @@ body.admin-analytics-page .analytics-back-link:focus-visible {
 }
 
 body.admin-analytics-page .analytics-report-actions {
-  display: grid;
-  gap: 10px;
-  justify-items: end;
-  min-width: 210px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 220px;
   flex: 0 0 auto;
+}
+
+body.admin-analytics-page .analytics-report-actions .analytics-cycle-chip,
+body.admin-analytics-page .analytics-report-actions .analytics-back-link {
+  width: 100%;
 }
 
 body.admin-analytics-page .analytics-warning {
@@ -412,10 +422,175 @@ body.admin-analytics-page .analytics-metric-card strong {
   overflow-wrap: anywhere;
 }
 
+body.admin-analytics-page .analytics-operations-overview {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.05fr) minmax(0, 2fr);
+  gap: 16px;
+}
+
+body.admin-analytics-page .analytics-executive-card,
+body.admin-analytics-page .analytics-executive-mini-grid article,
+body.admin-analytics-page .analytics-export-range-card,
+body.admin-analytics-page .analytics-export-action-card {
+  border: 1px solid #d7e2ee;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 14px 32px rgba(29, 48, 78, 0.07);
+}
+
+body.admin-analytics-page .analytics-executive-card {
+  display: grid;
+  gap: 10px;
+  min-height: 188px;
+  padding: 22px;
+  border-left: 5px solid #1e4b7a;
+}
+
+body.admin-analytics-page .analytics-executive-card span,
+body.admin-analytics-page .analytics-executive-mini-grid span,
+body.admin-analytics-page .analytics-export-range-card span {
+  color: #607086;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+body.admin-analytics-page .analytics-executive-card strong {
+  color: #102238;
+  font-size: clamp(2rem, 5vw, 3.35rem);
+  line-height: 1;
+}
+
+body.admin-analytics-page .analytics-executive-card p,
+body.admin-analytics-page .analytics-export-range-card p,
+body.admin-analytics-page .analytics-export-action-card p {
+  margin: 0;
+  color: #5d6b80;
+  line-height: 1.55;
+}
+
+body.admin-analytics-page .analytics-executive-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+body.admin-analytics-page .analytics-executive-mini-grid article {
+  display: grid;
+  align-content: space-between;
+  min-height: 130px;
+  padding: 16px;
+  border-top: 4px solid #226f63;
+}
+
+body.admin-analytics-page .analytics-executive-mini-grid strong {
+  color: #102238;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 1.1;
+}
+
+body.admin-analytics-page .analytics-operations-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 0.85fr;
+  gap: 16px;
+}
+
+body.admin-analytics-page .analytics-operational-summary {
+  border-left: 5px solid #1e4b7a;
+}
+
+body.admin-analytics-page .analytics-operational-summary p {
+  margin: 0 0 14px;
+  color: #52627a;
+  line-height: 1.55;
+}
+
+body.admin-analytics-page .analytics-cycle-range-card {
+  border-left: 5px solid #226f63;
+}
+
 body.admin-analytics-page .analytics-panel-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+}
+
+body.admin-analytics-page .analytics-workflow-board {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
+}
+
+body.admin-analytics-page .analytics-duration-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+body.admin-analytics-page .analytics-duration-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #e1e9f3;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+body.admin-analytics-page .analytics-duration-card strong {
+  color: #102238;
+  font-size: 1.15rem;
+}
+
+body.admin-analytics-page .analytics-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 26px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #e8f4f1;
+  color: #226f63;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+body.admin-analytics-page .analytics-timeline-panel {
+  border-left: 5px solid #226f63;
+}
+
+body.admin-analytics-page .analytics-export-center-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(280px, 1.1fr) minmax(240px, 0.9fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+body.admin-analytics-page .analytics-export-range-card,
+body.admin-analytics-page .analytics-export-action-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+body.admin-analytics-page .analytics-export-range-card {
+  border-left: 5px solid #1e4b7a;
+}
+
+body.admin-analytics-page .analytics-export-range-card strong {
+  color: #102238;
+  font-size: 1.18rem;
+  line-height: 1.2;
+}
+
+body.admin-analytics-page .analytics-export-action-card {
+  border-left: 5px solid #226f63;
+}
+
+body.admin-analytics-page .analytics-export-history-grid {
+  align-items: start;
 }
 
 body.admin-analytics-page .analytics-section-block {
@@ -642,11 +817,22 @@ body.admin-analytics-page .analytics-export-row button:disabled {
     grid-template-columns: 1fr;
   }
 
+  body.admin-analytics-page .analytics-operations-overview,
+  body.admin-analytics-page .analytics-operations-grid,
+  body.admin-analytics-page .analytics-workflow-board,
+  body.admin-analytics-page .analytics-export-center-layout {
+    grid-template-columns: 1fr;
+  }
+
   body.admin-analytics-page .analytics-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   body.admin-analytics-page .analytics-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.admin-analytics-page .analytics-executive-mini-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -665,7 +851,9 @@ body.admin-analytics-page .analytics-export-row button:disabled {
   }
 
   body.admin-analytics-page .analytics-report-card__top,
-  body.admin-analytics-page .analytics-metric-grid {
+  body.admin-analytics-page .analytics-metric-grid,
+  body.admin-analytics-page .analytics-executive-mini-grid,
+  body.admin-analytics-page .analytics-duration-card-grid {
     grid-template-columns: 1fr;
   }
 
@@ -675,6 +863,10 @@ body.admin-analytics-page .analytics-export-row button:disabled {
 
   body.admin-analytics-page .analytics-report-card {
     min-height: 0;
+  }
+
+  body.admin-analytics-page .analytics-report-actions {
+    min-width: 0;
   }
 
   body.admin-analytics-page .analytics-filter-actions,

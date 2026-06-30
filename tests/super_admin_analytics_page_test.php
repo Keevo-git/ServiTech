@@ -108,6 +108,10 @@ super_analytics_assert(!str_contains($workflowFunction, "Requests with Incomplet
 super_analytics_assert(str_contains($css, ".analytics-card-grid") && str_contains($css, "grid-template-columns: repeat(2"), "Landing page must use a 2-column desktop category card grid.");
 super_analytics_assert(str_contains($css, ".analytics-report-card") && str_contains($css, ".analytics-open-report"), "CSS must style professional category cards and Open Report buttons.");
 super_analytics_assert(str_contains($css, ".analytics-metric-card") && str_contains($css, ".analytics-filter-bar"), "CSS must style metric cards and filter bars.");
+super_analytics_assert(str_contains($views, "analytics-report-actions") && str_contains($css, "flex-direction: column"), "Report header must stack the date badge above the Back to Analytics button.");
+super_analytics_assert(str_contains($views, "analytics-operations-overview") && str_contains($css, ".analytics-operations-overview"), "Operations report must use an executive summary layout.");
+super_analytics_assert(str_contains($views, "analytics-workflow-board") && str_contains($css, ".analytics-workflow-board"), "Workflow report must use a workflow/status monitoring layout.");
+super_analytics_assert(str_contains($views, "analytics-export-center-layout") && str_contains($css, ".analytics-export-center-layout"), "Export center must use a report-management layout.");
 super_analytics_assert(!str_contains($css, ".analytics-loading-shell") && str_contains($css, "[hidden]"), "CSS must not reserve space for hidden loading placeholders.");
 super_analytics_assert(str_contains($css, "@media (max-width: 880px)") && str_contains($css, "@media (max-width: 620px)"), "Analytics UI must include tablet and mobile responsive rules.");
 

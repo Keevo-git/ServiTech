@@ -291,8 +291,8 @@ function analytics_render_report_header(string $title, string $description, arra
 {
     $cycle = $context["cycle"] ?? [];
     echo '<section class="analytics-report-header">';
-    echo '<div><p class="analytics-eyebrow">Super Admin Report</p><h1>' . analytics_h($title) . '</h1><p>' . analytics_h($description) . '</p></div>';
-    echo '<div class="analytics-report-actions"><span class="analytics-cycle-chip">' . analytics_h(($cycle["start_date"] ?? "-") . " to " . ($cycle["end_date"] ?? "-")) . '</span>';
+    echo '<div class="analytics-report-copy"><p class="analytics-eyebrow">Super Admin Report</p><h1>' . analytics_h($title) . '</h1><p>' . analytics_h($description) . '</p></div>';
+    echo '<div class="analytics-report-actions" aria-label="Report navigation"><span class="analytics-cycle-chip">' . analytics_h(($cycle["start_date"] ?? "-") . " to " . ($cycle["end_date"] ?? "-")) . '</span>';
     echo '<a class="analytics-back-link" href="' . admin_url('/pages/super_admin/super_admin_analytics.php') . '">&larr; Back to Analytics</a></div>';
     echo '</section>';
 }
@@ -388,22 +388,26 @@ function analytics_render_operations(array $context): void
 {
     $analytics = $context["analytics"];
     $summary = $context["summary"];
-    analytics_render_metric_grid([
-        ["label" => "Total Service Requests", "value" => analytics_number($summary["total_requests"] ?? 0)],
-        ["label" => "Completed Requests", "value" => analytics_number($summary["completed_requests"] ?? 0)],
-        ["label" => "Cancelled Requests", "value" => analytics_number($summary["cancelled_requests"] ?? 0)],
-        ["label" => "Active Workload", "value" => analytics_number($summary["active_workload"] ?? 0)],
-        ["label" => "Completion Rate", "value" => analytics_percent($summary["completion_rate"] ?? 0)],
-    ]);
-    echo '<section class="analytics-panel-grid">';
-    echo '<article class="analytics-panel"><h2>Queue Status Distribution</h2>';
-    analytics_render_bars(analytics_status_rows($analytics), "label", "total", "No queue status records found.");
-    echo '</article>';
-    echo '<article class="analytics-panel"><h2>Monthly Cycle Summary</h2><div class="analytics-definition-list">';
-    echo '<div><span>Cycle Range</span><strong>' . analytics_h(($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-")) . '</strong></div>';
+    echo '<section class="analytics-operations-overview">';
+    echo '<article class="analytics-executive-card analytics-executive-card--primary"><span>Total Service Requests</span><strong>' . analytics_number($summary["total_requests"] ?? 0) . '</strong><p>Overall request volume for the selected reporting range.</p></article>';
+    echo '<div class="analytics-executive-mini-grid">';
+    echo '<article><span>Completed</span><strong>' . analytics_number($summary["completed_requests"] ?? 0) . '</strong></article>';
+    echo '<article><span>Cancelled</span><strong>' . analytics_number($summary["cancelled_requests"] ?? 0) . '</strong></article>';
+    echo '<article><span>Active Workload</span><strong>' . analytics_number($summary["active_workload"] ?? 0) . '</strong></article>';
+    echo '<article><span>Completion Rate</span><strong>' . analytics_percent($summary["completion_rate"] ?? 0) . '</strong></article>';
+    echo '</div></section>';
+    echo '<section class="analytics-operations-grid">';
+    echo '<article class="analytics-panel analytics-operational-summary"><h2>Operational Summary</h2><p>ServiTech handled <strong>' . analytics_number($summary["total_requests"] ?? 0) . '</strong> service requests in this range, with <strong>' . analytics_percent($summary["completion_rate"] ?? 0) . '</strong> completed successfully.</p><div class="analytics-definition-list">';
     echo '<div><span>Most Requested Service</span><strong>' . analytics_h($analytics["most_requested_service"]["service_label"] ?? "-") . '</strong></div>';
     echo '<div><span>Average Queue Waiting Time</span><strong>' . analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0) . '</strong></div>';
     echo '<div><span>Average Service Processing Time</span><strong>' . analytics_minutes($summary["avg_service_processing_minutes"] ?? 0) . '</strong></div>';
+    echo '</div></article>';
+    echo '<article class="analytics-panel"><h2>Status Distribution</h2>';
+    analytics_render_bars(analytics_status_rows($analytics), "label", "total", "No queue status records found.");
+    echo '</article>';
+    echo '<article class="analytics-panel analytics-cycle-range-card"><h2>Reporting Range</h2><div class="analytics-definition-list">';
+    echo '<div><span>Data Range</span><strong>' . analytics_h(($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-")) . '</strong></div>';
+    echo '<div><span>Export Status</span><strong>' . (!empty($context["export_status"]["exported"]) ? "Exported" : "Not Exported") . '</strong></div>';
     echo '</div></article></section>';
 }
 
@@ -490,15 +494,30 @@ function analytics_render_workflow(array $context): void
         ["label" => "Average Pending Time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "PENDING"))],
         ["label" => "Average Ongoing Time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "ONGOING"))],
     ]);
-    echo '<section class="analytics-panel"><h2>Status Duration Summary</h2>';
-    analytics_render_bars($analytics["status_durations"] ?? [], "status", "avg_minutes", "No status duration data found.");
-    echo '</section>';
-    echo '<section class="analytics-panel"><h2>Status Transition History</h2><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer Name</th><th>Service Type</th><th>Status</th><th>Entered At</th><th>Exited At</th><th>Duration Min</th><th>Next Status</th><th>Remarks</th></tr></thead><tbody>';
+    echo '<section class="analytics-workflow-board"><article class="analytics-panel"><h2>Status Duration Summary</h2><div class="analytics-duration-card-grid">';
+    if (empty($analytics["status_durations"])) {
+        echo '<p class="analytics-empty">No status duration data found.</p>';
+    } else {
+        foreach ($analytics["status_durations"] as $row) {
+            echo '<div class="analytics-duration-card"><span class="analytics-status-badge">' . analytics_h($row["status"] ?? "-") . '</span><strong>' . analytics_minutes($row["avg_minutes"] ?? null) . '</strong></div>';
+        }
+    }
+    echo '</div></article>';
+    echo '<article class="analytics-panel"><h2>Stalled Requests</h2><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer</th><th>Service Type</th><th>Status</th><th>Last Status Update</th></tr></thead><tbody>';
+    if (empty($analytics["stale_requests"])) {
+        echo '<tr><td colspan="5">No active requests are older than the stale-update threshold.</td></tr>';
+    } else {
+        foreach ($analytics["stale_requests"] as $row) {
+            echo '<tr><td>' . analytics_h($row["queue_code"] ?? "") . '</td><td>' . analytics_h($row["customer_name"] ?? "") . '</td><td>' . analytics_h($row["service_label"] ?? "") . '</td><td><span class="analytics-status-badge">' . analytics_h($row["status_group"] ?? "") . '</span></td><td>' . analytics_datetime($row["last_status_at"] ?? "") . '</td></tr>';
+        }
+    }
+    echo '</tbody></table></div></article></section>';
+    echo '<section class="analytics-panel analytics-timeline-panel"><h2>Status Transition History</h2><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer Name</th><th>Service Type</th><th>Status</th><th>Entered At</th><th>Exited At</th><th>Duration Min</th><th>Next Status</th><th>Remarks</th></tr></thead><tbody>';
     if (empty($analytics["history"])) {
         echo '<tr><td colspan="9">No status transition history found for the selected filters.</td></tr>';
     } else {
         foreach ($analytics["history"] as $event) {
-            echo '<tr><td>' . analytics_h($event["queue_code"] ?? "") . '</td><td>' . analytics_h($event["customer_name_snapshot"] ?? "") . '</td><td>' . analytics_h($event["service_type"] ?? "") . '</td><td>' . analytics_h($event["status"] ?? "") . '</td><td>' . analytics_datetime($event["entered_at"] ?? "") . '</td><td>' . analytics_datetime($event["exited_at"] ?? "") . '</td><td>' . analytics_h($event["duration_minutes"] ?? "-") . '</td><td>' . analytics_h($event["next_status"] ?? "-") . '</td><td>' . analytics_h($event["remarks"] ?? "") . '</td></tr>';
+            echo '<tr><td>' . analytics_h($event["queue_code"] ?? "") . '</td><td>' . analytics_h($event["customer_name_snapshot"] ?? "") . '</td><td>' . analytics_h($event["service_type"] ?? "") . '</td><td><span class="analytics-status-badge">' . analytics_h($event["status"] ?? "") . '</span></td><td>' . analytics_datetime($event["entered_at"] ?? "") . '</td><td>' . analytics_datetime($event["exited_at"] ?? "") . '</td><td>' . analytics_h($event["duration_minutes"] ?? "-") . '</td><td>' . analytics_h($event["next_status"] ?? "-") . '</td><td>' . analytics_h($event["remarks"] ?? "") . '</td></tr>';
         }
     }
     echo '</tbody></table></div></section>';
@@ -648,13 +667,16 @@ function analytics_render_exports(array $context): void
 {
     $analytics = $context["analytics"];
     $exportStatus = $context["export_status"] ?? [];
+    echo '<section class="analytics-export-center-layout">';
+    echo '<article class="analytics-export-range-card"><span>Current Report Range</span><strong>' . analytics_h(($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-")) . '</strong><p>Use this range when exporting the current owner analytics report.</p></article>';
+    echo '<article class="analytics-export-action-card"><h2>Export Actions</h2><p>You may export the current analytics report anytime to keep a copy of the results.</p><div class="analytics-definition-list">';
+    echo '<div><span>Export Status</span><strong>' . (!empty($exportStatus["exported"]) ? "Exported" : "Not Exported") . '</strong></div>';
+    echo '<div><span>Last Export</span><strong>' . (!empty($exportStatus["exported_at"]) ? analytics_datetime($exportStatus["exported_at"]) : "No export logged") . '</strong></div>';
+    echo '<div><span>Previous Exports</span><strong>' . analytics_number(count($analytics["cycle_center"]["export_logs"] ?? [])) . '</strong></div>';
+    echo '</div></article>';
     echo '<section class="analytics-notice-card"><strong>Analytics reset is currently disabled.</strong><p>Export functions remain available for reporting and backup purposes.</p></section>';
-    analytics_render_metric_grid([
-        ["label" => "Current Data Range", "value" => analytics_h($context["cycle"]["cycle_key"] ?? "-"), "note" => analytics_h(($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-"))],
-        ["label" => "Export Status", "value" => !empty($exportStatus["exported"]) ? "Exported" : "Not Exported", "note" => !empty($exportStatus["exported_at"]) ? analytics_datetime($exportStatus["exported_at"]) : "No export logged"],
-        ["label" => "Previous Exports", "value" => analytics_number(count($analytics["cycle_center"]["export_logs"] ?? []))],
-    ]);
-    echo '<section class="analytics-panel-grid"><article class="analytics-panel"><h2>Archived Analytics Ranges</h2><div class="analytics-table-wrap"><table><thead><tr><th>Range</th><th>Date Range</th><th>Status</th><th>Snapshot</th></tr></thead><tbody>';
+    echo '</section>';
+    echo '<section class="analytics-panel-grid analytics-export-history-grid"><article class="analytics-panel"><h2>Archived Analytics Ranges</h2><div class="analytics-table-wrap"><table><thead><tr><th>Range</th><th>Date Range</th><th>Status</th><th>Snapshot</th></tr></thead><tbody>';
     if (empty($analytics["cycle_center"]["previous_cycles"])) {
         echo '<tr><td colspan="4">No previous analytics cycles found.</td></tr>';
     } else {
