@@ -17,7 +17,7 @@ $dashboardNow = new DateTimeImmutable("now", new DateTimeZone("Asia/Manila"));
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260630-analytics') ?>">
-  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-categorized-reports') ?>">
+  <link rel="stylesheet" href="<?= admin_url('/pages/super_admin/super_admin_analytics.css?v=20260701-simplified-reports') ?>">
 </head>
 <body class="admin-analytics-page">
 
@@ -31,11 +31,12 @@ require __DIR__ . "/../admin/_includes/admin_header.php";
     <div>
       <p class="analytics-eyebrow">Super Admin Reporting</p>
       <h1>Owner Reports & Analytics</h1>
-      <p>View categorized reports on service requests, queue performance, workflow status, staff activity, communication, and monthly analytics cycles.</p>
+      <p>A simplified reporting center for reviewing ServiTech operations, service requests, queue performance, workflow progress, and monthly analytics exports.</p>
     </div>
     <div class="analytics-header-meta">
-      <span>Generated <?= analytics_h($dashboardNow->format("M d, Y h:i A")) ?></span>
-      <span><?= analytics_h(($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-")) ?></span>
+      <span>Current Cycle</span>
+      <strong><?= analytics_h(($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-")) ?></strong>
+      <small>Updated <?= analytics_h($dashboardNow->format("M d, Y h:i A")) ?></small>
     </div>
   </section>
 

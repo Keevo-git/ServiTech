@@ -203,6 +203,10 @@ function analytics_render_cycle_banner(array $context): void
     $daysRemaining = (int)($context["days_remaining"] ?? 0);
     $exportStatus = $context["export_status"] ?? [];
 
+    if ($warningLevel === "") {
+        return;
+    }
+
     echo '<section class="analytics-cycle-banner' . ($warningLevel !== "" ? ' analytics-cycle-banner--warning' : '') . '" role="status">';
     echo '<div>';
     echo '<strong>Current analytics cycle: ' . analytics_h($cycle["start_date"] ?? "-") . ' to ' . analytics_h($cycle["end_date"] ?? "-") . '</strong>';
@@ -317,9 +321,6 @@ function analytics_category_definitions(array $context): array
     $cycle = $context["cycle"] ?? [];
     $daysRemaining = (int)($context["days_remaining"] ?? 0);
     $exportStatus = $context["export_status"] ?? [];
-    $staffRows = $analytics["staff"]["rows"] ?? [];
-    $completionExtremes = $analytics["completion_extremes"] ?? [];
-    $slowestService = $completionExtremes ? (string)($completionExtremes[count($completionExtremes) - 1]["service_label"] ?? "-") : "-";
 
     return [
         [
@@ -329,9 +330,8 @@ function analytics_category_definitions(array $context): array
             "description" => "Review overall system activity, completion rate, active workload, and current monthly analytics cycle.",
             "metrics" => [
                 ["label" => "Total requests", "value" => analytics_number($summary["total_requests"] ?? 0)],
-                ["label" => "Active workload", "value" => analytics_number($summary["active_workload"] ?? 0)],
+                ["label" => "Completed", "value" => analytics_number($summary["completed_requests"] ?? 0)],
                 ["label" => "Completion rate", "value" => analytics_percent($summary["completion_rate"] ?? 0)],
-                ["label" => "Current cycle", "value" => (string)($cycle["cycle_key"] ?? "-")],
             ],
         ],
         [
@@ -343,7 +343,6 @@ function analytics_category_definitions(array $context): array
                 ["label" => "Most requested service", "value" => (string)($mostRequested["service_label"] ?? "-")],
                 ["label" => "Average queue waiting time", "value" => analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0)],
                 ["label" => "Average processing time", "value" => analytics_minutes($summary["avg_service_processing_minutes"] ?? 0)],
-                ["label" => "Longest waiting request", "value" => (string)($analytics["longest_waiting_request"]["queue_code"] ?? "-")],
             ],
         ],
         [
@@ -355,67 +354,6 @@ function analytics_category_definitions(array $context): array
                 ["label" => "Average pending time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "PENDING"))],
                 ["label" => "Average ongoing time", "value" => analytics_minutes(analytics_status_duration_value($analytics["status_durations"] ?? [], "ONGOING"))],
                 ["label" => "Stalled requests", "value" => analytics_number(count($analytics["stale_requests"] ?? []))],
-                ["label" => "Workflow routes", "value" => analytics_number(count($analytics["workflow_routes"] ?? []))],
-            ],
-        ],
-        [
-            "icon" => "CC",
-            "title" => "Service Completion & Cancellation",
-            "route" => "super_admin_analytics_completion.php",
-            "description" => "Track completed requests, cancelled requests, cancellation reasons, and completion time by service type.",
-            "metrics" => [
-                ["label" => "Completion rate", "value" => analytics_percent($summary["completion_rate"] ?? 0)],
-                ["label" => "Cancellation rate", "value" => analytics_percent($summary["cancellation_rate"] ?? 0)],
-                ["label" => "Fastest service type", "value" => (string)($completionExtremes[0]["service_label"] ?? "-")],
-                ["label" => "Slowest service type", "value" => $slowestService],
-            ],
-        ],
-        [
-            "icon" => "ST",
-            "title" => "Staff Workload & Productivity",
-            "route" => "super_admin_analytics_staff.php",
-            "description" => "Monitor handled requests, completed requests, active workload, and staff status updates.",
-            "metrics" => [
-                ["label" => "Requests handled", "value" => analytics_number(array_sum(array_map(static fn($row): int => (int)($row["requests_handled"] ?? 0), $staffRows)))],
-                ["label" => "Completed by staff", "value" => analytics_number(array_sum(array_map(static fn($row): int => (int)($row["completed_requests"] ?? 0), $staffRows)))],
-                ["label" => "Active assigned workload", "value" => analytics_number(array_sum(array_map(static fn($row): int => (int)($row["active_workload"] ?? 0), $staffRows)))],
-                ["label" => "Average handling time", "value" => analytics_minutes($staffRows[0]["avg_handling_minutes"] ?? null)],
-            ],
-        ],
-        [
-            "icon" => "CN",
-            "title" => "Communication & Notifications",
-            "route" => "super_admin_analytics_notifications.php",
-            "description" => "Review customer update activity, notification delivery, unread notifications, and missing update records.",
-            "metrics" => [
-                ["label" => "Notifications sent", "value" => analytics_number($analytics["notifications"]["summary"]["total"] ?? 0)],
-                ["label" => "Unread notifications", "value" => analytics_number($analytics["notifications"]["summary"]["unread"] ?? 0)],
-                ["label" => "Failed notifications", "value" => analytics_number(count($analytics["notifications"]["failed_logs"] ?? []))],
-                ["label" => "Requests without updates", "value" => analytics_number($analytics["notifications"]["summary"]["requests_without_customer_notification"] ?? 0)],
-            ],
-        ],
-        [
-            "icon" => "DQ",
-            "title" => "Errors, Corrections & Data Quality",
-            "route" => "super_admin_analytics_quality.php",
-            "description" => "Identify incomplete records, corrected requests, duplicate requests, missing details, and possible miscommunication indicators.",
-            "metrics" => [
-                ["label" => "Corrected requests", "value" => analytics_number($analytics["corrections"]["correction_requests"] ?? 0)],
-                ["label" => "Missing details", "value" => analytics_number(count($analytics["corrections"]["missing_details"] ?? []))],
-                ["label" => "Duplicate requests", "value" => "0"],
-                ["label" => "Incomplete timestamps", "value" => analytics_number(count($analytics["incomplete_timestamps"] ?? []))],
-            ],
-        ],
-        [
-            "icon" => "AV",
-            "title" => "Store Availability & Cutoff",
-            "route" => "super_admin_analytics_availability.php",
-            "description" => "Review store open/closed history, cutoff-related blocked requests, and availability changes.",
-            "metrics" => [
-                ["label" => "Availability changes", "value" => analytics_number(count($analytics["store"]["changes"] ?? []))],
-                ["label" => "Requests blocked by cutoff", "value" => analytics_number($analytics["store"]["blocked_requests"] ?? 0)],
-                ["label" => "Outside-hours attempts", "value" => "0"],
-                ["label" => "Most active service day", "value" => trim((string)($analytics["store"]["most_active_service_day"]["day_name"] ?? "-"))],
             ],
         ],
         [
@@ -427,7 +365,6 @@ function analytics_category_definitions(array $context): array
                 ["label" => "Current cycle", "value" => (string)($cycle["cycle_key"] ?? "-")],
                 ["label" => "Days before reset", "value" => $daysRemaining === 0 ? "Reset day" : analytics_number($daysRemaining)],
                 ["label" => "Export status", "value" => !empty($exportStatus["exported"]) ? "Exported" : "Not exported"],
-                ["label" => "Previous cycles", "value" => analytics_number(count($analytics["cycle_center"]["previous_cycles"] ?? []))],
             ],
         ],
     ];
@@ -488,8 +425,14 @@ function analytics_render_service_queue(array $context): void
     echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Service Demand</h2><p>Demand patterns across service types and reporting periods.</p></div><div class="analytics-panel-grid">';
     echo '<article class="analytics-panel"><h3>Requests by Service Type</h3>';
     analytics_render_bars($analytics["requests_by_service"] ?? [], "service_label", "total", "No service request records found.");
-    echo '</article><article class="analytics-panel"><h3>Service Request Trend Over Time</h3>';
+    echo '</article><article class="analytics-panel"><h3>Requests by Day</h3>';
     analytics_render_bars($analytics["requests_by_period"]["day"] ?? [], "period_label", "total", "No daily request trend found.");
+    echo '</article></div>';
+    echo '<div class="analytics-panel-grid">';
+    echo '<article class="analytics-panel"><h3>Requests by Week</h3>';
+    analytics_render_bars($analytics["requests_by_period"]["week"] ?? [], "period_label", "total", "No weekly request trend found.");
+    echo '</article><article class="analytics-panel"><h3>Requests by Month</h3>';
+    analytics_render_bars($analytics["requests_by_period"]["month"] ?? [], "period_label", "total", "No monthly request trend found.");
     echo '</article></div>';
     echo '<article class="analytics-panel"><h3>Most Requested Services Ranking</h3><div class="analytics-table-wrap"><table><thead><tr><th>Rank</th><th>Service Type</th><th>Total Requests</th><th>Completed</th><th>Cancelled</th><th>Completion Percentage</th></tr></thead><tbody>';
     if (empty($analytics["service_completion"])) {
@@ -502,6 +445,12 @@ function analytics_render_service_queue(array $context): void
     echo '</tbody></table></div></article></section>';
 
     echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Queue Performance</h2><p>Waiting-time measures used for queueing and service-flow analysis.</p></div><div class="analytics-panel-grid">';
+    echo '<article class="analytics-panel"><h3>Waiting Time Highlights</h3><div class="analytics-definition-list">';
+    echo '<div><span>Average Queue Waiting Time</span><strong>' . analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0) . '</strong></div>';
+    echo '<div><span>Average Service Processing Time</span><strong>' . analytics_minutes($summary["avg_service_processing_minutes"] ?? 0) . '</strong></div>';
+    echo '<div><span>Longest Waiting Request</span><strong>' . analytics_h($analytics["longest_waiting_request"]["queue_code"] ?? "-") . ' / ' . analytics_minutes($analytics["longest_waiting_request"]["queue_waiting_minutes"] ?? null) . '</strong></div>';
+    echo '<div><span>Shortest Waiting Request</span><strong>' . analytics_h($analytics["shortest_waiting_request"]["queue_code"] ?? "-") . ' / ' . analytics_minutes($analytics["shortest_waiting_request"]["queue_waiting_minutes"] ?? null) . '</strong></div>';
+    echo '</div></article>';
     echo '<article class="analytics-panel"><h3>Longest Waiting Requests</h3><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer</th><th>Service Type</th><th>Status</th><th>Waiting Time</th><th>Created At</th></tr></thead><tbody>';
     if (empty($analytics["longest_waiting_requests"])) {
         echo '<tr><td colspan="6">No waiting-time data available.</td></tr>';
@@ -515,12 +464,15 @@ function analytics_render_service_queue(array $context): void
     analytics_render_bars($analytics["delayed_requests"] ?? [], "queue_code", "queue_waiting_minutes", "No requests exceeded the current waiting-time threshold.");
     echo '</article></div></section>';
 
-    echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Processing Performance</h2><p>Status distribution, status duration, and requests without recent movement.</p></div><div class="analytics-panel-grid">';
+    echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Status Distribution</h2><p>Completion mix, status duration, and requests without recent movement.</p></div><div class="analytics-panel-grid">';
     echo '<article class="analytics-panel"><h3>Average Time Spent Per Status</h3>';
     analytics_render_bars($analytics["status_durations"] ?? [], "status", "avg_minutes", "No status duration data found.");
     echo '</article><article class="analytics-panel"><h3>Queue Status Distribution</h3>';
     analytics_render_bars(analytics_status_rows($analytics), "label", "total", "No status distribution data found.");
     echo '</article></div>';
+    echo '<article class="analytics-panel"><h3>Completed vs Cancelled Requests</h3>';
+    analytics_render_bars($analytics["completed_vs_cancelled"] ?? [], "status_group", "total", "No completed or cancelled records found.");
+    echo '</article>';
     echo '<article class="analytics-panel"><h3>Requests Without Recent Status Update</h3><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer</th><th>Service Type</th><th>Status</th><th>Last Status Update</th></tr></thead><tbody>';
     if (empty($analytics["stale_requests"])) {
         echo '<tr><td colspan="5">No active requests are older than the stale-update threshold.</td></tr>';
