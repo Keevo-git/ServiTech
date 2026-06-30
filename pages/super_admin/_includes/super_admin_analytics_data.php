@@ -195,9 +195,9 @@ function super_analytics_cycle_days_remaining(array $cycle): int
 function super_analytics_cycle_warning_level(int $daysRemaining): string
 {
     if (in_array($daysRemaining, [7, 3, 1, 0], true)) {
-        return $daysRemaining === 0 ? "reset-day" : "near-reset";
+        return "export-reminder";
     }
-    return $daysRemaining < 7 ? "near-reset" : "";
+    return $daysRemaining < 7 ? "export-reminder" : "";
 }
 
 function super_analytics_cycle_export_status(PDO $pdo, int $cycleId): array

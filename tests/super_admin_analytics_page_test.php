@@ -33,7 +33,6 @@ super_analytics_assert(str_contains($importer, "Missing queue IDs") && str_conta
 
 super_analytics_assert(str_contains($dataSource, "q.approved_at - COALESCE(q.request_created_at, q.created_at)"), "GCash waiting-time formula must use created-to-approved timestamps.");
 super_analytics_assert(str_contains($dataSource, "q.ongoing_at - COALESCE(q.request_created_at, q.created_at)"), "Cash waiting-time formula must use created-to-ongoing timestamps.");
-super_analytics_assert(str_contains($dataSource, "COALESCE(q.done_at, q.completed_at) - q.ongoing_at"), "Service processing time must use ongoing-to-done timestamps.");
 super_analytics_assert(str_contains($dataSource, "queue_status_events e"), "Average status duration and timelines must use queue_status_events.");
 super_analytics_assert(str_contains($dataSource, "super_analytics_fetch_cycle") && str_contains($dataSource, "cycle_start_date"), "Analytics queries must be scoped to a monthly cycle.");
 super_analytics_assert(str_contains($dataSource, "super_analytics_record_export"), "CSV exports must be logged for cycle export reminders.");
@@ -51,6 +50,8 @@ super_analytics_assert(str_contains($views, "Open Report") && str_contains($view
 super_analytics_assert(str_contains($views, "Service Requests & Queue Performance"), "Service request and queue analytics must be combined into one report category.");
 super_analytics_assert(!str_contains($views, "Service Request Analytics\"") && !str_contains($views, "Queue and Waiting Time Analytics\""), "Old separate service/queue category titles must not remain in the category list.");
 super_analytics_assert(!str_contains($views, '"Average processing time"'), "Service and queue landing card must not preview Average Processing Time.");
+super_analytics_assert(!str_contains($views, "Days before reset") && !str_contains($views, "Days Before Reset") && !str_contains($views, "Reset day") && !str_contains($views, "will reset soon"), "Analytics UI must not show reset countdown or reset warning language.");
+super_analytics_assert(str_contains($views, "Analytics reset is currently disabled.") && str_contains($views, "Export functions remain available for reporting and backup purposes."), "Export center must show the reset-disabled notice.");
 foreach ([
     "super_admin_analytics_completion.php",
     "super_admin_analytics_staff.php",
@@ -68,7 +69,7 @@ $reportPages = [
     "super_admin_analytics_operations.php" => "Operations Overview",
     "super_admin_analytics_service_queue.php" => "Service Requests & Queue Performance",
     "super_admin_analytics_workflow.php" => "Status Tracking & Workflow",
-    "super_admin_analytics_exports.php" => "Monthly Analytics Cycle & Export Center",
+    "super_admin_analytics_exports.php" => "Analytics Export Center",
 ];
 
 foreach ($reportPages as $file => $title) {
@@ -84,8 +85,14 @@ foreach ($reportPages as $file => $title) {
 }
 
 $serviceQueue = file_get_contents(__DIR__ . "/../pages/super_admin/super_admin_analytics_service_queue.php") ?: "";
+$serviceQueueFunctionStart = strpos($views, "function analytics_render_service_queue");
+$serviceQueueFunctionEnd = strpos($views, "function analytics_render_workflow");
+$serviceQueueFunction = ($serviceQueueFunctionStart !== false && $serviceQueueFunctionEnd !== false)
+    ? substr($views, $serviceQueueFunctionStart, $serviceQueueFunctionEnd - $serviceQueueFunctionStart)
+    : "";
 super_analytics_assert(str_contains($views, "Service Demand") && str_contains($views, "Queue Performance") && str_contains($views, "Status Distribution") && str_contains($views, "Detailed Records"), "Combined report must include the requested sub-sections.");
-super_analytics_assert(str_contains($views, "Queue Waiting Time") && str_contains($views, "Service Processing Time"), "Combined report must show queue waiting and service processing metrics.");
+super_analytics_assert(str_contains($views, "Queue Waiting Time"), "Combined report must show queue waiting metrics.");
+super_analytics_assert(!str_contains($serviceQueueFunction, "Average Service Processing Time") && !str_contains($serviceQueueFunction, "Service Processing Time") && !str_contains($serviceQueueFunction, "service_processing_minutes"), "Service and queue report UI must not show service processing time.");
 super_analytics_assert(str_contains($views, "Requests by Week") && str_contains($views, "Requests by Month") && str_contains($views, "Completed vs Cancelled Requests"), "Combined report must include weekly/monthly trends and completion mix.");
 super_analytics_assert(str_contains($serviceQueue, "analytics_render_service_queue"), "Combined route must render the service queue report function.");
 
@@ -103,7 +110,7 @@ $cycleScript = file_get_contents(__DIR__ . "/../scripts/run_analytics_cycle.php"
 super_analytics_assert(str_contains($stateMachine, "servitech_record_queue_analytics_initial_status"), "New queues must automatically create initial analytics status events.");
 super_analytics_assert(str_contains($stateMachine, "servitech_record_queue_analytics_transition"), "Admin status transitions must automatically update analytics events.");
 super_analytics_assert(str_contains($customerCancel, "servitech_record_queue_analytics_transition"), "Customer cancellations must feed cancellation analytics.");
-super_analytics_assert(str_contains($cycleScript, "analytics_monthly_snapshots") && str_contains($cycleScript, "Do not") === false, "Cycle script must snapshot ended cycles programmatically.");
-super_analytics_assert(str_contains($cycleScript, "logs/analytics_cycle.log") && str_contains($cycleScript, "[7, 3, 1, 0]"), "Cycle script must log scheduled reset warnings.");
+super_analytics_assert(str_contains($cycleScript, '"reset_disabled" => true'), "Analytics lifecycle script must be disabled for now.");
+super_analytics_assert(!str_contains($cycleScript, "analytics_monthly_snapshots") && !str_contains($cycleScript, "UPDATE analytics_cycles") && !str_contains($cycleScript, "INSERT INTO analytics_cycles"), "Disabled lifecycle script must not snapshot, archive, or create cycles.");
 
 echo "Super Admin categorized analytics tests passed.\n";

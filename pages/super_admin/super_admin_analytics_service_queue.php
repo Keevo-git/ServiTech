@@ -21,7 +21,7 @@ $context = analytics_load_context($pdo, $_GET);
 <body class="admin-analytics-page">
 <?php $adminHeaderVariant = "dashboard"; require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
 <main class="container main-container analytics-page analytics-report-page">
-  <?php analytics_render_report_header("Service Requests & Queue Performance", "Analyze service demand, queue waiting time, service processing time, request trends, and status distribution.", $context); ?>
+  <?php analytics_render_report_header("Service Requests & Queue Performance", "Analyze service demand, queue waiting time, request trends, and status distribution.", $context); ?>
   <?php if (!$context["ready"]): ?>
     <div class="analytics-warning" role="status"><?= analytics_h($context["error"] ?: "Analytics are temporarily unavailable.") ?></div>
   <?php else: ?>

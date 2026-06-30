@@ -200,7 +200,6 @@ function analytics_render_cycle_banner(array $context): void
 {
     $cycle = $context["cycle"] ?? [];
     $warningLevel = (string)($context["warning_level"] ?? "");
-    $daysRemaining = (int)($context["days_remaining"] ?? 0);
     $exportStatus = $context["export_status"] ?? [];
 
     if ($warningLevel === "") {
@@ -209,18 +208,16 @@ function analytics_render_cycle_banner(array $context): void
 
     echo '<section class="analytics-cycle-banner' . ($warningLevel !== "" ? ' analytics-cycle-banner--warning' : '') . '" role="status">';
     echo '<div>';
-    echo '<strong>Current analytics cycle: ' . analytics_h($cycle["start_date"] ?? "-") . ' to ' . analytics_h($cycle["end_date"] ?? "-") . '</strong>';
-    if ($warningLevel !== "") {
-        echo '<p>Analytics for the current monthly cycle will reset soon. Please export the analytics report before the cycle ends to keep a copy of this month\'s results.</p>';
-    } else {
-        echo '<p>This reporting cycle is used for analytics snapshots only. Raw queue and order records are preserved.</p>';
-    }
+    echo '<strong>Analytics export reminder</strong>';
+    echo '<p>You may export the current analytics report anytime to keep a copy of the results.</p>';
     if (!empty($exportStatus["exported"])) {
         echo '<small>Last export: ' . analytics_h(analytics_datetime($exportStatus["exported_at"] ?? "")) . '</small>';
+    } else {
+        echo '<small>Current data range: ' . analytics_h($cycle["start_date"] ?? "-") . ' to ' . analytics_h($cycle["end_date"] ?? "-") . '</small>';
     }
     echo '</div>';
     echo '<div class="analytics-cycle-actions">';
-    echo '<span>' . ($daysRemaining === 0 ? 'Reset day' : analytics_h((string)$daysRemaining) . ' days remaining') . '</span>';
+    echo '<span>Reset disabled</span>';
     echo '<a class="admin-owner-button-secondary" href="' . analytics_report_url("super_admin_analytics_exports.php", $context["filters"] ?? []) . '">Open Export Center</a>';
     echo '</div>';
     echo '</section>';
@@ -285,7 +282,7 @@ function analytics_render_filters(array $context, string $actionPage, array $vis
 
     echo '<div class="analytics-filter-actions">';
     echo '<button class="admin-owner-button" type="submit">Apply Filter</button>';
-    echo '<a class="admin-owner-button-secondary" href="' . admin_url('/pages/super_admin/' . $actionPage) . '">Reset</a>';
+    echo '<a class="admin-owner-button-secondary" href="' . admin_url('/pages/super_admin/' . $actionPage) . '">Clear Filters</a>';
     echo '</div>';
     echo '</form>';
 }
@@ -338,7 +335,7 @@ function analytics_category_definitions(array $context): array
             "icon" => "SQ",
             "title" => "Service Requests & Queue Performance",
             "route" => "super_admin_analytics_service_queue.php",
-            "description" => "Analyze service demand, queue waiting time, service processing time, request trends, and status distribution.",
+            "description" => "Analyze service demand, queue waiting time, request trends, and status distribution.",
             "metrics" => [
                 ["label" => "Total requests", "value" => analytics_number($summary["total_requests"] ?? 0)],
                 ["label" => "Most requested service", "value" => (string)($mostRequested["service_label"] ?? "-")],
@@ -358,13 +355,13 @@ function analytics_category_definitions(array $context): array
         ],
         [
             "icon" => "EX",
-            "title" => "Monthly Analytics Cycle & Export Center",
+            "title" => "Analytics Export Center",
             "route" => "super_admin_analytics_exports.php",
-            "description" => "Manage the current monthly analytics cycle, export reports, view warnings, and access archived analytics.",
+            "description" => "Export current analytics reports, review export history, and keep reporting backups.",
             "metrics" => [
-                ["label" => "Current cycle", "value" => (string)($cycle["cycle_key"] ?? "-")],
-                ["label" => "Days before reset", "value" => $daysRemaining === 0 ? "Reset day" : analytics_number($daysRemaining)],
+                ["label" => "Data range", "value" => (string)($cycle["cycle_key"] ?? "-")],
                 ["label" => "Export status", "value" => !empty($exportStatus["exported"]) ? "Exported" : "Not exported"],
+                ["label" => "Previous exports", "value" => analytics_number(count($analytics["cycle_center"]["export_logs"] ?? []))],
             ],
         ],
     ];
@@ -417,7 +414,6 @@ function analytics_render_service_queue(array $context): void
     analytics_render_metric_grid([
         ["label" => "Total Service Requests", "value" => analytics_number($summary["total_requests"] ?? 0)],
         ["label" => "Average Queue Waiting Time", "value" => analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0)],
-        ["label" => "Average Service Processing Time", "value" => analytics_minutes($summary["avg_service_processing_minutes"] ?? 0)],
         ["label" => "Median Waiting Time", "value" => analytics_minutes($summary["median_queue_waiting_minutes"] ?? 0)],
         ["label" => "Longest Waiting Request", "value" => analytics_h($analytics["longest_waiting_request"]["queue_code"] ?? "-"), "note" => analytics_minutes($analytics["longest_waiting_request"]["queue_waiting_minutes"] ?? null)],
     ]);
@@ -447,7 +443,6 @@ function analytics_render_service_queue(array $context): void
     echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Queue Performance</h2><p>Waiting-time measures used for queueing and service-flow analysis.</p></div><div class="analytics-panel-grid">';
     echo '<article class="analytics-panel"><h3>Waiting Time Highlights</h3><div class="analytics-definition-list">';
     echo '<div><span>Average Queue Waiting Time</span><strong>' . analytics_minutes($summary["avg_queue_waiting_minutes"] ?? 0) . '</strong></div>';
-    echo '<div><span>Average Service Processing Time</span><strong>' . analytics_minutes($summary["avg_service_processing_minutes"] ?? 0) . '</strong></div>';
     echo '<div><span>Longest Waiting Request</span><strong>' . analytics_h($analytics["longest_waiting_request"]["queue_code"] ?? "-") . ' / ' . analytics_minutes($analytics["longest_waiting_request"]["queue_waiting_minutes"] ?? null) . '</strong></div>';
     echo '<div><span>Shortest Waiting Request</span><strong>' . analytics_h($analytics["shortest_waiting_request"]["queue_code"] ?? "-") . ' / ' . analytics_minutes($analytics["shortest_waiting_request"]["queue_waiting_minutes"] ?? null) . '</strong></div>';
     echo '</div></article>';
@@ -483,12 +478,12 @@ function analytics_render_service_queue(array $context): void
     }
     echo '</tbody></table></div></article></section>';
 
-    echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Detailed Records</h2><p>Queue-level timestamps and computed waiting/processing duration.</p></div><article class="analytics-panel"><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer Name</th><th>Service Type</th><th>Current/Final Status</th><th>Created At</th><th>Approved At</th><th>Ongoing At</th><th>Done At</th><th>Queue Waiting Time</th><th>Service Processing Time</th></tr></thead><tbody>';
+    echo '<section class="analytics-section-block"><div class="analytics-section-heading"><h2>Detailed Records</h2><p>Queue-level timestamps and computed waiting duration.</p></div><article class="analytics-panel"><div class="analytics-table-wrap"><table><thead><tr><th>Queue ID</th><th>Customer Name</th><th>Service Type</th><th>Current/Final Status</th><th>Created At</th><th>Approved At</th><th>Ongoing At</th><th>Done At</th><th>Queue Waiting Time</th></tr></thead><tbody>';
     if (empty($analytics["detailed_records"])) {
-        echo '<tr><td colspan="10">No detailed service and queue records found.</td></tr>';
+        echo '<tr><td colspan="9">No detailed service and queue records found.</td></tr>';
     } else {
         foreach ($analytics["detailed_records"] as $row) {
-            echo '<tr><td>' . analytics_h($row["queue_code"] ?? "") . '</td><td>' . analytics_h($row["customer_name"] ?? "") . '</td><td>' . analytics_h($row["service_label"] ?? "") . '</td><td>' . analytics_h($row["status_group"] ?? "") . '</td><td>' . analytics_datetime($row["request_created_at"] ?? "") . '</td><td>' . analytics_datetime($row["approved_at"] ?? "") . '</td><td>' . analytics_datetime($row["ongoing_at"] ?? "") . '</td><td>' . analytics_datetime($row["done_at"] ?? "") . '</td><td>' . analytics_minutes($row["queue_waiting_minutes"] ?? null) . '</td><td>' . analytics_minutes($row["service_processing_minutes"] ?? null) . '</td></tr>';
+            echo '<tr><td>' . analytics_h($row["queue_code"] ?? "") . '</td><td>' . analytics_h($row["customer_name"] ?? "") . '</td><td>' . analytics_h($row["service_label"] ?? "") . '</td><td>' . analytics_h($row["status_group"] ?? "") . '</td><td>' . analytics_datetime($row["request_created_at"] ?? "") . '</td><td>' . analytics_datetime($row["approved_at"] ?? "") . '</td><td>' . analytics_datetime($row["ongoing_at"] ?? "") . '</td><td>' . analytics_datetime($row["done_at"] ?? "") . '</td><td>' . analytics_minutes($row["queue_waiting_minutes"] ?? null) . '</td></tr>';
         }
     }
     echo '</tbody></table></div></article></section>';
@@ -672,13 +667,13 @@ function analytics_render_exports(array $context): void
 {
     $analytics = $context["analytics"];
     $exportStatus = $context["export_status"] ?? [];
+    echo '<section class="analytics-notice-card"><strong>Analytics reset is currently disabled.</strong><p>Export functions remain available for reporting and backup purposes.</p></section>';
     analytics_render_metric_grid([
-        ["label" => "Current Cycle", "value" => analytics_h($context["cycle"]["cycle_key"] ?? "-"), "note" => analytics_h(($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-"))],
-        ["label" => "Days Before Reset", "value" => ((int)($context["days_remaining"] ?? 0) === 0 ? "Reset day" : analytics_number($context["days_remaining"] ?? 0))],
+        ["label" => "Current Data Range", "value" => analytics_h($context["cycle"]["cycle_key"] ?? "-"), "note" => analytics_h(($context["cycle"]["start_date"] ?? "-") . " to " . ($context["cycle"]["end_date"] ?? "-"))],
         ["label" => "Export Status", "value" => !empty($exportStatus["exported"]) ? "Exported" : "Not Exported", "note" => !empty($exportStatus["exported_at"]) ? analytics_datetime($exportStatus["exported_at"]) : "No export logged"],
-        ["label" => "Previous Analytics Cycles", "value" => analytics_number(count($analytics["cycle_center"]["previous_cycles"] ?? []))],
+        ["label" => "Previous Exports", "value" => analytics_number(count($analytics["cycle_center"]["export_logs"] ?? []))],
     ]);
-    echo '<section class="analytics-panel-grid"><article class="analytics-panel"><h2>Previous Analytics Cycles</h2><div class="analytics-table-wrap"><table><thead><tr><th>Cycle</th><th>Date Range</th><th>Status</th><th>Snapshot Created</th></tr></thead><tbody>';
+    echo '<section class="analytics-panel-grid"><article class="analytics-panel"><h2>Archived Analytics Ranges</h2><div class="analytics-table-wrap"><table><thead><tr><th>Range</th><th>Date Range</th><th>Status</th><th>Snapshot</th></tr></thead><tbody>';
     if (empty($analytics["cycle_center"]["previous_cycles"])) {
         echo '<tr><td colspan="4">No previous analytics cycles found.</td></tr>';
     } else {

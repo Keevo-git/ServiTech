@@ -30,7 +30,7 @@ if ($context["ready"] && strtolower(trim((string)($_GET["export"] ?? ""))) === "
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Monthly Analytics Cycle & Export Center | ServiTech</title>
+  <title>Analytics Export Center | ServiTech</title>
   <?= servitech_favicon_link() ?>
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260612header-global-type') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260630-analytics') ?>">
@@ -39,7 +39,7 @@ if ($context["ready"] && strtolower(trim((string)($_GET["export"] ?? ""))) === "
 <body class="admin-analytics-page">
 <?php $adminHeaderVariant = "dashboard"; require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
 <main class="container main-container analytics-page analytics-report-page">
-  <?php analytics_render_report_header("Monthly Analytics Cycle & Export Center", "Manage the current monthly analytics cycle, export reports, view warnings, and access archived analytics.", $context); ?>
+  <?php analytics_render_report_header("Analytics Export Center", "Export current analytics reports, review export history, and keep reporting backups.", $context); ?>
   <?php if (!$context["ready"]): ?>
     <div class="analytics-warning" role="status"><?= analytics_h($context["error"] ?: "Analytics are temporarily unavailable.") ?></div>
   <?php else: ?>
