@@ -624,7 +624,7 @@ function analytics_render_landing_cards(array $context): void
     echo '<section class="analytics-card-grid" aria-label="Analytics categories">';
     foreach (analytics_category_definitions($context) as $card) {
         echo '<article class="analytics-report-card">';
-        echo '<div class="analytics-report-card__top"><span class="analytics-card-icon" aria-hidden="true">' . analytics_h($card["icon"]) . '</span><div><h2>' . analytics_h($card["title"]) . '</h2><p>' . analytics_h($card["description"]) . '</p></div></div>';
+        echo '<div class="analytics-report-card__top"><span class="analytics-card-icon" aria-hidden="true"><img src="' . admin_url('/assets/images/SERVITECH_ANALYTICS.png') . '" alt=""></span><div><h2>' . analytics_h($card["title"]) . '</h2><p>' . analytics_h($card["description"]) . '</p></div></div>';
         echo '<dl class="analytics-card-metrics">';
         foreach ($card["metrics"] as $metric) {
             echo '<div><dt>' . analytics_h($metric["label"]) . '</dt><dd>' . analytics_h($metric["value"]) . '</dd></div>';

@@ -47,6 +47,7 @@ super_analytics_assert(str_contains($landing, "analytics_render_landing_cards"),
 super_analytics_assert(!str_contains($landing, "Status Transition History") && !str_contains($landing, "Requests by Service Type"), "Landing page must not stack full report details.");
 super_analytics_assert(!str_contains($landing, "analytics-loading-shell"), "Landing page must not render skeleton/loading placeholder rows.");
 super_analytics_assert(str_contains($views, "Open Report") && str_contains($views, "analytics-report-card"), "Category cards must use Open Report buttons and professional report-card markup.");
+super_analytics_assert(str_contains($views, "SERVITECH_ANALYTICS.png") && str_contains($views, '<span class="analytics-card-icon" aria-hidden="true"><img'), "Category cards must use the shared analytics image icon instead of text initials.");
 super_analytics_assert(str_contains($views, "Service Requests & Queue Performance"), "Service request and queue analytics must be combined into one report category.");
 super_analytics_assert(!str_contains($views, "Service Request Analytics\"") && !str_contains($views, "Queue and Waiting Time Analytics\""), "Old separate service/queue category titles must not remain in the category list.");
 super_analytics_assert(!str_contains($views, '"Average processing time"'), "Service and queue landing card must not preview Average Processing Time.");
@@ -131,6 +132,7 @@ super_analytics_assert(str_contains($views, "Status Transition History Raw Data"
 super_analytics_assert(str_contains($css, ".analytics-card-grid") && str_contains($css, "grid-template-columns: repeat(3"), "Landing page must use a 3-column desktop category card grid.");
 super_analytics_assert(str_contains($css, "@media (max-width: 880px)") && str_contains($css, "grid-template-columns: repeat(2"), "Landing page must use two category columns on tablet.");
 super_analytics_assert(str_contains($css, ".analytics-report-card") && str_contains($css, ".analytics-open-report"), "CSS must style professional category cards and Open Report buttons.");
+super_analytics_assert(str_contains($css, ".analytics-card-icon img") && str_contains($css, "object-fit: contain"), "CSS must center and scale category image icons inside the blue square.");
 super_analytics_assert(str_contains($css, ".analytics-metric-card") && str_contains($css, ".analytics-filter-bar"), "CSS must style metric cards and filter bars.");
 super_analytics_assert(str_contains($views, "analytics-report-actions") && str_contains($css, "flex-direction: column"), "Report header must stack the date badge above the Back to Analytics button.");
 super_analytics_assert(str_contains($views, "analytics-operations-overview") && str_contains($css, ".analytics-operations-overview"), "Operations report must use an executive summary layout.");
