@@ -595,6 +595,16 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
         LIMIT 500
     ", $params);
 
+    $detailedRecords = super_analytics_fetch_all($pdo, "{$cte}
+        SELECT queue_code, customer_name, service_label, status_group,
+               request_created_at, approved_at, ongoing_at, done_at,
+               ROUND(queue_waiting_minutes::numeric, 2) AS queue_waiting_minutes,
+               ROUND(service_processing_minutes::numeric, 2) AS service_processing_minutes
+        FROM analytics_base
+        ORDER BY request_created_at DESC NULLS LAST, queue_code ASC
+        LIMIT 100
+    ", $params);
+
     $staffAnalytics = ["available" => false, "rows" => [], "message" => "Staff workload analytics will appear once staff handling data is available."];
     if (super_analytics_has_columns($pdo, "queue_status_events", ["updated_by", "updated_by_name"])) {
         $staffRows = super_analytics_fetch_all($pdo, "{$cte}
@@ -807,6 +817,7 @@ function super_analytics_fetch(PDO $pdo, array $filters): array
         "workflow_routes" => $workflowRoutes,
         "incomplete_timestamps" => $incompleteTimestamps,
         "history" => $history,
+        "detailed_records" => $detailedRecords,
         "staff" => $staffAnalytics,
         "notifications" => $notificationAnalytics,
         "corrections" => $correctionAnalytics,
