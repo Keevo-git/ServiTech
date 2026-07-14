@@ -799,7 +799,7 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin.css?v=20260626-roles') ?>">
   <link rel="stylesheet" href="<?= admin_url('/pages/admin/admin_owner.css?v=20260627-employee-modal-stack') ?>">
 </head>
-<body class="admin-employee-accounts<?= $openCreateModal || $openEmployeeDetailsModalId > 0 ? " admin-owner-modal-open" : "" ?>">
+<body class="admin-employee-accounts<?= $openCreateModal || $openEmployeeDetailsModalId > 0 ? " admin-owner-modal-open" : "" ?>" data-page="employee-accounts">
 <?php require __DIR__ . "/../admin/_includes/admin_header.php"; ?>
 
 <main class="admin-owner-shell">
@@ -1247,11 +1247,14 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
       if (!target) return false;
       if (target.isContentEditable) return true;
       if (typeof target.closest !== "function") return false;
-      return !!target.closest("input, textarea, select, [contenteditable='true']");
+      return !!target.closest("input, textarea, select, [contenteditable]");
     }
 
     function openCreateModal() {
       if (!modal) return;
+      if (!modal.hidden) {
+        return;
+      }
       lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       modal.hidden = false;
       modal.setAttribute("aria-hidden", "false");
@@ -1439,7 +1442,16 @@ unset($_SESSION["employee_account_detail_modal_edit"]);
         closeEmployeeModal(openDetailModal);
         return;
       }
-      if (event.ctrlKey && event.altKey && !event.shiftKey && String(event.key).toLowerCase() === "e") {
+      if (
+        document.body.getAttribute("data-page") === "employee-accounts"
+        && event.ctrlKey
+        && event.altKey
+        && !event.shiftKey
+        && !event.metaKey
+        && !event.repeat
+        && !(event.getModifierState && event.getModifierState("AltGraph"))
+        && String(event.key || "").toLowerCase() === "e"
+      ) {
         if (isTypingTarget(event.target)) return;
         event.preventDefault();
         openCreateModal();

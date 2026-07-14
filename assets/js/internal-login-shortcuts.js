@@ -3,10 +3,15 @@
 
   var superAdminLoginPath = "/auth/super_admin_login.php";
   var adminLoginPath = "/auth/admin_login.php";
+  var page = document.body ? document.body.getAttribute("data-page") : "";
+
+  if (page !== "public-login") {
+    return;
+  }
 
   function isEditableTarget(target) {
     if (!target || !target.closest) return false;
-    return Boolean(target.closest("input, textarea, select, button, [contenteditable='true'], [contenteditable='']"));
+    return Boolean(target.isContentEditable || target.closest("input, textarea, select, button, [contenteditable]"));
   }
 
   function goTo(path) {
@@ -15,7 +20,15 @@
   }
 
   document.addEventListener("keydown", function (event) {
-    if (!event.ctrlKey || !event.altKey || event.metaKey || event.shiftKey || event.defaultPrevented) {
+    if (
+      event.defaultPrevented
+      || event.repeat
+      || event.metaKey
+      || event.shiftKey
+      || !event.ctrlKey
+      || !event.altKey
+      || (event.getModifierState && event.getModifierState("AltGraph"))
+    ) {
       return;
     }
     if (isEditableTarget(event.target)) {

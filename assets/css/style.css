@@ -1162,6 +1162,16 @@ html:has(body.modal-open) {
   outline-offset: 3px;
 }
 
+.footer-legal-links .footer-internal-access-link {
+  font-weight: 600;
+  opacity: 0.88;
+}
+
+.footer-legal-links .footer-internal-access-link:hover,
+.footer-legal-links .footer-internal-access-link:focus-visible {
+  opacity: 1;
+}
+
 .footer-legal-links span {
   display: inline-block;
   width: 1px;

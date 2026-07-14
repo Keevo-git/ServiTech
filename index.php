@@ -90,7 +90,7 @@ try {
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/style.css?v=20260623-landing-modal-close'), ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(servitech_url('/assets/css/landing-store-details.css?v=20260615'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
-<body class="has-fixed-site-header landing-page">
+<body class="has-fixed-site-header landing-page"<?= !$is_logged_in ? ' data-page="public-login"' : '' ?>>
 
   <!-- NAVBAR -->
   <header class="navbar has-nav-menu site-header public-header">

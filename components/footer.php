@@ -41,6 +41,10 @@ $footerEmail = servitech_contact_email();
     <a href="/terms-of-service.php">Terms of Service</a>
     <span aria-hidden="true">|</span>
     <a href="<?= htmlspecialchars(servitech_url('/privacy-policy.php#privacy-settings'), ENT_QUOTES, 'UTF-8') ?>" class="footer-privacy-settings-link" data-privacy-settings-open>Cookie Preferences</a>
+    <span aria-hidden="true">|</span>
+    <a href="/auth/admin_login.php" class="footer-internal-access-link">Staff Access</a>
+    <span aria-hidden="true">|</span>
+    <a href="/auth/super_admin_login.php" class="footer-internal-access-link">Owner Access</a>
   </div>
 
   <p class="footer-bottom">&copy; 2026 ServiTech: JC Store</p>

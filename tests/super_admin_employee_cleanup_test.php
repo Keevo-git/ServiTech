@@ -108,7 +108,10 @@ super_admin_cleanup_assert(!str_contains($employeeAccounts, "data-open-create-em
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "Ctrl + Alt + E"), "Employee creation shortcut combination must not be visible in page source.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "Shortcut:"), "Employee creation shortcut helper text must not render.");
 super_admin_cleanup_assert(!str_contains($employeeAccounts, "employee-account-shortcut-chip"), "Employee creation shortcut badge must not render.");
-super_admin_cleanup_assert(str_contains($employeeAccounts, "event.ctrlKey && event.altKey"), "Employee creation shortcut must be wired in page JavaScript.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, 'data-page="employee-accounts"'), "Employee creation shortcut must be scoped to the Employee Accounts page.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, 'document.body.getAttribute("data-page") === "employee-accounts"'), "Employee creation shortcut must verify its page scope before opening the modal.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "event.ctrlKey") && str_contains($employeeAccounts, "event.altKey"), "Employee creation shortcut must be wired in page JavaScript.");
+super_admin_cleanup_assert(str_contains($employeeAccounts, "event.repeat"), "Employee creation shortcut must ignore held-key repeats.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "isTypingTarget"), "Employee creation shortcut must ignore typing targets.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "Search by name or email"), "Employee Accounts page must include name/email search.");
 super_admin_cleanup_assert(str_contains($employeeAccounts, "data-employee-account-search"), "Employee search must be wired for client-side filtering.");

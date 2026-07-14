@@ -25,7 +25,7 @@ unset($_SESSION["login_remember_retry"]);
   <link rel="stylesheet" href="<?= auth_url("/assets/css/style.css?v=20260625-auth-verification") ?>">
   <?php render_auth_toast_assets(); ?>
 </head>
-<body class="auth-page auth-page--login">
+<body class="auth-page auth-page--login" data-page="public-login">
 
 <?php render_auth_header("login-header-menu", "/auth/regis.php", "Register"); ?>
 
